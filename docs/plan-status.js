@@ -16,22 +16,23 @@ window.EMMET_STATUS = {
     "2B": { status: "todo" },
     "3A": { status: "todo" },
     "3B": { status: "todo" },
+    "3C": { status: "todo" },
     "4A": { status: "todo" },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
+    "4D": { status: "todo" },
+    "4E": { status: "todo" },
     "5A": { status: "todo" },
     "5B": { status: "todo" },
     "6A": { status: "todo" },
     "6B": { status: "todo" },
     "7A": { status: "todo" },
     "7B": { status: "todo" },
-    "8A": { status: "backlog" },
-    "8B": { status: "backlog" },
-    "8C": { status: "backlog" },
     "8D": { status: "backlog" },
     "8E": { status: "backlog" },
     "8F": { status: "backlog" },
-    "8G": { status: "backlog" }
+    "8G": { status: "backlog" },
+    "8H": { status: "backlog" }
   },
   human: {
     "H-01": { status: "todo" },
@@ -53,7 +54,10 @@ window.EMMET_STATUS = {
     "H-17": { status: "todo" },
     "H-18": { status: "todo" },
     "H-19": { status: "todo" },
-    "H-20": { status: "todo" }
+    "H-20": { status: "todo" },
+    "H-21": { status: "todo" },
+    "H-22": { status: "todo" },
+    "H-23": { status: "todo" }
   },
   blockers: [],
   gates: {
