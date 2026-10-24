@@ -96,7 +96,6 @@
   .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .card { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: var(--panel); }
   .card h4 { margin-top: 4px; }
-  .wire { font-family: var(--mono); font-size: 12px; line-height: 1.38; white-space: pre; background: var(--code); padding: 16px; border-radius: 10px; overflow: auto; }
   .flow { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 16px; margin: 12px 0 8px; overflow-x: auto; }
   .flow svg { display: block; width: 100%; min-width: 760px; height: auto; }
   .flow .bx { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
@@ -115,6 +114,18 @@
   .flow .ah.back { fill: var(--accent); }
   .flow .lbl.back { fill: var(--accent); font-family: inherit; font-weight: 600; font-size: 12.5px; }
   .flow .pad { fill: var(--panel); }
+  .flow .bx.app { fill: var(--soft); }
+  .flow .bx.zone { fill: none; stroke-dasharray: 5 4; }
+  .flow .bx.store { fill: var(--info-soft); stroke: transparent; }
+  .flow .k.mut { fill: var(--muted); }
+  .flow .ok { fill: var(--ok); }
+  .flow .tab { fill: var(--muted); font-size: 13px; }
+  .flow .tab.on { fill: var(--fg); font-weight: 700; }
+  .flow .hl { stroke: var(--accent); stroke-width: 2.5; }
+  .flow .viewport { fill: var(--soft); }
+  .flow .track { stroke: var(--line); stroke-width: 4; stroke-linecap: round; }
+  .flow .knob { fill: var(--accent); }
+  .flow .sep { stroke: var(--line); stroke-width: 1.5; }
   .small { font-size: 13px; }
   .muted { color: var(--muted); }
   ol.steps li { margin: 6px 0; }
@@ -266,8 +277,8 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
   <title id="flow-title">The Emmet loop</title>
   <desc id="flow-desc">You type a request to your agent, or drag a slider. The agent writes model.py; sliders write params.json. emmet run builds model.mpd, emmet check produces findings, and the findings plus a render go back to the agent. model.mpd feeds the viewer, which feeds export.</desc>
   <defs>
-    <marker id="flow-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
-    <marker id="flow-ah-back" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah back" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="flow-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="flow-ah-back" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah back" d="M0,0 L10,5 L0,10 z"/></marker>
   </defs>
 
   <!-- Inputs -->
@@ -441,29 +452,100 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <!-- ============================================================ 04 -->
 <section id="s04">
 <h2><span class="num">04</span>System architecture</h2>
-<div class="wire">┌──────────────────────────── Emmet.app / Emmet.exe  (Tauri 2) ────────────────────────────────┐
-│ React UI in the system webview                                                                │
-│ ┌ Project tree ┐ ┌────────── Viewer (packages/viewer, three.js) ──────────┐ ┌─ Chat pane ────┐ │
-│ │ model, subs, │ │ instanced parts · edges · highlight · steps · render   │ │ agent events,  │ │
-│ │ parts, checks│ │ camera never auto-moves                                │ │ tool cards,    │ │
-│ └──────────────┘ └────────────────────────────────────────────────────────┘ │ approvals      │ │
-│ Drawers: Parameters · Checks · Parts list · Steps            Status bar     └────────────────┘ │
-│        ▲ typed commands + events (tauri-specta generated TS)                                   │
-│ Rust host (apps/desktop/src-tauri): project watcher · run queue · agent sessions · emmet-bus   │
-└───────┬──────────────────────────────┬──────────────────────────────────────┬─────────────────┘
-        │ spawns                       │ spawns, one per chat session         │ local socket
-        ▼                              ▼                                      │ (ephemeral UI)
-  emmet CLI (sidecar)        claude -p --input-format stream-json …           │
-  run · check · bom · render   or  codex app-server -c mcp_servers.emmet=…    │
-        │                              │ user's own login · spawns stdio MCP  │
-        │                              ▼                                      │
-        │                        emmet mcp ─────────────────────── highlight/render ──┘
-        ▼                              │  (same crates as the CLI)
-  uv-managed Python 3.13 ─ emmet_dsl ─ model.py ─▶ build/model.mpd + manifest.json
-        ▼
-  emmet-core: LDraw parse/write · parts index (SQLite FTS5) · connections · validator · BOM · steps
-        ▼
-  Project folder (source of truth)         App data: LDraw library · parts.sqlite · Rebrickable CSVs · Python</div>
+<div class="flow">
+<svg viewBox="0 0 1140 800" role="img" aria-labelledby="arch-title arch-desc">
+  <title id="arch-title">Emmet system architecture</title>
+  <desc id="arch-desc">The Tauri app holds the React UI (project tree, viewer, chat pane, drawers) and the Rust host, linked by typed commands and events. The host spawns the emmet CLI sidecar and one agent session per chat. The CLI runs model.py in uv-managed Python. The agent spawns emmet mcp, which talks back to the host over a local socket. The CLI and emmet mcp share emmet-core, which reads and writes the project folder and app data.</desc>
+
+  <!-- The app -->
+  <rect class="bx app" x="20" y="10" width="1100" height="296" rx="14"/>
+  <text class="t" x="40" y="38">Emmet.app / Emmet.exe<tspan class="s" dx="10">Tauri 2</tspan></text>
+
+  <rect class="bx zone" x="40" y="52" width="1060" height="154" rx="10"/>
+  <text class="k mut" x="56" y="72">REACT UI IN THE SYSTEM WEBVIEW</text>
+
+  <rect class="bx" x="56" y="82" width="200" height="80" rx="8"/>
+  <text class="t" x="70" y="106">Project tree</text>
+  <text class="s" x="70" y="126">Model, submodels,</text>
+  <text class="s" x="70" y="144">parts, checks</text>
+
+  <rect class="bx" x="272" y="82" width="580" height="80" rx="8"/>
+  <text class="t" x="286" y="106">Viewer<tspan class="m" dx="10">packages/viewer · three.js</tspan></text>
+  <text class="s" x="286" y="126">Instanced parts · edges · highlight · steps · render</text>
+  <text class="s" x="286" y="144">The camera never moves on its own</text>
+
+  <rect class="bx" x="868" y="82" width="216" height="80" rx="8"/>
+  <text class="t" x="882" y="106">Chat pane</text>
+  <text class="s" x="882" y="126">Agent events, tool cards,</text>
+  <text class="s" x="882" y="144">approvals</text>
+
+  <rect class="bx" x="56" y="170" width="1028" height="26" rx="6"/>
+  <text class="s" x="70" y="188">Drawers: Parameters · Checks · Parts list · Steps</text>
+  <text class="s" x="1070" y="188" style="text-anchor: end">Status bar</text>
+
+  <line class="ln" x1="570" y1="207" x2="570" y2="235" marker-start="url(#flow-ah)" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="584" y="226" style="text-anchor: start">typed commands + events (tauri-specta generated TS)</text>
+
+  <rect class="bx" x="40" y="236" width="1060" height="54" rx="8"/>
+  <text class="t" x="56" y="258">Rust host<tspan class="m" dx="10">apps/desktop/src-tauri</tspan></text>
+  <text class="s" x="56" y="278">Project watcher · run queue · agent sessions · emmet-bus</text>
+
+  <!-- Processes the host starts -->
+  <line class="ln" x1="445" y1="290" x2="445" y2="355" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="455" y="338" style="text-anchor: start">spawns</text>
+  <line class="ln" x1="770" y1="290" x2="770" y2="355" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="780" y="338" style="text-anchor: start">spawns, one per chat</text>
+
+  <rect class="bx" x="20" y="356" width="250" height="100" rx="10"/>
+  <text class="t" x="34" y="382">Python 3.13<tspan class="s" dx="8">managed by uv</tspan></text>
+  <text class="s" x="34" y="402">Runs model.py with emmet_dsl</text>
+  <text class="m" x="34" y="424">→ build/model.mpd</text>
+  <text class="m" x="34" y="440">→ build/manifest.json</text>
+
+  <rect class="bx" x="320" y="356" width="250" height="100" rx="10"/>
+  <text class="t" x="334" y="382">emmet CLI<tspan class="s" dx="8">sidecar</tspan></text>
+  <text class="m" x="334" y="404">run · check · bom · render</text>
+
+  <line class="ln" x1="320" y1="406" x2="271" y2="406" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="295" y="397">runs</text>
+
+  <rect class="bx agent" x="620" y="356" width="300" height="100" rx="10"/>
+  <text class="t" x="634" y="382">Agent session</text>
+  <text class="s" x="634" y="402">Claude Code or Codex, your own login</text>
+  <text class="m" x="634" y="424">claude -p --input-format stream-json</text>
+  <text class="m" x="634" y="440">codex app-server -c mcp_servers.emmet=…</text>
+
+  <line class="ln" x1="770" y1="456" x2="770" y2="505" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="780" y="486" style="text-anchor: start">spawns over stdio</text>
+
+  <rect class="bx" x="620" y="506" width="300" height="60" rx="10"/>
+  <text class="t" x="634" y="530">emmet mcp</text>
+  <text class="s" x="634" y="550">MCP server, same crates as the CLI</text>
+
+  <!-- Local socket back to the host -->
+  <path class="ln" d="M920 536 H990 V291" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="1002" y="410" style="text-anchor: start">local socket</text>
+  <text class="s" x="1002" y="430">highlight, render</text>
+  <text class="s" x="1002" y="448">(ephemeral UI)</text>
+
+  <!-- Shared core -->
+  <line class="ln" x1="445" y1="456" x2="445" y2="615" marker-end="url(#flow-ah)"/>
+  <line class="ln" x1="770" y1="566" x2="770" y2="615" marker-end="url(#flow-ah)"/>
+  <rect class="bx" x="320" y="616" width="600" height="60" rx="10"/>
+  <text class="t" x="334" y="640">emmet-core</text>
+  <text class="s" x="334" y="660">LDraw parse/write · parts index (SQLite FTS5) · connections · validator · BOM · steps</text>
+
+  <!-- Storage -->
+  <line class="ln" x1="445" y1="676" x2="445" y2="725" marker-end="url(#flow-ah)"/>
+  <line class="ln" x1="800" y1="676" x2="800" y2="725" marker-end="url(#flow-ah)"/>
+  <rect class="bx store" x="20" y="726" width="520" height="60" rx="10"/>
+  <text class="t" x="34" y="750">Project folder<tspan class="s" dx="8">source of truth</tspan></text>
+  <text class="s" x="34" y="770">model.py · params.json · CARD.md · build/</text>
+  <rect class="bx store" x="580" y="726" width="540" height="60" rx="10"/>
+  <text class="t" x="594" y="750">App data</text>
+  <text class="s" x="594" y="770">LDraw library · parts.sqlite · Rebrickable CSVs · Python</text>
+</svg>
+</div>
 
 <h3>Flows</h3>
 <div class="grid2">
@@ -966,22 +1048,96 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <p class="lede">The bar is nurb: calm, fast, obvious, and the 3D model is always the hero. The detailed design comes out of Phase 2 (three directions, Barry picks, then frozen). This section is the brief those directions answer.</p>
 
 <h3>Layout brief</h3>
-<div class="wire">┌───────────────────────────────────────────────────────────────────────────────────────────┐
-│ ● ● ●  Cottage ▾                         ⟳ Built 0.3s · 118 parts · ✓ clean       Claude ▾   │
-├────────────┬─────────────────────────────────────────────────────────┬────────────────────┤
-│ PROJECT    │                                                         │ Chat               │
-│ ▸ Cottage  │                                                         │                    │
-│   ▸ Walls  │                    3D viewer                            │  you: add a        │
-│   ▸ Roof   │           (iso default · orbit · pick)                  │  chimney           │
-│   Chimney  │                                                         │  ┌ search_parts ─┐ │
-│ PARTS 118  │                                                         │  │ "1x2 brick" 5 │ │
-│  3001 ×24  │                                                         │  └───────────────┘ │
-│  3004 ×40  │   [iso][front][top]  ◀ step 7/12 ▶   ⤢ frame  ⧉ shot   │  ┌ run_model ────┐ │
-│ CHECKS ✓   │                                                         │  │ 118 parts ✓   │ │
-├────────────┴─────────────────────────────────────────────────────────┤  └───────────────┘ │
-│ Parameters │ Checks │ Parts list │ Steps                       ▾      │ [ message… ]  ⏎    │
-│ width ━━━━━━●━━━━ 8   depth ━━━●━━━━ 6   wall color [Tan ▾]  ☑ chimney│                    │
-└──────────────────────────────────────────────────────────────────────┴────────────────────┘</div>
+<div class="flow">
+<svg viewBox="0 0 1140 600" role="img" aria-labelledby="layout-title layout-desc">
+  <title id="layout-title">Emmet window layout</title>
+  <desc id="layout-desc">A title bar with the project name, build status, and agent picker. Below it, a project tree on the left, the 3D viewer in the center with a view toolbar, and the chat pane on the right at full height. A drawer under the tree and viewer holds the Parameters, Checks, Parts list, and Steps tabs.</desc>
+
+  <rect class="bx" x="20" y="10" width="1100" height="580" rx="12"/>
+
+  <!-- Title bar -->
+  <circle cx="40" cy="30" r="6" fill="#ff5f57"/><circle cx="58" cy="30" r="6" fill="#febc2e"/><circle cx="76" cy="30" r="6" fill="#28c840"/>
+  <text class="t" x="100" y="35">Cottage ▾</text>
+  <text class="s" x="570" y="35" style="text-anchor: middle">Built in 0.3 s · 118 parts · <tspan class="ok">✓ clean</tspan></text>
+  <text class="t" x="1100" y="35" style="text-anchor: end">Claude ▾</text>
+  <line class="sep" x1="20" y1="50" x2="1120" y2="50"/>
+
+  <!-- Project tree -->
+  <line class="sep" x1="220" y1="50" x2="220" y2="440"/>
+  <text class="k mut" x="36" y="78">PROJECT</text>
+  <text class="q" x="36" y="100">▾ Cottage</text>
+  <text class="q" x="52" y="120">▸ Walls</text>
+  <text class="q" x="52" y="140">▸ Roof</text>
+  <text class="q" x="66" y="160">Chimney</text>
+  <text class="k mut" x="36" y="196">PARTS · 118</text>
+  <text class="m" x="36" y="216">3001 × 24</text>
+  <text class="m" x="36" y="232">3004 × 40</text>
+  <text class="m" x="36" y="248">…</text>
+  <text class="k mut" x="36" y="284">CHECKS</text>
+  <text class="s ok" x="36" y="304">✓ No issues</text>
+
+  <!-- Viewer -->
+  <rect class="viewport" x="221" y="51" width="628" height="388"/>
+  <text class="t" x="535" y="210" style="text-anchor: middle; font-size: 20px">3D viewer</text>
+  <text class="s" x="535" y="234" style="text-anchor: middle">Iso view by default · orbit · pick</text>
+  <rect class="bx" x="336" y="392" width="402" height="32" rx="16"/>
+  <text class="tab on" x="350" y="413">Iso</text>
+  <text class="tab" x="384" y="413">Front</text>
+  <text class="tab" x="431" y="413">Top</text>
+  <line class="sep" x1="470" y1="400" x2="470" y2="416"/>
+  <text class="tab" x="484" y="413">◀ Step 7/12 ▶</text>
+  <line class="sep" x1="588" y1="400" x2="588" y2="416"/>
+  <text class="tab" x="602" y="413">Frame</text>
+  <text class="tab" x="654" y="413">Screenshot</text>
+
+  <!-- Chat pane -->
+  <line class="sep" x1="850" y1="50" x2="850" y2="590"/>
+  <text class="t" x="866" y="78">Chat</text>
+  <rect class="bx agent" x="972" y="94" width="132" height="30" rx="10"/>
+  <text class="q" x="986" y="114">add a chimney</text>
+  <rect class="bx" x="866" y="138" width="238" height="48" rx="8"/>
+  <text class="lbl" x="880" y="158" style="text-anchor: start">search_parts</text>
+  <text class="s" x="880" y="176">“1x2 brick” · 5 results</text>
+  <rect class="bx" x="866" y="196" width="238" height="48" rx="8"/>
+  <text class="lbl" x="880" y="216" style="text-anchor: start">run_model</text>
+  <text class="s" x="880" y="234">118 parts · <tspan class="ok">✓ clean</tspan></text>
+  <text class="q" x="866" y="272">Added a 2×2 chimney on the</text>
+  <text class="q" x="866" y="290">back of the roof.</text>
+  <rect class="bx" x="866" y="544" width="238" height="32" rx="8"/>
+  <text class="s" x="880" y="565">Message…</text>
+  <text class="s" x="1090" y="565" style="text-anchor: end">⏎</text>
+
+  <!-- Bottom drawer -->
+  <line class="sep" x1="20" y1="440" x2="850" y2="440"/>
+  <text class="tab on" x="40" y="468">Parameters</text>
+  <text class="tab" x="138" y="468">Checks</text>
+  <text class="tab" x="206" y="468">Parts list</text>
+  <text class="tab" x="290" y="468">Steps</text>
+  <text class="tab" x="830" y="468" style="text-anchor: end">▾</text>
+  <line class="hl" x1="40" y1="480" x2="112" y2="480"/>
+  <line class="sep" x1="20" y1="484" x2="850" y2="484"/>
+
+  <text class="s" x="40" y="534">Width</text>
+  <line class="track" x1="120" y1="530" x2="230" y2="530"/><circle class="knob" cx="205" cy="530" r="7"/>
+  <text class="q" x="244" y="534">8</text>
+  <text class="s" x="290" y="534">Depth</text>
+  <line class="track" x1="370" y1="530" x2="470" y2="530"/><circle class="knob" cx="410" cy="530" r="7"/>
+  <text class="q" x="484" y="534">6</text>
+  <text class="s" x="530" y="534">Wall color</text>
+  <rect x="600" y="521" width="16" height="16" rx="3" fill="#d6c08f"/>
+  <text class="q" x="622" y="534">Tan ▾</text>
+  <rect class="knob" x="700" y="522" width="14" height="14" rx="3"/>
+  <path d="M703 529 l3 3 l5 -6" fill="none" stroke="#fff" stroke-width="2"/>
+  <text class="q" x="722" y="534">Chimney</text>
+
+  <text class="s" x="40" y="572">Wall height</text>
+  <line class="track" x1="120" y1="568" x2="230" y2="568"/><circle class="knob" cx="152" cy="568" r="7"/>
+  <text class="q" x="244" y="572">5</text>
+  <text class="s" x="290" y="572">Roof color</text>
+  <rect x="370" y="559" width="16" height="16" rx="3" fill="#c91a09"/>
+  <text class="q" x="392" y="572">Red ▾</text>
+</svg>
+</div>
 <ul>
 <li><b>Left: project tree</b> with the model, submodels, and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
 <li><b>Center: viewer</b> with a toolbar for views, the step scrubber, frame, screenshot, and quality. Hovering shows the part name and color and the line in <code>model.py</code>.</li>
