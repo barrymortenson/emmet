@@ -6,7 +6,7 @@
 window.EMMET_STATUS = {
   updated: "2026-10-24",
   sessions: {
-    "0A": { status: "todo" },
+    "0A": { status: "in-progress", branch: "bmortenson/s0a-foundation", started: "2026-10-24" },
     "0B": { status: "todo" },
     "1A": { status: "todo" },
     "1B": { status: "todo" },
