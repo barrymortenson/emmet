@@ -447,7 +447,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-22</td><td>Parts search</td><td>SQLite FTS5 plus a dimension parser ("1 x 2 plate with clip") and a synonym table. No embeddings in the MVP: agents rephrase well, and lexical search is fast and explainable.</td><td><span class="pill rec">Proposed</span></td></tr>
 <tr><td class="id">D-23</td><td>Viewer scene</td><td>The viewer builds its own scene from Emmet's placement list. It uses three.js <code>LDrawLoader</code> only to load each unique part once, then instances, which makes diff updates, highlight, steps, and performance possible.</td><td><span class="pill rec">Proposed</span> confirm in 1B</td></tr>
 <tr><td class="id">D-24</td><td>Agent renders</td><td>Renders for the agent go through the same viewer code: the running app when it's open, otherwise a hidden headless render mode of the app. There is no second renderer.</td><td><span class="pill rec">Proposed</span> confirm in 0B (ADR 0005)</td></tr>
-<tr><td class="id">D-25</td><td>Rebrickable</td><td>Part, color, and element availability come from Rebrickable's CSV downloads, cached in app data and refreshed monthly. A user API key is needed only for later inventory features.</td><td><span class="pill rec">Proposed</span> confirm in 0B (ADR 0003/0004)</td></tr>
+<tr><td class="id">D-25</td><td>Rebrickable data</td><td>Part, color, element, and availability data come from Rebrickable's catalog downloads ("Free for personal and commercial use, provided you acknowledge Rebrickable as your data source"). Emmet's CI fetches the archive once a week, builds a small signed <b>parts data pack</b> (a derived SQLite file, about 6 MB compressed), and publishes it through <code>emmet-releases</code>. The app updates the pack on its own schedule, and every installer bundles the current one. User apps never contact Rebrickable. Rebrickable is credited wherever its data appears. A user API key is needed only for later inventory features (8D).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-26</td><td>Agent config</td><td>Emmet never writes to <code>~/.claude</code>, <code>~/.codex</code>, or any user-level agent config. All MCP servers, instructions, and permissions are passed per session through flags and <code>-c</code> overrides.</td><td><span class="pill rec">Proposed</span> (from the brief's "user never edits config")</td></tr>
 <tr><td class="id">D-27</td><td>Workspace trust</td><td>A project folder not created on this machine opens read-only (its <code>.mpd</code> is viewable) until the user trusts it, because <code>model.py</code> is code.</td><td><span class="pill rec">Proposed</span></td></tr>
 <tr><td class="id">D-28</td><td>Telemetry</td><td>None. Logs stay local, and "Copy diagnostics" builds a scrubbed bundle for bug reports when the user asks for one.</td><td><span class="pill rec">Proposed</span></td></tr>
@@ -555,7 +555,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
   <text class="s" x="34" y="770">model.py · params.json · CARD.md · build/</text>
   <rect class="bx store" x="580" y="726" width="540" height="60" rx="10"/>
   <text class="t" x="594" y="750">App data</text>
-  <text class="s" x="594" y="770">LDraw library · parts.sqlite · Rebrickable CSVs · Python</text>
+  <text class="s" x="594" y="770">LDraw library · parts.sqlite · parts data pack · Python</text>
 </svg>
 </div>
 
@@ -588,7 +588,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <li><b>Webview → host.</b> The UI has no filesystem, shell, or network access of its own. It calls typed commands that validate every path against the open project root.</li>
 <li><b>Host → agent CLI.</b> The CLI is the user's own, logged in with the user's account, and runs with Emmet's permission policy (section 10). Emmet never sees tokens.</li>
 <li><b>Host → Python.</b> <code>model.py</code> is code. It runs in a subprocess (<code>python -I</code>, scrubbed env, project cwd, timeout, output size cap), only for trusted projects (D-27).</li>
-<li><b>Network.</b> Emmet itself downloads only the LDraw library, the Rebrickable CSVs, the uv-managed Python, and updates, all over HTTPS with pinned checksums where the source allows. The agent CLIs make their own traffic.</li>
+<li><b>Network.</b> Emmet itself downloads only the LDraw library, the parts data pack (from <code>emmet-releases</code>, never from Rebrickable directly), the uv-managed Python, and updates, all over HTTPS with pinned checksums where the source allows. The agent CLIs make their own traffic.</li>
 </ul>
 </section>
 
@@ -671,7 +671,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 ├─ AGENTS.md         short pointer for terminal agents ("run emmet rules first"); CLAUDE.md symlink or copy on Windows
 ├─ build/            DERIVED, never hand-edited, safe to delete
 │  ├─ model.mpd          LDraw multi-part document with !EMMET id/source meta lines
-│  ├─ manifest.json      inputs hash, emmet + library versions, part count, timings, generation counter
+│  ├─ manifest.json      inputs hash, emmet + library + parts data versions, part count, timings, generation counter
 │  ├─ placements.json    flat list for the viewer: id, part, color, matrix, step, submodel path
 │  ├─ validation.json    findings (section 11)
 │  ├─ bom.json · steps.json
@@ -685,7 +685,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <li><b>Sources:</b> <code>model.py</code>, <code>models/*.py</code>, <code>params.json</code>, <code>emmet.toml</code>, and <code>CARD.md</code>. <b>Derived:</b> everything in <code>build/</code>. <code>emmet run &amp;&amp; emmet check</code> on a clean checkout reproduces <code>build/</code> byte for byte, given the same Emmet and library versions. An integration test proves it.</li>
 <li><b>Who writes what.</b> The agent edits <code>model.py</code>, <code>models/</code>, and <code>CARD.md</code>. The UI writes <code>params.json</code> and <code>emmet.toml</code>, plus <code>model.py</code> only through <code>emmet params --write-default</code>, a single-literal AST rewrite. Only <code>emmet</code> writes <code>build/</code>.</li>
 <li><b>Atomic writes everywhere:</b> write to <code>*.tmp</code> in the same directory, fsync, rename. Readers never see half a file.</li>
-<li><b>Staleness is visible.</b> <code>manifest.json</code> carries <code>inputs_hash</code> = sha256 of the sources, the params, the Emmet version, and the library version. If the hash doesn't match the current inputs, the UI shows "out of date: rebuilding" and keeps the last good model on screen.</li>
+<li><b>Staleness is visible.</b> <code>manifest.json</code> carries <code>inputs_hash</code> = sha256 of the sources, the params, the Emmet version, the library version, and the parts data pack version (availability findings depend on it). If the hash doesn't match the current inputs, the UI shows "out of date: rebuilding" and keeps the last good model on screen.</li>
 <li><b>Generation counter.</b> Each run increments <code>generation</code>. The viewer ignores events older than what it shows, and the run queue cancels superseded runs.</li>
 <li><b>Watcher.</b> It watches sources only (not <code>build/</code>), debounced 150 ms, and ignores editor temp files.</li>
 <li><b>Imports.</b> Opening a bare <code>.ldr</code> or <code>.mpd</code> creates a project whose <code>model.py</code> is <code>import_ldraw("source.mpd")</code>. The agent can then refactor it into a parametric model.</li>
@@ -1054,10 +1054,33 @@ synonyms(term, expands_to)                     -- data/synonyms.toml ("lbg" → 
 <p class="small">Search parses dimensions first ("2x4", "1 x 2 x 3", "4x4 round"). It filters on size, ranks with BM25, and boosts common parts (by set count), non-printed parts, and non-obsolete parts. Printed and pattern parts (<code>3001p…</code>) rank low unless asked for. Budget: ≤ 20 ms per query. A golden-query test with 30+ queries checks that each query's expected part is in the top 3.</p>
 
 <h3>Rebrickable and colors</h3>
+<p>Rebrickable's downloads page (checked 2026-10-24) says: "Free for personal and commercial use, provided you acknowledge Rebrickable as your data source", and allows automated downloads "at most once a day". Its Terms add that scraping its web pages is banned, MOC data may never be scraped, and "No Rebrickable content may be used in the training of AI models." Emmet complies by design: one scheduled fetch a week from Emmet's CI, never from users' machines; no MOC data; no training. The agent only reads small slices at run time through tools.</p>
+<h4>The parts data pack</h4>
 <ul>
-<li>Monthly CSV downloads (<code>parts</code>, <code>colors</code>, <code>elements</code>, <code>inventory_parts</code>, <code>part_relationships</code>) cached in app data, with a checksum and a date shown in Settings. Emmet works offline with the bundled snapshot when there's no network.</li>
-<li>Part id mapping between LDraw and Rebrickable (they mostly match; prints and molds differ): the source and coverage are settled in 0B (ADR 0004). Unmapped parts show "availability unknown", never "unavailable".</li>
-<li>Color names: one table maps LDraw, Rebrickable, and BrickLink names and ids. Users and agents can use any spelling, and the BOM shows the user's preferred naming (Settings).</li>
+<li><b>Built in CI, weekly.</b> <code>parts-data.yml</code> downloads the full archive once and runs <code>scripts/build-parts-data</code>. That produces <code>parts-data-&lt;date&gt;.sqlite.gz</code> and <code>parts-data.json</code> (version, date, sha256, size, row counts, the Rebrickable credit line), signed with the same Ed25519 key family as app updates (H-13), and published to <code>emmet-releases</code>.</li>
+<li><b>What goes in</b>, from the archive's 150 MB down to about 15 MB of SQLite, 6 MB compressed (measured on the 2026-10-23 archive):
+  <div class="table-wrap"><table>
+  <tr><th>File</th><th>Used for</th><th>In the pack</th></tr>
+  <tr><td><code>colors.csv</code></td><td>Color table: RGB, transparency, first and last year produced</td><td>All 275 rows</td></tr>
+  <tr><td><code>color_mappings.csv</code></td><td>LDraw ↔ Rebrickable ↔ BrickLink color ids and names</td><td><code>LD</code> and <code>BL</code> rows</td></tr>
+  <tr><td><code>parts.csv</code>, <code>part_categories.csv</code></td><td>Names and categories for search and the BOM</td><td>All rows</td></tr>
+  <tr><td><code>part_mappings.csv</code></td><td>LDraw id ↔ Rebrickable id (Q-03) and BrickLink ids for the XML export</td><td><code>LD</code> and <code>BL</code> rows</td></tr>
+  <tr><td><code>part_relationships.csv</code></td><td>Alternates, molds, and prints: <code>part_info</code> alternates and the substitution helper</td><td>All rows</td></tr>
+  <tr><td><code>elements.csv</code></td><td>Part × color combinations sold as real elements: the core <code>color_unavailable</code> signal</td><td>Element id, part, and color</td></tr>
+  <tr><td><code>inventory_parts.csv</code> + <code>inventories.csv</code> + <code>sets.csv</code></td><td>How common a part is in a color: number of sets and the year range</td><td>Aggregated to one row per part × color (about 105,000 rows); the raw 134 MB file isn't shipped</td></tr>
+  <tr><td><code>sets.csv</code>, <code>inventories.csv</code>, <code>inventory_parts.csv</code></td><td>Rung 3 BOM ground truth (eval only), and later 8D's owned-sets import</td><td>Not in the app pack; the eval reads its one set's inventory from the pinned archive</td></tr>
+  <tr><td><code>minifigs</code>, <code>inventory_minifigs</code>, <code>inventory_sets</code>, <code>themes</code>, <code>set_mappings</code></td><td>Not needed for the MVP</td><td>Left out</td></tr>
+  </table></div>
+  Every <code>img_url</code> column is dropped. Emmet renders parts itself from LDraw and never hotlinks Rebrickable images.</li>
+<li><b>Checked before it ships.</b> The schema matches, row counts are within 10 % of the previous pack, every ldraw-mini and ladder part resolves, and the color table round-trips. A failed check publishes nothing, and the job opens an issue.</li>
+<li><b>Updated in the app.</b> The app checks <code>parts-data.json</code> at most weekly, downloads a newer pack, verifies the signature and sha256, swaps it in atomically, and keeps the previous pack for rollback. Every installer bundles the newest pack, so first run and offline use work. Settings → Data shows the pack date and "Check now".</li>
+<li><b>Credit.</b> "Part, color, and set data from Rebrickable (rebrickable.com)" appears in Settings → Data, About, the Parts list footer, BOM exports (a header line in CSV, a comment in XML), <code>NOTICE</code>, and on the site.</li>
+<li><b>Test fixture.</b> <code>scripts/make-rebrickable-mini</code> cuts the rows for the ldraw-mini parts out of a pinned archive into <code>tests/fixtures/rebrickable-mini/</code>, with the credit, so tests never need the network.</li>
+</ul>
+<h4>Ids and names</h4>
+<ul>
+<li>Part ids: Rebrickable's <code>part_mappings.csv</code> carries LDraw ids where they differ (the <code>LD</code> rows), and the rest match. ADR 0004 measures coverage against the LDraw library. Unmapped parts show "availability unknown", never "unavailable".</li>
+<li>Color names: one table maps LDraw, Rebrickable, and BrickLink names and ids, built from <code>color_mappings.csv</code>. Users and agents can use any spelling, and the BOM shows the user's preferred naming (Settings).</li>
 <li>Rung 3 scoring uses Rebrickable's inventory for the chosen set as BOM ground truth, and the OMR file for placements.</li>
 </ul>
 </section>
@@ -1220,7 +1243,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <li><b>Center: viewer</b> with a toolbar for views, the step scrubber, frame, screenshot, and quality. Hovering shows the part name and color and the line in <code>model.py</code>.</li>
 <li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (expand for the diff), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
 <li><b>Bottom drawer</b> with tabs: Parameters (sliders, toggles, color pickers limited to colors the parts come in, and "make default"), Checks (findings, click to highlight, "Ask agent to fix"), Parts list (BOM with availability and export), and Steps.</li>
-<li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), and library version.</li>
+<li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), and the library and parts data versions.</li>
 </ul>
 
 <h3>Key flows (each has an E2E spec)</h3>
@@ -1611,9 +1634,10 @@ bmortenson/emmet-plan; create your branch bmortenson/s0a-foundation from bmorten
 <li><code>scripts/scrub-transcript</code> plus a test. Scrubbed transcripts go to <code>tests/replay/{claude,codex}/</code>.</li>
 <li><b>ADR 0002 E2E.</b> A hello-world WebdriverIO spec with <code>@wdio/tauri-service</code> and the embedded <code>tauri-plugin-wdio-webdriver</code> (debug builds only) that clicks a button in the 0A window, green in CI on the self-hosted Mac and on <code>windows-latest</code>. If macOS fails, record the fallback (Playwright on WebKit against Vite with a mocked IPC on macOS, wdio on Windows) and ask Barry.</li>
 <li><b>ADR 0003 Licenses and reuse.</b> The LDraw library (CC BY 4.0 + CC BY 2.0 parts; the exact attribution text), the LDCad shadow library (license, format, coverage of clip, bar, pin, and hinge metadata), LDraw OMR models (can small ones be committed as fixtures?), Rebrickable CSV terms, three.js <code>LDrawLoader</code>, and ldraw-nova, brickbuilder-mcp, brick-mcp, ldraw-mcp, ClawdCAD, OpenCovibe: license, and what we may reuse (ideas or code). Default stance: learn from them, don't copy code unless the license allows and Barry agrees.</li>
-<li><b>ADR 0004 Data mapping.</b> LDraw ↔ Rebrickable part ids (the source of the mapping, coverage % on the ldraw-mini parts and on 3 sample sets) and the color table (LDraw, Rebrickable, and BrickLink names and ids).</li>
+<li><b>ADR 0004 Data mapping.</b> LDraw ↔ Rebrickable part ids (the source is <code>part_mappings.csv</code> with <code>ext_system = LD</code>, plus identical ids; measure coverage % on the ldraw-mini parts and on 3 sample sets) and the color table (LDraw, Rebrickable, and BrickLink names and ids).</li>
 <li><b>ADR 0005 Headless render.</b> A tiny Tauri test that renders a three.js cube in a hidden window and writes a PNG, on macOS and in CI on Windows. Record timings and the fallback.</li>
 <li><b>ADR 0006 Binaries.</b> Confirm D-08: a GUI-subsystem exe can't serve a terminal on Windows, and a console sidecar serves stdio MCP fine. Update section 03 if the finding differs.</li>
+<li><code>scripts/make-rebrickable-mini</code> from a pinned Rebrickable archive (section 12), next to ldraw-mini.</li>
 <li><code>scripts/make-ldraw-mini</code>: builds <code>tests/fixtures/ldraw-mini/</code> (~200 parts: everything rung 1 and rung 2 need, including track 53400/53401 and a switch, plus their primitives) with headers intact, <code>ATTRIBUTION.md</code>, and a license check script.</li>
 <li><code>docs/spec/ladder.md</code>: the exact prompt text for each rung, the features, and the scoring config (section 16.1), plus a <b>rung 3 shortlist</b> of 3–5 OMR sets (150–400 parts, with Rebrickable inventories, mostly common parts) with renders. Ask Barry to pick one (H-11).</li>
 <li>Update section 24 (open questions) and any section 03 rows these ADRs settle, in the same PR.</li>
@@ -1936,7 +1960,7 @@ public types; don't edit emmet_dsl.</code></pre></details>
 <li>The DSL v1 API in section 08: wall, row, grid, stack, fill, repeat, mirror, submodel, use, allow, <code>import_ldraw</code>, and every param kind (int, float, bool, choice, <code>Color</code> limited to produced colors).</li>
 <li><code>emmet params --write-default</code>: a single-literal rewrite through Python <code>ast</code> positions, preserving formatting and comments, with tests on tricky signatures.</li>
 <li>Steps v1: DSL steps, a layer-based auto-step fallback, submodel steps, <code>steps.json</code>, and <code>emmet steps</code>.</li>
-<li>Rebrickable CSV ingest (download, checksum, app data, a bundled fallback snapshot), the elements and availability tables, the color mapping, and <code>part_unavailable</code>/<code>color_unavailable</code> data for 3A's rules.</li>
+<li>The parts data pack (section 12): <code>scripts/build-parts-data</code> (archive → validated, derived SQLite with a manifest), the app-side loader with signature check and atomic swap, the pack bundled into builds, the elements and availability tables, the color mapping, and <code>part_unavailable</code>/<code>color_unavailable</code> data for 3A's rules. Rebrickable credit in Settings → Data, the Parts list footer, and BOM exports.</li>
 <li>BOM v1: Rebrickable ids and names, the user's preferred color naming, availability, and exports to CSV, Rebrickable CSV, and BrickLink XML wanted list. Exporters for LDraw <code>.ldr</code>/<code>.mpd</code> and an LPub3D-ready <code>.mpd</code>.</li>
 <li>Technique library v0: 20 techniques in <code>data/techniques/</code> (gable roof, hip roof, SNOT panel, jumper offset, hinge roof, window frame, door frame, stairs, fence, tree, bench, lamp post, platform edge, canopy, track straight run, track curve, track switch, baseplate road, brick-built arch, tiled floor), each with docs, a render, and a validate-clean test. MCP <code>technique</code>.</li>
 <li><code>data/ladder/rung2_reference.py</code>: a hand-written station and track loop that validates clean (with 3A's rules once merged), with ≥ 6 params.</li>
@@ -2167,6 +2191,7 @@ pass in about an hour, then wait for my results and fix what I find before openi
 <li><code>just release x.y.z</code> (a version bump PR across Cargo, package.json, tauri.conf, and pyproject, and moving the CHANGELOG's Unreleased section), and a release smoke job (section 16).</li>
 <li><code>docs/release.md</code>: the runbook covering tag, verify, publish, rollback, and a revoked-key procedure.</li>
 <li>A log-scan step that fails the release if anything secret-shaped appears in the job logs.</li>
+<li><code>parts-data.yml</code>: a weekly hosted-runner workflow that downloads Rebrickable's archive once, runs <code>scripts/build-parts-data</code> and its checks, signs the pack, and publishes it and <code>parts-data.json</code> to <code>emmet-releases</code>. The app's weekly data check and rollback to the previous pack, plus a smoke test.</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
@@ -2528,8 +2553,8 @@ the terms don't allow it.</code></pre></details>
 <div class="table-wrap"><table>
 <tr><th>ID</th><th>Question</th><th>Settled by</th><th>Status</th></tr>
 <tr><td>Q-01</td><td>Can Emmet use the LDCad shadow library (license, format, coverage)?</td><td>0B (ADR 0003)</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-02</td><td>Do Rebrickable's download terms allow bundling a derived availability snapshot in the app?</td><td>0B (ADR 0003)</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-03</td><td>What's the best source for the LDraw ↔ Rebrickable part id mapping, and its coverage?</td><td>0B (ADR 0004)</td><td><span class="pill open">Open</span></td></tr>
+<tr><td>Q-02</td><td>Do Rebrickable's download terms allow bundling a derived availability snapshot in the app?</td><td>Answered 2026-10-24 from the downloads page: free for personal and commercial use with credit to Rebrickable. ADR 0003 records the quote. An optional courtesy note to Rebrickable describing the weekly pack.</td><td><span class="pill decided">Settled</span></td></tr>
+<tr><td>Q-03</td><td>What's the best source for the LDraw ↔ Rebrickable part id mapping, and its coverage?</td><td>Source found: Rebrickable's <code>part_mappings.csv</code> and <code>color_mappings.csv</code> carry LDraw (<code>LD</code>) ids; the 2026-10-23 archive has 14,085 parts with an explicit LDraw mapping, with identical ids assumed otherwise. 0B (ADR 0004) measures the coverage against the LDraw library.</td><td><span class="pill rec">Source found</span></td></tr>
 <tr><td>Q-04</td><td>Does a hidden-window WebGL render work reliably on WKWebView and WebView2?</td><td>0B (ADR 0005)</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-05</td><td>What do Claude Code and Codex need to run natively on Windows today?</td><td>0B, verified in 1C</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-06</td><td>Does Barry's GitHub plan allow branch protection on a private repo?</td><td>0A</td><td><span class="pill open">Open</span></td></tr>
