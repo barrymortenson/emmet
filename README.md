@@ -20,7 +20,8 @@ The app icon is a placeholder until the design phase.
 
 ## Setup
 
-You need these on your PATH. `just setup` checks them and installs nothing globally.
+You need these on your PATH. `just setup` checks for them; beyond the repo, it installs only the pinned Rust
+toolchain (through rustup) and Python 3.13 (through uv's own cache).
 
 | Tool | Version | Install |
 |------|---------|---------|

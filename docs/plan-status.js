@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Execution status for docs/plan.html (plan section 20). Agents edit this on their session branch;
 // scripts/plan-check.mjs validates it in CI. Never record progress by editing plan.html.
-// Session status: todo | in-progress | review | done | blocked | skipped (Barry only) | backlog (Phase 8)
+// Session status: todo | in-progress | review | done | blocked | skipped (Barry only) | backlog (Phase 8).
+// done needs pr and at least one evidence line; skipped needs Barry's note; blocked needs an open blocker.
 // Human status:   todo | waiting | done | not-needed
 // Gate status:    todo | go | no-go | pivot
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
@@ -54,7 +55,7 @@ window.EMMET_STATUS = {
     "H-14": { status: "not-needed", note: "releases publish from the main public repo (D-21)" },
     "H-15": { status: "todo", note: "emmetbuilder.com registered at Cloudflare 2026-10-24; API token still to do" },
     "H-16": { status: "done", note: "AGPL-3.0-or-later; Apache-2.0 for the DSL (2026-10-24)" },
-    "H-17": { status: "done", note: "best-judgement search 2026-10-24; keep Emmet (D-30)" },
+    "H-17": { status: "done", note: "best-judgment search 2026-10-24; keep Emmet (D-30)" },
     "H-18": { status: "not-needed", note: "public from day one (D-12)" },
     "H-19": { status: "todo" },
     "H-20": { status: "todo" },

@@ -1,4 +1,5 @@
-# Weekly, grouped updates (plan section 06). A minor update merges when CI is green; a major one gets its own PR.
+# Weekly, grouped updates (plan section 06). Minor and patch updates share a PR per ecosystem, which may merge when CI
+# is green; each major update gets its own PR.
 version: 2
 updates:
   - package-ecosystem: cargo
@@ -20,4 +21,4 @@ updates:
     directory: /
     schedule: { interval: weekly }
     groups:
-      actions: { patterns: ["*"] }
+      actions-minor: { update-types: [minor, patch] }

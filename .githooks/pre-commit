@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Format check on the staged files, then gitleaks on what's staged. Installed by `just setup`.
+# Format check on the staged files (rustfmt and ruff read the working-tree copy, so restage before committing), then
+# gitleaks on the staged content. Installed by `just setup`.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 

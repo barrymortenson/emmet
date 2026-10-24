@@ -45,7 +45,7 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **D-19 Windows checks.** Barry's hands-on Windows checks run in a Windows 11 ARM VM on this Mac. x64 behavior is proven by hosted CI and by beta testers.
 - **D-21 Distribution.** Release binaries and the updater manifest are GitHub Releases on the public repo, and the parts data pack is its own release series there.
 - **D-25 Rebrickable data.** Part, color, element, and availability data come from Rebrickable's catalog downloads ("Free for personal and commercial use, provided you acknowledge Rebrickable as your data source").
-- **D-30 Name and branding.** Keep the name, decided on a best-judgement search (H-17, 2026-10-24; no attorney).
+- **D-30 Name and branding.** Keep the name, decided on a best-judgment search (H-17, 2026-10-24; no attorney).
 - **D-32 Question cards.** The agent asks the user through an ask_user tool on emmet_host: one question, 2–4 options with optional descriptions, single or multi choice, and always an Other free-text answer.
 - **D-33 Redirect and stop.** The composer stays open while the agent works.
 - **D-34 Build animation.** Agent-driven runs animate in the viewer: added parts drop in brick by brick in build order (step, then bottom-up), capped in total time and skippable.
