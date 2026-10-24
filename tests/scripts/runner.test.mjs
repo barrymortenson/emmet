@@ -11,6 +11,7 @@ const trusted = {
   GITHUB_REPOSITORY: "barrymortenson/emmet",
   GITHUB_ACTOR: "barrymortenson",
   GITHUB_EVENT_NAME: "pull_request",
+  GITHUB_REF: "refs/pull/1/merge",
   EMMET_PR_HEAD_REPO: "barrymortenson/emmet",
   EMMET_PR_AUTHOR: "barrymortenson",
   RUNNER_TEMP: temp,
@@ -25,9 +26,16 @@ test("runner-guard allows Barry's own PR", () => {
   assert.match(r.out, /runner-guard: ok/);
 });
 
-test("runner-guard allows a push to main", () => {
-  assert.equal(guard({ GITHUB_EVENT_NAME: "push", EMMET_PR_HEAD_REPO: "", EMMET_PR_AUTHOR: "" }).code, 0);
-});
+for (const [why, env] of [
+  ["a push to main", { GITHUB_EVENT_NAME: "push", GITHUB_REF: "refs/heads/main" }],
+  ["a tag push", { GITHUB_EVENT_NAME: "push", GITHUB_REF: "refs/tags/v0.1.0" }],
+  ["the nightly schedule", { GITHUB_EVENT_NAME: "schedule", GITHUB_REF: "refs/heads/main" }],
+]) {
+  test(`runner-guard allows ${why}`, () => {
+    const r = guard({ ...env, EMMET_PR_HEAD_REPO: "", EMMET_PR_AUTHOR: "" });
+    assert.equal(r.code, 0, r.out);
+  });
+}
 
 for (const [why, env, message] of [
   ["a wrong actor", { GITHUB_ACTOR: "someone-else" }, /the actor is 'someone-else'/],
@@ -38,7 +46,13 @@ for (const [why, env, message] of [
   ["an untrusted event", { GITHUB_EVENT_NAME: "pull_request_target" }, /the event 'pull_request_target' isn't trusted/],
   ["a data dir outside the temp dir", { EMMET_DATA_DIR: "/Users/someone/Library" }, /EMMET_DATA_DIR .* isn't inside RUNNER_TEMP/],
   ["a test HOME outside the temp dir", { EMMET_TEST_HOME: "" }, /EMMET_TEST_HOME .* isn't inside RUNNER_TEMP/],
-  ["a test HOME that escapes with ..", { EMMET_TEST_HOME: join(temp, "..", "home") }, /EMMET_TEST_HOME/],
+  // A template string, not join(), which would normalize the .. away.
+  ["a test HOME that escapes with ..", { EMMET_TEST_HOME: `${temp}/../home` }, /EMMET_TEST_HOME \('.*\/\.\.\/home'\) isn't inside RUNNER_TEMP/],
+  ["a data dir in a sibling of the temp dir", { EMMET_DATA_DIR: `${temp}-evil/data` }, /EMMET_DATA_DIR .* isn't inside RUNNER_TEMP/],
+  ["an empty RUNNER_TEMP", { RUNNER_TEMP: "" }, /RUNNER_TEMP isn't a directory/],
+  ["a RUNNER_TEMP that doesn't exist", { RUNNER_TEMP: join(temp, "missing"), EMMET_DATA_DIR: join(temp, "missing/data"), EMMET_TEST_HOME: join(temp, "missing/home") }, /RUNNER_TEMP isn't a directory/],
+  ["a push to another branch", { GITHUB_EVENT_NAME: "push", GITHUB_REF: "refs/heads/feature" }, /a push to 'refs\/heads\/feature', not main or a tag/],
+  ["a manual run", { GITHUB_EVENT_NAME: "workflow_dispatch" }, /the event 'workflow_dispatch' isn't trusted/],
 ]) {
   test(`runner-guard refuses ${why}`, () => {
     const r = guard(env);

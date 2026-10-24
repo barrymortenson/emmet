@@ -11,12 +11,20 @@ const workflows = join(ROOT, ".github/workflows");
 const ci = readFileSync(join(workflows, "ci.yml"), "utf8");
 const expr = ci.match(/^ {2}mac:\n(?: {4}#.*\n)*? {4}runs-on: \$\{\{ (.+) \}\}$/m)?.[1];
 
-// GitHub expressions in this one line use only ==, &&, ||, parentheses, '...' strings, and fromJSON; JS evaluates them
-// the same way (&& and || return an operand).
+// GitHub expressions in this one line use only ==, &&, ||, parentheses, '...' strings, and fromJSON. JS evaluates them
+// the same way (&& and || return an operand) once == becomes eq(), which ignores case as GitHub's == does.
 function runsOn(github) {
-  const js = expr.replaceAll("==", "===").replaceAll("fromJSON", "JSON.parse");
-  return new Function("github", `return ${js};`)(github);
+  const js = expr
+    .replace(/([\w.]+|'[^']*') == ([\w.]+|'[^']*')/g, "eq($1, $2)")
+    .replaceAll("fromJSON", "JSON.parse");
+  const eq = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+  return new Function("github", "eq", `return ${js};`)(github, eq);
 }
+
+/** Each top-level job's id and its lines of YAML. */
+const jobs = Object.fromEntries(
+  ci.slice(ci.indexOf("\njobs:\n")).split(/\n(?= {2}[\w-]+:\n)/).slice(1).map((block) => [block.match(/^ {2}([\w-]+):/)[1], block]),
+);
 
 const BARRY = "barrymortenson";
 const REPO = "barrymortenson/emmet";
@@ -37,6 +45,11 @@ test("Barry's PR from a branch in this repo runs on the self-hosted Mac", () => 
 
 test("a push to main by Barry runs on the self-hosted Mac", () => {
   assert.deepEqual(runsOn({ repository: REPO, actor: BARRY, event_name: "push", ref: "refs/heads/main", event: {} }), SELF);
+});
+
+test("GitHub's case-insensitive == also sends Barry's login in another case to the Mac, where the guard refuses it", () => {
+  assert.deepEqual(runsOn(pr(REPO, "BarryMortenson")), SELF);
+  assert.match(readFileSync(join(ROOT, "scripts/runner-guard.sh"), "utf8"), /\[\[ "\$\{GITHUB_ACTOR:-\}" == "\$owner" \]\]/);
 });
 
 for (const [why, github] of [
@@ -71,4 +84,29 @@ test("every action in every workflow is pinned by a full commit SHA", () => {
       assert.match(ref, /@[0-9a-f]{40}$/, `${file}: ${ref}`);
     }
   }
+});
+
+test("the self-hosted mac job runs the runner guard, with the PR fields, right after checkout", () => {
+  const steps = jobs.mac.split(/\n {6}- /).slice(1);
+  const i = steps.findIndex((step) => /\n {10}scripts\/runner-guard\.sh\n/.test(step));
+  assert.ok(i > 0, "no step runs scripts/runner-guard.sh");
+  assert.match(steps[i], /if: runner\.environment == 'self-hosted'/);
+  assert.match(steps[i], /EMMET_PR_HEAD_REPO: \$\{\{ github\.event\.pull_request\.head\.repo\.full_name \}\}/);
+  assert.match(steps[i], /EMMET_PR_AUTHOR: \$\{\{ github\.event\.pull_request\.user\.login \}\}/);
+  for (const step of steps.slice(0, i)) assert.match(step, /^uses: actions\/checkout@/, `a step runs before the guard: ${step}`);
+});
+
+test("the aggregate ci check needs every other job, runs always, and passes only when each succeeded", () => {
+  const others = Object.keys(jobs).filter((j) => j !== "ci");
+  const agg = jobs.ci;
+  assert.match(agg, /^ {4}if: always\(\)$/m, "without always() a failed job skips ci, and a skipped required check passes");
+  assert.deepEqual(agg.match(/needs: \[(.*)\]/)[1].split(/,\s*/).sort(), [...others].sort());
+  for (const j of others) assert.match(agg, new RegExp(`\\$\\{\\{ needs\\.${j}\\.result \\}\\}`));
+  assert.match(agg, new RegExp(`== "${others.map(() => "success").join(" ")}"`));
+});
+
+test("DCO runs on every event but a push to main, so the hosted fallback's ci check covers sign-offs", () => {
+  const plan = jobs.plan;
+  assert.match(plan, /- name: DCO\n {8}if: github\.event_name != 'push'\n/);
+  assert.match(plan, /BASE: \$\{\{ github\.event\.pull_request\.base\.sha \|\| 'origin\/main' \}\}/);
 });

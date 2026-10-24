@@ -16,8 +16,9 @@ concurrency:
 
 jobs:
   mac:
-    # The self-hosted Mac takes trusted events only (D-13, plan section 17): pushes to main and PRs Barry opened from a
-    # branch in this repo. Forks, Dependabot, and manual runs use hosted macos-latest.
+    # The self-hosted Mac takes trusted events only (D-13, plan section 17): Barry's pushes to main, and PRs Barry opened
+    # from a branch in this repo when he triggered the run. Forks, Dependabot, someone else's push to Barry's PR, and
+    # manual runs use hosted macos-latest. GitHub's == ignores case; tests/scripts/ci.test.mjs does too.
     runs-on: ${{ fromJSON((github.repository == 'barrymortenson/emmet' && github.actor == 'barrymortenson' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'barrymortenson'))) && '["self-hosted","macOS","emmet"]' || '"macos-latest"') }}
     timeout-minutes: 20
     steps:
@@ -117,11 +118,13 @@ jobs:
           node-version-file: .node-version
       - run: node scripts/plan-check.mjs
       - run: node scripts/spdx-check.mjs
+      # A PR checks its own commits. The hosted fallback (ci-hosted-mac.yml, a manual run) checks the branch against main,
+      # since its ci check can stand in for the Mac's.
       - name: DCO
-        if: github.event_name == 'pull_request'
+        if: github.event_name != 'push'
         env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha }}
+          BASE: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+          HEAD: ${{ github.event.pull_request.head.sha || 'HEAD' }}
         run: scripts/dco-check.sh "$BASE" "$HEAD"
       - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs
 

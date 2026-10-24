@@ -69,6 +69,15 @@ fails(
 );
 fails("a blocker names a missing session", (s) => (s.blockers = [{ id: "BLK-001", session: "9Z", closed: null }]), /BLK-001: session 9Z doesn't exist/);
 fails("a session starts before the one it comes after is done", (s) => (s.sessions["0B"].status = "in-progress"), /session 0B is in-progress but 0A, which it comes after, is todo/);
+fails("a session is in review before the one it comes after is done", (s) => (s.sessions["0B"] = { status: "review", pr: 2 }), /session 0B is review but 0A, which it comes after, is todo/);
+fails(
+  "a session is done before the one it comes after is done",
+  (s) => {
+    s.sessions["0A"].status = "in-progress";
+    s.sessions["0B"] = { status: "done", pr: 2, evidence: ["ci green"] };
+  },
+  /session 0B is done but 0A, which it comes after, is in-progress/,
+);
 fails("data-after names a missing session", () => {}, /session 1A: data-after names 0C, which doesn't exist/, PLAN.replace('data-after="0B"', 'data-after="0C"'));
 fails("a session waits on a missing human step", () => {}, /session 0A: waits on H-03, which doesn't exist/, PLAN.replace('data-waits-merge="H-02"', 'data-waits-merge="H-03"'));
 
@@ -78,6 +87,14 @@ test("an out-of-order start Barry allowed is a warning, not a failure", () => {
   const r = check(s);
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /warning: session 0B is in-progress but 0A.*\(allowed: Barry 2026-10-24: start early\)/);
+});
+
+test("a session that hasn't started may wait on unfinished sessions", () => {
+  const s = good();
+  s.sessions["0B"].status = "blocked";
+  s.blockers = [{ id: "BLK-001", session: "0B", text: "x", opened: "2026-10-24", closed: null }];
+  const r = check(s);
+  assert.equal(r.code, 0, r.out);
 });
 
 test("done and skipped both satisfy after", () => {

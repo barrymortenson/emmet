@@ -15,7 +15,8 @@ setup: tools deps
     git config core.hooksPath .githooks
     @echo "setup: ok"
 
-# Fail with a hint for each missing or mismatched tool. Nothing is installed globally.
+# Fail with a hint for each missing tool, or a Node that doesn't match .node-version. The only installs outside the
+# repo are the pinned Rust toolchain (through rustup) and, at deps, uv's Python.
 tools:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -57,12 +58,12 @@ build:
     pnpm -r build
     cargo build --workspace --locked
 
-# Build the desktop app the way a release does (custom protocol, embedded frontend), without bundling.
+# A debug build of the desktop app with a release's custom protocol and embedded frontend, without bundling.
 build-app:
     cd apps/desktop && pnpm tauri build --debug --no-bundle --ci
 
-# Integration tests, fastest first. `just test --changed` runs only those affected by changed paths;
-# any other argument filters test names.
+# Integration tests, fastest first. `just test --changed` runs only those affected by changed paths (a toolchain or
+# root config change runs them all); any other argument filters test names. Written for bash 3.2, macOS's /bin/bash.
 test *args: build
     #!/usr/bin/env bash
     set -euo pipefail
@@ -72,27 +73,34 @@ test *args: build
       base=$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD)
       changed=$( { git diff --name-only "$base"; git ls-files --others --exclude-standard; } | sort -u)
       pick() { grep -qE "$1" <<<"$changed"; }
-      all=()
-      if pick '^(scripts|tests/scripts|docs|\.githooks|deny\.toml)/?'; then all+=(scripts); fi
-      if pick '^python/'; then all+=(python); fi
-      if pick '^packages/viewer/'; then all+=(viewer); fi
-      if pick '^(apps/desktop/|pnpm-lock|package\.json)'; then all+=(desktop); fi
-      if pick '^(crates/|tests/it/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
+      if ! pick '^(justfile|\.node-version|rust-toolchain\.toml|rustfmt\.toml|package\.json|pnpm-(lock|workspace)\.yaml|tsconfig\.base\.json|eslint\.config\.js)$'; then
+        all=()
+        if pick '^(scripts|tests/scripts|docs|\.githooks|\.github|deny\.toml)/?'; then all+=(scripts); fi
+        if pick '^python/'; then all+=(python); fi
+        if pick '^packages/viewer/'; then all+=(viewer); fi
+        if pick '^apps/desktop/'; then all+=(desktop); fi
+        if pick '^(crates/|tests/it/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
+      fi
       args=""
       echo "test --changed: ${all[*]:-nothing}"
     fi
+    # Empty arrays expand with ${a[@]+...}: bash 3.2 calls a bare "${a[@]}" unbound under set -u.
     node_filter=(); py_filter=(); [[ -n "$args" ]] && node_filter=(--test-name-pattern "$args") && py_filter=(-k "$args")
-    for suite in "${all[@]}"; do
+    # node --test passes with 0 tests when its glob matches nothing, so a moved test dir fails here instead.
+    tests_in() { compgen -G "$1" >/dev/null || { echo "test: no tests match $1" >&2; exit 1; }; }
+    for suite in ${all[@]+"${all[@]}"}; do
       case $suite in
-        # The script and gate tests need bash, gitleaks, and cargo-deny; CI runs them on macOS and Linux.
+        # The script and gate tests need bash, gitleaks, and cargo-deny. The Mac job runs them all; the Linux plan
+        # job runs the ones that don't (ci.yml).
         scripts)
           case "$(uname -s)" in
             MINGW* | MSYS* | CYGWIN*) echo "test: skipping tests/scripts on Windows" ;;
-            *) node --test "${node_filter[@]}" "tests/scripts/*.test.mjs" ;;
+            *) tests_in "tests/scripts/*.test.mjs" && node --test ${node_filter[@]+"${node_filter[@]}"} "tests/scripts/*.test.mjs" ;;
           esac ;;
-        python) uv run --project {{ dsl }} --frozen python -m unittest discover -s {{ dsl }}/tests "${py_filter[@]}" ;;
-        viewer) pnpm --filter @emmet/viewer exec node --test "${node_filter[@]}" "test/*.test.mjs" ;;
-        desktop) pnpm --filter @emmet/desktop exec node --test "${node_filter[@]}" "test/*.test.mjs" ;;
+        python) uv run --project {{ dsl }} --frozen python -m unittest discover -s {{ dsl }}/tests ${py_filter[@]+"${py_filter[@]}"} ;;
+        # --fail-if-no-match: without it a renamed package is a silent pass.
+        viewer) tests_in "packages/viewer/test/*.test.mjs" && pnpm --filter @emmet/viewer --fail-if-no-match exec node --test ${node_filter[@]+"${node_filter[@]}"} "test/*.test.mjs" ;;
+        desktop) tests_in "apps/desktop/test/*.test.mjs" && pnpm --filter @emmet/desktop --fail-if-no-match exec node --test ${node_filter[@]+"${node_filter[@]}"} "test/*.test.mjs" ;;
         rust) cargo test --workspace --locked -- $args ;;
       esac
     done

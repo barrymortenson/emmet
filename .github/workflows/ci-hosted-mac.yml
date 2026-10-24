@@ -9,5 +9,5 @@ permissions:
 
 jobs:
   ci:
-    # A manual run isn't a trusted event for the self-hosted runner, so ci.yml routes its mac job to macos-latest.
+    # ci.yml's runs-on sends a manual run's mac job to macos-latest, and the runner guard refuses one on the Mac.
     uses: ./.github/workflows/ci.yml

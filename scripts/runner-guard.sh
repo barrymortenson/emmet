@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# First step of every self-hosted job (plan section 17). Refuses to run unless the event is trusted: this repo (no forks),
-# Barry as the actor and PR author, and the job's data dir and test HOME inside the runner's temp dir, so tests never
-# touch ~/.claude, ~/.codex, or real app data. The workflow passes the PR fields in EMMET_PR_HEAD_REPO and EMMET_PR_AUTHOR.
+# Runs after checkout in every self-hosted job (plan section 17). Refuses to run unless the event is one section 17
+# trusts: Barry's push to main or a tag, the nightly schedule, or a PR Barry opened from this repo (no forks). It also checks that
+# EMMET_DATA_DIR and EMMET_TEST_HOME sit inside the runner's temp dir; nothing reads them yet, and the sessions that
+# touch app data or agent config (1A, 1C) must use them. The workflow passes the PR fields in EMMET_PR_HEAD_REPO and
+# EMMET_PR_AUTHOR. A pull_request run uses the PR's own copy of this script, so it catches routing mistakes, not a
+# hostile PR: that rests on approving fork runs only after reading them.
 set -euo pipefail
 repo=barrymortenson/emmet
 owner=barrymortenson
@@ -14,7 +17,9 @@ fail() {
 [[ "${GITHUB_REPOSITORY:-}" == "$repo" ]] || fail "the repository is '${GITHUB_REPOSITORY:-unset}', not $repo"
 [[ "${GITHUB_ACTOR:-}" == "$owner" ]] || fail "the actor is '${GITHUB_ACTOR:-unset}', not $owner"
 case "${GITHUB_EVENT_NAME:-}" in
-  push | schedule | workflow_dispatch) ;;
+  push) [[ "${GITHUB_REF:-}" == refs/heads/main || "${GITHUB_REF:-}" == refs/tags/* ]] ||
+    fail "a push to '${GITHUB_REF:-unset}', not main or a tag" ;;
+  schedule) ;;
   pull_request)
     [[ "${EMMET_PR_HEAD_REPO:-}" == "$repo" ]] || fail "the PR comes from '${EMMET_PR_HEAD_REPO:-unset}', not $repo"
     [[ "${EMMET_PR_AUTHOR:-}" == "$owner" ]] || fail "the PR was opened by '${EMMET_PR_AUTHOR:-unset}', not $owner"
