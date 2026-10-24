@@ -66,7 +66,9 @@ jobs:
       - run: just ci
       - name: Timing
         if: always()
-        run: echo "mac job ($RUNNER_ENVIRONMENT): $(( ($(date +%s) - CI_START) / 60 ))m $(( ($(date +%s) - CI_START) % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          s=$(( $(date +%s) - CI_START ))
+          echo "mac job ($RUNNER_ENVIRONMENT): $(( s / 60 ))m $(( s % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
 
   windows:
     runs-on: windows-latest
@@ -98,7 +100,9 @@ jobs:
       - run: just build-app
       - name: Timing
         if: always()
-        run: echo "windows job: $(( ($(date +%s) - CI_START) / 60 ))m $(( ($(date +%s) - CI_START) % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          s=$(( $(date +%s) - CI_START ))
+          echo "windows job: $(( s / 60 ))m $(( s % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
 
   plan:
     runs-on: ubuntu-latest

@@ -19,6 +19,8 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   scanning, push protection, and read-only workflow tokens were already on.
 - **Protection for `main`, step 1.** Approved a ruleset on the default branch: PR required with 0 approvals, no
   force-push, no deletion, empty bypass list. The required `ci` check is added after the first green run.
+- **The first CI run.** `main` is empty, so CI can only run on a PR. Open PR #1 as a draft so CI runs, and mark it
+  ready for review only when every Done when item holds.
 
 ## 2026-10-24, planning session
 

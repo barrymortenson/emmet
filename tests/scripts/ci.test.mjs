@@ -50,6 +50,19 @@ for (const [why, github] of [
   test(`${why} runs on hosted macos-latest`, () => assert.equal(runsOn(github), "macos-latest"));
 }
 
+// No YAML parser without a new dependency, so this checks the one rule that bit us: a plain (unquoted) scalar can't
+// contain ": ". GitHub rejected ci.yml for it on 2026-10-24.
+test("no workflow or Dependabot value is a plain scalar containing ': '", () => {
+  const files = [...readdirSync(workflows).map((f) => join(workflows, f)), join(ROOT, ".github/dependabot.yml")];
+  for (const file of files) {
+    readFileSync(file, "utf8").split("\n").forEach((line, i) => {
+      const value = line.match(/^\s*(?:- )?[\w-]+: (.*)$/)?.[1]?.replace(/\s+#.*$/, "");
+      if (!value || /^["'|>{[]/.test(value)) return;
+      assert.ok(!value.includes(": "), `${file}:${i + 1}: quote this value or use a block scalar`);
+    });
+  }
+});
+
 test("every action in every workflow is pinned by a full commit SHA", () => {
   for (const file of readdirSync(workflows)) {
     const text = readFileSync(join(workflows, file), "utf8");
