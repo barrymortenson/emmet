@@ -9,7 +9,7 @@
 window.EMMET_STATUS = {
   updated: "2026-10-24",
   sessions: {
-    "0A": { status: "in-progress", branch: "bmortenson/s0a-foundation", started: "2026-10-24" },
+    "0A": { status: "review", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24" },
     "0B": { status: "todo" },
     "1A": { status: "todo" },
     "1B": { status: "todo" },
@@ -39,7 +39,7 @@ window.EMMET_STATUS = {
   },
   human: {
     "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },
-    "H-02": { status: "todo" },
+    "H-02": { status: "done", date: "2026-10-24", note: "runner emmet-mac registered by the agent with approval; PR #1 mac job green on it" },
     "H-03": { status: "todo", note: "Claude Code 2.1.310 and Codex 0.160.1 are installed; confirm sign-in" },
     "H-04": { status: "todo" },
     "H-05": { status: "todo", note: "Apple Developer Program: enrolled" },

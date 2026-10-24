@@ -19,6 +19,11 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   scanning, push protection, and read-only workflow tokens were already on.
 - **Protection for `main`, step 1.** Approved a ruleset on the default branch: PR required with 0 approvals, no
   force-push, no deletion, empty bypass list. The required `ci` check is added after the first green run.
+- **H-02: the runner.** Barry asked the agent to register it. Approved, and run once: download runner v2.338.1
+  (sha256 checked), register `emmet-mac` with the label `emmet` using a token minted by `gh` (never printed), install
+  and start the login service, and fill its `.path` with `scripts/runner-env.sh`. PR #1's mac job passed on it.
+- **Protection for `main`, step 2.** After the first green run, approved adding the required `ci` check (GitHub
+  Actions) to the ruleset, not strict (a branch needn't be up to date with `main` to merge).
 - **The first CI run.** `main` is empty, so CI can only run on a PR. Open PR #1 as a draft so CI runs, and mark it
   ready for review only when every Done when item holds.
 
