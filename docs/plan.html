@@ -224,7 +224,7 @@
 <main>
 <h1>Emmet: build plan for an agent-driven brick CAD app</h1>
 <p class="lede">Emmet is a free desktop app for macOS and Windows that does for brick models what nurb does for CAD. You describe or change a model in plain words. Your own Claude Code or Codex agent builds it from real LDraw parts by writing a parametric Python model, and you watch it take shape in a polished 3D viewer with sliders, buildability checks, a parts list, and build steps. It's local only: no hosting, no accounts, and you bring your own agent.</p>
-<p class="meta">Prepared 2026-10-24 for Barry Mortenson · Repo <code>barrymortenson/emmet</code> (private until launch) · This plan: <code>docs/plan.html</code> · Status: <code>docs/plan-status.js</code> · Marketing site later: <code>emmetbuilder.com</code></p>
+<p class="meta">Prepared 2026-10-24 for Barry Mortenson · Repo <code>barrymortenson/emmet</code> (public, AGPL-3.0) · This plan: <code>docs/plan.html</code> · Status: <code>docs/plan-status.js</code> · Marketing site later: <code>emmetbuilder.com</code></p>
 
 <div class="callout info"><b>How to use this document</b>
 Sections 02–18 are the specification: what to build and why. Sections 19–22 are the execution plan: nine phases, each split into a few large <b>sessions</b>. A session is one agent run, one branch, and one pull request. Every session has a <b>Copy prompt with rules</b> button that puts the agent rules, the session's scope, its Done when list, and its prompt on the clipboard in one go, ready to paste into Claude Code or Codex. Steps marked <span class="pill you">YOU</span> need you. The left rail reads <code>docs/plan-status.js</code> and shows what's done, what's in progress, what's up next, and what's waiting on you.</div>
@@ -235,7 +235,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 
 <h3>Fast start</h3>
 <ol class="steps">
-<li><b>Do Phase 0's people steps</b> (section 21): approve creating the private repo and register the self-hosted runner on this Mac. Claude Code 2.1.310 and Codex 0.160.1 are already installed here; just confirm both are signed in.</li>
+<li><b>Do Phase 0's people steps</b> (section 21): do the name check (H-17), approve creating the public repo, and register the self-hosted runner on this Mac. Claude Code 2.1.310 and Codex 0.160.1 are already installed here; just confirm both are signed in.</li>
 <li><b>Open the next session.</b> The rail's <i>Up next</i> box names it and has a copy button. You can also press <b>Copy prompt with rules</b> on the session itself.</li>
 <li><b>Paste it</b> into Claude Code or Codex, started in <code>~/Sites/emmet</code>. The agent checks the prerequisites, builds, tests, updates <code>docs/plan-status.js</code> on its branch, opens one PR, and stops.</li>
 <li><b>Review and merge.</b> The status change lands with the merge, so the rail is right on the next reload. Repeat.</li>
@@ -364,7 +364,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td><code>nurb check</code> / <code>inspect</code> / <code>render</code>: the agent verifies with numbers, then looks</td><td><code>emmet check</code> (collisions, connectivity, floating parts, availability), <code>emmet render</code> (an image back to the agent), and findings that name the part and the line of <code>model.py</code> that placed it.</td></tr>
 <tr><td>Card per part, with <code>## Don't</code></td><td><code>CARD.md</code> per project with <i>What it is</i>, <i>Design notes</i>, and <i>Don't</i>, plus an AUTO block (parts count, checks, BOM total).</td></tr>
 <tr><td>Viewer rebuilds on save without moving the camera, and teaches one affordance at a time</td><td>The same laws (below).</td></tr>
-<tr><td>Agent in your own terminal, on your own plan</td><td>Terminal mode is nurb's model exactly: the user runs <code>claude</code> or <code>codex</code> in the project folder on any sign-in they like, and Emmet is tools plus the viewer. The <b>embedded chat pane</b> adds what each provider's terms allow (D-35, D-37): Claude on the user's own Claude Code sign-in; Codex on the user's API key, and on the ChatGPT plan once Emmet is open source (8H).</td></tr>
+<tr><td>Agent in your own terminal, on your own plan</td><td>Terminal mode is nurb's model exactly: the user runs <code>claude</code> or <code>codex</code> in the project folder on any sign-in they like, and Emmet is tools plus the viewer. The <b>embedded chat pane</b> adds what each provider's terms allow (D-35, D-37): Claude on the user's own Claude Code sign-in; Codex on the user's ChatGPT plan through Sign in with ChatGPT (1E), or on an API key.</td></tr>
 </table></div>
 
 <h3>Where the chat goes past nurb</h3>
@@ -398,7 +398,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <h3>MVP scope and exit criteria</h3>
 <p>The MVP is the end of Phase 5, the working proof of concept. Beta (Phase 6) and the website and launch (Phase 7) come after it.</p>
 <ul class="small">
-<li>A Tauri app on macOS and Windows: project tree, 3D viewer, chat pane wired to Claude Code <i>and</i> Codex, sliders, checks, BOM, and steps.</li>
+<li>A Tauri app on macOS and Windows: project tree, 3D viewer, chat pane wired to Claude Code <i>and</i> Codex (on the user's Claude or ChatGPT plan, or an API key), sliders, checks, BOM, and steps.</li>
 <li>The Python DSL, <code>.mpd</code> output, and a three.js render that updates live from the project folder.</li>
 <li>Parts search, and a BOM with Rebrickable colors and availability.</li>
 <li>Validator v1 (collision, connectivity, floating parts, step order, availability), with findings fed to the agent as tool output and linked to the viewer and to source lines.</li>
@@ -410,7 +410,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 </ul>
 
 <h3>Non-goals</h3>
-<p class="small">No hosting, accounts, or telemetry. No Linux, mobile, or WebGPU. Emmet never calls an LLM API itself: all model use goes through the user's own agent CLI. Owned-inventory matching, BrickLink pricing, third-party MCP hosting, Studio <code>.io</code> files, and Codex on a ChatGPT plan inside the app (8H) are deferred to Phase 8.</p>
+<p class="small">No hosting, accounts, or telemetry. No Linux, mobile, or WebGPU. Emmet never calls an LLM API itself: all model use goes through the user's own agent CLI. Owned-inventory matching, BrickLink pricing, third-party MCP hosting, Studio <code>.io</code> files are deferred to Phase 8.</p>
 
 <h3 id="laws">Eight design laws</h3>
 <ol>
@@ -436,37 +436,37 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-03</td><td>Frontend</td><td>React 19 + TypeScript strict + Vite. The 3D viewer is an imperative three.js module (<code>packages/viewer</code>) behind a small API, testable and benchmarkable without React.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-04</td><td>Core</td><td>Rust crates own LDraw parsing and writing, the parts index, the validator, the BOM, steps, and packing. The UI and the CLI are thin front doors over the same crates.</td><td><span class="pill decided">Brief</span></td></tr>
 <tr><td class="id">D-05</td><td>Model DSL</td><td>Python with <code>emmet_dsl</code>. The app bootstraps its own Python 3.13 through a bundled <code>uv</code> and never uses system Python. The agent writes <code>model.py</code>, which emits <code>.mpd</code>.</td><td><span class="pill decided">Brief</span></td></tr>
-<tr><td class="id">D-06</td><td>Agent bridge</td><td>Both agents in the spike: Claude Code (<code>claude -p</code>, stream-JSON over stdio) and Codex (<code>codex app-server</code>, JSON-RPC over stdio), behind one <code>AgentAdapter</code> trait. Each agent runs only on terms its provider publishes for that use (D-37): Claude Code on the user's own Claude Code sign-in; Codex on the user's own OpenAI API key until Emmet qualifies for Sign in with ChatGPT. The user never edits a config file.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-06</td><td>Agent bridge</td><td>Both agents in the spike: Claude Code (<code>claude -p</code>, stream-JSON over stdio) and Codex (<code>codex app-server</code>, JSON-RPC over stdio), behind one <code>AgentAdapter</code> trait. Each agent runs only on terms its provider publishes for that use (D-37): Claude Code on the user's own Claude Code sign-in; Codex on the user's ChatGPT plan through Sign in with ChatGPT (1E), or on the user's OpenAI API key. The user never edits a config file.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-07</td><td>MCP</td><td><code>emmet mcp</code>, stdio transport, built on <code>rmcp</code>. The agent spawns it as a child process. Nothing is hosted.</td><td><span class="pill decided">Brief</span></td></tr>
 <tr><td class="id">D-08</td><td>Binaries</td><td>One codebase, two front doors, <b>two executables</b>: the GUI app, and a console <code>emmet</code> CLI shipped inside the bundle as a Tauri sidecar and linked to the same crates. Settings → "Install command line tool" puts it on PATH. This amends the brief's "one binary" because a Windows GUI-subsystem exe can't print to a terminal.</td><td><span class="pill rec">Proposed</span> confirm in 0B (ADR 0006)</td></tr>
 <tr><td class="id">D-09</td><td>State</td><td>The filesystem is the source of truth (section 07). An optional local socket (Unix socket / named pipe, <code>interprocess</code> crate) carries only ephemeral UI events: highlight, camera, selection, render. Everything degrades gracefully when the app isn't running.</td><td><span class="pill decided">Brief</span></td></tr>
 <tr><td class="id">D-10</td><td>Status tracker</td><td>A committed <code>docs/plan-status.js</code>, hand-edited by agents on their session branch and checked by <code>scripts/plan-check.mjs</code> in CI. No YAML ledger, no generator.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-11</td><td>Test cases</td><td>A ladder of three models: Cottage → Station + track loop → OMR set rebuild, all official parts.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
-<tr><td class="id">D-12</td><td>Visibility</td><td>The repo stays private until the marketing launch (Phase 7). No secrets or personal data ever go into it, so it can be made public safely.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
-<tr><td class="id">D-13</td><td>CI</td><td>A self-hosted macOS runner on Barry's Mac (warm caches, $0, with runner guards) plus hosted <code>windows-latest</code>. A manual hosted-macOS workflow is the fallback.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
-<tr><td class="id">D-14</td><td>License</td><td>Decided after the MVP, at launch (H-16); not before G2 (Barry 2026-10-24). Until then the code is all rights reserved, and a dependency license allowlist keeps every option open (no GPL or AGPL in shipped code).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-12</td><td>Visibility</td><td>The repo is public from day one (0A), under AGPL-3.0 (D-14), once the name check is done (H-17). No secrets or personal data ever go into it: gitleaks on every commit, plus GitHub secret scanning and push protection.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-13</td><td>CI</td><td>A self-hosted macOS runner on Barry's Mac (warm caches, $0, with runner guards) plus hosted <code>windows-latest</code>. The self-hosted runner takes trusted events only; PRs from forks use hosted <code>macos-latest</code>. A manual hosted-macOS workflow is the fallback.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-14</td><td>License</td><td><b>AGPL-3.0-or-later</b> for the app, engine, CLI, MCP servers, and viewer: anyone may use, change, and share Emmet, but whoever distributes it or runs it as a service must publish their full source under the same license and keep the copyright notices. <b>Apache-2.0</b> for <code>python/emmet_dsl</code>, the techniques library, and project templates, so models users write and share are clearly theirs. Models and outputs (<code>.mpd</code>, parts lists, PDFs, renders) belong to the user. The <b>"Emmet" name and logo</b> stay Barry's trademarks (<code>TRADEMARKS.md</code>), so a fork can't ship under them. Contributions come in under the <b>DCO</b> (<code>Signed-off-by</code>). The dependency allowlist stays permissive and AGPL-compatible.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-15</td><td>Agent tests</td><td>Every PR replays recorded agent transcripts through fake <code>claude</code>/<code>codex</code> binaries: deterministic, no tokens. Live evals (<code>just eval</code>) run only at G1 and G2, within the scripted-run budget (D-38), on Barry's real CLIs at the phase gates.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-16</td><td>Design</td><td>The agent builds clickable HTML mockups of three directions. Barry picks one (UX-1, H-07) and signs the frozen design (UX-2, H-08).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-17</td><td>Website</td><td>A static Astro site in <code>site/</code> in this repo, deployed to Cloudflare Workers static assets with PR previews. Cookieless Cloudflare Web Analytics at most. It starts after the proof of concept works (G2).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-18</td><td>macOS signing</td><td>Barry is enrolled in the Apple Developer Program. Every build that leaves this Mac is signed with Developer ID and notarized, from the G1 demo build onward.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-19</td><td>Windows checks</td><td>Barry's hands-on Windows checks run in a Windows 11 ARM VM on this Mac. x64 behavior is proven by hosted CI and by beta testers.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-20</td><td>Windows installer</td><td>NSIS only (which the updater supports), unsigned through the beta, with SmartScreen guidance. Azure Trusted Signing comes after launch.</td><td><span class="pill decided">Brief</span> + <span class="pill rec">Proposed</span></td></tr>
-<tr><td class="id">D-21</td><td>Distribution</td><td>Because the source repo is private, release binaries and the updater manifest are published to a public repo, <code>barrymortenson/emmet-releases</code>, that holds only GitHub Releases. The site's download buttons read it.</td><td><span class="pill rec">Proposed</span> (follows from D-12), H-14</td></tr>
+<tr><td class="id">D-21</td><td>Distribution</td><td>Release binaries and the updater manifest are GitHub Releases on the public repo, and the parts data pack is its own release series there. The site's download buttons read them. No separate releases repo.</td><td><span class="pill decided">Barry 2026-10-24</span> (follows from D-12)</td></tr>
 <tr><td class="id">D-22</td><td>Parts search</td><td>SQLite FTS5 plus a dimension parser ("1 x 2 plate with clip") and a synonym table. No embeddings in the MVP: agents rephrase well, and lexical search is fast and explainable.</td><td><span class="pill rec">Proposed</span></td></tr>
 <tr><td class="id">D-23</td><td>Viewer scene</td><td>The viewer builds its own scene from Emmet's placement list. It uses three.js <code>LDrawLoader</code> only to load each unique part once, then instances, which makes diff updates, highlight, steps, and performance possible.</td><td><span class="pill rec">Proposed</span> confirm in 1B</td></tr>
 <tr><td class="id">D-24</td><td>Agent renders</td><td>Renders for the agent go through the same viewer code: the running app when it's open, otherwise a hidden headless render mode of the app. There is no second renderer.</td><td><span class="pill rec">Proposed</span> confirm in 0B (ADR 0005)</td></tr>
-<tr><td class="id">D-25</td><td>Rebrickable data</td><td>Part, color, element, and availability data come from Rebrickable's catalog downloads ("Free for personal and commercial use, provided you acknowledge Rebrickable as your data source"). Emmet's CI fetches the archive once a week, builds a small signed <b>parts data pack</b> (a derived SQLite file, about 6 MB compressed), and publishes it through <code>emmet-releases</code>. The app updates the pack on its own schedule, and every installer bundles the current one. User apps never contact Rebrickable. Rebrickable is credited wherever its data appears. A user API key is needed only for later inventory features (8D).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-25</td><td>Rebrickable data</td><td>Part, color, element, and availability data come from Rebrickable's catalog downloads ("Free for personal and commercial use, provided you acknowledge Rebrickable as your data source"). Emmet's CI fetches the archive once a week, builds a small signed <b>parts data pack</b> (a derived SQLite file, about 6 MB compressed), and publishes it as a GitHub Release on the repo. The app updates the pack on its own schedule, and every installer bundles the current one. User apps never contact Rebrickable. Rebrickable is credited wherever its data appears. A user API key is needed only for later inventory features (8D).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-26</td><td>Agent config</td><td>Emmet never writes to <code>~/.claude</code>, <code>~/.codex</code>, or any user-level agent config. All MCP servers, instructions, and permissions are passed per session through flags and <code>-c</code> overrides.</td><td><span class="pill rec">Proposed</span> (from the brief's "user never edits config")</td></tr>
 <tr><td class="id">D-27</td><td>Workspace trust</td><td>A project folder not created on this machine opens read-only (its <code>.mpd</code> is viewable) until the user trusts it, because <code>model.py</code> is code.</td><td><span class="pill rec">Proposed</span></td></tr>
 <tr><td class="id">D-28</td><td>Telemetry</td><td>None. Logs stay local, and "Copy diagnostics" builds a scrubbed bundle for bug reports when the user asks for one.</td><td><span class="pill rec">Proposed</span></td></tr>
 <tr><td class="id">D-29</td><td>UI kit</td><td>Radix UI primitives for accessible behavior, Emmet's own CSS with design tokens (CSS variables), and lucide icons. No Tailwind and no component kit, which keeps the bundle and the dependency surface small.</td><td><span class="pill rec">Proposed</span> confirm in 2B</td></tr>
-<tr><td class="id">D-30</td><td>Branding</td><td>Say "brick". Use LEGO only in trademark disclaimers. The name gets a trademark check before launch (H-17).</td><td><span class="pill decided">Brief</span></td></tr>
+<tr><td class="id">D-30</td><td>Branding</td><td>Say "brick". Use LEGO only in trademark disclaimers. The name gets a trademark check before the repo goes public (H-17, before 0A).</td><td><span class="pill decided">Brief</span></td></tr>
 <tr><td class="id">D-31</td><td>Host for other MCP servers</td><td>Designed in from the start (the session MCP config is a list), shipped after launch (8F): users can add third-party MCP servers such as <code>ldraw-mcp</code> or <code>brickbuilder-mcp</code> to a project.</td><td><span class="pill decided">Brief</span></td></tr>
 <tr><td class="id">D-32</td><td>Question cards</td><td>The agent asks the user through an <code>ask_user</code> tool on <code>emmet_host</code>: one question, 2–4 options with optional descriptions, single or multi choice, and always an Other free-text answer. The chat shows it as a card, and the tool call blocks until the user answers. It's the same path for both agents, and Claude Code's built-in <code>AskUserQuestion</code> is disabled in app sessions.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-33</td><td>Redirect and stop</td><td>The composer stays open while the agent works. A message sent mid-turn is queued and delivered at the agent's next step: through the CLI's native mid-turn input where it exists, otherwise attached to the next Emmet tool result, otherwise sent as the next turn. Stop interrupts at once and sends any queued message as the next turn.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-34</td><td>Build animation</td><td>Agent-driven runs animate in the viewer: added parts drop in brick by brick in build order (step, then bottom-up), capped in total time and skippable. Slider runs never animate. The doctrine has the agent build in visible stages so the user can judge direction early. Setting: Animated (default), Fast, or Off; reduced motion means Off.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
-<tr><td class="id">D-35</td><td>Plans and keys</td><td><b>Claude:</b> the chat pane runs the user's own unmodified Claude Code with whatever sign-in the user gave it in their own terminal (a Pro or Max plan, or an API key). Emmet passes the user's environment through unchanged: no <code>--bare</code>, no added, removed, or filtered credential variables, and no reading of Claude Code's credentials. <b>Codex:</b> the chat pane uses an OpenAI API key the user enters in Emmet (kept in the OS keychain) through the app-server's provider config. ChatGPT plan use in the chat pane comes only through Sign in with ChatGPT once Emmet's source is public under an open-source license (8H). Emmet never starts the app-server on the CLI's own <code>codex login</code>. <b>Both:</b> terminal mode (the user runs the CLI themselves) works with any sign-in. Emmet never pays for, resells, or proxies usage.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
-<tr><td class="id">D-36</td><td>Plan usage display</td><td><b>Claude:</b> status bar meters from Claude Code's documented <code>/usage</code> report and <code>rate_limit_event</code>, fetched only when the user opens the usage popover, presses refresh, or finishes a turn. <b>Codex:</b> no meters, because OpenAI documents no usage source for API-key or Sign in with ChatGPT sessions. With Sign in with ChatGPT (8H), Emmet shows OpenAI's required "Using ChatGPT plan" label with a "Manage usage" link. Emmet never reads a token or calls a private endpoint.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-35</td><td>Plans and keys</td><td><b>Claude:</b> the chat pane runs the user's own unmodified Claude Code with whatever sign-in the user gave it in their own terminal (a Pro or Max plan, or an API key). Emmet passes the user's environment through unchanged: no <code>--bare</code>, no added, removed, or filtered credential variables, and no reading of Claude Code's credentials. <b>Codex:</b> the chat pane uses an OpenAI API key the user enters in Emmet (kept in the OS keychain) through the app-server's provider config. ChatGPT plan use in the chat pane comes only through OpenAI's Sign in with ChatGPT for open-source apps (1E), which Emmet qualifies for as public AGPL-3.0 code (D-14). An API key stays an option. Emmet never starts the app-server on the CLI's own <code>codex login</code>. <b>Both:</b> terminal mode (the user runs the CLI themselves) works with any sign-in. Emmet never pays for, resells, or proxies usage.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-36</td><td>Plan usage display</td><td><b>Claude:</b> status bar meters from Claude Code's documented <code>/usage</code> report and <code>rate_limit_event</code>, fetched only when the user opens the usage popover, presses refresh, or finishes a turn. <b>Codex:</b> no meters, because OpenAI documents no usage source for API-key or Sign in with ChatGPT sessions. With Sign in with ChatGPT (1E), Emmet shows OpenAI's required "Using ChatGPT plan" label with a "Manage usage" link. Emmet never reads a token or calls a private endpoint.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-37</td><td>Terms gate</td><td>A feature that touches an AI provider (accounts, sign-in, credentials, billing, usage data, model requests, or names and logos) is built only if the provider's current published text permits that exact use. The quote and its date go in section 10's terms matrix. Anything ambiguous needs the provider's written confirmation (kept in <code>docs/terms/</code>) or it isn't built. The matrix is re-checked in 0B, at G1 and G2, and in 7B. If a provider's terms change, the affected feature is switched off before the next release.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-38</td><td>Scripted-run budget</td><td>Scripted runs (anything that drives a real agent CLI automatically, billed to Barry's API keys) are kept to a minimum. <b>Replay first:</b> every behavior that recorded transcripts can test is tested that way. <b>Recordings:</b> 0B records each protocol scenario once per CLI (one retry if a recording is unusable). Later fixtures come from Barry's own hand sessions in the app, which are saved and scrubbed anyway. <b>Live evals:</b> only at G1 (rung 1, one run per agent: 2 runs) and G2 (rungs 1–3 and the three-photo rung, one run each per agent: 12 runs). A failed run gets at most one rerun, after a fix. None at Phase 4's exit, before releases, in CI, or for iterating mid-session; iteration uses replays and hand sessions. <code>just eval</code> shows the run count and the expected cost from past reports and asks first. It refuses to go past the gate's budget in <code>docs/evals/budget.json</code> unless Barry passes <code>--over-budget</code>.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 </table></div>
@@ -599,7 +599,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <li><b>Webview → host.</b> The UI has no filesystem, shell, or network access of its own. It calls typed commands that validate every path against the open project root.</li>
 <li><b>Host → agent CLI.</b> The CLI is the user's own, logged in with the user's account, and runs with Emmet's permission policy (section 10). Emmet never sees tokens.</li>
 <li><b>Host → Python.</b> <code>model.py</code> is code. It runs in a subprocess (<code>python -I</code>, scrubbed env, project cwd, timeout, output size cap), only for trusted projects (D-27).</li>
-<li><b>Network.</b> Emmet itself downloads only the LDraw library, the parts data pack (from <code>emmet-releases</code>, never from Rebrickable directly), the uv-managed Python, and updates, all over HTTPS with pinned checksums where the source allows. The agent CLIs make their own traffic.</li>
+<li><b>Network.</b> Emmet itself downloads only the LDraw library, the parts data pack (from the repo's GitHub Releases, never from Rebrickable directly), the uv-managed Python, and updates, all over HTTPS with pinned checksums where the source allows. The agent CLIs make their own traffic.</li>
 </ul>
 </section>
 
@@ -607,6 +607,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <section id="s05">
 <h2><span class="num">05</span>Repo layout</h2>
 <pre><code>emmet/
+├─ LICENSE (AGPL-3.0) · NOTICE · TRADEMARKS.md · CONTRIBUTING.md (DCO) · SECURITY.md · CODE_OF_CONDUCT.md
 ├─ AGENTS.md                 agent rules for this repo (CLAUDE.md is a symlink to it)
 ├─ README.md · CHANGELOG.md · justfile · rust-toolchain.toml · .node-version · pnpm-workspace.yaml
 ├─ Cargo.toml                workspace: lints, dependencies, profiles
@@ -619,11 +620,11 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 │  ├─ src/                   React UI
 │  └─ src-tauri/             Tauri host, capabilities/, icons/, tauri.conf.json
 ├─ packages/viewer/          three.js viewer (TS), bench/
-├─ python/emmet_dsl/         uv project: src/emmet_dsl, tests (DSL integration only)
+├─ python/emmet_dsl/         uv project: src/emmet_dsl, tests (DSL integration only); LICENSE (Apache-2.0)
 ├─ data/
 │  ├─ connections/           hand-curated connector overrides (TOML)
 │  ├─ synonyms.toml          search synonyms
-│  ├─ techniques/            technique snippets (*.py) with docs
+│  ├─ techniques/            technique snippets (*.py) with docs; Apache-2.0
 │  └─ ladder/                rung prompts, reference models, scoring config
 ├─ tests/
 │  ├─ it/                    Rust integration test crate: CLI goldens, MCP contracts, replay, validator corpus
@@ -929,7 +930,7 @@ server → client requests for command/file approvals → Approval events → re
 <ul class="small">
 <li><code>codex app-server generate-json-schema</code> output for each supported Codex version is committed under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>, and the adapter's types are checked against it. A Codex update that changes the schema shows up as a failing test, not a broken chat.</li>
 <li>Exact method names and parameters come from the generated schema in 0B. The names above follow the published app-server docs (threads, turns, items, and server-initiated approvals).</li>
-<li>The provider block pins the session to the user's API key and keeps the app-server off the CLI's own <code>codex login</code> (<code>requires_openai_auth=false</code>), which Emmet never uses (D-35). 8H swaps it for OpenAI's documented Sign in with ChatGPT provider (<code>env_key="ACCESS_TOKEN"</code>). 0B confirms the key names against the Codex config reference.</li>
+<li>The provider block pins the session to the user's API key and keeps the app-server off the CLI's own <code>codex login</code> (<code>requires_openai_auth=false</code>), which Emmet never uses (D-35). 1E adds OpenAI's documented Sign in with ChatGPT provider (<code>env_key="ACCESS_TOKEN"</code>) for plan users; the API-key provider stays for users who prefer a key. 0B confirms the key names against the Codex config reference.</li>
 <li>Stop uses the app-server's turn interrupt. If the committed schema has a method that adds input to a running turn, redirects use it; otherwise they use the queued path. Codex approvals stay on server requests, so <code>emmet_host</code> carries only <code>ask_user</code> here.</li>
 </ul>
 
@@ -964,7 +965,7 @@ server → client requests for command/file approvals → Approval events → re
 <h3>Detection, auth, versions</h3>
 <ul>
 <li>Detection finds the CLIs on PATH and in the usual install locations (Homebrew, <code>~/.local/bin</code>, npm global, and on Windows <code>%APPDATA%\npm</code>, WinGet, and Scoop shims). It reads <code>--version</code> and checks sign-in with the CLI's own status command. Emmet never opens token files.</li>
-<li>Claude not signed in: the onboarding card shows the one step to take in the user's terminal (<code>claude</code>, then <code>/login</code>), with an "Open Terminal" button. Codex in the chat pane: "Add your OpenAI API key" (Settings → Agents, stored in the OS keychain, never in files or logs). Codex on a ChatGPT plan works today in terminal mode (<code>codex login</code> in the user's terminal), and in the chat pane after 8H.</li>
+<li>Claude not signed in: the onboarding card shows the one step to take in the user's terminal (<code>claude</code>, then <code>/login</code>), with an "Open Terminal" button. Codex in the chat pane: "Add your OpenAI API key" (Settings → Agents, stored in the OS keychain, never in files or logs). Codex on a ChatGPT plan: "Continue with ChatGPT" (1E), OpenAI's sign-in in the system browser. Terminal mode works with any Codex sign-in.</li>
 <li>Each adapter declares a tested version range. Outside it, the chat still works but shows a quiet "untested Codex 0.17x" note, and <code>emmet doctor</code> lists it.</li>
 <li>Windows: 1C verifies both CLIs natively in the VM (H-04) and records their requirements in ADR 0001. If one requires a shell such as Git Bash, onboarding says so.</li>
 </ul>
@@ -973,14 +974,14 @@ server → client requests for command/file approvals → Approval events → re
 <p>Every agent-facing feature is listed here with the provider text that allows it. A feature not marked <span class="pill decided">Build</span> for a provider isn't built for that provider. Checked 2026-10-24 against Anthropic's <a href="https://code.claude.com/docs/en/legal-and-compliance">Claude Code legal and compliance</a> page and OpenAI's <a href="https://developers.openai.com/siwc/token-sharing-open-source">ChatGPT plan usage</a> and <a href="https://learn.chatgpt.com/docs/app-server">Codex app-server</a> docs. The quotes are kept with their dates in <code>docs/terms/</code> (0B).</p>
 <div class="table-wrap"><table>
 <tr><th style="width:20%">Use</th><th>Claude (Anthropic)</th><th>Codex (OpenAI)</th></tr>
-<tr><td>Terminal mode: the user runs the CLI; Emmet supplies MCP tools and project files</td><td><span class="pill decided">Build</span> Ordinary use of Claude Code by its user.</td><td><span class="pill decided">Build</span> Ordinary use of Codex by its user. The user adds Emmet's MCP server with the CLI's own command; Emmet never edits <code>~/.codex</code>. This is how Barry prototypes on his ChatGPT plan until 8H.</td></tr>
-<tr><td>Chat pane on the user's subscription</td><td><span class="pill decided">Build</span> with conditions. Anthropic permits "preinstalling or running Claude Code in your products" if the maker accepts the Commercial Terms (H-20), "the Claude Code binary must not be modified", no "authentication method built into it" is removed, disabled, or restricted, and the maker doesn't "pay for, resell, or intermediate Claude usage". Its rule against routing plan requests "does not … prevent an end user from signing in to the unmodified Claude Code binary with their own Claude subscription". Emmet therefore uses the user's installed CLI, leaves sign-in entirely to Claude Code's own flow, never passes <code>--bare</code> or touches credential variables, and only sends turns the user started. Emmet runs Claude Code only after H-20, including on Barry's own Mac.</td><td><span class="pill open">Not yet</span> OpenAI offers ChatGPT plan usage in apps through Sign in with ChatGPT: "available to all open-source partners and selected private clients", for "open-source and locally hosted apps". Emmet is closed source until launch (D-14), so this waits for 8H, after the source is public. 8H follows OpenAI's sign-in, token-storage, and UI/UX rules (a "Continue with ChatGPT" button, a first-use notice, "Using ChatGPT plan" with "Manage usage", and a limit card).</td></tr>
-<tr><td>Chat pane on the CLI's existing ChatGPT login (<code>codex login</code> through the app-server)</td><td>n/a</td><td><span class="pill gate">Not built</span> OpenAI: "we recommend migrating to Sign in with ChatGPT", and "App-server authentication has never been permitted for commercial or hosted services." Tolerated for apps already built isn't the same as permitted for a new one. Only OpenAI's written yes for a private, Barry-only prototype would change this row (D-37), and even then only in debug builds.</td></tr>
+<tr><td>Terminal mode: the user runs the CLI; Emmet supplies MCP tools and project files</td><td><span class="pill decided">Build</span> Ordinary use of Claude Code by its user.</td><td><span class="pill decided">Build</span> Ordinary use of Codex by its user. The user adds Emmet's MCP server with the CLI's own command; Emmet never edits <code>~/.codex</code>.</td></tr>
+<tr><td>Chat pane on the user's subscription</td><td><span class="pill decided">Build</span> with conditions. Anthropic permits "preinstalling or running Claude Code in your products" if the maker accepts the Commercial Terms (H-20), "the Claude Code binary must not be modified", no "authentication method built into it" is removed, disabled, or restricted, and the maker doesn't "pay for, resell, or intermediate Claude usage". Its rule against routing plan requests "does not … prevent an end user from signing in to the unmodified Claude Code binary with their own Claude subscription". Emmet therefore uses the user's installed CLI, leaves sign-in entirely to Claude Code's own flow, never passes <code>--bare</code> or touches credential variables, and only sends turns the user started. Emmet runs Claude Code only after H-20, including on Barry's own Mac.</td><td><span class="pill decided">Build</span> with conditions (1E). OpenAI: ChatGPT plan usage "is available to all open-source partners", in docs written for "open-source and locally hosted apps"; open-source clients register themselves "without a client secret or partner API key". Emmet is public AGPL-3.0 code running on the user's machine (D-12, D-14). 1E follows OpenAI's sign-in, token-storage, and UI/UX rules exactly: "Continue with ChatGPT", a first-use notice, "Using ChatGPT plan" with "Manage usage", the limit card, an account picker, and tokens only in the OS keychain. If Emmet ever charges for anything or hosts the agent, it first completes OpenAI's interest form for paid or hosted apps.</td></tr>
+<tr><td>Chat pane on the CLI's existing ChatGPT login (<code>codex login</code> through the app-server)</td><td>n/a</td><td><span class="pill gate">Not built</span> OpenAI: "we recommend migrating to Sign in with ChatGPT", and "App-server authentication has never been permitted for commercial or hosted services." Sign in with ChatGPT (1E) replaces it.</td></tr>
 <tr><td>Chat pane on an API key</td><td><span class="pill decided">Build</span> An <code>ANTHROPIC_API_KEY</code> that the user already has in their own environment ("Developers … should use API key authentication"). Emmet doesn't collect Anthropic keys.</td><td><span class="pill decided">Build</span> The user's OpenAI API key, entered in Emmet's Settings, kept in the OS keychain, and passed to the app-server through a provider <code>env_key</code>, billed to the key's owner under OpenAI's API terms.</td></tr>
-<tr><td>Plan usage display</td><td><span class="pill decided">Build</span> with conditions: only Claude Code's documented <code>SDKUsageReport</code> (from <code>/usage</code>) and <code>SDKRateLimitEvent</code>, fetched when the user acts (opens the popover, presses ⟳, or finishes a turn). No tokens, no private endpoints, no background polling.</td><td><span class="pill gate">Not built</span> as meters: OpenAI documents no usage source for API-key or Sign in with ChatGPT sessions. With 8H, OpenAI's required "Using ChatGPT plan · Manage usage" link to ChatGPT settings.</td></tr>
+<tr><td>Plan usage display</td><td><span class="pill decided">Build</span> with conditions: only Claude Code's documented <code>SDKUsageReport</code> (from <code>/usage</code>) and <code>SDKRateLimitEvent</code>, fetched when the user acts (opens the popover, presses ⟳, or finishes a turn). No tokens, no private endpoints, no background polling.</td><td><span class="pill gate">Not built</span> as meters: OpenAI documents no usage source for API-key or Sign in with ChatGPT sessions. With Sign in with ChatGPT (1E), OpenAI's required "Using ChatGPT plan · Manage usage" link to ChatGPT settings.</td></tr>
 <tr><td>Question cards, redirects, stop, MCP tools, approvals, image input (photo to model)</td><td><span class="pill decided">Build</span> Documented Claude Code features: MCP, <code>--permission-prompt-tool</code>, the interrupt control request, stream-JSON user messages with image content.</td><td><span class="pill decided">Build</span> Documented app-server features: MCP servers, approvals, turn interrupt, image input items.</td></tr>
-<tr><td>Earned resets ("Reset now"), several accounts at once</td><td><span class="pill gate">Not built</span></td><td><span class="pill gate">Not built</span> "Reset now" exists only on the CLI-login path. 8H includes the account picker that OpenAI's Sign in with ChatGPT rules require.</td></tr>
-<tr><td>Names and logos</td><td>"Claude" and "Claude Code" in plain text only, as in "runs Claude Code"; never in an Emmet feature name, and never Anthropic's logos (those need Anthropic's written permission).</td><td>"Codex" and "ChatGPT" in plain text; the ChatGPT logo only inside OpenAI's approved "Continue with ChatGPT" button and plan-usage notices (8H).</td></tr>
+<tr><td>Earned resets ("Reset now"), several accounts at once</td><td><span class="pill gate">Not built</span></td><td><span class="pill gate">Not built</span> "Reset now" exists only on the CLI-login path. 1E includes the account picker that OpenAI's Sign in with ChatGPT rules require.</td></tr>
+<tr><td>Names and logos</td><td>"Claude" and "Claude Code" in plain text only, as in "runs Claude Code"; never in an Emmet feature name, and never Anthropic's logos (those need Anthropic's written permission).</td><td>"Codex" and "ChatGPT" in plain text; the ChatGPT logo only inside OpenAI's approved "Continue with ChatGPT" button and plan-usage notices (1E).</td></tr>
 <tr><td>Automated runs: live evals, scripted spikes</td><td><span class="pill decided">Build</span> on Barry's Console API key only (H-21), within the D-38 budget. Plan-only behavior (the plan badge, <code>/usage</code>) is checked by Barry by hand in a few interactive sessions.</td><td><span class="pill decided">Build</span> on Barry's OpenAI API key only (H-21), within the D-38 budget.</td></tr>
 <tr><td>Reading a CLI's credentials, calling private endpoints, writing user-level agent config, presenting as another client</td><td><span class="pill gate">Never</span></td><td><span class="pill gate">Never</span></td></tr>
 </table></div>
@@ -989,18 +990,18 @@ server → client requests for command/file approvals → Approval events → re
 <li><b>No Emmet-initiated model turns.</b> Every turn starts from something the user did: a message, an answer, "Ask agent to fix", or a redirect.</li>
 <li><b>Re-checks.</b> 0B writes <code>docs/terms/</code> (each quote, its URL, and its date). G1, G2, and 7B re-read the pages and diff them. A change that removes the basis for a row turns that feature off before the next release, and Barry decides what replaces it.</li>
 <li><b>Terminal mode is the safe harbor.</b> Nothing else in Emmet depends on the chat pane, so users can always run their own CLI on their own sign-in.</li>
-<li><b>Prototyping on a ChatGPT plan.</b> Until 8H, Barry uses Codex on his own plan in terminal mode: <code>codex mcp add emmet -- emmet mcp --project &lt;dir&gt;</code> once (Codex's own command, run by Barry), then <code>codex</code> in the project folder. The app shows the model live, animates the agent's runs, and highlights over the bus. Question cards, Emmet's redirect queue, and the usage display are chat-pane features, so in terminal mode Codex's own prompts, interrupt, and status take their place. The Codex chat pane is exercised on the API key and in replay.</li>
+<li><b>Before 1E lands,</b> Codex on a ChatGPT plan works in terminal mode: <code>codex mcp add emmet -- emmet mcp --project &lt;dir&gt;</code> once (Codex's own command, run by the user), then <code>codex</code> in the project folder. The app shows the model live, animates the agent's runs, and highlights parts over the bus.</li>
 </ul>
 
 <h3>Plan usage (D-36)</h3>
-<p>The status bar shows how much of the Claude plan is used, like Orca: <i>Used · Claude ▬ 16% 14m · 4% 6d 9h · 0% Fable ⟳</i>. A click opens a popover with Detailed and Compact views and a detail panel. Codex shows its billing state ("Codex · API key"), and after 8H, "Using ChatGPT plan · Manage usage".</p>
+<p>The status bar shows how much of the Claude plan is used, like Orca: <i>Used · Claude ▬ 16% 14m · 4% 6d 9h · 0% Fable ⟳</i>. A click opens a popover with Detailed and Compact views and a detail panel. Codex shows its billing state: OpenAI's required "Using ChatGPT plan · Manage usage" (1E), or "Codex · API key".</p>
 <ul>
 <li><b>Source.</b> Sending <code>/usage</code> to a short-lived <code>claude -p --input-format stream-json</code> process returns <code>usage_report.rate_limits.limits[]</code>: each meter's <code>kind</code>, <code>group</code>, <code>percent</code>, <code>resets_at</code>, and <code>scope</code> (such as the Fable model), plus <code>extra_usage</code> for usage credits. During turns, <code>rate_limit_event</code> carries <code>status</code>, <code>utilization</code>, and <code>resetsAt</code>, and <code>credits_required</code> when included usage is exhausted. Both types are in Anthropic's Agent SDK reference; the report is marked experimental.</li>
 <li><b>When.</b> Only on user actions: opening the popover, pressing ⟳, and the end of a turn the user started. At most once a minute, with no background polling. Between fetches, live events update the bar, and it shows "Updated 8m ago".</li>
 <li><b>The probe.</b> The <code>/usage</code> process is the user's own Claude Code with the same environment as their terminal, in an empty directory in app data, with no MCP servers or tools. 0B confirms it spends no model tokens and how to keep it out of the user's session history.</li>
 <li><b>One shape.</b> <code>UsageSnapshot { agent, billing, windows: [{ kind, group, label, percent, resets_at, scope }], credits, source, updated_at, status, failure }</code>. Rows render in the order Claude Code reports them, so a new meter appears without an Emmet release. A future agent plugs in through <code>usage()</code> only when its provider documents a source.</li>
 <li><b>Honest states.</b> API key, unavailable, and unknown each have their own label. A meter never shows 0 % because data is missing.</li>
-<li><b>In the chat.</b> At 90 % of a Claude window, one quiet line before the next turn ("Claude's 5-hour limit is at 92%, resets in 40m"). On a rejection, a card with the reset time, and "Continue with Codex" if Codex is set up (a new session; the files carry the state). For Codex after 8H, OpenAI's limit card with "Manage usage" as the primary action.</li>
+<li><b>In the chat.</b> At 90 % of a Claude window, one quiet line before the next turn ("Claude's 5-hour limit is at 92%, resets in 40m"). On a rejection, a card with the reset time, and "Continue with Codex" if Codex is set up (a new session; the files carry the state). For Codex on a ChatGPT plan, OpenAI's limit card with "Manage usage" as the primary action.</li>
 </ul>
 <h4>What we take from Orca, and what we don't</h4>
 <p class="small">Orca (<a href="https://github.com/stablyai/orca">stablyai/orca</a>, MIT; read at commit f2446b9 on 2026-10-24) has the usage UI to beat. Its main-process code also shows which data sources to avoid.</p>
@@ -1099,7 +1100,7 @@ synonyms(term, expands_to)                     -- data/synonyms.toml ("lbg" → 
 <p>Rebrickable's downloads page (checked 2026-10-24) says: "Free for personal and commercial use, provided you acknowledge Rebrickable as your data source", and allows automated downloads "at most once a day". Its Terms add that scraping its web pages is banned, MOC data may never be scraped, and "No Rebrickable content may be used in the training of AI models." Emmet complies by design: one scheduled fetch a week from Emmet's CI, never from users' machines; no MOC data; no training. The agent only reads small slices at run time through tools.</p>
 <h4>The parts data pack</h4>
 <ul>
-<li><b>Built in CI, weekly.</b> <code>parts-data.yml</code> downloads the full archive once and runs <code>scripts/build-parts-data</code>. That produces <code>parts-data-&lt;date&gt;.sqlite.gz</code> and <code>parts-data.json</code> (version, date, sha256, size, row counts, the Rebrickable credit line), signed with the same Ed25519 key family as app updates (H-13), and published to <code>emmet-releases</code>.</li>
+<li><b>Built in CI, weekly.</b> <code>parts-data.yml</code> downloads the full archive once and runs <code>scripts/build-parts-data</code>. That produces <code>parts-data-&lt;date&gt;.sqlite.gz</code> and <code>parts-data.json</code> (version, date, sha256, size, row counts, the Rebrickable credit line), signed with the same Ed25519 key family as app updates (H-13), and published as a GitHub Release on the repo.</li>
 <li><b>What goes in</b>, from the archive's 150 MB down to about 15 MB of SQLite, 6 MB compressed (measured on the 2026-10-23 archive):
   <div class="table-wrap"><table>
   <tr><th>File</th><th>Used for</th><th>In the pack</th></tr>
@@ -1286,7 +1287,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
   <text class="q" x="628" y="611" style="text-anchor: end">Claude</text>
   <rect class="meter" x="636" y="604" width="48" height="6" rx="3"/><rect class="meter on" x="636" y="604" width="8" height="6" rx="3"/>
   <text class="q" x="692" y="611">16% 14m · 4% 6d 9h · 0% Fable</text>
-  <text class="q" x="1080" y="611" style="text-anchor: end">Codex · API key</text>
+  <text class="q" x="1080" y="611" style="text-anchor: end">Codex · Using ChatGPT plan</text>
   <text class="s" x="1100" y="611" style="text-anchor: end">⟳</text>
 </svg>
 </div>
@@ -1300,7 +1301,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 
 <h3>Key flows (each has an E2E spec)</h3>
 <ol>
-<li><b>First run</b>: welcome → parts library download (progress, about 1 minute) → Python runtime set up → agents detected (installed? signed in? the one command to fix it) → "Start with the Cottage example" or "New model from a prompt". Under 3 minutes on a normal connection.</li>
+<li><b>First run</b>: welcome → parts library download (progress, about 1 minute) → Python runtime set up → agents detected (installed? signed in? the one command to fix it; for Codex, "Continue with ChatGPT" or an API key) → "Start with the Cottage example" or "New model from a prompt". Under 3 minutes on a normal connection.</li>
 <li><b>New model from a prompt</b>: New → name → the first message → the agent's first visible model inside the first minute (the doctrine tells it to show a draft fast) → refinement while the user watches.</li>
 <li><b>Tweak with sliders</b>: drag → the viewer updates in place → "make default" writes it back.</li>
 <li><b>Fix a finding</b>: Checks → click → highlight + source line → "Ask agent to fix" → the agent's fix shows up live.</li>
@@ -1338,8 +1339,8 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <tr><td>Path traversal through IPC or a project file</td><td>Every path argument is canonicalized and must sit under the project root or app data. Symlinks escaping the root are refused.</td><td>Integration (1B, 5B)</td></tr>
 <tr><td>Malicious library or data download</td><td>HTTPS only, sha256 pinned per Emmet release, zip-slip guard, size limits.</td><td>Integration (1A)</td></tr>
 <tr><td>Another local process drives the app through the socket</td><td>The socket or pipe is user-only (0600, or a named pipe with a user-only ACL), plus a per-launch random token in a 0600 file in app data. Messages are UI-only and can't run code.</td><td>Integration (1C)</td></tr>
-<tr><td>Update hijack</td><td>Tauri updater signatures (key held by Barry, H-13) over HTTPS from <code>emmet-releases</code>, and macOS notarization.</td><td>Release smoke (6A)</td></tr>
-<tr><td>Secrets or personal data in the repo (it goes public at launch)</td><td>gitleaks pre-commit and in CI, transcript scrubbing, no real usernames or paths in fixtures, and a full-history audit before the public flip (7B).</td><td>CI every PR, 7B</td></tr>
+<tr><td>Update hijack</td><td>Tauri updater signatures (key held by Barry, H-13) over HTTPS from the repo's GitHub Releases, and macOS notarization.</td><td>Release smoke (6A)</td></tr>
+<tr><td>Secrets or personal data in the repo (it's public from day one)</td><td>gitleaks pre-commit and in CI, GitHub secret scanning and push protection, transcript scrubbing, no real usernames or paths in fixtures, and a personal-details pass before the first push (0A).</td><td>CI every PR, 0A</td></tr>
 <tr><td>Supply chain</td><td>Lockfiles committed, cargo-deny (advisories + license allowlist), <code>pnpm audit --prod</code>, Dependabot, GitHub Actions pinned by SHA, and the self-hosted runner limited to this repo with a guard script (section 17).</td><td>CI every PR</td></tr>
 </table></div>
 <p><b>Privacy:</b> no telemetry and no analytics in the app. Network calls are listed in Settings → About ("what Emmet connects to"). The chat history and transcripts stay in the project's <code>.emmet/</code> folder on the user's disk. The agent CLIs' own data handling is the user's relationship with Anthropic or OpenAI, and onboarding says so in one sentence. Photos attached in the chat (4D) are saved in the project's <code>refs/</code> folder with EXIF stripped, and go only to the agent the user picked.</p>
@@ -1394,10 +1395,10 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <h3>Workflows</h3>
 <div class="table-wrap"><table>
 <tr><th>Workflow</th><th>Trigger</th><th>Jobs</th></tr>
-<tr><td><code>ci.yml</code></td><td>PR, push to <code>main</code></td><td><code>mac</code> on <code>[self-hosted, macOS, emmet]</code> (lint, build, integration, replay, E2E, visual, perf when relevant) · <code>windows</code> on <code>windows-latest</code> (build, integration, replay, E2E when paths match) · <code>plan</code> (plan-check, schemas fresh, bindings fresh) · <code>ci</code> (the aggregate required check)</td></tr>
+<tr><td><code>ci.yml</code></td><td>PR, push to <code>main</code></td><td><code>mac</code> on <code>[self-hosted, macOS, emmet]</code> for trusted events, or <code>macos-latest</code> for PRs from forks (lint, build, integration, replay, E2E, visual, perf when relevant) · <code>windows</code> on <code>windows-latest</code> (build, integration, replay, E2E when paths match) · <code>plan</code> (plan-check, schemas fresh, bindings fresh) · <code>ci</code> (the aggregate required check)</td></tr>
 <tr><td><code>nightly.yml</code></td><td>Schedule (03:00 local), manual</td><td>Full LDraw library + full OMR corpus, perf on both OSes, Windows E2E always, <code>cargo deny</code> advisories refresh</td></tr>
 <tr><td><code>ci-hosted-mac.yml</code></td><td>Manual</td><td>The <code>mac</code> job on <code>macos-latest</code>, for when the self-hosted runner is down (paid minutes)</td></tr>
-<tr><td><code>release.yml</code></td><td>Tag <code>v*</code>, manual dry run</td><td>tauri-action matrix: macOS universal (self-hosted, signed and notarized), Windows NSIS (hosted) → smoke tests → publish to <code>emmet-releases</code> as a draft → Barry publishes</td></tr>
+<tr><td><code>release.yml</code></td><td>Tag <code>v*</code>, manual dry run</td><td>tauri-action matrix: macOS universal (self-hosted, signed and notarized), Windows NSIS (hosted) → smoke tests → a draft GitHub Release → Barry publishes</td></tr>
 <tr><td><code>site.yml</code> (Phase 7)</td><td>PR and push touching <code>site/</code></td><td>Build, link check, Lighthouse and a11y budget, preview deploy on PRs, production deploy from <code>main</code></td></tr>
 </table></div>
 
@@ -1406,7 +1407,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <li>Registered to this repo only, labeled <code>emmet</code>, and running as Barry's user. Its work directory is under <code>~/actions-runner/emmet</code>.</li>
 <li><code>scripts/runner-guard.sh</code> runs first in every self-hosted job. It refuses to run unless the event comes from this repo (no forks), the actor is Barry or Dependabot, and the job's data dir is a temp dir. It also asserts that <code>HOME</code>-level agent configs aren't touched (the test harness sets its own <code>HOME</code>).</li>
 <li>Release signing secrets live in the login keychain and in GitHub environment <code>release</code>, which requires a manual approval. PR jobs never see them.</li>
-<li>When the repo goes public (7B), the runner is re-scoped: self-hosted jobs run only on <code>push</code> to <code>main</code> and on tags, and PRs from forks use hosted runners. This is part of the public-flip checklist.</li>
+<li>The repo is public from day one, so self-hosted jobs run only for trusted events: <code>push</code> to <code>main</code>, tags, the nightly schedule, and PRs whose branch lives in this repo and was opened by Barry or Dependabot. PRs from forks run on GitHub-hosted <code>macos-latest</code> and <code>windows-latest</code> (free for public repos today) and never reach this Mac. The repo also requires approval before running workflows from outside contributors.</li>
 </ul>
 
 <h3>Release flow</h3>
@@ -1414,7 +1415,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <li><code>just release 0.5.0</code> on a branch bumps versions (Cargo, package.json, tauri.conf, pyproject), moves the CHANGELOG's Unreleased section, and opens a PR.</li>
 <li>After merge, Barry tags (or the agent tags with approval). <code>release.yml</code> builds, signs, and notarizes (macOS: Developer ID + <code>notarytool</code> with the App Store Connect API key; Windows: unsigned NSIS until Trusted Signing), and generates the updater signatures and <code>latest.json</code>.</li>
 <li>Smoke tests install each artifact and run <code>Emmet --version</code>, the bundled <code>emmet doctor --json</code>, and a headless render of the Cottage.</li>
-<li>The artifacts and <code>latest.json</code> are uploaded to a <b>draft</b> release in <code>barrymortenson/emmet-releases</code>. Barry reads the notes and publishes. Publishing is what the updater sees.</li>
+<li>The artifacts and <code>latest.json</code> are uploaded to a <b>draft</b> release in <code>barrymortenson/emmet</code>. Barry reads the notes and publishes. Publishing is what the updater sees.</li>
 <li><b>Rollback:</b> publish the previous version's <code>latest.json</code> again as a new patch release (the updater only moves forward), and mark the bad release as pre-release with a note. The runbook is in <code>docs/release.md</code>.</li>
 </ol>
 <p class="small">Versioning: semver, starting at 0.1.0. The minor version bumps per phase, and 1.0.0 is the public launch. The app checks for updates at launch and daily and asks before installing. No silent updates.</p>
@@ -1476,7 +1477,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <div class="table-wrap"><table>
 <tr><th>Area</th><th>The agent does it (asking first where marked)</th><th>Barry decides or does it</th></tr>
 <tr><td>Code and docs</td><td>Everything in the repo, on its session branch.</td><td>Merging (unless he grants it for the run).</td></tr>
-<tr><td>GitHub</td><td>With approval of the exact commands: create the repo, branch protection, the <code>release</code> environment, labels, Dependabot, the <code>emmet-releases</code> repo.</td><td>Registering the self-hosted runner (it needs his token in the browser), any change that weakens protection, making the repo public.</td></tr>
+<tr><td>GitHub</td><td>With approval of the exact commands: create the repo, branch protection, the <code>release</code> environment, labels, Dependabot, secret scanning and push protection, and the outside-contributor approval setting.</td><td>Registering the self-hosted runner (it needs his token in the browser), any change that weakens protection, making the repo public.</td></tr>
 <tr><td>Apple and signing</td><td>Scripts and docs; checking that the identity and notarization work.</td><td>Creating the certificate and API key and storing them (H-05), backing up the updater key (H-13).</td></tr>
 <tr><td>Releases</td><td>Version bump PRs; tags and draft releases with approval.</td><td>Publishing a release.</td></tr>
 <tr><td>Cloudflare</td><td>With approval: the Workers project, deploys, preview URLs.</td><td>The DNS zone, the API token (H-15).</td></tr>
@@ -1508,13 +1509,14 @@ evidence. Make the change on a branch bmortenson/status-reconcile with one PR, r
 list every change you made in the PR description.</code></pre>
 
 <h3 id="agent-rules">Agent rules (copied in front of every prompt)</h3>
-<pre id="rules-text" class="copyable"><code>You are building Emmet in the private repo barrymortenson/emmet: a Tauri 2 desktop app (macOS + Windows) where
+<pre id="rules-text" class="copyable"><code>You are building Emmet in the public repo barrymortenson/emmet (AGPL-3.0): a Tauri 2 desktop app (macOS + Windows) where
 the user's own Claude Code or Codex agent builds brick models from real LDraw parts by writing a parametric Python
 model (emmet_dsl), with a live three.js viewer, a validator, a BOM and build steps. The plan is docs/plan.html;
 section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 
 1. One session, one branch, one PR. Branch off origin/main as bmortenson/s&lt;id&gt;-&lt;slug&gt; (3-5 words), open the PR
-   into main. Commit and push to your branch freely. Never commit or push to main, never force-push it, and never
+   into main. Commit with `git commit -s` (DCO sign-off); every new source file gets an SPDX header
+   (AGPL-3.0-or-later; Apache-2.0 under python/emmet_dsl, techniques, and templates). Commit and push to your branch freely. Never commit or push to main, never force-push it, and never
    merge unless Barry has said you may for this run.
 2. Check before you start: every session this one comes "after" must be done in docs/plan-status.js and its Done
    when list must hold on origin/main (check the code, not PR titles); the before-start YOU steps must be done. If
@@ -1600,22 +1602,22 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <ol>
 <li><b>Day 1:</b> H-01 (approve the repo), then session <a href="#session-0a">0A</a>. While it runs, register the runner (H-02).</li>
 <li><b>Day 2:</b> confirm the CLIs are signed in (H-03), then run <a href="#session-0b">0B</a> (the research ADRs, which settle the protocols and licenses everything else leans on).</li>
-<li><b>Weeks 1–3: the spike</b>, <a href="#session-1a">1A</a> → <a href="#session-1b">1B</a> → <a href="#session-1c">1C</a> → <a href="#session-1d">1D</a>. Set up the Windows VM (H-04) and the signing identity (H-05) along the way. End with the 60-second demo and the G1 decision.</li>
+<li><b>Weeks 1–3: the spike</b>, <a href="#session-1a">1A</a> → <a href="#session-1b">1B</a> → <a href="#session-1c">1C</a> → <a href="#session-1d">1D</a>, with <a href="#session-1e">1E</a> beside 1D. Set up the Windows VM (H-04) and the signing identity (H-05) along the way. End with the 60-second demo and the G1 decision.</li>
 <li><b>Critical path to the proof of concept:</b> 0A → 0B → 1A → 1B → 1C → 1D → (G1) → 3A ∥ 3B → 4A → 4B ∥ 4C → 5A ∥ 5B → (G2). Design (2A → 2B) runs alongside 1D and Phase 3.</li>
 </ol>
 </div>
 
 <div class="table-wrap"><table>
 <tr><th>Phase</th><th>Delivers</th><th>Sessions</th></tr>
-<tr><td><a href="#phase-0">0 · Foundation</a></td><td>A private repo with CI green on the self-hosted Mac and hosted Windows; this plan and its tracker in the repo; ADRs that settle the agent protocols, E2E on macOS, licenses, data mapping, and headless render; the ldraw-mini fixture; the ladder spec.</td><td><a href="#session-0a">0A</a> <a href="#session-0b">0B</a></td></tr>
-<tr><td><a href="#phase-1">1 · Spike: prove the loop</a></td><td>From the app, a prompt to <b>either</b> agent builds rung 1 from real parts, live in the viewer, with sliders and a basic check that feeds back to the agent; a signed, notarized demo build; the 60-second demo posted; the <span class="pill gate">G1</span> go/no-go.</td><td><a href="#session-1a">1A</a> <a href="#session-1b">1B</a> <a href="#session-1c">1C</a> <a href="#session-1d">1D</a></td></tr>
+<tr><td><a href="#phase-0">0 · Foundation</a></td><td>A public AGPL-3.0 repo with CI green on the self-hosted Mac and hosted Windows; this plan and its tracker in the repo; ADRs that settle the agent protocols, E2E on macOS, licenses, data mapping, and headless render; the ldraw-mini fixture; the ladder spec.</td><td><a href="#session-0a">0A</a> <a href="#session-0b">0B</a></td></tr>
+<tr><td><a href="#phase-1">1 · Spike: prove the loop</a></td><td>From the app, a prompt to <b>either</b> agent builds rung 1 from real parts, live in the viewer, with sliders and a basic check that feeds back to the agent; a signed, notarized demo build; the 60-second demo posted; the <span class="pill gate">G1</span> go/no-go.</td><td><a href="#session-1a">1A</a> <a href="#session-1b">1B</a> <a href="#session-1c">1C</a> <a href="#session-1d">1D</a> <a href="#session-1e">1E</a></td></tr>
 <tr><td><a href="#phase-2">2 · Design</a></td><td>Three clickable directions, Barry's pick (UX-1), then a frozen design system and every screen and state, signed (UX-2).</td><td><a href="#session-2a">2A</a> <a href="#session-2b">2B</a></td></tr>
 <tr><td><a href="#phase-3">3 · Engine MVP</a></td><td>Validator v1 that meets its precision, recall, and speed targets; DSL v1, steps, BOM, colors and availability, techniques; a hand-written rung 2 reference model that validates clean; a technique library mined from official models.</td><td><a href="#session-3a">3A</a> <a href="#session-3b">3B</a> <a href="#session-3c">3C</a></td></tr>
 <tr><td><a href="#phase-4">4 · App MVP</a></td><td>The full app to the frozen design: shell and first run, the full chat and agent UX, and a polished viewer within budget; photo to model; native PDF instructions. Rung 2 passes in replay and in Barry's hand session; its live run is part of G2.</td><td><a href="#session-4a">4A</a> <a href="#session-4b">4B</a> <a href="#session-4c">4C</a> <a href="#session-4d">4D</a> <a href="#session-4e">4E</a></td></tr>
 <tr><td><a href="#phase-5">5 · Quality gate: working proof of concept</a></td><td>The integration, E2E, and eval suites are complete; Windows, performance, and security are hardened; rung 3 and the photo rung pass; Barry's Windows pass; <span class="pill gate">G2</span>: the POC works, and the MVP exit criteria in section 02 hold.</td><td><a href="#session-5a">5A</a> <a href="#session-5b">5B</a></td></tr>
-<tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing to <code>emmet-releases</code>; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a></td></tr>
-<tr><td><a href="#phase-7">7 · Website and public launch</a></td><td>emmetbuilder.com live on Cloudflare; the license chosen; the name checked; the repo audited and public; 1.0 released; launch posts.</td><td><a href="#session-7a">7A</a> <a href="#session-7b">7B</a></td></tr>
-<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files, Codex on a ChatGPT plan inside the app.</td><td>8D–8H</td></tr>
+<tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing GitHub Releases; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a></td></tr>
+<tr><td><a href="#phase-7">7 · Website and public launch</a></td><td>emmetbuilder.com live on Cloudflare; the provider terms re-checked; 1.0 released; launch posts.</td><td><a href="#session-7a">7A</a> <a href="#session-7b">7B</a></td></tr>
+<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files.</td><td>8D–8G</td></tr>
 </table></div>
 
 <!-- ======================= PHASE 0 -->
@@ -1624,12 +1626,12 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <div class="pbar"><i></i></div>
 <p>Two sessions, a few days. Get the repo, the CI, and this plan's tracker in place (0A), then settle every external fact the build leans on before engine code is written (0B): how both agent CLIs really behave, whether E2E works on macOS, what we're allowed to reuse, and how the data maps.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
-<li><span class="pill you">YOU</span> <b>H-01</b>: approve the repo creation commands (session 0A asks). If your GitHub account is on the Free plan, protected branches aren't available on private repos. 0A will tell you, and the local pre-push guard covers it until launch.</li>
+<li><span class="pill you">YOU</span> <b>H-17</b>: the name and trademark check on "Emmet" (<a href="#g-h17">guide</a>), about 30 minutes. It comes first because the repo is public from day one.</li>
+<li><span class="pill you">YOU</span> <b>H-01</b>: approve the public repo creation and its settings (session 0A asks with the exact commands).</li>
 <li><span class="pill you">YOU</span> <b>H-02</b>: register the self-hosted runner on this Mac (<a href="#g-h02">guide</a>), about 10 minutes.</li>
 <li><span class="pill you">YOU</span> <b>H-03</b>: confirm Claude Code and Codex are signed in here (<code>claude</code> once, <code>codex login status</code>), for terminal mode and your hand checks.</li>
 <li><span class="pill you">YOU</span> <b>H-21</b>: an Anthropic Console API key and an OpenAI API key for scripted runs and evals, each with a monthly spend cap, stored in the macOS keychain (<a href="#g-h21">guide</a>), needed before 0B.</li>
 <li><span class="pill you">YOU</span> <b>H-11</b> (end of 0B): pick the rung 3 set from 0B's shortlist.</li>
-<li><span class="pill you">YOU</span> <b>Recommended early: H-17</b>, a 30-minute name check on "Emmet" (<a href="#g-h17">guide</a>). It's cheaper now than after the site and icon exist.</li>
 </ul></div>
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
@@ -1637,25 +1639,28 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <tr data-session="0B"><td><a href="#session-0b">0B</a></td><td>Research spikes and ADRs, ldraw-mini, ladder spec</td><td>0A</td><td>&nbsp;</td><td>M</td></tr>
 </table></div>
 
-<div class="session" id="session-0a" data-session="0A" data-phase="0" data-title="Repo, skeleton, CI and the plan tracker" data-after="" data-waits="H-01" data-waits-merge="H-02" data-read="01, 03, 05, 06, 16, 17, 18, 19, 20, 25">
-<h4><span class="s-id">0A</span> Repo, skeleton, CI and the plan tracker<span class="s-meta">after nothing · size M · YOU: H-01 before start, H-02 before merge</span></h4>
-<p class="goal"><b>Goal:</b> The private GitHub repo exists. An empty but complete monorepo builds every part and has one passing integration test each. CI is green on the self-hosted Mac and hosted Windows, and this plan with its status tracker is committed and checked by CI.</p>
+<div class="session" id="session-0a" data-session="0A" data-phase="0" data-title="Repo, skeleton, CI and the plan tracker" data-after="" data-waits="H-17 H-01" data-waits-merge="H-02" data-read="01, 03, 05, 06, 15, 16, 17, 18, 19, 20, 25">
+<h4><span class="s-id">0A</span> Repo, skeleton, CI and the plan tracker<span class="s-meta">after nothing · size M · YOU: H-17 and H-01 before start, H-02 before merge</span></h4>
+<p class="goal"><b>Goal:</b> The public GitHub repo exists under AGPL-3.0, safe to be public from its first commit. An empty but complete monorepo builds every part and has one passing integration test each. CI is green on the self-hosted Mac and hosted Windows, and this plan with its status tracker is committed and checked by CI.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><span class="pill you">YOU</span> approve; then the agent pushes the existing local repo: <code>gh repo create barrymortenson/emmet --private --source ~/Sites/emmet --remote origin</code>, and pushes <code>main</code> (the empty initial commit only). The work branch starts from local <code>bmortenson/emmet-plan</code>, which holds this plan.</li>
-<li>Protection for <code>main</code>: a PR required, no force-push, no deletion, and the required check <code>ci</code> after the first green run. If the account plan doesn't allow protection on private repos, the agent reports it and relies on <code>.githooks/pre-push</code> (refuses <code>main</code>) and the rules until launch.</li>
+<li><b>Personal-details pass first:</b> before anything is pushed, the agent lists every name, path, machine detail, and personal workflow note in this plan and the repo, and Barry decides what stays. Then gitleaks runs over the full local history.</li>
+<li><span class="pill you">YOU</span> approve; then the agent pushes the existing local repo: <code>gh repo create barrymortenson/emmet --public --source ~/Sites/emmet --remote origin</code>, and pushes <code>main</code> (the empty initial commit only). The work branch starts from local <code>bmortenson/emmet-plan</code>, which holds this plan.</li>
+<li><b>Repo settings</b> (each read back into the PR): protection for <code>main</code> (a PR required, no force-push, no deletion, the required check <code>ci</code> after the first green run), secret scanning, push protection, private vulnerability reporting, and approval required before workflows run for outside contributors.</li>
+<li><b>License files:</b> <code>LICENSE</code> (AGPL-3.0-or-later), <code>python/emmet_dsl/LICENSE</code> (Apache-2.0), <code>NOTICE</code> (copyright and the LDraw attribution), <code>TRADEMARKS.md</code> (the name and logo), <code>CONTRIBUTING.md</code> (the DCO and how to sign off), <code>SECURITY.md</code>, <code>CODE_OF_CONDUCT.md</code>, and issue templates. SPDX headers on every source file, checked in CI, and a DCO check on PRs.</li>
 <li>Toolchain pins: <code>rust-toolchain.toml</code>, <code>.node-version</code>, <code>packageManager</code> pnpm, uv with Python 3.13 in <code>python/emmet_dsl/.python-version</code>. <code>docs/adr/0000-versions.md</code> records the exact versions installed.</li>
 <li>Skeleton per section 05: the four crates, <code>apps/desktop</code> (Tauri 2 + React + Vite; one window showing "Emmet" and the version), <code>packages/viewer</code> (builds, exports <code>createViewer</code> stub), <code>python/emmet_dsl</code> (uv project, <code>__version__</code>), <code>tests/it</code> (one test that runs the built <code>emmet --version --json</code> and checks the envelope), <code>tests/e2e</code> placeholder, <code>data/</code>, <code>scripts/</code>.</li>
-<li><code>justfile</code> with every recipe in section 18 (the later ones as clear "not yet" stubs). Lints: rustfmt, clippy <code>-D warnings</code>, tsc strict, a small eslint config, ruff. <code>deny.toml</code> with the license allowlist (MIT, Apache-2.0, BSD-2/3, ISC, Zlib, Unicode-3.0, MPL-2.0, CC0-1.0; no GPL or AGPL) and advisories.</li>
+<li><code>justfile</code> with every recipe in section 18 (the later ones as clear "not yet" stubs). Lints: rustfmt, clippy <code>-D warnings</code>, tsc strict, a small eslint config, ruff. <code>deny.toml</code> with the license allowlist (MIT, Apache-2.0, BSD-2/3, ISC, Zlib, Unicode-3.0, MPL-2.0, CC0-1.0, all AGPL-compatible) and advisories.</li>
 <li><code>.githooks/</code>: pre-commit (format check on staged files, <code>gitleaks protect --staged</code>) and pre-push (refuses <code>main</code>). <code>just setup</code> installs them.</li>
-<li><code>.github/</code>: <code>ci.yml</code> (jobs <code>mac</code> on <code>[self-hosted, macOS, emmet]</code>, <code>windows</code> on <code>windows-latest</code>, <code>plan</code>, and the aggregate <code>ci</code>), <code>ci-hosted-mac.yml</code> (manual), <code>dependabot.yml</code> (cargo, npm, github-actions, uv; weekly, grouped), and a PR template with a Done when section. Actions pinned by SHA, with concurrency cancel on PRs.</li>
+<li><code>.github/</code>: <code>ci.yml</code> (jobs <code>mac</code> on <code>[self-hosted, macOS, emmet]</code> for trusted events only and on <code>macos-latest</code> for fork PRs, <code>windows</code> on <code>windows-latest</code>, <code>plan</code>, and the aggregate <code>ci</code>), <code>ci-hosted-mac.yml</code> (manual), <code>dependabot.yml</code> (cargo, npm, github-actions, uv; weekly, grouped), and a PR template with a Done when section. Actions pinned by SHA, with concurrency cancel on PRs.</li>
 <li><code>scripts/runner-guard.sh</code> (section 17) as the first step of every self-hosted job.</li>
-<li><code>AGENTS.md</code> from section 25 with <code>CLAUDE.md</code> as a symlink, <code>README.md</code> (what it is, setup, commands), <code>CHANGELOG.md</code>, <code>docs/decisions.md</code> (seeded with the 2026-10-24 answers in section 03).</li>
-<li><code>docs/plan.html</code> and <code>docs/plan-status.js</code> carried over unchanged, plus <code>scripts/plan-check.mjs</code> implementing every check in section 20, wired into the <code>plan</code> job. A small fixture test proves each failure case.</li>
+<li><code>AGENTS.md</code> from section 25 with <code>CLAUDE.md</code> as a symlink, <code>README.md</code> (what it is, setup, commands, the license in one paragraph), <code>CHANGELOG.md</code>, <code>docs/decisions.md</code> (seeded with the 2026-10-24 answers in section 03).</li>
+<li><code>docs/plan.html</code> and <code>docs/plan-status.js</code> carried over (with the personal-details pass applied), plus <code>scripts/plan-check.mjs</code> implementing every check in section 20, wired into the <code>plan</code> job. A small fixture test proves each failure case.</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
-<li>The repo exists and is private; <code>main</code> holds only the initial commit; protection is on, or the agent reported why not and the pre-push guard is installed; H-01 is recorded done in <code>docs/plan-status.js</code>.</li>
+<li>The repo exists and is public; <code>main</code> holds only the initial commit; every setting above reads back as intended (output in the PR); H-17 and H-01 are recorded done in <code>docs/plan-status.js</code>.</li>
+<li>The license files, <code>TRADEMARKS.md</code>, <code>CONTRIBUTING.md</code>, <code>SECURITY.md</code>, and the code of conduct are committed; the SPDX and DCO checks run in CI and fail when broken (fixture tests).</li>
 <li><code>just setup &amp;&amp; just ci</code> pass on this Mac, and the PR's <code>ci</code> check is green, with both the self-hosted <code>mac</code> job and the hosted <code>windows</code> job run.</li>
 <li><code>just dev</code> opens the Tauri window on macOS showing the version, and the Windows job builds the app.</li>
 <li>Every crate and package builds and has at least one integration test. <code>cargo deny check</code>, gitleaks, and <code>plan-check.mjs</code> run in CI, and each fails the build when broken (shown by its fixture test).</li>
@@ -1664,6 +1669,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 </ul>
 <div class="s-dh">What good looks like</div>
 <ul class="good">
+<li>A test PR from a fork runs CI on hosted runners only and never touches the self-hosted runner (shown in the PR).</li>
 <li>A cold <code>just setup &amp;&amp; just ci</code> on this Mac takes under 10 minutes; a warm <code>just ci</code> under 4.</li>
 <li>Nothing is installed globally that <code>just setup</code> and the README don't name.</li>
 <li>The runner guard is shown refusing a run with a wrong actor (a test of the script).</li>
@@ -1671,13 +1677,14 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 </ul>
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 0A. The local repo ~/Sites/emmet has one empty commit on main and this plan on branch
 bmortenson/emmet-plan; create your branch bmortenson/s0a-foundation from bmortenson/emmet-plan.
-1. Ask me (one question, exact commands shown) before `gh repo create` and before every GitHub settings change.
-   Check whether my account plan allows branch protection on a private repo; if not, tell me and use the
-   pre-push guard instead.
-2. Build the skeleton, tooling, CI and hooks exactly as listed. Keep every stub minimal and real: it must build and
-   be tested, nothing more.
-3. Write scripts/plan-check.mjs against section 20 with a fixture test per failure, and wire it into CI.
-4. If the self-hosted runner isn't registered yet, give me the H-02 guide steps (section 22) and wait for me before
+1. Confirm H-17 (the name check) is done. Run the personal-details pass on the plan and repo and show me the list;
+   apply what I decide. Run gitleaks over the full history.
+2. Ask me (one question, exact commands shown) before `gh repo create --public` and before every GitHub settings
+   change. Read every setting back afterwards.
+3. Build the license files, skeleton, tooling, CI and hooks exactly as listed. Keep every stub minimal and real: it
+   must build and be tested, nothing more.
+4. Write scripts/plan-check.mjs against section 20 with a fixture test per failure, and wire it into CI.
+5. If the self-hosted runner isn't registered yet, give me the H-02 guide steps (section 22) and wait for me before
    expecting the mac job to run. Open the PR when both jobs are green, then stop.</code></pre></details>
 </div>
 
@@ -1739,7 +1746,8 @@ If a finding contradicts section 03 or 10, stop and ask before you change the pl
 <tr data-session="1A"><td><a href="#session-1a">1A</a></td><td>Engine walking skeleton: LDraw, library, index, DSL v0, CLI, MCP</td><td>0B</td><td>&nbsp;</td><td>L</td></tr>
 <tr data-session="1B"><td><a href="#session-1b">1B</a></td><td>App shell and live viewer, render mode</td><td>1A</td><td>&nbsp;</td><td>L</td></tr>
 <tr data-session="1C"><td><a href="#session-1c">1C</a></td><td>Agent bridge for Claude Code and Codex, chat v0 with question cards and redirects, replay harness</td><td>1B</td><td>&nbsp;</td><td>L</td></tr>
-<tr data-session="1D"><td><a href="#session-1d">1D</a></td><td>Close the loop: checks v0, renders to the agent, build animation v0, eval v0, signed demo</td><td>1C</td><td>2A</td><td>M</td></tr>
+<tr data-session="1D"><td><a href="#session-1d">1D</a></td><td>Close the loop: checks v0, renders to the agent, build animation v0, eval v0, signed demo</td><td>1C</td><td>1E, 2A</td><td>M</td></tr>
+<tr data-session="1E"><td><a href="#session-1e">1E</a></td><td>Codex on your ChatGPT plan (Sign in with ChatGPT)</td><td>1C</td><td>1D, 2A</td><td>M</td></tr>
 </table></div>
 
 <div class="session" id="session-1a" data-session="1A" data-phase="1" data-title="Engine walking skeleton" data-after="0B" data-waits="" data-waits-merge="" data-read="04, 07, 08, 09, 12, 15, 16">
@@ -1887,6 +1895,31 @@ API keys; tell me the expected time and cost). Iterate on the doctrine and DSL h
 sessions in the app, not repeated eval runs; at most one rerun per agent after a fix. If rung 1 still fails, report
 why. For signing, give me the H-05 guide steps and verify with spctl and stapler after I'm done. End with the
 demo storyboard and draft posts; I record and post (H-06).</code></pre></details>
+</div>
+<div class="session" id="session-1e" data-session="1E" data-phase="1" data-title="Codex on your ChatGPT plan (Sign in with ChatGPT)" data-after="1C" data-waits="" data-waits-merge="" data-read="03, 10, 14, 15">
+<h4><span class="s-id">1E</span> Codex on your ChatGPT plan (Sign in with ChatGPT)<span class="s-meta">after 1C · alongside 1D, 2A · size M</span></h4>
+<p class="goal"><b>Goal:</b> Codex in the chat pane runs on the user's ChatGPT plan through OpenAI's Sign in with ChatGPT open-source flow, exactly as OpenAI documents it.</p>
+<div class="s-dh">What gets built</div>
+<ul class="build">
+<li><b>Terms first:</b> re-read OpenAI's Sign in with ChatGPT pages and update <code>docs/terms/</code>. Stop if the repo isn't public under AGPL-3.0 or the docs no longer offer plan usage to open-source apps.</li>
+<li><b>Sign-in:</b> a stable <code>ext_agent_host_id</code> per machine; dynamic registration with <code>agent_name_hint="Emmet"</code>; loopback PKCE sign-in in the system browser; ID-token and scope validation (<code>chatgpt.tokens.use.direct</code>); tokens only in the OS keychain, never in files, logs, transcripts, or diagnostics; serialized refresh; revocation on sign-out; an account picker showing the active account.</li>
+<li><b>App-server:</b> OpenAI's Sign in with ChatGPT provider (<code>env_key="ACCESS_TOKEN"</code>), with restart and <code>thread/resume</code> when the token renews. <code>clientInfo.name</code> matches <code>agent_name_hint</code>. The API-key provider stays as the alternative.</li>
+<li><b>OpenAI's UI rules, in a plain version</b> (4B restyles them to the frozen design): a "Continue with ChatGPT" button in OpenAI's approved format, the one-time "You're using your ChatGPT plan" notice, "Using ChatGPT plan · Manage usage" near the composer, and the limit card with "Manage usage" as the primary action.</li>
+</ul>
+<div class="s-dh">Done when</div>
+<ul class="done">
+<li>Every requirement on OpenAI's sign-in, accounts, app-server, errors, and UI/UX pages maps to a test or a screenshot in the PR.</li>
+<li>Barry signs in on his own ChatGPT plan and builds rung 1 from the chat pane by hand (no scripted runs, D-38).</li>
+<li>Replay tests cover sign-in, token renewal mid-session, a declined plan permission, and the usage-limit error.</li>
+</ul>
+<div class="s-dh">What good looks like</div>
+<ul class="good">
+<li>No token ever reaches a log, a transcript, or a diagnostics bundle (a test seeds a fake token and greps every output).</li>
+<li>Signing in takes under 30 seconds from first click.</li>
+</ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 1E. First confirm the repo is public under AGPL-3.0 and that OpenAI's current Sign in with
+ChatGPT docs still offer plan usage to open-source apps; stop and tell me if either isn't true. Then build exactly
+what the docs specify, mapping each requirement to a test. When it works, ask me to sign in and build rung 1 by hand.</code></pre></details>
 </div>
 </div>
 
@@ -2121,7 +2154,7 @@ and ask before inventing. Build first run against a local fixture server so E2E 
 Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace them.</code></pre></details>
 </div>
 
-<div class="session" id="session-4b" data-session="4B" data-phase="4" data-title="Chat and agent UX, complete" data-after="4A" data-waits="" data-waits-merge="" data-read="10, 14, 15, 16">
+<div class="session" id="session-4b" data-session="4B" data-phase="4" data-title="Chat and agent UX, complete" data-after="4A 1E" data-waits="" data-waits-merge="" data-read="10, 14, 15, 16">
 <h4><span class="s-id">4B</span> Chat and agent UX, complete<span class="s-meta">after 4A · alongside 4C · size L</span></h4>
 <p class="goal"><b>Goal:</b> Working with the agent feels as good as nurb's terminal loop, or better: you always know what it's doing, you can steer and stop it, and it sees what you see.</p>
 <div class="s-dh">What gets built</div>
@@ -2309,7 +2342,6 @@ pass in about an hour, then wait for my results and fix what I find before openi
 <div class="pbar"><i></i></div>
 <p>Ship it to a few people. 6A builds the signed, auto-updating release pipeline. 6B makes the app ready for strangers (a guide, diagnostics, polished exports) and runs a small beta, including at least one Windows x64 tester to cover what the ARM VM can't.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
-<li><span class="pill you">YOU</span> <b>H-14</b>: approve creating the public <code>barrymortenson/emmet-releases</code> repo (binaries only).</li>
 <li><span class="pill you">YOU</span> <b>H-13</b>: back up the updater signing key and its password in your password manager (<a href="#g-h13">guide</a>).</li>
 <li><span class="pill you">YOU</span> <b>H-12</b>: recruit 3–5 beta testers, at least one on Windows x64, and publish the beta release to them.</li>
 </ul></div>
@@ -2319,22 +2351,22 @@ pass in about an hour, then wait for my results and fix what I find before openi
 <tr data-session="6B"><td><a href="#session-6b">6B</a></td><td>Beta readiness and the beta</td><td>5A, 5B</td><td>6A</td><td>M</td></tr>
 </table></div>
 
-<div class="session" id="session-6a" data-session="6A" data-phase="6" data-title="Release pipeline and updates" data-after="5A 5B" data-waits="H-09 H-14" data-waits-merge="H-13" data-read="15, 17">
-<h4><span class="s-id">6A</span> Release pipeline and updates<span class="s-meta">after 5A, 5B · alongside 6B · size M · YOU: G2 (H-09) and H-14 before start, H-13 before merge</span></h4>
+<div class="session" id="session-6a" data-session="6A" data-phase="6" data-title="Release pipeline and updates" data-after="5A 5B" data-waits="H-09" data-waits-merge="H-13" data-read="15, 17">
+<h4><span class="s-id">6A</span> Release pipeline and updates<span class="s-meta">after 5A, 5B · alongside 6B · size M · YOU: G2 (H-09) before start, H-13 before merge</span></h4>
 <p class="goal"><b>Goal:</b> One tag produces signed, notarized, auto-updating builds for both platforms in a draft release that Barry publishes. Rollback is rehearsed.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><code>release.yml</code> per section 17: tauri-action on the self-hosted Mac (universal, Developer ID, <code>notarytool</code> through the keychain profile) and hosted Windows (NSIS), plus the updater signatures and <code>latest.json</code>.</li>
-<li>Creating <code>barrymortenson/emmet-releases</code> (with approval), a fine-grained token scoped to it in the <code>release</code> environment (manual approval required), and draft release upload.</li>
+<li>The <code>release</code> environment (manual approval required) and draft release upload with the workflow's own token, scoped to <code>contents: write</code>.</li>
 <li>The Tauri updater plugin: check at launch and daily, a release notes dialog, ask before installing, and the public key in <code>tauri.conf.json</code>. The private key is generated by the agent straight into the GitHub secret store and Barry's backup (H-13), never printed.</li>
 <li><code>just release x.y.z</code> (a version bump PR across Cargo, package.json, tauri.conf, and pyproject, and moving the CHANGELOG's Unreleased section), and a release smoke job (section 16).</li>
 <li><code>docs/release.md</code>: the runbook covering tag, verify, publish, rollback, and a revoked-key procedure.</li>
 <li>A log-scan step that fails the release if anything secret-shaped appears in the job logs.</li>
-<li><code>parts-data.yml</code>: a weekly hosted-runner workflow that downloads Rebrickable's archive once, runs <code>scripts/build-parts-data</code> and its checks, signs the pack, and publishes it and <code>parts-data.json</code> to <code>emmet-releases</code>. The app's weekly data check and rollback to the previous pack, plus a smoke test.</li>
+<li><code>parts-data.yml</code>: a weekly hosted-runner workflow that downloads Rebrickable's archive once, runs <code>scripts/build-parts-data</code> and its checks, signs the pack, and publishes it and <code>parts-data.json</code> as a GitHub Release on the repo. The app's weekly data check and rollback to the previous pack, plus a smoke test.</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
-<li>Tag <code>v0.6.0-rc.1</code> produces a draft release in <code>emmet-releases</code> with a signed and notarized <code>.dmg</code> (spctl and stapler output in the PR), the NSIS installer, and <code>latest.json</code>. The smoke tests pass on both.</li>
+<li>Tag <code>v0.6.0-rc.1</code> produces a draft release with a signed and notarized <code>.dmg</code> (spctl and stapler output in the PR), the NSIS installer, and <code>latest.json</code>. The smoke tests pass on both.</li>
 <li>Updating from rc.1 to rc.2 works on macOS and in the Windows VM (recordings).</li>
 <li>The rollback has been rehearsed with rc.3 → rc.2, following the runbook.</li>
 <li>H-13 is done, and the log-scan step is green.</li>
@@ -2344,7 +2376,7 @@ pass in about an hour, then wait for my results and fix what I find before openi
 <li>Tag → draft release in under 30 minutes.</li>
 <li>Nothing in the pipeline needs Barry except approving the environment and publishing.</li>
 </ul>
-<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 6A. Ask me before creating emmet-releases, before creating any secret or environment, and
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 6A. Ask me before creating any secret or environment, and
 before pushing any tag (show exact commands). Generate the updater key so it goes straight into gh secret set and
 a file I move to my password manager (H-13); never print it. Rehearse update and rollback with rc tags; delete
 the rc drafts afterwards with my approval.</code></pre></details>
@@ -2358,7 +2390,7 @@ the rc drafts afterwards with my approval.</code></pre></details>
 <li><code>docs/guide/</code>: getting started per OS, connecting Claude Code or Codex (per OS), prompts that work, sliders and "make default", checks explained (one page per rule), parts list and exports, LPub3D instructions, troubleshooting, and privacy. In-app Help links to it, and the site reuses it.</li>
 <li>Export polish: the LPub3D hand-off (detect the install, open the exported file), plus Studio and LDCad compatibility notes, tested with real files.</li>
 <li>Diagnostics: a panic hook writes a local crash log, and the next launch offers "Copy diagnostics" (versions, OS, GPU, doctor output, the last logs, all scrubbed). A test proves the scrubbing.</li>
-<li>Beta feedback through issue templates on <code>emmet-releases</code> (bug, idea, "got stuck"), a tester welcome message draft, and a triage label set.</li>
+<li>Beta feedback through issue templates in the repo (bug, idea, "got stuck"), a tester welcome message draft, and a triage label set.</li>
 <li>A time-boxed fix pass on the top beta issues (blockers and anything two testers hit).</li>
 </ul>
 <div class="s-dh">Done when</div>
@@ -2383,12 +2415,9 @@ feedback into issues as it arrives; fix blockers first, and keep the fix pass to
 <div class="phase" id="phase-7" data-phase="7">
 <div class="ph-top"><span class="pnum">Phase 7</span><h3>Website and public launch</h3></div>
 <div class="pbar"><i></i></div>
-<p>Build emmetbuilder.com (7A), then go public (7B): choose the license, clear the name, audit the history, flip the repo, release 1.0, and post.</p>
+<p>Build emmetbuilder.com (7A), then launch (7B): re-check the provider terms, release 1.0, and post. The repo has been public since 0A.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> <b>H-15</b>: put emmetbuilder.com on Cloudflare and create the API token (<a href="#g-h15">guide</a>).</li>
-<li><span class="pill you">YOU</span> <b>H-16</b>: choose the license (7B asks, with a recommendation).</li>
-<li><span class="pill you">YOU</span> <b>H-17</b>: the name and trademark check, if it wasn't done in Phase 0 (<a href="#g-h17">guide</a>).</li>
-<li><span class="pill you">YOU</span> <b>H-18</b>: approve the public flip after reading 7B's audit (<a href="#g-h18">guide</a>).</li>
 <li><span class="pill you">YOU</span> <b>H-19</b>: publish 1.0.0 and post the launch.</li>
 </ul></div>
 <div class="table-wrap"><table>
@@ -2402,7 +2431,7 @@ feedback into issues as it arrives; fix blockers first, and keep the fix pass to
 <p class="goal"><b>Goal:</b> A fast, honest, good-looking marketing site that shows the loop in 60 seconds, gets people to the right download, and hosts the guide.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><code>site/</code> (Astro, static). Pages: Home (the demo video, the loop in three steps, features: talk to build, real parts, checks, sliders, parts lists and exports, bring your own agent, local and private), Download (the latest release from <code>emmet-releases</code> at build time with a client-side refresh, macOS and Windows buttons, requirements, the SmartScreen note), Docs (from <code>docs/guide</code>), Gallery (ladder model renders plus downloadable <code>.mpd</code> files), FAQ (cost, which agents, privacy, the trademark disclaimer, the license once chosen), Changelog, Privacy, Press kit.</li>
+<li><code>site/</code> (Astro, static). Pages: Home (the demo video, the loop in three steps, features: talk to build, real parts, checks, sliders, parts lists and exports, bring your own agent, local and private), Download (the latest release from the repo's GitHub Releases at build time with a client-side refresh, macOS and Windows buttons, requirements, the SmartScreen note), Docs (from <code>docs/guide</code>), Gallery (ladder model renders plus downloadable <code>.mpd</code> files), FAQ (cost, which agents, privacy, the trademark disclaimer, the license once chosen), Changelog, Privacy, Press kit.</li>
 <li><code>just site-assets</code>: regenerates screenshots, renders, the poster image, and OG images from the app's own scripts.</li>
 <li>Design tokens shared with the app, and system fonts or one self-hosted font. No third-party scripts. CSP and security headers from <code>_headers</code>.</li>
 <li><code>wrangler.jsonc</code> for Workers static assets, and <code>site.yml</code>: build, link check, Lighthouse budgets, a preview deploy per PR, production from <code>main</code>.</li>
@@ -2425,34 +2454,29 @@ Write the copy from docs/design/content.md and the guide; no claim the app can't
 the Workers project or any DNS record (show exact commands), and ask Q-10 (analytics) with AskUserQuestion.</code></pre></details>
 </div>
 
-<div class="session" id="session-7b" data-session="7B" data-phase="7" data-title="Public launch" data-after="7A" data-waits="H-16 H-17" data-waits-merge="H-18" data-read="03, 15, 17, 22">
-<h4><span class="s-id">7B</span> Public launch<span class="s-meta">after 7A · size M · YOU: H-16, H-17 before start; H-18 before merge; then H-19</span></h4>
-<p class="goal"><b>Goal:</b> The repo goes public safely under its chosen license, and 1.0.0 ships with the site, the posts, and the demo ready.</p>
+<div class="session" id="session-7b" data-session="7B" data-phase="7" data-title="Public launch" data-after="7A" data-waits="" data-waits-merge="" data-read="03, 10, 15, 17, 22">
+<h4><span class="s-id">7B</span> Public launch<span class="s-meta">after 7A · size M · YOU: then H-19</span></h4>
+<p class="goal"><b>Goal:</b> 1.0.0 ships with the site, the posts, and the demo ready, and the terms, notices, and settings are current.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li>The license (H-16) applied: <code>LICENSE</code>, package metadata, a generated third-party notices file (Rust, JS, and Python dependencies), and <code>NOTICE</code> with the LDraw attribution.</li>
-<li>The public-readiness audit (<code>docs/launch/audit.md</code>): gitleaks over the full history; a scan for personal paths, emails, and usernames in the history; the fixture and transcript licensing and scrubbing checks; and a recommendation on whether to publish full history or a fresh squashed history. Barry decides.</li>
-<li><code>CONTRIBUTING.md</code>, <code>SECURITY.md</code>, a code of conduct, and issue and PR templates for outside contributors.</li>
-<li>CI re-scoped for a public repo (self-hosted jobs only on <code>push</code> to <code>main</code> and tags, fork PRs on hosted runners, and the runner guard updated), plus the settings to apply after the flip: secret scanning, push protection, branch protection with the required <code>ci</code> check.</li>
-<li><code>docs/launch/agent-terms.md</code>: re-check Anthropic's Claude Code legal page and OpenAI's app-server auth rules against section 10 and D-35, quote the current text with the date, and stop for Barry if anything changed (for example, if a closed license would count as "commercial" for Codex).</li>
+<li><code>docs/launch/agent-terms.md</code>: re-check every row of section 10's terms matrix against Anthropic's and OpenAI's current pages, quote the text with the date, and stop for Barry if anything changed (D-37).</li>
+<li>The third-party notices file regenerated (Rust, JS, and Python dependencies) and <code>NOTICE</code> checked; every repo setting read back (protection, secret scanning, push protection, outside-contributor approval, runner scope).</li>
 <li>1.0.0 through the 6A pipeline; final launch posts in <code>docs/launch/</code> (Eurobricks, r/lego, LDraw forums, Show HN, social); the final demo video; the site updated with the source link and license.</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
-<li>H-16 and H-17 are recorded, and the license and notices are in the repo.</li>
-<li>The audit is clean or remediated, and Barry approved the flip (H-18).</li>
-<li>After the flip, every repo setting is read back and matches (protection, secret scanning, push protection, runner scope), with the output in the PR.</li>
+<li>The terms re-check is committed with no unresolved change.</li>
+<li>The notices are current, and the settings read back as intended (output in the PR).</li>
 <li>The 1.0.0 draft release is ready for Barry to publish, and the site points at it after publishing.</li>
 <li>The launch posts and the final video are in <code>docs/launch/</code>.</li>
 </ul>
 <div class="s-dh">What good looks like</div>
 <ul class="good">
-<li>A first outside PR runs CI without ever touching the self-hosted runner.</li>
-<li>Nothing in the public history needs explaining.</li>
+<li>The README's first screen tells a newcomer what Emmet is, how to install it, and what AGPL-3.0 means for them.</li>
 </ul>
-<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 7B. Ask me H-16 (license) with your recommendation and the trade-offs. Run the audit before any
-public step and show me the report. Ask before `gh repo edit --visibility public` and before every settings
-change (exact commands). Read every setting back afterwards. I publish 1.0.0 and the posts myself (H-19).</code></pre></details>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 7B. Re-check the provider terms first and stop if anything changed. Regenerate the notices and
+read every repo setting back. Prepare 1.0.0 through the release pipeline. I publish 1.0.0 and the posts myself
+(H-19).</code></pre></details>
 </div>
 </div>
 
@@ -2467,7 +2491,6 @@ change (exact commands). Read every setting back afterwards. I publish 1.0.0 and
 <tr data-session="8E"><td><a href="#session-8e">8E</a></td><td>BrickLink pricing</td><td>8D</td><td>any</td><td>M</td></tr>
 <tr data-session="8F"><td><a href="#session-8f">8F</a></td><td>Host third-party MCP servers</td><td>7B</td><td>any</td><td>M</td></tr>
 <tr data-session="8G"><td><a href="#session-8g">8G</a></td><td>Studio file import and export</td><td>7B</td><td>any</td><td>M</td></tr>
-<tr data-session="8H"><td><a href="#session-8h">8H</a></td><td>Codex on your ChatGPT plan (Sign in with ChatGPT)</td><td>7B</td><td>any</td><td>M</td></tr>
 </table></div>
 
 
@@ -2512,16 +2535,6 @@ add the approval-on-first-use policy, and test with three real servers.</code></
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8G. Refresh scope with me first. Write the format and terms ADR before any code, and stop if
 the terms don't allow it.</code></pre></details>
 </div>
-<div class="session" id="session-8h" data-session="8H" data-phase="8" data-title="Codex on your ChatGPT plan (Sign in with ChatGPT)" data-after="7B" data-waits="H-16" data-waits-merge="" data-read="03, 10, 14, 15">
-<h4><span class="s-id">8H</span> Codex on your ChatGPT plan (Sign in with ChatGPT)<span class="s-meta">after 7B, and only once Emmet's source is public under an open-source license · size M · backlog</span></h4>
-<p class="goal"><b>Goal:</b> Codex in the chat pane runs on the user's ChatGPT plan through OpenAI's Sign in with ChatGPT open-source flow, exactly as OpenAI documents it.</p>
-<ul class="build"><li>Re-read OpenAI's Sign in with ChatGPT docs and update <code>docs/terms/</code>; stop if Emmet doesn't qualify. Then: a stable <code>ext_agent_host_id</code>; dynamic registration with <code>agent_name_hint="Emmet"</code>; loopback PKCE sign-in in the system browser; ID token and scope validation; tokens in the OS keychain, never logged; refresh and revocation on sign-out; an account picker; the app-server's Sign in with ChatGPT provider (<code>env_key="ACCESS_TOKEN"</code>, restart and <code>thread/resume</code> on renewal); and OpenAI's UI rules: "Continue with ChatGPT", the first-use notice, "Using ChatGPT plan · Manage usage" near the composer, and the limit card.</li></ul>
-<ul class="done"><li>Every requirement on OpenAI's sign-in, accounts, app-server, and UI/UX pages maps to a test or a screenshot in the PR.</li><li>Barry signs in on his own ChatGPT plan and builds rung 1 from the chat pane.</li></ul>
-<ul class="good"><li>No token ever reaches a log, a transcript, or a diagnostics bundle (a test seeds a fake token and greps every output).</li></ul>
-<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8H. First confirm Emmet's repo is public under an open-source license and that OpenAI's
-current docs still offer ChatGPT plan usage to open-source apps; stop and tell me if either isn't true. Then
-build exactly what the docs specify, mapping each requirement to a test.</code></pre></details>
-</div>
 </div>
 </section>
 
@@ -2531,7 +2544,7 @@ build exactly what the docs specify, mapping each requirement to a test.</code><
 <p>Every step only Barry can do. Statuses come from <code>docs/plan-status.js</code>. "Blocks" means the session can't start (start) or can't merge (merge) until the step is done.</p>
 <div class="table-wrap"><table>
 <tr><th style="width:90px">ID</th><th>Step</th><th style="width:20%">Blocks</th><th style="width:12%">Guide</th></tr>
-<tr data-h="H-01"><td>H-01</td><td>Approve creating the private repo <code>barrymortenson/emmet</code> and its settings</td><td>0A start</td><td>Asked in 0A</td></tr>
+<tr data-h="H-01"><td>H-01</td><td>Approve creating the public repo <code>barrymortenson/emmet</code> and its settings</td><td>0A start</td><td>Asked in 0A</td></tr>
 <tr data-h="H-02"><td>H-02</td><td>Register the self-hosted macOS runner on this Mac</td><td>0A merge</td><td><a href="#g-h02">guide</a></td></tr>
 <tr data-h="H-03"><td>H-03</td><td>Confirm Claude Code and Codex are signed in on this Mac</td><td>0B start</td><td>Run <code>claude</code> once; <code>codex login status</code></td></tr>
 <tr data-h="H-04"><td>H-04</td><td>Windows 11 ARM VM with both CLIs installed and signed in</td><td>1C merge</td><td><a href="#g-h04">guide</a></td></tr>
@@ -2544,11 +2557,11 @@ build exactly what the docs specify, mapping each requirement to a test.</code><
 <tr data-h="H-11"><td>H-11</td><td>Pick the rung 3 set from 0B's shortlist</td><td>0B merge, 5A start</td><td>Asked in 0B</td></tr>
 <tr data-h="H-12"><td>H-12</td><td>Recruit 3–5 beta testers (at least 1 on Windows x64) and send them the beta</td><td>6B merge</td><td>Welcome draft from 6B</td></tr>
 <tr data-h="H-13"><td>H-13</td><td>Back up the updater signing key and password</td><td>6A merge</td><td><a href="#g-h13">guide</a></td></tr>
-<tr data-h="H-14"><td>H-14</td><td>Approve the public <code>barrymortenson/emmet-releases</code> repo (binaries only)</td><td>6A start</td><td>Asked in 6A</td></tr>
+<tr data-h="H-14"><td>H-14</td><td>Not needed: releases publish from the main repo (D-21)</td><td>—</td><td>—</td></tr>
 <tr data-h="H-15"><td>H-15</td><td>emmetbuilder.com on Cloudflare DNS, plus an API token stored as a GitHub secret</td><td>7A start</td><td><a href="#g-h15">guide</a></td></tr>
-<tr data-h="H-16"><td>H-16</td><td>Choose the license</td><td>7B start</td><td>Asked in 7B</td></tr>
-<tr data-h="H-17"><td>H-17</td><td>Name and trademark check for "Emmet" (recommended during Phase 0)</td><td>7B start</td><td><a href="#g-h17">guide</a></td></tr>
-<tr data-h="H-18"><td>H-18</td><td>Approve making the repo public, after reading the audit</td><td>7B merge</td><td><a href="#g-h18">guide</a></td></tr>
+<tr data-h="H-16"><td>H-16</td><td>Choose the license: AGPL-3.0-or-later, with Apache-2.0 for the DSL (decided 2026-10-24, D-14)</td><td>0A start</td><td>Done</td></tr>
+<tr data-h="H-17"><td>H-17</td><td>Name and trademark check for "Emmet", before the repo goes public</td><td>0A start</td><td><a href="#g-h17">guide</a></td></tr>
+<tr data-h="H-18"><td>H-18</td><td>Not needed: the repo is public from day one (D-12)</td><td>—</td><td>—</td></tr>
 <tr data-h="H-19"><td>H-19</td><td>Publish 1.0.0 and post the launch</td><td>—</td><td><code>docs/launch/</code></td></tr>
 <tr data-h="H-21"><td>H-21</td><td>API keys (Anthropic Console, OpenAI) with spend caps for scripted runs and evals</td><td>0B start</td><td><a href="#g-h21">guide</a></td></tr>
 <tr data-h="H-22"><td>H-22</td><td>Accept or reject mined technique candidates, in batches of 20</td><td>3C merge</td><td>Review pages in <code>docs/techniques/candidates/</code></td></tr>
@@ -2589,7 +2602,7 @@ build exactly what the docs specify, mapping each requirement to a test.</code><
 <ol class="small">
 <li>Run <code>just eval --rung 1 --agent claude</code>, then the same with <code>--agent codex</code> (one run each). Read the report in <code>docs/evals/</code>. If one fails, the agent proposes a fix, and that agent gets one rerun.</li>
 <li>Record the 60-second demo following <code>docs/demo/rung1.md</code> (QuickTime screen recording is fine; 1080p, with the system appearance you like best).</li>
-<li>Post the video with the drafts in <code>docs/demo/</code> to Eurobricks (digital building tools), r/lego, and the LDraw forum. The repo is private, so invite interest by reply or DM.</li>
+<li>Post the video with the drafts in <code>docs/demo/</code> to Eurobricks (digital building tools), r/lego, and the LDraw forum. Link the public repo.</li>
 <li>After about a week, decide: <b>go</b> (continue the plan), <b>pivot</b> (say what changes; the agent updates the plan in a PR), or <b>no-go</b> (stop; keep the spike as a portfolio piece). Suggested bar for "go": rung 1 passes on both agents, and at least a handful of people ask to try it.</li>
 <li>Tell the agent the decision. It records <code>gates.G1</code> and <code>H-06</code> in the status file.</li>
 </ol>
@@ -2618,12 +2631,12 @@ build exactly what the docs specify, mapping each requirement to a test.</code><
 <li>Tell the agent your account ID (not a secret).</li>
 </ol>
 </details>
-<details id="g-h17"><summary>H-17 Name and trademark check (about 30 minutes, best done early)</summary>
+<details id="g-h17"><summary>H-17 Name and trademark check (about 30 minutes, before 0A)</summary>
 <ul class="small">
 <li>"Emmet" is the hero of The LEGO Movie, a character from a LEGO-owned franchise, and this app is about LEGO-compatible bricks. That's the main risk: the LEGO Group actively protects its marks and character names.</li>
 <li>"Emmet" is also a very well-known web developer toolkit (emmet.io), so it's a crowded name in developer tools and search results.</li>
 <li>Search the USPTO (tmsearch.uspto.gov) and EUIPO for "EMMET" in classes 9 (software), 28 (toys), and 41 (entertainment), and note any live LEGO or Warner Bros. registrations.</li>
-<li>Options: keep "Emmet"; use a distinct full name ("Emmet Builder", matching the domain) with its own logo; or rename before the site and icon exist. Consider a short consult with a trademark attorney before the public launch.</li>
+<li>Options: keep "Emmet"; use a distinct full name ("Emmet Builder", matching the domain) with its own logo; or rename before the site and icon exist. Consider a short consult with a trademark attorney before the repo goes public; the same consult can confirm the license setup in D-14.</li>
 <li>Tell the agent the decision. It's recorded in <code>docs/decisions.md</code> and the status file.</li>
 </ul>
 </details>
@@ -2645,13 +2658,6 @@ build exactly what the docs specify, mapping each requirement to a test.</code><
 <li>This is my reading of Anthropic's published terms, not legal advice.</li>
 </ul>
 </details>
-<details id="g-h18"><summary>H-18 Going public</summary>
-<ol class="small">
-<li>Read <code>docs/launch/audit.md</code> from 7B: secrets, personal data, fixture licenses, transcripts, and the history recommendation.</li>
-<li>Approve the agent's exact commands: <code>gh repo edit barrymortenson/emmet --visibility public --accept-visibility-change-consequences</code>, then secret scanning, push protection, branch protection, and the runner re-scope.</li>
-<li>Check the repo in a private browser window: the README renders, and the license and notices are visible.</li>
-</ol>
-</details>
 </section>
 
 <!-- ============================================================ 23 -->
@@ -2669,10 +2675,10 @@ build exactly what the docs specify, mapping each requirement to a test.</code><
 <tr><td>A provider changes its terms for apps that run its CLI or use its plans (both did in 2026)</td><td>High</td><td>The terms gate (D-37): every agent feature cites current provider text; <code>docs/terms/</code> is re-checked at G1, G2, and 7B; a feature that loses its basis is switched off before the next release; terminal mode always remains.</td><td>0B, 7B</td></tr>
 <tr><td>WKWebView WebGL performance or hidden-window throttling</td><td>Medium</td><td>Bench in 1B, instancing, ADR 0005 with an off-screen-window fallback.</td><td>0B, 1B, 4C</td></tr>
 <tr><td>Windows differences (paths, CLIs, GPU), with only an ARM VM in hand</td><td>Medium</td><td>Hosted x64 CI from day one, the 5B hardening list, and a Windows x64 beta tester.</td><td>5B, 6B</td></tr>
-<tr><td>Trademark: "Emmet" is a LEGO Movie character; LEGO marks</td><td>Medium–High</td><td>Early name check (H-17), "brick" language, a disclaimer everywhere, and no LEGO trade dress in the brand.</td><td>Phase 0, 7B</td></tr>
+<tr><td>Trademark: "Emmet" is a LEGO Movie character; LEGO marks</td><td>Medium–High</td><td>Name check before the repo goes public (H-17), "brick" language, a disclaimer everywhere, and no LEGO trade dress in the brand.</td><td>Phase 0, 7B</td></tr>
 <tr><td>Data and code licensing (LDraw attribution, LDCad, Rebrickable terms, other tools' code)</td><td>Medium</td><td>ADR 0003 before any reuse, attribution in the app and on the site, and no copied code without a compatible license and Barry's yes.</td><td>0B, 7B</td></tr>
-<tr><td>Private repo complicates distribution and protection</td><td>Low–Medium</td><td>The public <code>emmet-releases</code> repo for binaries; a pre-push guard if protection isn't available.</td><td>0A, 6A</td></tr>
-<tr><td>Self-hosted runner security</td><td>Medium</td><td>Repo-only registration, runner guard, private repo until launch, re-scoped at the public flip.</td><td>0A, 7B</td></tr>
+<tr><td>Public from day one: early work is visible, and a self-hosted runner serves a public repo</td><td>Medium</td><td>The personal-details pass and gitleaks before the first push; self-hosted jobs for trusted events only, fork PRs on hosted runners, and approval for outside contributors' workflows (section 17).</td><td>0A</td></tr>
+<tr><td>Self-hosted runner security</td><td>Medium</td><td>Repo-only registration, the runner guard, trusted events only from day one, and fork PRs on hosted runners.</td><td>0A</td></tr>
 <tr><td>Live eval cost on Barry's API keys, and too few runs to catch flaky behavior</td><td>Low</td><td>The D-38 budget (14 runs across G1 and G2, plus reruns of failures), replay everywhere else, the CLIs' own cost figures in each report, and a spend cap on each key. Barry's hand sessions add real coverage at no scripted cost.</td><td>1D, 5A</td></tr>
 <tr><td>A fast-moving niche: someone polishes an existing tool first</td><td>Medium</td><td>A demo at the end of week 3 (G1), with the UX and validator as the differentiators.</td><td>Phase 1</td></tr>
 <tr><td>Narrow audience (hobbyists who also pay for Claude or Codex)</td><td>Medium</td><td>G1's community response decides further investment, and the portfolio value stands either way.</td><td>G1</td></tr>
@@ -2691,14 +2697,14 @@ build exactly what the docs specify, mapping each requirement to a test.</code><
 <tr><td>Q-03</td><td>What's the best source for the LDraw ↔ Rebrickable part id mapping, and its coverage?</td><td>Source found: Rebrickable's <code>part_mappings.csv</code> and <code>color_mappings.csv</code> carry LDraw (<code>LD</code>) ids; the 2026-10-23 archive has 14,085 parts with an explicit LDraw mapping, with identical ids assumed otherwise. 0B (ADR 0004) measures the coverage against the LDraw library.</td><td><span class="pill rec">Source found</span></td></tr>
 <tr><td>Q-04</td><td>Does a hidden-window WebGL render work reliably on WKWebView and WebView2?</td><td>0B (ADR 0005)</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-05</td><td>What do Claude Code and Codex need to run natively on Windows today?</td><td>0B, verified in 1C</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-06</td><td>Does Barry's GitHub plan allow branch protection on a private repo?</td><td>0A</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-07</td><td>Which license at launch?</td><td>H-16 (7B)</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-08</td><td>Keep the name "Emmet"?</td><td>H-17</td><td><span class="pill open">Open</span></td></tr>
+<tr><td>Q-06</td><td>Does Barry's GitHub plan allow branch protection on a private repo?</td><td>Moot: the repo is public, and public repos get protection on every plan.</td><td><span class="pill decided">Settled</span></td></tr>
+<tr><td>Q-07</td><td>Which license?</td><td>AGPL-3.0-or-later, with Apache-2.0 for the DSL (Barry 2026-10-24, D-14)</td><td><span class="pill decided">Decided</span></td></tr>
+<tr><td>Q-08</td><td>Keep the name "Emmet"?</td><td>H-17, before 0A</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-09</td><td>Can small OMR models be committed as test fixtures?</td><td>0B (ADR 0003)</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-10</td><td>Cookieless analytics on the site, or none?</td><td>7A (ask)</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-11</td><td>Does each CLI accept a user message mid-turn and act on it at the next step (native redirect), or only after the turn ends?</td><td>0B (ADR 0001)</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-12</td><td>How long can an MCP tool call block in each CLI before it times out, and can a per-session setting raise it far enough for <code>ask_user</code>?</td><td>0B (ADR 0001)</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-13</td><td>When does Emmet go open source? Codex on a ChatGPT plan inside Emmet depends on it (OpenAI's Sign in with ChatGPT rule).</td><td>Decided 2026-10-24: not before the MVP; Barry decides after G2 (H-16). Until then Codex in the chat pane uses an API key, and 8H stays in the backlog.</td><td><span class="pill decided">Decided</span></td></tr>
+<tr><td>Q-13</td><td>When does Emmet go open source? Codex on a ChatGPT plan inside Emmet depends on it (OpenAI's Sign in with ChatGPT rule).</td><td>Decided 2026-10-24: from day one, AGPL-3.0, public repo (D-12, D-14). Codex on a ChatGPT plan is in the MVP (1E).</td><td><span class="pill decided">Decided</span></td></tr>
 <tr><td>Q-14</td><td>Rebrickable's Terms say its content may not be "used in the training of AI models". Emmet never trains, but small Rebrickable facts reach the user's AI provider in tool results. Confirm with Rebrickable that this is fine.</td><td>The courtesy note (section 12), before 3B merges</td><td><span class="pill open">Open</span></td></tr>
 </table></div>
 </section>
@@ -2750,6 +2756,7 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
 <li>Tauri WebDriver testing (macOS not supported by <code>tauri-driver</code>; WebdriverIO recommended): <a href="https://v2.tauri.app/develop/tests/webdriver/">v2.tauri.app/develop/tests/webdriver</a></li>
 <li>WebdriverIO Tauri service, platform support (embedded WebDriver on macOS): <a href="https://webdriver.io/docs/desktop-testing/tauri/platform-support">webdriver.io/docs/desktop-testing/tauri/platform-support</a></li>
 <li>LDraw.org Contributor Agreement (CC BY 4.0, optional CC0; older parts CC BY 2.0): <a href="https://www.ldraw.org/docs-main/licenses/ldraw-org-contributor-agreement.html">ldraw.org contributor agreement</a></li>
+<li>GNU AGPL-3.0: <a href="https://www.gnu.org/licenses/agpl-3.0.html">gnu.org/licenses/agpl-3.0</a> · the Open Source Definition: <a href="https://opensource.org/osd">opensource.org/osd</a> · nurb's license (FSL-1.1-MIT), read from its installed package, for comparison</li>
 <li>Claude Code legal and compliance (running Claude Code in products; subscription and OAuth rules), checked 2026-10-24: <a href="https://code.claude.com/docs/en/legal-and-compliance">code.claude.com/docs/en/legal-and-compliance</a> · Claude Code authentication precedence: <a href="https://code.claude.com/docs/en/authentication">code.claude.com/docs/en/authentication</a></li>
 <li>Claude Code usage data: <code>SDKUsageReport</code> and <code>SDKRateLimitEvent</code> in <a href="https://code.claude.com/docs/en/agent-sdk/typescript">the Agent SDK TypeScript reference</a>; <code>rate_limits</code> in <a href="https://code.claude.com/docs/en/statusline">status line docs</a>; <code>--bare</code> and <code>system/init</code> capabilities in <a href="https://code.claude.com/docs/en/headless">headless docs</a> (all checked 2026-10-24)</li>
 <li>Orca, for its usage UI and provider-neutral design: <a href="https://github.com/stablyai/orca">github.com/stablyai/orca</a> (MIT), <code>src/main/rate-limits/</code> and <code>src/shared/rate-limit-types.ts</code> at f2446b9</li>
