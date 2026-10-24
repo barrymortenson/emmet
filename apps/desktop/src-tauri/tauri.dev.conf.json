@@ -1,0 +1,6 @@
+{
+  "identifier": "com.emmetbuilder.emmet.dev",
+  "app": {
+    "windows": [{ "label": "main", "title": "Emmet DEV", "width": 1200, "height": 800, "minWidth": 800, "minHeight": 560 }]
+  }
+}

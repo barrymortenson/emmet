@@ -1,0 +1,25 @@
+[project]
+name = "emmet-dsl"
+version = "0.1.0"
+description = "The Python package an Emmet model imports"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = ["ruff==0.17.2"]
+
+[build-system]
+requires = ["uv_build>=0.12.22,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv]
+python-preference = "only-managed"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

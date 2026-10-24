@@ -1,0 +1,13 @@
+{
+  "name": "emmet",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.22.0",
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  }
+}
