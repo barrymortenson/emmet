@@ -49,7 +49,7 @@ window.EMMET_STATUS = {
     "H-12": { status: "todo" },
     "H-13": { status: "todo" },
     "H-14": { status: "not-needed", note: "releases publish from the main public repo (D-21)" },
-    "H-15": { status: "todo" },
+    "H-15": { status: "todo", note: "emmetbuilder.com registered at Cloudflare 2026-10-24; API token still to do" },
     "H-16": { status: "done", note: "AGPL-3.0-or-later; Apache-2.0 for the DSL (2026-10-24)" },
     "H-17": { status: "done", note: "best-judgement search 2026-10-24; keep Emmet (D-30)" },
     "H-18": { status: "not-needed", note: "public from day one (D-12)" },
@@ -57,7 +57,8 @@ window.EMMET_STATUS = {
     "H-20": { status: "todo" },
     "H-21": { status: "todo" },
     "H-22": { status: "todo" },
-    "H-23": { status: "todo" }
+    "H-23": { status: "todo" },
+    "H-24": { status: "todo" }
   },
   blockers: [],
   gates: {
