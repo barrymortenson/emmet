@@ -1,8 +1,11 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 // Execution status for docs/plan.html (plan section 20). Agents edit this on their session branch;
 // scripts/plan-check.mjs validates it in CI. Never record progress by editing plan.html.
 // Session status: todo | in-progress | review | done | blocked | skipped (Barry only) | backlog (Phase 8)
 // Human status:   todo | waiting | done | not-needed
 // Gate status:    todo | go | no-go | pivot
+// A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
+// plan-check's error into a warning.
 window.EMMET_STATUS = {
   updated: "2026-10-24",
   sessions: {

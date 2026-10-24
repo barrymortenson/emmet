@@ -1,0 +1,24 @@
+# cargo-deny: advisories, the license allowlist (all AGPL-compatible, D-14), and sources. `just ci` runs `cargo deny check`.
+[graph]
+# macOS and Windows only (D-01), so Linux-only crates don't count.
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
+
+[advisories]
+yanked = "deny"
+
+[licenses]
+allow = ["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Zlib", "Unicode-3.0", "MPL-2.0", "CC0-1.0"]
+confidence-threshold = 0.93
+# Emmet's own crates (publish = false) are AGPL-3.0-or-later.
+private = { ignore = true }
+# The allowlist is the plan's (D-14), not just what today's graph uses.
+unused-allowed-license = "allow"
+
+[bans]
+multiple-versions = "allow"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
