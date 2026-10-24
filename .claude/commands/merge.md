@@ -14,17 +14,18 @@ Stop and report (don't merge) at the first step that fails. Ask with AskUserQues
 ## 1. Find the PR and the session
 
 - `gh pr view <n> --json number,state,isDraft,title,headRefName,headRefOid,baseRefName,mergeable,mergeStateStatus,body`.
-  It must be open, not a draft, based on `main`, and `MERGEABLE`.
+  It must be open and based on `main`. A draft: run `gh pr ready <n>` only once step 2 holds. `mergeable` reads
+  `UNKNOWN` for a while after a push; retry until it settles, and stop unless it's `MERGEABLE`.
 - `git fetch origin`. The working tree is clean, the current branch is the PR's head branch (switch to it if not), and
   local `HEAD` equals `headRefOid` (pull it if behind; stop if it has commits the PR doesn't).
 - The session is the `docs/plan-status.js` entry whose `pr` is this number or whose `branch` is the head branch, else
-  the id in a `bmortenson/s<id>-…` branch name. No session (a reconcile, tooling, or Dependabot PR): skip to step 4
-  and change the status file only if this PR's work makes it wrong.
+  the id in a `bmortenson/s<id>-…` branch name, uppercased (`s0a` → `0A`). No session (a reconcile, tooling, or
+  Dependabot PR): skip step 2, and run step 3 only if this PR's work makes the status file wrong.
 
 ## 2. Evaluate the plan for this session (read only)
 
-Read the session's block in `docs/plan.html` (`<div class="session" id="session-<id>"`: Done when, What good looks
-like, `data-after`, `data-waits-merge`) and the phase box it sits in. Check, and list each result:
+Read the session's block in `docs/plan.html` (`<div class="session" … data-session="<id>"`: Done when, What good
+looks like, `data-after`, `data-waits-merge`) and the phase box it sits in. Check, and list each result:
 
 1. Every session in `data-after` is `done` or `skipped` (or this session has Barry's `override`).
 2. Every YOU step in `data-waits-merge` is `done` or `not-needed` under `human`. If not, the YOU step blocks the
