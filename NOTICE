@@ -1,0 +1,26 @@
+Emmet Builder
+Copyright (C) 2026 Barry Mortenson
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version. It is distributed WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See LICENSE.
+
+python/emmet_dsl, data/techniques, and the project templates are licensed under
+the Apache License, Version 2.0 (python/emmet_dsl/LICENSE), so the models you
+write with them are clearly yours. Models and outputs you make with Emmet
+(.mpd files, parts lists, PDFs, renders) belong to you.
+
+The names "Emmet Builder" and "Emmet" and the Emmet logo are not covered by
+these licenses. See TRADEMARKS.md.
+
+LDraw
+Emmet works with the LDraw parts library from LDraw.org. LDraw parts are
+licensed by their authors under CC BY 4.0 (older parts under CC BY 2.0); see
+https://www.ldraw.org/docs-main/licenses/ldraw-org-contributor-agreement.html.
+Any LDraw files shipped in this repository carry their own attribution file.
+LDraw is a trademark owned and licensed by the Estate of James Jessiman.
+
+LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize, or
+endorse this software.

@@ -1,0 +1,9 @@
+/target/
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+.dev-data/
+.DS_Store
+apps/desktop/src-tauri/gen/

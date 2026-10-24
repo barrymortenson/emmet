@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Format check on the staged files (rustfmt and ruff read the working-tree copy, so restage before committing), then
+# gitleaks on the staged content. Installed by `just setup`.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+staged() { git diff --cached --name-only --diff-filter=ACMR -z -- "$@" | xargs -0 -r "${run[@]}"; }
+
+run=(rustfmt --check --edition 2024)
+staged '*.rs'
+run=(uv run --project python/emmet_dsl --frozen --quiet ruff format --check)
+staged '*.py'
+
+gitleaks git --pre-commit --staged --redact --no-banner --log-level warn .

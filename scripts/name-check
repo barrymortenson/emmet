@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Re-runs the H-17 name search by hand at G1, G2, and 7B. TMview documents no API for scripted queries, so this
+# prints the query and a checklist (and opens the query with --open).
+set -euo pipefail
+url='https://www.tmdn.org/tmview/#/tmview/results?page=1&pageSize=100&criteria=C&basicSearch=EMMET'
+cat <<TXT
+Name check for "Emmet" (D-30). Search TMview for EMMET across all offices:
+  $url
+
+Checklist:
+  1. Note the total number of results and the date.
+  2. Filter by Nice classes 9, 28, 41, and 42. List every mark that is new since the last check
+     (docs/decisions.md has the last date) with its owner, office, class, and status.
+  3. Flag any mark held by a toy, film, or brick-software company, and any registered "EMMET BUILDER".
+  4. Record the result in docs/decisions.md and tell the agent. Nothing new: the D-30 decision stands.
+TXT
+if [[ ${1:-} == --open ]]; then
+  open "$url" 2>/dev/null || start "$url" 2>/dev/null || echo "Open the URL above in a browser."
+fi

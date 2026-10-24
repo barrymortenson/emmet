@@ -1,0 +1,26 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+main {
+  display: grid;
+  place-content: center;
+  min-height: 100vh;
+  text-align: center;
+}
+h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+.version {
+  color: GrayText;
+}
+.dev {
+  margin-left: 0.5em;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  background: #ea580c;
+  color: white;
+  font-weight: 600;
+}

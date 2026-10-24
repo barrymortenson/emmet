@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Refuses any push to main: every change lands through a PR (D-39). Installed by `just setup`.
+set -euo pipefail
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [[ "$remote_ref" == refs/heads/main ]]; then
+    echo "pre-push: refusing to push to main; open a PR from a branch instead (D-39)" >&2
+    exit 1
+  fi
+done
