@@ -224,7 +224,7 @@
 <main>
 <h1>Emmet: build plan for an agent-driven brick CAD app</h1>
 <p class="lede">Emmet is a free desktop app for macOS and Windows that does for brick models what nurb does for CAD. You describe or change a model in plain words. Your own Claude Code or Codex agent builds it from real LDraw parts by writing a parametric Python model, and you watch it take shape in a polished 3D viewer with sliders, buildability checks, a parts list, and build steps. It's local only: no hosting, no accounts, and you bring your own agent.</p>
-<p class="meta">Prepared 2026-10-24 for Barry Mortenson · Repo <code>barrymortenson/emmet</code> (public, AGPL-3.0) · This plan: <code>docs/plan.html</code> · Status: <code>docs/plan-status.js</code> · Marketing site later: <code>emmetbuilder.com</code></p>
+<p class="meta">Prepared 2026-10-24 · Repo <code>barrymortenson/emmet</code> (public, AGPL-3.0) · This plan: <code>docs/plan.html</code> · Status: <code>docs/plan-status.js</code> · Marketing site later: <code>emmetbuilder.com</code></p>
 
 <div class="callout info"><b>How to use this document</b>
 Sections 02–18 are the specification: what to build and why. Sections 19–22 are the execution plan: nine phases, each split into a few large <b>sessions</b>. A session is one agent run, one branch, and one pull request. Every session has a <b>Copy prompt with rules</b> button that puts the agent rules, the session's scope, its Done when list, and its prompt on the clipboard in one go, ready to paste into Claude Code or Codex. Steps marked <span class="pill you">YOU</span> need you. The left rail reads <code>docs/plan-status.js</code> and shows what's done, what's in progress, what's up next, and what's waiting on you.</div>
@@ -352,7 +352,6 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <ul>
 <li><b>Brick hobbyists who already pay for Claude or Codex</b> and want to go from an idea to a buildable, real-parts model in minutes, then tune it with sliders instead of placing 400 parts by hand.</li>
 <li><b>MOC builders</b> who want parametric drafts (a station of any length, a house of any width) and an honest parts list.</li>
-<li><b>Barry</b>: a portfolio piece showing nurb-grade UX, agent tooling, and cross-platform desktop engineering.</li>
 </ul>
 
 <h3>What we copy from nurb, and what we add</h3>
@@ -2314,7 +2313,7 @@ rung 2 with visual baselines on both OSes. Ask me to check a printed copy before
 <div class="s-dh">What good looks like</div>
 <ul class="good">
 <li>Anyone can find the test for any behavior from the matrix in under a minute.</li>
-<li>The eval report reads well enough to show as a portfolio artifact.</li>
+<li>The eval report reads well enough to show publicly.</li>
 </ul>
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 5A. Build the test matrix by reading sections 09, 11, 14 and 15 and the code, then fill gaps,
 highest level first. Prepare the eval runs, then ask me to run them once each (give me the exact commands, the run
@@ -2588,7 +2587,7 @@ the terms don't allow it.</code></pre></details>
 <details id="g-h02"><summary>H-02 Register the self-hosted runner (about 10 minutes)</summary>
 <ol class="small">
 <li>GitHub → <code>barrymortenson/emmet</code> → Settings → Actions → Runners → <b>New self-hosted runner</b> → macOS, ARM64.</li>
-<li>In Terminal: <code>mkdir -p ~/actions-runner/emmet &amp;&amp; cd ~/actions-runner/emmet</code>, then run GitHub's download and <code>./config.sh</code> lines, adding <code>--name barry-mac-emmet --labels emmet --work _work</code>.</li>
+<li>In Terminal: <code>mkdir -p ~/actions-runner/emmet &amp;&amp; cd ~/actions-runner/emmet</code>, then run GitHub's download and <code>./config.sh</code> lines, adding <code>--name emmet-mac --labels emmet --work _work</code>.</li>
 <li>Install it as a login service: <code>./svc.sh install &amp;&amp; ./svc.sh start</code>.</li>
 <li>Give the service your toolchain PATH: run <code>scripts/runner-env.sh</code> (0A writes it), which fills <code>~/actions-runner/emmet/.path</code> with the rustup, mise/node, pnpm, uv, and Homebrew paths.</li>
 <li>Tell the agent. It re-runs CI and checks that the <code>mac</code> job picked up the runner.</li>
@@ -2607,7 +2606,7 @@ the terms don't allow it.</code></pre></details>
 <details id="g-h05"><summary>H-05 Signing and notarization (about 20 minutes)</summary>
 <ol class="small">
 <li>developer.apple.com → Certificates → <b>+</b> → <b>Developer ID Application</b> (needs the Account Holder role). Create the CSR in Keychain Access (Certificate Assistant → Request a Certificate…), upload it, download the certificate, and double-click it to install into the login keychain.</li>
-<li>Check: <code>security find-identity -v -p codesigning</code> lists <i>Developer ID Application: Barry Mortenson (TEAMID)</i>.</li>
+<li>Check: <code>security find-identity -v -p codesigning</code> lists <i>Developer ID Application: &lt;your name&gt; (TEAMID)</i>.</li>
 <li>App Store Connect → Users and Access → Integrations → App Store Connect API → generate a Team key with the Developer role. Download the <code>.p8</code> (you only get one chance).</li>
 <li>Store it for notarytool: <code>xcrun notarytool store-credentials emmet-notary --key ~/Downloads/AuthKey_XXXX.p8 --key-id XXXX --issuer &lt;issuer-id&gt;</code>. Then move the <code>.p8</code> into your password manager and delete it from Downloads.</li>
 <li>Tell the agent your Team ID (not a secret). The release job uses the keychain identity and the <code>emmet-notary</code> profile on the self-hosted runner, so no Apple secret goes into GitHub.</li>
@@ -2619,7 +2618,7 @@ the terms don't allow it.</code></pre></details>
 <li>Record the 60-second demo following <code>docs/demo/rung1.md</code> (QuickTime screen recording is fine; 1080p, with the system appearance you like best).</li>
 <li>Post the video with the drafts in <code>docs/demo/</code> to Eurobricks (digital building tools), r/lego, and the LDraw forum. Link the public repo.</li>
 <li>Run <code>scripts/terms-check</code> and <code>scripts/name-check</code> (D-37, H-17). The agent reads the diffs; a changed terms quote holds the decision until you've settled what it affects.</li>
-<li>After about a week, decide: <b>go</b> (continue the plan), <b>pivot</b> (say what changes; the agent updates the plan in a PR), or <b>no-go</b> (stop; keep the spike as a portfolio piece). Suggested bar for "go": rung 1 passes on both agents, and at least a handful of people ask to try it.</li>
+<li>After about a week, decide: <b>go</b> (continue the plan), <b>pivot</b> (say what changes; the agent updates the plan in a PR), or <b>no-go</b> (stop; the spike stays public as it is). Suggested bar for "go": rung 1 passes on both agents, and at least a handful of people ask to try it.</li>
 <li>Tell the agent the decision. It records <code>gates.G1</code> and <code>H-06</code> in the status file.</li>
 </ol>
 </details>
@@ -2651,11 +2650,9 @@ the terms don't allow it.</code></pre></details>
 </details>
 <details id="g-h17"><summary>H-17 Name check: what the 2026-10-24 search found</summary>
 <ul class="small">
-<li><b>LEGO and Warner Bros.:</b> no registered or pending mark containing "EMMET" in any office the EU's TMview database covers (EUIPO, the UK, the US, and the national offices; 715 records checked). The risk that remains is association: a brick app named like The LEGO Movie's hero. That's why D-30 bans every reference to the film and the character.</li>
-<li><b>Elsevier:</b> "EMMET" is registered for software in the EU and UK (classes 9, 42, 44) and in the US (class 42), for a medical-taxonomy search service. It's a different market, buyers, and use, so using the name for a free brick app is low risk. But Elsevier's earlier mark would likely block registering plain "EMMET" for software, so the name Barry can claim is "Emmet Builder".</li>
-<li><b>emmet.io:</b> the HTML toolkit built into VS Code. No registration found, but it's famous among developers, so "Emmet Builder" goes wherever search and first impressions matter. Its npm package <code>emmet</code> installs no command, so the <code>emmet</code> CLI doesn't collide. PyPI's <code>emmet</code> and crates.io's <code>emmet</code> belong to other projects; Emmet publishes neither name.</li>
-<li><b>No registration for now.</b> If Barry ever wants one, file "EMMET BUILDER" in class 9 at the USPTO.</li>
-<li><b>If anyone objects</b> (LEGO, Warner, Elsevier, or emmet.io): don't argue; rename promptly. <code>scripts/name-check</code> (written in 0A) re-runs the TMview search and flags new "EMMET" marks owned by LEGO or Warner, or any in classes 9, 28, 41, or 42. It runs at G1, G2, and 7B.</li>
+<li><b>Outcome:</b> keep the name (D-30). The full name "Emmet Builder" goes wherever people first meet the product, and nothing refers to The LEGO Movie or its character.</li>
+<li><b>No registration for now.</b></li>
+<li><code>scripts/name-check</code> (written in 0A) re-runs the TMview search for "EMMET" and lists the marks in classes 9, 28, 41, and 42 so the result can be compared with the last run. It runs at G1, G2, and 7B.</li>
 <li>This is a best-judgement search, not legal clearance.</li>
 </ul>
 </details>
@@ -2695,13 +2692,13 @@ the terms don't allow it.</code></pre></details>
 <tr><td>A provider changes its terms for apps that run its CLI or use its plans (both did in 2026)</td><td>High</td><td>The terms gate (D-37): every agent feature cites current provider text; <code>docs/terms/</code> is re-checked at G1, G2, and 7B; a feature that loses its basis is switched off before the next release; terminal mode always remains.</td><td>0B, 7B</td></tr>
 <tr><td>WKWebView WebGL performance or hidden-window throttling</td><td>Medium</td><td>Bench in 1B, instancing, ADR 0005 with an off-screen-window fallback.</td><td>0B, 1B, 4C</td></tr>
 <tr><td>Windows differences (paths, CLIs, GPU), with only an ARM VM in hand</td><td>Medium</td><td>Hosted x64 CI from day one, the 5B hardening list, and a Windows x64 beta tester.</td><td>5B, 6B</td></tr>
-<tr><td>Trademark: "Emmet" is a LEGO Movie character; Elsevier holds "EMMET" for software; emmet.io is famous with developers</td><td>Medium</td><td>The 2026-10-24 search (H-17): no LEGO or Warner marks; the full name "Emmet Builder" where it matters; no reference to the film or character (D-30); "brick" language and a disclaimer everywhere; <code>scripts/name-check</code> at G1, G2, and 7B; rename promptly if anyone objects.</td><td>0A, 2A, 7B</td></tr>
+<tr><td>Trademark: other uses of the name "Emmet"</td><td>Medium</td><td>The 2026-10-24 search (H-17); the full name "Emmet Builder" where it matters; no reference to the film or character (D-30); "brick" language and a disclaimer everywhere; <code>scripts/name-check</code> at G1, G2, and 7B.</td><td>0A, 2A, 7B</td></tr>
 <tr><td>Data and code licensing (LDraw attribution, LDCad, Rebrickable terms, other tools' code)</td><td>Medium</td><td>ADR 0003 before any reuse, attribution in the app and on the site, and no copied code without a compatible license and Barry's yes.</td><td>0B, 7B</td></tr>
 <tr><td>Public from day one: early work is visible, and a self-hosted runner serves a public repo</td><td>Medium</td><td>The personal-details pass and gitleaks before the first push; self-hosted jobs for trusted events only, fork PRs on hosted runners, and approval for outside contributors' workflows (section 17).</td><td>0A</td></tr>
 <tr><td>Self-hosted runner security</td><td>Medium</td><td>Repo-only registration, the runner guard, trusted events only from day one, and fork PRs on hosted runners.</td><td>0A</td></tr>
 <tr><td>Live eval cost on Barry's API keys, and too few runs to catch flaky behavior</td><td>Low</td><td>The D-38 budget (14 runs across G1 and G2, plus reruns of failures), replay everywhere else, the CLIs' own cost figures in each report, and a spend cap on each key. Barry's hand sessions add real coverage at no scripted cost.</td><td>1D, 5A</td></tr>
 <tr><td>A fast-moving niche: someone polishes an existing tool first</td><td>Medium</td><td>A demo at the end of week 3 (G1), with the UX and validator as the differentiators.</td><td>Phase 1</td></tr>
-<tr><td>Narrow audience (hobbyists who also pay for Claude or Codex)</td><td>Medium</td><td>G1's community response decides further investment, and the portfolio value stands either way.</td><td>G1</td></tr>
+<tr><td>Narrow audience (hobbyists who also pay for Claude or Codex)</td><td>Medium</td><td>G1's community response decides further investment.</td><td>G1</td></tr>
 <tr><td>Photo input, native PDF, and technique mining in the MVP push G2 later</td><td>Medium</td><td>Each is its own session in a parallel lane (3C beside Phase 4; 4D beside 4C and 4E), the gates stay objective, and none blocks G1.</td><td>3C, 4D, 4E</td></tr>
 <tr><td>Scope creep and dev-experience bloat</td><td>Medium</td><td>Rule 6 (no new tools without approval), CI time budgets, and Phase 8 holding the deferred features.</td><td>All</td></tr>
 </table></div>
@@ -2778,7 +2775,7 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
 <li>Tauri WebDriver testing (macOS not supported by <code>tauri-driver</code>; WebdriverIO recommended): <a href="https://v2.tauri.app/develop/tests/webdriver/">v2.tauri.app/develop/tests/webdriver</a></li>
 <li>WebdriverIO Tauri service, platform support (embedded WebDriver on macOS): <a href="https://webdriver.io/docs/desktop-testing/tauri/platform-support">webdriver.io/docs/desktop-testing/tauri/platform-support</a></li>
 <li>LDraw.org Contributor Agreement (CC BY 4.0, optional CC0; older parts CC BY 2.0): <a href="https://www.ldraw.org/docs-main/licenses/ldraw-org-contributor-agreement.html">ldraw.org contributor agreement</a></li>
-<li>Name search, 2026-10-24: the EU's TMview (<a href="https://www.tmdn.org/tmview/">tmdn.org/tmview</a>, query "EMMET", all offices) and Trademarkia's US records (<a href="https://www.trademarkia.com/86439905">Elsevier's EMMET, US 86439905</a>)</li>
+<li>Name search, 2026-10-24: the EU's TMview (<a href="https://www.tmdn.org/tmview/">tmdn.org/tmview</a>, query "EMMET", all offices)</li>
 <li>GNU AGPL-3.0: <a href="https://www.gnu.org/licenses/agpl-3.0.html">gnu.org/licenses/agpl-3.0</a> · the Open Source Definition: <a href="https://opensource.org/osd">opensource.org/osd</a> · nurb's license (FSL-1.1-MIT), read from its installed package, for comparison</li>
 <li>Claude Code legal and compliance (running Claude Code in products; subscription and OAuth rules), checked 2026-10-24: <a href="https://code.claude.com/docs/en/legal-and-compliance">code.claude.com/docs/en/legal-and-compliance</a> · Claude Code authentication precedence: <a href="https://code.claude.com/docs/en/authentication">code.claude.com/docs/en/authentication</a></li>
 <li>Claude Code usage data: <code>SDKUsageReport</code> and <code>SDKRateLimitEvent</code> in <a href="https://code.claude.com/docs/en/agent-sdk/typescript">the Agent SDK TypeScript reference</a>; <code>rate_limits</code> in <a href="https://code.claude.com/docs/en/statusline">status line docs</a>; <code>--bare</code> and <code>system/init</code> capabilities in <a href="https://code.claude.com/docs/en/headless">headless docs</a> (all checked 2026-10-24)</li>
@@ -2791,7 +2788,7 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
 <li>Rebrickable downloads: <a href="https://rebrickable.com/downloads/">rebrickable.com/downloads</a> · uv: <a href="https://docs.astral.sh/uv/">docs.astral.sh/uv</a></li>
 <li>tauri-action: <a href="https://github.com/tauri-apps/tauri-action">github.com/tauri-apps/tauri-action</a> · Tauri updater: <a href="https://v2.tauri.app/plugin/updater/">v2.tauri.app/plugin/updater</a></li>
 <li>Landscape from the brief: <a href="https://github.com/AlessioNar/ldraw-nova">ldraw-nova</a>, brickbuilder-mcp, brick-mcp, ldraw-mcp, ClawdCAD, OpenCovibe, BrickBuilder.ai (licenses checked in 0B)</li>
-<li>nurb: the local reference install (<code>/Applications/nurb.app</code>) and Barry's nurb projects, for its file and doctrine conventions</li>
+<li>nurb: a local install, for its file and doctrine conventions</li>
 </ul>
 <p class="meta" style="margin-top:40px">End of plan.</p>
 </section>
