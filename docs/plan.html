@@ -97,6 +97,24 @@
   .card { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: var(--panel); }
   .card h4 { margin-top: 4px; }
   .wire { font-family: var(--mono); font-size: 12px; line-height: 1.38; white-space: pre; background: var(--code); padding: 16px; border-radius: 10px; overflow: auto; }
+  .flow { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 16px; margin: 12px 0 8px; overflow-x: auto; }
+  .flow svg { display: block; width: 100%; min-width: 760px; height: auto; }
+  .flow .bx { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
+  .flow .bx.you { fill: var(--warn-soft); stroke: transparent; }
+  .flow .bx.agent { fill: var(--accent-soft); stroke: transparent; }
+  .flow .bx.out { fill: var(--ok-soft); stroke: transparent; }
+  .flow .k { fill: var(--warn); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; }
+  .flow .t { fill: var(--fg); font-size: 15px; font-weight: 700; }
+  .flow .s { fill: var(--muted); font-size: 12.5px; }
+  .flow .q { fill: var(--fg); font-size: 13px; }
+  .flow .m { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+  .flow .lbl { fill: var(--fg); font-family: var(--mono); font-size: 12px; text-anchor: middle; }
+  .flow .ln { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+  .flow .ln.back { stroke: var(--accent); stroke-dasharray: 6 4; }
+  .flow .ah { fill: var(--muted); }
+  .flow .ah.back { fill: var(--accent); }
+  .flow .lbl.back { fill: var(--accent); font-family: inherit; font-weight: 600; font-size: 12.5px; }
+  .flow .pad { fill: var(--panel); }
   .small { font-size: 13px; }
   .muted { color: var(--muted); }
   ol.steps li { margin: 6px 0; }
@@ -243,19 +261,79 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <h2><span class="num">02</span>The product on one page</h2>
 
 <h3>The loop</h3>
-<div class="wire">  "a small cottage with a red roof and a chimney"            drag "width" from 8 → 12
-                │                                                       │
-                ▼                                                       ▼
-  Agent (your Claude Code or Codex) ──writes──▶ model.py ◀──params.json── sliders
-                │  calls emmet tools                │
-                │  search_parts · run_model ·       ▼  emmet run (uv Python, emmet_dsl)
-                │  validate · render · bom      build/model.mpd ── emmet check ──▶ findings
-                ▲                                    │                              │
-                └────────── findings + render ───────┼──────────────────────────────┘
-                                                     ▼
-                         Viewer (live, camera never jumps) · Checks · Parts list · Steps
-                                                     ▼
-                                  Export: LDraw .mpd · BOM CSV · Rebrickable · BrickLink XML</div>
+<div class="flow">
+<svg viewBox="0 0 1140 492" role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">The Emmet loop</title>
+  <desc id="flow-desc">You type a request to your agent, or drag a slider. The agent writes model.py; sliders write params.json. emmet run builds model.mpd, emmet check produces findings, and the findings plus a render go back to the agent. model.mpd feeds the viewer, which feeds export.</desc>
+  <defs>
+    <marker id="flow-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="flow-ah-back" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah back" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <!-- Inputs -->
+  <rect class="bx you" x="20" y="10" width="250" height="74" rx="10"/>
+  <text class="k" x="34" y="32">YOU TYPE</text>
+  <text class="q" x="34" y="53">“a small cottage with a red roof</text>
+  <text class="q" x="34" y="71">and a chimney”</text>
+
+  <rect class="bx you" x="320" y="10" width="200" height="74" rx="10"/>
+  <text class="k" x="334" y="32">YOU DRAG A SLIDER</text>
+  <text class="q" x="334" y="53" style="font-family: var(--mono)">width: 8 → 12</text>
+  <text class="s" x="334" y="71">Reruns without the agent</text>
+
+  <line class="ln" x1="120" y1="84" x2="120" y2="129" marker-end="url(#flow-ah)"/>
+  <line class="ln" x1="420" y1="84" x2="420" y2="129" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="432" y="112" style="text-anchor: start">params.json</text>
+
+  <!-- Pipeline -->
+  <rect class="bx agent" x="20" y="130" width="200" height="110" rx="10"/>
+  <text class="t" x="34" y="156">Agent</text>
+  <text class="s" x="34" y="175">Claude Code or Codex</text>
+  <text class="m" x="34" y="199">search_parts · run_model</text>
+  <text class="m" x="34" y="215">validate · render · bom</text>
+
+  <rect class="bx" x="320" y="130" width="200" height="110" rx="10"/>
+  <text class="t" x="334" y="156">model.py</text>
+  <text class="s" x="334" y="175">Parametric Python model</text>
+  <text class="s" x="334" y="195">Its defaults are the sliders</text>
+
+  <rect class="bx" x="620" y="130" width="200" height="110" rx="10"/>
+  <text class="t" x="634" y="156">build/model.mpd</text>
+  <text class="s" x="634" y="175">LDraw model file</text>
+  <text class="s" x="634" y="195">Built with uv Python</text>
+  <text class="s" x="634" y="213">and emmet_dsl</text>
+
+  <rect class="bx" x="920" y="130" width="200" height="110" rx="10"/>
+  <text class="t" x="934" y="156">Findings</text>
+  <text class="s" x="934" y="175">Collisions, connectivity,</text>
+  <text class="s" x="934" y="195">floating parts,</text>
+  <text class="s" x="934" y="213">availability</text>
+
+  <line class="ln" x1="220" y1="185" x2="319" y2="185" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="270" y="176">writes</text>
+  <line class="ln" x1="520" y1="185" x2="619" y2="185" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="570" y="176">emmet run</text>
+  <line class="ln" x1="820" y1="185" x2="919" y2="185" marker-end="url(#flow-ah)"/>
+  <text class="lbl" x="870" y="176">emmet check</text>
+
+  <!-- Outputs -->
+  <line class="ln" x1="720" y1="240" x2="720" y2="289" marker-end="url(#flow-ah)"/>
+  <rect class="bx out" x="470" y="290" width="500" height="62" rx="10"/>
+  <text class="t" x="486" y="315">Viewer</text>
+  <text class="s" x="486" y="336">Live 3D view (camera never jumps) · Checks · Parts list · Steps</text>
+
+  <line class="ln" x1="720" y1="352" x2="720" y2="379" marker-end="url(#flow-ah)"/>
+  <rect class="bx out" x="470" y="380" width="500" height="62" rx="10"/>
+  <text class="t" x="486" y="405">Export</text>
+  <text class="s" x="486" y="426">LDraw .mpd · BOM CSV · Rebrickable · BrickLink XML</text>
+
+  <!-- Feedback to the agent -->
+  <path class="ln back" d="M1020 240 V472 H120 V241" marker-end="url(#flow-ah-back)"/>
+  <rect class="pad" x="150" y="462" width="300" height="20"/>
+  <text class="lbl back" x="300" y="477">Findings + a render go back to the agent</text>
+</svg>
+</div>
+<p class="small muted">A typed request goes through the agent, which writes <code>model.py</code>, runs it, checks it, and fixes what the findings and render show. A slider skips the agent: Emmet writes the new value to <code>params.json</code> and reruns the model directly. Every run updates the viewer, and you export from there.</p>
 
 <h3>Who it's for</h3>
 <ul>
