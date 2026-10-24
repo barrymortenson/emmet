@@ -362,7 +362,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td><code>nurb check</code> / <code>inspect</code> / <code>render</code>: the agent verifies with numbers, then looks</td><td><code>emmet check</code> (collisions, connectivity, floating parts, availability), <code>emmet render</code> (an image back to the agent), and findings that name the part and the line of <code>model.py</code> that placed it.</td></tr>
 <tr><td>Card per part, with <code>## Don't</code></td><td><code>CARD.md</code> per project with <i>What it is</i>, <i>Design notes</i>, and <i>Don't</i>, plus an AUTO block (parts count, checks, BOM total).</td></tr>
 <tr><td>Viewer rebuilds on save without moving the camera, and teaches one affordance at a time</td><td>The same laws (below).</td></tr>
-<tr><td>Agent in your own terminal</td><td>An <b>embedded chat pane</b> that drives Claude Code or Codex with per-session config. The terminal flow still works (section 10).</td></tr>
+<tr><td>Agent in your own terminal, on your own plan</td><td>The same in two forms, both on the user's own Claude or ChatGPT plan, never a key Emmet supplies (D-35). Terminal mode is nurb's model exactly: the user runs <code>claude</code> or <code>codex</code> in the project folder, and Emmet is tools plus the viewer. The <b>embedded chat pane</b> starts the user's own unmodified CLI with per-session config (section 10).</td></tr>
 </table></div>
 
 <h3>Where the chat goes past nurb</h3>
@@ -457,6 +457,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-32</td><td>Question cards</td><td>The agent asks the user through an <code>ask_user</code> tool on <code>emmet_host</code>: one question, 2–4 options with optional descriptions, single or multi choice, and always an Other free-text answer. The chat shows it as a card, and the tool call blocks until the user answers. It's the same path for both agents, and Claude Code's built-in <code>AskUserQuestion</code> is disabled in app sessions.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-33</td><td>Redirect and stop</td><td>The composer stays open while the agent works. A message sent mid-turn is queued and delivered at the agent's next step: through the CLI's native mid-turn input where it exists, otherwise attached to the next Emmet tool result, otherwise sent as the next turn. Stop interrupts at once and sends any queued message as the next turn.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-34</td><td>Build animation</td><td>Agent-driven runs animate in the viewer: added parts drop in brick by brick in build order (step, then bottom-up), capped in total time and skippable. Slider runs never animate. The doctrine has the agent build in visible stages so the user can judge direction early. Setting: Animated (default), Fast, or Off; reduced motion means Off.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-35</td><td>Plans, not keys</td><td>Agents run on the user's own subscription (Claude Pro or Max, ChatGPT Plus or Pro) through the user's own installed, unmodified CLI and its own sign-in, the way nurb works. Emmet never bundles, patches, or signs in to a CLI, never reads or stores credentials, and never pays for or resells usage. An API key works too, but only when the user picks it: Emmet shows which one each session uses and asks before an API key in its environment would take over from the plan. Terminal mode (the user runs the CLI themselves) stays first-class, so plan use survives any change to the embedded chat's footing.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 </table></div>
 </section>
 
@@ -949,6 +950,22 @@ server → client requests for command/file approvals → Approval events → re
 <li>Not signed in: the onboarding card shows the one command to run (<code>claude</code> or <code>codex login</code>), with an "Open Terminal" button.</li>
 <li>Each adapter declares a tested version range. Outside it, the chat still works but shows a quiet "untested Codex 0.17x" note, and <code>emmet doctor</code> lists it.</li>
 <li>Windows: 1C verifies both CLIs natively in the VM (H-04) and records their requirements in ADR 0001. If one requires a shell such as Git Bash, onboarding says so.</li>
+</ul>
+
+<h3>Plans, keys, and billing (D-35)</h3>
+<p>Emmet is a free local app that runs each user's own agent under that user's own account, so usage lands on the user's plan, the same as typing in their terminal. What the providers say, checked on 2026-10-24:</p>
+<ul>
+<li><b>Anthropic</b> (<a href="https://code.claude.com/docs/en/legal-and-compliance">Claude Code legal and compliance</a>) allows running Claude Code inside a product if the product's maker accepts the Commercial Terms (H-20), runs the binary unmodified, removes or restricts none of its sign-in methods, and doesn't pay for, resell, or intermediate usage: each user authenticates with their own subscription or key. The page states this doesn't prevent "an end user from signing in to the unmodified Claude Code binary with their own Claude subscription". What's forbidden is a third-party app offering Claude.ai login itself, or handling Claude.ai credentials or tokens. Plan limits assume "ordinary, individual usage", which a person building their own model is.</li>
+<li><b>OpenAI</b> (<a href="https://learn.chatgpt.com/docs/app-server">Codex app-server, Auth endpoints</a>): "If you've built a local or open-source application using Codex app-server authentication, you can continue using it", with Sign in with ChatGPT recommended, and "App-server authentication has never been permitted for commercial or hosted services." Emmet is local and free. If it ever charges or hosts anything, Codex moves to Sign in with ChatGPT first (Q-13).</li>
+<li><b>Branding.</b> The app can say it "runs Claude Code" or "works with Codex" in plain text. Neither name nor logo goes into Emmet's name, logo, or anything that implies endorsement.</li>
+</ul>
+<h4>How Emmet keeps usage on the plan</h4>
+<ul>
+<li><b>The user signs in, in the CLI.</b> Onboarding shows the CLI's own command (<code>claude</code>, then <code>/login</code>; <code>codex login</code>) and an Open Terminal button. Emmet never opens a sign-in page, never touches <code>~/.claude/.credentials.json</code>, the Keychain entry, or <code>~/.codex/auth.json</code>, and never sets a credential variable.</li>
+<li><b>It shows what each session bills to.</b> The agent picker and the chat header show "Claude · Max plan", "ChatGPT · Plus plan", or "API key · billed per token". Claude reports this in its stream-JSON <code>system/init</code> event (the API key source); Codex reports it through <code>account/read</code> (<code>type</code> and <code>planType</code>). 0B confirms both fields.</li>
+<li><b>It never lets a stray key win silently.</b> In <code>-p</code> mode Claude Code always uses <code>ANTHROPIC_API_KEY</code> when it's set, ahead of the subscription, and other variables (<code>ANTHROPIC_AUTH_TOKEN</code>, <code>CLAUDE_CODE_USE_BEDROCK</code>, …) rank higher still. The GUI app can pick these up when it loads the user's shell environment to find the CLIs. If one is present and the CLI also has a plan sign-in, Emmet asks once: "Use your Claude plan, or the API key from your environment (billed per token)?" The answer is saved per agent in Settings, and Emmet honors it by passing or leaving out those variables for its sessions only. Nothing is changed in the user's shell or the CLI. 0B records whether Codex has the same issue with <code>OPENAI_API_KEY</code> and <code>CODEX_API_KEY</code>.</li>
+<li><b>It stays out of the money.</b> No Emmet account, no Emmet key, no proxy, no usage metering beyond showing what the CLI reports.</li>
+<li><b>Terminal mode is the safe harbor.</b> If either provider narrows what an embedding app may do, the chat pane for that agent can be switched off, and users keep their plan by running the CLI themselves (section 04, "Terminal power user"). Nothing else in Emmet depends on the chat pane.</li>
 </ul>
 
 <h3>Transcripts and replay</h3>
@@ -1590,7 +1607,7 @@ bmortenson/emmet-plan; create your branch bmortenson/s0a-foundation from bmorten
 <p class="goal"><b>Goal:</b> Settle every external fact the build depends on, with evidence, before engine code: both agent CLIs' real protocols on this Mac, E2E on macOS, what we may reuse and under what license, how parts and colors map to Rebrickable, and whether the hidden headless render works. Produce the ldraw-mini fixture and the model ladder spec.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><b>ADR 0001 Agent protocols.</b> A throwaway stub MCP server (one <code>ping</code> tool) under <code>tests/spikes/</code>. Drive <code>claude -p</code> with the flags in section 10 and record transcripts: a plain turn, a tool call, a permission prompt through <code>--permission-prompt-tool</code>, an interrupt, a resume. Drive <code>codex app-server</code> with <code>-c mcp_servers…</code> overrides: initialize, thread and turn start, a tool call, an approval request, an interrupt, a resume. For <b>both</b> CLIs also record: a user message sent mid-turn (does it arrive at the next step, wait for the turn to end, or get rejected?), an interrupt followed straight away by a new turn, and a stub tool that blocks for 10 minutes (the real tool-timeout default and the highest value the timeout settings in section 10 accept). The ADR states which redirect path (native or queued) each CLI gets, and what <code>ask_user</code> does if a timeout cap is too low (D-32, D-33). Commit <code>codex app-server generate-json-schema</code> output under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>. Prove neither run wrote to <code>~/.claude</code> or <code>~/.codex</code> (hash before and after). Record the Windows-native requirements of both CLIs from their current docs (verified hands-on in 1C).</li>
+<li><b>ADR 0001 Agent protocols.</b> A throwaway stub MCP server (one <code>ping</code> tool) under <code>tests/spikes/</code>. Drive <code>claude -p</code> with the flags in section 10 and record transcripts: a plain turn, a tool call, a permission prompt through <code>--permission-prompt-tool</code>, an interrupt, a resume. Drive <code>codex app-server</code> with <code>-c mcp_servers…</code> overrides: initialize, thread and turn start, a tool call, an approval request, an interrupt, a resume. For <b>both</b> CLIs also record which credential the session uses and where it's reported (Claude's <code>system/init</code>, Codex <code>account/read</code>), with a plan sign-in alone and with an API key variable also set; and: a user message sent mid-turn (does it arrive at the next step, wait for the turn to end, or get rejected?), an interrupt followed straight away by a new turn, and a stub tool that blocks for 10 minutes (the real tool-timeout default and the highest value the timeout settings in section 10 accept). The ADR states which redirect path (native or queued) each CLI gets, and what <code>ask_user</code> does if a timeout cap is too low (D-32, D-33). Commit <code>codex app-server generate-json-schema</code> output under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>. Prove neither run wrote to <code>~/.claude</code> or <code>~/.codex</code> (hash before and after). Record the Windows-native requirements of both CLIs from their current docs (verified hands-on in 1C).</li>
 <li><code>scripts/scrub-transcript</code> plus a test. Scrubbed transcripts go to <code>tests/replay/{claude,codex}/</code>.</li>
 <li><b>ADR 0002 E2E.</b> A hello-world WebdriverIO spec with <code>@wdio/tauri-service</code> and the embedded <code>tauri-plugin-wdio-webdriver</code> (debug builds only) that clicks a button in the 0A window, green in CI on the self-hosted Mac and on <code>windows-latest</code>. If macOS fails, record the fallback (Playwright on WebKit against Vite with a mocked IPC on macOS, wdio on Windows) and ask Barry.</li>
 <li><b>ADR 0003 Licenses and reuse.</b> The LDraw library (CC BY 4.0 + CC BY 2.0 parts; the exact attribution text), the LDCad shadow library (license, format, coverage of clip, bar, pin, and hinge metadata), LDraw OMR models (can small ones be committed as fixtures?), Rebrickable CSV terms, three.js <code>LDrawLoader</code>, and ldraw-nova, brickbuilder-mcp, brick-mcp, ldraw-mcp, ClawdCAD, OpenCovibe: license, and what we may reuse (ideas or code). Default stance: learn from them, don't copy code unless the license allows and Barry agrees.</li>
@@ -1633,6 +1650,7 @@ If a finding contradicts section 03 or 10, stop and ask before you change the pl
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> <b>H-04</b>: a Windows 11 ARM VM with both CLIs installed and signed in (<a href="#g-h04">guide</a>), needed by the end of 1C.</li>
 <li><span class="pill you">YOU</span> <b>H-05</b>: a Developer ID Application certificate in the keychain and an App Store Connect API key for notarization (<a href="#g-h05">guide</a>), needed by 1D.</li>
+<li><span class="pill you">YOU</span> <b>H-20</b>: accept Anthropic's Commercial Terms, which running Claude Code inside Emmet requires (<a href="#g-h20">guide</a>), needed before the 1D demo build goes to anyone else.</li>
 <li><span class="pill you">YOU</span> <b>H-06 / G1</b>: run <code>just eval --rung 1</code>, record the 60-second demo, post it, and decide go, no-go, or pivot (<a href="#g-h06">guide</a>).</li>
 </ul></div>
 <div class="table-wrap"><table>
@@ -1720,6 +1738,7 @@ designs it. Set up the wdio E2E harness so later sessions only add specs.</code>
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><b>emmet-agent:</b> the trait and events (section 10); detection (paths, version, supported range, signed-in check through the CLI's own status command); per-session config in app data; the Claude adapter (stream-JSON) and the Codex adapter (app-server JSON-RPC, with types checked against the committed schema); interrupt; <code>steer()</code> with the native or queued path per ADR 0001; resume; approvals (Claude through <code>emmet_host.approve</code>, Codex through server requests); crash and exit handling; transcript capture.</li>
+<li><b>Plans and billing (D-35):</b> the billing badge in the picker and chat header; the plan-or-API-key question when a credential variable is present; the environment passed to each CLI built from an allowlist plus the user's answer; a replay test for each case.</li>
 <li><b>Questions and redirects:</b> <code>emmet mcp-host</code> with <code>approve</code> and <code>ask_user</code>; <code>emmet mcp --session</code> attaching <code>user_notes</code> from the bus to tool results; the raised tool timeouts in each adapter's session config; <code>AskUserQuestion</code> disabled for Claude.</li>
 <li><b>Doctrine v0:</b> <code>crates/emmet-cli/doctrine/EMMET.md</code> (including build in stages, when to ask, and how to handle <code>user_notes</code>), <code>emmet rules</code>, <code>emmet api</code> (generated from <code>emmet_dsl</code> docstrings), the pointer passed through <code>--append-system-prompt</code> / <code>developerInstructions</code>, and the project <code>AGENTS.md</code> template.</li>
 <li><b>Chat pane v0:</b> an agent picker (only detected and signed-in agents enabled; others show the fix command), a streaming message list, tool-call cards (name + summary, expandable), file-change cards, approval cards (Allow once / Allow for session / Deny), question cards (options, Other, number keys), an open composer with pending-redirect bubbles (Edit, Cancel, Stop and send now), stop, and session resume per project.</li>
@@ -1735,6 +1754,7 @@ designs it. Set up the wdio E2E harness so later sessions only add specs.</code>
 <li>With the real CLIs on this Mac, a prompt to each agent edits <code>model.py</code> and the viewer updates (a recording in the PR).</li>
 <li>The same works in the Windows VM with both real CLIs (H-04 evidence in the PR, as screenshots).</li>
 <li>The sentinel test proves user-level agent configs are untouched.</li>
+<li>With the real CLIs on this Mac, both sessions show the plan badge, and with <code>ANTHROPIC_API_KEY</code> set, Emmet asks before using it and the chosen answer is what Claude reports.</li>
 <li>With each real CLI, the agent asks a question card and uses the answer in the same turn, and a mid-turn redirect changes what it builds (both in the PR recording).</li>
 </ul>
 <div class="s-dh">What good looks like</div>
@@ -1750,8 +1770,8 @@ give me exact steps to run and what to screenshot, and wait for me. If either CL
 transcripts, record new transcripts (scrubbed) and note the change in ADR 0001.</code></pre></details>
 </div>
 
-<div class="session" id="session-1d" data-session="1D" data-phase="1" data-title="Close the loop and ship a signed demo" data-after="1C" data-waits="" data-waits-merge="H-05" data-read="02, 09, 11, 13, 16, 17">
-<h4><span class="s-id">1D</span> Close the loop and ship a signed demo<span class="s-meta">after 1C · alongside 2A · size M · YOU: H-05 before merge; then H-06/G1</span></h4>
+<div class="session" id="session-1d" data-session="1D" data-phase="1" data-title="Close the loop and ship a signed demo" data-after="1C" data-waits="" data-waits-merge="H-05 H-20" data-read="02, 09, 11, 13, 16, 17">
+<h4><span class="s-id">1D</span> Close the loop and ship a signed demo<span class="s-meta">after 1C · alongside 2A · size M · YOU: H-05, H-20 before merge; then H-06/G1</span></h4>
 <p class="goal"><b>Goal:</b> The agent can check and look at its own work, so rung 1 comes out right on both agents. A live eval proves it, and a signed, notarized build is ready for the demo.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2250,6 +2270,7 @@ the Workers project or any DNS record (show exact commands), and ask Q-10 (analy
 <li>The public-readiness audit (<code>docs/launch/audit.md</code>): gitleaks over the full history; a scan for personal paths, emails, and usernames in the history; the fixture and transcript licensing and scrubbing checks; and a recommendation on whether to publish full history or a fresh squashed history. Barry decides.</li>
 <li><code>CONTRIBUTING.md</code>, <code>SECURITY.md</code>, a code of conduct, and issue and PR templates for outside contributors.</li>
 <li>CI re-scoped for a public repo (self-hosted jobs only on <code>push</code> to <code>main</code> and tags, fork PRs on hosted runners, and the runner guard updated), plus the settings to apply after the flip: secret scanning, push protection, branch protection with the required <code>ci</code> check.</li>
+<li><code>docs/launch/agent-terms.md</code>: re-check Anthropic's Claude Code legal page and OpenAI's app-server auth rules against section 10 and D-35, quote the current text with the date, and stop for Barry if anything changed (for example, if a closed license would count as "commercial" for Codex).</li>
 <li>1.0.0 through the 6A pipeline; final launch posts in <code>docs/launch/</code> (Eurobricks, r/lego, LDraw forums, Show HN, social); the final demo video; the site updated with the source link and license.</li>
 </ul>
 <div class="s-dh">Done when</div>
@@ -2384,6 +2405,7 @@ the terms don't allow it.</code></pre></details>
 <tr data-h="H-17"><td>H-17</td><td>Name and trademark check for "Emmet" (recommended during Phase 0)</td><td>7B start</td><td><a href="#g-h17">guide</a></td></tr>
 <tr data-h="H-18"><td>H-18</td><td>Approve making the repo public, after reading the audit</td><td>7B merge</td><td><a href="#g-h18">guide</a></td></tr>
 <tr data-h="H-19"><td>H-19</td><td>Publish 1.0.0 and post the launch</td><td>—</td><td><code>docs/launch/</code></td></tr>
+<tr data-h="H-20"><td>H-20</td><td>Accept Anthropic's Commercial Terms for running Claude Code inside Emmet</td><td>1D merge</td><td><a href="#g-h20">guide</a></td></tr>
 </table></div>
 
 <h3>Guides</h3>
@@ -2457,6 +2479,16 @@ the terms don't allow it.</code></pre></details>
 <li>Tell the agent the decision. It's recorded in <code>docs/decisions.md</code> and the status file.</li>
 </ul>
 </details>
+<details id="g-h20"><summary>H-20 Anthropic's Commercial Terms (about 10 minutes)</summary>
+<ul class="small">
+<li>Why: Anthropic's Claude Code legal page says running Claude Code inside a product requires the product's maker to agree to the Commercial Terms, keep the binary unmodified, leave all its sign-in methods available, and let each user bill their own account. Users still run on their own Pro or Max plan; this step is about you as Emmet's maker, not about paying for their usage.</li>
+<li>Read <a href="https://code.claude.com/docs/en/legal-and-compliance">code.claude.com/docs/en/legal-and-compliance</a> ("Can customers offer Claude Code in their products?" and "Authentication and credential use") and the <a href="https://www.anthropic.com/legal/commercial-terms">Commercial Terms</a>.</li>
+<li>Sign in to (or create) a Claude Console account at <a href="https://platform.claude.com">platform.claude.com</a>, which puts you under the Commercial Terms. No API spend or key is needed for Emmet.</li>
+<li>If anything is unclear for an app like Emmet (a free local app that starts the user's own Claude Code), ask through the page's contact link before the demo goes out, and keep the reply.</li>
+<li>Tell the agent when it's done. It's recorded in the status file, with the date you read the page.</li>
+<li>This is my reading of Anthropic's published terms, not legal advice.</li>
+</ul>
+</details>
 <details id="g-h18"><summary>H-18 Going public</summary>
 <ol class="small">
 <li>Read <code>docs/launch/audit.md</code> from 7B: secrets, personal data, fixture licenses, transcripts, and the history recommendation.</li>
@@ -2476,6 +2508,7 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Agent CLI protocols change (both iterate fast)</td><td>Medium</td><td>Committed Codex schema per version, replay fixtures, tested version ranges, unknown events ignored, and <code>doctor</code> warnings.</td><td>0B, 1C</td></tr>
 <tr><td>Redirects and long-waiting question tools depend on CLI behavior that differs between Claude Code and Codex and may change: mid-turn input, interrupt, and MCP tool timeouts</td><td>Medium</td><td>The queued path through Emmet's own tool results works on any CLI that calls Emmet tools. ADR 0001 records each CLI's real behavior, replay tests pin it, and <code>ask_user</code> falls back to ending the turn if a timeout cap is too low.</td><td>0B, 1C</td></tr>
 <tr><td>The build animation slows the loop or hides problems</td><td>Low</td><td>Capped at 6 s and skipped by any new run, never used for sliders, never in agent renders; Fast and Off in Settings; a frame-time budget in section 13.</td><td>1D, 4C</td></tr>
+<tr><td>A provider narrows what apps that start its CLI may do on a subscription plan (both have tightened rules in 2026)</td><td>High</td><td>Use only the user's own unmodified CLI and sign-in; never touch credentials; follow the published conditions (D-35, H-20); terminal mode as the fallback that keeps plan use; re-check the terms in 7B; Sign in with ChatGPT if Emmet ever becomes commercial.</td><td>1C, 7B</td></tr>
 <tr><td>WKWebView WebGL performance or hidden-window throttling</td><td>Medium</td><td>Bench in 1B, instancing, ADR 0005 with an off-screen-window fallback.</td><td>0B, 1B, 4C</td></tr>
 <tr><td>Windows differences (paths, CLIs, GPU), with only an ARM VM in hand</td><td>Medium</td><td>Hosted x64 CI from day one, the 5B hardening list, and a Windows x64 beta tester.</td><td>5B, 6B</td></tr>
 <tr><td>Trademark: "Emmet" is a LEGO Movie character; LEGO marks</td><td>Medium–High</td><td>Early name check (H-17), "brick" language, a disclaimer everywhere, and no LEGO trade dress in the brand.</td><td>Phase 0, 7B</td></tr>
@@ -2506,6 +2539,7 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Q-10</td><td>Cookieless analytics on the site, or none?</td><td>7A (ask)</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-11</td><td>Does each CLI accept a user message mid-turn and act on it at the next step (native redirect), or only after the turn ends?</td><td>0B (ADR 0001)</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-12</td><td>How long can an MCP tool call block in each CLI before it times out, and can a per-session setting raise it far enough for <code>ask_user</code>?</td><td>0B (ADR 0001)</td><td><span class="pill open">Open</span></td></tr>
+<tr><td>Q-13</td><td>Would a free app under a closed license count as "commercial" for OpenAI's app-server auth rule? An open-source license avoids the question, and Sign in with ChatGPT is the route if it does.</td><td>H-16 (7B), asking OpenAI if it's unclear</td><td><span class="pill open">Open</span></td></tr>
 </table></div>
 </section>
 
@@ -2556,7 +2590,9 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
 <li>Tauri WebDriver testing (macOS not supported by <code>tauri-driver</code>; WebdriverIO recommended): <a href="https://v2.tauri.app/develop/tests/webdriver/">v2.tauri.app/develop/tests/webdriver</a></li>
 <li>WebdriverIO Tauri service, platform support (embedded WebDriver on macOS): <a href="https://webdriver.io/docs/desktop-testing/tauri/platform-support">webdriver.io/docs/desktop-testing/tauri/platform-support</a></li>
 <li>LDraw.org Contributor Agreement (CC BY 4.0, optional CC0; older parts CC BY 2.0): <a href="https://www.ldraw.org/docs-main/licenses/ldraw-org-contributor-agreement.html">ldraw.org contributor agreement</a></li>
-<li>Codex app server (JSON-RPC over stdio, threads, turns, items): <a href="https://developers.openai.com/codex/app-server">developers.openai.com/codex/app-server</a> · Codex MCP config: <a href="https://developers.openai.com/codex/mcp">developers.openai.com/codex/mcp</a></li>
+<li>Claude Code legal and compliance (running Claude Code in products; subscription and OAuth rules), checked 2026-10-24: <a href="https://code.claude.com/docs/en/legal-and-compliance">code.claude.com/docs/en/legal-and-compliance</a> · Claude Code authentication precedence: <a href="https://code.claude.com/docs/en/authentication">code.claude.com/docs/en/authentication</a></li>
+<li>Codex auth (ChatGPT plan vs API key): <a href="https://learn.chatgpt.com/docs/auth">learn.chatgpt.com/docs/auth</a> · Sign in with ChatGPT: <a href="https://learn.chatgpt.com/docs/sign-in-with-chatgpt">learn.chatgpt.com/docs/sign-in-with-chatgpt</a></li>
+<li>Codex app server (JSON-RPC over stdio, threads, turns, items; auth modes and the local/open-source rule), checked 2026-10-24: <a href="https://learn.chatgpt.com/docs/app-server">learn.chatgpt.com/docs/app-server</a> · Codex MCP config: <a href="https://developers.openai.com/codex/mcp">developers.openai.com/codex/mcp</a></li>
 <li>Claude Code CLI reference: <a href="https://docs.claude.com/en/docs/claude-code/cli-reference">docs.claude.com/en/docs/claude-code/cli-reference</a> (flags checked against Claude Code 2.1.310 on 2026-10-24)</li>
 <li>three.js LDrawLoader: <a href="https://threejs.org/docs/#examples/en/loaders/LDrawLoader">threejs.org docs</a> · Rust MCP SDK (rmcp): <a href="https://github.com/modelcontextprotocol/rust-sdk">github.com/modelcontextprotocol/rust-sdk</a></li>
 <li>Rebrickable downloads: <a href="https://rebrickable.com/downloads/">rebrickable.com/downloads</a> · uv: <a href="https://docs.astral.sh/uv/">docs.astral.sh/uv</a></li>
