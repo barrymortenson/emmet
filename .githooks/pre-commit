@@ -11,4 +11,4 @@ staged '*.rs'
 run=(uv run --project python/emmet_dsl --frozen --quiet ruff format --check)
 staged '*.py'
 
-gitleaks git --pre-commit --staged --redact --no-banner .
+gitleaks git --pre-commit --staged --redact --no-banner --log-level warn .

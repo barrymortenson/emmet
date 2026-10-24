@@ -38,7 +38,7 @@ window.EMMET_STATUS = {
     "8G": { status: "backlog" }
   },
   human: {
-    "H-01": { status: "todo" },
+    "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },
     "H-02": { status: "todo" },
     "H-03": { status: "todo", note: "Claude Code 2.1.310 and Codex 0.160.1 are installed; confirm sign-in" },
     "H-04": { status: "todo" },
