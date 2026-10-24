@@ -51,7 +51,7 @@ window.EMMET_STATUS = {
     "H-14": { status: "not-needed", note: "releases publish from the main public repo (D-21)" },
     "H-15": { status: "todo" },
     "H-16": { status: "done", note: "AGPL-3.0-or-later; Apache-2.0 for the DSL (2026-10-24)" },
-    "H-17": { status: "todo" },
+    "H-17": { status: "done", note: "best-judgement search 2026-10-24; keep Emmet (D-30)" },
     "H-18": { status: "not-needed", note: "public from day one (D-12)" },
     "H-19": { status: "todo" },
     "H-20": { status: "todo" },
