@@ -19,7 +19,7 @@ window.EMMET_STATUS = {
       ],
       note: "1A and 1C must use the test HOME and data dir the runner guard sets; CLAUDE.md is a symlink, a text file on Windows without core.symlinks"
     },
-    "0B": { status: "todo" },
+    "0B": { status: "in-progress", branch: "bmortenson/s0b-research-adrs", started: "2026-10-24" },
     "1A": { status: "todo" },
     "1B": { status: "todo" },
     "1C": { status: "todo" },
@@ -49,7 +49,7 @@ window.EMMET_STATUS = {
   human: {
     "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },
     "H-02": { status: "done", date: "2026-10-24", note: "runner emmet-mac registered by the agent with approval; PR #1 mac job green on it" },
-    "H-03": { status: "todo", note: "Claude Code 2.1.310 and Codex 0.160.1 are installed; confirm sign-in" },
+    "H-03": { status: "done", date: "2026-10-24", note: "Claude Code 2.1.310 on Barry's plan; Codex 0.160.1 logged in using ChatGPT" },
     "H-04": { status: "todo" },
     "H-05": { status: "todo", note: "Apple Developer Program: enrolled" },
     "H-06": { status: "todo" },
@@ -66,8 +66,8 @@ window.EMMET_STATUS = {
     "H-17": { status: "done", note: "best-judgment search 2026-10-24; keep Emmet (D-30)" },
     "H-18": { status: "not-needed", note: "public from day one (D-12)" },
     "H-19": { status: "todo" },
-    "H-20": { status: "todo" },
-    "H-21": { status: "todo" },
+    "H-20": { status: "waiting", date: "2026-10-24", note: "Commercial Terms accepted through the Console account; legal page read 2026-10-24. The description to Anthropic waits for the website and a business email, before 7B merges" },
+    "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
     "H-22": { status: "todo" },
     "H-23": { status: "todo" },
     "H-24": { status: "todo" }

@@ -3,6 +3,18 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-24, session 0B
+
+- **H-03.** Both CLIs are signed in on this Mac: Claude Code on Barry's plan, Codex with ChatGPT
+  (`codex login status`: "Logged in using ChatGPT").
+- **H-21.** The eval keys are in the keychain as `emmet-eval-anthropic` and `emmet-eval-openai`, each with a
+  spend cap.
+- **H-20: send the description to Anthropic later.** Barry accepted the Commercial Terms through his Console account
+  and read the legal page on 2026-10-24. Sending Anthropic the description of how Emmet runs Claude Code waits until
+  Emmet has its website and a business email. Until then H-20 is `waiting`; the description must be sent before 7B
+  merges. The draft is kept for that step. Accepting the Commercial Terms is what lets Emmet run Claude Code, so 0B
+  starts now. Plan sections 10, 21, and 22 and 7B's merge wait are updated to match.
+
 ## 2026-10-24, session 0A
 
 - **Personal-details pass.** Before the first push: drop the full name from the plan header and the H-05 example,
