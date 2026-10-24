@@ -365,6 +365,13 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td>Agent in your own terminal</td><td>An <b>embedded chat pane</b> that drives Claude Code or Codex with per-session config. The terminal flow still works (section 10).</td></tr>
 </table></div>
 
+<h3>Where the chat goes past nurb</h3>
+<ul>
+<li><b>Question cards.</b> When a choice is yours (style, scale, which reading of the prompt), the agent asks with a card: one question, 2–4 answers to click, and Other for your own words, like Claude Code. Its work waits until you answer (D-32, section 10).</li>
+<li><b>Redirect without stopping.</b> Type while the agent works, and your message reaches it at its next step, so you can correct course mid-build. Stop is still one key, and a waiting message goes out as the next turn (D-33, section 10).</li>
+<li><b>Watch it build.</b> New parts drop into the viewer brick by brick in build order, and the agent builds in visible stages (base, walls, roof), so you can tell early whether it's on the right track (D-34, section 13).</li>
+</ul>
+
 <h3>Gaps Emmet owns</h3>
 <ol>
 <li>A nurb-level UI and UX in a local desktop app for brick models.</li>
@@ -397,7 +404,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <h3>Non-goals</h3>
 <p class="small">No hosting, accounts, or telemetry. No Linux, mobile, or WebGPU. Emmet never calls an LLM API itself: all model use goes through the user's own agent CLI. Photo input, native PDF instructions, technique mining, owned-inventory matching, BrickLink pricing, and Studio <code>.io</code> files are deferred to Phase 8.</p>
 
-<h3 id="laws">Seven design laws</h3>
+<h3 id="laws">Eight design laws</h3>
 <ol>
 <li><b>The viewer is sacred.</b> It never moves the camera on its own, never blocks, and always shows the last good model while a new one builds.</li>
 <li><b>Every finding is one click from its part and its line.</b> Clicking a check highlights the parts in the viewer and shows the <code>model.py</code> line that placed them.</li>
@@ -406,6 +413,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <li><b>Files are the truth.</b> Anything the app shows can be reproduced from the project folder with <code>emmet run</code> and <code>emmet check</code>.</li>
 <li><b>Words before knobs.</b> Parameters are named in the user's words and explain themselves on hover.</li>
 <li><b>The loop is fast.</b> A slider change shows up in the viewer in under 1.5 s on rung 2.</li>
+<li><b>The user can always step in.</b> The agent asks with a question card when a choice is the user's, a message typed mid-turn redirects it at its next step, and Stop is always one key away.</li>
 </ol>
 </section>
 
@@ -446,6 +454,9 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-29</td><td>UI kit</td><td>Radix UI primitives for accessible behavior, Emmet's own CSS with design tokens (CSS variables), and lucide icons. No Tailwind and no component kit, which keeps the bundle and the dependency surface small.</td><td><span class="pill rec">Proposed</span> confirm in 2B</td></tr>
 <tr><td class="id">D-30</td><td>Branding</td><td>Say "brick". Use LEGO only in trademark disclaimers. The name gets a trademark check before launch (H-17).</td><td><span class="pill decided">Brief</span></td></tr>
 <tr><td class="id">D-31</td><td>Host for other MCP servers</td><td>Designed in from the start (the session MCP config is a list), shipped after launch (8F): users can add third-party MCP servers such as <code>ldraw-mcp</code> or <code>brickbuilder-mcp</code> to a project.</td><td><span class="pill decided">Brief</span></td></tr>
+<tr><td class="id">D-32</td><td>Question cards</td><td>The agent asks the user through an <code>ask_user</code> tool on <code>emmet_host</code>: one question, 2–4 options with optional descriptions, single or multi choice, and always an Other free-text answer. The chat shows it as a card, and the tool call blocks until the user answers. It's the same path for both agents, and Claude Code's built-in <code>AskUserQuestion</code> is disabled in app sessions.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-33</td><td>Redirect and stop</td><td>The composer stays open while the agent works. A message sent mid-turn is queued and delivered at the agent's next step: through the CLI's native mid-turn input where it exists, otherwise attached to the next Emmet tool result, otherwise sent as the next turn. Stop interrupts at once and sends any queued message as the next turn.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-34</td><td>Build animation</td><td>Agent-driven runs animate in the viewer: added parts drop in brick by brick in build order (step, then bottom-up), capped in total time and skippable. Slider runs never animate. The doctrine has the agent build in visible stages so the user can judge direction early. Setting: Animated (default), Fast, or Off; reduced motion means Off.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 </table></div>
 </section>
 
@@ -549,10 +560,12 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 
 <h3>Flows</h3>
 <div class="grid2">
-<div class="card"><h4>Prompt</h4><p class="small">The user types in the chat pane. The host sends the turn to the agent session. The agent calls <code>search_parts</code>, edits <code>model.py</code>, and calls <code>run_model</code> and then <code>validate</code>, getting findings back as tool output. It calls <code>render</code> to look at the result, fixes what it sees, and replies. The watcher sees each save, and the viewer updates live throughout.</p></div>
+<div class="card"><h4>Prompt</h4><p class="small">The user types in the chat pane. The host sends the turn to the agent session. The agent calls <code>search_parts</code>, edits <code>model.py</code>, and calls <code>run_model</code> and then <code>validate</code>, getting findings back as tool output. It calls <code>render</code> to look at the result, fixes what it sees, and replies. The agent builds in stages and runs after each one, so the viewer grows live throughout, with new parts dropping in brick by brick.</p></div>
 <div class="card"><h4>Slider</h4><p class="small">The UI writes <code>params.json</code> atomically. The watcher triggers <code>emmet run</code> and then <code>emmet check</code> (latest wins, and a stale run is canceled). The viewer diffs the placement list by Emmet id and updates only what moved. No agent is involved and no tokens are spent.</p></div>
 <div class="card"><h4>Finding click</h4><p class="small">The Checks drawer lists findings from <code>build/validation.json</code>. Clicking one highlights its parts and shows <code>model.py:42</code>. "Ask the agent to fix" sends the finding as a structured message to the current session.</p></div>
 <div class="card"><h4>Terminal power user</h4><p class="small">The user runs their own agent in a terminal inside a project folder. The project's <code>AGENTS.md</code> and <code>CLAUDE.md</code> point it at <code>emmet</code> and <code>emmet mcp</code>. The app, if open, watches the folder and renders, and <code>highlight</code> reaches it over the socket. Without the app, <code>render</code> falls back to the headless render mode.</p></div>
+<div class="card"><h4>Question</h4><p class="small">The agent calls <code>emmet_host.ask_user</code>. <code>emmet_host</code> forwards the question over the bus, the chat shows a question card, and the status bar says "Waiting for your answer". The user clicks an option or types Other, and the answer goes back as the tool result, so the agent carries on in the same turn.</p></div>
+<div class="card"><h4>Redirect and stop</h4><p class="small">The user types while the agent works. The message waits as a pending bubble and is delivered at the agent's next step: native mid-turn input if the CLI has it, otherwise attached to the next <code>emmet</code> tool result through the bus. Stop interrupts the turn at once, and a still-pending message goes out as the next turn.</p></div>
 </div>
 
 <h3>Components</h3>
@@ -810,7 +823,8 @@ def cottage(
 <tr><td><code>emmet export --format ldr|mpd|lpub3d [--out]</code> · <code>emmet snapshot</code></td><td>Exports, and a history snapshot</td></tr>
 <tr><td><code>emmet library status|install|update|verify</code></td><td>LDraw library management</td></tr>
 <tr><td><code>emmet doctor [--fix]</code> · <code>emmet trust</code></td><td>Environment check (Python, library, index, agents and their versions, render); trust the current project</td></tr>
-<tr><td><code>emmet mcp [--project dir]</code></td><td>The stdio MCP server</td></tr>
+<tr><td><code>emmet mcp [--project dir] [--session id]</code></td><td>The stdio MCP server. <code>--session</code> is set only by the app, and turns on redirect notes (below)</td></tr>
+<tr><td><code>emmet mcp-host --session id</code></td><td>The app-internal <code>emmet_host</code> server (<code>approve</code>, <code>ask_user</code>), which talks to the running app over the bus. Hidden from <code>--help</code></td></tr>
 <tr><td><code>emmet eval --rung 1|2|3 --agent claude|codex [--runs 3]</code></td><td>Live eval (dev builds, and hidden in release builds)</td></tr>
 </table></div>
 <p class="small">Global flags: <code>--project &lt;dir&gt;</code> (default: search upward from cwd), <code>--json</code> (the envelope; the default output is human-readable), <code>--data-dir</code> (override app data, used by tests and dev).</p>
@@ -830,7 +844,12 @@ def cottage(
 <tr><td><code>list_colors</code></td><td><code>part?</code></td><td><code>[{code, name, rgb, produced_for_part?}]</code></td><td>Compact list</td></tr>
 <tr><td><code>highlight</code></td><td><code>ids</code> or <code>finding</code></td><td><code>{delivered: bool}</code></td><td>"Highlighted in the viewer", or "Emmet app not open"</td></tr>
 </table></div>
-<p class="small">A second, app-internal server <code>emmet_host</code> exposes <code>approve</code> for Claude Code's <code>--permission-prompt-tool</code> (section 10). It's injected only by the app, never by terminal users. Each tool's input and output schema comes from Rust types via schemars, written to <code>docs/spec/mcp/*.schema.json</code>. CI fails if the committed schemas are stale or a tool's output doesn't validate against its schema.</p>
+<p class="small">A second, app-internal server <code>emmet_host</code> exposes <code>approve</code> for Claude Code's <code>--permission-prompt-tool</code> and <code>ask_user</code> for question cards (section 10). It's injected only by the app, never by terminal users; a terminal agent asks in its own terminal.</p>
+<div class="table-wrap"><table>
+<tr><th>Tool (<code>emmet_host</code>)</th><th>Input</th><th>Output (structured)</th><th>Text summary</th></tr>
+<tr><td><code>ask_user</code></td><td><code>question</code>, <code>header?</code> (≤ 12 chars), <code>options</code>: 2–4 × <code>{label, description?}</code>, recommended first; <code>multi?=false</code></td><td><code>{answered: true, choices: [label], other?: string}</code> or <code>{answered: false, reason: "stopped" | "timeout"}</code></td><td>"The user chose: …", or why there's no answer and what to do (end the turn; the answer arrives as the next message)</td></tr>
+</table></div>
+<p class="small">When the app starts <code>emmet mcp</code> for a chat session it adds <code>--session &lt;id&gt;</code>. With that flag, every <code>emmet</code> tool result first collects that session's pending redirect messages from the bus and, if there are any, prepends them as <code>user_notes: [{id, text, at}]</code> plus a text line "The user just said: …". Terminal sessions have no <code>--session</code> and never get notes. Each tool's input and output schema comes from Rust types via schemars, written to <code>docs/spec/mcp/*.schema.json</code>. CI fails if the committed schemas are stale or a tool's output doesn't validate against its schema.</p>
 </section>
 
 <!-- ============================================================ 10 -->
@@ -848,6 +867,7 @@ pub trait Session: Send {
     fn send(&amp;mut self, turn: UserTurn) -&gt; Result&lt;(), AgentError&gt;;    // text (+ structured context: selection, finding)
     fn respond(&amp;mut self, id: ApprovalId, d: Decision) -&gt; Result&lt;(), AgentError&gt;;
     fn interrupt(&amp;mut self) -&gt; Result&lt;(), AgentError&gt;;
+    fn steer(&amp;mut self, note: UserNote) -&gt; Result&lt;SteerPath, AgentError&gt;; // Native, or Queued for the next emmet tool result
     fn events(&amp;mut self) -&gt; EventStream;                            // AgentEvent below
     fn resume_token(&amp;self) -&gt; Option&lt;String&gt;;                      // Claude session id / Codex thread id
 }
@@ -857,6 +877,8 @@ pub enum AgentEvent {
     ToolCall { id: String, name: String, input: Value }, ToolResult { id: String, ok: bool, summary: String },
     FileChange { path: PathBuf, kind: ChangeKind },
     Approval { id: ApprovalId, kind: ApprovalKind, detail: String },
+    Question { id: QuestionId, question: Question },                // from emmet_host.ask_user, via the bus
+    NoteDelivered { id: NoteId, path: SteerPath },
     Usage { input: u64, output: u64 }, TurnDone { reason: DoneReason },
     Error { code: AgentErrorCode, message: String },
 }</code></pre>
@@ -865,19 +887,24 @@ pub enum AgentEvent {
 <pre><code>claude -p --input-format stream-json --output-format stream-json --verbose --include-partial-messages \
   --mcp-config &lt;session-dir&gt;/mcp.json --strict-mcp-config \
   --permission-prompt-tool mcp__emmet_host__approve \
-  --allowedTools "mcp__emmet__*" "Read" "Edit(model.py)" "Edit(models/**)" "Edit(CARD.md)" \
+  --allowedTools "mcp__emmet__*" "mcp__emmet_host__ask_user" "Read" "Edit(model.py)" "Edit(models/**)" "Edit(CARD.md)" \
+  --disallowedTools "AskUserQuestion" \
   --append-system-prompt "&lt;EMMET.md doctrine pointer&gt;" \
   [--resume &lt;session-id&gt;] [--model &lt;user choice&gt;]          <span class="c"># cwd = project folder</span></code></pre>
 <ul class="small">
 <li>All of these flags exist in Claude Code 2.1.310 (checked during planning). 0B records real transcripts, and the adapter is tested against them.</li>
-<li><code>mcp.json</code> lives in the app's per-session directory (app data, not the project). It lists <code>emmet</code> (the sidecar's absolute path, <code>mcp --project …</code>) and <code>emmet_host</code>, plus any user-added servers later (D-31).</li>
+<li><code>mcp.json</code> lives in the app's per-session directory (app data, not the project). It lists <code>emmet</code> (the sidecar's absolute path, <code>mcp --project … --session …</code>) and <code>emmet_host</code> (<code>mcp-host --session …</code>), plus any user-added servers later (D-31).</li>
+<li>The process gets a raised MCP tool timeout (<code>MCP_TOOL_TIMEOUT</code> in its environment) so <code>ask_user</code> can wait for a slow answer. 0B confirms the variable and any cap.</li>
+<li>Stop sends the stream-JSON interrupt control request. Redirects are written to stdin as user messages mid-turn if 0B shows Claude Code takes them at the next step; otherwise they use the queued path.</li>
 <li>0B decides whether <code>--setting-sources</code> should limit which user settings load. The goal is predictable behavior without stripping the user's own preferences.</li>
 <li>Events map from stream-JSON <code>system/init</code>, <code>assistant</code> partial messages, <code>tool_use</code>, <code>tool_result</code>, and <code>result</code> (usage). Unknown event types are logged and ignored, never fatal.</li>
 </ul>
 
 <h3>Codex adapter</h3>
 <pre><code>codex app-server \
-  -c 'mcp_servers.emmet.command="&lt;abs path to emmet&gt;"' -c 'mcp_servers.emmet.args=["mcp","--project","&lt;dir&gt;"]' \
+  -c 'mcp_servers.emmet.command="&lt;abs path to emmet&gt;"' -c 'mcp_servers.emmet.args=["mcp","--project","&lt;dir&gt;","--session","&lt;id&gt;"]' \
+  -c 'mcp_servers.emmet_host.command="&lt;abs path to emmet&gt;"' -c 'mcp_servers.emmet_host.args=["mcp-host","--session","&lt;id&gt;"]' \
+  -c 'mcp_servers.emmet_host.tool_timeout_sec=3600' \
   -c 'sandbox_mode="workspace-write"' -c 'approval_policy="on-request"'
 <span class="c"># then JSON-RPC over stdio (newline-delimited):</span>
 initialize → thread/start {cwd, developerInstructions: EMMET.md pointer} → turn/start {input}
@@ -885,11 +912,13 @@ server → client requests for command/file approvals → Approval events → re
 <ul class="small">
 <li><code>codex app-server generate-json-schema</code> output for each supported Codex version is committed under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>, and the adapter's types are checked against it. A Codex update that changes the schema shows up as a failing test, not a broken chat.</li>
 <li>Exact method names and parameters come from the generated schema in 0B. The names above follow the published app-server docs (threads, turns, items, and server-initiated approvals).</li>
+<li>Stop uses the app-server's turn interrupt. If the committed schema has a method that adds input to a running turn, redirects use it; otherwise they use the queued path. Codex approvals stay on server requests, so <code>emmet_host</code> carries only <code>ask_user</code> here.</li>
 </ul>
 
 <h3>Instructions the agent gets</h3>
 <ul>
-<li><b>Doctrine</b> in <code>crates/emmet-cli/doctrine/EMMET.md</code>, embedded in the binary and printed by <code>emmet rules</code>: the frame and units, ids, the loop (search → write → run → validate → render → fix), say numbers not impressions, name params in the user's words, keep the card's <i>Don't</i> list, ask before builds over 2,000 parts, one tip per reply.</li>
+<li><b>Doctrine</b> in <code>crates/emmet-cli/doctrine/EMMET.md</code>, embedded in the binary and printed by <code>emmet rules</code>: the frame and units, ids, the loop (search → write → run → validate → render → fix), build in visible stages (base, walls, openings, roof, details) and run after each one so the user watches it grow, say numbers not impressions, name params in the user's words, keep the card's <i>Don't</i> list, ask before builds over 2,000 parts, one tip per reply.</li>
+<li><b>Asking and being redirected</b> (also in the doctrine): use <code>ask_user</code> only when the choice is the user's and a sensible default won't do; at most one question before the first draft; recommended option first. A <code>user_notes</code> entry overrides the current plan: acknowledge it in one line, then change course.</li>
 <li>The app passes a short pointer through <code>--append-system-prompt</code> / <code>developerInstructions</code> ("You are operating Emmet… run the <code>rules</code> tool first"), so the full doctrine is read once through a tool and stays current.</li>
 <li>New projects get an <code>AGENTS.md</code> (and <code>CLAUDE.md</code>) with the same pointer, so terminal agents behave the same way.</li>
 </ul>
@@ -904,6 +933,15 @@ server → client requests for command/file approvals → Approval events → re
 <tr><td>Shell commands, web fetch and search</td><td>Ask</td></tr>
 <tr><td>Third-party MCP tools (8F)</td><td>Ask the first time per tool</td></tr>
 </table></div>
+
+<h3>Questions, redirects, and stops</h3>
+<p>These three work the same on both agents, because they run through Emmet's own tools and bus, not through either CLI's UI.</p>
+<ul>
+<li><b>Question cards (D-32).</b> <code>emmet mcp-host</code> (the <code>emmet_host</code> server) turns an <code>ask_user</code> call into a bus request. The host emits a <code>Question</code> event, the chat shows the card, and the answer goes back as the tool result. One question is open per session at a time. Text typed in the composer while a question is open counts as its Other answer. Stop cancels the question (<code>reason: "stopped"</code>). If a CLI's tool timeout turns out to be capped below a usable wait, <code>ask_user</code> returns <code>reason: "timeout"</code> just before the cap, the doctrine has the agent end its turn, the card stays open, and the answer is sent as the next turn.</li>
+<li><b>Redirect (D-33).</b> A message sent while the agent works becomes a pending note, shown as a bubble that says "Delivered at the agent's next step", with Edit and Cancel. <code>steer()</code> picks the first path that applies: (1) <b>native</b> mid-turn input, where 0B shows the CLI supports it; (2) <b>queued</b>: the note waits on the bus until <code>emmet mcp --session</code> attaches it to the next <code>emmet</code> tool result as <code>user_notes</code>; (3) if the turn ends first, the note is sent as the next turn right away. When it's delivered, the bubble turns into a normal message with a "Delivered" mark. If nothing delivers it within 20 s, the bubble offers "Stop and send now".</li>
+<li><b>Stop.</b> <kbd>Esc</kbd> or the Stop button calls <code>interrupt()</code>. The turn ends, in-flight runs finish normally (writes are atomic, so the project stays consistent), and pending notes go out as the next turn, prefixed "(You stopped the previous turn.)".</li>
+<li><b>Recording.</b> Questions, answers, and notes are part of the transcript, so replay tests cover them like any other event.</li>
+</ul>
 
 <h3>Detection, auth, versions</h3>
 <ul>
@@ -1013,7 +1051,9 @@ synonyms(term, expands_to)                     -- data/synonyms.toml ("lbg" → 
 <h3>API (<code>packages/viewer</code>)</h3>
 <pre><code>const viewer = createViewer(canvas, { partSource, theme, quality: "auto" });
 await viewer.load(placements);            // full scene (first load)
-await viewer.update(placements);          // diff by emmet id: add, remove, move, recolor
+await viewer.update(placements, { animate: "build" | "none" });  // diff by emmet id: add, remove, move, recolor
+viewer.replayBuild();                      // the whole model from empty, in build order
+viewer.skipAnimation();                    // jump to the final state
 viewer.highlight(ids, { mode: "issue" | "select" | "hover" });
 viewer.showSteps(upTo?: number);          // build-step scrubber
 viewer.frame(ids?);                        // explicit only: the camera never moves on its own
@@ -1028,6 +1068,16 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <li><b>Materials</b> follow the LDraw color table: solid, transparent (sorted, depth-write off), chrome and metal (environment map), rubber, and glow. There's a soft studio light rig and an optional ground shadow.</li>
 <li><b>Studs.</b> High detail up close, with logo-less low-poly studs past a distance threshold (a quality setting).</li>
 <li><b>Diff updates</b> keep the camera, selection, and step state. The last good scene stays up while a run is in flight or failed.</li>
+<li><b>Build animation (D-34).</b> Runs started by the agent update with <code>animate: "build"</code>, so you watch the model go together:
+  <ul>
+  <li><b>Order:</b> build step, then bottom-up by layer, then nearest to the previous part, so no part ever appears floating.</li>
+  <li><b>Motion:</b> each added part drops from about three plates above and fades in over ~160 ms with ease-out. Removed parts lift and fade out (150 ms), and moved parts glide (200 ms).</li>
+  <li><b>Pace:</b> Animated staggers parts ~30 ms apart and caps the batch at 6 s, however many parts arrive. Fast fits the batch into 0.6 s, and Off applies it at once. Reduced motion forces Off.</li>
+  <li><b>Never in the way:</b> slider runs use <code>animate: "none"</code> (law 7). A new run finishes the current animation instantly before applying its own diff. The Skip button and any click in the viewer jump to the end, and orbiting doesn't interrupt it. The camera never moves (law 1).</li>
+  <li><b>Replay build</b> in the viewer toolbar plays the whole model from empty. It's a good way to review a finished model and to demo.</li>
+  <li>Renders for the agent always show the final state, never a frame mid-animation.</li>
+  <li>Only animating instances get per-frame matrix updates. Everything else stays static in its <code>InstancedMesh</code>.</li>
+  </ul></li>
 <li><b>Steps</b> show earlier steps dimmed and the current step at full color, with a scrubber.</li>
 <li><b>Render mode</b> (D-24): <code>Emmet --render &lt;project&gt; --view … --out …</code> opens a hidden window, renders through the same <code>viewer.render</code>, writes the PNG, and exits. When the app is already running, <code>render</code> goes over the bus to the open window instead. ADR 0005 proves this on both webviews and records the fallback (an off-screen visible window) if a hidden WebGL context is throttled.</li>
 </ul>
@@ -1037,6 +1087,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <tr><td>First load (cold library cache)</td><td>≤ 1.5 s</td><td>≤ 3 s</td><td>≤ 6 s</td></tr>
 <tr><td>Slider → updated viewer (run + check + diff), warm</td><td>≤ 0.8 s</td><td>≤ 1.5 s</td><td>≤ 3 s</td></tr>
 <tr><td>Orbit frame time, M1 / Intel Iris Xe class</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
+<tr><td>Frame time during a build animation (whole model added)</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
 <tr><td>Heap growth after 100 slider changes</td><td colspan="3">≤ 20 % over the first-load heap (leak test)</td></tr>
 </table></div>
 <p class="small">WKWebView is tested first and WebView2 in CI. No WebGPU, no OffscreenCanvas dependency (OffscreenCanvas is used only where both webviews support it, behind feature detection), and no WASM requirement.</p>
@@ -1051,7 +1102,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <div class="flow">
 <svg viewBox="0 0 1140 600" role="img" aria-labelledby="layout-title layout-desc">
   <title id="layout-title">Emmet window layout</title>
-  <desc id="layout-desc">A title bar with the project name, build status, and agent picker. Below it, a project tree on the left, the 3D viewer in the center with a view toolbar, and the chat pane on the right at full height. A drawer under the tree and viewer holds the Parameters, Checks, Parts list, and Steps tabs.</desc>
+  <desc id="layout-desc">A title bar with the project name, build status, and agent picker. Below it, a project tree on the left, the 3D viewer in the center with a view toolbar, and the chat pane on the right at full height, showing tool cards and a question card with four answers. A drawer under the tree and viewer holds the Parameters, Checks, Parts list, and Steps tabs.</desc>
 
   <rect class="bx" x="20" y="10" width="1100" height="580" rx="12"/>
 
@@ -1101,8 +1152,17 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
   <rect class="bx" x="866" y="196" width="238" height="48" rx="8"/>
   <text class="lbl" x="880" y="216" style="text-anchor: start">run_model</text>
   <text class="s" x="880" y="234">118 parts · <tspan class="ok">✓ clean</tspan></text>
-  <text class="q" x="866" y="272">Added a 2×2 chimney on the</text>
-  <text class="q" x="866" y="290">back of the roof.</text>
+  <rect class="bx" x="866" y="258" width="238" height="186" rx="10" style="stroke: var(--accent)"/>
+  <text class="k" x="880" y="280">QUESTION</text>
+  <text class="q" x="880" y="299" style="font-weight: 600">Where should the chimney go?</text>
+  <rect class="bx agent" x="878" y="310" width="214" height="26" rx="6"/>
+  <text class="q" x="890" y="328">1  Back slope (recommended)</text>
+  <rect class="bx" x="878" y="342" width="214" height="26" rx="6"/>
+  <text class="q" x="890" y="360">2  Side wall</text>
+  <rect class="bx" x="878" y="374" width="214" height="26" rx="6"/>
+  <text class="q" x="890" y="392">3  On the ridge</text>
+  <rect class="bx" x="878" y="406" width="214" height="26" rx="6"/>
+  <text class="s" x="890" y="424">4  Other…</text>
   <rect class="bx" x="866" y="544" width="238" height="32" rx="8"/>
   <text class="s" x="880" y="565">Message…</text>
   <text class="s" x="1090" y="565" style="text-anchor: end">⏎</text>
@@ -1141,9 +1201,9 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <ul>
 <li><b>Left: project tree</b> with the model, submodels, and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
 <li><b>Center: viewer</b> with a toolbar for views, the step scrubber, frame, screenshot, and quality. Hovering shows the part name and color and the line in <code>model.py</code>.</li>
-<li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, file-change cards (expand for the diff), a stop button, and the agent and model picker.</li>
+<li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (expand for the diff), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
 <li><b>Bottom drawer</b> with tabs: Parameters (sliders, toggles, color pickers limited to colors the parts come in, and "make default"), Checks (findings, click to highlight, "Ask agent to fix"), Parts list (BOM with availability and export), and Steps.</li>
-<li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval), and library version.</li>
+<li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), and library version.</li>
 </ul>
 
 <h3>Key flows (each has an E2E spec)</h3>
@@ -1155,13 +1215,15 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <li><b>Export</b>: Parts list → CSV, Rebrickable, BrickLink XML · Model → LDraw <code>.mpd</code> (opens in Studio, LDCad, LeoCAD) · Instructions → open in LPub3D.</li>
 <li><b>Open an existing LDraw file</b>: it becomes an imported project (section 07), and the agent can be asked to make it parametric.</li>
 <li><b>Switch agent</b> mid-project: a new session with the other CLI. The project files carry the state, and the chat shows a divider.</li>
+<li><b>Answer a question</b>: the agent asks → a question card, with the status bar saying it's waiting on you → click an option, press its number, or type Other → the card collapses to the answer, and the agent carries on in the same turn.</li>
+<li><b>Watch, redirect, stop</b>: the model grows brick by brick, stage by stage → the user types "make the walls taller" mid-turn → a pending bubble → delivered at the agent's next step, and the agent acknowledges and changes course. Or Stop → the turn ends at once and the pending message goes out as the next turn.</li>
 </ol>
 
 <h3>States every screen designs for</h3>
-<p class="small">Empty · first run · loading library · building · build failed (traceback with the user's line, plus "Ask agent to fix") · checks with findings · agent thinking · waiting for approval · agent not installed or not signed in · agent crashed (one-click restart; project untouched) · offline (everything except the agent and downloads works) · untrusted project (read-only banner + Trust) · an old library version.</p>
+<p class="small">Empty · first run · loading library · building · build failed (traceback with the user's line, plus "Ask agent to fix") · checks with findings · agent thinking · waiting for approval · question waiting for an answer · redirect pending · stopped by the user · build animating (with Skip) · agent not installed or not signed in · agent crashed (one-click restart; project untouched) · offline (everything except the agent and downloads works) · untrusted project (read-only banner + Trust) · an old library version.</p>
 
 <h3>Keyboard (draft; frozen in 2B)</h3>
-<p class="small"><kbd>⌘K</kbd> command palette · <kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘↩</kbd> send · <kbd>Esc</kbd> stop agent · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> drawer tabs · <kbd>⌘L</kbd> focus chat. Windows uses <kbd>Ctrl</kbd>. Native menus on macOS, and a menu bar in the title bar on Windows.</p>
+<p class="small"><kbd>⌘K</kbd> command palette · <kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘↩</kbd> send · <kbd>Esc</kbd> stop agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> drawer tabs · <kbd>⌘L</kbd> focus chat. Windows uses <kbd>Ctrl</kbd>. Native menus on macOS, and a menu bar in the title bar on Windows.</p>
 
 <h3>Content, tone, accessibility</h3>
 <ul class="small">
@@ -1204,7 +1266,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <tr><td><b>Reproducibility</b></td><td>A clean <code>build/</code> regenerates byte-identical output</td><td>Run twice, compare hashes, on both OSes</td><td>Every PR</td></tr>
 <tr><td><b>MCP contracts</b></td><td>Every tool: schema, structured output validates, text summary snapshot, error shapes</td><td>An <code>rmcp</code> client against <code>emmet mcp</code></td><td>Every PR</td></tr>
 <tr><td><b>Validator corpus</b></td><td>Precision on official models, recall on mutations, speed</td><td><code>tests/it/validator_*</code></td><td>PR (small corpus), nightly (full)</td></tr>
-<tr><td><b>Agent replay</b></td><td>Both adapters end to end: streaming, tool calls into the real <code>emmet mcp</code>, approvals, interrupt, resume, a crash mid-stream, malformed lines, an unknown event type</td><td><code>tests/fake-agents/fake-claude</code> and <code>fake-codex</code> replay <code>tests/replay/*.jsonl</code>, substituting paths, and assert the exact <code>AgentEvent</code> sequence and the final project state</td><td>Every PR</td></tr>
+<tr><td><b>Agent replay</b></td><td>Both adapters end to end: streaming, tool calls into the real <code>emmet mcp</code>, approvals, question cards, redirects on each path, interrupt, resume, a crash mid-stream, malformed lines, an unknown event type</td><td><code>tests/fake-agents/fake-claude</code> and <code>fake-codex</code> replay <code>tests/replay/*.jsonl</code>, substituting paths, and assert the exact <code>AgentEvent</code> sequence and the final project state</td><td>Every PR</td></tr>
 <tr><td><b>App E2E</b></td><td>The key flows in section 14 on the real app: first run (with ldraw-mini), slider → viewer, finding → highlight, chat with a fake agent → model updates, approval card, trust prompt, error states</td><td>WebdriverIO + <code>@wdio/tauri-service</code> (embedded WebDriver plugin, debug builds only). Viewer assertions read <code>viewer.stats()</code> and ids, not pixels</td><td>Every PR on macOS; on Windows when <code>apps/</code>, <code>crates/</code>, or <code>packages/</code> change, and always on <code>main</code> and releases</td></tr>
 <tr><td><b>Visual</b></td><td>Viewer renders of 6 fixture scenes per OS, plus key screens in light and dark</td><td>pixelmatch with a tolerance, baselines per OS in <code>tests/e2e/baselines/</code>, an update script, and a diff image uploaded on failure</td><td>Every PR touching the viewer or UI</td></tr>
 <tr><td><b>Performance</b></td><td>Section 13's budgets</td><td><code>packages/viewer/bench</code> + E2E timing marks, results as a CI summary table</td><td>macOS every PR touching the viewer or core; both OSes nightly</td></tr>
@@ -1528,7 +1590,7 @@ bmortenson/emmet-plan; create your branch bmortenson/s0a-foundation from bmorten
 <p class="goal"><b>Goal:</b> Settle every external fact the build depends on, with evidence, before engine code: both agent CLIs' real protocols on this Mac, E2E on macOS, what we may reuse and under what license, how parts and colors map to Rebrickable, and whether the hidden headless render works. Produce the ldraw-mini fixture and the model ladder spec.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><b>ADR 0001 Agent protocols.</b> A throwaway stub MCP server (one <code>ping</code> tool) under <code>tests/spikes/</code>. Drive <code>claude -p</code> with the flags in section 10 and record transcripts: a plain turn, a tool call, a permission prompt through <code>--permission-prompt-tool</code>, an interrupt, a resume. Drive <code>codex app-server</code> with <code>-c mcp_servers…</code> overrides: initialize, thread and turn start, a tool call, an approval request, an interrupt, a resume. Commit <code>codex app-server generate-json-schema</code> output under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>. Prove neither run wrote to <code>~/.claude</code> or <code>~/.codex</code> (hash before and after). Record the Windows-native requirements of both CLIs from their current docs (verified hands-on in 1C).</li>
+<li><b>ADR 0001 Agent protocols.</b> A throwaway stub MCP server (one <code>ping</code> tool) under <code>tests/spikes/</code>. Drive <code>claude -p</code> with the flags in section 10 and record transcripts: a plain turn, a tool call, a permission prompt through <code>--permission-prompt-tool</code>, an interrupt, a resume. Drive <code>codex app-server</code> with <code>-c mcp_servers…</code> overrides: initialize, thread and turn start, a tool call, an approval request, an interrupt, a resume. For <b>both</b> CLIs also record: a user message sent mid-turn (does it arrive at the next step, wait for the turn to end, or get rejected?), an interrupt followed straight away by a new turn, and a stub tool that blocks for 10 minutes (the real tool-timeout default and the highest value the timeout settings in section 10 accept). The ADR states which redirect path (native or queued) each CLI gets, and what <code>ask_user</code> does if a timeout cap is too low (D-32, D-33). Commit <code>codex app-server generate-json-schema</code> output under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>. Prove neither run wrote to <code>~/.claude</code> or <code>~/.codex</code> (hash before and after). Record the Windows-native requirements of both CLIs from their current docs (verified hands-on in 1C).</li>
 <li><code>scripts/scrub-transcript</code> plus a test. Scrubbed transcripts go to <code>tests/replay/{claude,codex}/</code>.</li>
 <li><b>ADR 0002 E2E.</b> A hello-world WebdriverIO spec with <code>@wdio/tauri-service</code> and the embedded <code>tauri-plugin-wdio-webdriver</code> (debug builds only) that clicks a button in the 0A window, green in CI on the self-hosted Mac and on <code>windows-latest</code>. If macOS fails, record the fallback (Playwright on WebKit against Vite with a mocked IPC on macOS, wdio on Windows) and ask Barry.</li>
 <li><b>ADR 0003 Licenses and reuse.</b> The LDraw library (CC BY 4.0 + CC BY 2.0 parts; the exact attribution text), the LDCad shadow library (license, format, coverage of clip, bar, pin, and hinge metadata), LDraw OMR models (can small ones be committed as fixtures?), Rebrickable CSV terms, three.js <code>LDrawLoader</code>, and ldraw-nova, brickbuilder-mcp, brick-mcp, ldraw-mcp, ClawdCAD, OpenCovibe: license, and what we may reuse (ideas or code). Default stance: learn from them, don't copy code unless the license allows and Barry agrees.</li>
@@ -1577,8 +1639,8 @@ If a finding contradicts section 03 or 10, stop and ask before you change the pl
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
 <tr data-session="1A"><td><a href="#session-1a">1A</a></td><td>Engine walking skeleton: LDraw, library, index, DSL v0, CLI, MCP</td><td>0B</td><td>&nbsp;</td><td>L</td></tr>
 <tr data-session="1B"><td><a href="#session-1b">1B</a></td><td>App shell and live viewer, render mode</td><td>1A</td><td>&nbsp;</td><td>L</td></tr>
-<tr data-session="1C"><td><a href="#session-1c">1C</a></td><td>Agent bridge for Claude Code and Codex, chat v0, replay harness</td><td>1B</td><td>&nbsp;</td><td>L</td></tr>
-<tr data-session="1D"><td><a href="#session-1d">1D</a></td><td>Close the loop: checks v0, renders to the agent, eval v0, signed demo</td><td>1C</td><td>2A</td><td>M</td></tr>
+<tr data-session="1C"><td><a href="#session-1c">1C</a></td><td>Agent bridge for Claude Code and Codex, chat v0 with question cards and redirects, replay harness</td><td>1B</td><td>&nbsp;</td><td>L</td></tr>
+<tr data-session="1D"><td><a href="#session-1d">1D</a></td><td>Close the loop: checks v0, renders to the agent, build animation v0, eval v0, signed demo</td><td>1C</td><td>2A</td><td>M</td></tr>
 </table></div>
 
 <div class="session" id="session-1a" data-session="1A" data-phase="1" data-title="Engine walking skeleton" data-after="0B" data-waits="" data-waits-merge="" data-read="04, 07, 08, 09, 12, 15, 16">
@@ -1657,11 +1719,12 @@ designs it. Set up the wdio E2E harness so later sessions only add specs.</code>
 <p class="goal"><b>Goal:</b> From the chat pane, you can talk to either Claude Code or Codex. The agent has Emmet's tools and doctrine, its file edits show up live, and permission requests show up as cards. Both adapters are tested deterministically through replayed transcripts, and both run natively on Windows.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><b>emmet-agent:</b> the trait and events (section 10); detection (paths, version, supported range, signed-in check through the CLI's own status command); per-session config in app data; the Claude adapter (stream-JSON) and the Codex adapter (app-server JSON-RPC, with types checked against the committed schema); interrupt; resume; approvals (Claude through <code>emmet_host.approve</code>, Codex through server requests); crash and exit handling; transcript capture.</li>
-<li><b>Doctrine v0:</b> <code>crates/emmet-cli/doctrine/EMMET.md</code>, <code>emmet rules</code>, <code>emmet api</code> (generated from <code>emmet_dsl</code> docstrings), the pointer passed through <code>--append-system-prompt</code> / <code>developerInstructions</code>, and the project <code>AGENTS.md</code> template.</li>
-<li><b>Chat pane v0:</b> an agent picker (only detected and signed-in agents enabled; others show the fix command), a streaming message list, tool-call cards (name + summary, expandable), file-change cards, approval cards (Allow once / Allow for session / Deny), stop, and session resume per project.</li>
-<li><b>Replay harness:</b> <code>tests/fake-agents/fake-claude</code> and <code>fake-codex</code> (small Rust bins selected through an env var in tests) replay 0B's transcripts with path substitution. Integration tests drive each adapter through the real <code>emmet mcp</code> and assert the event sequence and the project state. Failure cases: a crash mid-stream, a malformed line, an unknown event type, an approval denied, an interrupt.</li>
-<li><b>E2E:</b> chat with each fake agent → <code>model.py</code> changes → the viewer updates; an approval card appears and is answered.</li>
+<li><b>emmet-agent:</b> the trait and events (section 10); detection (paths, version, supported range, signed-in check through the CLI's own status command); per-session config in app data; the Claude adapter (stream-JSON) and the Codex adapter (app-server JSON-RPC, with types checked against the committed schema); interrupt; <code>steer()</code> with the native or queued path per ADR 0001; resume; approvals (Claude through <code>emmet_host.approve</code>, Codex through server requests); crash and exit handling; transcript capture.</li>
+<li><b>Questions and redirects:</b> <code>emmet mcp-host</code> with <code>approve</code> and <code>ask_user</code>; <code>emmet mcp --session</code> attaching <code>user_notes</code> from the bus to tool results; the raised tool timeouts in each adapter's session config; <code>AskUserQuestion</code> disabled for Claude.</li>
+<li><b>Doctrine v0:</b> <code>crates/emmet-cli/doctrine/EMMET.md</code> (including build in stages, when to ask, and how to handle <code>user_notes</code>), <code>emmet rules</code>, <code>emmet api</code> (generated from <code>emmet_dsl</code> docstrings), the pointer passed through <code>--append-system-prompt</code> / <code>developerInstructions</code>, and the project <code>AGENTS.md</code> template.</li>
+<li><b>Chat pane v0:</b> an agent picker (only detected and signed-in agents enabled; others show the fix command), a streaming message list, tool-call cards (name + summary, expandable), file-change cards, approval cards (Allow once / Allow for session / Deny), question cards (options, Other, number keys), an open composer with pending-redirect bubbles (Edit, Cancel, Stop and send now), stop, and session resume per project.</li>
+<li><b>Replay harness:</b> <code>tests/fake-agents/fake-claude</code> and <code>fake-codex</code> (small Rust bins selected through an env var in tests) replay 0B's transcripts with path substitution. Integration tests drive each adapter through the real <code>emmet mcp</code> and assert the event sequence and the project state. Failure cases: a crash mid-stream, a malformed line, an unknown event type, an approval denied, an interrupt, a question answered, a question canceled by Stop, a redirect delivered through each path, and a redirect still pending at Stop.</li>
+<li><b>E2E:</b> chat with each fake agent → <code>model.py</code> changes → the viewer updates; an approval card appears and is answered; a question card appears and is answered; a mid-turn message is delivered and acknowledged.</li>
 <li><b>Windows:</b> in the VM (H-04), both real CLIs start from the app, call a tool, and edit the model. ADR 0001 is updated with what Windows needed, and onboarding text covers it.</li>
 <li>A sentinel test proves no write to user-level agent config: the test <code>HOME</code> holds sentinel <code>.claude</code> and <code>.codex</code> dirs, hashed before and after.</li>
 </ul>
@@ -1672,6 +1735,7 @@ designs it. Set up the wdio E2E harness so later sessions only add specs.</code>
 <li>With the real CLIs on this Mac, a prompt to each agent edits <code>model.py</code> and the viewer updates (a recording in the PR).</li>
 <li>The same works in the Windows VM with both real CLIs (H-04 evidence in the PR, as screenshots).</li>
 <li>The sentinel test proves user-level agent configs are untouched.</li>
+<li>With each real CLI, the agent asks a question card and uses the answer in the same turn, and a mid-turn redirect changes what it builds (both in the PR recording).</li>
 </ul>
 <div class="s-dh">What good looks like</div>
 <ul class="good">
@@ -1686,7 +1750,7 @@ give me exact steps to run and what to screenshot, and wait for me. If either CL
 transcripts, record new transcripts (scrubbed) and note the change in ADR 0001.</code></pre></details>
 </div>
 
-<div class="session" id="session-1d" data-session="1D" data-phase="1" data-title="Close the loop and ship a signed demo" data-after="1C" data-waits="" data-waits-merge="H-05" data-read="02, 09, 11, 16, 17">
+<div class="session" id="session-1d" data-session="1D" data-phase="1" data-title="Close the loop and ship a signed demo" data-after="1C" data-waits="" data-waits-merge="H-05" data-read="02, 09, 11, 13, 16, 17">
 <h4><span class="s-id">1D</span> Close the loop and ship a signed demo<span class="s-meta">after 1C · alongside 2A · size M · YOU: H-05 before merge; then H-06/G1</span></h4>
 <p class="goal"><b>Goal:</b> The agent can check and look at its own work, so rung 1 comes out right on both agents. A live eval proves it, and a signed, notarized build is ready for the demo.</p>
 <div class="s-dh">What gets built</div>
@@ -1694,10 +1758,11 @@ transcripts, record new transcripts (scrubbed) and note the change in ADR 0001.<
 <li><b>validate v0:</b> collision by shrunk body boxes; connectivity by stud/anti-stud primitive matching (the primitive table started here); floating parts; unknown and obsolete parts; findings with ids and source lines in <code>build/validation.json</code>; <code>emmet check</code>; MCP <code>validate</code> with the compact summary; MCP <code>highlight</code>.</li>
 <li><b>Checks in the UI:</b> a Checks drawer listing findings; click → highlight + the source line; "Ask agent to fix" sends the finding to the current session.</li>
 <li><b>bom v0</b> (part × color × qty) with <code>emmet bom</code> and MCP <code>bom</code>; a Parts list drawer.</li>
-<li><b>Doctrine:</b> the run → validate → render → fix loop, "show a draft in the first minute", and "say numbers".</li>
+<li><b>Doctrine:</b> the run → validate → render → fix loop, "show a draft in the first minute", "build in visible stages", and "say numbers".</li>
+<li><b>Build animation v0:</b> <code>viewer.update(…, { animate: "build" })</code> for agent runs: added parts appear one at a time in build order with a simple drop, capped at 6 s, skipped by any new run. Sliders stay instant. 4C polishes it.</li>
 <li><b><code>just eval</code> v0</b> through <code>emmet eval</code>: runs the rung 1 prompt from <code>docs/spec/ladder.md</code> through each real CLI in a temp project, headless, auto-allowing only Emmet tools and model-file edits; scores per section 16.1; writes <code>docs/evals/&lt;date&gt;-rung1.md</code> with renders; offers to save scrubbed transcripts as replay fixtures.</li>
 <li><b>Signed demo build:</b> <code>just release-dry --sign</code> produces a universal <code>.dmg</code> signed with Developer ID and notarized with <code>notarytool</code> (API key from the keychain profile), plus an unsigned NSIS build from CI.</li>
-<li><b>Demo kit:</b> <code>docs/demo/rung1.md</code>, a 60-second storyboard (prompt → first draft → finding → fix → slider → BOM), plus draft posts for Eurobricks, r/lego, and the LDraw forum.</li>
+<li><b>Demo kit:</b> <code>docs/demo/rung1.md</code>, a 60-second storyboard (prompt → a question card → the model building in stages → a mid-turn redirect → finding → fix → slider → BOM), plus draft posts for Eurobricks, r/lego, and the LDraw forum.</li>
 <li>A replay test where the agent receives an injected collision finding and fixes it (from a recorded live run).</li>
 </ul>
 <div class="s-dh">Done when</div>
@@ -1743,7 +1808,7 @@ demo storyboard and draft posts; I record and post (H-06).</code></pre></details
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><code>docs/design/research.md</code>: a teardown of nurb (run <code>nurb dev</code> on a sample project and capture its viewer, sliders, cards, checks, and tips), Studio, Mecabricks, LDCad, LeoCAD, ClawdCAD, and BrickBuilder.ai: what each does well and badly for <i>this</i> loop. Screenshots of public UI only.</li>
-<li>Information architecture and the seven flows from section 14 as short annotated storyboards.</li>
+<li>Information architecture and the nine flows from section 14 as short annotated storyboards.</li>
 <li><code>docs/design/directions/{a,b,c}/</code>: three clickable static HTML prototypes (no build step), each covering every key screen and state from section 14, in light and dark, using real renders and real chat transcripts from the spike. The directions differ in layout (for example chat right vs. chat as an overlay vs. a command-first layout), density, and personality.</li>
 <li><code>docs/design/review.html</code>: the three side by side, per screen, with the trade-offs written out and the agent's recommendation.</li>
 <li>A brand starter: the mark (an evolution of the plan's brick glyph), wordmark, app icon drafts for macOS and Windows, the color palette, and the trademark-disclaimer placement.</li>
@@ -1928,13 +1993,13 @@ Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace th
 <p class="goal"><b>Goal:</b> Working with the agent feels as good as nurb's terminal loop, or better: you always know what it's doing, you can steer and stop it, and it sees what you see.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 issues"), file-change cards with diffs, approval cards with session-scoped allow, stop, and retry.</li>
+<li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 issues"), file-change cards with diffs, approval cards with session-scoped allow, question cards and pending-redirect bubbles to the frozen design, stop, and retry.</li>
 <li>Context from the UI: "the agent sees what you selected" (selected ids and the view are sent as structured context with the next message), plus "Ask agent to fix" from findings and run errors.</li>
 <li>The doctrine in the UI: one tip at a time (first slider, first finding, first export), tracked per user.</li>
 <li>Sessions: per-project history, resume after an app restart, switching agents mid-project (a divider, with the state carried by files), and a usage display where the CLI reports it.</li>
 <li>emmet-bus complete: highlight, camera, and selection queries, used by both the app's own sessions and terminal agents.</li>
 <li>Agent health: a crashed agent → a one-click restart that resumes the session; not installed or not signed in → the fix card; an untested version → a quiet note.</li>
-<li>Replay E2E: a full rung 1 build replayed from a live transcript on both OSes; an interrupt; an approval denied; a crash and restart.</li>
+<li>Replay E2E: a full rung 1 build replayed from a live transcript on both OSes; an interrupt; an approval denied; a question answered with Other; a redirect mid-build; a crash and restart.</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
@@ -1961,6 +2026,7 @@ transcripts) into the PR.</code></pre></details>
 <ul class="build">
 <li>Materials for every LDraw finish, the studio lighting rig, an optional ground shadow, edge and conditional lines tuned for both themes, stud LOD, and quality presets (auto by GPU).</li>
 <li>Interaction to the design: hover (the part, color, and source line), click to select, box select, frame, the views, the step scrubber with dimmed earlier steps, layer cut-away (hide above z), and screenshot to file or clipboard.</li>
+<li>Build animation to section 13: the drop, fade, and glide motion; Animated, Fast, and Off in Settings; Skip and Replay build in the toolbar; reduced motion; and an E2E spec that proves sliders never animate and the camera never moves.</li>
 <li>Highlight modes (issue, select, hover, agent) that are distinct and accessible (not color alone).</li>
 <li>Performance work to meet section 13 on both OSes, including instancing edge cases, transparent sorting, and geometry disposal. Bench and E2E checks enforce the budgets.</li>
 <li>Visual baselines for 6 scenes per OS, including transparent and chrome parts and a 2,000-part stress model.</li>
@@ -2408,6 +2474,8 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Connectivity validation is hard: LDraw has no native connection points</td><td>High</td><td>Primitive scan first (covers most System parts), LDCad shadow data if licensed, overrides for the rest. Precision and recall gates keep it honest.</td><td>0B, 3A</td></tr>
 <tr><td>Agents reason poorly about 3D placement</td><td>High</td><td>Grid units and footprint placement, helpers and techniques, findings with source lines, render-to-agent, "draft in the first minute", and the ladder eval to measure it.</td><td>1A, 1D, 3B, 5A</td></tr>
 <tr><td>Agent CLI protocols change (both iterate fast)</td><td>Medium</td><td>Committed Codex schema per version, replay fixtures, tested version ranges, unknown events ignored, and <code>doctor</code> warnings.</td><td>0B, 1C</td></tr>
+<tr><td>Redirects and long-waiting question tools depend on CLI behavior that differs between Claude Code and Codex and may change: mid-turn input, interrupt, and MCP tool timeouts</td><td>Medium</td><td>The queued path through Emmet's own tool results works on any CLI that calls Emmet tools. ADR 0001 records each CLI's real behavior, replay tests pin it, and <code>ask_user</code> falls back to ending the turn if a timeout cap is too low.</td><td>0B, 1C</td></tr>
+<tr><td>The build animation slows the loop or hides problems</td><td>Low</td><td>Capped at 6 s and skipped by any new run, never used for sliders, never in agent renders; Fast and Off in Settings; a frame-time budget in section 13.</td><td>1D, 4C</td></tr>
 <tr><td>WKWebView WebGL performance or hidden-window throttling</td><td>Medium</td><td>Bench in 1B, instancing, ADR 0005 with an off-screen-window fallback.</td><td>0B, 1B, 4C</td></tr>
 <tr><td>Windows differences (paths, CLIs, GPU), with only an ARM VM in hand</td><td>Medium</td><td>Hosted x64 CI from day one, the 5B hardening list, and a Windows x64 beta tester.</td><td>5B, 6B</td></tr>
 <tr><td>Trademark: "Emmet" is a LEGO Movie character; LEGO marks</td><td>Medium–High</td><td>Early name check (H-17), "brick" language, a disclaimer everywhere, and no LEGO trade dress in the brand.</td><td>Phase 0, 7B</td></tr>
@@ -2436,6 +2504,8 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Q-08</td><td>Keep the name "Emmet"?</td><td>H-17</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-09</td><td>Can small OMR models be committed as test fixtures?</td><td>0B (ADR 0003)</td><td><span class="pill open">Open</span></td></tr>
 <tr><td>Q-10</td><td>Cookieless analytics on the site, or none?</td><td>7A (ask)</td><td><span class="pill open">Open</span></td></tr>
+<tr><td>Q-11</td><td>Does each CLI accept a user message mid-turn and act on it at the next step (native redirect), or only after the turn ends?</td><td>0B (ADR 0001)</td><td><span class="pill open">Open</span></td></tr>
+<tr><td>Q-12</td><td>How long can an MCP tool call block in each CLI before it times out, and can a per-session setting raise it far enough for <code>ask_user</code>?</td><td>0B (ADR 0001)</td><td><span class="pill open">Open</span></td></tr>
 </table></div>
 </section>
 
