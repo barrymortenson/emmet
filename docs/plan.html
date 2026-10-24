@@ -126,6 +126,8 @@
   .flow .track { stroke: var(--line); stroke-width: 4; stroke-linecap: round; }
   .flow .knob { fill: var(--accent); }
   .flow .sep { stroke: var(--line); stroke-width: 1.5; }
+  .flow .meter { fill: var(--line); }
+  .flow .meter.on { fill: var(--fg); }
   .small { font-size: 13px; }
   .muted { color: var(--muted); }
   ol.steps li { margin: 6px 0; }
@@ -458,6 +460,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-33</td><td>Redirect and stop</td><td>The composer stays open while the agent works. A message sent mid-turn is queued and delivered at the agent's next step: through the CLI's native mid-turn input where it exists, otherwise attached to the next Emmet tool result, otherwise sent as the next turn. Stop interrupts at once and sends any queued message as the next turn.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-34</td><td>Build animation</td><td>Agent-driven runs animate in the viewer: added parts drop in brick by brick in build order (step, then bottom-up), capped in total time and skippable. Slider runs never animate. The doctrine has the agent build in visible stages so the user can judge direction early. Setting: Animated (default), Fast, or Off; reduced motion means Off.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-35</td><td>Plans, not keys</td><td>Agents run on the user's own subscription (Claude Pro or Max, ChatGPT Plus or Pro) through the user's own installed, unmodified CLI and its own sign-in, the way nurb works. Emmet never bundles, patches, or signs in to a CLI, never reads or stores credentials, and never pays for or resells usage. An API key works too, but only when the user picks it: Emmet shows which one each session uses and asks before an API key in its environment would take over from the plan. Terminal mode (the user runs the CLI themselves) stays first-class, so plan use survives any change to the embedded chat's footing.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-36</td><td>Plan usage display</td><td>The status bar shows each agent's plan usage the way Orca does (session and weekly meters with reset times, plus a popover with details), from <b>documented, credential-free sources only</b>: Claude Code's <code>/usage</code> report and <code>rate_limit_event</code> in stream-JSON, and the Codex app-server's <code>account/rateLimits/*</code> methods. Emmet never reads a token or calls a private usage endpoint.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 </table></div>
 </section>
 
@@ -863,6 +866,7 @@ def cottage(
     fn kind(&amp;self) -&gt; AgentKind;                          // Claude | Codex
     fn detect(&amp;self) -&gt; Detection;                        // path, version, supported?, signed_in?
     fn start(&amp;self, cfg: SessionConfig) -&gt; Result&lt;Box&lt;dyn Session&gt;, AgentError&gt;;
+    fn usage(&amp;self) -&gt; Result&lt;UsageSnapshot, AgentError&gt;;            // plan meters, credential-free (section 10)
 }
 pub trait Session: Send {
     fn send(&amp;mut self, turn: UserTurn) -&gt; Result&lt;(), AgentError&gt;;    // text (+ structured context: selection, finding)
@@ -881,6 +885,7 @@ pub enum AgentEvent {
     Question { id: QuestionId, question: Question },                // from emmet_host.ask_user, via the bus
     NoteDelivered { id: NoteId, path: SteerPath },
     Usage { input: u64, output: u64 }, TurnDone { reason: DoneReason },
+    Limits { snapshot: UsageSnapshot },                              // live: rate_limit_event / account/rateLimits/updated
     Error { code: AgentErrorCode, message: String },
 }</code></pre>
 
@@ -966,6 +971,31 @@ server → client requests for command/file approvals → Approval events → re
 <li><b>It never lets a stray key win silently.</b> In <code>-p</code> mode Claude Code always uses <code>ANTHROPIC_API_KEY</code> when it's set, ahead of the subscription, and other variables (<code>ANTHROPIC_AUTH_TOKEN</code>, <code>CLAUDE_CODE_USE_BEDROCK</code>, …) rank higher still. The GUI app can pick these up when it loads the user's shell environment to find the CLIs. If one is present and the CLI also has a plan sign-in, Emmet asks once: "Use your Claude plan, or the API key from your environment (billed per token)?" The answer is saved per agent in Settings, and Emmet honors it by passing or leaving out those variables for its sessions only. Nothing is changed in the user's shell or the CLI. 0B records whether Codex has the same issue with <code>OPENAI_API_KEY</code> and <code>CODEX_API_KEY</code>.</li>
 <li><b>It stays out of the money.</b> No Emmet account, no Emmet key, no proxy, no usage metering beyond showing what the CLI reports.</li>
 <li><b>Terminal mode is the safe harbor.</b> If either provider narrows what an embedding app may do, the chat pane for that agent can be switched off, and users keep their plan by running the CLI themselves (section 04, "Terminal power user"). Nothing else in Emmet depends on the chat pane.</li>
+</ul>
+
+<h3>Plan usage (D-36)</h3>
+<p>The status bar shows how much of each plan is used, like Orca: <i>Used · Claude ▬ 16% 14m · 4% 6d 9h · 0% Fable · Codex ▬ 4% 5d 22h ⟳</i>. A click opens a popover with Detailed and Compact views, one row per agent, and a detail panel per agent. Both agents report their plan meters through documented interfaces, so Emmet needs no credentials and nothing private.</p>
+<div class="table-wrap"><table>
+<tr><th></th><th>Claude Code</th><th>Codex</th></tr>
+<tr><td><b>Snapshot</b></td><td>Send <code>/usage</code> as a prompt to a short-lived <code>claude -p --input-format stream-json</code> probe. The reply's <code>usage_report.rate_limits.limits[]</code> lists the plan's meters (<code>kind</code>, <code>group</code>, <code>percent</code>, <code>resets_at</code>, and a <code>scope</code> such as the Fable model), and <code>extra_usage</code> covers usage credits. The type is marked experimental.</td><td><code>account/rateLimits/read</code> on the app-server: <code>rateLimitsByLimitId</code> windows (<code>usedPercent</code>, <code>windowDurationMins</code>, <code>resetsAt</code>), <code>credits</code>, <code>planType</code>, and <code>rateLimitResetCredits</code> (earned resets).</td></tr>
+<tr><td><b>Live</b></td><td><code>rate_limit_event</code> during turns: <code>status</code> (allowed, warning, rejected), <code>utilization</code>, <code>resetsAt</code>, and <code>credits_required</code> when included usage is exhausted.</td><td>The <code>account/rateLimits/updated</code> notification.</td></tr>
+<tr><td><b>Actions</b></td><td>None. Buying usage credits stays on claude.ai (a link).</td><td>"Reset now" through <code>account/rateLimitResetCredit/consume</code>, after a confirmation that names what it spends.</td></tr>
+<tr><td><b>API-key sessions</b></td><td colspan="2">No plan meters exist. The bar shows "API key", plus a session cost from the CLI's own <code>total_cost_usd</code>, labeled as an estimate.</td></tr>
+</table></div>
+<ul>
+<li><b>One shape for every agent.</b> <code>UsageSnapshot { agent, plan, windows: [{ kind, group, label, percent, resets_at, scope }], credits, resets_available, source, updated_at, status, failure }</code>. Windows render in the order and grouping the CLI reports, never re-labeled by guesswork, so a new meter (a new model, a new window) shows up without an Emmet release. A future agent (D-31) plugs in by implementing <code>usage()</code>.</li>
+<li><b>Refresh.</b> On launch, after each turn, every 10 minutes while the window is focused, and on ⟳. Live events update in between. At most one probe per agent per minute, and identical values are deduped. Errors back off (1, 5, then 15 minutes), and the bar shows the last good values with "Updated 8m ago".</li>
+<li><b>The probe is quiet.</b> It runs in its own empty directory in app data, with no Emmet MCP servers, no tools, and Emmet's environment rules (D-35). 0B confirms it spends no model tokens and either finds a flag that skips saving the probe as a session, or records where those sessions land.</li>
+<li><b>Failure is honest.</b> Unknown, unavailable, and API-key states each have their own label. A meter never shows 0 % because data is missing.</li>
+<li><b>It helps the chat.</b> At 90 % of any window, the chat shows one quiet line before the next turn ("Claude's 5-hour limit is at 92%, resets in 40m"). A rejection shows a card with the reset time and, if the other agent is signed in, "Continue with Codex" (a new session; the files carry the state).</li>
+<li><b>Names, not logos.</b> The bar uses the words "Claude" and "Codex" with Emmet's own neutral glyphs. Anthropic's terms require written permission for its logos, and OpenAI's marks get the same caution.</li>
+</ul>
+<h4>What we take from Orca, and what we don't</h4>
+<p class="small">Orca (<a href="https://github.com/stablyai/orca">stablyai/orca</a>, MIT; read at commit f2446b9 on 2026-10-24) has the usage UI to beat. Its main-process code also shows which data sources to avoid.</p>
+<ul class="small">
+<li><b>Take:</b> the provider-neutral types (windows, credits, status, failure kind, source); rows rendered in the server's order; dedupe and backoff in a single usage service; its use of <code>rate_limit_event</code>; the status bar and popover layout.</li>
+<li><b>Leave:</b> its Claude fetcher reads the user's OAuth token from the Keychain or <code>.credentials.json</code> and calls the undocumented <code>api.anthropic.com/api/oauth/usage</code> while identifying itself as <code>claude-code/2.1.0</code>. Its Codex fetcher reads <code>~/.codex/auth.json</code> and calls <code>chatgpt.com/backend-api/wham/usage</code>. Its live Claude feed installs a <code>statusLine</code> into the user's <code>~/.claude/settings.json</code>. Emmet does none of these: they conflict with Anthropic's rule against handling Claude.ai tokens, and with D-26 and D-35.</li>
+<li><b>Later, maybe:</b> Orca's multi-account switching (several Claude logins through <code>CLAUDE_CONFIG_DIR</code>). It's out of MVP scope; it would be a Phase 8 item if users ask.</li>
 </ul>
 
 <h3>Transcripts and replay</h3>
@@ -1140,11 +1170,11 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 
 <h3>Layout brief</h3>
 <div class="flow">
-<svg viewBox="0 0 1140 600" role="img" aria-labelledby="layout-title layout-desc">
+<svg viewBox="0 0 1140 632" role="img" aria-labelledby="layout-title layout-desc">
   <title id="layout-title">Emmet window layout</title>
-  <desc id="layout-desc">A title bar with the project name, build status, and agent picker. Below it, a project tree on the left, the 3D viewer in the center with a view toolbar, and the chat pane on the right at full height, showing tool cards and a question card with four answers. A drawer under the tree and viewer holds the Parameters, Checks, Parts list, and Steps tabs.</desc>
+  <desc id="layout-desc">A title bar with the project name, build status, and agent picker. Below it, a project tree on the left, the 3D viewer in the center with a view toolbar, and the chat pane on the right at full height, showing tool cards and a question card with four answers. A drawer under the tree and viewer holds the Parameters, Checks, Parts list, and Steps tabs. A status bar along the bottom shows the agent state, data versions, and plan usage meters for Claude and Codex.</desc>
 
-  <rect class="bx" x="20" y="10" width="1100" height="580" rx="12"/>
+  <rect class="bx" x="20" y="10" width="1100" height="612" rx="12"/>
 
   <!-- Title bar -->
   <circle cx="40" cy="30" r="6" fill="#ff5f57"/><circle cx="58" cy="30" r="6" fill="#febc2e"/><circle cx="76" cy="30" r="6" fill="#28c840"/>
@@ -1236,6 +1266,18 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
   <text class="s" x="290" y="572">Roof color</text>
   <rect x="370" y="559" width="16" height="16" rx="3" fill="#c91a09"/>
   <text class="q" x="392" y="572">Red ▾</text>
+
+  <!-- Status bar -->
+  <line class="sep" x1="20" y1="590" x2="1120" y2="590"/>
+  <text class="s" x="36" y="611">Agent idle · LDraw library 2026-09-01 · Parts data 2026-10-23</text>
+  <text class="s" x="578" y="611" style="text-anchor: end">Used</text>
+  <text class="q" x="628" y="611" style="text-anchor: end">Claude</text>
+  <rect class="meter" x="636" y="604" width="48" height="6" rx="3"/><rect class="meter on" x="636" y="604" width="8" height="6" rx="3"/>
+  <text class="q" x="692" y="611">16% 14m · 4% 6d 9h · 0% Fable</text>
+  <text class="q" x="954" y="611" style="text-anchor: end">Codex</text>
+  <rect class="meter" x="962" y="604" width="48" height="6" rx="3"/><rect class="meter on" x="962" y="604" width="3" height="6" rx="1.5"/>
+  <text class="q" x="1080" y="611" style="text-anchor: end">4% 5d 22h</text>
+  <text class="s" x="1100" y="611" style="text-anchor: end">⟳</text>
 </svg>
 </div>
 <ul>
@@ -1243,7 +1285,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <li><b>Center: viewer</b> with a toolbar for views, the step scrubber, frame, screenshot, and quality. Hovering shows the part name and color and the line in <code>model.py</code>.</li>
 <li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (expand for the diff), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
 <li><b>Bottom drawer</b> with tabs: Parameters (sliders, toggles, color pickers limited to colors the parts come in, and "make default"), Checks (findings, click to highlight, "Ask agent to fix"), Parts list (BOM with availability and export), and Steps.</li>
-<li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), and the library and parts data versions.</li>
+<li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), plan usage meters per agent with a popover (D-36, section 10), and the library and parts data versions.</li>
 </ul>
 
 <h3>Key flows (each has an E2E spec)</h3>
@@ -1630,7 +1672,7 @@ bmortenson/emmet-plan; create your branch bmortenson/s0a-foundation from bmorten
 <p class="goal"><b>Goal:</b> Settle every external fact the build depends on, with evidence, before engine code: both agent CLIs' real protocols on this Mac, E2E on macOS, what we may reuse and under what license, how parts and colors map to Rebrickable, and whether the hidden headless render works. Produce the ldraw-mini fixture and the model ladder spec.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><b>ADR 0001 Agent protocols.</b> A throwaway stub MCP server (one <code>ping</code> tool) under <code>tests/spikes/</code>. Drive <code>claude -p</code> with the flags in section 10 and record transcripts: a plain turn, a tool call, a permission prompt through <code>--permission-prompt-tool</code>, an interrupt, a resume. Drive <code>codex app-server</code> with <code>-c mcp_servers…</code> overrides: initialize, thread and turn start, a tool call, an approval request, an interrupt, a resume. For <b>both</b> CLIs also record which credential the session uses and where it's reported (Claude's <code>system/init</code>, Codex <code>account/read</code>), with a plan sign-in alone and with an API key variable also set; and: a user message sent mid-turn (does it arrive at the next step, wait for the turn to end, or get rejected?), an interrupt followed straight away by a new turn, and a stub tool that blocks for 10 minutes (the real tool-timeout default and the highest value the timeout settings in section 10 accept). The ADR states which redirect path (native or queued) each CLI gets, and what <code>ask_user</code> does if a timeout cap is too low (D-32, D-33). Commit <code>codex app-server generate-json-schema</code> output under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>. Prove neither run wrote to <code>~/.claude</code> or <code>~/.codex</code> (hash before and after). Record the Windows-native requirements of both CLIs from their current docs (verified hands-on in 1C).</li>
+<li><b>ADR 0001 Agent protocols.</b> A throwaway stub MCP server (one <code>ping</code> tool) under <code>tests/spikes/</code>. Drive <code>claude -p</code> with the flags in section 10 and record transcripts: a plain turn, a tool call, a permission prompt through <code>--permission-prompt-tool</code>, an interrupt, a resume. Drive <code>codex app-server</code> with <code>-c mcp_servers…</code> overrides: initialize, thread and turn start, a tool call, an approval request, an interrupt, a resume. For <b>both</b> CLIs also record plan usage: Claude's <code>/usage</code> reply in a <code>-p</code> stream-JSON probe (its <code>usage_report</code>, whether it spends model tokens, whether it saves a session and how to avoid that) and a <code>rate_limit_event</code>; Codex <code>account/rateLimits/read</code> and <code>account/rateLimits/updated</code>. Check whether <code>-p</code> still uses the subscription login without <code>--bare</code>, and whether this version has made <code>--bare</code> the default. Also record which credential the session uses and where it's reported (Claude's <code>system/init</code>, Codex <code>account/read</code>), with a plan sign-in alone and with an API key variable also set; and: a user message sent mid-turn (does it arrive at the next step, wait for the turn to end, or get rejected?), an interrupt followed straight away by a new turn, and a stub tool that blocks for 10 minutes (the real tool-timeout default and the highest value the timeout settings in section 10 accept). The ADR states which redirect path (native or queued) each CLI gets, and what <code>ask_user</code> does if a timeout cap is too low (D-32, D-33). Commit <code>codex app-server generate-json-schema</code> output under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>. Prove neither run wrote to <code>~/.claude</code> or <code>~/.codex</code> (hash before and after). Record the Windows-native requirements of both CLIs from their current docs (verified hands-on in 1C).</li>
 <li><code>scripts/scrub-transcript</code> plus a test. Scrubbed transcripts go to <code>tests/replay/{claude,codex}/</code>.</li>
 <li><b>ADR 0002 E2E.</b> A hello-world WebdriverIO spec with <code>@wdio/tauri-service</code> and the embedded <code>tauri-plugin-wdio-webdriver</code> (debug builds only) that clicks a button in the 0A window, green in CI on the self-hosted Mac and on <code>windows-latest</code>. If macOS fails, record the fallback (Playwright on WebKit against Vite with a mocked IPC on macOS, wdio on Windows) and ask Barry.</li>
 <li><b>ADR 0003 Licenses and reuse.</b> The LDraw library (CC BY 4.0 + CC BY 2.0 parts; the exact attribution text), the LDCad shadow library (license, format, coverage of clip, bar, pin, and hinge metadata), LDraw OMR models (can small ones be committed as fixtures?), Rebrickable CSV terms, three.js <code>LDrawLoader</code>, and ldraw-nova, brickbuilder-mcp, brick-mcp, ldraw-mcp, ClawdCAD, OpenCovibe: license, and what we may reuse (ideas or code). Default stance: learn from them, don't copy code unless the license allows and Barry agrees.</li>
@@ -1762,6 +1804,7 @@ designs it. Set up the wdio E2E harness so later sessions only add specs.</code>
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><b>emmet-agent:</b> the trait and events (section 10); detection (paths, version, supported range, signed-in check through the CLI's own status command); per-session config in app data; the Claude adapter (stream-JSON) and the Codex adapter (app-server JSON-RPC, with types checked against the committed schema); interrupt; <code>steer()</code> with the native or queued path per ADR 0001; resume; approvals (Claude through <code>emmet_host.approve</code>, Codex through server requests); crash and exit handling; transcript capture.</li>
+<li><b>Plan usage v0 (D-36):</b> <code>usage()</code> for both adapters (the Claude <code>/usage</code> probe and Codex <code>account/rateLimits/read</code>), live updates from <code>rate_limit_event</code> and <code>account/rateLimits/updated</code>, the shared <code>UsageSnapshot</code>, and the meters in the status bar. Replay fixtures for each source, including unavailable and API-key states.</li>
 <li><b>Plans and billing (D-35):</b> the billing badge in the picker and chat header; the plan-or-API-key question when a credential variable is present; the environment passed to each CLI built from an allowlist plus the user's answer; a replay test for each case.</li>
 <li><b>Questions and redirects:</b> <code>emmet mcp-host</code> with <code>approve</code> and <code>ask_user</code>; <code>emmet mcp --session</code> attaching <code>user_notes</code> from the bus to tool results; the raised tool timeouts in each adapter's session config; <code>AskUserQuestion</code> disabled for Claude.</li>
 <li><b>Doctrine v0:</b> <code>crates/emmet-cli/doctrine/EMMET.md</code> (including build in stages, when to ask, and how to handle <code>user_notes</code>), <code>emmet rules</code>, <code>emmet api</code> (generated from <code>emmet_dsl</code> docstrings), the pointer passed through <code>--append-system-prompt</code> / <code>developerInstructions</code>, and the project <code>AGENTS.md</code> template.</li>
@@ -2041,6 +2084,7 @@ Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace th
 <li>Context from the UI: "the agent sees what you selected" (selected ids and the view are sent as structured context with the next message), plus "Ask agent to fix" from findings and run errors.</li>
 <li>The doctrine in the UI: one tip at a time (first slider, first finding, first export), tracked per user.</li>
 <li>Sessions: per-project history, resume after an app restart, switching agents mid-project (a divider, with the state carried by files), and a usage display where the CLI reports it.</li>
+<li>Plan usage to the frozen design: the status bar meters, the Detailed and Compact popover, per-agent detail (windows, credits, earned resets with a confirmed "Reset now" for Codex, "Updated 8m ago"), the 90 % line, and the limit-reached card with "Continue with the other agent".</li>
 <li>emmet-bus complete: highlight, camera, and selection queries, used by both the app's own sessions and terminal agents.</li>
 <li>Agent health: a crashed agent → a one-click restart that resumes the session; not installed or not signed in → the fix card; an untested version → a quiet note.</li>
 <li>Replay E2E: a full rung 1 build replayed from a live transcript on both OSes; an interrupt; an approval denied; a question answered with Other; a redirect mid-build; a crash and restart.</li>
@@ -2532,6 +2576,8 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Agents reason poorly about 3D placement</td><td>High</td><td>Grid units and footprint placement, helpers and techniques, findings with source lines, render-to-agent, "draft in the first minute", and the ladder eval to measure it.</td><td>1A, 1D, 3B, 5A</td></tr>
 <tr><td>Agent CLI protocols change (both iterate fast)</td><td>Medium</td><td>Committed Codex schema per version, replay fixtures, tested version ranges, unknown events ignored, and <code>doctor</code> warnings.</td><td>0B, 1C</td></tr>
 <tr><td>Redirects and long-waiting question tools depend on CLI behavior that differs between Claude Code and Codex and may change: mid-turn input, interrupt, and MCP tool timeouts</td><td>Medium</td><td>The queued path through Emmet's own tool results works on any CLI that calls Emmet tools. ADR 0001 records each CLI's real behavior, replay tests pin it, and <code>ask_user</code> falls back to ending the turn if a timeout cap is too low.</td><td>0B, 1C</td></tr>
+<tr><td>Usage sources change: Claude's <code>usage_report</code> is marked experimental, and Codex rate-limit fields evolve</td><td>Low</td><td>Render rows as reported, tolerate unknown fields, show "usage unavailable" instead of wrong numbers, and replay fixtures per CLI version.</td><td>1C, 4B</td></tr>
+<tr><td>Claude Code makes <code>--bare</code> the default for <code>-p</code>; bare mode never reads the subscription login (per its docs), which would silently move users to API billing or fail</td><td>High</td><td>0B and every version-range check verify plan sign-in works in Emmet's <code>-p</code> sessions; the billing badge (D-35) makes any change visible; pass an explicit non-bare option if one ships.</td><td>0B, 1C, 5B</td></tr>
 <tr><td>The build animation slows the loop or hides problems</td><td>Low</td><td>Capped at 6 s and skipped by any new run, never used for sliders, never in agent renders; Fast and Off in Settings; a frame-time budget in section 13.</td><td>1D, 4C</td></tr>
 <tr><td>A provider narrows what apps that start its CLI may do on a subscription plan (both have tightened rules in 2026)</td><td>High</td><td>Use only the user's own unmodified CLI and sign-in; never touch credentials; follow the published conditions (D-35, H-20); terminal mode as the fallback that keeps plan use; re-check the terms in 7B; Sign in with ChatGPT if Emmet ever becomes commercial.</td><td>1C, 7B</td></tr>
 <tr><td>WKWebView WebGL performance or hidden-window throttling</td><td>Medium</td><td>Bench in 1B, instancing, ADR 0005 with an off-screen-window fallback.</td><td>0B, 1B, 4C</td></tr>
@@ -2616,6 +2662,8 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
 <li>WebdriverIO Tauri service, platform support (embedded WebDriver on macOS): <a href="https://webdriver.io/docs/desktop-testing/tauri/platform-support">webdriver.io/docs/desktop-testing/tauri/platform-support</a></li>
 <li>LDraw.org Contributor Agreement (CC BY 4.0, optional CC0; older parts CC BY 2.0): <a href="https://www.ldraw.org/docs-main/licenses/ldraw-org-contributor-agreement.html">ldraw.org contributor agreement</a></li>
 <li>Claude Code legal and compliance (running Claude Code in products; subscription and OAuth rules), checked 2026-10-24: <a href="https://code.claude.com/docs/en/legal-and-compliance">code.claude.com/docs/en/legal-and-compliance</a> · Claude Code authentication precedence: <a href="https://code.claude.com/docs/en/authentication">code.claude.com/docs/en/authentication</a></li>
+<li>Claude Code usage data: <code>SDKUsageReport</code> and <code>SDKRateLimitEvent</code> in <a href="https://code.claude.com/docs/en/agent-sdk/typescript">the Agent SDK TypeScript reference</a>; <code>rate_limits</code> in <a href="https://code.claude.com/docs/en/statusline">status line docs</a>; <code>--bare</code> and <code>system/init</code> capabilities in <a href="https://code.claude.com/docs/en/headless">headless docs</a> (all checked 2026-10-24)</li>
+<li>Orca, for its usage UI and provider-neutral design: <a href="https://github.com/stablyai/orca">github.com/stablyai/orca</a> (MIT), <code>src/main/rate-limits/</code> and <code>src/shared/rate-limit-types.ts</code> at f2446b9</li>
 <li>Codex auth (ChatGPT plan vs API key): <a href="https://learn.chatgpt.com/docs/auth">learn.chatgpt.com/docs/auth</a> · Sign in with ChatGPT: <a href="https://learn.chatgpt.com/docs/sign-in-with-chatgpt">learn.chatgpt.com/docs/sign-in-with-chatgpt</a></li>
 <li>Codex app server (JSON-RPC over stdio, threads, turns, items; auth modes and the local/open-source rule), checked 2026-10-24: <a href="https://learn.chatgpt.com/docs/app-server">learn.chatgpt.com/docs/app-server</a> · Codex MCP config: <a href="https://developers.openai.com/codex/mcp">developers.openai.com/codex/mcp</a></li>
 <li>Claude Code CLI reference: <a href="https://docs.claude.com/en/docs/claude-code/cli-reference">docs.claude.com/en/docs/claude-code/cli-reference</a> (flags checked against Claude Code 2.1.310 on 2026-10-24)</li>
