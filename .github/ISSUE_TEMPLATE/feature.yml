@@ -1,0 +1,15 @@
+name: Feature idea
+description: Something Emmet should do.
+labels: [idea]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you're trying to do
+      description: The model or task, and where Emmet gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
