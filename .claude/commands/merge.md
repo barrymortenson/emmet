@@ -55,8 +55,10 @@ an empty commit.
 
 ## 4. Wait for the required checks
 
-`gh pr checks <n> --required --watch --fail-fast` on the pushed head. A failure stops here: report the failing job and
-its log link, and don't merge. Never bypass a required check or branch protection.
+`gh pr checks <n> --watch --fail-fast` on the pushed head. Right after a push it can say "no checks reported" before
+the run registers; retry until the jobs appear. Then `gh pr checks <n> --required` must show the `ci` check passing.
+A failure stops here: report the failing job and its log link, and don't merge. Never bypass a required check or
+branch protection.
 
 ## 5. Merge
 
