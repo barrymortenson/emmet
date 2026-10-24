@@ -13,3 +13,5 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - `emmet --version [--json]`.
 - The `justfile` (every command in plan section 18), git hooks, and CI on the self-hosted Mac and hosted Windows, with
   SPDX, DCO, gitleaks, cargo-deny, and plan-tracker checks.
+- A `/merge` command for Claude Code: it evaluates the session against the plan, sets it to done on the PR branch,
+  waits for the required checks, and merges (plan section 19).
