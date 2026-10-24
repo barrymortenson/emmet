@@ -2894,12 +2894,16 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
   function phaseText(n) {
     return clean(rules.textContent) + "\n\n--- Phase " + n + " ---\n\n" + clean(phaseTpl.textContent.replace(/\{PHASE\}/g, n)) + "\n";
   }
+  // Every copy button goes through here, so the rail and the session buttons copy the same way.
+  function onCopy(b, getText) {
+    b.addEventListener("click", function (ev) { ev.preventDefault(); ev.stopPropagation(); copy(getText(), b); });
+  }
   function bar(label, hint, onClick) {
     var wrap = document.createElement("span"); wrap.className = "copy-bar";
     var b = document.createElement("button"); b.type = "button"; b.textContent = label;
     var h = document.createElement("span"); h.className = "hint"; h.textContent = hint;
     wrap.appendChild(b); wrap.appendChild(h);
-    b.addEventListener("click", function (ev) { ev.preventDefault(); ev.stopPropagation(); copy(onClick(), b); });
+    onCopy(b, onClick);
     return wrap;
   }
   sessions.forEach(function (s) {
@@ -2996,7 +3000,7 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
   html += '<div class="v" style="color:#9aa1ad;margin-top:6px">* backlog, not counted. Updated ' + esc((S && S.updated) || "never") + "</div>";
   panel.innerHTML = html;
   $$("button.cp", panel).forEach(function (b) {
-    b.addEventListener("click", function () { copy(sessionText(byId[b.getAttribute("data-copy")]), b); });
+    onCopy(b, function () { return sessionText(byId[b.getAttribute("data-copy")]); });
   });
 })();
 </script>
