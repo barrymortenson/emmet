@@ -10,7 +10,15 @@
 window.EMMET_STATUS = {
   updated: "2026-10-24",
   sessions: {
-    "0A": { status: "review", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24" },
+    "0A": {
+      status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
+      evidence: [
+        "just ci on this Mac: ci: ok",
+        "CI ci check green #1 (mac on self-hosted emmet-mac, windows, plan)",
+        "tests/it/tests/cli.rs, tests/scripts/{plan-check,gates,spdx-dco,ci,runner,justfile}.test.mjs"
+      ],
+      note: "1A and 1C must use the test HOME and data dir the runner guard sets; CLAUDE.md is a symlink, a text file on Windows without core.symlinks"
+    },
     "0B": { status: "todo" },
     "1A": { status: "todo" },
     "1B": { status: "todo" },
