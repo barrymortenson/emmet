@@ -84,7 +84,12 @@ test *args: build
     node_filter=(); py_filter=(); [[ -n "$args" ]] && node_filter=(--test-name-pattern "$args") && py_filter=(-k "$args")
     for suite in "${all[@]}"; do
       case $suite in
-        scripts) [[ "$OSTYPE" == msys* ]] || node --test "${node_filter[@]}" "tests/scripts/*.test.mjs" ;;
+        # The script and gate tests need bash, gitleaks, and cargo-deny; CI runs them on macOS and Linux.
+        scripts)
+          case "$(uname -s)" in
+            MINGW* | MSYS* | CYGWIN*) echo "test: skipping tests/scripts on Windows" ;;
+            *) node --test "${node_filter[@]}" "tests/scripts/*.test.mjs" ;;
+          esac ;;
         python) uv run --project {{ dsl }} --frozen python -m unittest discover -s {{ dsl }}/tests "${py_filter[@]}" ;;
         viewer) pnpm --filter @emmet/viewer exec node --test "${node_filter[@]}" "test/*.test.mjs" ;;
         desktop) pnpm --filter @emmet/desktop exec node --test "${node_filter[@]}" "test/*.test.mjs" ;;
