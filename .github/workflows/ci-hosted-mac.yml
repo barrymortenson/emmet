@@ -1,0 +1,13 @@
+# The fallback when the self-hosted Mac is down: the whole ci workflow on hosted runners (paid macOS minutes).
+name: ci-hosted-mac
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    # A manual run isn't a trusted event for the self-hosted runner, so ci.yml routes its mac job to macos-latest.
+    uses: ./.github/workflows/ci.yml

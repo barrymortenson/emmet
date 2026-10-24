@@ -1,0 +1,23 @@
+# Weekly, grouped updates (plan section 06). A minor update merges when CI is green; a major one gets its own PR.
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      cargo-minor: { update-types: [minor, patch] }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      npm-minor: { update-types: [minor, patch] }
+  - package-ecosystem: uv
+    directory: /python/emmet_dsl
+    schedule: { interval: weekly }
+    groups:
+      uv-minor: { update-types: [minor, patch] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      actions: { patterns: ["*"] }

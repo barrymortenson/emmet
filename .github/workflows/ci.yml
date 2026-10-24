@@ -1,0 +1,134 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # ci-hosted-mac.yml calls this to run everything on hosted runners.
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  mac:
+    # The self-hosted Mac takes trusted events only (D-13, plan section 17): pushes to main and PRs Barry opened from a
+    # branch in this repo. Forks, Dependabot, and manual runs use hosted macos-latest.
+    runs-on: ${{ fromJSON((github.repository == 'barrymortenson/emmet' && github.actor == 'barrymortenson' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'barrymortenson'))) && '["self-hosted","macOS","emmet"]' || '"macos-latest"') }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          # Keep the self-hosted runner's warm target/ and node_modules/ between runs.
+          clean: ${{ runner.environment == 'github-hosted' }}
+      - name: Runner guard
+        if: runner.environment == 'self-hosted'
+        env:
+          EMMET_PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          EMMET_PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          EMMET_DATA_DIR: ${{ runner.temp }}/emmet-data
+          EMMET_TEST_HOME: ${{ runner.temp }}/home
+        run: |
+          scripts/runner-guard.sh
+          printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$EMMET_DATA_DIR" "$EMMET_TEST_HOME" >> "$GITHUB_ENV"
+      - run: echo "CI_START=$(date +%s)" >> "$GITHUB_ENV"
+      - if: runner.environment == 'github-hosted'
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - if: runner.environment == 'github-hosted'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - if: runner.environment == 'github-hosted'
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: 0.12.22
+      - if: runner.environment == 'github-hosted'
+        uses: taiki-e/install-action@1e29709c0ec63babbe8f266397a465f29a825f91 # v2.87.31
+        with:
+          tool: just@1.58.0,cargo-deny@0.20.2
+      - name: Install gitleaks
+        if: runner.environment == 'github-hosted'
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_darwin_arm64.tar.gz
+          echo "b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5  /tmp/gitleaks.tgz" | shasum -a 256 -c
+          mkdir -p "$RUNNER_TEMP/bin" && tar -xzf /tmp/gitleaks.tgz -C "$RUNNER_TEMP/bin" gitleaks
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - if: runner.environment == 'github-hosted'
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - run: just setup
+      - run: just ci
+      - name: Timing
+        if: always()
+        run: echo "mac job ($RUNNER_ENVIRONMENT): $(( ($(date +%s) - CI_START) / 60 ))m $(( ($(date +%s) - CI_START) % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        # Git Bash, so just finds bash (see justfile).
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: echo "CI_START=$(date +%s)" >> "$GITHUB_ENV"
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: 0.12.22
+      - uses: taiki-e/install-action@1e29709c0ec63babbe8f266397a465f29a825f91 # v2.87.31
+        with:
+          tool: just@1.58.0
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - run: rustup toolchain install
+      - run: just deps
+      - run: just test
+      - run: just build-app
+      - name: Timing
+        if: always()
+        run: echo "windows job: $(( ($(date +%s) - CI_START) / 60 ))m $(( ($(date +%s) - CI_START) % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
+
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - run: node scripts/plan-check.mjs
+      - run: node scripts/spdx-check.mjs
+      - name: DCO
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: scripts/dco-check.sh "$BASE" "$HEAD"
+      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs
+
+  # The one required check: green only when every job above is.
+  ci:
+    if: always()
+    needs: [mac, windows, plan]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULTS: ${{ needs.mac.result }} ${{ needs.windows.result }} ${{ needs.plan.result }}
+        run: |
+          echo "mac windows plan: $RESULTS"
+          [[ "$RESULTS" == "success success success" ]]
