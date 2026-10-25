@@ -1,0 +1,74 @@
+{
+  "about": "The provider text behind plan section 10's terms matrix and section 12's data terms (D-37). scripts/terms-check re-reads the 'fetch' pages and reports any phrase that's gone; 'manual' pages are checked by hand, because the site forbids automated traffic. Each phrase is short on purpose: enough to find the passage, not a copy of it.",
+  "checked": "2026-10-24",
+  "pages": [
+    {
+      "provider": "Anthropic",
+      "title": "Claude Code: Legal and compliance",
+      "url": "https://code.claude.com/docs/en/legal-and-compliance",
+      "check": "fetch",
+      "quotes": [
+        { "text": "preinstalling or running Claude Code in your products", "basis": "Chat pane on the user's subscription: allowed with conditions" },
+        { "text": "requires agreeing to our Commercial Terms of Service", "basis": "H-20" },
+        { "text": "The Claude Code binary must not be modified", "basis": "Emmet runs the user's installed CLI unchanged" },
+        { "text": "authentication method built into it", "basis": "never --bare, no credential variables" },
+        { "text": "pay for, resell, or intermediate Claude usage", "basis": "each user bills their own account" },
+        { "text": "prevent an end user from signing in to the unmodified Claude Code binary", "basis": "plan sign-in in the chat pane" },
+        { "text": "should use API key authentication", "basis": "Barry's scripted runs and evals use a Console key (H-21)" },
+        { "text": "accurately say, in plain text, that your product has Claude Code preinstalled", "basis": "names and logos row" }
+      ]
+    },
+    {
+      "provider": "OpenAI",
+      "title": "ChatGPT plan usage for open-source apps: Overview",
+      "url": "https://developers.openai.com/siwc/token-sharing-open-source",
+      "check": "fetch",
+      "quotes": [
+        { "text": "your open-source app can request permission to use the user's ChatGPT plan", "basis": "Codex on a ChatGPT plan (1E)" },
+        { "text": "ChatGPT plan usage for open-source and locally hosted apps", "basis": "Emmet is open source and local" },
+        { "text": "offering it in a paid or remotely hosted app, complete the interest form", "basis": "the condition if Emmet ever charges or hosts" }
+      ]
+    },
+    {
+      "provider": "OpenAI",
+      "title": "ChatGPT plan usage for open-source apps: Registration and sign-in",
+      "url": "https://developers.openai.com/siwc/token-sharing-open-source/sign-in",
+      "check": "fetch",
+      "quotes": [
+        { "text": "needs neither a client secret nor a partner API key", "basis": "open-source clients register themselves" }
+      ]
+    },
+    {
+      "provider": "OpenAI",
+      "title": "Codex app-server",
+      "url": "https://learn.chatgpt.com/docs/app-server",
+      "check": "fetch",
+      "quotes": [
+        { "text": "we recommend migrating to Sign in with ChatGPT", "basis": "Emmet doesn't use the CLI's own login" },
+        { "text": "App-server authentication has never been permitted for commercial or hosted services", "basis": "not built: chat pane on the CLI's ChatGPT login" }
+      ]
+    },
+    {
+      "provider": "Rebrickable",
+      "title": "LEGO Catalog Database Downloads",
+      "url": "https://rebrickable.com/downloads/",
+      "check": "manual",
+      "quotes": [
+        { "text": "Free for personal and commercial use, provided you acknowledge Rebrickable as your data source", "basis": "D-25, the parts data pack" },
+        { "text": "You may automate downloading these archives at most once a day", "basis": "one scheduled fetch a week from CI" }
+      ]
+    },
+    {
+      "provider": "Rebrickable",
+      "title": "Terms of Service",
+      "url": "https://rebrickable.com/terms/",
+      "check": "manual",
+      "quotes": [
+        { "text": "you can download the full catalog via the Downloads page", "basis": "section 5.1" },
+        { "text": "automate or manually scrape any MOC related data", "basis": "no MOC data" },
+        { "text": "use automation tools to download data or to automate traffic", "basis": "section 5.3: why these pages are checked by hand" },
+        { "text": "No Rebrickable content may be used in the training of AI models", "basis": "Q-14, H-24" }
+      ]
+    }
+  ]
+}

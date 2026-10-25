@@ -1,0 +1,59 @@
+#!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Re-reads the provider pages behind plan section 10's terms matrix and reports any recorded phrase that's no longer
+// there (D-37). Run by hand at G1, G2, and 7B, never in CI. A missing phrase holds the decision it supports until
+// Barry has settled what changed.
+//
+//   scripts/terms-check [docs/terms/quotes.json]
+//
+// Pages marked "manual" (Rebrickable forbids automated traffic to its site) are printed as a checklist instead.
+
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const file = process.argv[2] || join(dirname(fileURLToPath(import.meta.url)), "../docs/terms/quotes.json");
+const { pages, checked } = JSON.parse(readFileSync(file, "utf8"));
+
+/** The page as plain text: tags, scripts, and styles stripped, entities and curly quotes folded, spaces collapsed. */
+export function text(html) {
+  return html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;|&apos;|&rsquo;|&lsquo;|[‘’]/g, "'")
+    .replace(/&ldquo;|&rdquo;|[“”]/g, '"')
+    .replace(/&[a-z]+;|&#\d+;/g, " ")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+let missing = 0;
+console.log(`terms-check: the quotes recorded on ${checked} (${file})`);
+for (const page of pages) {
+  console.log(`\n${page.provider}: ${page.title}\n  ${page.url}`);
+  if (page.check === "manual") {
+    console.log("  check by hand (no automated fetch): open the page and confirm each phrase is still there:");
+    for (const q of page.quotes) console.log(`    [ ] "${q.text}"  (${q.basis})`);
+    continue;
+  }
+  let body;
+  try {
+    const res = await fetch(page.url, { headers: { "user-agent": "emmet-terms-check (run by hand)" } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    body = text(await res.text());
+  } catch (e) {
+    console.log(`  FAIL could not fetch: ${e.message}; check the page by hand`);
+    missing += page.quotes.length;
+    continue;
+  }
+  for (const q of page.quotes) {
+    const ok = body.includes(text(q.text));
+    if (!ok) missing++;
+    console.log(`  ${ok ? "ok  " : "GONE"} "${q.text}"${ok ? "" : `  (basis: ${q.basis})`}`);
+  }
+}
+console.log(missing ? `\nterms-check: ${missing} phrases are gone or unchecked; settle each before the gate (D-37)` : "\nterms-check: ok");
+process.exit(missing ? 1 : 0);

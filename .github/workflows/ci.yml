@@ -129,7 +129,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || 'origin/main' }}
           HEAD: ${{ github.event.pull_request.head.sha || 'HEAD' }}
         run: scripts/dco-check.sh "$BASE" "$HEAD"
-      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs
+      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs
 
   # The one required check: green only when every job above is.
   ci:
