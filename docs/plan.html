@@ -1392,7 +1392,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <h3>Rules that keep this fast</h3>
 <ul class="small">
 <li><b>CI time budget:</b> a PR's macOS job finishes in ≤ 10 minutes and the Windows job in ≤ 15. A test that pushes past the budget moves to nightly or gets faster. Timings are printed in the job summary.</li>
-<li><b>Run only what a change can break:</b> <code>scripts/ci-scope.sh</code> picks the jobs from the changed paths (prose runs only the plan job; the UI and viewer skip Windows, which covers paths, processes, the sidecars, and Python), a push after a green run tests only its own commits, and a merge doesn't rerun on <code>main</code>. A change to the toolchain, a lockfile, the justfile, or a workflow runs everything, as do the weekly run and the <code>full-ci</code> label.</li>
+<li><b>Run only what a change can break:</b> <code>scripts/ci-scope.sh</code> picks the jobs from the changed paths (prose runs only the plan job; the UI and viewer skip Windows, which covers paths, processes, the sidecars, and Python), a push after a green run tests only its own commits, and a merge doesn't rerun on <code>main</code>. A change to the toolchain, a lockfile, the justfile, or a workflow runs everything, as do the weekly run and the <code>full-ci</code> label (from the PR's next push).</li>
 <li><b>Flaky tests:</b> one retry is allowed in E2E only. A test that needs it twice in a week is quarantined with an issue and fixed within the phase. Nothing is quarantined silently.</li>
 <li><b>Fixtures stay small:</b> ldraw-mini is ~200 parts, and replay files are under 200 KB each.</li>
 <li><b>No mocks of our own code:</b> fakes exist only at external boundaries (the agent CLIs, the network downloads).</li>

@@ -1,11 +1,11 @@
 name: ci
 
 # A PR's own pushes only: the merge to main was already tested as the PR's merge commit, so main doesn't run it again.
-# Everything runs weekly, by hand, and on a PR labeled full-ci; otherwise scripts/ci-scope.sh picks what the change
-# can break (plan section 16).
+# Everything runs weekly, by hand, and on a PR labeled full-ci (from its next push: a labeled trigger would make the
+# labeler the actor, and send someone else's commits to the self-hosted Mac); otherwise scripts/ci-scope.sh picks
+# what the change can break (plan section 16).
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
   schedule:
     - cron: "0 9 * * 1"
   workflow_dispatch:
