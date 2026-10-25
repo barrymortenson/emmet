@@ -207,13 +207,8 @@ fn scope(tool: &str, input: &Value) -> String {
             rest.split(['/', '?', '#']).next().unwrap_or_default().to_lowercase()
         }
         "WebSearch" => s("query").to_string(),
-        "Edit" | "Write" | "MultiEdit" | "NotebookEdit" => {
-            if input["file_path"].is_string() {
-                s("file_path").to_string()
-            } else {
-                s("notebook_path").to_string()
-            }
-        }
+        "NotebookEdit" => s("notebook_path").to_string(),
+        "Edit" | "Write" | "MultiEdit" => s("file_path").to_string(),
         _ => String::new(),
     };
     format!("{tool}\u{0}{what}")
@@ -224,14 +219,8 @@ fn describe(tool: &str, input: &Value) -> (ApprovalKind, String) {
     let s = |k: &str| input[k].as_str().unwrap_or_default().to_string();
     match tool {
         "Bash" | "PowerShell" => (ApprovalKind::Command, s("command")),
-        "Edit" | "Write" | "MultiEdit" | "NotebookEdit" => (
-            ApprovalKind::Edit,
-            if input["file_path"].is_string() {
-                s("file_path")
-            } else {
-                s("notebook_path")
-            },
-        ),
+        "NotebookEdit" => (ApprovalKind::Edit, s("notebook_path")),
+        "Edit" | "Write" | "MultiEdit" => (ApprovalKind::Edit, s("file_path")),
         "WebFetch" => (ApprovalKind::Permission, s("url")),
         "WebSearch" => (ApprovalKind::Permission, s("query")),
         _ => (ApprovalKind::Tool, serde_json::to_string(input).unwrap_or_default()),

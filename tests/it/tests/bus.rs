@@ -156,6 +156,53 @@ fn an_answer_from_a_process_that_doesnt_know_the_token_is_refused() {
     );
 }
 
+/// A request seen once can't be sent again, and its proof doesn't fit another message.
+#[test]
+fn a_request_can_be_sent_once_and_only_as_itself() {
+    use interprocess::local_socket::prelude::*;
+    use std::io::{BufRead, BufReader, Write};
+    let data = data();
+    let _server = Server::start(&data, |_| Reply {
+        delivered: true,
+        ..Default::default()
+    })
+    .unwrap();
+    let info: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(info_path(&data)).unwrap()).unwrap();
+    let token = info["token"].as_str().unwrap();
+    let message = highlight();
+    let body = format!("1:{}", serde_json::to_string(&message).unwrap());
+    let request = |auth: &str, message: &Message| {
+        let mut v = serde_json::to_value(message).unwrap();
+        v["v"] = 1.into();
+        v["nonce"] = "abc".into();
+        v["auth"] = auth.into();
+        v["id"] = 1.into();
+        format!("{v}\n")
+    };
+    let ask = |line: String| {
+        let mut conn = interprocess::local_socket::Stream::connect(socket(info["name"].as_str().unwrap())).unwrap();
+        conn.write_all(line.as_bytes()).unwrap();
+        let mut reply = String::new();
+        BufReader::new(conn).read_line(&mut reply).unwrap();
+        serde_json::from_str::<Reply>(&reply).unwrap()
+    };
+    let auth = emmet_bus::proof("client", token, "abc", &body);
+    let other = Message::Highlight {
+        project: "/p".into(),
+        ids: vec!["something else".into()],
+    };
+    assert_eq!(
+        ask(request(&auth, &other)).reason.as_deref(),
+        Some("wrong token"),
+        "the proof is for another message"
+    );
+    assert!(ask(request(&auth, &message)).delivered);
+    assert_eq!(
+        ask(request(&auth, &message)).reason.as_deref(),
+        Some("that request was already sent")
+    );
+}
+
 /// Only this user may open the socket (plan section 15).
 #[cfg(unix)]
 #[test]

@@ -72,16 +72,52 @@ pub struct Request {
     pub v: u32,
     /// Random, new for each request.
     pub nonce: String,
-    /// [`proof`]`("client", token, nonce)`.
+    /// [`proof`]`("client", token, nonce, id:message)`.
     pub auth: String,
     pub id: u64,
     #[serde(flatten)]
     pub message: Message,
 }
 
-/// sha256 of `side:token:nonce`, in hex.
-pub fn proof(side: &str, token: &str, nonce: &str) -> String {
-    fsx::sha256_hex(format!("{side}:{token}:{nonce}").as_bytes())
+/// sha256 of `side:token:nonce:body`, in hex: `body` is the request's id and message, or the reply without its
+/// `auth`, so a proof can't be moved to another message.
+pub fn proof(side: &str, token: &str, nonce: &str, body: &str) -> String {
+    fsx::sha256_hex(format!("{side}:{token}:{nonce}:{body}").as_bytes())
+}
+
+fn request_body(id: u64, message: &Message) -> String {
+    format!("{id}:{}", serde_json::to_string(message).expect("message serializes"))
+}
+
+fn reply_body(reply: &Reply) -> String {
+    serde_json::to_string(&Reply {
+        auth: None,
+        ..reply.clone()
+    })
+    .expect("reply serializes")
+}
+
+/// Nonces the server has seen, so a request can't be sent twice (the newest few thousand).
+#[derive(Default)]
+struct Seen {
+    order: std::collections::VecDeque<String>,
+    set: std::collections::HashSet<String>,
+}
+
+impl Seen {
+    /// True the first time `nonce` comes.
+    fn first(&mut self, nonce: &str) -> bool {
+        if !self.set.insert(nonce.to_string()) {
+            return false;
+        }
+        self.order.push_back(nonce.to_string());
+        if self.order.len() > 4096
+            && let Some(old) = self.order.pop_front()
+        {
+            self.set.remove(&old);
+        }
+        true
+    }
 }
 
 /// The app's answer. `delivered: false` carries `reason`; a delivered message that failed carries `error`.
@@ -104,7 +140,7 @@ pub struct Reply {
     /// The answer to `approve`, `ask`, or `notes`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub answer: Option<serde_json::Value>,
-    /// [`proof`]`("server", token, nonce)`, on the answer to an authenticated request.
+    /// [`proof`]`("server", token, nonce, the reply without auth)`, on the answer to an authenticated request.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub auth: Option<String>,
 }
@@ -176,14 +212,15 @@ impl Server {
         fsx::write_private(&path, serde_json::to_string_pretty(&info).expect("json").as_bytes())?;
         let stop = Arc::new(AtomicBool::new(false));
         let (handler, want, halt) = (Arc::new(handler), token.clone(), stop.clone());
+        let seen = Arc::new(std::sync::Mutex::new(Seen::default()));
         std::thread::spawn(move || {
             for conn in listener.incoming() {
                 if halt.load(Ordering::SeqCst) {
                     break;
                 }
                 let Ok(conn) = conn else { continue };
-                let (handler, want) = (handler.clone(), want.clone());
-                std::thread::spawn(move || serve(conn, &want, &*handler));
+                let (handler, want, seen) = (handler.clone(), want.clone(), seen.clone());
+                std::thread::spawn(move || serve(conn, &want, &seen, &*handler));
             }
         });
         Ok(Self {
@@ -252,7 +289,7 @@ fn same(a: &str, b: &str) -> bool {
     a.len() == b.len() && a.bytes().zip(b.bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
 }
 
-fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send + Sync)) {
+fn serve(conn: Stream, token: &str, seen: &std::sync::Mutex<Seen>, handler: &(dyn Fn(Message) -> Reply + Send + Sync)) {
     let mut reader = BufReader::new(conn);
     let mut line = String::new();
     while reader.read_line(&mut line).is_ok_and(|n| n > 0) {
@@ -262,18 +299,33 @@ fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send +
                 id: req.id,
                 ..Reply::undelivered(format!("the app speaks bus v{VERSION}, not v{}", req.v))
             },
-            Ok(req) if !same(&req.auth, &proof("client", token, &req.nonce)) => {
+            Ok(req)
+                if !same(
+                    &req.auth,
+                    &proof("client", token, &req.nonce, &request_body(req.id, &req.message)),
+                ) =>
+            {
                 refused = true;
                 Reply {
                     id: req.id,
                     ..Reply::undelivered("wrong token")
                 }
             }
-            Ok(req) => Reply {
-                id: req.id,
-                auth: Some(proof("server", token, &req.nonce)),
-                ..handler(req.message)
-            },
+            Ok(req) if !seen.lock().expect("seen").first(&req.nonce) => {
+                refused = true;
+                Reply {
+                    id: req.id,
+                    ..Reply::undelivered("that request was already sent")
+                }
+            }
+            Ok(req) => {
+                let mut reply = Reply {
+                    id: req.id,
+                    ..handler(req.message)
+                };
+                reply.auth = Some(proof("server", token, &req.nonce, &reply_body(&reply)));
+                reply
+            }
             Err(e) => Reply::undelivered(format!("not a bus request: {e}")),
         };
         let mut text = serde_json::to_string(&reply).expect("reply serializes");
@@ -307,7 +359,7 @@ pub fn send(data: &DataDir, message: Message, timeout: Duration) -> Reply {
     let nonce = fsx::random_hex(2);
     let req = Request {
         v: VERSION,
-        auth: proof("client", &info.token, &nonce),
+        auth: proof("client", &info.token, &nonce, &request_body(1, &message)),
         nonce: nonce.clone(),
         id: 1,
         message,
@@ -327,7 +379,9 @@ pub fn send(data: &DataDir, message: Message, timeout: Duration) -> Reply {
     match rx.recv_timeout(timeout) {
         Ok(line) if !line.trim().is_empty() => match serde_json::from_str::<Reply>(line.trim()) {
             // A delivered answer must prove it came from the app that wrote bus.json.
-            Ok(r) if r.delivered && r.auth.as_deref() != Some(&proof("server", &info.token, &nonce)) => {
+            Ok(r)
+                if r.delivered && r.auth.as_deref() != Some(&proof("server", &info.token, &nonce, &reply_body(&r))) =>
+            {
                 Reply::undelivered("the answer on the bus didn't come from Emmet")
             }
             Ok(r) => r,

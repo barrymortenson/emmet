@@ -202,7 +202,7 @@ impl EmmetHost {
 
 /// Files inside the project that configure an agent: an edit to one is a card, since it changes what the next session
 /// may do. Dot folders and files (`.claude/`, `.codex/`, `.mcp.json`, `.git/hooks/`, `.emmet/`) are cards too.
-const AGENT_FILES: &[&str] = &["AGENTS.md", "CLAUDE.md", "AGENTS.override.md"];
+const AGENT_FILES: &[&str] = &["AGENTS.md", "CLAUDE.md", "CLAUDE.local.md", "AGENTS.override.md"];
 
 /// What `approve` allows without a card (plan section 10): reads, our own tools, and an edit to a model file inside the
 /// project. The path must stay inside after following links, so a link out of the project, or `..`, is a card, and so
@@ -214,19 +214,26 @@ pub fn auto_allowed(root: &Path, tool: &str, input: &Value) -> bool {
     if !EDITS.contains(&tool) {
         return false;
     }
-    let Some(path) = input["file_path"].as_str().or(input["notebook_path"].as_str()) else {
+    // The field the tool writes: a NotebookEdit's notebook_path, everyone else's file_path.
+    let field = if tool == "NotebookEdit" {
+        "notebook_path"
+    } else {
+        "file_path"
+    };
+    let Some(path) = input[field].as_str() else {
         return false;
     };
     let Some(rel) = inside(root, Path::new(path)) else {
         return false;
     };
-    let config = rel
-        .components()
-        .any(|c| c.as_os_str().to_string_lossy().starts_with('.'))
-        || rel
-            .file_name()
-            .is_some_and(|n| AGENT_FILES.iter().any(|f| n.eq_ignore_ascii_case(f)));
-    !config
+    !rel.components().any(|c| is_config(&c.as_os_str().to_string_lossy()))
+}
+
+/// A path component that's agent config: a dot name, or an agent's instruction file. Windows ignores a name's
+/// trailing dots and spaces, and `:` names a file's alternate stream, so `CLAUDE.md.` and `CLAUDE.md:x` count too.
+fn is_config(name: &str) -> bool {
+    let name = name.trim_end_matches(['.', ' ']);
+    name.starts_with('.') || name.contains(':') || AGENT_FILES.iter().any(|f| name.eq_ignore_ascii_case(f))
 }
 
 /// Where `path` (absolute, or relative to `root`) lands inside `root` once links are followed, relative to it; None if
@@ -243,6 +250,10 @@ fn inside(root: &Path, path: &Path) -> Option<PathBuf> {
     let mut existing = full.as_path();
     let mut rest = Vec::new();
     while !existing.exists() {
+        // There, but not followable: a dangling link, which a write would follow out of the project.
+        if existing.symlink_metadata().is_ok() {
+            return None;
+        }
         match (existing.parent(), existing.file_name()) {
             (Some(parent), Some(name)) => {
                 rest.push(name.to_owned());

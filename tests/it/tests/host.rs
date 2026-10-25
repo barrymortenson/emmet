@@ -116,6 +116,23 @@ async fn approve_allows_reads_and_model_edits_and_asks_for_the_rest() {
         ),
         ("Write", json!({ "file_path": f("claude.md"), "content": "" }), "card"),
         ("Edit", json!({}), "card"),
+        ("Write", json!({ "file_path": f("CLAUDE.md. "), "content": "" }), "card"),
+        (
+            "Write",
+            json!({ "file_path": f("model.py:hidden"), "content": "" }),
+            "card",
+        ),
+        (
+            "NotebookEdit",
+            json!({ "notebook_path": f("models/a.ipynb"), "new_source": "" }),
+            "allow",
+        ),
+        // The tool writes notebook_path; an inside file_path beside it changes nothing.
+        (
+            "NotebookEdit",
+            json!({ "file_path": f("model.py"), "notebook_path": f("../x.ipynb") }),
+            "card",
+        ),
     ];
     for (tool, input, want) in cases {
         assert_eq!(decide(&h, tool, input.clone()).await, want, "{tool} {input}");
@@ -126,6 +143,16 @@ async fn approve_allows_reads_and_model_edits_and_asks_for_the_rest() {
         std::os::unix::fs::symlink(&outside, p.join("link")).unwrap();
         let input = json!({ "file_path": f("link/escape.txt"), "content": "x" });
         assert_eq!(decide(&h, "Write", input).await, "card", "a link out of the project");
+        // A dangling link: the file it names doesn't exist yet, and a write would create it outside.
+        std::os::unix::fs::symlink(outside.join("missing.txt"), p.join("dangling.txt")).unwrap();
+        let input = json!({ "file_path": f("dangling.txt"), "content": "x" });
+        assert_eq!(
+            decide(&h, "Write", input).await,
+            "card",
+            "a dangling link out of the project"
+        );
+        let input = json!({ "file_path": f("CLAUDE.local.md"), "content": "" });
+        assert_eq!(decide(&h, "Write", input).await, "card");
     }
     h.cancel().await.ok();
 }
