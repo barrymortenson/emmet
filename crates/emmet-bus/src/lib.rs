@@ -120,6 +120,7 @@ impl Server {
             .map_err(|e| Error::internal(format!("starting the bus on {name}: {e}")))?;
         #[cfg(unix)]
         restrict(&std::path::Path::new("/tmp").join(&name));
+        // 64 hex digits from OS-seeded keys (fsx::random_hex): about 128 bits a client must guess.
         let token = fsx::random_hex(4);
         let info = Info {
             v: VERSION,
@@ -197,6 +198,10 @@ fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send +
         let mut text = serde_json::to_string(&reply).expect("reply serializes");
         text.push('\n');
         if reader.get_mut().write_all(text.as_bytes()).is_err() {
+            return;
+        }
+        // One wrong token ends the connection, so a client can't try tokens over one stream.
+        if reply.reason.as_deref() == Some("wrong token") {
             return;
         }
         line.clear();

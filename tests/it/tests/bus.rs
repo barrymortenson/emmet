@@ -69,6 +69,34 @@ fn a_wrong_token_is_refused() {
     let r = send(&data, highlight(), Duration::from_secs(5));
     assert!(!r.delivered);
     assert_eq!(r.reason.as_deref(), Some("wrong token"));
+    // The server hangs up after a wrong token: a second request on the same stream gets no answer.
+    use interprocess::local_socket::prelude::*;
+    use std::io::{BufRead, BufReader, Write};
+    let name = info["name"]
+        .as_str()
+        .unwrap()
+        .to_string()
+        .to_ns_name::<interprocess::local_socket::GenericNamespaced>()
+        .unwrap();
+    let mut conn = interprocess::local_socket::Stream::connect(name).unwrap();
+    let req = |id: u64| {
+        format!(
+            "{{\"v\":1,\"token\":\"{}\",\"id\":{id},\"type\":\"highlight\",\"project\":\"/p\",\"ids\":[]}}\n",
+            "0".repeat(64)
+        )
+    };
+    conn.write_all(req(1).as_bytes()).unwrap();
+    let mut reader = BufReader::new(conn);
+    let mut line = String::new();
+    reader.read_line(&mut line).unwrap();
+    assert!(line.contains("wrong token"), "{line}");
+    let _ = reader.get_mut().write_all(req(2).as_bytes());
+    line.clear();
+    assert_eq!(
+        reader.read_line(&mut line).unwrap_or(0),
+        0,
+        "the connection should be closed: {line}"
+    );
 }
 
 #[test]
