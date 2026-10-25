@@ -849,7 +849,7 @@ def cottage(
 <h3>MCP tools (server name <code>emmet</code>)</h3>
 <div class="table-wrap"><table>
 <tr><th>Tool</th><th>Input</th><th>Output (structured)</th><th>Text summary</th></tr>
-<tr><td><code>search_parts</code></td><td><code>query</code>, <code>category?</code>, <code>limit?=10</code></td><td><code>[{id, name, category, size:{x,y,z}, colors_count, flags}]</code></td><td>One line per part</td></tr>
+<tr><td><code>search_parts</code></td><td><code>query</code>, <code>category?</code>, <code>limit?=10</code></td><td><code>{query, parts: [{id, name, category, size:{x,y,z}, colors_count, flags}]}</code> (<code>colors_count</code> is null until the parts data pack, 3B)</td><td>One line per part</td></tr>
 <tr><td><code>part_info</code></td><td><code>id</code></td><td>Name, size in studs and plates, connectors summary, produced colors, alternates, flags</td><td>Short spec plus the top colors</td></tr>
 <tr><td><code>run_model</code></td><td><code>params?</code></td><td><code>{parts, steps, submodels, bbox, ms, generation}</code> or an error envelope</td><td>"Built 412 parts in 18 steps (0.31 s)", or the error with file:line</td></tr>
 <tr><td><code>validate</code></td><td><code>rules?</code></td><td><code>{counts_by_rule, findings[≤50], total, clean}</code></td><td>Counts plus the top 10 findings with ids, positions, and source lines; "full list in build/validation.json"</td></tr>
