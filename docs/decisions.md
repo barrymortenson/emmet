@@ -116,3 +116,11 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   (ADR 0005) against the real 2026-09 library, in place of an LDView or LeoCAD screenshot.
 - **1A's Windows CI run.** ci.yml runs only on pull requests, so Barry approved opening 1A's PR as a draft for CI and
   marking it ready (with 1A set to review) once every Done when item holds.
+
+## 2026-10-25, session 1B
+
+- **@types/three for the viewer.** three.js ships no TypeScript types, so Barry approved `@types/three` 0.186.0 (MIT,
+  dev-only) over hand-written declarations or a plain-JS viewer. ADR 0000 lists it.
+- **The leak test on macOS.** WKWebView has no JS heap API (`performance.memory` is Chromium-only), so Barry chose:
+  Windows reads the JS heap (precise, after a forced GC); macOS reads the app's WebContent process footprint with the
+  system's `footprint` tool, plus the viewer's resource counts. Both hold to section 13's ≤ 20 % growth.

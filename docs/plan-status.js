@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-24",
+  updated: "2026-10-25",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -39,7 +39,7 @@ window.EMMET_STATUS = {
       ],
       note: "LDView and LeoCAD fail Gatekeeper, so Emmet's three.js render stood in for the screenshot (Barry); a fresh library install fails its checksum once LDraw publishes 2026-10 until Emmet pins it (ADR 0007, 6A)"
     },
-    "1B": { status: "todo" },
+    "1B": { status: "in-progress", branch: "bmortenson/s1b-app-shell-viewer", started: "2026-10-25" },
     "1C": { status: "todo" },
     "1D": { status: "todo" },
     "1E": { status: "todo" },
