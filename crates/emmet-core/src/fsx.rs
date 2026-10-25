@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! Filesystem helpers: atomic writes (plan section 07) and hashing.
 
+use std::collections::hash_map::RandomState;
+use std::hash::{BuildHasher, Hasher};
 use std::io::Write;
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use sha2::{Digest, Sha256};
 
@@ -19,9 +22,12 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
         .file_name()
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_default();
-    let tmp = dir.join(format!(".{name}.{}.tmp", std::process::id()));
+    // A fresh name each time, created with create_new: it fails on anything already there, a planted symlink included.
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    let nonce = RandomState::new().build_hasher().finish() ^ COUNTER.fetch_add(1, Ordering::Relaxed);
+    let tmp = dir.join(format!(".{name}.{}-{nonce:016x}.tmp", std::process::id()));
     let written = (|| {
-        let mut f = std::fs::File::create(&tmp)?;
+        let mut f = std::fs::OpenOptions::new().write(true).create_new(true).open(&tmp)?;
         f.write_all(bytes)?;
         f.sync_all()?;
         drop(f);

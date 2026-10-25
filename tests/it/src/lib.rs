@@ -131,17 +131,17 @@ pub fn sha256(bytes: &[u8]) -> String {
     sha2::Sha256::digest(bytes).iter().map(|b| format!("{b:02x}")).collect()
 }
 
-/// The data dir most tests share: ldraw-mini installed from a local zip, the parts index built, and Python
-/// bootstrapped, once per test binary (cargo runs the binaries one after another).
-pub fn shared_data() -> &'static Path {
+/// The data dir most tests share, with ldraw-mini installed from a local zip and the parts index built, once per
+/// test binary (cargo runs the binaries one after another).
+pub fn shared_library() -> &'static Path {
     static DATA: OnceLock<PathBuf> = OnceLock::new();
     DATA.get_or_init(|| {
         let data = env_dir("EMMET_DATA_DIR", "it-data");
         let zip = library_zip(&[]);
-        let zip_path = data.join("ldraw-mini.zip");
-        std::fs::write(&zip_path, &zip).expect("write library zip");
         let installed = std::fs::read_to_string(data.join("library.json")).unwrap_or_default();
-        if !installed.contains(&sha256(&zip)) {
+        if !installed.contains(&sha256(&zip)) || !data.join("parts.sqlite").exists() {
+            let zip_path = data.join("ldraw-mini.zip");
+            std::fs::write(&zip_path, &zip).expect("write library zip");
             let out = emmet()
                 .arg("--data-dir")
                 .arg(&data)
@@ -159,6 +159,15 @@ pub fn shared_data() -> &'static Path {
                 .expect("run emmet library install");
             assert!(out.status.success(), "library install failed: {}", text(&out));
         }
+        data
+    })
+}
+
+/// [`shared_library`] with Python bootstrapped too (`emmet doctor --fix`).
+pub fn shared_data() -> &'static Path {
+    static DATA: OnceLock<PathBuf> = OnceLock::new();
+    DATA.get_or_init(|| {
+        let data = shared_library().to_path_buf();
         let out = emmet()
             .arg("--data-dir")
             .arg(&data)
