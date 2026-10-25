@@ -141,11 +141,23 @@ pub fn ensure(data: &DataDir) -> Result<PathBuf> {
         )
     };
     if !interpreter(data).is_file() {
-        let out = uv_command(&uv, data)
-            .args(["venv", "--quiet", "--python", PYTHON_VERSION])
-            .arg(venv(data))
-            .output()
-            .map_err(|e| missing(format!("Can't run uv at {}: {e}", uv.display())))?;
+        let venv_cmd = || {
+            uv_command(&uv, data)
+                .args(["venv", "--quiet", "--python", PYTHON_VERSION])
+                .arg(venv(data))
+                .output()
+                .map_err(|e| missing(format!("Can't run uv at {}: {e}", uv.display())))
+        };
+        let mut out = venv_cmd()?;
+        if !out.status.success() {
+            // A half-installed runtime (an interrupted download, files restored from a backup) can trip uv. emmet
+            // owns these folders, so clear them and start once more from nothing.
+            for dir in ["venv", "installs"] {
+                let path = data.python().join(dir);
+                let _ = std::fs::remove_dir_all(&path).or_else(|_| std::fs::remove_file(&path));
+            }
+            out = venv_cmd()?;
+        }
         if !out.status.success() {
             let why = tail(&out.stderr);
             return Err(uv_failed(format!(

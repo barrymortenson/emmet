@@ -110,3 +110,9 @@ test("DCO runs on every event but a push to main, so the hosted fallback's ci ch
   assert.match(plan, /- name: DCO\n {8}if: github\.event_name != 'push'\n/);
   assert.match(plan, /BASE: \$\{\{ github\.event\.pull_request\.base\.sha \|\| 'origin\/main' \}\}/);
 });
+
+test("both OS jobs keep the integration tests' data dir and home in the runner's temp dir, out of the rust cache", () => {
+  for (const job of ["mac", "windows"]) {
+    assert.match(jobs[job], /EMMET_DATA_DIR=%s\\nEMMET_TEST_HOME=%s\\n' "\$RUNNER_TEMP\/emmet-data" "\$RUNNER_TEMP\/home"/, job);
+  }
+});
