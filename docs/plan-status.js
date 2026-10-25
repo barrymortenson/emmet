@@ -43,11 +43,11 @@ window.EMMET_STATUS = {
       status: "review", pr: 11, branch: "bmortenson/s1b-app-shell-viewer", started: "2026-10-25",
       evidence: [
         "just ci on this Mac: ci: ok",
-        "CI green #11 (run 40219092964: mac on emmet-mac, windows, plan); E2E 6/6 spec files on both OSes",
+        "CI green #11 (run 40224311960: mac on emmet-mac, windows, plan); E2E 6/6 spec files on both OSes",
         "tests/e2e/specs/{viewer,leak,render,runs,visual}.e2e.mjs; apps/desktop/src-tauri/tests/{paths,runs,watcher,bindings}.rs; tests/it/tests/{render,bus}.rs",
-        "bench (ADR 0008): cottage first load 700 ms, slider → viewer 498 ms, orbit 13.9 ms on macOS"
+        "bench (ADR 0008): cottage first load 691 ms, slider → viewer 501 ms, orbit 13.9 ms on macOS"
       ],
-      note: "Windows first load 7.2 s on CI's software WebGL misses section 13; check on real hardware (H-04, 1C)"
+      note: "Windows first load 7-8 s on CI's software WebGL misses section 13; check on real hardware (H-04, 1C)"
     },
     "1C": { status: "todo" },
     "1D": { status: "todo" },
