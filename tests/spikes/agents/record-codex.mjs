@@ -17,7 +17,7 @@ import { STUB, cleanEnv, keychain, record, sleep, workspace } from "./harness.mj
 const MODEL = "gpt-6-luna";
 const POINTER = "You are operating Emmet's protocol spike. Use the emmet tools when the user asks for them.";
 
-function args(ws, policy) {
+function args(ws, policy, scenario) {
   const toml = (v) => JSON.stringify(v);
   const server = (name, extra = []) => [
     "-c", `mcp_servers.${name}.command=${toml(process.execPath)}`,
@@ -32,7 +32,14 @@ function args(ws, policy) {
     "-c", 'model_providers.emmet_api_key.wire_api="responses"', "-c", "model_providers.emmet_api_key.requires_openai_auth=false",
     ...server("emmet"),
     ...server("emmet_host", ["-c", "mcp_servers.emmet_host.tool_timeout_sec=3600"]),
-    "-c", 'sandbox_mode="workspace-write"', "-c", `approval_policy=${toml(policy)}`,
+    "-c", 'sandbox_mode="workspace-write"',
+    // Codex 0.160.1 refuses approval_policy = "untrusted" in config; that run passes it to thread/start instead.
+    ...(policy === "untrusted" ? [] : ["-c", `approval_policy=${toml(policy)}`]),
+    // workspace-write lets commands write to /tmp and $TMPDIR by default, and the spike's workspace is under /tmp, so
+    // the permission runs turn that off to test a write outside the project.
+    ...(scenario === "permissions"
+      ? ["-c", "sandbox_workspace_write.exclude_slash_tmp=true", "-c", "sandbox_workspace_write.exclude_tmpdir_env_var=true"]
+      : []),
   ];
 }
 
@@ -86,7 +93,8 @@ async function start(s, c, ws) {
 }
 
 async function thread(c, ws) {
-  const r = await c.call("thread/start", { cwd: ws.project, model: MODEL, developerInstructions: POINTER });
+  const policy = ws.policy === "untrusted" ? { approvalPolicy: "untrusted" } : {};
+  const r = await c.call("thread/start", { cwd: ws.project, model: MODEL, developerInstructions: POINTER, ...policy });
   return r.thread.id;
 }
 
@@ -180,10 +188,11 @@ async function main() {
   }
   const name = policy === "on-request" ? scenario : `${scenario}-${policy}`;
   const ws = workspace(name);
+  ws.policy = policy;
   const env = cleanEnv(ws, { OPENAI_API_KEY: keychain("emmet-eval-openai") });
   const state = {};
   for (let part = 0; part < (scenario === "resume" ? 2 : 1); part++) {
-    const s = record({ cli: "codex", scenario: name, cmd: "codex", args: args(ws, policy), ws, env, append: part > 0, meta: { model: MODEL, policy } });
+    const s = record({ cli: "codex", scenario: name, cmd: "codex", args: args(ws, policy, scenario), ws, env, append: part > 0, meta: { model: MODEL, policy } });
     const c = rpc(s, ws);
     try {
       await start(s, c, ws);

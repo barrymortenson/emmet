@@ -32,9 +32,10 @@ test("scrubs home and temp paths, spike workspaces, the username, the hostname, 
     { t: 2, dir: "out", msg: { error: `Incorrect API key provided: sk-proj-****************abcd`, key: KEY, apiKey: "plain-looking-value", auth: "Bearer abcdefghijklmnopqrstuvwxyz" } },
     { t: 3, dir: "out", msg: { who: "someone@example.com", jwt: "eyJhbGciOiJIUzI1.eyJzdWIiOiIxMjM0.SflKxwRJSMeKKF2QT4fw" } },
     { t: 4, dir: "out", msg: { memory: `${HOME.replace(/[^A-Za-z0-9]/g, "-")}-projects` } },
+    { t: 5, dir: "out", msg: { auto: `${ws}/home/.claude/projects/-private-tmp-emmet-spike-tool-call-Ab3dE9-project/memory/` } },
   ]);
   assert.equal(r.code, 0, r.out);
-  const [init, text, secrets, ids, encoded] = r.lines.map((l) => l.msg);
+  const [init, text, secrets, ids, encoded, memory] = r.lines.map((l) => l.msg);
   assert.equal(init.cwd, "<WS>/project");
   assert.equal(init.apiKeySource, "ANTHROPIC_API_KEY", "the name of a variable isn't a secret");
   assert.equal(init.session_id, "b9909fb8-ae19-48f5-ac07-f898b2fb07d2");
@@ -45,6 +46,7 @@ test("scrubs home and temp paths, spike workspaces, the username, the hostname, 
   assert.equal(secrets.auth, "Bearer <REDACTED>");
   assert.deepEqual(ids, { who: "<EMAIL>", jwt: "<REDACTED>" });
   assert.equal(encoded.memory, "<HOME>-projects");
+  assert.equal(memory.auto, "<WS>/home/.claude/projects/<WS>-project/memory/");
 });
 
 test("scrubs a path or a key split across streaming chunks, keeping the joined content exact", () => {
