@@ -229,11 +229,16 @@ pub fn auto_allowed(root: &Path, tool: &str, input: &Value) -> bool {
     !rel.components().any(|c| is_config(&c.as_os_str().to_string_lossy()))
 }
 
-/// A path component that's agent config: a dot name, or an agent's instruction file. Windows ignores a name's
-/// trailing dots and spaces, and `:` names a file's alternate stream, so `CLAUDE.md.` and `CLAUDE.md:x` count too.
+/// A path component that may be agent config, so an edit to it is a card: a dot name, or an agent's instruction file.
+/// Windows ignores a name's trailing dots and spaces, and `:` names a file's alternate stream, so `CLAUDE.md.` and
+/// `CLAUDE.md:x` count too. A non-ASCII name counts as well: both file systems fold Unicode case (`AGENTſ.md` is
+/// `AGENTS.md` on APFS and NTFS), so only an ASCII name can be compared exactly.
 fn is_config(name: &str) -> bool {
     let name = name.trim_end_matches(['.', ' ']);
-    name.starts_with('.') || name.contains(':') || AGENT_FILES.iter().any(|f| name.eq_ignore_ascii_case(f))
+    !name.is_ascii()
+        || name.starts_with('.')
+        || name.contains(':')
+        || AGENT_FILES.iter().any(|f| name.eq_ignore_ascii_case(f))
 }
 
 /// Where `path` (absolute, or relative to `root`) lands inside `root` once links are followed, relative to it; None if

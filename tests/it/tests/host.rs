@@ -123,6 +123,11 @@ async fn approve_allows_reads_and_model_edits_and_asks_for_the_rest() {
             "card",
         ),
         (
+            "Write",
+            json!({ "file_path": f("AGENT\u{17f}.md"), "content": "" }),
+            "card",
+        ),
+        (
             "NotebookEdit",
             json!({ "notebook_path": f("models/a.ipynb"), "new_source": "" }),
             "allow",
