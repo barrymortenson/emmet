@@ -114,3 +114,5 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   Gatekeeper blocks them on this Mac (Homebrew disabled the LeoCAD cask on 2026-09-01 for that reason). Barry chose
   Emmet's own render instead: the demo .mpd rendered with three.js LDrawLoader through the 0B headless-render spike
   (ADR 0005) against the real 2026-09 library, in place of an LDView or LeoCAD screenshot.
+- **1A's Windows CI run.** ci.yml runs only on pull requests, so Barry approved opening 1A's PR as a draft for CI and
+  marking it ready (with 1A set to review) once every Done when item holds.
