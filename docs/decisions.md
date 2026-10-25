@@ -37,6 +37,8 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   19. Rejected: keeping the names without changing the text; committing no named files (no ldraw-mini).
 - **A draft PR so CI runs.** Approved `gh pr create --draft` for 0B (PR #3), as in 0A: CI runs only on PRs, and the
   Windows evidence (E2E, render, binaries) needs it. It is marked ready only when every Done when item holds.
+- **H-11: rung 3 rebuilds 6743-1 Street Speeder** (165 pieces, 69 part and color lines, 92% common parts), from the
+  shortlist of five in `docs/spec/ladder.md`. Its OMR main model matches the Rebrickable inventory exactly.
 
 ## 2026-10-24, session 0A
 

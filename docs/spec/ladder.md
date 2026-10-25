@@ -143,7 +143,15 @@ Descriptions the agent gets:
 - **6743-1:** A low green sports car with white and gray racing stripes over the hood and roof, a clear windshield
   and side windows, a rear wing, light gray wheels with black tires, and a yellow number plate on the front.
 
-**Pick: open (H-11).**
+**Pick: 6743-1 Street Speeder (Barry, 2026-10-24, H-11).** It's a 3-in-1 set, and the eval rebuilds its main model:
+the OMR file's main model uses all 165 pieces in the same 69 part and color lines as the Rebrickable inventory, so the
+inventory is the BOM ground truth as it stands, and `6743-1.mpd`'s main model is the placement ground truth. The prompt
+for rung 3 is therefore:
+
+> Rebuild the official set 6743-1 "Street Speeder" (165 pieces) as closely as you can, using the same parts and
+> colors as the original. Here's what it looks like: A low green sports car with white and gray racing stripes over
+> the hood and roof, a clear windshield and side windows, a rear wing, light gray wheels with black tires, and a
+> yellow number plate on the front.
 
 ## Scoring config
 

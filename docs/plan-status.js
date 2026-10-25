@@ -57,7 +57,7 @@ window.EMMET_STATUS = {
     "H-08": { status: "todo" },
     "H-09": { status: "todo" },
     "H-10": { status: "todo" },
-    "H-11": { status: "todo" },
+    "H-11": { status: "done", date: "2026-10-24", note: "6743-1 Street Speeder, from the 0B shortlist (docs/spec/ladder.md)" },
     "H-12": { status: "todo" },
     "H-13": { status: "todo" },
     "H-14": { status: "not-needed", note: "releases publish from the main public repo (D-21)" },
