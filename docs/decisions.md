@@ -27,6 +27,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   open-source partners" is gone; "without a client secret or partner API key" moved to the sign-in page as "needs
   neither a client secret nor a partner API key"). The basis is the same, so section 10 quotes today's text and the
   1E row stays Build with conditions. Rejected: holding 1E for OpenAI's written confirmation; dropping ChatGPT plan use.
+- **Q-01: the LDCad shadow library ships as CC BY-SA data.** It is CC BY-SA 4.0 (ADR 0003). The connector table built
+  from it ships as its own data file under CC BY-SA 4.0 with attribution to the LDCad Shadow Library, kept separate
+  from the AGPL code; overrides cover what it misses (track, the 9V switch). Rejected: building it on the user's
+  machine from a first-run download; not using it.
 
 ## 2026-10-24, session 0A
 

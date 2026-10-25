@@ -1046,7 +1046,7 @@ pub struct Connection { a: (PlacedId, usize), b: (PlacedId, usize), kind: ConnKi
 <p><b>Connector sources, in order:</b></p>
 <ol>
 <li><b>Primitive scan</b> (covers most System parts): a part's subfile references to stud primitives (<code>stud.dat</code>, <code>stud2.dat</code>, <code>stud3.dat</code>, <code>stud4.dat</code>, <code>stud10.dat</code>, the <code>stu2*</code> families, <code>box5</code> tubes …) become connectors at their transformed positions. The mapping is a table in <code>emmet-core</code> with a test per primitive.</li>
-<li><b>LDCad shadow library</b> (<code>!LDCAD SNAP_*</code> meta for clips, bars, pins, axles, hinges), used only if ADR 0003 finds its license compatible. Otherwise, the overrides grow for the parts the ladder and the technique library use.</li>
+<li><b>LDCad shadow library</b> (<code>!LDCAD SNAP_*</code> meta for clips, bars, pins, axles, hinges). It is CC BY-SA 4.0 (ADR 0003), so the connector data built from it ships as its own data file under CC BY-SA 4.0, with attribution to the LDCad Shadow Library, separate from the AGPL code (Barry 2026-10-24, Q-01). It covers 94 of ldraw-mini's 141 real parts; track and the 9V switch need overrides.</li>
 <li><b>Overrides</b> in <code>data/connections/*.toml</code> for anything wrong or missing, each with a test model.</li>
 </ol>
 
@@ -2035,7 +2035,7 @@ and record what I change. After sign-off, changes to these screens need a short 
 <p class="goal"><b>Goal:</b> A validator people can trust: zero false errors on official models, at least 95 % of injected faults caught, fast enough to run on every slider change, and findings an agent can act on.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li>The connector model (section 11) with all three sources: the complete primitive table, the LDCad shadow library import if ADR 0003 allows it (otherwise overrides for every part in ldraw-mini, the techniques, and the corpus), and <code>data/connections/*.toml</code> overrides, each with a test model.</li>
+<li>The connector model (section 11) with all three sources: the complete primitive table, the LDCad shadow library import (its own CC BY-SA 4.0 data file with attribution, per ADR 0003 and Q-01), and <code>data/connections/*.toml</code> overrides, each with a test model.</li>
 <li>Connector matching (position within 0.5 LDU, compatible kind and gender, aligned direction), the connection graph, and connected components.</li>
 <li>Collision proxies (the body mesh minus stud and anti-stud geometry, cached per part in the index) with a broad phase (AABB tree) and a narrow phase (parry3d), with the seating exemption for connected pairs. The proxy approach is recorded in an ADR with its alternatives.</li>
 <li>Every v1 rule in section 11, <code>m.allow</code> suppressions, <code>validation.json</code> schema v1, stable finding ids, and the improved MCP summary.</li>

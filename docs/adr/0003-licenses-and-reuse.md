@@ -1,6 +1,6 @@
 # ADR 0003: Licenses and reuse
 
-Status: accepted, 2026-10-24 (session 0B), except the LDCad shadow library, which waits on Barry (Q-01, below).
+Status: accepted, 2026-10-24 (session 0B).
 
 ## Context
 
@@ -45,7 +45,7 @@ read.
   of OMR models (such as the rung 3 shortlist in `docs/spec/ladder/`) are not derivative works, and the ladder spec
   credits each model's author anyway.
 
-### LDCad shadow library: CC BY-SA 4.0 (open: Q-01)
+### LDCad shadow library: CC BY-SA 4.0, shipped as its own data file (Q-01)
 
 - **Source:** https://github.com/RolandMelkert/LDCadShadowLibrary at `9b1131f` (2026-09-10): `LICENSE.md` is the
   Creative Commons Attribution-ShareAlike 4.0 legal code, and every shadow file says
@@ -64,8 +64,11 @@ read.
   must be shared under CC BY-SA 4.0 (or a later or compatible license) with attribution. It could ship as its own
   data file under CC BY-SA 4.0 next to the AGPL code, which is a separate work aggregated with the app, without
   changing Emmet's license.
-- **Decision:** Barry's (rule 10). The options, with the recommendation first, go to him as one question in 0B; his
-  answer is recorded in `docs/decisions.md` and here.
+- **Decision (Barry 2026-10-24, Q-01):** use it. The connector table built from it ships as its own data file under
+  CC BY-SA 4.0, with attribution to the LDCad Shadow Library (author line, URL, license, and "converted to Emmet's
+  connector table"), separate from the AGPL code, and `NOTICE` names it when it first ships (3A). Overrides in
+  `data/connections/` cover what it misses. Rejected: building the table on the user's machine from a first-run
+  download, and not using it.
 
 ### Rebrickable catalog: free with credit, no automated site traffic
 
@@ -108,7 +111,6 @@ before copying anything, with the license and the attribution it needs.
 
 ## Open
 
-- **Q-01:** how Emmet uses the LDCad shadow library (Barry, in 0B).
 - **Part authors' names in fixtures:** Barry confirms in the 0B PR that license-required attribution is outside the
   AGENTS.md "no real names" rule.
 
