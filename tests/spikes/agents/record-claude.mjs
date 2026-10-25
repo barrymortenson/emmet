@@ -20,7 +20,7 @@ const isResult = (e) => e?.type === "result";
 const usesTool = (name) => (e) =>
   e?.type === "assistant" && e.message?.content?.some((c) => c.type === "tool_use" && c.name === name);
 
-function args(ws, { resume } = {}) {
+function args(ws, { resume, scenario } = {}) {
   const a = [
     "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose", "--include-partial-messages",
     "--mcp-config", join(ws.session, "mcp.json"), "--strict-mcp-config",
@@ -31,6 +31,8 @@ function args(ws, { resume } = {}) {
     "--model", "haiku",
   ];
   if (resume) a.push("--resume", resume);
+  // Tests whether an explicit ask rule makes Claude Code ask before read-only shell commands too (section 10).
+  if (scenario === "permissions-ask-bash") a.push("--settings", JSON.stringify({ permissions: { ask: ["Bash"] } }));
   return a;
 }
 
@@ -52,6 +54,12 @@ const SCENARIOS = {
       "Create a file notes.txt in the current directory containing the word hi. Reply done when finished.",
       "Run the shell command `echo hi` and tell me its output.",
     ]) {
+      s.send(user(text));
+      await s.waitFor(isResult, 180_000, "result");
+    }
+  },
+  "permissions-ask-bash": async (s) => {
+    for (const text of ["Run the shell command `ls` and tell me its output.", "Run the shell command `echo hi` and tell me its output."]) {
       s.send(user(text));
       await s.waitFor(isResult, 180_000, "result");
     }
@@ -101,7 +109,7 @@ const ENV = {
 };
 
 async function run(scenario, ws, env, { resume, append, drive }) {
-  const s = record({ cli: "claude", scenario, cmd: "claude", args: args(ws, { resume }), ws, env, append });
+  const s = record({ cli: "claude", scenario, cmd: "claude", args: args(ws, { resume, scenario }), ws, env, append });
   const init = s.waitFor((e) => e?.type === "system" && e.subtype === "init", 60_000, "system/init");
   await drive(s, init);
   const r = await s.end();
