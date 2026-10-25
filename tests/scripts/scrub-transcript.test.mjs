@@ -110,8 +110,11 @@ test("every committed replay transcript is under 200 KB and already scrubbed", (
       const path = join(dir, f);
       assert.ok(statSync(path).size < 200 * 1024, `${cli}/${f} is ${statSync(path).size} bytes`);
       const text = readFileSync(path, "utf8");
-      assert.equal(scrub(text).text, text, `${cli}/${f} changes when scrubbed again`);
+      // --portable: the fixtures were scrubbed on Barry's Mac, and this machine's own home, temp, user, and host
+      // rules would rewrite harmless text elsewhere (Python's "using /tmp instead" on Linux).
+      assert.equal(scrub(text, "--portable").text, text, `${cli}/${f} changes when scrubbed again`);
       assert.ok(!text.includes(HOME), `${cli}/${f} contains the home directory`);
+      assert.ok(!new RegExp(`\\b${USER}\\b`, "i").test(text), `${cli}/${f} contains the username`);
     }
   }
 });

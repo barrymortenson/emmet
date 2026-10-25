@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Scrubs a recorded agent transcript (JSON lines) so it can be committed as a replay fixture (plan section 10).
 //
-//   scripts/scrub-transcript <in.jsonl> <out.jsonl> [--path <abs path>=<TOKEN>]... [--redact <word>]...
+//   scripts/scrub-transcript <in.jsonl> <out.jsonl> [--path <abs path>=<TOKEN>]... [--redact <word>]... [--portable]
 //
 // Every string value and key is rewritten, so the output stays valid JSON. Streaming deltas are scrubbed joined, since a
 // path or a token can be split across chunks: when a joined Claude content block or Codex item changes, the first
@@ -12,7 +12,9 @@
 //   secrets  anything shaped like an API key, token, or JWT, any value under a token-like key, and email addresses
 //   ids      Anthropic message ids (msg_…) become msg_0001, msg_0002, … per file: they aren't secret, but gitleaks'
 //            generic-api-key rule flags them under "api_message_id", and replay doesn't need the real values
-// The output is byte-identical when scrubbed again. Fails if the input has a line that isn't JSON.
+// The output is byte-identical when scrubbed again. Fails if the input has a line that isn't JSON. --portable applies
+// only the rules that don't depend on this machine (no home, temp dir, username, or hostname), which is how a test on
+// any machine checks that a committed transcript is already scrubbed.
 
 import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir, hostname, tmpdir, userInfo } from "node:os";
@@ -33,19 +35,21 @@ const variants = (p) => {
   return [...new Set([...base, ...base.map((v) => v.replace(/[^A-Za-z0-9]/g, "-"))])].filter((v) => v.length > 1);
 };
 
-export function rules({ paths = [], redact = [] } = {}) {
+export function rules({ paths = [], redact = [], portable = false } = {}) {
   const r = [];
   for (const [from, to] of paths) for (const v of variants(from)) r.push([new RegExp(esc(v), "g"), to]);
   // 0B spike workspaces: <tmp>/emmet-spike-<scenario>-XXXXXX
   r.push([/(?:[A-Za-z]:)?[\\/][^\s"'<>]*?[\\/]emmet-spike-[a-z0-9-]+-[A-Za-z0-9]{6}/g, "<WS>"]);
+  // The same, as Claude Code encodes a directory into a folder name (before the temp-directory rules split it).
+  r.push([/(?:-private)?-tmp-emmet-spike-[a-z0-9-]+-[A-Za-z0-9]{6}/g, "<WS>"]);
   // Longest first, so a temp dir inside the home directory becomes <TMP>, not <HOME>/….
-  const dirs = [...variants(tmpdir()).map((v) => [v, "<TMP>"]), ...variants(homedir()).map((v) => [v, "<HOME>"])];
+  const dirs = portable ? [] : [...variants(tmpdir()).map((v) => [v, "<TMP>"]), ...variants(homedir()).map((v) => [v, "<HOME>"])];
   for (const [v, to] of dirs.sort((a, b) => b[0].length - a[0].length)) r.push([new RegExp(esc(v), "g"), to]);
   r.push([/(?:\/private)?\/var\/folders\/[^/\s"']+\/[^/\s"']+\/T(?=[/\s"']|$)/g, "<TMP>"]);
   r.push([/-(?:private-)?var-folders-[A-Za-z0-9]{2}-[A-Za-z0-9-]{20,40}-T(?=-|$|[\s"'])/g, "<TMP>"]);
   r.push([/(?:\/private)?\/tmp(?=\/)/g, "<TMP>"]);
   // A spike workspace as Claude Code encodes it into a folder name, once its temp prefix is gone.
-  r.push([/(?:<TMP>|-private-tmp|-tmp)-emmet-spike-[a-z0-9-]+-[A-Za-z0-9]{6}/g, "<WS>"]);
+  r.push([/<TMP>-emmet-spike-[a-z0-9-]+-[A-Za-z0-9]{6}/g, "<WS>"]);
   // Secrets before names, so a username inside a token can't split it.
   r.push([/sk-ant-[A-Za-z0-9_*-]{8,}/g, "<REDACTED>"]);
   r.push([/sk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_*-]{16,}/g, "<REDACTED>"]);
@@ -53,6 +57,7 @@ export function rules({ paths = [], redact = [] } = {}) {
   r.push([/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[abpr]-[A-Za-z0-9-]{10,})\b/g, "<REDACTED>"]);
   r.push([/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/-]{16,}=*/g, "$1 <REDACTED>"]);
   r.push([/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g, "<EMAIL>"]);
+  if (portable) return r;
   const host = hostname();
   // The full hostname always; its first label only when it's long enough not to be a common word ("Mac").
   for (const h of new Set([host, host.split(".")[0]])) if (h === host ? h.length > 2 : h.length >= 6) r.push([new RegExp(`\\b${esc(h)}\\b`, "gi"), "<HOST>"]);
@@ -132,12 +137,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(real(process.argv[1])).
   const pos = [];
   const paths = [];
   const redact = [];
+  let portable = false;
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--path") {
       const [from, to] = argv[++i].split(/=(?=[^=]*$)/);
       paths.push([from, to]);
     } else if (argv[i] === "--redact") redact.push(argv[++i]);
+    else if (argv[i] === "--portable") portable = true;
     else pos.push(argv[i]);
   }
   if (pos.length !== 2) {
@@ -145,7 +152,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(real(process.argv[1])).
     process.exit(2);
   }
   try {
-    const out = scrubText(readFileSync(pos[0], "utf8"), { paths, redact });
+    const out = scrubText(readFileSync(pos[0], "utf8"), { paths, redact, portable });
     writeFileSync(pos[1], out);
     console.log(`scrub-transcript: ${pos[1]} (${out.split("\n").length - 1} lines, ${Buffer.byteLength(out)} bytes)`);
   } catch (e) {

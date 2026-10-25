@@ -15,7 +15,7 @@
 // Raw streams go to $TMPDIR/emmet-0b-hand/<check>.jsonl; the summary leaves out emails and ids.
 
 import { execFileSync, spawn } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
@@ -62,7 +62,9 @@ function run(name, cmd, args, { lines, env: e, done, ms = 120_000 }) {
 
 /** Session files Claude Code keeps for a working directory, by its encoded folder name. */
 const sessions = (cwd) => {
-  const dir = join(homedir(), ".claude", "projects", cwd.replace(/[^A-Za-z0-9]/g, "-"));
+  // Claude Code names the folder after the resolved path (/private/var/… on macOS), not the one given.
+  const real = existsSync(cwd) ? realpathSync(cwd) : cwd;
+  const dir = join(homedir(), ".claude", "projects", real.replace(/[^A-Za-z0-9]/g, "-"));
   return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".jsonl")) : [];
 };
 const claudeArgs = (extra = []) => ["-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose", "--strict-mcp-config", "--model", "haiku", ...extra];
@@ -71,6 +73,7 @@ const init = (events) => events.find((e) => e.type === "system" && e.subtype ===
 
 async function claudeUsage() {
   for (const [label, extra] of [["claude-usage", []], ["claude-usage-no-persist", ["--no-session-persistence"]]]) {
+    mkdirSync(join(OUT, `${label}-cwd`), { recursive: true });
     const before = sessions(join(OUT, `${label}-cwd`));
     const r = await run(label, "claude", claudeArgs(extra), { lines: [user("/usage")], env: env(), done: (m) => m.type === "result" });
     const after = sessions(r.cwd);
