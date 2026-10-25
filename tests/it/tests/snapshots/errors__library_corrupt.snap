@@ -1,0 +1,20 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "LIBRARY_CORRUPT",
+    "details": {
+      "file": "[data]/ldraw/parts/3001.dat"
+    },
+    "hint": "Run emmet library install to put the library back.",
+    "message": "1 of 512 library files are missing or changed: parts/3001.dat"
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]"
+  },
+  "ok": false,
+  "warnings": []
+}

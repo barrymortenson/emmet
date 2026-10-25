@@ -145,12 +145,13 @@ def check(params: list[Param], values: dict, file: str, source: str) -> dict:
             close = difflib.get_close_matches(name, list(by_name), n=1)
             maybe = f"Did you mean '{close[0]}'? " if close else ""
             known = ", ".join(by_name) or "none"
+            where, line = _key_line("params.json", name) if source.startswith("params.json") else (None, None)
             raise EmmetError(
                 "PARAM_INVALID",
                 f"There's no parameter '{name}' (from {source}).",
                 f"{maybe}The model's parameters are: {known}.",
-                file,
-                None,
+                where or file,
+                line or min((q.line for q in params), default=None),
             )
         out[name] = _coerce(p, value, file, source)
     for p in params:
@@ -158,16 +159,30 @@ def check(params: list[Param], values: dict, file: str, source: str) -> dict:
     return out
 
 
+def _key_line(path: str, key: str) -> tuple[str | None, int | None]:
+    """The file and line where `"key"` appears in a JSON file in the project, if it does."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            for n, text in enumerate(f, 1):
+                if f'"{key}"' in text:
+                    return (path, n)
+    except OSError:
+        pass
+    return (None, None)
+
+
 def _bad(p: Param, value, file: str, source: str, why: str) -> EmmetError:
     rng = f" from {_num(p.min)} to {_num(p.max)}" if p.min is not None else ""
     if p.step:
         rng += f" in steps of {_num(p.step)}"
     if p.type == "choice":
-        rng = " from " + ", ".join(repr(c) for c in p.choices or [])
+        rng = ": " + ", ".join(repr(c) for c in p.choices or [])
+    kind = {"int": "a whole number", "float": "a number", "bool": "true or false", "choice": "one of the choices"}
+    kind |= {"color": "a color name or code"}
     return EmmetError(
         "PARAM_INVALID",
         f"{p.name} = {value!r} (from {source}) {why}.",
-        f"Use a {p.type} value{rng}; the default is {p.default!r}.",
+        f"Use {kind.get(p.type, 'a value')}{rng}; the default is {p.default!r}.",
         file,
         p.line,
     )

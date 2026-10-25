@@ -1,0 +1,25 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "MODEL_EXEC_FAILED",
+    "details": {
+      "excerpt": "        m.add(\"3001\", \"Red\", at=(x, 0, widht))",
+      "file": "model.py",
+      "line": 12
+    },
+    "hint": "Did you mean 'width'? Fix model.py line 12 and run again.",
+    "message": "NameError: name 'widht' is not defined"
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

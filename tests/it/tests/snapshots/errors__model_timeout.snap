@@ -1,0 +1,25 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "MODEL_TIMEOUT",
+    "details": {
+      "excerpt": "    time.sleep(3600)",
+      "file": "model.py",
+      "line": 10
+    },
+    "hint": "Look for a loop that doesn't end, or reduce repeats; split a big model into submodels. The project's limit is [run] timeout in emmet.toml.",
+    "message": "The model ran for more than 1 s."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

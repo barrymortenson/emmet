@@ -1,0 +1,32 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "UNKNOWN_PART",
+    "details": {
+      "excerpt": "    m.add(\"3001x\", \"Red\", at=(0, 0, 3))",
+      "file": "model.py",
+      "line": 10,
+      "suggestions": [
+        "3001",
+        "3002",
+        "3003",
+        "3004",
+        "30046"
+      ]
+    },
+    "hint": "Did you mean 3001 (Brick 2 x 4), 3002 (Brick 2 x 3), 3003 (Brick 2 x 2), 3004 (Brick 1 x 2), 30046 (Window 1 x 2 x 2.667 Pane Lattice Diamond with Rounded Top)? Or search with emmet search <words>. Fix model.py line 10 and run again.",
+    "message": "There's no part '3001x' in the LDraw library."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

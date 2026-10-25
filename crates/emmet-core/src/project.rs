@@ -198,13 +198,16 @@ impl Project {
         !linked
             && std::fs::read_to_string(marker)
                 .ok()
-                .zip(machine_hash(data).ok())
-                .is_some_and(|(m, h)| m.trim() == h)
+                .zip(trust_token(data, &self.root).ok())
+                .is_some_and(|(m, t)| m.trim() == t)
     }
 
     pub fn trust(&self, data: &DataDir) -> Result<()> {
         let dir = self.own_dir(".emmet")?;
-        write_atomic(&dir.join("trust"), format!("{}\n", machine_hash(data)?).as_bytes())
+        write_atomic(
+            &dir.join("trust"),
+            format!("{}\n", trust_token(data, &self.root)?).as_bytes(),
+        )
     }
 
     pub fn require_trusted(&self, data: &DataDir) -> Result<()> {
@@ -306,33 +309,49 @@ impl Project {
     }
 }
 
-/// This install's machine hash, `m:` plus 16 hex digits of sha256 of a random id kept in app data. It isn't personal
-/// data: it only tells this machine's projects from others' (D-27).
+/// This install's machine hash for `created_by`: `m:` plus 16 hex digits of sha256 of a random secret kept in app
+/// data. It isn't personal data; it tells this machine's projects from others' (D-27). It's shared with the project,
+/// so trust never rests on it.
 pub fn machine_hash(data: &DataDir) -> Result<String> {
-    let path = data.machine_id();
-    let id = match std::fs::read_to_string(&path) {
-        Ok(s) if s.trim().len() >= 32 => s.trim().to_string(),
-        _ => {
-            use std::hash::{BuildHasher, Hasher};
-            let mut id = String::new();
-            for _ in 0..4 {
-                let mut h = std::collections::hash_map::RandomState::new().build_hasher();
-                h.write_u128(
-                    std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .map_or(0, |d| d.as_nanos()),
-                );
-                h.write_u32(std::process::id());
-                id.push_str(&format!("{:016x}", h.finish()));
-            }
-            write_atomic(&path, format!("{id}\n").as_bytes())?;
-            id
-        }
-    };
+    let id = machine_secret(data)?;
     Ok(format!(
         "m:{}",
         &fsx::sha256_hex(format!("emmet-machine:{id}").as_bytes())[..16]
     ))
+}
+
+/// What `.emmet/trust` must hold: sha256 of the machine secret and the project's canonical path. Only this machine
+/// can make it, nothing shared with a project (created_by included) reveals it, and a moved project needs trusting
+/// again.
+fn trust_token(data: &DataDir, root: &Path) -> Result<String> {
+    let id = machine_secret(data)?;
+    let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    Ok(fsx::sha256_hex(
+        format!("emmet-trust:{id}\0{}", root.display()).as_bytes(),
+    ))
+}
+
+/// The random secret in app data, made on first use. It never leaves the data dir.
+fn machine_secret(data: &DataDir) -> Result<String> {
+    let path = data.machine_id();
+    if let Ok(s) = std::fs::read_to_string(&path)
+        && s.trim().len() >= 32
+    {
+        return Ok(s.trim().to_string());
+    }
+    use std::hash::{BuildHasher, Hasher};
+    let mut id = String::new();
+    for _ in 0..4 {
+        let mut h = std::collections::hash_map::RandomState::new().build_hasher();
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| d.as_nanos());
+        h.write_u128(now);
+        h.write_u32(std::process::id());
+        id.push_str(&format!("{:016x}", h.finish()));
+    }
+    write_atomic(&path, format!("{id}\n").as_bytes())?;
+    Ok(id)
 }
 
 fn title_case(s: &str) -> String {

@@ -1,0 +1,23 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "PARAM_INVALID",
+    "details": {
+      "excerpt": "}",
+      "file": "params.json",
+      "line": 3
+    },
+    "hint": "Fix params.json, or delete it to use the model's defaults.",
+    "message": "params.json isn't a JSON object of parameter values: trailing comma at line 3 column 1"
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

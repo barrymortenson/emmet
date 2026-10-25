@@ -1,0 +1,26 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "UNKNOWN_PART",
+    "details": {
+      "suggestions": [
+        "3001",
+        "3002",
+        "3003",
+        "3004",
+        "30046"
+      ]
+    },
+    "hint": "Did you mean 3001 (Brick 2 x 4), 3002 (Brick 2 x 3), 3003 (Brick 2 x 2), 3004 (Brick 1 x 2), 30046 (Window 1 x 2 x 2.667 Pane Lattice Diamond with Rounded Top)? Or search with emmet search <words>.",
+    "message": "There's no part '3001x' in the LDraw library."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]"
+  },
+  "ok": false,
+  "warnings": []
+}

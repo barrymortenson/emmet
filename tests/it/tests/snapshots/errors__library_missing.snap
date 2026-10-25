@@ -1,0 +1,17 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "LIBRARY_MISSING",
+    "hint": "Run emmet library install.",
+    "message": "The LDraw library isn't installed in [data]."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]"
+  },
+  "ok": false,
+  "warnings": []
+}

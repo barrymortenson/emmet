@@ -79,7 +79,7 @@ class Context:
                 return code
         names = [c["name"] for c in self.colors.values()]
         close = suggest(str(value), names) or suggest(str(value).title(), names)
-        maybe = "Did you mean " + " or ".join(f"'{n}'" for n in close) + "? " if close else ""
+        maybe = f"Did you mean {_either(close)}? " if close else ""
         raise EmmetError(
             "UNKNOWN_COLOR",
             f"There's no color {value!r}.",
@@ -87,6 +87,14 @@ class Context:
             file,
             line,
         )
+
+
+def _either(names: list[str]) -> str:
+    """'a', 'a' or 'b', 'a', 'b', or 'c'."""
+    quoted = [f"'{n}'" for n in names]
+    if len(quoted) <= 2:
+        return " or ".join(quoted)
+    return ", ".join(quoted[:-1]) + ", or " + quoted[-1]
 
 
 def _excerpt(root: str, file: str, line: int | None) -> str | None:

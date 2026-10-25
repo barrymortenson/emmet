@@ -1,0 +1,25 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "PARAM_INVALID",
+    "details": {
+      "excerpt": "    width: Annotated[int, Range(2, 16)] = 4,",
+      "file": "model.py",
+      "line": 9
+    },
+    "hint": "Use a whole number from 2 to 16; the default is 4.",
+    "message": "width = 40 (from params.json) is outside 2–16."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

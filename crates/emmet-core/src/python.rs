@@ -127,7 +127,11 @@ pub fn ensure(data: &DataDir) -> Result<PathBuf> {
         return Ok(interpreter(data)); // another emmet finished it while we waited
     }
     let uv = find_uv().ok_or_else(|| {
-        missing("Python isn't set up for models yet, and uv (which installs it) isn't next to emmet or on PATH.")
+        Error::new(
+            ErrorCode::PythonMissing,
+            "Python isn't set up for models yet, and uv (which installs it) isn't next to emmet or on PATH.",
+            "Install uv (https://docs.astral.sh/uv/), then run emmet doctor --fix.",
+        )
     })?;
     let uv_failed = |message: String| {
         Error::new(

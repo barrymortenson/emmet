@@ -397,8 +397,9 @@ fn timeout_frame(project: &Project, log: &str) -> (Option<String>, Option<u32>) 
         let Some((file, tail)) = rest.split_once('"') else {
             continue;
         };
+        // `File "/abs/model.py", line 10 in forever`
         let Some(n) = tail
-            .trim()
+            .trim_start_matches([',', ' '])
             .strip_prefix("line ")
             .and_then(|t| t.split_whitespace().next())
         else {

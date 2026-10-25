@@ -1,0 +1,21 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "PROJECT_UNTRUSTED",
+    "details": {
+      "file": "model.py"
+    },
+    "hint": "Read model.py first; it's code. Then trust the project in the app, or run emmet trust.",
+    "message": "Frame wasn't created on this machine, so its model.py won't run until you trust it."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

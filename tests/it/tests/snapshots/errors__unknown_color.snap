@@ -1,0 +1,25 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "UNKNOWN_COLOR",
+    "details": {
+      "excerpt": "    m.add(\"3001\", \"Light Blush Gray\", at=(0, 0, 3))",
+      "file": "model.py",
+      "line": 10
+    },
+    "hint": "Did you mean 'Light Bluish Gray', 'Very Light Bluish Gray', or 'Rubber Light Bluish Gray'? Use an LDraw, Rebrickable, or BrickLink color name, or an LDraw code; emmet colors lists them.",
+    "message": "There's no color 'Light Blush Gray'."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}
