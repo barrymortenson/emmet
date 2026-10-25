@@ -18,6 +18,8 @@ clap = { version = "4.6.7", features = ["derive"] }
 serde_json = "1.0.154"
 tauri = { version = "2.12.5", features = [] }
 tauri-build = { version = "2.7.4", features = [] }
+# E2E only: the embedded WebDriver server, behind emmet-desktop's `webdriver` feature (ADR 0002).
+tauri-plugin-wdio-webdriver = "1.5.1"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
