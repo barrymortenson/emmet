@@ -331,13 +331,19 @@ fn trust_token(data: &DataDir, root: &Path) -> Result<String> {
     ))
 }
 
-/// The random secret in app data, made on first use. It never leaves the data dir.
+/// The random secret in app data, made on first use. It never leaves the data dir. Two emmets starting at once must
+/// agree on it, so a new secret is published with a hard link, which fails if the file already exists; the loser
+/// reads the winner's.
 fn machine_secret(data: &DataDir) -> Result<String> {
     let path = data.machine_id();
-    if let Ok(s) = std::fs::read_to_string(&path)
-        && s.trim().len() >= 32
-    {
-        return Ok(s.trim().to_string());
+    let read = || {
+        std::fs::read_to_string(&path)
+            .ok()
+            .map(|s| s.trim().to_string())
+            .filter(|s| s.len() >= 32)
+    };
+    if let Some(id) = read() {
+        return Ok(id);
     }
     use std::hash::{BuildHasher, Hasher};
     let mut id = String::new();
@@ -350,8 +356,15 @@ fn machine_secret(data: &DataDir) -> Result<String> {
         h.write_u32(std::process::id());
         id.push_str(&format!("{:016x}", h.finish()));
     }
-    write_atomic(&path, format!("{id}\n").as_bytes())?;
-    Ok(id)
+    let tmp = path.with_extension(format!("{}.tmp", std::process::id()));
+    write_atomic(&tmp, format!("{id}\n").as_bytes())?;
+    let linked = std::fs::hard_link(&tmp, &path);
+    let _ = std::fs::remove_file(&tmp);
+    match linked {
+        Ok(()) => Ok(id),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => read().ok_or_else(|| Error::io(&path, e)),
+        Err(e) => Err(Error::io(&path, e)),
+    }
 }
 
 fn title_case(s: &str) -> String {

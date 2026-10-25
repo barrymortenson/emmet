@@ -369,3 +369,65 @@ fn a_marker_copied_from_created_by_doesnt_trust() {
     std::fs::copy(demo.join(".emmet/trust"), forged.join(".emmet/trust")).unwrap();
     assert_eq!(emmet_in(&forged, &["run"]).0["error"]["code"], "PROJECT_UNTRUSTED");
 }
+
+#[test]
+fn projects_trusted_at_once_on_a_fresh_install_stay_trusted() {
+    // CI caught this: with no machine secret yet, parallel `emmet trust` runs each made one and overwrote the others',
+    // so markers written a moment earlier stopped matching.
+    let data = temp_dir("fresh-secret");
+    let zip = library_zip(&[]);
+    let file = data.join("complete.zip");
+    std::fs::write(&file, &zip).unwrap();
+    let install = emmet()
+        .arg("--data-dir")
+        .arg(&data)
+        .args([
+            "library",
+            "install",
+            "--release",
+            "ldraw-mini",
+            "--sha256",
+            &sha256(&zip),
+            "--zip",
+        ])
+        .arg(&file)
+        .output()
+        .unwrap();
+    assert!(install.status.success());
+    let dirs: Vec<_> = (0..8)
+        .map(|i| {
+            let d = temp_dir(&format!("fresh-{i}")).join("frame");
+            copy_tree(&fixture("projects/frame"), &d);
+            d
+        })
+        .collect();
+    let children: Vec<_> = dirs
+        .iter()
+        .map(|d| {
+            emmet()
+                .arg("--data-dir")
+                .arg(&data)
+                .args(["trust", "--project"])
+                .arg(d)
+                .spawn()
+                .unwrap()
+        })
+        .collect();
+    for mut c in children {
+        assert!(c.wait().unwrap().success());
+    }
+    let empty = temp_dir("fresh-path");
+    for d in &dirs {
+        // run checks trust first; with no uv on PATH it then stops at PYTHON_MISSING, without downloading Python.
+        let out = emmet()
+            .env("PATH", &empty)
+            .arg("--json")
+            .arg("--data-dir")
+            .arg(&data)
+            .args(["run", "--project"])
+            .arg(d)
+            .output();
+        let (v, _) = envelope(&out.unwrap());
+        assert_eq!(v["error"]["code"], "PYTHON_MISSING", "{}: {v}", d.display());
+    }
+}
