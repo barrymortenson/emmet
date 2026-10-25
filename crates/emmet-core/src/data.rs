@@ -22,7 +22,12 @@ impl DataDir {
             .or_else(|| std::env::var_os("EMMET_DATA_DIR").map(PathBuf::from))
         {
             Some(dir) => dir,
-            None if cfg!(debug_assertions) => Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.dev-data"),
+            // crates/emmet-core → the repo root.
+            None if cfg!(debug_assertions) => Path::new(env!("CARGO_MANIFEST_DIR"))
+                .ancestors()
+                .nth(2)
+                .expect("the crate sits two folders below the repo root")
+                .join(".dev-data"),
             None => platform_dir().ok_or_else(|| {
                 Error::new(
                     ErrorCode::IoError,

@@ -231,3 +231,33 @@ fn every_parameter_combination_at_the_edges_builds() {
         }
     }
 }
+
+#[test]
+fn the_dsl_spec_example_runs() {
+    // docs/spec/dsl.md opens with a model; it has to work as written.
+    let spec = std::fs::read_to_string(emmet_it::repo().join("docs/spec/dsl.md")).unwrap();
+    let example = spec
+        .split("```python\n")
+        .nth(1)
+        .and_then(|s| s.split("```").next())
+        .expect("a python block");
+    let dir = temp_dir("dsl-example").join("wall");
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(shared_data())
+        .args(["new", "--template", "empty"])
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    std::fs::write(dir.join("model.py"), example).unwrap();
+    let (v, code) = emmet_in(&dir, &["run"]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["parts"], 3);
+    let (v, code) = emmet_in(&dir, &["run", "--params", "width=3"]);
+    assert_eq!(
+        (code, v["error"]["code"].as_str()),
+        (3, Some("PARAM_INVALID")),
+        "3 isn't on the steps of 2: {v}"
+    );
+}

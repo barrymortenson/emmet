@@ -110,3 +110,7 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   download) and `toml` (for `emmet.toml` and `data/synonyms.toml`; already in `Cargo.lock` through tauri-build), over
   spawning the system curl or using reqwest. ADR 0007 records it. MCP output checks use a small validator in the tests,
   not a JSON Schema crate.
+- **The demo render for 1A's Done when #1.** LDView 4.7 and LeoCAD 26.09 are only ad-hoc signed and not notarized, so
+  Gatekeeper blocks them on this Mac (Homebrew disabled the LeoCAD cask on 2026-09-01 for that reason). Barry chose
+  Emmet's own render instead: the demo .mpd rendered with three.js LDrawLoader through the 0B headless-render spike
+  (ADR 0005) against the real 2026-09 library, in place of an LDView or LeoCAD screenshot.
