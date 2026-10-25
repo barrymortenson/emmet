@@ -31,6 +31,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   from it ships as its own data file under CC BY-SA 4.0 with attribution to the LDCad Shadow Library, kept separate
   from the AGPL code; overrides cover what it misses (track, the 9V switch). Rejected: building it on the user's
   machine from a first-run download; not using it.
+- **License credits are allowed.** LDraw part and OMR model headers name their authors, and CC BY requires keeping
+  them. The no-real-names invariant gets a second exception for third-party authors' names a license requires (LDraw
+  parts, OMR models, their attribution files), in AGENTS.md, its copy in plan section 25, and agent rule 7 in section
+  19. Rejected: keeping the names without changing the text; committing no named files (no ldraw-mini).
 
 ## 2026-10-24, session 0A
 

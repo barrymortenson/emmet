@@ -29,9 +29,9 @@ read.
   texts and a generated `ATTRIBUTION.md` (source URL, release, sha256, licenses, "no changes", every file with its
   author and license line), and `scripts/ldraw-mini-check.mjs` enforces that in CI. `NOTICE` keeps its LDraw
   paragraph. The fixture's 505 part and primitive files: 495 CC BY 4.0, 10 "CC BY 2.0 and CC BY 4.0".
-- **Part authors' names:** the headers name each part's author, and CC BY requires that. AGENTS.md says no real names
-  in fixtures, meaning personal data about Barry and users; this is third-party attribution the license requires.
-  Barry confirms this reading in the 0B PR (see "Open" below).
+- **Part authors' names:** the headers name each part's author, and CC BY requires keeping them. Barry added a second
+  exception to the no-real-names invariant for exactly this (2026-10-24): third-party authors' names a license
+  requires, in AGENTS.md, plan section 25, and agent rule 7.
 
 ### LDraw OMR models: committable as fixtures
 
@@ -108,11 +108,6 @@ datakurre's (the other search hits are for the unrelated Bricks Builder WordPres
 
 **Decision:** 0B copies no outside code. Every later session follows the default stance: read for ideas, and ask Barry
 before copying anything, with the license and the attribution it needs.
-
-## Open
-
-- **Part authors' names in fixtures:** Barry confirms in the 0B PR that license-required attribution is outside the
-  AGENTS.md "no real names" rule.
 
 ## Rerun
 

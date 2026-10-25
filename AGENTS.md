@@ -18,7 +18,8 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
 - Integration tests first; unit tests only for dense logic; never weaken a test to get green.
 - No new dependency or tool without approval (plan section 19, rule 6).
 - Every IPC path is checked against the project root; all process spawning is in Rust.
-- No secrets, real names, emails or personal paths in the repo, fixtures, transcripts or screenshots. The one exception:
+- No secrets, real names, emails or personal paths in the repo, fixtures, transcripts or screenshots. The exceptions:
   Barry's name where the license needs it (copyright lines, TRADEMARKS.md) and in commits and sign-offs, which use his
-  GitHub noreply address.
+  GitHub noreply address; and third-party authors' names that a license requires us to keep (LDraw parts, OMR models,
+  and their attribution files).
 - US English.
