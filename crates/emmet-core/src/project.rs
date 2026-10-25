@@ -93,7 +93,7 @@ impl Project {
                     .ok_or_else(|| not_found(&cwd))?
             }
         };
-        let root = root.canonicalize().map_err(|e| Error::io(&root, e))?;
+        let root = fsx::canonical(&root).map_err(|e| Error::io(&root, e))?;
         let path = root.join(MANIFEST_FILE);
         let text = std::fs::read_to_string(&path).map_err(|e| Error::io(&path, e))?;
         let config: Config = toml::from_str(&text).map_err(|e| {
@@ -325,7 +325,7 @@ pub fn machine_hash(data: &DataDir) -> Result<String> {
 /// again.
 fn trust_token(data: &DataDir, root: &Path) -> Result<String> {
     let id = machine_secret(data)?;
-    let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    let root = fsx::canonical(root).unwrap_or_else(|_| root.to_path_buf());
     Ok(fsx::sha256_hex(
         format!("emmet-trust:{id}\0{}", root.display()).as_bytes(),
     ))

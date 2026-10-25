@@ -6,6 +6,8 @@
 //! APPDATA on Windows) points at the test home. CI's runner guard sets `EMMET_DATA_DIR` and `EMMET_TEST_HOME` inside
 //! the runner's temp dir; locally they default to `target/it-data` and `target/it-home`.
 
+pub mod schema;
+
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::sync::OnceLock;

@@ -55,3 +55,19 @@ pub fn display_rel(root: &Path, path: &Path) -> String {
         Err(_) => path.display().to_string(),
     }
 }
+
+/// `canonicalize`, without the `\\?\` prefix Windows adds to drive paths, so the path reads and joins like the one
+/// the user typed (Python, error messages, and path comparisons all see `C:\…`).
+pub fn canonical(path: &Path) -> std::io::Result<std::path::PathBuf> {
+    let c = path.canonicalize()?;
+    #[cfg(windows)]
+    {
+        let s = c.to_string_lossy();
+        if let Some(rest) = s.strip_prefix(r"\\?\")
+            && rest.as_bytes().get(1) == Some(&b':')
+        {
+            return Ok(std::path::PathBuf::from(rest));
+        }
+    }
+    Ok(c)
+}

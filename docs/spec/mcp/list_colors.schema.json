@@ -1,0 +1,263 @@
+{
+  "name": "list_colors",
+  "description": "LDraw colors: code, name, RGB, finish, and other accepted spellings.",
+  "input": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "part": {
+        "default": null,
+        "description": "Only the colors this part comes in.",
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "type": "object"
+  },
+  "output": {
+    "$defs": {
+      "Color": {
+        "properties": {
+          "aliases": {
+            "description": "Other names that resolve to this color: LDraw's own name, plus abbreviations from `data/synonyms.toml`.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "code": {
+            "description": "The LDraw color code.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "edge_rgb": {
+            "type": "string"
+          },
+          "finish": {
+            "description": "solid, transparent, chrome, pearlescent, metal, matte_metallic, rubber, glitter, speckle, or glow.",
+            "type": "string"
+          },
+          "name": {
+            "description": "The display name, in US spelling (\"Light Bluish Gray\").",
+            "type": "string"
+          },
+          "rgb": {
+            "description": "`#RRGGBB`",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "rgb",
+          "edge_rgb",
+          "finish",
+          "aliases"
+        ],
+        "type": "object"
+      },
+      "ColorList": {
+        "properties": {
+          "colors": {
+            "items": {
+              "$ref": "#/$defs/Color"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "colors"
+        ],
+        "type": "object"
+      },
+      "Details": {
+        "description": "Where an error happened and what else helps fix it. Every field is optional.",
+        "properties": {
+          "excerpt": {
+            "description": "The source line, as written.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "description": "The file, relative to the project root when it's inside it.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line": {
+            "description": "1-based line in `file`.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "suggestions": {
+            "description": "Close matches: part ids, color names, or parameter names.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Error": {
+        "description": "A failure: what happened, where, and what to try.",
+        "properties": {
+          "code": {
+            "$ref": "#/$defs/ErrorCode"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Details"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hint": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "hint"
+        ],
+        "type": "object"
+      },
+      "ErrorCode": {
+        "description": "The error codes in plan section 09.",
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "PROJECT_UNTRUSTED",
+          "MODEL_EXEC_FAILED",
+          "MODEL_TIMEOUT",
+          "MODEL_TOO_LARGE",
+          "UNKNOWN_PART",
+          "UNKNOWN_COLOR",
+          "PARAM_INVALID",
+          "LIBRARY_MISSING",
+          "LIBRARY_CORRUPT",
+          "PYTHON_MISSING",
+          "RENDER_UNAVAILABLE",
+          "IO_ERROR",
+          "INTERNAL"
+        ],
+        "type": "string"
+      },
+      "Meta": {
+        "description": "Facts about the run that produced a result.",
+        "properties": {
+          "emmet": {
+            "description": "The Emmet version.",
+            "type": "string"
+          },
+          "generation": {
+            "description": "The project's run counter, after a run.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "inputs_hash": {
+            "description": "sha256 of the model's inputs (plan section 07), after a run.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ms": {
+            "description": "Wall time of the command in milliseconds.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project": {
+            "description": "The project root, when the command ran in one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "emmet",
+          "ms"
+        ],
+        "type": "object"
+      },
+      "Warning": {
+        "description": "A non-fatal note attached to a success.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "data": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ColorList"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Error"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "meta": {
+        "$ref": "#/$defs/Meta"
+      },
+      "ok": {
+        "type": "boolean"
+      },
+      "warnings": {
+        "items": {
+          "$ref": "#/$defs/Warning"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "ok",
+      "warnings",
+      "meta"
+    ],
+    "type": "object"
+  }
+}
