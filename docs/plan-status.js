@@ -19,7 +19,7 @@ window.EMMET_STATUS = {
       ],
       note: "1A and 1C must use the test HOME and data dir the runner guard sets; CLAUDE.md is a symlink, a text file on Windows without core.symlinks"
     },
-    "0B": { status: "in-progress", branch: "bmortenson/s0b-research-adrs", started: "2026-10-24" },
+    "0B": { status: "review", pr: 3, branch: "bmortenson/s0b-research-adrs", started: "2026-10-24" },
     "1A": { status: "todo" },
     "1B": { status: "todo" },
     "1C": { status: "todo" },
