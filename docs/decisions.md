@@ -43,6 +43,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   r/lego, the LDraw forum), and decides go, no-go, or pivot from the eval reports and his own testing. Plan sections
   02, 03 (D-18's wording), 21 (Phase 1, 1D: no demo kit; the signed build stays), 22 (H-06 and its guide), and 23 (the
   risk row) are updated. The launch posts and video at 7A/7B are unchanged.
+- **No note to Rebrickable (H-24 not needed).** Its downloads terms already allow the pack with credit (Q-02), and Q-14 is
+  settled by reading: the Terms' clause is about training models on Rebrickable content, Emmet trains nothing, and its
+  tools only answer the user's own agent with small facts. 3B no longer waits on a reply; if Rebrickable ever objects,
+  that use is switched off. The draft note is deleted.
 - **PR titles.** `<session id>: <outcome>` for a session, `<area>: <change>` otherwise, 50 characters or fewer, plain
   words, no version numbers or paths. In AGENTS.md (and its copy in plan section 25), agent rule 1, `/create-pr`, and
   the PR template; Dependabot's titles start `deps:`, and keep their version text because majors keep their own PR

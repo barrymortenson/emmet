@@ -29,7 +29,6 @@ the site, apart from the catalog downloads. `terms-check` prints them as a check
 ## Files
 
 - `quotes.json`: the phrases, their URLs, and what each one supports.
-- `rebrickable-note.md`: the courtesy note to Rebrickable for Barry to send (H-24).
 - `anthropic-description.md`: the description of how Emmet runs Claude Code, for Barry to send later (H-20).
 
 These are readings of published terms for building Emmet, not legal advice.

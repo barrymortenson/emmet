@@ -1643,7 +1643,6 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <li><span class="pill you">YOU</span> <b>H-21</b>: an Anthropic Console API key and an OpenAI API key for scripted runs and evals, each with a monthly spend cap, stored in the macOS keychain (<a href="#g-h21">guide</a>), needed before 0B.</li>
 <li><span class="pill you">YOU</span> <b>H-20</b>: accept Anthropic's Commercial Terms (<a href="#g-h20">guide</a>), needed before 0B, because 0B's spikes already drive <code>claude -p</code>. Sending Anthropic the description of how Emmet runs Claude Code waits until Emmet has its website and a business email, and is needed before 7B merges (Barry 2026-10-24).</li>
 <li><span class="pill you">YOU</span> <b>H-11</b> (end of 0B): pick the rung 3 set from 0B's shortlist.</li>
-<li><span class="pill you">YOU</span> <b>H-24</b> (after 0B): send Rebrickable the courtesy note 0B drafts. Its reply is needed before 3B merges, so send it early.</li>
 </ul></div>
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
@@ -1717,7 +1716,7 @@ which doesn't exist yet; agent rules 1-2 apply from 0B on). Commits use the nore
 <li><code>scripts/make-rebrickable-mini</code> from a pinned Rebrickable archive (section 12), next to ldraw-mini.</li>
 <li><code>scripts/make-ldraw-mini</code>: builds <code>tests/fixtures/ldraw-mini/</code> (~200 parts: everything rung 1 and rung 2 need, including track 53400/53401 and a switch, plus their primitives) with headers intact, <code>ATTRIBUTION.md</code>, and a license check script.</li>
 <li><code>docs/spec/ladder.md</code>: the exact prompt text for each rung, the features, the scoring config, and each rung's answer script for <code>ask_user</code> (section 16.1), plus a <b>rung 3 shortlist</b> of 3–5 OMR sets (150–400 parts, with Rebrickable inventories, mostly common parts) with renders. Ask Barry to pick one (H-11).</li>
-<li><code>docs/terms/rebrickable-note.md</code>: a short draft of the courtesy note to Rebrickable (the weekly pack, the credit, and Q-14's question about facts reaching the user's AI provider) for Barry to send (H-24).</li>
+<li>Dropped (Barry 2026-10-24): <s>a courtesy note to Rebrickable (H-24)</s>. The downloads terms allow the pack with credit, and Q-14 is settled by reading the Terms.</li>
 <li><b><code>docs/terms/</code></b>: the provider pages behind section 10's terms matrix, each as quoted passages with URL and date, plus <code>scripts/terms-check</code> that re-fetches them and diffs the quotes (run by hand at the gates, never in CI).</li>
 <li>Update section 24 (open questions) and any section 03 rows these ADRs settle, in the same PR.</li>
 </ul>
@@ -2019,7 +2018,6 @@ and record what I change. After sign-off, changes to these screens need a short 
 <li><span class="pill you">YOU</span> G1 must be <b>go</b> (H-06) before either session starts.</li>
 <li><span class="pill you">YOU</span> Optional: spot-check exported <code>.mpd</code> files in Studio or LDCad if you have them installed.</li>
 <li><span class="pill you">YOU</span> <b>H-22</b>: accept or reject mined technique candidates, in batches of 20 (3C).</li>
-<li><span class="pill you">YOU</span> <b>H-24</b>: Rebrickable's reply to the courtesy note (sent after 0B) is needed before 3B merges.</li>
 </ul></div>
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
@@ -2061,8 +2059,8 @@ corpus model pass by suppressing a rule; fix the data or the rule. Coordinate wi
 public types; don't edit emmet_dsl.</code></pre></details>
 </div>
 
-<div class="session" id="session-3b" data-session="3B" data-phase="3" data-title="DSL v1, steps, BOM, colors and availability" data-after="1D" data-waits="H-06" data-waits-merge="H-24" data-read="02, 08, 09, 12">
-<h4><span class="s-id">3B</span> DSL v1, steps, BOM, colors and availability<span class="s-meta">after 1D · alongside 3A, 2B · size L · YOU: G1 go (H-06) before start, H-24 before merge</span></h4>
+<div class="session" id="session-3b" data-session="3B" data-phase="3" data-title="DSL v1, steps, BOM, colors and availability" data-after="1D" data-waits="H-06" data-waits-merge="" data-read="02, 08, 09, 12">
+<h4><span class="s-id">3B</span> DSL v1, steps, BOM, colors and availability<span class="s-meta">after 1D · alongside 3A, 2B · size L · YOU: G1 go (H-06) before start</span></h4>
 <p class="goal"><b>Goal:</b> The DSL is rich enough for rung 2, with real parts lists, steps, and availability, and a technique library that gives the agent proven building blocks.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2582,7 +2580,7 @@ the terms don't allow it.</code></pre></details>
 <tr data-h="H-21"><td>H-21</td><td>API keys (Anthropic Console, OpenAI) with spend caps for scripted runs and evals</td><td>0B start</td><td><a href="#g-h21">guide</a></td></tr>
 <tr data-h="H-22"><td>H-22</td><td>Accept or reject mined technique candidates, in batches of 20</td><td>3C merge</td><td>Review pages in <code>docs/techniques/candidates/</code></td></tr>
 <tr data-h="H-23"><td>H-23</td><td>Photograph three subjects for the photo rung, two angles each (six photos): two brick models and one real building, your own photos with no people in them</td><td>4D start</td><td>Any phone camera; Emmet strips EXIF</td></tr>
-<tr data-h="H-24"><td>H-24</td><td>Send Rebrickable the courtesy note 0B drafts (the weekly pack, the credit, and Q-14), and record the reply</td><td>3B merge</td><td><code>docs/terms/rebrickable-note.md</code></td></tr>
+<tr data-h="H-24"><td>H-24</td><td>Not needed: no note to Rebrickable. Its downloads terms allow the pack with credit, and Q-14 is settled by reading its Terms (Barry 2026-10-24)</td><td>—</td><td>—</td></tr>
 </table></div>
 
 <h3>Guides</h3>
@@ -2711,7 +2709,7 @@ the terms don't allow it.</code></pre></details>
 <div class="table-wrap"><table>
 <tr><th>ID</th><th>Question</th><th>Settled by</th><th>Status</th></tr>
 <tr><td>Q-01</td><td>Can Emmet use the LDCad shadow library (license, format, coverage)?</td><td>Yes: CC BY-SA 4.0, LDraw-format patch files with <code>!LDCAD SNAP_*</code> meta, covering 94 of ldraw-mini's 141 real parts (clips, bars, pins, hinges, brackets; not track). The connector data built from it ships as its own CC BY-SA 4.0 file with attribution (Barry 2026-10-24, ADR 0003).</td><td><span class="pill decided">Decided</span></td></tr>
-<tr><td>Q-02</td><td>Do Rebrickable's download terms allow bundling a derived availability snapshot in the app?</td><td>Answered 2026-10-24 from the downloads page: free for personal and commercial use with credit to Rebrickable, automated downloads at most once a day. ADR 0003 records the quotes, re-read in 0B. A courtesy note to Rebrickable describing the weekly pack goes out after 0B, together with Q-14 (H-24).</td><td><span class="pill decided">Settled</span></td></tr>
+<tr><td>Q-02</td><td>Do Rebrickable's download terms allow bundling a derived availability snapshot in the app?</td><td>Answered 2026-10-24 from the downloads page: free for personal and commercial use with credit to Rebrickable, automated downloads at most once a day. ADR 0003 records the quotes, re-read in 0B.</td><td><span class="pill decided">Settled</span></td></tr>
 <tr><td>Q-03</td><td>What's the best source for the LDraw ↔ Rebrickable part id mapping, and its coverage?</td><td><code>part_mappings.csv</code> LD rows, then LD rows for LDraw's moved ids, then identical ids, then the base of a formed variant. Coverage: 100% of ldraw-mini's real parts and of the rung 3 shortlist sets' inventories, 61.9% of the whole library (the rest mostly stickers and prints). Colors from <code>color_mappings.csv</code> (ADR 0004).</td><td><span class="pill decided">Settled</span></td></tr>
 <tr><td>Q-04</td><td>Does a hidden-window WebGL render work reliably on WKWebView and WebView2?</td><td>Yes on both: three.js renders in a hidden window on WKWebView (a cube in about 0.4 s, LDraw models in 1–2 s) and on WebView2 in CI; the off-screen visible window stays as an unused fallback (ADR 0005).</td><td><span class="pill decided">Settled</span></td></tr>
 <tr><td>Q-05</td><td>What do Claude Code and Codex need to run natively on Windows today?</td><td>From the current docs (ADR 0001): Claude Code needs Windows 10 1809+, installs from PowerShell, CMD, or WinGet, and uses Git Bash if Git for Windows is installed, otherwise PowerShell; it has no sandbox on native Windows. Codex needs Windows 10 1809+ (11 recommended) and runs natively with its own Windows sandbox, no WSL. 1C verifies both hands-on in the VM (H-04).</td><td><span class="pill decided">Answered, verified in 1C</span></td></tr>
@@ -2723,7 +2721,7 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Q-11</td><td>Does each CLI accept a user message mid-turn and act on it at the next step (native redirect), or only after the turn ends?</td><td>Yes, on both: a stream-JSON user message written mid-turn reaches Claude Code at its next step, and Codex's <code>turn/steer</code> does the same. Redirects use the native path; the queued path is the fallback (ADR 0001).</td><td><span class="pill decided">Settled</span></td></tr>
 <tr><td>Q-12</td><td>How long can an MCP tool call block in each CLI before it times out, and can a per-session setting raise it far enough for <code>ask_user</code>?</td><td>Claude Code: the default outlasts 10 minutes, and <code>MCP_TOOL_TIMEOUT</code> accepted 24 h and 2<sup>31</sup> ms; Emmet sets 1 h. Codex: the default is 300 s, and <code>tool_timeout_sec=3600</code> on <code>emmet_host</code> held a 10-minute call (ADR 0001).</td><td><span class="pill decided">Settled</span></td></tr>
 <tr><td>Q-13</td><td>When does Emmet go open source? Codex on a ChatGPT plan inside Emmet depends on it (OpenAI's Sign in with ChatGPT rule).</td><td>Decided 2026-10-24: from day one, AGPL-3.0, public repo (D-12, D-14). Codex on a ChatGPT plan is in the MVP (1E).</td><td><span class="pill decided">Decided</span></td></tr>
-<tr><td>Q-14</td><td>Rebrickable's Terms say its content may not be "used in the training of AI models". Emmet never trains, but small Rebrickable facts reach the user's AI provider in tool results. Confirm with Rebrickable that this is fine.</td><td>H-24: the courtesy note goes out after 0B, and its reply is needed before 3B merges. If there's no reply by then, Barry decides whether 3B merges anyway, recorded in <code>docs/decisions.md</code>.</td><td><span class="pill open">Open</span></td></tr>
+<tr><td>Q-14</td><td>Rebrickable's Terms say its content may not be "used in the training of AI models". Emmet never trains, but small Rebrickable facts reach the user's AI provider in tool results. Confirm with Rebrickable that this is fine.</td><td>Settled by reading (Barry 2026-10-24): the clause is about training models on Rebrickable content. Emmet trains nothing, and its tools answer the user's own agent with small facts at run time; no note to Rebrickable (H-24 not needed). If Rebrickable ever objects, that use is switched off (D-37 style).</td><td><span class="pill decided">Settled</span></td></tr>
 </table></div>
 </section>
 

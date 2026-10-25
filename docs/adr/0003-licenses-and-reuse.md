@@ -80,8 +80,9 @@ read.
   train AI models.
 - **Decision:** D-25 stands (Q-02 stays settled): one CI fetch a week, credit wherever the data appears, no MOC data,
   no images, no training. `scripts/terms-check` lists Rebrickable's pages as a hand checklist and never fetches them.
-  `tests/fixtures/rebrickable-mini/` carries the credit, and so does `NOTICE` now. Q-14 (facts reaching the user's AI
-  provider) goes to Rebrickable in `docs/terms/rebrickable-note.md` (H-24).
+  `tests/fixtures/rebrickable-mini/` carries the credit, and so does `NOTICE` now. Q-14 (small facts reaching the
+  user's AI provider in tool results) is settled by reading: the clause is about training models on Rebrickable
+  content, and Emmet trains nothing. Barry dropped the planned note to Rebrickable (H-24 not needed, 2026-10-24).
 
 ### three.js and LDrawLoader: MIT
 

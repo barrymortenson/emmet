@@ -70,7 +70,7 @@ window.EMMET_STATUS = {
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
     "H-22": { status: "todo" },
     "H-23": { status: "todo" },
-    "H-24": { status: "todo" }
+    "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" }
   },
   blockers: [],
   gates: {

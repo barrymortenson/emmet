@@ -67,7 +67,7 @@
         { "text": "you can download the full catalog via the Downloads page", "basis": "section 5.1" },
         { "text": "automate or manually scrape any MOC related data", "basis": "no MOC data" },
         { "text": "use automation tools to download data or to automate traffic", "basis": "section 5.3: why these pages are checked by hand" },
-        { "text": "No Rebrickable content may be used in the training of AI models", "basis": "Q-14, H-24" }
+        { "text": "No Rebrickable content may be used in the training of AI models", "basis": "Q-14: Emmet trains nothing; settled by reading (Barry 2026-10-24)" }
       ]
     }
   ]
