@@ -316,7 +316,7 @@ fn on_run_event(app: &AppHandle, ev: RunEvent) {
 
 /// Applies a run's outcome to the state. None when there's nothing to tell the window: the result is older than
 /// the scene on screen (the generation check).
-fn finish(state: &AppState, o: &Outcome) -> Option<RunFinished> {
+pub fn finish(state: &AppState, o: &Outcome) -> Option<RunFinished> {
     let mut inner = state.inner.lock().expect("state");
     inner.running = false;
     if o.ok() {

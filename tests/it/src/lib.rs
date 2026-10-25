@@ -287,3 +287,14 @@ pub fn emmet_in(project: &Path, args: &[&str]) -> (Value, i32) {
         .expect("run emmet");
     envelope(&out)
 }
+
+/// Checks a render: a PNG of `size` × `size` that isn't one flat color.
+pub fn check_png(png: &[u8], size: u32) {
+    assert!(png.starts_with(b"\x89PNG\r\n\x1a\n"), "not a PNG");
+    let width = u32::from_be_bytes(png[16..20].try_into().unwrap());
+    let height = u32::from_be_bytes(png[20..24].try_into().unwrap());
+    assert_eq!((width, height), (size, size), "the PNG's size");
+    // One flat color compresses to a few hundred bytes at any of these sizes; a model with edges and shading to
+    // more than a kilobyte (a 128 px front view of scene-colors is 1.7 KB). The E2E specs decode and compare pixels.
+    assert!(png.len() > 1_000, "the PNG looks blank ({} bytes)", png.len());
+}

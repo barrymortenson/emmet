@@ -123,16 +123,22 @@ fn unavailable(message: impl Into<String>) -> Error {
 }
 
 /// The app binary: `EMMET_APP`, else next to this emmet (the app bundle's sidecar layout, or target/<profile>/ in
-/// development).
+/// development). Names match exactly: on a case-insensitive disk `Emmet` would otherwise find this `emmet`.
 fn app_binary() -> Option<PathBuf> {
     if let Some(p) = std::env::var_os("EMMET_APP") {
         return Some(PathBuf::from(p));
     }
-    let dir = std::env::current_exe().ok()?.parent()?.to_path_buf();
+    let me = std::env::current_exe().ok()?;
+    let names: Vec<String> = std::fs::read_dir(me.parent()?)
+        .ok()?
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .collect();
     ["Emmet", "emmet-desktop"]
         .iter()
-        .map(|n| dir.join(format!("{n}{}", std::env::consts::EXE_SUFFIX)))
-        .find(|p| p.is_file())
+        .map(|n| format!("{n}{}", std::env::consts::EXE_SUFFIX))
+        .find(|n| names.contains(n))
+        .map(|n| me.with_file_name(n))
 }
 
 /// `Emmet --render <project> --view … --size … --out …` in a hidden window, then the PNG it wrote.

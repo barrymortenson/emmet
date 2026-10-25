@@ -210,7 +210,7 @@ pub fn run() {
             if rendering {
                 let job = tauri_app.state::<app::AppState>().render.clone().expect("render job");
                 let size = f64::from(job.size.max(256));
-                WebviewWindowBuilder::new(tauri_app, "render", WebviewUrl::App("index.html#render".into()))
+                WebviewWindowBuilder::new(tauri_app, "render", WebviewUrl::default())
                     .title("Emmet render")
                     .inner_size(size, size)
                     .visible(false)

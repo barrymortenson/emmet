@@ -128,9 +128,7 @@ impl Server {
             pid: std::process::id(),
         };
         let path = info_path(data);
-        fsx::write_atomic(&path, serde_json::to_string_pretty(&info).expect("json").as_bytes())?;
-        #[cfg(unix)]
-        restrict(&path);
+        fsx::write_private(&path, serde_json::to_string_pretty(&info).expect("json").as_bytes())?;
         let stop = Arc::new(AtomicBool::new(false));
         let (handler, want, halt) = (Arc::new(handler), token.clone(), stop.clone());
         std::thread::spawn(move || {
@@ -164,11 +162,17 @@ impl Drop for Server {
     }
 }
 
-/// Only this user may open the socket or read the token (section 15; 1C adds the Windows pipe ACL and its tests).
+/// Only this user may open the socket (section 15). The token file is created private (fsx::write_private); a client
+/// that connects before this chmod still needs the token. 1C adds the Windows pipe ACL and the socket's tests.
 #[cfg(unix)]
 fn restrict(path: &std::path::Path) {
     use std::os::unix::fs::PermissionsExt;
     let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
+}
+
+/// Compares tokens in time that doesn't depend on where they differ.
+fn same(a: &str, b: &str) -> bool {
+    a.len() == b.len() && a.bytes().zip(b.bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
 }
 
 fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send + Sync)) {
@@ -180,7 +184,7 @@ fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send +
                 id: req.id,
                 ..Reply::undelivered(format!("the app speaks bus v{VERSION}, not v{}", req.v))
             },
-            Ok(req) if req.token != token => Reply {
+            Ok(req) if !same(&req.token, token) => Reply {
                 id: req.id,
                 ..Reply::undelivered("wrong token")
             },

@@ -41,7 +41,7 @@ deps:
 
 # Tauri dev with Vite HMR, under the dev bundle id so it never touches real app data.
 dev:
-    cd apps/desktop && pnpm tauri dev --config src-tauri/tauri.dev.conf.json
+    cd apps/desktop && pnpm tauri dev --config src-tauri/tauri.dev.conf.json -- --no-default-features
 
 # Format, lint, and typecheck across Rust, TS, and Python, plus the SPDX headers.
 check:

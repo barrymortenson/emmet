@@ -23,6 +23,8 @@ struct Call {
     envelope: Value,
     text: String,
     is_error: bool,
+    /// Image content blocks: (base64 data, MIME type).
+    images: Vec<(String, String)>,
 }
 
 async fn connect(project: Option<&Path>) -> Client {
@@ -59,6 +61,11 @@ impl Client {
             .filter_map(|c| c.as_text().map(|t| t.text.clone()))
             .collect::<Vec<_>>()
             .join("\n");
+        let images = r
+            .content
+            .iter()
+            .filter_map(|c| c.as_image().map(|i| (i.data.clone(), i.mime_type.clone())))
+            .collect();
         let tool = self.tools.iter().find(|t| t.name == name).expect("the tool is listed");
         let schema = Value::Object((*tool.output_schema.clone().expect("an output schema")).clone());
         let problems = validate(&schema, &envelope);
@@ -76,6 +83,7 @@ impl Client {
             envelope,
             text,
             is_error: r.is_error == Some(true),
+            images,
         }
     }
 }
@@ -102,7 +110,7 @@ fn assert_matches_committed(client: &Client, name: &str) {
 }
 
 #[tokio::test]
-async fn lists_exactly_the_1a_tools() {
+async fn lists_exactly_the_tools_built_so_far() {
     let client = connect(None).await;
     let mut names: Vec<String> = client.tools.iter().map(|t| t.name.to_string()).collect();
     names.sort();
@@ -110,8 +118,10 @@ async fn lists_exactly_the_1a_tools() {
         names,
         [
             "get_params",
+            "highlight",
             "list_colors",
             "part_info",
+            "render",
             "run_model",
             "search_parts",
             "set_params"
@@ -268,6 +278,39 @@ async fn list_colors() {
     let c = client.call("list_colors", json!({ "part": "nope" })).await;
     assert!(c.is_error);
     assert_eq!(c.envelope["error"]["code"], "UNKNOWN_PART");
+}
+
+/// With no app open, render goes through the app's render mode (a hidden window) and returns a PNG as image content.
+#[tokio::test]
+async fn render() {
+    let dir = project("scene-colors");
+    let client = connect(Some(&dir)).await;
+    assert_matches_committed(&client, "render");
+    let c = client.call("render", json!({ "view": "front", "size": 128 })).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["via"], "render-mode");
+    assert_eq!(c.envelope["data"]["view"], "front");
+    assert_eq!(c.text, "The front view at 128 px.");
+    let [(png, mime)] = c.images.as_slice() else {
+        panic!("one image, not {:?}", c.images.len())
+    };
+    assert_eq!(mime, "image/png");
+    emmet_it::check_png(&emmet_core::base64::decode(png).expect("base64"), 128);
+    let c = client.call("render", json!({ "view": "sideways" })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+}
+
+/// With no app open, highlight says so instead of failing.
+#[tokio::test]
+async fn highlight() {
+    let dir = project("scene-colors");
+    let client = connect(Some(&dir)).await;
+    assert_matches_committed(&client, "highlight");
+    let c = client.call("highlight", json!({ "ids": ["p1"] })).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["delivered"], false);
+    assert!(c.text.starts_with("Emmet app not open"), "{}", c.text);
 }
 
 #[test]

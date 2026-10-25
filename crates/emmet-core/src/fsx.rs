@@ -13,6 +13,15 @@ use crate::envelope::{Error, Result};
 
 /// Writes `bytes` to `path` so readers never see half a file: a temp file in the same directory, fsync, rename.
 pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
+    write_atomic_with(path, bytes, false)
+}
+
+/// [`write_atomic`] for a secret: on Unix the file is readable by this user only (0600) from the moment it exists.
+pub fn write_private(path: &Path, bytes: &[u8]) -> Result<()> {
+    write_atomic_with(path, bytes, true)
+}
+
+fn write_atomic_with(path: &Path, bytes: &[u8], private: bool) -> Result<()> {
     let dir = path
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
@@ -27,7 +36,16 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
     let nonce = RandomState::new().build_hasher().finish() ^ COUNTER.fetch_add(1, Ordering::Relaxed);
     let tmp = dir.join(format!(".{name}.{}-{nonce:016x}.tmp", std::process::id()));
     let written = (|| {
-        let mut f = std::fs::OpenOptions::new().write(true).create_new(true).open(&tmp)?;
+        let mut options = std::fs::OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        if private {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        #[cfg(not(unix))]
+        let _ = private;
+        let mut f = options.open(&tmp)?;
         f.write_all(bytes)?;
         f.sync_all()?;
         drop(f);

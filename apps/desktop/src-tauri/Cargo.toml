@@ -35,6 +35,10 @@ tauri-plugin-wdio-webdriver = { workspace = true, optional = true }
 emmet-it = { path = "../../../tests/it" }
 
 [features]
+# The frontend embedded in the binary: every build but `just dev`, which serves it from Vite. Without it a plain
+# `cargo build` would load the dev server's URL, and render mode (emmet render) would show a blank page.
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
 # The embedded WebDriver server for E2E tests (ADR 0002). Only `just e2e` turns it on, and only in debug builds.
 webdriver = ["dep:tauri-plugin-wdio-webdriver"]
 
