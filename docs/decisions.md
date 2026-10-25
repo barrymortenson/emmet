@@ -103,3 +103,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **D-37 Terms gate.** A feature that touches an AI provider (accounts, sign-in, credentials, billing, usage data, model requests, or names and logos) is built only if the provider's current published text permits that exact use.
 - **D-38 Scripted-run budget.** Scripted runs (anything that drives a real agent CLI automatically, billed to Barry's API keys) are kept to a minimum.
 - **D-39 Repo bootstrap and protection.** main gets exactly one direct push, ever: in 0A, with Barry's approval of the exact commands, the empty initial commit is pushed to create the remote, before the hooks and protection exist.
+
+## 2026-10-24, session 1A
+
+- **New dependencies for 1A.** Barry approved `ureq` (a small blocking HTTPS client, for the resumable library
+  download) and `toml` (for `emmet.toml` and `data/synonyms.toml`; already in `Cargo.lock` through tauri-build), over
+  spawning the system curl or using reqwest. ADR 0007 records it. MCP output checks use a small validator in the tests,
+  not a JSON Schema crate.
