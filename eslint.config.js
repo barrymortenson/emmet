@@ -5,7 +5,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["**/dist/", "**/node_modules/", "target/", "apps/desktop/src-tauri/", "python/", "docs/", "**/web/vendor/"]),
+  globalIgnores(["**/dist/", "**/node_modules/", "target/", ".dev-data/", "apps/desktop/src-tauri/", "python/", "docs/", "**/web/vendor/"]),
   js.configs.recommended,
   tseslint.configs.recommended,
   { files: ["**/*.mjs", "**/*.js", "apps/desktop/vite.config.ts"], languageOptions: { globals: globals.node } },
