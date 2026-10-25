@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! The flat placement list the viewer reads (`build/placements.json`, plan section 07), from an .mpd.
+//! Flattens an .mpd into the same rows as `build/placements.json` (plan section 07), which emmet_dsl writes, so
+//! tests can check the two agree. Opening a bare .mpd (import, later) uses it too.
 
 use glam::{DMat3, DMat4, DVec3};
 use schemars::JsonSchema;

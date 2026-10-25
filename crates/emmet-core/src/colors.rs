@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! The color table from the library's `LDConfig.ldr`, and name lookup that takes LDraw, Rebrickable, or BrickLink
-//! spellings ("Light Bluish Gray", "Light_Bluish_Grey", "LBG") or an LDraw code (plan section 08).
+//! The color table from the library's `LDConfig.ldr`, and name lookup that takes an LDraw name in any spelling
+//! ("Light Bluish Gray", "Light_Bluish_Grey"), an abbreviation from `data/synonyms.toml` ("LBG"), or an LDraw code
+//! (plan section 08). Rebrickable and BrickLink names join with the parts data pack (3B).
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

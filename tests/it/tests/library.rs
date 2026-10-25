@@ -18,6 +18,8 @@ enum Reply {
     Full,
     /// Promise the whole body, send the first `n` bytes, and drop the connection.
     CutAfter(usize),
+    /// Answer with this status and no body.
+    Status(u16),
 }
 
 /// Serves `body` at `http://127.0.0.1:<port>/complete.zip` for each reply in `replies`, recording the Range headers.
@@ -45,6 +47,11 @@ fn serve(body: Vec<u8>, replies: Vec<Reply>) -> (String, Arc<Mutex<Vec<Option<St
                 }
             }
             seen.lock().unwrap().push(range.clone());
+            if let Reply::Status(code) = reply {
+                let head = format!("HTTP/1.1 {code} No\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                stream.write_all(head.as_bytes()).unwrap();
+                continue;
+            }
             let start: usize = range.as_deref().map_or(0, |r| r.parse().unwrap());
             let status = if start > 0 { "206 Partial Content" } else { "200 OK" };
             let rest = &body[start..];
@@ -56,6 +63,7 @@ fn serve(body: Vec<u8>, replies: Vec<Reply>) -> (String, Arc<Mutex<Vec<Option<St
             match reply {
                 Reply::Full => stream.write_all(rest).unwrap(),
                 Reply::CutAfter(n) => stream.write_all(&rest[..n]).unwrap(),
+                Reply::Status(_) => unreachable!(),
             }
             stream.flush().unwrap();
         }
@@ -203,9 +211,20 @@ fn interrupted_download_resumes() {
 #[test]
 fn plain_http_is_refused_except_to_this_machine() {
     let data = temp_dir("http");
-    let (v, code) = install(&data, "http://example.com/complete.zip", &sha256(b""));
-    assert_eq!(code, 4);
-    assert!(v["error"]["message"].as_str().unwrap().contains("plain HTTP"), "{v}");
+    // A user name before the real host ("localhost:@example.invalid") isn't this machine.
+    for url in [
+        "http://example.com/complete.zip",
+        "http://localhost:@example.invalid/complete.zip",
+        "http://127.0.0.1:1@example.invalid/x.zip",
+        "http://localhost.example.invalid/x.zip",
+    ] {
+        let (v, code) = install(&data, url, &sha256(b""));
+        assert_eq!(code, 4, "{url}");
+        assert!(
+            v["error"]["message"].as_str().unwrap().contains("plain HTTP"),
+            "{url}: {v}"
+        );
+    }
 }
 
 #[test]
@@ -244,4 +263,112 @@ fn verify_detects_a_changed_file_and_reindexes() {
         v["error"]["message"].as_str().unwrap().contains("parts/3001.dat"),
         "{v}"
     );
+}
+
+#[test]
+fn a_failed_reinstall_keeps_the_working_library() {
+    let good = library_zip(&[]);
+    let data = temp_dir("reinstall");
+    let zip = |name: &str, bytes: &[u8]| {
+        let path = data.parent().unwrap().join(name);
+        std::fs::write(&path, bytes).unwrap();
+        path
+    };
+    let install_zip = |path: &Path, sha: &str| {
+        let out = emmet()
+            .args(["--json", "--data-dir"])
+            .arg(&data)
+            .args([
+                "library",
+                "install",
+                "--release",
+                "ldraw-mini",
+                "--sha256",
+                sha,
+                "--zip",
+            ])
+            .arg(path)
+            .output()
+            .unwrap();
+        envelope(&out)
+    };
+    assert_eq!(install_zip(&zip("good.zip", &good), &sha256(&good)).1, 0);
+    let before = std::fs::read(data.join("ldraw/parts/3001.dat")).unwrap();
+    let slip = library_zip(&[("ldraw/../../evil.dat", b"0 evil\n")]);
+    assert_eq!(
+        install_zip(&zip("slip.zip", &slip), &sha256(&slip)).0["error"]["code"],
+        "LIBRARY_CORRUPT"
+    );
+    assert_eq!(
+        install_zip(&zip("good2.zip", &good), &sha256(b"wrong")).0["error"]["code"],
+        "LIBRARY_CORRUPT"
+    );
+    assert_eq!(std::fs::read(data.join("ldraw/parts/3001.dat")).unwrap(), before);
+    assert_eq!(status(&data)["data"]["installed"]["sha256"], sha256(&good));
+    let leftovers: Vec<_> = std::fs::read_dir(&data)
+        .unwrap()
+        .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+        .filter(|n| n.starts_with("ldraw.") && n != "ldraw.sha256")
+        .collect();
+    assert!(leftovers.is_empty(), "{leftovers:?}");
+}
+
+#[test]
+fn a_damaged_install_is_corrupt_not_missing() {
+    let zip = library_zip(&[]);
+    let (url, _) = serve(zip.clone(), vec![Reply::Full]);
+    let data = temp_dir("damaged");
+    assert_eq!(install(&data, &url, &sha256(&zip)).1, 0);
+    let verify = || {
+        let out = emmet()
+            .args(["--json", "--data-dir"])
+            .arg(&data)
+            .args(["library", "verify"])
+            .output();
+        envelope(&out.unwrap())
+    };
+    // A manifest cut short used to verify as "all 0 files match".
+    let manifest = std::fs::read_to_string(data.join("ldraw.sha256")).unwrap();
+    std::fs::write(
+        data.join("ldraw.sha256"),
+        manifest.lines().take(3).collect::<Vec<_>>().join("\n"),
+    )
+    .unwrap();
+    let (v, code) = verify();
+    assert_eq!((code, v["error"]["code"].as_str()), (4, Some("LIBRARY_CORRUPT")), "{v}");
+    std::fs::write(data.join("ldraw.sha256"), "not a manifest line\n").unwrap();
+    assert_eq!(verify().0["error"]["code"], "LIBRARY_CORRUPT");
+    // An unreadable library.json used to read as "not installed", sending the user to download it again.
+    std::fs::write(data.join("library.json"), "{ broken").unwrap();
+    let (v, code) = verify();
+    assert_eq!((code, v["error"]["code"].as_str()), (4, Some("LIBRARY_CORRUPT")), "{v}");
+    let out = emmet()
+        .args(["--json", "--data-dir"])
+        .arg(&data)
+        .arg("doctor")
+        .output()
+        .unwrap();
+    let (v, _) = envelope(&out);
+    let lib = &v["data"]["checks"][0];
+    assert!(
+        lib["detail"].as_str().unwrap().contains("damaged") && lib["fix"].as_str().unwrap().contains("install"),
+        "{v}"
+    );
+}
+
+#[test]
+fn a_partial_download_the_server_wont_resume_is_dropped() {
+    let zip = library_zip(&[]);
+    let (url, _) = serve(zip.clone(), vec![Reply::Status(416), Reply::Full]);
+    let data = temp_dir("range-416");
+    let part = data.join("downloads/complete-ldraw-mini.zip.part");
+    std::fs::create_dir_all(part.parent().unwrap()).unwrap();
+    std::fs::write(&part, vec![0u8; zip.len() + 10]).unwrap();
+    let (v, code) = install(&data, &url, &sha256(&zip));
+    assert_eq!(code, 4, "{v}");
+    assert!(
+        !part.exists(),
+        "a .part that can't resume would fail the same way every time"
+    );
+    assert_eq!(install(&data, &url, &sha256(&zip)).1, 0);
 }

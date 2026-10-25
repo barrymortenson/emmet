@@ -98,7 +98,7 @@ impl Index {
         Ok(Self { conn })
     }
 
-    /// Opens the index, building it first when it's missing or from an older Emmet.
+    /// Opens the index, building it first when it's missing or its schema version isn't this Emmet's.
     pub fn ensure(data: &DataDir) -> Result<Self> {
         match Self::open(data) {
             Ok(index) => Ok(index),
@@ -413,7 +413,14 @@ pub fn build(data: &DataDir) -> Result<usize> {
     rows.sort_by(|a, b| a.id.cmp(&b.id));
 
     let config = root.join("LDConfig.ldr");
-    let ldconfig = std::fs::read_to_string(&config).map_err(|e| Error::io(&config, e))?;
+    let ldconfig = std::fs::read_to_string(&config).map_err(|e| {
+        Error::new(
+            ErrorCode::LibraryCorrupt,
+            format!("The library has no readable LDConfig.ldr (the color table): {e}"),
+            "Run emmet library install to put the library back.",
+        )
+        .at_file(config.display().to_string())
+    })?;
     let mut color_rows = colors::parse_ldconfig(&ldconfig);
     let (part_synonyms, color_abbrs) = synonyms_toml();
     for (abbr, full) in &color_abbrs {

@@ -54,7 +54,8 @@ impl Index {
         let synonyms = self.part_synonyms()?;
         let group = |t: &String| {
             let mut alts = vec![term(t)];
-            for (_, to) in synonyms.iter().filter(|(from, _)| from == t) {
+            // Keys are folded like query words, so "points" and "leaves" match their entries.
+            for (_, to) in synonyms.iter().filter(|(from, _)| stem(&from.to_lowercase()) == *t) {
                 let ws = words(to);
                 if !ws.is_empty() {
                     alts.push(format!(
@@ -167,10 +168,26 @@ impl Index {
         let mut out = Vec::new();
         for row in rows {
             let (bm25, hit) = row.map_err(db)?;
-            out.push((bm25 + penalty(&hit, tokens), hit));
+            out.push((bm25 + penalty(&hit, tokens) + dims_penalty(&hit, dims), hit));
         }
         Ok(out)
     }
+}
+
+/// With dimensions in the query, the exact size and the size in the name rank first: the filter lets near sizes
+/// and name-only matches through, and a query of dimensions alone has no BM25 to sort by.
+fn dims_penalty(hit: &SearchHit, dims: &[f64]) -> f64 {
+    if dims.len() < 2 {
+        return 0.0;
+    }
+    let (a, b) = (dims[0], dims[1]);
+    let off = hit.size.map_or(2.0, |s| {
+        ((s.x - a).abs() + (s.y - b).abs()).min((s.x - b).abs() + (s.y - a).abs())
+    });
+    let phrase = |x: f64, y: f64| format!(" {} x {} ", dim_text(x), dim_text(y));
+    let named = format!(" {} ", hit.name);
+    let in_name = named.contains(&phrase(a, b)) || named.contains(&phrase(b, a));
+    4.0 * off + if in_name { -1.5 } else { 0.0 }
 }
 
 /// A dimension as LDraw names write it: "2", "0.667".
@@ -179,8 +196,8 @@ fn dim_text(d: f64) -> String {
     s.trim_end_matches('0').trim_end_matches('.').to_string()
 }
 
-/// Boosts plain, current parts: printed, obsolete, moved, hidden, and sticker parts sink unless the query asks for
-/// them, a category named in the query rises, and shorter names win ties.
+/// Boosts plain, current parts: moved (alias) and hidden parts always sink; printed, obsolete, and sticker parts sink
+/// unless the query asks for them; a category named in the query rises; and each word of the name costs a little.
 fn penalty(hit: &SearchHit, tokens: &[String]) -> f64 {
     let asked = |w: &str| tokens.iter().any(|t| t.starts_with(w));
     let mut p = 0.0;

@@ -81,7 +81,16 @@ def _param_lines(fn) -> dict[str, int]:
 
 
 def schema(fn, file: str, def_line: int) -> list[Param]:
-    hints = typing.get_type_hints(fn, include_extras=True)
+    try:
+        hints = typing.get_type_hints(fn, include_extras=True)
+    except NameError as e:
+        raise EmmetError(
+            "MODEL_EXEC_FAILED",
+            f"A parameter annotation of {fn.__name__}() names something that isn't defined: {e}.",
+            "Import it (for example `from typing import Annotated`) or fix the name.",
+            file,
+            def_line,
+        ) from e
     help_text = _help_lines(fn.__doc__)
     lines = _param_lines(fn)
     params = []
@@ -188,6 +197,14 @@ def _bad(p: Param, value, file: str, source: str, why: str) -> EmmetError:
     )
 
 
+def _on_step(p: Param, num) -> bool:
+    """On the slider's steps from its minimum, allowing for float error (0.3 is on steps of 0.1)."""
+    if not p.step:
+        return True
+    k = (num - (p.min or 0)) / p.step
+    return abs(k - round(k)) < 1e-9
+
+
 def _num(v) -> str:
     return str(int(v)) if float(v).is_integer() else str(v)
 
@@ -214,7 +231,7 @@ def _coerce(p: Param, value, file: str, source: str):
             num = int(num)
         if p.min is not None and not (p.min <= num <= p.max):
             raise _bad(p, value, file, source, f"is outside {_num(p.min)}–{_num(p.max)}")
-        if p.step and not float((num - (p.min or 0)) / p.step).is_integer():
+        if not _on_step(p, num):
             raise _bad(p, value, file, source, f"isn't on the slider's steps of {_num(p.step)}")
         return num
     if p.type == "choice":
@@ -235,6 +252,14 @@ def _check_default(p: Param, file: str) -> None:
             "PARAM_INVALID",
             f"{p.name}'s default {p.default!r} is outside its range {_num(p.min)}–{_num(p.max)}.",
             "Change the default or the Range so the default fits.",
+            file,
+            p.line,
+        )
+    if isinstance(p.default, int | float) and not isinstance(p.default, bool) and not _on_step(p, p.default):
+        raise EmmetError(
+            "PARAM_INVALID",
+            f"{p.name}'s default {p.default!r} isn't on its steps of {_num(p.step)}.",
+            "Change the default or the Step so the default is one of the slider's values.",
             file,
             p.line,
         )

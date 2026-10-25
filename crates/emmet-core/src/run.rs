@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! Running a model (plan sections 07, 08, 15): `python -I -m emmet_dsl.run` in the project folder with a scrubbed
+//! Running a model (plan sections 07, 08, 15): `python -I -B -X utf8 -m emmet_dsl.run` in the project folder with a scrubbed
 //! environment, a timeout, and capped output. emmet writes the part geometry and the color table the DSL reads; the
 //! DSL writes model.mpd, placements.json, and manifest.json.
 
@@ -22,6 +22,12 @@ use crate::project::Project;
 /// Caps from plan section 15.
 pub const MAX_PARTS: usize = 20_000;
 const MAX_LOG: usize = 10 << 20;
+/// Passes over a model that keeps asking for new parts. Each pass reports every part it lacks, so a model needs two
+/// unless the parts it picks depend on other parts' sizes.
+const MAX_PASSES: usize = 16;
+/// How long to wait, after Python exits, for the rest of its output. A process the model started and left running
+/// can hold the pipes open; emmet doesn't wait for it.
+const PIPE_GRACE: Duration = Duration::from_secs(2);
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Bbox {
@@ -67,6 +73,16 @@ struct Reply {
     error: Option<Error>,
     #[serde(default)]
     need: Vec<Need>,
+}
+
+/// The data of a successful run reply.
+#[derive(Debug, Deserialize)]
+struct RunData {
+    parts: usize,
+    steps: usize,
+    submodels: usize,
+    bbox: Option<Bbox>,
+    used: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -122,7 +138,9 @@ fn run_inner(
         "parts_data": null,
         "generation": generation,
     });
-    for _pass in 0..3 {
+    // Each pass that meets parts it has no geometry for reports them all; a pass can only add parts, so this ends
+    // once every part the model uses is known. The cap is a backstop against a reply that never settles.
+    for _pass in 0..MAX_PASSES {
         write_geometry(&geometry_path, &geometry)?;
         let req = Request {
             mode: "run",
@@ -132,21 +150,20 @@ fn run_inner(
         };
         let reply = call(&python, project, &req)?;
         if reply.ok {
-            let data = reply.data.unwrap_or_default();
-            let used: Vec<String> = serde_json::from_value(data["used"].clone()).unwrap_or_default();
-            if used.len() != geometry.len() || used.iter().any(|u| !geometry.contains_key(u)) {
-                geometry.retain(|k, _| used.contains(k));
+            let data: RunData = serde_json::from_value(reply.data.unwrap_or_default())
+                .map_err(|e| Error::internal(format!("emmet_dsl's run reply doesn't match what emmet expects: {e}")))?;
+            if data.used.len() != geometry.len() || data.used.iter().any(|u| !geometry.contains_key(u)) {
+                geometry.retain(|k, _| data.used.contains(k));
                 write_geometry(&geometry_path, &geometry)?;
             }
-            let parts = data["parts"].as_u64().unwrap_or(0) as usize;
-            if parts > MAX_PARTS {
+            if data.parts > MAX_PARTS {
                 return Err(too_large(None, None));
             }
             return Ok(RunSummary {
-                parts,
-                steps: data["steps"].as_u64().unwrap_or(0) as usize,
-                submodels: data["submodels"].as_u64().unwrap_or(0) as usize,
-                bbox: serde_json::from_value(data["bbox"].clone()).unwrap_or(None),
+                parts: data.parts,
+                steps: data.steps,
+                submodels: data.submodels,
+                bbox: data.bbox,
                 ms: started.elapsed().as_millis() as u64,
                 generation,
             });
@@ -159,26 +176,45 @@ fn run_inner(
                 "emmet_dsl replied without a result, an error, or missing parts.",
             ));
         }
+        let before = geometry.len();
         for need in &reply.need {
+            let at = |mut e: Error| {
+                let d = e.details.get_or_insert_with(Default::default);
+                d.file = Some(need.file.clone());
+                d.line = Some(need.line);
+                e.hint = format!("{} Fix {} line {} and run again.", e.hint, need.file, need.line);
+                with_excerpt(project, e)
+            };
             match index.part(&need.part)? {
-                Some(part) => {
-                    let body = part.body_box.unwrap_or([0.0; 6]);
-                    geometry.insert(part.id.clone(), json!({ "name": part.name, "body": body }));
-                }
-                None => {
-                    let mut e = crate::ops::unknown_part(&index, &need.part)?;
-                    let d = e.details.get_or_insert_with(Default::default);
-                    d.file = Some(need.file.clone());
-                    d.line = Some(need.line);
-                    e.hint = format!("{} Fix {} line {} and run again.", e.hint, need.file, need.line);
-                    return Err(with_excerpt(project, e));
-                }
+                Some(part) => match part.body_box {
+                    Some(body) => {
+                        geometry.insert(part.id.clone(), json!({ "name": part.name, "body": body }));
+                    }
+                    // Without a body box the part can't be placed by its footprint; placing it at a zero box would
+                    // put it in the wrong spot without a word.
+                    None => {
+                        return Err(at(Error::new(
+                            ErrorCode::UnknownPart,
+                            format!(
+                                "Part '{}' ({}) has no geometry in the LDraw library to place it by.",
+                                part.id, part.name
+                            ),
+                            "Use another part (emmet search finds one), or check the library with emmet library verify.",
+                        )));
+                    }
+                },
+                None => return Err(at(crate::ops::unknown_part(&index, &need.part)?)),
             }
         }
+        if geometry.len() == before {
+            return Err(Error::internal(
+                "emmet_dsl asked again for parts emmet had already sent.",
+            ));
+        }
     }
-    Err(Error::internal(
-        "The model still asked for new parts after three passes.",
-    ))
+    Err(Error::internal(format!(
+        "The model still asked for new parts after {MAX_PASSES} passes."
+    )))
 }
 
 /// The parameter schema and the current values (`mode: schema`), for `emmet params`.
@@ -235,11 +271,11 @@ fn refresh_geometry(index: &Index, geometry: &mut BTreeMap<String, Value>) -> Re
     let ids: Vec<String> = geometry.keys().cloned().collect();
     geometry.clear();
     for id in ids {
-        if let Some(part) = index.part(&id)? {
-            geometry.insert(
-                part.id.clone(),
-                json!({ "name": part.name, "body": part.body_box.unwrap_or([0.0; 6]) }),
-            );
+        // A part without a body box drops out, so the next pass asks for it and gets the error.
+        if let Some(part) = index.part(&id)?
+            && let Some(body) = part.body_box
+        {
+            geometry.insert(part.id.clone(), json!({ "name": part.name, "body": body }));
         }
     }
     Ok(())
@@ -257,7 +293,7 @@ fn too_large(file: Option<String>, line: Option<u32>) -> Error {
     Error::new(
         ErrorCode::ModelTooLarge,
         format!("The model places more than {MAX_PARTS} parts."),
-        "Reduce repeats, or split the model into submodels.",
+        "Reduce repeats, or use larger parts.",
     )
     .with_details(Details {
         file,
@@ -266,13 +302,15 @@ fn too_large(file: Option<String>, line: Option<u32>) -> Error {
     })
 }
 
-/// Adds the source line to an error that names a file and line in the project.
+/// Adds the source line to an error that names a file and line in the project. Only a plain relative path inside
+/// the project is read: a model can raise an error naming any file, and `..` or an absolute path would read outside.
 fn with_excerpt(project: &Project, mut e: Error) -> Error {
     if let Some(d) = e.details.as_mut()
         && let (Some(file), Some(line), None) = (&d.file, d.line, &d.excerpt)
     {
-        let path = project.root.join(file);
-        if path.starts_with(&project.root) {
+        let rel = Path::new(file);
+        if rel.components().all(|c| matches!(c, std::path::Component::Normal(_))) {
+            let path = project.root.join(rel);
             d.excerpt = std::fs::read_to_string(&path).ok().and_then(|t| {
                 t.lines()
                     .nth(line.saturating_sub(1) as usize)
@@ -304,7 +342,7 @@ fn call(python: &Path, project: &Project, req: &Request) -> Result<Reply> {
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
-    // Windows needs SYSTEMROOT to start Python at all; nothing else is passed through, API keys included.
+    // Windows needs SYSTEMROOT and WINDIR to start Python at all; nothing else is passed through, API keys included.
     for key in ["SYSTEMROOT", "WINDIR"] {
         if let Some(v) = std::env::var_os(key) {
             cmd.env(key, v);
@@ -317,13 +355,13 @@ fn call(python: &Path, project: &Project, req: &Request) -> Result<Reply> {
             "Run emmet doctor --fix.",
         )
     })?;
+    // A failed write means Python died before reading its request; what it printed says why, so carry on and
+    // report that rather than the broken pipe.
     let mut stdin = child.stdin.take().expect("piped stdin");
-    stdin
-        .write_all(request.to_string().as_bytes())
-        .map_err(|e| Error::internal(format!("writing to Python: {e}")))?;
+    let _ = stdin.write_all(request.to_string().as_bytes());
     drop(stdin);
-    let stdout = read_capped(child.stdout.take().expect("piped stdout"), 1 << 20);
-    let stderr = read_capped(child.stderr.take().expect("piped stderr"), MAX_LOG);
+    let stdout = Pipe::read(child.stdout.take().expect("piped stdout"), 1 << 20);
+    let stderr = Pipe::read(child.stderr.take().expect("piped stderr"), MAX_LOG);
     let started = Instant::now();
     // faulthandler in the DSL dumps the stack and exits at the timeout; the kill is the backstop.
     let deadline = Duration::from_secs_f64(timeout + 5.0);
@@ -341,21 +379,23 @@ fn call(python: &Path, project: &Project, req: &Request) -> Result<Reply> {
         }
         std::thread::sleep(Duration::from_millis(2));
     };
-    let out = stdout.join().unwrap_or_default();
-    let (log, truncated) = stderr.join().unwrap_or_default();
-    let mut log_text = log;
+    let grace = Instant::now() + PIPE_GRACE;
+    while !(stdout.done() && stderr.done()) && Instant::now() < grace {
+        std::thread::sleep(Duration::from_millis(2));
+    }
+    let (out, _) = stdout.take();
+    let (mut log_text, truncated) = stderr.take();
     if truncated {
         log_text.extend_from_slice(b"\n[run.log stopped at 10 MB]\n");
     }
     write_atomic(&project.root.join("build/run.log"), &log_text)?;
     let log_str = String::from_utf8_lossy(&log_text);
-    if status.is_none() || log_str.contains("Timeout (") && out.0.is_empty() {
+    if status.is_none() || log_str.contains("Timeout (") && out.is_empty() {
         let (file, line) = timeout_frame(project, &log_str);
         let e = Error::new(
             ErrorCode::ModelTimeout,
             format!("The model ran for more than {} s.", fmt_secs(timeout)),
-            "Look for a loop that doesn't end, or reduce repeats; split a big model into submodels. The project's \
-             limit is [run] timeout in emmet.toml.",
+            "Look for a loop that doesn't end, or reduce repeats. The project's limit is [run] timeout in emmet.toml.",
         )
         .with_details(Details {
             file,
@@ -364,23 +404,31 @@ fn call(python: &Path, project: &Project, req: &Request) -> Result<Reply> {
         });
         return Err(with_excerpt(project, e));
     }
-    let text = String::from_utf8_lossy(&out.0);
+    let text = String::from_utf8_lossy(&out);
     let last = text.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("");
     serde_json::from_str(last).map_err(|_| {
-        Error::internal(format!(
-            "emmet_dsl didn't reply (exit {}). The end of build/run.log: {}",
-            status.and_then(|s| s.code()).map_or("killed".into(), |c| c.to_string()),
-            log_str
-                .lines()
-                .rev()
-                .take(3)
-                .collect::<Vec<_>>()
-                .into_iter()
-                .rev()
-                .collect::<Vec<_>>()
-                .join(" / ")
-        ))
+        // emmet_dsl replies to every exception, so no reply means the process itself died: os._exit, a crash in
+        // native code, or the OS killing it.
+        let tail: Vec<&str> = log_str.lines().filter(|l| !l.trim().is_empty()).collect();
+        let tail = tail[tail.len().saturating_sub(3)..].join(" / ");
+        Error::new(
+            ErrorCode::ModelExecFailed,
+            format!("Python stopped without finishing the model ({}).", how_it_ended(status)),
+            format!("build/run.log has everything it printed; it ends: {tail}"),
+        )
+        .at_file("build/run.log")
     })
+}
+
+fn how_it_ended(status: Option<std::process::ExitStatus>) -> String {
+    let Some(status) = status else { return "killed".into() };
+    #[cfg(unix)]
+    if let Some(signal) = std::os::unix::process::ExitStatusExt::signal(&status) {
+        return format!("signal {signal}");
+    }
+    status
+        .code()
+        .map_or_else(|| "no exit code".into(), |c| format!("exit code {c}"))
 }
 
 fn fmt_secs(s: f64) -> String {
@@ -412,20 +460,45 @@ fn timeout_frame(project: &Project, log: &str) -> (Option<String>, Option<u32>) 
     (None, None)
 }
 
-/// Reads a pipe on its own thread, keeping the first `cap` bytes and draining the rest.
-fn read_capped(mut r: impl Read + Send + 'static, cap: usize) -> std::thread::JoinHandle<(Vec<u8>, bool)> {
-    std::thread::spawn(move || {
-        let mut kept = Vec::new();
-        let mut truncated = false;
-        let mut buf = [0u8; 1 << 16];
-        while let Ok(n) = r.read(&mut buf) {
-            if n == 0 {
-                break;
+/// One of Python's output pipes, read on its own thread into a shared buffer that keeps the first `cap` bytes and
+/// drains the rest, so a chatty model never blocks on a full pipe.
+struct Pipe {
+    buf: std::sync::Arc<std::sync::Mutex<(Vec<u8>, bool)>>,
+    done: std::sync::Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl Pipe {
+    fn read(mut r: impl Read + Send + 'static, cap: usize) -> Self {
+        let buf = std::sync::Arc::new(std::sync::Mutex::new((Vec::new(), false)));
+        let done = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let (b, d) = (buf.clone(), done.clone());
+        std::thread::spawn(move || {
+            let mut chunk = [0u8; 1 << 16];
+            loop {
+                match r.read(&mut chunk) {
+                    Ok(0) => break,
+                    Ok(n) => {
+                        let mut g = b.lock().expect("pipe buffer");
+                        let room = cap.saturating_sub(g.0.len());
+                        g.0.extend_from_slice(&chunk[..n.min(room)]);
+                        g.1 |= n > room;
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::Interrupted => {}
+                    Err(_) => break,
+                }
             }
-            let room = cap.saturating_sub(kept.len());
-            kept.extend_from_slice(&buf[..n.min(room)]);
-            truncated |= n > room;
-        }
-        (kept, truncated)
-    })
+            d.store(true, std::sync::atomic::Ordering::SeqCst);
+        });
+        Self { buf, done }
+    }
+
+    fn done(&self) -> bool {
+        self.done.load(std::sync::atomic::Ordering::SeqCst)
+    }
+
+    /// What was read so far, and whether the cap cut it.
+    fn take(&self) -> (Vec<u8>, bool) {
+        let mut g = self.buf.lock().expect("pipe buffer");
+        (std::mem::take(&mut g.0), g.1)
+    }
 }

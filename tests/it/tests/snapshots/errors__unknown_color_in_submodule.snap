@@ -10,7 +10,7 @@ expression: v
       "file": "models/walls.py",
       "line": 9
     },
-    "hint": "Did you mean 'Purple', 'Sand Purple', or 'Trans Purple'? Use an LDraw, Rebrickable, or BrickLink color name, or an LDraw code; emmet colors lists them.",
+    "hint": "Did you mean 'Purple', 'Sand Purple', or 'Trans Purple'? Use an LDraw color name in any spelling, an abbreviation like LBG, or an LDraw code; emmet colors lists them.",
     "message": "There's no color 'Purpel'."
   },
   "meta": {

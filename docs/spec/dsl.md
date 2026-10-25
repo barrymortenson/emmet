@@ -24,7 +24,7 @@ def wall(
         m.add("3811", "Green", at=(0, 0, 0), id="base")
     with m.step("Walls"):
         for x in range(0, width, 2):
-            m.add("3001", color, at=(10 + x, 10, 0.5), rot=1)
+            m.add("3001", color, at=(10 + x, 10, 0.5))
     return m
 ```
 
@@ -47,8 +47,8 @@ def wall(
 |---|---|
 | `@model` | Marks the entry function in model.py. Its signature is the parameter schema; it returns a `Model`. |
 | `Model()` | An empty model. |
-| `m.add(part, color, at=(0, 0, 0), rot=0, id=None)` | Places one part and returns a `Handle` (`.id`, `.min`, `.max`: the box it covers). `part` is an LDraw id (`"3001"`, `"3001.dat"`, any case). `color` is a name or an LDraw code. Without `id`, the id is `<step slug>/<n>`, counted within the step. The call's file and line are recorded. |
-| `with m.step(title):` | Everything added inside is one build step (`0 STEP`). Parts added outside any step go in a step of their own, with ids `part/<n>`. Steps with no parts are left out. |
+| `m.add(part, color, at=(0, 0, 0), rot=0, id=None)` | Places one part and returns a `Handle` (`.id`, `.min`, `.max`: the box it covers). `part` is an LDraw id (`"3001"`, `"3001.dat"`, any case). `color` is a name or an LDraw code. Without `id`, the id is `<step slug>/<n>`, numbered per slug across the model, so steps that share a title still get distinct ids. An `id` given twice is an error. The call's file and line are recorded. |
+| `with m.step(title):` | Everything added inside is one build step (`0 STEP`). Parts added outside any step go in a step of their own (untitled, ids `part/<n>`). Steps with no parts are left out. |
 
 ## Parameters
 
@@ -56,8 +56,8 @@ Every parameter of the `@model` function needs a default; each becomes a slider 
 
 | Annotation | Type | Notes |
 |---|---|---|
-| `int` | int | `Annotated[int, Range(lo, hi)]` limits it; `Step(n)` sets the increment. A value off the steps is invalid. |
-| `float` | float | Same as int. |
+| `int` | int | `Annotated[int, Range(lo, hi)]` limits it; `Step(n)` sets the increment, counted from the minimum. A value or default off the steps is invalid. |
+| `float` | float | Same as int; steps allow for float error, so 0.3 is on steps of 0.1. |
 | `bool` | bool | |
 | `Literal["a", "b"]` | choice | |
 | `Color` | color | Any spelling the color table accepts, or an LDraw code. |
@@ -77,8 +77,8 @@ spellings. Rebrickable and BrickLink names join with the parts data pack (3B).
 
 `emmet run` writes, in `build/`:
 
-- `model.mpd`: one `0 FILE <model>.ldr`. Each part is preceded by `0 !EMMET ID <id> SRC <file>:<line>`, each step
-  starts with `0 !EMMET STEP <title>` and ends with `0 STEP`. Other LDraw tools ignore the `!EMMET` lines.
+- `model.mpd`: one `0 FILE <model>.ldr`. Each part is preceded by `0 !EMMET ID <id> SRC <file>:<line>`, each titled
+  step starts with `0 !EMMET STEP <title>`, and every step ends with `0 STEP`. Other LDraw tools ignore the `!EMMET` lines.
 - `placements.json`: `{ schema, model, parts: [{ id, part, color, matrix, step, submodel, src }] }`. `matrix` is the
   4 × 4 LDraw transform in LDU, column-major (three.js `Matrix4.fromArray` order).
 - `manifest.json`: the inputs hash, the Emmet, emmet_dsl, library, and parts data versions, the part and step counts,
@@ -89,22 +89,25 @@ Everything but `run.log` and the manifest's `run` block is the same, byte for by
 ## Errors
 
 The DSL raises `EmmetError` with a code from plan section 09 and the user's own file and line, never a frame inside
-emmet_dsl. emmet adds the source line as `excerpt`.
+emmet_dsl. The reply carries the source line as `excerpt`, read only from files inside the project.
 
 | Code | When |
 |---|---|
-| `MODEL_EXEC_FAILED` | Python raised (a syntax error, a NameError, …), or the model broke a rule (no default, a duplicate id, a bad `rot`). The hint carries Python's own did-you-mean. |
-| `UNKNOWN_PART` | The id isn't in the library. The hint lists close ids and the best search matches. |
+| `MODEL_EXEC_FAILED` | Python raised (a syntax error, a NameError, …), the model broke a rule (no default, a duplicate id, a bad `rot`), model.py is missing, or Python stopped without finishing (then `file` is `build/run.log`). The hint carries Python's own did-you-mean. An error with no frame in the project points at the `@model` function. |
+| `IO_ERROR` | emmet_dsl couldn't write `build/`. |
+| `UNKNOWN_PART` | The id isn't in the library, or the part has no geometry to place it by. The hint lists close ids and the best search matches. |
 | `UNKNOWN_COLOR` | The name or code isn't in the color table. The hint lists the nearest names. |
 | `PARAM_INVALID` | A value is the wrong type, out of range, off the steps, or names no parameter; or params.json isn't JSON. It points at the parameter's line, or at params.json. |
-| `MODEL_TIMEOUT` | The model ran past `[run] timeout` in emmet.toml (30 s by default). It points at the line the model was on. |
+| `MODEL_TIMEOUT` | The model ran past `[run] timeout` in emmet.toml (30 s by default, at most 3600). It points at the line the model was on. |
 | `MODEL_TOO_LARGE` | The model placed more than 20,000 parts. It points at the call that went over. |
 
 ## How a run works
 
 emmet runs `python -I -B -X utf8 -m emmet_dsl.run` in the project folder with an empty environment (Windows keeps
-`SYSTEMROOT`), sends one JSON request on stdin, and reads one JSON reply line from stdout. The model's own output
+`SYSTEMROOT` and `WINDIR`), sends one JSON request on stdin, and reads one JSON reply line from stdout. The model's own output
 goes to stderr, kept as `build/run.log` (up to 10 MB). The DSL never reads the library: emmet writes the body boxes of
 the parts the model uses to `build/part-geometry.json` and the color table to `build/colors.json`. When the model
 asks for a part that isn't in the file, that pass writes nothing and reports the missing ids with their call sites;
-emmet looks them up and runs again. After a clean delete that's two passes, and warm runs take one.
+emmet looks them up and runs again. Missing parts come before any error the pass raised, since an error can
+follow from a size the model didn't have yet. After a clean delete that's two passes, and warm runs take one. Python
+gets 2 s after it exits to finish its output; a process the model started and left running doesn't hold up the run.

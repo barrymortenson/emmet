@@ -54,4 +54,9 @@ queries = [
   { q = "plant flower", want = "3742" },
   { q = "shutter", want = "3582" },
   { q = "bracket 1x2", want = "99780" },
+  # Dimensions alone: the exact size, and the size in the name, rank first.
+  { q = "2x4", want = "3001" },
+  { q = "1x2", want = "3004" },
+  # Synonym keys match plural query words ("points" folds to "point").
+  { q = "points left straight", want = "75542-f1" },
 ]

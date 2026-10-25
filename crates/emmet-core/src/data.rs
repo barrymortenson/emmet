@@ -77,7 +77,7 @@ impl DataDir {
         self.root.join("python")
     }
 
-    /// The random id this install hashes into project trust markers (D-27).
+    /// The random secret this install hashes into trust markers and `created_by` (D-27).
     pub fn machine_id(&self) -> PathBuf {
         self.root.join("machine-id")
     }

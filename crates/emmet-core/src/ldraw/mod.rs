@@ -108,7 +108,10 @@ pub fn parse(text: &str) -> Result<Document, ParseError> {
                 open = true;
             }
             Line::Meta(Meta::NoFile) => {
-                doc.files.push(std::mem::take(&mut current));
+                // A stray NOFILE with no file open ends nothing.
+                if open {
+                    doc.files.push(std::mem::take(&mut current));
+                }
                 open = false;
             }
             Line::Blank if !open => {}

@@ -25,7 +25,7 @@ pub enum ErrorCode {
 }
 
 impl ErrorCode {
-    /// The process exit code: 2 usage, 3 runtime, 4 environment (library, Python, or agent missing).
+    /// The process exit code: 2 usage, 3 runtime, 4 environment (library or Python missing or damaged, render unavailable).
     pub fn exit_code(self) -> i32 {
         match self {
             Self::ProjectNotFound => 2,
@@ -38,7 +38,7 @@ impl ErrorCode {
 /// Where an error happened and what else helps fix it. Every field is optional.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Details {
-    /// The file, relative to the project root when it's inside it.
+    /// The file: relative to the project root for model errors, otherwise the full path.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub file: Option<String>,
     /// 1-based line in `file`.
@@ -47,7 +47,7 @@ pub struct Details {
     /// The source line, as written.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub excerpt: Option<String>,
-    /// Close matches: part ids, color names, or parameter names.
+    /// Close matches; part ids for `UNKNOWN_PART` (color and parameter suggestions are in the hint).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub suggestions: Vec<String>,
 }

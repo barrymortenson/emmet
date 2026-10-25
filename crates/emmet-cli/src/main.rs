@@ -31,7 +31,8 @@ struct Cli {
     /// The project (default: the nearest folder with an emmet.toml, from the current directory up).
     #[arg(long, global = true, value_name = "DIR")]
     project: Option<PathBuf>,
-    /// The app data folder: library, parts index, Python (default: EMMET_DATA_DIR, else the platform's).
+    /// The app data folder: library, parts index, Python (default: EMMET_DATA_DIR, else .dev-data/ in a debug build,
+    /// else the platform's).
     #[arg(long, global = true, value_name = "DIR")]
     data_dir: Option<PathBuf>,
     #[command(subcommand)]
@@ -40,7 +41,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Create a project: model.py, params.json, CARD.md, AGENTS.md, and a trust marker.
+    /// Create a project: emmet.toml, model.py, params.json, CARD.md, AGENTS.md and CLAUDE.md, .gitignore, and a
+    /// trust marker.
     New {
         dir: PathBuf,
         #[arg(long, value_enum, default_value_t = TemplateArg::Cottage)]
@@ -76,7 +78,7 @@ enum Command {
     },
     /// Show one part: name, size in studs and plates, flags.
     Part { id: String },
-    /// List colors, or the colors a part comes in.
+    /// List colors (--part checks a part id; per-part colors arrive with the parts data pack, 3B).
     Colors {
         #[arg(long)]
         part: Option<String>,
@@ -88,7 +90,7 @@ enum Command {
     },
     /// Run the stdio MCP server.
     Mcp {
-        /// Set by the app only: turns on redirect notes.
+        /// Set by the app only; it will turn on redirect notes once the bus exists (1C). Accepted and unused until then.
         #[arg(long)]
         session: Option<String>,
         /// Write each tool's input and output schema to DIR and exit.
@@ -128,7 +130,7 @@ enum LibraryAction {
     },
 }
 
-/// What a command produced: its data and a human-readable rendering of it.
+/// What a command produced, and the facts its envelope's meta reports. `finish` renders it as JSON or text.
 struct Output<T> {
     result: Result<T>,
     project: Option<String>,
@@ -149,6 +151,21 @@ impl<T> From<Result<T>> for Output<T> {
 
 fn main() -> ExitCode {
     let started = Instant::now();
+    // A panic is a bug in Emmet, but a --json caller still gets an envelope it can read, not a stack trace.
+    if std::env::args().any(|a| a == "--json") {
+        std::panic::set_hook(Box::new(|info| {
+            let env = Envelope::<()>::from_result(
+                Err(Error::internal(format!("emmet crashed: {info}"))),
+                vec![],
+                Meta {
+                    emmet: emmet_core::version().into(),
+                    ..Default::default()
+                },
+            );
+            println!("{}", serde_json::to_string(&env).expect("envelope serializes"));
+            std::process::exit(3);
+        }));
+    }
     let cli = Cli::parse();
     if cli.version {
         return finish(

@@ -1,6 +1,6 @@
 {
   "name": "part_info",
-  "description": "One part: its name, size in studs and plates, flags (alias, obsolete, printed), and body box.",
+  "description": "One part: its name, size in studs and plates, flags (alias, obsolete, hidden, printed, sticker, shortcut),\nand body box.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
@@ -27,7 +27,7 @@
             ]
           },
           "file": {
-            "description": "The file, relative to the project root when it's inside it.",
+            "description": "The file: relative to the project root for model errors, otherwise the full path.",
             "type": [
               "string",
               "null"
@@ -43,7 +43,7 @@
             ]
           },
           "suggestions": {
-            "description": "Close matches: part ids, color names, or parameter names.",
+            "description": "Close matches; part ids for `UNKNOWN_PART` (color and parameter suggestions are in the hint).",
             "items": {
               "type": "string"
             },
@@ -156,11 +156,14 @@
             ]
           },
           "alternates": {
-            "description": "Alternate and mold-variant ids, filled from 3B.",
+            "description": "Alternate and mold-variant ids; null until the parts data pack (3B).",
             "items": {
               "type": "string"
             },
-            "type": "array"
+            "type": [
+              "array",
+              "null"
+            ]
           },
           "body_box": {
             "description": "The body box in the part's LDraw frame, LDU: [min x, min y, min z, max x, max y, max z].",
@@ -179,11 +182,14 @@
             "type": "string"
           },
           "connectors": {
-            "description": "Connector summary, filled from 3A.",
+            "description": "Connector summary; null until connectors arrive (3A), so an empty list always means \"none\".",
             "items": {
               "type": "string"
             },
-            "type": "array"
+            "type": [
+              "array",
+              "null"
+            ]
           },
           "file": {
             "description": "The file, relative to the library root.",
@@ -209,13 +215,16 @@
             "type": "string"
           },
           "produced_colors": {
-            "description": "Colors the part was produced in, filled once the parts data pack is installed (3B).",
+            "description": "Colors the part was produced in; null until the parts data pack is installed (3B), so an empty list always\nmeans \"none\".",
             "items": {
               "format": "uint32",
               "minimum": 0,
               "type": "integer"
             },
-            "type": "array"
+            "type": [
+              "array",
+              "null"
+            ]
           },
           "size": {
             "anyOf": [
@@ -234,10 +243,7 @@
           "category",
           "keywords",
           "flags",
-          "file",
-          "connectors",
-          "produced_colors",
-          "alternates"
+          "file"
         ],
         "type": "object"
       },

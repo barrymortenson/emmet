@@ -58,20 +58,39 @@ pub fn status(data: &DataDir) -> Status {
     }
 }
 
+/// The installed library, or None when there's none or it's damaged (`require` tells the two apart).
 pub fn installed(data: &DataDir) -> Option<Installed> {
-    let text = std::fs::read_to_string(data.library_json()).ok()?;
-    serde_json::from_str(&text).ok().filter(|_| data.ldraw().is_dir())
+    require(data).ok()
 }
 
-/// The installed library, or `LIBRARY_MISSING`.
+/// The installed library: `LIBRARY_MISSING` when there's none, `LIBRARY_CORRUPT` when library.json is there but
+/// unreadable, so a damaged install isn't mistaken for a missing one.
 pub fn require(data: &DataDir) -> Result<Installed> {
-    installed(data).ok_or_else(|| {
+    let missing = || {
         Error::new(
             ErrorCode::LibraryMissing,
             format!("The LDraw library isn't installed in {}.", data.root().display()),
             "Run emmet library install.",
         )
-    })
+    };
+    let path = data.library_json();
+    let text = match std::fs::read_to_string(&path) {
+        Ok(t) => t,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Err(missing()),
+        Err(e) => return Err(Error::io(&path, e)),
+    };
+    let info: Installed = serde_json::from_str(&text).map_err(|e| {
+        Error::new(
+            ErrorCode::LibraryCorrupt,
+            format!("{} is damaged: {e}", path.display()),
+            "Run emmet library install to put the library back.",
+        )
+        .at_file(path.display().to_string())
+    })?;
+    if !data.ldraw().is_dir() {
+        return Err(missing());
+    }
+    Ok(info)
 }
 
 /// Downloads (or takes) the zip, checks it against `sha256`, unzips it, and builds the parts index.
@@ -135,7 +154,13 @@ fn download_err(message: String) -> Error {
 
 /// Streams `url` into `downloads/complete-<release>.zip.part`, resuming from what's there with a Range request.
 fn download(data: &DataDir, release: &str, url: &str, progress: &mut dyn FnMut(u64, Option<u64>)) -> Result<PathBuf> {
-    let local = url.starts_with("http://127.0.0.1:") || url.starts_with("http://localhost:");
+    // Plain HTTP only to this machine, for tests. The host is the whole authority, so "http://localhost:@elsewhere"
+    // (a user name before the real host) doesn't count as local.
+    let local = url.strip_prefix("http://").is_some_and(|rest| {
+        let authority = rest.split('/').next().unwrap_or("");
+        let host = authority.rsplit_once(':').map_or(authority, |(h, _)| h);
+        !authority.contains('@') && (host == "127.0.0.1" || host == "localhost")
+    });
     if !url.starts_with("https://") && !local {
         return Err(Error::new(
             ErrorCode::LibraryMissing,
@@ -151,9 +176,18 @@ fn download(data: &DataDir, release: &str, url: &str, progress: &mut dyn FnMut(u
     if have > 0 {
         req = req.header("Range", format!("bytes={have}-"));
     }
-    let mut resp = req
-        .call()
-        .map_err(|e| download_err(format!("The library download from {url} failed: {e}")))?;
+    let mut resp = match req.call() {
+        Ok(r) => r,
+        // 416: the partial file is already as long as (or longer than) the file on the server. It can't resume, so
+        // start over next time rather than fail the same way forever.
+        Err(ureq::Error::StatusCode(416)) => {
+            let _ = std::fs::remove_file(&part);
+            return Err(download_err(format!(
+                "The partial download of {url} doesn't match the server's file."
+            )));
+        }
+        Err(e) => return Err(download_err(format!("The library download from {url} failed: {e}"))),
+    };
     let resumed = resp.status() == 206;
     let length = resp
         .headers()
@@ -163,6 +197,7 @@ fn download(data: &DataDir, release: &str, url: &str, progress: &mut dyn FnMut(u
     let start = if resumed { have } else { 0 };
     let total = length.map(|l| l + start);
     if total.is_some_and(|t| t > MAX_DOWNLOAD) {
+        let _ = std::fs::remove_file(&part);
         return Err(download_err(format!(
             "The library at {url} is larger than {MAX_DOWNLOAD} bytes; refusing it."
         )));
@@ -194,6 +229,8 @@ fn download(data: &DataDir, release: &str, url: &str, progress: &mut dyn FnMut(u
         file.write_all(&buf[..n]).map_err(|e| Error::io(&part, e))?;
         done += n as u64;
         if done > MAX_DOWNLOAD {
+            drop(file);
+            let _ = std::fs::remove_file(&part);
             return Err(download_err(format!(
                 "The library at {url} is larger than {MAX_DOWNLOAD} bytes; refusing it."
             )));
@@ -312,14 +349,28 @@ fn unzip(data: &DataDir, zip_path: &Path) -> Result<usize> {
         let _ = std::fs::remove_dir_all(&staging);
         return Err(e);
     }
+    // The manifest goes in first under a temp name, so the swap can't leave a library without one.
+    let manifest_tmp = data.root().join("ldraw.sha256.new");
+    write_atomic(&manifest_tmp, manifest.as_bytes())?;
     let old = data.root().join("ldraw.old");
-    let _ = std::fs::remove_dir_all(&old);
-    if target.exists() {
+    if old.exists() {
+        std::fs::remove_dir_all(&old).map_err(|e| Error::io(&old, e))?;
+    }
+    let had_old = target.exists();
+    if had_old {
         std::fs::rename(&target, &old).map_err(|e| Error::io(&target, e))?;
     }
-    std::fs::rename(&staging, &target).map_err(|e| Error::io(&target, e))?;
-    let _ = std::fs::remove_dir_all(&old);
-    write_atomic(&data.library_manifest(), manifest.as_bytes())?;
+    if let Err(e) = std::fs::rename(&staging, &target) {
+        if had_old {
+            let _ = std::fs::rename(&old, &target); // put the working library back
+        }
+        let _ = std::fs::remove_dir_all(&staging);
+        return Err(Error::io(&target, e));
+    }
+    std::fs::rename(&manifest_tmp, data.library_manifest()).map_err(|e| Error::io(&data.library_manifest(), e))?;
+    if had_old && let Err(e) = std::fs::remove_dir_all(&old) {
+        eprintln!("emmet: couldn't remove the previous library at {}: {e}", old.display());
+    }
     Ok(entries.len())
 }
 
@@ -342,7 +393,15 @@ pub fn verify(data: &DataDir, reindex: bool) -> Result<Verified> {
     let mut files = 0;
     for line in manifest.lines() {
         let Some((hash, rel)) = line.split_once("  ") else {
-            continue;
+            return Err(Error::new(
+                ErrorCode::LibraryCorrupt,
+                format!(
+                    "{} has a line that isn't \"sha256  path\": {line}",
+                    manifest_path.display()
+                ),
+                "Run emmet library install to put the library back.",
+            )
+            .at_file(manifest_path.display().to_string()));
         };
         files += 1;
         let ok = std::fs::read(root.join(rel))
@@ -351,6 +410,18 @@ pub fn verify(data: &DataDir, reindex: bool) -> Result<Verified> {
         if !ok {
             bad.push(rel.to_string());
         }
+    }
+    if files != info.files {
+        return Err(Error::new(
+            ErrorCode::LibraryCorrupt,
+            format!(
+                "{} lists {files} files, but {} were installed.",
+                manifest_path.display(),
+                info.files
+            ),
+            "Run emmet library install to put the library back.",
+        )
+        .at_file(manifest_path.display().to_string()));
     }
     if !bad.is_empty() {
         let shown = bad.iter().take(5).cloned().collect::<Vec<_>>().join(", ");

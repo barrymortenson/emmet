@@ -147,7 +147,7 @@ impl<'a> Measurer<'a> {
         }
     }
 
-    /// The parsed lines of a library file (the first file of the document), or None when it's missing or unreadable.
+    /// The parsed lines of a library file (every file of the document, one after another), or None when it's missing or unreadable.
     pub fn lines(&mut self, reference: &str) -> Option<std::rc::Rc<Vec<Line>>> {
         let key = normalize_ref(reference);
         if let Some(cached) = self.lines.get(&key) {

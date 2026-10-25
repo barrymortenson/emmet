@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""`python -I -m emmet_dsl.run`: runs a project's model for emmet run (plan sections 07 and 08).
+"""`python -I -B -X utf8 -m emmet_dsl.run`: runs a project's model for emmet run (plan sections 07 and 08).
 
 emmet sends one JSON request on stdin and reads one JSON reply line from stdout. The model's own prints go to stderr,
 which emmet keeps as build/run.log. The DSL never reads the LDraw library: emmet passes the body boxes of the parts the
@@ -41,6 +41,8 @@ class Context:
             for n in [c["name"], *c.get("aliases", [])]:
                 self.color_keys.setdefault(color_key(n), c["code"])
         self.missing: dict[str, tuple[str, int]] = {}
+        # The @model function's (file, line), once it's known: where an error with no frame of its own points.
+        self.model_at: tuple[str | None, int | None] = (None, None)
 
     def rel(self, file: str) -> str:
         path = os.path.abspath(file)
@@ -83,7 +85,8 @@ class Context:
         raise EmmetError(
             "UNKNOWN_COLOR",
             f"There's no color {value!r}.",
-            f"{maybe}Use an LDraw, Rebrickable, or BrickLink color name, or an LDraw code; emmet colors lists them.",
+            f"{maybe}Use an LDraw color name in any spelling, an abbreviation like LBG, or an LDraw code; emmet colors "
+            "lists them.",
             file,
             line,
         )
@@ -98,14 +101,18 @@ def _either(names: list[str]) -> str:
 
 
 def _excerpt(root: str, file: str, line: int | None) -> str | None:
-    if not line:
+    """The text of `line` in `file`, read only when the file is inside the project: a model can raise an error that
+    names any path."""
+    path = os.path.realpath(os.path.join(root, file))
+    if not line or not path.startswith(os.path.realpath(root) + os.sep):
         return None
     try:
-        with open(os.path.join(root, file), encoding="utf-8") as f:
+        # errors="replace": a file saved in another encoding still gets its own error, not a crash here.
+        with open(path, encoding="utf-8", errors="replace") as f:
             for n, text in enumerate(f, 1):
                 if n == line:
                     return text.rstrip("\n").rstrip()
-    except OSError:
+    except (OSError, ValueError):
         return None
     return None
 
@@ -126,25 +133,32 @@ def _from_exception(root: str, ctx: Context, exc: BaseException) -> dict:
     if isinstance(exc, EmmetError):
         file = ctx.rel(exc.file) if exc.file else exc.file
         return _error(root, exc.code, exc.message, exc.hint, file, exc.line)
-    if isinstance(exc, SystemExit):
-        return _error(root, "MODEL_EXEC_FAILED", "The model called exit().", "Return the Model instead.", None, None)
     if isinstance(exc, SyntaxError) and exc.filename and not in_dsl(exc.filename):
         file = ctx.rel(exc.filename)
         msg = f"SyntaxError: {exc.msg}"
         return _error(root, "MODEL_EXEC_FAILED", msg, f"Fix {file} line {exc.lineno} and run again.", file, exc.lineno)
-    # The innermost frame in the user's own files is where the fix goes.
-    frames = [f for f in traceback.extract_tb(exc.__traceback__) if not in_dsl(f.filename)]
-    frames = [f for f in frames if os.path.abspath(f.filename).startswith(root + os.sep)] or frames
-    shown = "".join(traceback.TracebackException.from_exception(exc).format_exception_only()).strip()
-    message, _, suggestion = shown.partition(". Did you mean: ")
-    hint_lead = f"Did you mean {suggestion.rstrip('?')}? " if suggestion else ""
+    # The innermost frame in the user's own files is where the fix goes. Frames in the standard library or in
+    # emmet_dsl never are: with no frame in the project, point at the @model function, if there is one.
+    frames = [
+        f
+        for f in traceback.extract_tb(exc.__traceback__)
+        if not in_dsl(f.filename) and os.path.abspath(f.filename).startswith(root + os.sep)
+    ]
+    if isinstance(exc, SystemExit):
+        message, hint_lead = "The model called exit().", "Return the Model instead of exiting. "
+    else:
+        shown = "".join(traceback.TracebackException.from_exception(exc).format_exception_only()).strip()
+        message, _, suggestion = shown.partition(". Did you mean: ")
+        hint_lead = f"Did you mean {suggestion.rstrip('?')}? " if suggestion else ""
     if frames:
-        f = frames[-1]
-        file = ctx.rel(f.filename)
+        file, line = ctx.rel(frames[-1].filename), frames[-1].lineno
+    else:
+        file, line = ctx.model_at
+    if file and line:
         return _error(
-            root, "MODEL_EXEC_FAILED", message, f"{hint_lead}Fix {file} line {f.lineno} and run again.", file, f.lineno
+            root, "MODEL_EXEC_FAILED", message, f"{hint_lead}Fix {file} line {line} and run again.", file, line
         )
-    return _error(root, "MODEL_EXEC_FAILED", message, f"{hint_lead}Fix the model and run again.", None, None)
+    return _error(root, "MODEL_EXEC_FAILED", message, f"{hint_lead}Fix the model and run again.", file, None)
 
 
 def _load(path: str):
@@ -179,15 +193,36 @@ def main() -> int:
     try:
         reply = _run(request, ctx)
     except (Exception, SystemExit) as exc:  # every failure in the model becomes an envelope
-        reply = _from_exception(root, ctx, exc)
+        reply = _failure(root, ctx, exc)
     reply_to.write(json.dumps(reply) + "\n")
     reply_to.flush()
     return 0
 
 
+def _failure(root: str, ctx: Context, exc: BaseException) -> dict:
+    """The reply for a pass that raised. Parts the model asked for that emmet hasn't sent yet come first: until the
+    model has their real sizes, an error that depends on them (a size divided into a length, say) isn't the model's."""
+    if ctx.missing:
+        return {"ok": False, "need": [{"part": p, "file": f, "line": n} for p, (f, n) in ctx.missing.items()]}
+    try:
+        return _from_exception(root, ctx, exc)
+    except Exception as inner:  # noqa: BLE001 - a reply must go out whatever happens here
+        msg = f"emmet_dsl couldn't report {type(exc).__name__}: {exc} ({type(inner).__name__}: {inner})"
+        return _error(root, "INTERNAL", msg, "This is a bug in Emmet; build/run.log has the details.", None, None)
+
+
 def _run(request: dict, ctx: Context) -> dict:
     entry = request.get("entry", "model.py")
-    module = _load(os.path.join(ctx.root, entry))
+    path = os.path.join(ctx.root, entry)
+    if not os.path.isfile(path):
+        raise EmmetError(
+            "MODEL_EXEC_FAILED",
+            f"The project has no {entry}.",
+            f"Create {entry} with an @model function, or run emmet new to start from a template.",
+            None,
+            None,
+        )
+    module = _load(path)
     fn = next((f for f in reversed(model_mod.registry) if f.__module__ == module.__name__), None)
     if fn is None:
         raise EmmetError(
@@ -199,6 +234,7 @@ def _run(request: dict, ctx: Context) -> dict:
         )
     file = ctx.rel(fn.__code__.co_filename)
     def_line = fn.__code__.co_firstlineno
+    ctx.model_at = (file, def_line)
     schema = params_mod.schema(fn, file, def_line)
     values = params_mod.check(schema, request.get("params", {}), file, request.get("params_source", "params"))
     for p in schema:
@@ -222,7 +258,16 @@ def _run(request: dict, ctx: Context) -> dict:
     if ctx.missing:
         return {"ok": False, "need": [{"part": p, "file": f, "line": n} for p, (f, n) in ctx.missing.items()]}
     ms = int((time.perf_counter() - started) * 1000)
-    summary = write_all(request["out"], fn.__name__, title, result, request.get("manifest", {}), ms)
+    try:
+        summary = write_all(request["out"], fn.__name__, title, result, request.get("manifest", {}), ms)
+    except OSError as e:
+        raise EmmetError(
+            "IO_ERROR",
+            f"Can't write the model to {request['out']}/: {e.strerror or e}.",
+            "Check that the project folder is writable and the disk isn't full, then run again.",
+            e.filename and ctx.rel(e.filename),
+            None,
+        ) from e
     return {"ok": True, "data": summary}
 
 

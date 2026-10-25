@@ -26,6 +26,10 @@ struct Call {
 }
 
 async fn connect(project: Option<&Path>) -> Client {
+    connect_with(project, shared_data()).await
+}
+
+async fn connect_with(project: Option<&Path>, data: &Path) -> Client {
     let mut cmd = tokio::process::Command::new(emmet_bin());
     let mut std_cmd = std::process::Command::new(emmet_bin());
     isolate(&mut std_cmd);
@@ -35,7 +39,7 @@ async fn connect(project: Option<&Path>) -> Client {
             None => cmd.env_remove(k),
         };
     }
-    cmd.arg("--data-dir").arg(shared_data()).arg("mcp");
+    cmd.arg("--data-dir").arg(data).arg("mcp");
     if let Some(p) = project {
         cmd.arg("--project").arg(p);
     }
@@ -130,6 +134,17 @@ async fn search_parts() {
     assert_eq!(c.text.lines().count(), 3, "one line per part");
     let c = client.call("search_parts", json!({ "query": "zzzz" })).await;
     assert_eq!((c.is_error, c.text.as_str()), (false, "No parts match 'zzzz'."));
+    // The error shape: no library in this data dir.
+    let empty = temp_dir("mcp-no-library");
+    let client = connect_with(None, &empty).await;
+    let c = client.call("search_parts", json!({ "query": "brick" })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "LIBRARY_MISSING");
+    assert!(
+        c.text.starts_with("LIBRARY_MISSING: The LDraw library isn't installed"),
+        "{}",
+        c.text
+    );
 }
 
 #[tokio::test]

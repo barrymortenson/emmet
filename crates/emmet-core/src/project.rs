@@ -13,6 +13,8 @@ use crate::envelope::{Details, Error, ErrorCode, Result};
 use crate::fsx::{self, write_atomic};
 
 pub const SCHEMA: u32 = 1;
+/// The longest `[run] timeout` a project may set, in seconds.
+pub const MAX_TIMEOUT: f64 = 3600.0;
 const MANIFEST_FILE: &str = "emmet.toml";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -97,7 +99,7 @@ impl Project {
         let path = root.join(MANIFEST_FILE);
         let text = std::fs::read_to_string(&path).map_err(|e| Error::io(&path, e))?;
         let config: Config = toml::from_str(&text).map_err(|e| {
-            let line = e.span().map(|s| text[..s.start].lines().count().max(1) as u32);
+            let line = e.span().map(|s| line_of(&text, s.start));
             Error::new(
                 ErrorCode::IoError,
                 format!("emmet.toml doesn't parse: {}", e.message()),
@@ -119,6 +121,23 @@ impl Project {
                 "Update Emmet to open it.",
             )
             .at_file(MANIFEST_FILE));
+        }
+        let t = config.run.timeout;
+        if !(t.is_finite() && t > 0.0 && t <= MAX_TIMEOUT) {
+            let line = text
+                .lines()
+                .position(|l| l.trim_start().starts_with("timeout"))
+                .map(|i| i as u32 + 1);
+            return Err(Error::new(
+                ErrorCode::IoError,
+                format!("[run] timeout = {t} in emmet.toml isn't a number of seconds from 0 to {MAX_TIMEOUT}."),
+                "Set it to the seconds a model may run, for example timeout = 30, or remove it for the default.",
+            )
+            .with_details(Details {
+                file: Some(MANIFEST_FILE.into()),
+                line,
+                ..Default::default()
+            }));
         }
         Ok(Self { root, config })
     }
@@ -168,7 +187,7 @@ impl Project {
         fsx::display_rel(&self.root, path)
     }
 
-    /// A folder inside the project that emmet writes, refused when it's a symlink (a shared project can't point
+    /// A folder inside the project that emmet writes, refused when it's a symlink or a file (a shared project can't point
     /// emmet's writes elsewhere).
     pub fn own_dir(&self, name: &str) -> Result<PathBuf> {
         let dir = self.root.join(name);
@@ -191,7 +210,8 @@ impl Project {
         self.own_dir("build")
     }
 
-    /// Trusted when `.emmet/trust` holds this machine's hash (D-27).
+    /// Trusted when `.emmet/trust` holds `trust_token` (sha256 of this install's secret and the project's canonical
+    /// path) and `.emmet/` isn't a link (D-27).
     pub fn is_trusted(&self, data: &DataDir) -> bool {
         let marker = self.root.join(".emmet/trust");
         let linked = std::fs::symlink_metadata(self.root.join(".emmet")).is_ok_and(|m| m.file_type().is_symlink());
@@ -217,7 +237,8 @@ impl Project {
         Err(Error::new(
             ErrorCode::ProjectUntrusted,
             format!(
-                "{} wasn't created on this machine, so its model.py won't run until you trust it.",
+                "{} isn't trusted on this machine (it was made elsewhere, or moved), so its model.py won't run until you \
+                 trust it.",
                 self.config.name
             ),
             "Read model.py first; it's code. Then trust the project in the app, or run emmet trust.",
@@ -266,9 +287,11 @@ impl Project {
             let Ok(entries) = std::fs::read_dir(&dir) else { continue };
             for e in entries.flatten() {
                 let p = e.path();
-                if p.is_dir() && !p.ends_with("__pycache__") {
+                // file_type doesn't follow links: a link in models/ could point anywhere, or back at itself.
+                let Ok(kind) = e.file_type() else { continue };
+                if kind.is_dir() && !p.ends_with("__pycache__") {
                     stack.push(p);
-                } else if p.extension().is_some_and(|x| x == "py") {
+                } else if kind.is_file() && p.extension().is_some_and(|x| x == "py") {
                     out.push(p);
                 }
             }
@@ -362,9 +385,21 @@ fn machine_secret(data: &DataDir) -> Result<String> {
     let _ = std::fs::remove_file(&tmp);
     match linked {
         Ok(()) => Ok(id),
-        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => read().ok_or_else(|| Error::io(&path, e)),
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => read().ok_or_else(|| {
+            Error::new(
+                ErrorCode::IoError,
+                format!("{} is damaged: it should hold one long random id.", path.display()),
+                "Delete it and try again. Projects trusted with the old id will need trusting again.",
+            )
+            .at_file(path.display().to_string())
+        }),
         Err(e) => Err(Error::io(&path, e)),
     }
+}
+
+/// The 1-based line holding byte `offset` of `text`.
+fn line_of(text: &str, offset: usize) -> u32 {
+    text[..offset.min(text.len())].matches('\n').count() as u32 + 1
 }
 
 fn title_case(s: &str) -> String {

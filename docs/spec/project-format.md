@@ -30,7 +30,7 @@ library = "2026-09"                 # the LDraw release the project was made wit
 preferred = "claude"
 
 [run]
-timeout = 30                        # seconds a model may run; optional
+timeout = 30                        # seconds a model may run, more than 0 and at most 3600; optional
 ```
 
 `schema` is the format version. emmet refuses a project with a newer schema rather than guess. `created_by` is
@@ -55,12 +55,13 @@ parts data versions. A run whose hash differs from the manifest's is out of date
 `model.py` is code, so emmet runs it only in a trusted project. `.emmet/trust` holds the sha256 of this install's
 secret and the project's full path. emmet makes that file for a project it creates and when you run `emmet trust`.
 Nothing a project carries can make it: not a copied marker, and not `created_by`. A project moved to a new folder
-needs trusting again. An untrusted project's `emmet run` fails with `PROJECT_UNTRUSTED`.
+needs trusting again. An untrusted project's `emmet run` and `emmet params` fail with `PROJECT_UNTRUSTED` before any
+of its code runs.
 
 ## The generation counter
 
-Each run, successful or not, adds one to `.emmet/generation` and reports it in the envelope's `meta.generation` and
-in `manifest.json`'s `run` block. The viewer uses it to ignore stale events.
+Each run that reaches the model, successful or not, adds one to `.emmet/generation` and reports it in the envelope's
+`meta.generation` and in `manifest.json`'s `run` block. The viewer uses it to ignore stale events.
 
 ## The app data folder
 

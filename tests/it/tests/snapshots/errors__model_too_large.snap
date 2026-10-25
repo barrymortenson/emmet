@@ -10,7 +10,7 @@ expression: v
       "file": "model.py",
       "line": 11
     },
-    "hint": "Reduce repeats, or split the model into submodels.",
+    "hint": "Reduce repeats, or use larger parts.",
     "message": "The model places more than 20,000 parts."
   },
   "meta": {

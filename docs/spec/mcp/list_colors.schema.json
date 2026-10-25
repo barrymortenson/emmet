@@ -6,7 +6,7 @@
     "properties": {
       "part": {
         "default": null,
-        "description": "Only the colors this part comes in.",
+        "description": "A part id: checks the part exists. Every color is returned until the parts data pack (3B) knows which colors\neach part came in.",
         "type": [
           "string",
           "null"
@@ -83,7 +83,7 @@
             ]
           },
           "file": {
-            "description": "The file, relative to the project root when it's inside it.",
+            "description": "The file: relative to the project root for model errors, otherwise the full path.",
             "type": [
               "string",
               "null"
@@ -99,7 +99,7 @@
             ]
           },
           "suggestions": {
-            "description": "Close matches: part ids, color names, or parameter names.",
+            "description": "Close matches; part ids for `UNKNOWN_PART` (color and parameter suggestions are in the hint).",
             "items": {
               "type": "string"
             },

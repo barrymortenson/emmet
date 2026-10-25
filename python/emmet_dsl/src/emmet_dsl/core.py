@@ -81,6 +81,7 @@ class Model:
         self._loose: _Step | None = None  # the step for parts added outside any `with m.step(...)`
         self._ids: dict[str, Placed] = {}
         self._count = 0
+        self._numbered: dict[str, int] = {}  # parts numbered so far under each step slug, for default ids
         self._context = active
 
     @contextlib.contextmanager
@@ -138,7 +139,7 @@ class Model:
             raise EmmetError(
                 "MODEL_TOO_LARGE",
                 f"The model places more than {MAX_PARTS:,} parts.",
-                "Reduce repeats, or split the model into submodels.",
+                "Reduce repeats, or use larger parts.",
                 rel,
                 line,
             )
@@ -152,7 +153,11 @@ class Model:
                 self._steps.append(self._loose)
             step = self._loose
         if id is None:
-            id = f"{step.slug}/{len(step.parts) + 1}"
+            # Counted per slug across the model, so two steps with one title, or loose parts before and after a
+            # step, still get distinct ids.
+            n = self._numbered.get(step.slug, 0) + 1
+            self._numbered[step.slug] = n
+            id = f"{step.slug}/{n}"
         elif not isinstance(id, str) or not id or any(c.isspace() for c in id):
             raise EmmetError(
                 "MODEL_EXEC_FAILED",

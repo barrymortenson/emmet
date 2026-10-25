@@ -9,7 +9,7 @@ expression: v
       "file": "model.py"
     },
     "hint": "Read model.py first; it's code. Then trust the project in the app, or run emmet trust.",
-    "message": "Frame wasn't created on this machine, so its model.py won't run until you trust it."
+    "message": "Frame isn't trusted on this machine (it was made elsewhere, or moved), so its model.py won't run until you trust it."
   },
   "meta": {
     "emmet": "[emmet]",

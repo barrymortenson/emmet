@@ -10,7 +10,7 @@ expression: v
       "file": "model.py",
       "line": 10
     },
-    "hint": "Look for a loop that doesn't end, or reduce repeats; split a big model into submodels. The project's limit is [run] timeout in emmet.toml.",
+    "hint": "Look for a loop that doesn't end, or reduce repeats. The project's limit is [run] timeout in emmet.toml.",
     "message": "The model ran for more than 1 s."
   },
   "meta": {

@@ -58,7 +58,8 @@ pub struct SetParamsArgs {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ColorsArgs {
-    /// Only the colors this part comes in.
+    /// A part id: checks the part exists. Every color is returned until the parts data pack (3B) knows which colors
+    /// each part came in.
     #[serde(default)]
     pub part: Option<String>,
 }
@@ -70,9 +71,13 @@ pub struct EmmetMcp {
     tool_router: ToolRouter<Self>,
 }
 
-/// Runs a blocking core operation off the async runtime.
-async fn blocking<T: Send + 'static>(f: impl FnOnce() -> T + Send + 'static) -> T {
-    tokio::task::spawn_blocking(f).await.expect("emmet core task panicked")
+/// Runs a blocking core operation off the async runtime. A panic in it becomes `failed(INTERNAL)`, so the call still
+/// gets an answer instead of the server going down with it.
+async fn blocking<T: Send + 'static>(f: impl FnOnce() -> T + Send + 'static, failed: impl FnOnce(Error) -> T) -> T {
+    match tokio::task::spawn_blocking(f).await {
+        Ok(t) => t,
+        Err(e) => failed(Error::internal(format!("an emmet core task stopped: {e}"))),
+    }
 }
 
 /// The envelope as structured content, plus `text` (or the error, with its file:line and hint) as the summary.
@@ -142,9 +147,11 @@ impl EmmetMcp {
     async fn search_parts(&self, Parameters(args): Parameters<SearchArgs>) -> CallToolResult {
         let started = Instant::now();
         let data = self.data.clone();
-        let out =
-            blocking(move || ops::search_parts(&data, &args.query, args.category.as_deref(), args.limit.unwrap_or(10)))
-                .await;
+        let out = blocking(
+            move || ops::search_parts(&data, &args.query, args.category.as_deref(), args.limit.unwrap_or(10)),
+            Err,
+        )
+        .await;
         result(started, out, RunMeta::default(), None, |r| {
             if r.parts.is_empty() {
                 return format!("No parts match '{}'.", r.query);
@@ -157,12 +164,13 @@ impl EmmetMcp {
         })
     }
 
-    /// One part: its name, size in studs and plates, flags (alias, obsolete, printed), and body box.
+    /// One part: its name, size in studs and plates, flags (alias, obsolete, hidden, printed, sticker, shortcut),
+    /// and body box.
     #[tool(output_schema = schema_for_output::<Envelope<PartInfo>>())]
     async fn part_info(&self, Parameters(args): Parameters<PartArgs>) -> CallToolResult {
         let started = Instant::now();
         let data = self.data.clone();
-        let out = blocking(move || ops::part_info(&data, &args.id)).await;
+        let out = blocking(move || ops::part_info(&data, &args.id), Err).await;
         result(started, out, RunMeta::default(), None, |p| {
             let mut s = format!(
                 "{} {} ({}){}",
@@ -187,15 +195,18 @@ impl EmmetMcp {
     async fn run_model(&self, Parameters(args): Parameters<RunArgs>) -> CallToolResult {
         let started = Instant::now();
         let (data, me) = (self.data.clone(), self.clone());
-        let (out, meta, root) = blocking(move || {
-            let project = match me.find_project() {
-                Ok(p) => p,
-                Err(e) => return (Err(e), RunMeta::default(), None),
-            };
-            let root = Some(project.root.display().to_string());
-            let (out, meta) = ops::run_model(&data, &project, &args.params.unwrap_or_default());
-            (out, meta, root)
-        })
+        let (out, meta, root) = blocking(
+            move || {
+                let project = match me.find_project() {
+                    Ok(p) => p,
+                    Err(e) => return (Err(e), RunMeta::default(), None),
+                };
+                let root = Some(project.root.display().to_string());
+                let (out, meta) = ops::run_model(&data, &project, &args.params.unwrap_or_default());
+                (out, meta, root)
+            },
+            |e| (Err(e), RunMeta::default(), None),
+        )
         .await;
         result(started, out, meta, root, |r| {
             format!(
@@ -213,7 +224,11 @@ impl EmmetMcp {
     async fn get_params(&self, Parameters(_): Parameters<NoArgs>) -> CallToolResult {
         let started = Instant::now();
         let (data, me) = (self.data.clone(), self.clone());
-        let (out, root) = blocking(move || with_project(&me, |p| ops::get_params(&data, p))).await;
+        let (out, root) = blocking(
+            move || with_project(&me, |p| ops::get_params(&data, p)),
+            |e| (Err(e), None),
+        )
+        .await;
         result(started, out, RunMeta::default(), root, |p| {
             p.params
                 .iter()
@@ -228,7 +243,11 @@ impl EmmetMcp {
     async fn set_params(&self, Parameters(args): Parameters<SetParamsArgs>) -> CallToolResult {
         let started = Instant::now();
         let (data, me) = (self.data.clone(), self.clone());
-        let (out, root) = blocking(move || with_project(&me, |p| ops::set_params(&data, p, &args.values))).await;
+        let (out, root) = blocking(
+            move || with_project(&me, |p| ops::set_params(&data, p, &args.values)),
+            |e| (Err(e), None),
+        )
+        .await;
         result(started, out, RunMeta::default(), root, |p| {
             if p.changed.is_empty() {
                 return "Nothing changed.".into();
@@ -243,7 +262,7 @@ impl EmmetMcp {
     async fn list_colors(&self, Parameters(args): Parameters<ColorsArgs>) -> CallToolResult {
         let started = Instant::now();
         let data = self.data.clone();
-        let out = blocking(move || ops::list_colors(&data, args.part.as_deref())).await;
+        let out = blocking(move || ops::list_colors(&data, args.part.as_deref()), Err).await;
         result(started, out, RunMeta::default(), None, |r| {
             let solid: Vec<String> = r
                 .colors

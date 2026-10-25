@@ -126,3 +126,11 @@ fn numbers_are_written_compactly() {
     assert!(ldraw::parse_line("1 16 0 0").is_err());
     assert!(ldraw::parse_line("7 1 2 3").is_err());
 }
+
+#[test]
+fn a_stray_nofile_doesnt_add_an_empty_first_file() {
+    // It used to push an empty file, so placements() of the real model found nothing.
+    let doc = ldraw::parse("0 NOFILE\n0 FILE main.ldr\n1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat\n0 NOFILE\n").unwrap();
+    assert_eq!(doc.files.len(), 1);
+    assert_eq!(placements(&doc).len(), 1);
+}

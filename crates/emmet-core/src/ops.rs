@@ -33,12 +33,13 @@ pub fn search_parts(data: &DataDir, query: &str, category: Option<&str>, limit: 
 pub struct PartInfo {
     #[serde(flatten)]
     pub part: Part,
-    /// Connector summary, filled from 3A.
-    pub connectors: Vec<String>,
-    /// Colors the part was produced in, filled once the parts data pack is installed (3B).
-    pub produced_colors: Vec<u32>,
-    /// Alternate and mold-variant ids, filled from 3B.
-    pub alternates: Vec<String>,
+    /// Connector summary; null until connectors arrive (3A), so an empty list always means "none".
+    pub connectors: Option<Vec<String>>,
+    /// Colors the part was produced in; null until the parts data pack is installed (3B), so an empty list always
+    /// means "none".
+    pub produced_colors: Option<Vec<u32>>,
+    /// Alternate and mold-variant ids; null until the parts data pack (3B).
+    pub alternates: Option<Vec<String>>,
 }
 
 pub fn part_info(data: &DataDir, id: &str) -> Result<PartInfo> {
@@ -46,9 +47,9 @@ pub fn part_info(data: &DataDir, id: &str) -> Result<PartInfo> {
     match index.part(id)? {
         Some(part) => Ok(PartInfo {
             part,
-            connectors: vec![],
-            produced_colors: vec![],
-            alternates: vec![],
+            connectors: None,
+            produced_colors: None,
+            alternates: None,
         }),
         None => Err(unknown_part(&index, id)?),
     }
@@ -141,17 +142,26 @@ pub struct Params {
 }
 
 pub fn get_params(data: &DataDir, project: &Project) -> Result<Params> {
-    let v = crate::run::schema(data, project, &BTreeMap::new())?;
-    serde_json::from_value(v).map_err(|e| Error::internal(format!("emmet_dsl's schema reply: {e}")))
+    params_from(crate::run::schema(data, project, &BTreeMap::new())?)
+}
+
+/// The DSL's schema reply, checked to hold a value for every parameter it lists.
+fn params_from(v: serde_json::Value) -> Result<Params> {
+    let p: Params = serde_json::from_value(v).map_err(|e| Error::internal(format!("emmet_dsl's schema reply: {e}")))?;
+    if let Some(missing) = p.params.iter().find(|s| !p.values.contains_key(&s.name)) {
+        return Err(Error::internal(format!(
+            "emmet_dsl's schema reply has no value for '{}'.",
+            missing.name
+        )));
+    }
+    Ok(p)
 }
 
 /// Checks `values` against the schema and writes params.json: overrides only, so a value equal to its default is
 /// dropped from the file.
 pub fn set_params(data: &DataDir, project: &Project, values: &BTreeMap<String, serde_json::Value>) -> Result<Params> {
     let before = get_params(data, project)?;
-    let v = crate::run::schema(data, project, values)?;
-    let mut after: Params =
-        serde_json::from_value(v).map_err(|e| Error::internal(format!("emmet_dsl's schema reply: {e}")))?;
+    let mut after = params_from(crate::run::schema(data, project, values)?)?;
     let mut overrides = BTreeMap::new();
     for p in &after.params {
         let value = &after.values[&p.name];
@@ -211,17 +221,23 @@ pub struct Doctor {
 /// Checks the library, the parts index, uv, and Python; with `fix`, builds the index and sets Python up.
 pub fn doctor(data: &DataDir, fix: bool) -> Doctor {
     let mut checks = Vec::new();
-    let lib = crate::library::installed(data);
-    checks.push(Check {
-        name: "library".into(),
-        ok: lib.is_some(),
-        detail: lib.as_ref().map_or_else(
-            || format!("not installed in {}", data.ldraw().display()),
-            |i| format!("LDraw {} ({} files)", i.release, i.files),
-        ),
-        fix: lib.is_none().then(|| "emmet library install".into()),
+    // require, not installed: a damaged library says so, with its own hint, instead of "not installed".
+    let lib = crate::library::require(data);
+    checks.push(match &lib {
+        Ok(i) => Check {
+            name: "library".into(),
+            ok: true,
+            detail: format!("LDraw {} ({} files)", i.release, i.files),
+            fix: None,
+        },
+        Err(e) => Check {
+            name: "library".into(),
+            ok: false,
+            detail: e.message.clone(),
+            fix: Some(e.hint.clone()),
+        },
     });
-    let index = if fix && lib.is_some() {
+    let index = if fix && lib.is_ok() {
         Index::ensure(data)
     } else {
         Index::open(data)
@@ -244,31 +260,34 @@ pub fn doctor(data: &DataDir, fix: bool) -> Doctor {
     let mut problem = None;
     if fix && !python.ready {
         if let Err(e) = crate::python::ensure(data) {
-            problem = Some(e.message);
+            problem = Some(e);
         }
         python = crate::python::status(data);
     }
+    let uv_ok = python.uv.is_some() || python.ready;
     checks.push(Check {
         name: "uv".into(),
-        ok: python.uv.is_some() || python.ready,
+        ok: uv_ok,
         detail: python
             .uv
             .clone()
             .unwrap_or_else(|| "not found next to emmet or on PATH".into()),
-        fix: python
-            .uv
-            .is_none()
-            .then(|| "install uv (https://docs.astral.sh/uv/)".into()),
+        fix: (!uv_ok).then(|| "install uv (https://docs.astral.sh/uv/)".into()),
     });
+    // The setup error's own hint, not "run emmet doctor --fix" again after it just failed.
+    let (detail, fix_hint) = match (&python.python, &python.emmet_dsl, problem) {
+        (_, _, Some(e)) => (e.message, Some(e.hint)),
+        (Some(p), Some(v), None) => (
+            format!("Python {} with emmet_dsl {v}: {p}", crate::python::PYTHON_VERSION),
+            None,
+        ),
+        _ => ("not set up".into(), Some("emmet doctor --fix".into())),
+    };
     checks.push(Check {
         name: "python".into(),
         ok: python.ready,
-        detail: match (&python.python, &python.emmet_dsl, problem) {
-            (_, _, Some(p)) => p,
-            (Some(p), Some(v), None) => format!("Python {} with emmet_dsl {v}: {p}", crate::python::PYTHON_VERSION),
-            _ => "not set up".into(),
-        },
-        fix: (!python.ready).then(|| "emmet doctor --fix".into()),
+        detail,
+        fix: if python.ready { None } else { fix_hint },
     });
     Doctor {
         ready: checks.iter().all(|c| c.ok),
