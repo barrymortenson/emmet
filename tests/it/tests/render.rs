@@ -18,7 +18,7 @@ fn render_without_the_app_uses_render_mode() {
     assert_eq!(data["size"], 256);
     assert_eq!(data["highlighted"], serde_json::json!(["p1", "p2"]));
     assert_eq!(data["camera"]["view"], "iso");
-    let path = dir.join("build/renders/iso.png");
+    let path = dir.join("build").join("renders").join("iso.png");
     assert_eq!(data["path"], path.display().to_string());
     check_png(&std::fs::read(&path).unwrap(), 256);
     // Render mode cleans up after itself.
