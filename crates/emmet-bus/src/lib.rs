@@ -64,13 +64,24 @@ pub enum Message {
     Notes { session: String },
 }
 
+/// One request. The token itself never crosses the socket: `auth` proves the client read it from bus.json, and the
+/// reply's `auth` proves the server did, so a process squatting on the socket's name can neither drive the app nor
+/// answer for it (plan section 15).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Request {
     pub v: u32,
-    pub token: String,
+    /// Random, new for each request.
+    pub nonce: String,
+    /// [`proof`]`("client", token, nonce)`.
+    pub auth: String,
     pub id: u64,
     #[serde(flatten)]
     pub message: Message,
+}
+
+/// sha256 of `side:token:nonce`, in hex.
+pub fn proof(side: &str, token: &str, nonce: &str) -> String {
+    fsx::sha256_hex(format!("{side}:{token}:{nonce}").as_bytes())
 }
 
 /// The app's answer. `delivered: false` carries `reason`; a delivered message that failed carries `error`.
@@ -93,6 +104,9 @@ pub struct Reply {
     /// The answer to `approve`, `ask`, or `notes`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub answer: Option<serde_json::Value>,
+    /// [`proof`]`("server", token, nonce)`, on the answer to an authenticated request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth: Option<String>,
 }
 
 impl Reply {
@@ -248,7 +262,7 @@ fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send +
                 id: req.id,
                 ..Reply::undelivered(format!("the app speaks bus v{VERSION}, not v{}", req.v))
             },
-            Ok(req) if !same(&req.token, token) => {
+            Ok(req) if !same(&req.auth, &proof("client", token, &req.nonce)) => {
                 refused = true;
                 Reply {
                     id: req.id,
@@ -257,6 +271,7 @@ fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send +
             }
             Ok(req) => Reply {
                 id: req.id,
+                auth: Some(proof("server", token, &req.nonce)),
                 ..handler(req.message)
             },
             Err(e) => Reply::undelivered(format!("not a bus request: {e}")),
@@ -289,9 +304,11 @@ pub fn send(data: &DataDir, message: Message, timeout: Duration) -> Reply {
     let Ok(mut conn) = Stream::connect(name) else {
         return Reply::undelivered("Emmet isn't running");
     };
+    let nonce = fsx::random_hex(2);
     let req = Request {
         v: VERSION,
-        token: info.token,
+        auth: proof("client", &info.token, &nonce),
+        nonce: nonce.clone(),
         id: 1,
         message,
     };
@@ -308,8 +325,14 @@ pub fn send(data: &DataDir, message: Message, timeout: Duration) -> Reply {
         let _ = tx.send(line);
     });
     match rx.recv_timeout(timeout) {
-        Ok(line) if !line.trim().is_empty() => serde_json::from_str(line.trim())
-            .unwrap_or_else(|e| Reply::undelivered(format!("Emmet's reply isn't a bus reply: {e}"))),
+        Ok(line) if !line.trim().is_empty() => match serde_json::from_str::<Reply>(line.trim()) {
+            // A delivered answer must prove it came from the app that wrote bus.json.
+            Ok(r) if r.delivered && r.auth.as_deref() != Some(&proof("server", &info.token, &nonce)) => {
+                Reply::undelivered("the answer on the bus didn't come from Emmet")
+            }
+            Ok(r) => r,
+            Err(e) => Reply::undelivered(format!("Emmet's reply isn't a bus reply: {e}")),
+        },
         Ok(_) => Reply::undelivered("Emmet closed the connection"),
         Err(_) => Reply::undelivered(format!("Emmet didn't answer in {} s", timeout.as_secs())),
     }

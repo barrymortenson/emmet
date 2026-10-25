@@ -1,0 +1,9 @@
+{
+  "name": "rules",
+  "description": "How to build with Emmet: the frame and units, the loop, building in stages, when to ask, and redirects. Read it\nonce, before anything else.",
+  "input": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object"
+  },
+  "output": null
+}

@@ -400,11 +400,14 @@ impl CodexProto {
                     )),
                     "commandExecution" => io.emit(call("shell".into(), json!({ "command": item["command"] }))),
                     "fileChange" => {
+                        let root = format!("{}/", self.cwd.trim_end_matches(['/', '\\']));
                         let files: Vec<String> = item["changes"]
                             .as_array()
                             .into_iter()
                             .flatten()
-                            .filter_map(|c| c["path"].as_str().map(String::from))
+                            .filter_map(|c| c["path"].as_str())
+                            .map(|p| p.replace('\\', "/"))
+                            .map(|p| p.strip_prefix(&root.replace('\\', "/")).map(String::from).unwrap_or(p))
                             .collect();
                         self.changes.insert(id.clone(), files.clone());
                         io.emit(call("apply_patch".into(), json!({ "files": files })));

@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 
-use emmet_fake_agents::{Fake, Servers, Subst, apply_change, exit_after_eof, fail, read, write, write_raw};
+use emmet_fake_agents::{Fake, Line, Servers, Subst, apply_change, exit_after_eof, fail, read, write, write_raw};
 use serde_json::{Value, json};
 
 fn main() {
@@ -28,13 +28,56 @@ fn main() {
     // What the adapter answered each approval request with, by the item it was about.
     let mut decisions: HashMap<String, String> = HashMap::new();
     let mut asked: HashMap<String, String> = HashMap::new();
-    for line in &script {
+    let mut in_turn = false;
+    // A turn/start the recorder sent right after turn/interrupt, before the turn ended: Emmet sends it once the turn is
+    // over, so it's read just before its own response.
+    let mut deferred: Option<Value> = None;
+    let mut last_in: Option<String> = None;
+    let mut lines: Vec<Line> = script;
+    let mut i = 0;
+    while i < lines.len() {
+        let line = &lines[i];
+        i += 1;
+        if line.dir == "in"
+            && line.msg["method"] == "turn/start"
+            && last_in.as_deref() == Some("turn/interrupt")
+            && in_turn
+        {
+            deferred = Some(line.msg.clone());
+            last_in = None;
+            continue;
+        }
+        if line.dir == "out"
+            && line.msg.get("method").is_none()
+            && let Some(want) = deferred.as_ref().filter(|w| w["id"] == line.msg["id"]).cloned()
+        {
+            deferred = None;
+            lines.insert(
+                i - 1,
+                Line {
+                    dir: "in".into(),
+                    msg: want,
+                },
+            );
+            i -= 1;
+            continue;
+        }
+        let line = &lines[i - 1];
         match line.dir.as_str() {
             "in" => {
+                last_in = line.msg["method"].as_str().map(String::from);
                 let Some(got) = read() else { std::process::exit(0) };
                 let want = &line.msg;
+                // A turn/start mid-turn folds into the running turn (0B, mid-turn-start); Emmet sends turn/steer for
+                // the same thing, which the recorded answer serves too.
+                let folded = in_turn && want["method"] == "turn/start" && got["method"] == "turn/steer";
+                if want["method"] == "turn/start" {
+                    in_turn = true;
+                }
                 match want["method"].as_str() {
-                    Some(m) if got["method"] != m => fail(format!("expected {m} from the adapter, got {got}")),
+                    Some(m) if got["method"] != m && !folded => {
+                        fail(format!("expected {m} from the adapter, got {got}"))
+                    }
                     Some(_) => {
                         if let Some(id) = want.get("id") {
                             ids.insert(id.to_string(), got["id"].clone());
@@ -71,6 +114,7 @@ fn main() {
                         asked.insert(id.to_string(), item);
                     }
                     (Some("item/completed"), None) => complete(&servers, &decisions, &mut msg["params"]["item"]),
+                    (Some("turn/completed"), None) => in_turn = false,
                     _ => {}
                 }
                 write(&msg);

@@ -1,0 +1,51 @@
+---
+source: tests/it/tests/agent_codex.rs
+expression: rig.outline(&all)
+---
+{
+  "stream": [
+    "started gpt-6-luna (API key)",
+    "text: I’ll locate `model.py` and make the requested one-value change.",
+    "tool_call shell",
+    "approval Command commandExecution",
+    "tool_result error ",
+    "tool_call apply_patch",
+    "approval Edit fileChange",
+    "tool_result ok model.py",
+    "text: Done.",
+    "usage",
+    "turn_done Completed",
+    "text: I’ll read the first line of `../outside.txt`.",
+    "tool_call shell",
+    "approval Command commandExecution",
+    "tool_result error ",
+    "text: I couldn’t read `../outside.txt`; the read command was rejected.",
+    "usage",
+    "turn_done Completed",
+    "text: I’ll create `notes.txt` with the requested content.",
+    "tool_call apply_patch",
+    "approval Edit fileChange",
+    "tool_result ok notes.txt",
+    "text: Done.",
+    "usage",
+    "turn_done Completed",
+    "text: `../outside.txt` is outside the writable workspace, so I need elevated write access ",
+    "tool_call shell",
+    "approval Command commandExecution",
+    "tool_result error ",
+    "text: I couldn’t append `bye` to `../outside.txt`; the write request was rejected.",
+    "usage",
+    "turn_done Completed",
+    "text: I’ll run `echo hi` and report its output.",
+    "tool_call shell",
+    "approval Command commandExecution",
+    "tool_result error ",
+    "text: The shell command was rejected, so I couldn’t run it.",
+    "usage",
+    "turn_done Completed"
+  ],
+  "files": [
+    "file_change model.py Modified",
+    "file_change notes.txt Added"
+  ]
+}

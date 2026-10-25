@@ -72,16 +72,10 @@ fn a_wrong_token_is_refused() {
     // The server hangs up after a wrong token: a second request on the same stream gets no answer.
     use interprocess::local_socket::prelude::*;
     use std::io::{BufRead, BufReader, Write};
-    let name = info["name"]
-        .as_str()
-        .unwrap()
-        .to_string()
-        .to_ns_name::<interprocess::local_socket::GenericNamespaced>()
-        .unwrap();
-    let mut conn = interprocess::local_socket::Stream::connect(name).unwrap();
+    let mut conn = interprocess::local_socket::Stream::connect(socket(info["name"].as_str().unwrap())).unwrap();
     let req = |id: u64| {
         format!(
-            "{{\"v\":1,\"token\":\"{}\",\"id\":{id},\"type\":\"highlight\",\"project\":\"/p\",\"ids\":[]}}\n",
+            "{{\"v\":1,\"nonce\":\"n\",\"auth\":\"{}\",\"id\":{id},\"type\":\"highlight\",\"project\":\"/p\",\"ids\":[]}}\n",
             "0".repeat(64)
         )
     };
@@ -97,6 +91,81 @@ fn a_wrong_token_is_refused() {
         0,
         "the connection should be closed: {line}"
     );
+}
+
+/// The socket's name, as emmet-bus makes it: a file in /tmp on macOS, a named pipe on Windows.
+fn socket(name: &str) -> interprocess::local_socket::Name<'static> {
+    use interprocess::local_socket::prelude::*;
+    #[cfg(unix)]
+    {
+        emmet_bus::socket_path(name)
+            .to_fs_name::<interprocess::local_socket::GenericFilePath>()
+            .unwrap()
+            .into_owned()
+    }
+    #[cfg(windows)]
+    {
+        name.to_string()
+            .to_ns_name::<interprocess::local_socket::GenericNamespaced>()
+            .unwrap()
+    }
+}
+
+/// A process squatting on the socket's name (a crashed app left bus.json behind) doesn't know the token, so its
+/// answers aren't believed: an "allow" from it is undelivered.
+#[test]
+fn an_answer_from_a_process_that_doesnt_know_the_token_is_refused() {
+    use interprocess::local_socket::ListenerOptions;
+    use interprocess::local_socket::prelude::*;
+    use std::io::{BufRead, BufReader, Write};
+    let data = data();
+    let name = format!("emmet-squat-{}.sock", std::process::id());
+    let listener = ListenerOptions::new()
+        .name(socket(&name))
+        .try_overwrite(true)
+        .create_sync()
+        .unwrap();
+    std::fs::write(
+        info_path(&data),
+        format!(r#"{{"v":1,"name":"{name}","token":"{}","pid":1}}"#, "a".repeat(64)),
+    )
+    .unwrap();
+    let squatter = std::thread::spawn(move || {
+        let conn = listener.incoming().next().unwrap().unwrap();
+        let mut reader = BufReader::new(conn);
+        let mut line = String::new();
+        reader.read_line(&mut line).unwrap();
+        assert!(!line.contains(&"a".repeat(64)), "the token crossed the socket: {line}");
+        let forged = r#"{"id":1,"delivered":true,"answer":{"behavior":"allow"},"auth":"forged"}"#;
+        reader.get_mut().write_all(format!("{forged}\n").as_bytes()).unwrap();
+    });
+    let r = send(
+        &data,
+        Message::Approve {
+            session: "s".into(),
+            request: serde_json::json!({ "tool_name": "Bash" }),
+        },
+        Duration::from_secs(5),
+    );
+    squatter.join().unwrap();
+    assert!(!r.delivered);
+    assert_eq!(r.answer, None);
+    assert_eq!(
+        r.reason.as_deref(),
+        Some("the answer on the bus didn't come from Emmet")
+    );
+}
+
+/// Only this user may open the socket (plan section 15).
+#[cfg(unix)]
+#[test]
+fn the_socket_is_private() {
+    use std::os::unix::fs::PermissionsExt;
+    let data = data();
+    let _server = Server::start(&data, |_| Reply::default()).unwrap();
+    let info: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(info_path(&data)).unwrap()).unwrap();
+    let path = emmet_bus::socket_path(info["name"].as_str().unwrap());
+    assert_eq!(std::fs::metadata(path).unwrap().permissions().mode() & 0o777, 0o600);
 }
 
 #[test]

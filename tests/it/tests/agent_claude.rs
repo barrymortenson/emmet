@@ -609,3 +609,28 @@ fn detection_reads_the_version_and_sign_in() {
     .unwrap();
     assert_eq!(rig.adapter(CLAUDE).detect().billing.label(), "API key");
 }
+
+/// "Allow for this session" covers that one command, not the shell: the next, different command still asks.
+#[test]
+fn allowing_a_command_for_the_session_doesnt_allow_others() {
+    let rig = Rig::new("claude-allow-session", "claude", "permissions-ask-bash");
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Run the shell command `ls` and tell me its output."))
+        .unwrap();
+    let card = ev.until("an approval card", |e| matches!(e, AgentEvent::Approval { .. }));
+    let Some(AgentEvent::Approval { id, .. }) = card.last().cloned() else {
+        unreachable!()
+    };
+    s.respond(&id, Decision::AllowSession).unwrap();
+    ev.turn();
+    s.send(turn("Run the shell command `echo hi` and tell me its output."))
+        .unwrap();
+    let card = ev.until("a second card", |e| matches!(e, AgentEvent::Approval { .. }));
+    let Some(AgentEvent::Approval { id, detail, .. }) = card.last().cloned() else {
+        unreachable!()
+    };
+    assert_eq!(detail, "echo hi");
+    s.respond(&id, Decision::Deny).unwrap();
+    ev.turn();
+    s.close();
+}

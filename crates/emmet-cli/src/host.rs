@@ -151,14 +151,11 @@ impl EmmetHost {
             },
         };
         let summary = if answer.answered {
-            let mut said = answer.choices.join(", ");
-            if let Some(o) = &answer.other {
-                if !said.is_empty() {
-                    said.push_str("; ");
-                }
-                said.push_str(&format!("in their words: {o}"));
+            match (answer.choices.join(", "), &answer.other) {
+                (chose, None) => format!("The user chose: {chose}"),
+                (chose, Some(o)) if chose.is_empty() => format!("The user answered in their own words: \"{o}\""),
+                (chose, Some(o)) => format!("The user chose: {chose}, and added: \"{o}\""),
             }
-            format!("The user chose: {said}")
         } else if answer.reason.as_deref() == Some("timeout") {
             "No answer yet. End your turn now: the user's answer will arrive as their next message.".into()
         } else {
@@ -203,8 +200,13 @@ impl EmmetHost {
     }
 }
 
-/// What `approve` allows without a card (plan section 10): reads, our own tools, and an edit to a file inside the
-/// project. The path must stay inside after following links, so a link out of the project, or `..`, is a card.
+/// Files inside the project that configure an agent: an edit to one is a card, since it changes what the next session
+/// may do. Dot folders and files (`.claude/`, `.codex/`, `.mcp.json`, `.git/hooks/`, `.emmet/`) are cards too.
+const AGENT_FILES: &[&str] = &["AGENTS.md", "CLAUDE.md", "AGENTS.override.md"];
+
+/// What `approve` allows without a card (plan section 10): reads, our own tools, and an edit to a model file inside the
+/// project. The path must stay inside after following links, so a link out of the project, or `..`, is a card, and so
+/// is an edit to agent config ([`AGENT_FILES`], anything under a dot folder).
 pub fn auto_allowed(root: &Path, tool: &str, input: &Value) -> bool {
     if READS.contains(&tool) || tool.starts_with("mcp__emmet__") || tool == "mcp__emmet_host__ask_user" {
         return true;
@@ -215,14 +217,23 @@ pub fn auto_allowed(root: &Path, tool: &str, input: &Value) -> bool {
     let Some(path) = input["file_path"].as_str().or(input["notebook_path"].as_str()) else {
         return false;
     };
-    inside(root, Path::new(path))
+    let Some(rel) = inside(root, Path::new(path)) else {
+        return false;
+    };
+    let config = rel
+        .components()
+        .any(|c| c.as_os_str().to_string_lossy().starts_with('.'))
+        || rel
+            .file_name()
+            .is_some_and(|n| AGENT_FILES.iter().any(|f| n.eq_ignore_ascii_case(f)));
+    !config
 }
 
-/// Whether `path` (absolute, or relative to `root`) lands inside `root` once links are followed. A file that doesn't
-/// exist yet is judged by its nearest existing folder.
-fn inside(root: &Path, path: &Path) -> bool {
+/// Where `path` (absolute, or relative to `root`) lands inside `root` once links are followed, relative to it; None if
+/// outside. A file that doesn't exist yet is judged by its nearest existing folder.
+fn inside(root: &Path, path: &Path) -> Option<PathBuf> {
     let Ok(root) = emmet_core::fsx::canonical(root) else {
-        return false;
+        return None;
     };
     let full = if path.is_absolute() {
         path.to_path_buf()
@@ -237,20 +248,18 @@ fn inside(root: &Path, path: &Path) -> bool {
                 rest.push(name.to_owned());
                 existing = parent;
             }
-            _ => return false,
+            _ => return None,
         }
     }
-    let Ok(mut real) = emmet_core::fsx::canonical(existing) else {
-        return false;
-    };
+    let mut real = emmet_core::fsx::canonical(existing).ok()?;
     for name in rest.iter().rev() {
         // A name that's `..` (or `.`) after a missing folder can't be judged without the folder; refuse it.
         if Path::new(name).components().any(|c| !matches!(c, Component::Normal(_))) {
-            return false;
+            return None;
         }
         real.push(name);
     }
-    real.starts_with(&root)
+    real.strip_prefix(&root).ok().map(Path::to_path_buf)
 }
 
 #[tool_handler(router = self.tool_router)]

@@ -20,7 +20,7 @@ pub struct Hub(Arc<Mutex<HashMap<String, Entry>>>);
 struct Entry {
     events: Sender<AgentEvent>,
     approvals: HashMap<String, Sender<Decision>>,
-    /// Tools the user allowed for the rest of the session.
+    /// What the user allowed for the rest of the session, by [`scope`]: never a whole shell or the whole web.
     allowed: HashSet<String>,
     question: Option<(String, Sender<Value>)>,
     /// Notes waiting for the next Emmet tool result (the queued path).
@@ -37,9 +37,10 @@ impl Hub {
     /// `{behavior, message?}` (mcp-host adds `updatedInput`).
     pub fn approve(&self, session: &str, request: Value) -> Option<Value> {
         let tool = request["tool_name"].as_str().unwrap_or("a tool").to_string();
+        let key = scope(&tool, &request["input"]);
         let (tx, rx) = channel();
         let allowed = self.with(session, |e| {
-            if e.allowed.contains(&tool) {
+            if e.allowed.contains(&key) {
                 return true;
             }
             e.next += 1;
@@ -60,7 +61,7 @@ impl Hub {
         Some(match rx.recv() {
             Ok(Decision::AllowOnce) => json!({ "behavior": "allow" }),
             Ok(Decision::AllowSession) => {
-                self.with(session, |e| e.allowed.insert(tool));
+                self.with(session, |e| e.allowed.insert(key));
                 json!({ "behavior": "allow" })
             }
             Ok(Decision::Deny) => json!({ "behavior": "deny", "message": "The user denied this in Emmet." }),
@@ -192,6 +193,30 @@ impl Hub {
         })
         .unwrap_or(false)
     }
+}
+
+/// What "Allow for this session" covers: the exact command for a shell, the host for a fetch, the file for an edit,
+/// and the tool itself for anything else, so allowing one `ls` never allows every command.
+fn scope(tool: &str, input: &Value) -> String {
+    let s = |k: &str| input[k].as_str().unwrap_or_default();
+    let what = match tool {
+        "Bash" | "PowerShell" => s("command").trim().to_string(),
+        "WebFetch" => {
+            let url = s("url");
+            let rest = url.split_once("://").map_or(url, |(_, r)| r);
+            rest.split(['/', '?', '#']).next().unwrap_or_default().to_lowercase()
+        }
+        "WebSearch" => s("query").to_string(),
+        "Edit" | "Write" | "MultiEdit" | "NotebookEdit" => {
+            if input["file_path"].is_string() {
+                s("file_path").to_string()
+            } else {
+                s("notebook_path").to_string()
+            }
+        }
+        _ => String::new(),
+    };
+    format!("{tool}\u{0}{what}")
 }
 
 /// The card's kind and one line for Claude Code's request.

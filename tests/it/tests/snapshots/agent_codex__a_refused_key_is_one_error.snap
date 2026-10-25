@@ -1,0 +1,12 @@
+---
+source: tests/it/tests/agent_codex.rs
+expression: rig.outline(&events)
+---
+{
+  "stream": [
+    "started gpt-6-luna (API key)",
+    "error AuthFailed",
+    "usage",
+    "turn_done Failed"
+  ]
+}
