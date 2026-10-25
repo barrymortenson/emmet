@@ -65,8 +65,9 @@ across launches. D-23 stands either way: the per-part cost is the loader's work,
 
 ## Consequences
 
-- No ADR for an alternative to `LDrawLoader` per part: it is fast enough on both webviews.
+- No ADR for an alternative to `LDrawLoader` per part: it is fast enough on WKWebView, which 1B was to check. On
+  WebView2 the answer waits on real hardware (the risk above).
 - The bench lives with the E2E specs, since it needs the real app; `packages/viewer` keeps the scene code and its
   unit test. Plan section 13 says so.
-- WKWebView has no JS heap API, so the leak test reads the WebContent process's footprint on macOS (docs/decisions.md,
-  2026-10-25).
+- WKWebView has no JS heap API, so the leak test reads the WebContent process's footprint on macOS, from after one
+  warm-up cycle (docs/decisions.md, 2026-10-25).
