@@ -79,7 +79,7 @@ test *args: build
         if pick '^python/'; then all+=(python); fi
         if pick '^packages/viewer/'; then all+=(viewer); fi
         if pick '^apps/desktop/'; then all+=(desktop); fi
-        if pick '^(crates/|tests/it/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
+        if pick '^(crates/|tests/it/|tests/spikes/(binaries|headless-render)/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
       fi
       args=""
       echo "test --changed: ${all[*]:-nothing}"

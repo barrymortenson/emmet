@@ -20,6 +20,13 @@ import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { homedir, hostname, tmpdir, userInfo } from "node:os";
 import { pathToFileURL } from "node:url";
 
+// A key whose value is a credential: matched on its ending after camelCase and hyphens become snake_case, so
+// apiKey, x-api-key, OPENAI_API_KEY, sessionToken, and client_secret all count, and input_tokens or apiKeySource don't.
+const SECRET_ENDING = "(?:api_?key|secret_?key|private_?key|token|secret|password|passwd|authorization|cookie)";
+const isSecretKey = (k) =>
+  new RegExp(`(?:^|_)${SECRET_ENDING}$`).test(k.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/-/g, "_").toLowerCase());
+// The same, for a key inside JSON text: any quoted key ending that way, in any case and with any separators.
+const SECRET_KEYS = '[A-Za-z0-9_-]*?(?:api[_-]?key|secret[_-]?key|private[_-]?key|token|secret|password|passwd|authorization|cookie)';
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const real = (p) => {
   try {
@@ -35,7 +42,8 @@ const variants = (p) => {
   return [...new Set([...base, ...base.map((v) => v.replace(/[^A-Za-z0-9]/g, "-"))])].filter((v) => v.length > 1);
 };
 
-export function rules({ paths = [], redact = [], portable = false } = {}) {
+// `home`, `tmp`, `user`, and `host` default to this machine's; tests pass their own.
+export function rules({ paths = [], redact = [], portable = false, home = homedir(), tmp = tmpdir(), user = userInfo().username, host = hostname() } = {}) {
   const r = [];
   for (const [from, to] of paths) for (const v of variants(from)) r.push([new RegExp(esc(v), "g"), to]);
   // 0B spike workspaces: <tmp>/emmet-spike-<scenario>-XXXXXX
@@ -43,7 +51,7 @@ export function rules({ paths = [], redact = [], portable = false } = {}) {
   // The same, as Claude Code encodes a directory into a folder name (before the temp-directory rules split it).
   r.push([/(?:-private)?-tmp-emmet-spike-[a-z0-9-]+-[A-Za-z0-9]{6}/g, "<WS>"]);
   // Longest first, so a temp dir inside the home directory becomes <TMP>, not <HOME>/….
-  const dirs = portable ? [] : [...variants(tmpdir()).map((v) => [v, "<TMP>"]), ...variants(homedir()).map((v) => [v, "<HOME>"])];
+  const dirs = portable ? [] : [...variants(tmp).map((v) => [v, "<TMP>"]), ...variants(home).map((v) => [v, "<HOME>"])];
   for (const [v, to] of dirs.sort((a, b) => b[0].length - a[0].length)) r.push([new RegExp(esc(v), "g"), to]);
   r.push([/(?:\/private)?\/var\/folders\/[^/\s"']+\/[^/\s"']+\/T(?=[/\s"']|$)/g, "<TMP>"]);
   r.push([/-(?:private-)?var-folders-[A-Za-z0-9]{2}-[A-Za-z0-9-]{20,40}-T(?=-|$|[\s"'])/g, "<TMP>"]);
@@ -57,17 +65,19 @@ export function rules({ paths = [], redact = [], portable = false } = {}) {
   r.push([/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[abpr]-[A-Za-z0-9-]{10,})\b/g, "<REDACTED>"]);
   r.push([/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/-]{16,}=*/g, "$1 <REDACTED>"]);
   r.push([/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g, "<EMAIL>"]);
-  if (portable) return r;
-  const host = hostname();
-  // The full hostname always; its first label only when it's long enough not to be a common word ("Mac").
-  for (const h of new Set([host, host.split(".")[0]])) if (h === host ? h.length > 2 : h.length >= 6) r.push([new RegExp(`\\b${esc(h)}\\b`, "gi"), "<HOST>"]);
-  const user = userInfo().username;
-  if (user.length > 2) r.push([new RegExp(`\\b${esc(user)}\\b`, "gi"), "<USER>"]);
+  // A token-like key inside JSON that is itself a string (streamed tool input, tool results, command output), plain
+  // or escaped one level, as the object-key rule below does for parsed JSON.
+  r.push([new RegExp(`("${SECRET_KEYS}"\\s*:\\s*)(?:"(?:[^"\\\\]|\\\\.)*"|-?\\d[\\d.eE+-]*)`, "gi"), '$1"<REDACTED>"']);
+  r.push([new RegExp(`(\\\\"${SECRET_KEYS}\\\\"\\s*:\\s*)\\\\"(?:[^"\\\\]|\\\\[^"])*?\\\\"`, "gi"), '$1\\"<REDACTED>\\"']);
   for (const w of redact) r.push([new RegExp(`\\b${esc(w)}\\b`, "gi"), "<REDACTED>"]);
+  if (portable) return r;
+  // A dotted hostname always; a bare name or first label only when it's long enough not to be a common word ("Mac",
+  // whether the machine is "Mac" or "Mac.localdomain").
+  for (const h of new Set([host, host.split(".")[0]])) if (h.includes(".") || h.length >= 6) r.push([new RegExp(`\\b${esc(h)}\\b`, "gi"), "<HOST>"]);
+  if (user.length > 2) r.push([new RegExp(`\\b${esc(user)}\\b`, "gi"), "<USER>"]);
   return r;
 }
 
-const SECRET_KEY = /^(api[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|auth[_-]?token|authorization|password|secret|client[_-]?secret|ws[_-]?token)$/i;
 
 export function scrubValue(v, r) {
   if (typeof v === "string") {
@@ -79,7 +89,7 @@ export function scrubValue(v, r) {
   if (v && typeof v === "object") {
     const o = {};
     for (const [k, x] of Object.entries(v))
-      o[scrubValue(k, r)] = SECRET_KEY.test(k) && typeof x === "string" && x ? "<REDACTED>" : scrubValue(x, r);
+      o[scrubValue(k, r)] = isSecretKey(k) && x !== "" && x !== null && typeof x !== "boolean" ? "<REDACTED>" : scrubValue(x, r);
     return o;
   }
   return v;
@@ -141,14 +151,18 @@ if (process.argv[1] && import.meta.url === pathToFileURL(real(process.argv[1])).
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--path") {
-      const [from, to] = argv[++i].split(/=(?=[^=]*$)/);
+      const [from, to] = (argv[++i] ?? "").split(/=(?=[^=]*$)/);
+      if (!from || !to) {
+        console.error("scrub-transcript: --path takes <abs path>=<TOKEN>");
+        process.exit(2);
+      }
       paths.push([from, to]);
     } else if (argv[i] === "--redact") redact.push(argv[++i]);
     else if (argv[i] === "--portable") portable = true;
     else pos.push(argv[i]);
   }
   if (pos.length !== 2) {
-    console.error("usage: scrub-transcript <in.jsonl> <out.jsonl> [--path <abs>=<TOKEN>]... [--redact <word>]...");
+    console.error("usage: scrub-transcript <in.jsonl> <out.jsonl> [--path <abs>=<TOKEN>]... [--redact <word>]... [--portable]");
     process.exit(2);
   }
   try {

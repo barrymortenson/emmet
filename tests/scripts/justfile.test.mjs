@@ -20,7 +20,7 @@ function project(change) {
   });
   git("add", "-A");
   git("commit", "-q", "-m", "base");
-  if (change) writeFileSync(join(dir, change), "changed\n");
+  if (change) writeFiles(dir, { [change]: "changed\n" });
   return dir;
 }
 
@@ -62,6 +62,7 @@ for (const [change, picked] of [
   [null, "nothing"],
   [".github/workflows/ci.yml", "scripts"],
   ["rust-toolchain.toml", "scripts python viewer desktop rust"],
+  ["tests/spikes/binaries/src/lib.rs", "rust"],
 ]) {
   test(`just test --changed with ${change ?? "no change"} runs ${picked}`, { skip }, () => {
     const r = justTest(project(change), "--changed");

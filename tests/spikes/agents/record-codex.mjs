@@ -7,11 +7,11 @@
 // The app-server runs with section 10's API-key provider block and -c mcp_servers overrides, plus --strict-config so a
 // misspelled key fails instead of being ignored. Each run gets its own HOME (so CODEX_HOME is <HOME>/.codex, never
 // ~/.codex), and the run stops before any turn unless initialize reports that codexHome and account/read shows no
-// ChatGPT account. Approvals are answered like section 10's table: an edit inside the project is accepted;
-// commands, edits outside the project, and anything else are declined. MCP tool approvals for the spike's own
-// servers are accepted.
+// ChatGPT account. Approvals are answered like the earlier ask-first table: a file change whose paths are all inside
+// the project is accepted, any other file change and every command is declined, MCP tool approvals for the spike's own
+// two servers are accepted, and a server request the spike doesn't know gets a JSON-RPC error.
 
-import { join } from "node:path";
+import { isAbsolute, join, relative } from "node:path";
 import { STUB, cleanEnv, keychain, record, sleep, workspace } from "./harness.mjs";
 
 const MODEL = "gpt-6-luna";
@@ -46,13 +46,18 @@ function args(ws, policy, scenario) {
 /** A JSON-RPC client over the recorder: requests, responses by id, and auto-answers to server requests. */
 function rpc(s, ws) {
   let next = 1;
+  // File-change approval requests carry only the item id; the paths come with the item's item/started event.
+  const changePaths = new Map();
+  const inside = (p) => {
+    const rel = relative(ws.project, isAbsolute(p) ? p : join(ws.project, p));
+    return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel);
+  };
   const decide = (m) => {
     const p = m.params ?? {};
     if (m.method === "item/commandExecution/requestApproval" || m.method === "execCommandApproval") return { decision: "decline" };
     if (m.method === "item/fileChange/requestApproval" || m.method === "applyPatchApproval") {
-      const paths = JSON.stringify(p);
-      const inside = !paths.includes(join(ws.root, "outside")) && !/\.\.\//.test(paths);
-      return { decision: inside ? "accept" : "decline" };
+      const paths = changePaths.get(p.itemId) ?? Object.keys(p.fileChanges ?? {});
+      return { decision: paths.length && paths.every(inside) ? "accept" : "decline" };
     }
     if (m.method === "mcpServer/elicitation/request")
       return /^emmet(_host)?$/.test(p.serverName) ? { action: "accept", content: {} } : { action: "decline" };
@@ -60,6 +65,8 @@ function rpc(s, ws) {
     return null;
   };
   s.on((m) => {
+    const item = m?.method === "item/started" ? m.params?.item : null;
+    if (item?.type === "fileChange") changePaths.set(item.id, (item.changes ?? []).map((c) => c.path));
     if (m?.id === undefined || !m.method) return; // only server→client requests
     const result = decide(m);
     s.send(result ? { id: m.id, result } : { id: m.id, error: { code: -32601, message: `spike doesn't answer ${m.method}` } });

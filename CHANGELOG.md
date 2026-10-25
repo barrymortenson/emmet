@@ -20,7 +20,7 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   transcripts in `tests/replay/`, the Codex app-server schema in `crates/emmet-agent/schema/codex/0.160.1/`), E2E with
   WebdriverIO and the embedded WebDriver server (`just e2e`), licenses and reuse, LDraw ↔ Rebrickable ↔ BrickLink
   mapping, headless rendering in a hidden window, and two executables on Windows.
-- `tests/fixtures/ldraw-mini/` (177 LDraw parts with their attribution, checked in CI) and
+- `tests/fixtures/ldraw-mini/` (141 LDraw parts in 177 part files, with aliases, and their attribution, checked in CI) and
   `tests/fixtures/rebrickable-mini/`, with `scripts/make-ldraw-mini` and `scripts/make-rebrickable-mini`.
 - `scripts/scrub-transcript`, `scripts/terms-check` (with the provider quotes in `docs/terms/`), and the model ladder
   spec (`docs/spec/ladder.md`), with rung 3 rebuilding 6743-1 Street Speeder.

@@ -17,7 +17,7 @@
 2454b   # Brick 1 x 2 x 5
 3245c   # Brick 1 x 2 x 2
 30145   # Brick 2 x 2 x 3
-3065    # Brick 1 x 2 without centre stud (transparent window filler)
+3065    # Brick 1 x 2 without center stud (transparent window filler)
 87087   # Brick 1 x 1 with stud on 1 side (SNOT)
 4070    # Brick 1 x 1 with headlight (SNOT)
 3581    # Brick 1 x 1 x 2 with shutter holder

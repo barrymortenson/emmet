@@ -12,7 +12,8 @@
 //   node tests/spikes/agents/hand-check.mjs codex-account       Codex app-server account/read on the CLI's own login,
 //                                                               without and with OPENAI_API_KEY set (no turn)
 //
-// Raw streams go to $TMPDIR/emmet-0b-hand/<check>.jsonl; the summary leaves out emails and ids.
+// Raw streams go to $TMPDIR/emmet-0b-hand/<run>.jsonl (one per run, such as claude-usage-no-persist.jsonl); the
+// summary leaves out emails and keys.
 
 import { execFileSync, spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
@@ -31,7 +32,7 @@ const key = (service) => execFileSync("security", ["find-generic-password", "-s"
 const redact = (s) => s.replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "<email>").replace(/sk-[A-Za-z0-9_*-]{16,}/g, "<key>");
 const say = (s) => console.log(redact(s));
 
-/** Runs a CLI in a fresh directory, feeding `lines` (one per prompt) and collecting JSON output until `done`. */
+/** Runs a CLI in a fixed per-run directory, feeding `lines` (one per prompt) and collecting JSON output until `done`. */
 function run(name, cmd, args, { lines, env: e, done, ms = 120_000 }) {
   const cwd = join(OUT, `${name}-cwd`);
   mkdirSync(cwd, { recursive: true });

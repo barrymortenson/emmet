@@ -31,7 +31,11 @@ export function csv(text) {
     rows.push(row);
   }
   const [head, ...body] = rows;
-  return body.filter((r) => r.length > 1).map((r) => Object.fromEntries(head.map((h, i) => [h, r[i]])));
+  const data = body.filter((r) => r.length > 1 || r[0] !== "");
+  data.forEach((r, i) => {
+    if (r.length !== head.length) throw new Error(`csv: row ${i + 2} has ${r.length} fields, the header has ${head.length}`);
+  });
+  return data.map((r) => Object.fromEntries(head.map((h, i) => [h, r[i]])));
 }
 
 /** One CSV line, quoting a field only when it needs it. */

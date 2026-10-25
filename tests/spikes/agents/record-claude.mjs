@@ -4,9 +4,10 @@
 //
 //   node tests/spikes/agents/record-claude.mjs <scenario>      (scenarios: see SCENARIOS below)
 //
-// Each run gets its own HOME, so Claude Code can't see the plan sign-in or write to ~/.claude, and it stops before
-// the first turn unless system/init reports the API key. Raw transcripts go to $SPIKE_RAW_DIR (default
-// $TMPDIR/emmet-0b-raw); scripts/scrub-transcript turns them into tests/replay/claude/ fixtures.
+// Each run gets its own HOME, so Claude Code can't see the plan sign-in or write to ~/.claude. It refuses to start
+// unless `claude auth status` reports the API key in that environment, and kills the run if system/init then
+// disagrees. Raw transcripts go to $SPIKE_RAW_DIR (default $TMPDIR/emmet-0b-raw); scripts/scrub-transcript turns
+// them into tests/replay/claude/ fixtures.
 
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
@@ -46,7 +47,8 @@ const SCENARIOS = {
     await s.waitFor(isResult);
   },
   // Section 10's permission table: an allowed edit, then a read outside the project, an edit outside the allowed
-  // files, and a shell command. The stub's approve tool denies the read and the shell command and allows the edit.
+  // files, and a shell command. The model.py edit is pre-allowed by --allowedTools and never reaches approve; the stub's
+  // approve tool denies the read and the shell command and allows the notes.txt write.
   permissions: async (s) => {
     for (const text of [
       "Change WIDTH in model.py from 8 to 10. Reply done when finished.",

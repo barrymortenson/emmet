@@ -4,8 +4,8 @@
 //
 //   node tests/spikes/data/coverage.mjs <rebrickable dir> <ldraw complete.zip> [set_num ...]
 //
-// A part maps through an LD row in part_mappings.csv (ext_id = the LDraw id), otherwise through an identical
-// part_num in parts.csv (plan section 12). For each set_num, it reports how many of the set's Rebrickable inventory
+// A part maps by ADR 0004's four rules, in order: an LD row in part_mappings.csv (ext_id = the LDraw id), an LD row
+// for an id the library has moved, an identical part_num in parts.csv, or the base of a formed variant (-f1, -f2). For each set_num, it reports how many of the set's Rebrickable inventory
 // lines (and pieces) resolve to an LDraw part, the other way round. The zip is read through `unzip` only.
 
 import { execFileSync } from "node:child_process";
@@ -39,7 +39,7 @@ const titles = new Map();
 let current = null;
 const dump = execFileSync("unzip", ["-c", zip, "ldraw/parts/*.dat", "-x", "ldraw/parts/s/*"], { encoding: "latin1", maxBuffer: 1 << 30 });
 for (const line of dump.split(/\r?\n/)) {
-  const m = line.match(/^\s+inflating: \S*?parts\/([^/]+)\.dat\s*$/i); // macOS unzip prints "draw/parts/…"
+  const m = line.match(/^\s+inflating: \S*?parts\/([^/]+)\.dat\s*$/i); // macOS's unzip -c drops the first letter here: "inflating: draw/parts/…"
   if (m) current = m[1].toLowerCase();
   else if (current && line.startsWith("0 ")) {
     titles.set(current, line.slice(2).trim());
@@ -79,7 +79,7 @@ function report(label, ids, detail) {
   if (detail) for (const id of r.none) console.log(`  unmapped: ${id}  ${title(id)}`);
   return r;
 }
-// A real part: not an alias, a moved file, an obsolete or internal part (~), or a physical-colour alias (= or _).
+// A real part: not a moved, obsolete, or internal file (~), an alias (=), or a physical-color part (_).
 const isReal = (id) => !/^[~=_]/.test(title(id));
 
 // 1. ldraw-mini's top-level parts.
@@ -131,7 +131,7 @@ if (sets.length) {
     ["sticker", (id, t) => /sticker/i.test(t)],
     ["printed or patterned", (id, t) => /p[0-9a-z]{2,}$/i.test(id) || /pattern|print/i.test(t)],
     ["minifig and figure parts", (id, t) => /minifig|figure|torso|legs|hips/i.test(t)],
-    ["Duplo, Primo, Quatro, Technic figures", (id, t) => /duplo|primo|quatro|fabuland|scala|belville/i.test(t)],
+    ["Duplo, Primo, Quatro, Fabuland, Scala, Belville", (id, t) => /duplo|primo|quatro|fabuland|scala|belville/i.test(t)],
     ["assemblies (cNN)", (id) => /c\d+$/i.test(id)],
     ["other", () => true],
   ];

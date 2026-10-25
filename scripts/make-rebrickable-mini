@@ -58,8 +58,20 @@ for (const [name, want] of Object.entries(PIN.sha256)) {
 }
 const t = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, csv(v)]));
 const header = (name) => raw[name].slice(0, raw[name].indexOf("\n")).replace(/\r$/, "").split(",");
+const NEEDED = {
+  parts: ["part_num"],
+  part_mappings: ["part_num", "ext_system", "ext_id", "is_import_id"],
+  part_relationships: ["child_part_num", "parent_part_num"],
+  elements: ["part_num"],
+  color_mappings: ["ext_system"],
+  sets: ["set_num"],
+  inventories: ["id", "set_num"],
+  inventory_parts: ["inventory_id", "part_num", "color_id", "is_spare"],
+};
+for (const [name, cols] of Object.entries(NEEDED))
+  for (const c of cols) if (!header(name).includes(c)) throw new Error(`${name}.csv has no ${c} column`);
 
-// The real parts in ldraw-mini (not ~ aliases or internal parts), by their files' titles.
+// ldraw-mini's part files and their titles; the ~ aliases and internal parts are filtered out below.
 const mini = readFileSync(join(MINI, "MANIFEST.sha256"), "utf8")
   .split("\n")
   .map((l) => l.slice(66))
@@ -79,11 +91,18 @@ const rbIds = new Set(t.parts.map((p) => p.part_num));
 const toRb = (id) =>
   ld.get(id) ?? (moved.get(id) ?? []).map((o) => ld.get(o)).find(Boolean) ?? (rbIds.has(id) ? id : null) ?? (/-f\d+$/.test(id) ? toRb(id.replace(/-f\d+$/, "")) : null);
 const parts = new Set();
+// Only real parts (not ~ moved, obsolete, or internal files, = aliases, or _ physical-color parts).
 for (const [id, title] of titles) if (!/^[~=_]/.test(title) && toRb(id)) parts.add(toRb(id));
 
 const inventories = t.inventories.filter((i) => SETS.includes(i.set_num));
 const invIds = new Set(inventories.map((i) => i.id));
 const lines = t.inventory_parts.filter((l) => invIds.has(l.inventory_id));
+// A renamed column or a set that left the catalog would otherwise write a quietly incomplete fixture.
+for (const s of SETS) {
+  const ids = new Set(inventories.filter((i) => i.set_num === s).map((i) => i.id));
+  if (!ids.size || !lines.some((l) => ids.has(l.inventory_id))) throw new Error(`set ${s} has no inventory lines in this download`);
+}
+if (!parts.size) throw new Error("no ldraw-mini part maps to a Rebrickable part");
 for (const l of lines) parts.add(l.part_num);
 const colorsUsed = new Set([...lines.map((l) => l.color_id)]);
 
@@ -120,7 +139,8 @@ A cut of Rebrickable's catalog download of ${PIN.date} (https://rebrickable.com/
 offers free for personal and commercial use with credit to Rebrickable as the data source. Built by
 \`scripts/make-rebrickable-mini\` for tests (plan section 12, ADR 0004): the rows for the ${parts.size} Rebrickable parts
 behind ldraw-mini's parts and the rung 3 shortlist sets (${SETS.join(", ")}), all colors and themes, and those sets'
-inventories (${colorsUsed.size} colors). The \`img_url\` columns are dropped. Rows are otherwise unchanged.
+inventories (${colorsUsed.size} colors). The color and part mappings keep only their LDraw (LD) and BrickLink (BL)
+rows, and the \`img_url\` columns are dropped; the rows kept are otherwise unchanged.
 
 | File | Rows here | Rows in the download |
 |------|-----------|----------------------|

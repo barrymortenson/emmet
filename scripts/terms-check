@@ -14,9 +14,15 @@ import { fileURLToPath } from "node:url";
 
 const file = process.argv[2] || join(dirname(fileURLToPath(import.meta.url)), "../docs/terms/quotes.json");
 const { pages, checked } = JSON.parse(readFileSync(file, "utf8"));
+// A short or empty phrase would match almost any page, so it proves nothing.
+const bad = (pages ?? []).flatMap((p) => p.quotes.filter((q) => text(q.text).trim().length < 12).map((q) => `${p.url}: "${q.text}"`));
+if (!pages?.length || bad.length) {
+  console.error(pages?.length ? `terms-check: phrases too short to check:\n  ${bad.join("\n  ")}` : `terms-check: ${file} lists no pages`);
+  process.exit(2);
+}
 
 /** The page as plain text: tags, scripts, and styles stripped, entities and curly quotes folded, spaces collapsed. */
-export function text(html) {
+function text(html) {
   return html
     .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
     .replace(/<[^>]+>/g, " ")
@@ -31,12 +37,14 @@ export function text(html) {
 }
 
 let missing = 0;
+let manual = 0;
 console.log(`terms-check: the quotes recorded on ${checked} (${file})`);
 for (const page of pages) {
   console.log(`\n${page.provider}: ${page.title}\n  ${page.url}`);
   if (page.check === "manual") {
     console.log("  check by hand (no automated fetch): open the page and confirm each phrase is still there:");
     for (const q of page.quotes) console.log(`    [ ] "${q.text}"  (${q.basis})`);
+    manual += page.quotes.length;
     continue;
   }
   let body;
@@ -55,5 +63,6 @@ for (const page of pages) {
     console.log(`  ${ok ? "ok  " : "GONE"} "${q.text}"${ok ? "" : `  (basis: ${q.basis})`}`);
   }
 }
-console.log(missing ? `\nterms-check: ${missing} phrases are gone or unchecked; settle each before the gate (D-37)` : "\nterms-check: ok");
+const hand = manual ? `; ${manual} phrases on the manual pages still need a hand check` : "";
+console.log(missing ? `\nterms-check: ${missing} phrases are gone or unchecked${hand}; settle each before the gate (D-37)` : `\nterms-check: fetched pages ok${hand}`);
 process.exit(missing ? 1 : 0);

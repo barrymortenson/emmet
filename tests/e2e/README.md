@@ -5,5 +5,5 @@ debug app with the embedded WebDriver server (the `webdriver` feature of `emmet-
 release build) and runs every spec in `specs/`; `just e2e hello` runs one.
 
 The service starts the app and talks to the server inside it, so no browser driver is installed. `wdio.conf.mjs`
-selects the app's one window up front, which turns off the service's per-command window check (that check needs the
+selects the app's one window up front, which turns off the service's per-command focus check (that check needs the
 service's companion plugin, which Emmet doesn't use).

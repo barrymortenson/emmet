@@ -37,7 +37,13 @@ fn args() -> Args {
         let value = it.next().unwrap_or_else(|| panic!("{flag} needs a value"));
         match flag.as_str() {
             "--out" => a.out = value.into(),
-            "--mode" => a.hidden = value != "offscreen",
+            "--mode" => {
+                a.hidden = match value.as_str() {
+                    "hidden" => true,
+                    "offscreen" => false,
+                    other => panic!("--mode is hidden or offscreen, not {other}"),
+                }
+            }
             "--size" => a.size = value.parse().expect("--size takes a number"),
             "--model" => a.model = Some(value.into()),
             "--library" => a.library = Some(value.into()),
@@ -75,7 +81,7 @@ fn save_png(app: AppHandle, request: Request<'_>) -> Result<(), String> {
 }
 
 /// A file under `root` for a request path, matched case-insensitively (LDraw references mix cases), or None if the
-/// path escapes `root`.
+/// path escapes `root`, doesn't exist, or isn't a file.
 fn resolve(root: &Path, rel: &str) -> Option<PathBuf> {
     let mut path = root.to_path_buf();
     for part in rel.split('/').filter(|p| !p.is_empty()) {
@@ -128,7 +134,11 @@ fn main() {
             let response = Response::builder().header("access-control-allow-origin", "*");
             match file.and_then(|f| std::fs::read(f).ok()) {
                 Some(body) => response.header("content-type", "text/plain").body(body).unwrap(),
-                None => response.status(StatusCode::NOT_FOUND).body(Vec::new()).unwrap(),
+                None => {
+                    // LDrawLoader probes several folders per part, so most 404s are expected; logged for diagnosis.
+                    eprintln!("404 {path}");
+                    response.status(StatusCode::NOT_FOUND).body(Vec::new()).unwrap()
+                }
             }
         })
         .manage(args)

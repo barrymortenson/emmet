@@ -98,11 +98,14 @@ XML export needs the table.
 `scripts/make-rebrickable-mini` cuts the pinned download to the rows ldraw-mini's parts and the rung 3 shortlist need:
 185 parts, 9,822 elements, all 275 colors, the LD and BL color and part mapping rows, and the five sets' inventories
 (318 lines), in `tests/fixtures/rebrickable-mini/` (300 KB) with Rebrickable's credit. The `img_url` columns are
-dropped. It applies the same four rules, so 3B's loader and this ADR agree.
+dropped. It applies the same four rules, but sees only the moves inside ldraw-mini (3023, 3040, 4073), so the 9V
+switch reaches Rebrickable there through rule 4 then rule 3 (`75541-f1` → `75541`, an identical id); library-wide,
+`coverage.mjs` maps it through rule 2 (`2859c01`, moved to `75541-f1`).
 
 ## Consequences
 
-- 3B implements the four rules in `emmet-core` with a test per rule (the 9V switch covers rules 2 and 4).
+- 3B implements the four rules in `emmet-core` with a test per rule. ldraw-mini's 9V switch covers rule 4; a rule 2
+  test needs an old id that Rebrickable still names, so 3B adds `2859c01` (moved to `75541-f1`) to `PARTS.txt`.
 - Rung 2's switch is a 9V switch point (`75541`/`75542`), because the 2026-09 library has no plastic train switch.
   It maps to Rebrickable through rules 2 and 4.
 
@@ -113,7 +116,7 @@ dropped. It applies the same four rules, so 3B's loader and this ADR agree.
 mkdir -p /tmp/rb /tmp/ld
 for f in colors color_mappings parts part_categories part_mappings part_relationships elements sets inventories inventory_parts themes; do
   curl -fLo /tmp/rb/$f.csv.gz https://cdn.rebrickable.com/media/downloads/$f.csv.gz; done
-curl -fLo /tmp/ld/complete.zip https://library.ldraw.org/library/updates/complete.zip
+curl -fLo /tmp/ld/complete.zip https://library.ldraw.org/library/updates/complete.zip   # the newest release; check its sha256
 
 node tests/spikes/data/coverage.mjs /tmp/rb /tmp/ld/complete.zip 40182-1 21022-1 6743-1 40142-1 21013-1
 scripts/make-rebrickable-mini /tmp/rb   # fails unless the files match the 2026-10-24 pin

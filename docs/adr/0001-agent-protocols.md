@@ -23,7 +23,7 @@ Claude Code 2.1.310 and Codex 0.160.1. Each scenario was recorded once per CLI (
   `approval_policy="on-request"`, plus `--strict-config`.
 - **Credentials (D-37, H-21):** every scripted run used Barry's eval keys from the keychain (`emmet-eval-anthropic`,
   `emmet-eval-openai`) and its own empty HOME, so neither CLI could see a plan sign-in or touch `~/.claude` or
-  `~/.codex`. The parent agent's variables (`CLAUDE*`, `CODEX_*`, `ANTHROPIC_*`, `OPENAI_*`, `MCP_*`) were removed.
+  `~/.codex`. The parent agent's variables (`CLAUDE*`, `CODEX_*`, `ORCA_*`, `ANTHROPIC_*`, `OPENAI_*`, `MCP_*`) were removed.
   Guards: Claude runs started only after `claude auth status --json` reported `authMethod: api_key` /
   `apiKeySource: ANTHROPIC_API_KEY` in that exact environment, and `system/init` was checked again; Codex runs started
   only after `initialize` returned the isolated `codexHome` and `account/read` showed no ChatGPT account.
@@ -122,10 +122,12 @@ Emmet never starts the app-server on this login (D-35).
 ## No write to the user's agent configs
 
 `tests/spikes/agents/config-snapshot.mjs` saved every file under `~/.claude`, `~/.claude.json`, and `~/.codex` (size
-and mtime; credential files are never opened) and the sha256 of the config files (settings, instructions, MCP and
-hook config, agents, commands, skills, rules) before the first CLI run (23:52 UTC) and after the last scripted run
-(01:29 UTC), before Barry's hand checks. Each run's workspace name was appended to a markers file (never printed).
-The diff:
+and mtime; credential files are never opened) and the sha256 of 277 config files: `~/.claude/settings.json`,
+`settings.local.json`, `CLAUDE.md`, `~/.claude.json`'s `mcpServers`, `~/.codex/config.toml`, `hooks.json`, `AGENTS.md`,
+and every file in `~/.claude/{agents,commands,skills}` and `~/.codex/{rules,skills}`. (After review, the tool also
+hashes Codex prompts, `AGENTS.override.md`, Claude output styles, keybindings, and the plugin lists; the run below
+predates that.) Snapshots were taken before the first CLI run (23:52 UTC) and after the last scripted run (01:29
+UTC), before Barry's hand checks. Each run's workspace name was appended to a markers file (never printed). The diff:
 
 ```
 config-snapshot: 2026-10-24T23:52:19.315Z → 2026-10-25T01:29:57.911Z
@@ -188,12 +190,12 @@ output by design; the path check still covers it. The hand checks ran afterwards
 
 ## Run count (D-38)
 
-Scripted, on the eval keys: **Claude 13 runs** (11 scenarios, the ask-rule check, and one retry each of the two
-10-minute runs, whose first recordings stopped early on a recorder bug), **Codex 17 runs** (13 scenarios; a first
-plain turn that hit the truncated key and a second that hit the empty account, both kept as failure fixtures; one
-retry of the permission runs, whose first `on-request` recording was inside the writable `/tmp` and whose first
-`untrusted` attempt was refused at startup; and one retry of each 10-minute run, whose first recordings stopped
-waiting at 300 s), plus two one-request checks of the OpenAI key. By hand on Barry's plan and login: 4 checks. Every
+Scripted, on the eval keys: **Claude 13 runs**: 10 scenarios and the ask-rule check, recorded once each, plus one
+retry each of the two 10-minute runs, whose first recordings stopped early on a recorder bug. **Codex 17 runs**: 11
+scenarios recorded once each; two first plain turns kept as failure fixtures (the truncated key and the empty
+account); and four retries of unusable recordings: the `on-request` permission run (its first was inside the writable
+`/tmp`), the `untrusted` one (its first attempt was refused at startup), and the two 10-minute runs (their first
+recordings stopped waiting at 300 s). Plus two one-request checks of the OpenAI key. By hand on Barry's plan and login: 4 checks. Every
 retry is one per recording, for an unusable recording only. The first recordings are kept locally, not committed.
 
 ## Rerun

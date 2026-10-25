@@ -21,7 +21,7 @@ function fixture(change = (f) => f) {
     .map(([f, c]) => `${sha(c)}  ${f}`)
     .join("\n");
   const dir = tempDir();
-  writeFiles(dir, { "MANIFEST.sha256": manifest + "\n", "ATTRIBUTION.md": "| parts/3005.dat | Brick 1 x 1 | A Part Author | CC BY 4.0 |\n", ...files });
+  writeFiles(dir, { "MANIFEST.sha256": manifest + "\n", "ATTRIBUTION.md": "| parts/3005.dat | Brick 1 x 1 | A Part Author | CC BY 4.0 |\n", "PARTS.txt": "3005  # Brick 1 x 1\n", ...files });
   return run("node", [join(ROOT, "scripts/ldraw-mini-check.mjs"), dir]);
 }
 
@@ -54,6 +54,32 @@ test("ldraw-mini-check fails on a file outside the manifest and attribution", ()
   assert.equal(r.code, 1);
   assert.match(r.out, /parts\/3004.dat is not in MANIFEST.sha256/);
   assert.match(r.out, /parts\/3004.dat is not listed in ATTRIBUTION.md/);
+});
+
+test("ldraw-mini-check fails when a part in the manifest is gone", () => {
+  const r = fixture((f) => {
+    delete f["parts/3005.dat"];
+    return f;
+  });
+  assert.equal(r.code, 1);
+  assert.match(r.out, /parts\/3005.dat is in MANIFEST.sha256 but missing/);
+  assert.match(r.out, /PARTS.txt lists 3005, but parts\/3005.dat is missing/);
+  assert.match(r.out, /the fixture has no parts/);
+});
+
+test("ldraw-mini-check fails when PARTS.txt names a part the fixture lacks", () => {
+  const r = fixture((f) => ({ ...f, "PARTS.txt": "3005\n3001  # Brick 2 x 4\n" }));
+  assert.equal(r.code, 1);
+  assert.match(r.out, /PARTS.txt lists 3001, but parts\/3001.dat is missing/);
+});
+
+test("ldraw-mini-check fails on a fixture with no parts at all", () => {
+  const dir = tempDir();
+  const texts = { "CAreadme.txt": "readme", "CAlicense.txt": "CC BY 2.0", "CAlicense4.txt": "CC BY 4.0" };
+  writeFiles(dir, { ...texts, "ATTRIBUTION.md": "", "PARTS.txt": "", "MANIFEST.sha256": Object.entries(texts).map(([f, c]) => `${sha(c)}  ${f}`).join("\n") + "\n" });
+  const r = run("node", [join(ROOT, "scripts/ldraw-mini-check.mjs"), dir]);
+  assert.equal(r.code, 1);
+  assert.match(r.out, /the fixture has no parts/);
 });
 
 test("ldraw-mini-check fails when a license text is missing", () => {

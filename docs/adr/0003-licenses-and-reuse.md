@@ -113,7 +113,7 @@ before copying anything, with the license and the attribution it needs.
 ## Rerun
 
 ```sh
-# LDraw: the readme inside the pinned library
+# LDraw: the readme inside the pinned library (this URL serves the newest release; compare the sha256 with the pin)
 curl -fLo /tmp/x/complete.zip https://library.ldraw.org/library/updates/complete.zip && shasum -a 256 /tmp/x/complete.zip
 unzip -p /tmp/x/complete.zip ldraw/CAreadme.txt
 grep -h '^0 !LICENSE' -r tests/fixtures/ldraw-mini --include='*.dat' | sort | uniq -c
@@ -121,7 +121,13 @@ node scripts/ldraw-mini-check.mjs
 
 # LDCad shadow library: license, file list, and coverage of ldraw-mini
 gh api repos/RolandMelkert/LDCadShadowLibrary/contents/LICENSE.md -H "Accept: application/vnd.github.raw" | head -1
-gh api "repos/RolandMelkert/LDCadShadowLibrary/git/trees/9b1131f?recursive=1" --jq '.tree[].path' | grep -c '^parts/[^/]*\.dat$'
+gh api "repos/RolandMelkert/LDCadShadowLibrary/git/trees/9b1131f?recursive=1" --jq '.tree[].path' > /tmp/shadow.txt
+grep -c '^parts/[^/]*\.dat$' /tmp/shadow.txt   # 3,349 part files
+grep -c '^p/' /tmp/shadow.txt                  # 87 primitives
+# ldraw-mini's real parts (titles not starting ~, =, or _) that have a shadow file: 94 of 141
+n=0; for f in $(awk '{print $2}' tests/fixtures/ldraw-mini/MANIFEST.sha256 | grep -E '^parts/[^/]+\.dat$'); do
+  case "$(head -1 tests/fixtures/ldraw-mini/$f | tr -d '\r')" in "0 ~"*|"0 ="*|"0 _"*) continue;; esac
+  grep -qix "$f" /tmp/shadow.txt && n=$((n+1)); done; echo $n
 
 # The projects: license and commit read
 for r in anteloc/ldraw-nova jonx/BrickBuilderMCP ElRashoMacuin24/brickbuilder-mcp datakurre/brick-mcp musharna/ldraw-mcp BaLaurent/ClawdCAD AnyiWang/OpenCovibe; do

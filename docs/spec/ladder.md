@@ -100,8 +100,8 @@ piece count, and the description below, never the OMR file.
 > Rebuild the official set {set_num} "{name}" ({pieces} pieces) as closely as you can, using the same parts and
 > colors as the original. Here's what it looks like: {description}
 
-**Ground truth:** the set's Rebrickable inventory for the BOM (from the pinned archive; `tests/fixtures/rebrickable-
-mini/` holds the shortlist's), and the OMR model for placements.
+**Ground truth:** the set's Rebrickable inventory for the BOM (from the pinned archive;
+`tests/fixtures/rebrickable-mini/` holds the shortlist's), and the OMR model for placements.
 
 **Answer script:**
 

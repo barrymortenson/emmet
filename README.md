@@ -63,7 +63,8 @@ points git at the hooks in `.githooks/`. On Windows, run `just` from Git Bash.
 
 Scripts run by hand: `scripts/scrub-transcript` (scrub an agent transcript before committing it),
 `scripts/make-ldraw-mini` and `scripts/make-rebrickable-mini` (rebuild the fixtures from the pinned downloads),
-`scripts/terms-check` (re-read the provider terms at the gates), and `scripts/name-check`.
+`scripts/terms-check` (re-read the provider terms at the gates), and `scripts/name-check` (re-run the trademark
+search for the name at the gates).
 
 ## License
 

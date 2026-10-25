@@ -7,6 +7,9 @@
 //   curl -fLo <empty dir>/complete.zip https://library.ldraw.org/library/updates/complete.zip
 //   scripts/make-ldraw-mini <empty dir>/complete.zip
 //
+// That URL always serves the newest release, so after the next one the pinned sha256 below stops matching and the
+// script says so: update RELEASE and ZIP_SHA256 deliberately.
+//
 // The zip is only read through `unzip`; nothing inside it is executed. scripts/ldraw-mini-check.mjs checks the result.
 
 import { execFileSync } from "node:child_process";
@@ -46,7 +49,7 @@ function resolve(ref) {
   return null;
 }
 
-/** The file names a part references: type-1 lines, and type-1 lines inside `0 !:` texture-fallback blocks. */
+/** The file names a part references: type-1 lines, and type-1 lines carried in `0 !:` TEXMAP geometry lines. */
 function refs(buf) {
   const out = [];
   for (const raw of buf.toString("latin1").split(/\r?\n/)) {
@@ -62,6 +65,10 @@ const wanted = readFileSync(join(OUT, "PARTS.txt"), "utf8")
   .map((l) => l.replace(/#.*/, "").trim())
   .flatMap((l) => l.split(/\s+/))
   .filter(Boolean);
+if (!wanted.length) {
+  console.error("make-ldraw-mini: PARTS.txt lists no parts");
+  process.exit(1);
+}
 
 const files = new Map(); // zip entry → content
 const missing = [];

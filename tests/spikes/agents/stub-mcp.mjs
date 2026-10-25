@@ -8,8 +8,8 @@
 //                                    outside SPIKE_PROJECT, which are denied
 //   block    {seconds}             → sleeps, then "blocked for N s" (the tool-timeout tests)
 //
-// Every call is appended to $SPIKE_LOG as one JSON line ({at, tool, args, answer}) so a recording can show what the
-// CLI asked, independent of what it streamed.
+// Every call is appended to $SPIKE_LOG as one JSON line ({at, server, tool, args}, plus `answer` for approve and
+// `phase` start and end for block) so a recording can show what the CLI asked, independent of what it streamed.
 
 import { appendFileSync } from "node:fs";
 import { createInterface } from "node:readline";

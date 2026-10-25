@@ -6,7 +6,8 @@ A cut of Rebrickable's catalog download of 2026-10-24 (https://rebrickable.com/d
 offers free for personal and commercial use with credit to Rebrickable as the data source. Built by
 `scripts/make-rebrickable-mini` for tests (plan section 12, ADR 0004): the rows for the 185 Rebrickable parts
 behind ldraw-mini's parts and the rung 3 shortlist sets (40182-1, 40142-1, 21022-1, 21013-1, 6743-1), all colors and themes, and those sets'
-inventories (23 colors). The `img_url` columns are dropped. Rows are otherwise unchanged.
+inventories (23 colors). The color and part mappings keep only their LDraw (LD) and BrickLink (BL)
+rows, and the `img_url` columns are dropped; the rows kept are otherwise unchanged.
 
 | File | Rows here | Rows in the download |
 |------|-----------|----------------------|

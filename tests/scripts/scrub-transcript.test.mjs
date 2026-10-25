@@ -8,6 +8,10 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { ROOT, run, tempDir } from "./helpers.mjs";
 
+// The script is a CLI and a module: these tests use the module to give it another machine's home, temp, user, and host.
+const { scrubText } = await import(join(ROOT, "scripts/scrub-transcript"));
+const lines = (text) => text.trim().split("\n").map((l) => JSON.parse(l).msg);
+
 const SCRUB = join(ROOT, "scripts/scrub-transcript");
 const HOME = homedir();
 const USER = userInfo().username;
@@ -89,6 +93,81 @@ test("renames Anthropic message ids consistently, so gitleaks' generic-api-key r
   assert.equal(r.lines[0].msg.message.id, "msg_0001");
 });
 
+test("--portable keeps this machine's paths and names but still removes every secret", () => {
+  const r = scrub([{ dir: "out", msg: { text: `${HOME}/a ${USER} ${hostname()} ${KEY} pat@example.com eyJhbGciOiJIUzI1.eyJzdWIiOiIxMjM0.SflKxwRJSMeKKF2QT4fw msg_011CgMy4YmEXcJtJyRmBHETo` } }], "--portable");
+  assert.equal(r.code, 0, r.out);
+  assert.equal(r.lines[0].msg.text, `${HOME}/a ${USER} ${hostname()} <REDACTED> <EMAIL> <REDACTED> msg_0001`);
+});
+
+test("a dotted hostname is scrubbed, and so is a long bare one, but never a short word like Mac", () => {
+  const text = (host) => lines(scrubText(JSON.stringify({ msg: { t: `Mac OS 15 on ${host}` } }) + "\n", { host, user: "nobodyx" }))[0].t;
+  assert.equal(text("Mac.localdomain"), "Mac OS 15 on <HOST>");
+  assert.equal(text("Pats-MacBook-Pro.local"), "Mac OS 15 on <HOST>");
+  assert.equal(text("buildbox7"), "Mac OS 15 on <HOST>");
+  assert.equal(text("Mac"), "Mac OS 15 on Mac");
+});
+
+test("on Linux (tmpdir /tmp), an encoded spike workspace still becomes <WS>", () => {
+  const msg = { auto: "/tmp/emmet-spike-tool-call-Ab3dE9/home/.claude/projects/-private-tmp-emmet-spike-tool-call-Ab3dE9-project/m" };
+  const out = lines(scrubText(JSON.stringify({ msg }) + "\n", { tmp: "/tmp", home: "/home/someone", user: "someone", host: "ci-box.example" }))[0];
+  assert.equal(out.auto, "<WS>/home/.claude/projects/<WS>-project/m");
+});
+
+test("streaming chunks are joined only within their own message and item", () => {
+  const msgStart = { dir: "out", msg: { type: "stream_event", session_id: "s1", event: { type: "message_start" } } };
+  const r = scrub([
+    msgStart,
+    delta(0, "text", "clean "),
+    delta(0, "text", "first message"),
+    msgStart,
+    delta(0, "text", KEY.slice(0, 12)),
+    delta(0, "text", KEY.slice(12)),
+    { dir: "out", msg: { method: "item/agentMessage/delta", params: { itemId: "a", delta: "clean " } } },
+    { dir: "out", msg: { method: "item/agentMessage/delta", params: { itemId: "b", delta: KEY.slice(0, 12) } } },
+    { dir: "out", msg: { method: "item/agentMessage/delta", params: { itemId: "a", delta: "item" } } },
+    { dir: "out", msg: { method: "item/agentMessage/delta", params: { itemId: "b", delta: KEY.slice(12) } } },
+  ]);
+  assert.equal(r.code, 0, r.out);
+  const text = r.lines.map((l) => l.msg.event?.delta?.text ?? l.msg.params?.delta).filter((x) => x !== undefined);
+  assert.deepEqual(text, ["clean ", "first message", "<REDACTED>", "", "clean ", "<REDACTED>", "item", ""]);
+});
+
+test("a token-like key is redacted inside JSON strings too, even split across streaming chunks", () => {
+  const r = scrub([
+    delta(0, "partial_json", '{"command":"login","pass'),
+    delta(0, "partial_json", 'word":"hunter2-pl'),
+    delta(0, "partial_json", 'ain","user":"x"}'),
+    { dir: "out", msg: { type: "user", content: [{ type: "tool_result", content: '{"access_token":"opaque-value","name":"ok"}' }] } },
+    { dir: "out", msg: { text: '{"inner":"{\\"api_key\\":\\"abc123plain\\"}"}' } },
+  ]);
+  assert.equal(r.code, 0, r.out);
+  assert.equal(r.lines.map((l) => l.msg.event?.delta?.partial_json).filter(Boolean).join(""), '{"command":"login","password":"<REDACTED>","user":"x"}');
+  assert.equal(r.lines[3].msg.content[0].content, '{"access_token":"<REDACTED>","name":"ok"}');
+  assert.equal(r.lines[4].msg.text, '{"inner":"{\\"api_key\\":\\"<REDACTED>\\"}"}');
+  assert.doesNotMatch(r.text, /hunter2|opaque-value|abc123plain/);
+});
+
+test("any value under a credential-like key is redacted, and counts like input_tokens are not", () => {
+  const msg = { token: "t0ken", OPENAI_API_KEY: "k", ANTHROPIC_AUTH_TOKEN: "a", "x-api-key": "x", sessionToken: "s", password: 12345678, secret: { value: "hunter2" }, client_secret: "c", secretKey: "sk", input_tokens: 42, max_tokens: 5, apiKeySource: "ANTHROPIC_API_KEY", text: '{"sessionToken":"abc","password":1234,"input_tokens":7}' };
+  const r = scrub([{ dir: "out", msg }]);
+  assert.equal(r.code, 0, r.out);
+  const out = r.lines[0].msg;
+  for (const k of ["token", "OPENAI_API_KEY", "ANTHROPIC_AUTH_TOKEN", "x-api-key", "sessionToken", "password", "secret", "client_secret", "secretKey"]) assert.equal(out[k], "<REDACTED>", k);
+  assert.deepEqual([out.input_tokens, out.max_tokens, out.apiKeySource], [42, 5, "ANTHROPIC_API_KEY"]);
+  assert.equal(out.text, '{"sessionToken":"<REDACTED>","password":"<REDACTED>","input_tokens":7}');
+});
+
+test("--path without a token is an error, not a replacement with 'undefined'", () => {
+  const r = scrub([{ dir: "out", msg: { text: "/opt/x" } }], "--path", "/opt/x");
+  assert.equal(r.code, 2);
+  assert.match(r.out, /--path takes/);
+});
+
+test("--redact applies with --portable too", () => {
+  const r = scrub([{ dir: "out", msg: { text: "built by Pat" } }], "--portable", "--redact", "Pat");
+  assert.equal(r.lines[0].msg.text, "built by <REDACTED>");
+});
+
 test("--path and --redact add mappings", () => {
   const r = scrub([{ dir: "out", msg: { text: "/opt/projects/Cottage built by Pat" } }], "--path", "/opt/projects/Cottage=<PROJECT>", "--redact", "Pat");
   assert.equal(r.code, 0, r.out);
@@ -115,6 +194,8 @@ test("every committed replay transcript is under 200 KB and already scrubbed", (
       assert.equal(scrub(text, "--portable").text, text, `${cli}/${f} changes when scrubbed again`);
       assert.ok(!text.includes(HOME), `${cli}/${f} contains the home directory`);
       assert.ok(!new RegExp(`\\b${USER}\\b`, "i").test(text), `${cli}/${f} contains the username`);
+      // Anyone's home directory, not just this machine's (the scrubbed <WS>/home/.claude form is fine).
+      assert.doesNotMatch(text, /(?<![>\w])\/(?:Users|home)\/[^/<"\s]+|[A-Za-z]:\\\\Users\\\\/, `${cli}/${f} contains a home path`);
     }
   }
 });

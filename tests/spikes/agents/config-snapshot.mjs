@@ -5,8 +5,9 @@
 //   node config-snapshot.mjs diff <before.json> <after.json> <markers file> [--exclude-content <path prefix>]...
 //
 // `save` records every file under ~/.claude, ~/.codex and ~/.claude.json by size and mtime, and the sha256 of the
-// config files proper (settings, instructions, MCP and hook config). Credential files are recorded by size and mtime
-// only and are never opened. Both directories are live (the user's own sessions write to them), so `diff` doesn't
+// config: the files in CONFIG (settings, instructions, MCP servers, hooks, keybindings, plugin lists) and every file in
+// CONFIG_DIRS (agents, commands, skills, output styles, prompts, rules). Credential files elsewhere are recorded by
+// size and mtime only and never opened. Both directories are live (the user's own sessions write to them), so `diff` doesn't
 // expect zero changes. It fails if a config file's hash changed, or if any new or changed path, or the content of
 // any new or changed non-credential file, contains a marker: the spike's unique working-directory name (the recorders
 // append one per run to the markers file). --exclude-content skips the content scan (never the path check) under a
@@ -27,8 +28,12 @@ const CONFIG = [
   ".codex/config.toml",
   ".codex/hooks.json",
   ".codex/AGENTS.md",
+  ".codex/AGENTS.override.md",
+  ".claude/keybindings.json",
+  ".claude/plugins/installed_plugins.json",
+  ".claude/plugins/known_marketplaces.json",
 ];
-const CONFIG_DIRS = [".claude/agents", ".claude/commands", ".claude/skills", ".codex/rules", ".codex/skills"];
+const CONFIG_DIRS = [".claude/agents", ".claude/commands", ".claude/skills", ".claude/output-styles", ".codex/prompts", ".codex/rules", ".codex/skills"];
 const isCredential = (rel) => /(^|\/)(\.credentials\.json|auth\.json)$|token|secret/i.test(rel);
 
 function walk(path, out) {
@@ -95,13 +100,17 @@ if (cmd === "save") {
     (k) => !before.files[k] || before.files[k].size !== after.files[k].size || before.files[k].mtime !== after.files[k].mtime,
   );
   const removed = Object.keys(before.files).filter((k) => !after.files[k]);
+  const unscanned = [];
   for (const k of [...changed, ...removed]) {
     if (markers.some((m) => k.includes(m))) bad.push(`path names the spike: ${k}`);
     if (isCredential(k) || !after.files[k] || exclude.some((x) => k.startsWith(x))) continue;
     let buf;
     try {
       buf = readFileSync(join(home, k));
-    } catch {
+    } catch (e) {
+      // A file the user's own session rotated away since the snapshot is fine; anything else unread is a failure.
+      unscanned.push(`${k} (${e.code})`);
+      if (e.code !== "ENOENT") bad.push(`could not scan ${k}: ${e.code}`);
       continue;
     }
     for (const m of markers) if (buf.includes(m)) bad.push(`content names the spike: ${k}`);
@@ -113,6 +122,7 @@ if (cmd === "save") {
   console.log(`  other files new or changed: ${changed.length}, removed: ${removed.length} (the user's own live sessions)`);
   for (const [d, n] of Object.entries(top).sort()) console.log(`    ${d}: ${n}`);
   for (const x of exclude) console.log(`  content scan skipped under: ${x}`);
+  for (const x of unscanned) console.log(`  not scanned: ${x}`);
   console.log(`  markers checked: ${markers.length}; hits: ${bad.filter((x) => !x.startsWith("config")).length}`);
   if (bad.length) {
     for (const x of bad) console.log(`  FAIL ${x}`);
@@ -120,6 +130,6 @@ if (cmd === "save") {
   }
   console.log("config-snapshot: ok, no write by the spike");
 } else {
-  console.error("usage: config-snapshot.mjs save <out> | diff <before> <after> <marker>...");
+  console.error("usage: config-snapshot.mjs save <out.json> | diff <before.json> <after.json> <markers file> [--exclude-content <path prefix>]...");
   process.exit(2);
 }

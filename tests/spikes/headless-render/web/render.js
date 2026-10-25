@@ -9,6 +9,13 @@ const { size, model, base } = window.__SPIKE__;
 const mark = (name) => invoke("mark", { name });
 window.addEventListener("error", (e) => invoke("fail", { message: String(e.message) }));
 window.addEventListener("unhandledrejection", (e) => invoke("fail", { message: String(e.reason?.stack ?? e.reason) }));
+// LDrawLoader reports a part it couldn't load with console.warn and carries on; a partial model must fail the render.
+const missing = [];
+const warn = console.warn;
+console.warn = (...args) => {
+  if (args.some((a) => String(a?.message ?? a).includes("could not be loaded"))) missing.push(String(args[0]?.message ?? args[0]));
+  warn(...args);
+};
 
 await mark("script");
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -29,6 +36,8 @@ if (model) {
   await loader.preloadMaterials(`${base}LDConfig.ldr`);
   object = await loader.loadAsync(`${base}model/${encodeURIComponent(model)}`);
   object.rotation.x = Math.PI; // LDraw is −Y up
+  if (missing.length) await invoke("fail", { message: missing.join("; ") });
+  await mark(`parts ${object.children.length}`);
 } else {
   object = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xc91a09 }));
   object.rotation.set(0.5, 0.7, 0);
