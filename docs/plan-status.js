@@ -40,10 +40,10 @@ window.EMMET_STATUS = {
       note: "LDView and LeoCAD fail Gatekeeper, so Emmet's three.js render stood in for the screenshot (Barry); a fresh library install fails its checksum once LDraw publishes 2026-10 until Emmet pins it (ADR 0007, 6A)"
     },
     "1B": {
-      status: "review", pr: 11, branch: "bmortenson/s1b-app-shell-viewer", started: "2026-10-25",
+      status: "done", pr: 11, branch: "bmortenson/s1b-app-shell-viewer", started: "2026-10-25",
       evidence: [
         "just ci on this Mac: ci: ok",
-        "CI green #11 (run 40224311960: mac on emmet-mac, windows, plan); E2E 6/6 spec files on both OSes",
+        "CI ci check green #11 (run 40224311960: mac on emmet-mac, windows, plan); E2E 6/6 spec files on both OSes",
         "tests/e2e/specs/{viewer,leak,render,runs,visual}.e2e.mjs; apps/desktop/src-tauri/tests/{paths,runs,watcher,bindings}.rs; tests/it/tests/{render,bus}.rs",
         "bench (ADR 0008): cottage first load 691 ms, slider → viewer 501 ms, orbit 13.9 ms on macOS"
       ],
