@@ -34,6 +34,8 @@ export function App() {
   const shown = useRef(-1);
   const framed = useRef<string | null>(null);
   const root = useRef<string | null>(null);
+  /** When the last scene finished updating in the viewer (performance.now()), for the bench. */
+  const drawnAt = useRef(0);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -47,6 +49,14 @@ export function App() {
         viewer: () => viewer.current,
         shown: () => shown.current,
         project: () => root.current,
+        drawnAt: () => drawnAt.current,
+        // A second viewer with an empty part cache, for the bench's cold first-load timings.
+        newViewer: () => {
+          const c = document.createElement("canvas");
+          c.style.cssText = "position:fixed;left:0;top:0;width:800px;height:600px;visibility:hidden";
+          document.body.append(c);
+          return createViewer(c, { partSource: library, theme });
+        },
         theme: (t: Theme | null) => forceTheme(t),
       };
     }
@@ -69,6 +79,7 @@ export function App() {
     shown.current = scene.generation;
     try {
       await v.update(placements(scene), { animate: "none" });
+      drawnAt.current = performance.now();
       const failed = Object.entries(v.stats().failed);
       setViewerError(failed.length ? `Some parts can't be shown: ${failed.map(([id, why]) => `${id} (${why})`).join("; ")}` : null);
     } catch (e) {
@@ -210,7 +221,8 @@ export function App() {
           {statusText(ui)}
         </span>
         <span className="versions">
-          {info && `Emmet ${info.version} · LDraw library ${info.library ?? "not installed"}`}
+          Emmet {__EMMET_VERSION__}
+          {info && ` · LDraw library ${info.library ?? "not installed"}`}
         </span>
       </footer>
     </div>

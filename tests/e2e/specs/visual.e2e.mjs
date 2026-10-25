@@ -33,6 +33,9 @@ describe("visual baselines", () => {
       if (update || !existsSync(baseline)) {
         mkdirSync(baselines, { recursive: true });
         writeFileSync(baseline, png);
+        // A copy in the CI artifact, for a baseline made on a runner.
+        mkdirSync(join(out, "visual", os, "new"), { recursive: true });
+        writeFileSync(join(out, "visual", os, "new", `${scene.name}.png`), png);
         if (!update) throw new Error(`wrote a new baseline, ${baseline}; check it and commit it`);
         return;
       }

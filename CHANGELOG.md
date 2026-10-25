@@ -35,6 +35,17 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   `part_info`, `run_model`, `get_params`, `set_params`, and `list_colors`, whose schemas are in `docs/spec/mcp/`.
   New dependencies: ureq and toml (ADR 0007).
 
+- The app shell and live viewer (session 1B): `packages/viewer` builds its own three.js scene from placements, each
+  unique part loaded once through LDrawLoader and instanced per (part, color) with instanced edges, diff updates by
+  Emmet id, highlight, views, frame, offscreen PNG renders, and stats (ADR 0008 confirms D-23). The Tauri host opens,
+  creates, and reopens projects, watches sources (150 ms debounce), runs the model through the emmet sidecar (latest
+  wins, stale runs canceled, older generations dropped), serves the library over `emmet-lib://` in one request per
+  model, and types every command and event through tauri-specta. A plain UI: project tree, viewer, params drawer,
+  run panel with the traceback, status line. `emmet render` and MCP `render` and `highlight` go through the open app
+  over emmet-bus v0 (`docs/spec/bus.md`), or the app's hidden render mode. `just dev [project]`, `just bench`, and
+  E2E specs with visual baselines and a leak test. New dependencies, all named in plan section 06 but
+  `@types/three` (approved): three, tauri-specta, notify, interprocess, tauri-plugin-dialog, pixelmatch.
+
 ### Changed
 
 - Agent permissions are sandbox first (D-40), section 10 quotes OpenAI's current wording, and the LDCad shadow

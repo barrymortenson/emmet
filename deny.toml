@@ -5,9 +5,15 @@ targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-msv
 
 [advisories]
 yanked = "deny"
+ignore = [
+  # paste is unmaintained, with no known vulnerability and no safe upgrade; it's a compile-time macro crate that
+  # specta and tauri-specta (plan section 06) use. Barry approved ignoring it 2026-10-25; revisit when specta drops it.
+  { id = "RUSTSEC-2024-0436", reason = "unmaintained only; via specta and tauri-specta; approved 2026-10-25" },
+]
 
 [licenses]
-allow = ["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Zlib", "Unicode-3.0", "MPL-2.0", "CC0-1.0"]
+# 0BSD (interprocess's dependencies) added 2026-10-25 with Barry's approval (docs/decisions.md, ADR 0003).
+allow = ["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Zlib", "Unicode-3.0", "MPL-2.0", "CC0-1.0", "0BSD"]
 confidence-threshold = 0.93
 # Emmet's own crates (publish = false) are AGPL-3.0-or-later.
 private = { ignore = true }

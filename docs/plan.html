@@ -452,7 +452,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-20</td><td>Windows installer</td><td>NSIS only (which the updater supports), unsigned through the beta, with SmartScreen guidance. Azure Trusted Signing comes after launch.</td><td><span class="pill decided">Brief</span> + <span class="pill rec">Proposed</span></td></tr>
 <tr><td class="id">D-21</td><td>Distribution</td><td>Release binaries and the updater manifest are GitHub Releases on the public repo, and the parts data pack is its own release series there. The site's download buttons read them. No separate releases repo.</td><td><span class="pill decided">Barry 2026-10-24</span> (follows from D-12)</td></tr>
 <tr><td class="id">D-22</td><td>Parts search</td><td>SQLite FTS5 plus a dimension parser ("1 x 2 plate with clip") and a synonym table. No embeddings in the MVP: agents rephrase well, and lexical search is fast and explainable.</td><td><span class="pill rec">Proposed</span></td></tr>
-<tr><td class="id">D-23</td><td>Viewer scene</td><td>The viewer builds its own scene from Emmet's placement list. It uses three.js <code>LDrawLoader</code> only to load each unique part once, then instances, which makes diff updates, highlight, steps, and performance possible.</td><td><span class="pill rec">Proposed</span> confirm in 1B</td></tr>
+<tr><td class="id">D-23</td><td>Viewer scene</td><td>The viewer builds its own scene from Emmet's placement list. It uses three.js <code>LDrawLoader</code> only to load each unique part once, then instances, which makes diff updates, highlight, steps, and performance possible.</td><td><span class="pill decided">Confirmed</span> 1B (ADR 0008)</td></tr>
 <tr><td class="id">D-24</td><td>Agent renders</td><td>Renders for the agent go through the same viewer code: the running app when it's open, otherwise a hidden headless render mode of the app. There is no second renderer.</td><td><span class="pill decided">Confirmed</span> 0B (ADR 0005)</td></tr>
 <tr><td class="id">D-25</td><td>Rebrickable data</td><td>Part, color, element, and availability data come from Rebrickable's catalog downloads ("Free for personal and commercial use, provided you acknowledge Rebrickable as your data source"). Emmet's CI fetches the archive once a week, builds a small signed <b>parts data pack</b> (a derived SQLite file, about 6 MB compressed), and publishes it as a GitHub Release on the repo. The app updates the pack on its own schedule, and every installer bundles the current one. User apps never contact Rebrickable. Rebrickable is credited wherever its data appears. A user API key is needed only for later inventory features (8D).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-26</td><td>Agent config</td><td>Emmet never writes to <code>~/.claude</code>, <code>~/.codex</code>, or any user-level agent config. All MCP servers, instructions, and permissions are passed per session through flags and <code>-c</code> overrides.</td><td><span class="pill rec">Proposed</span> (from the brief's "user never edits config")</td></tr>
@@ -620,7 +620,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 ├─ apps/desktop/
 │  ├─ src/                   React UI
 │  └─ src-tauri/             Tauri host, capabilities/, icons/, tauri.conf.json
-├─ packages/viewer/          three.js viewer (TS), bench/
+├─ packages/viewer/          three.js viewer (TS); its bench runs in the app (tests/e2e, just bench)
 ├─ python/emmet_dsl/         uv project: src/emmet_dsl, tests (DSL integration only); LICENSE (Apache-2.0)
 ├─ data/
 │  ├─ connections/           hand-curated connector overrides (TOML)
@@ -853,7 +853,7 @@ def cottage(
 <tr><td><code>part_info</code></td><td><code>id</code></td><td>Name, size in studs and plates, connectors summary, produced colors, alternates, flags</td><td>Short spec plus the top colors</td></tr>
 <tr><td><code>run_model</code></td><td><code>params?</code></td><td><code>{parts, steps, submodels, bbox, ms, generation}</code> or an error envelope</td><td>"Built 412 parts in 18 steps (0.31 s)", or the error with file:line</td></tr>
 <tr><td><code>validate</code></td><td><code>rules?</code></td><td><code>{counts_by_rule, findings[≤50], total, clean}</code></td><td>Counts plus the top 10 findings with ids, positions, and source lines; "full list in build/validation.json"</td></tr>
-<tr><td><code>render</code></td><td><code>view?</code>, <code>step?</code>, <code>highlight?</code>, <code>size?=768</code></td><td>MCP image content (PNG) plus <code>{camera, highlighted}</code></td><td>The view name and what's highlighted</td></tr>
+<tr><td><code>render</code></td><td><code>view?</code>, <code>step?</code> (with steps, 4E), <code>highlight?</code>, <code>size?=768</code></td><td>MCP image content (PNG) plus <code>{view, size, via, camera, highlighted}</code>; <code>via</code> is <code>app</code> (the open window, over the bus) or <code>render-mode</code></td><td>The view name and what's highlighted</td></tr>
 <tr><td><code>bom</code></td><td><code>format?</code></td><td><code>{lines:[{part, color, qty, rebrickable_id, availability}], totals}</code></td><td>Totals plus any unavailable lines</td></tr>
 <tr><td><code>steps</code></td><td>none</td><td><code>[{n, title, part_ids, submodel}]</code></td><td>The step count and titles</td></tr>
 <tr><td><code>get_params</code> / <code>set_params</code></td><td><code>values?</code></td><td>Schema plus values / the new values</td><td>Changed values</td></tr>
@@ -1149,9 +1149,9 @@ viewer.highlight(ids, { mode: "issue" | "select" | "hover" });
 viewer.showSteps(upTo?: number);          // build-step scrubber
 viewer.frame(ids?);                        // explicit only: the camera never moves on its own
 viewer.setView("iso" | "front" | "top" | …);
-const png = await viewer.render({ view, size, highlight, step });   // offscreen, the same scene code
+const { png, camera } = await viewer.render({ view, size, highlight, step });   // offscreen, the same scene code
 viewer.on("pick", (id) =&gt; …);            // hover and click → id
-viewer.stats();                            // draw calls, triangles, frame ms, heap (perf tests read this)</code></pre>
+viewer.stats();                            // draw calls, triangles, frame ms, heap (WebView2), instances (perf tests read this)</code></pre>
 <h3>How it renders</h3>
 <ul>
 <li><b>Unique parts once.</b> <code>LDrawLoader</code> loads each unique part (through the <code>emmet-lib://</code> custom protocol, which serves library files from app data with an in-memory cache) and produces geometry with LDraw edge lines and conditional lines. Geometry is cached by part id.</li>
@@ -1172,14 +1172,14 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <li><b>Steps</b> show earlier steps dimmed and the current step at full color, with a scrubber.</li>
 <li><b>Render mode</b> (D-24): <code>Emmet --render &lt;project&gt; --view … --out …</code> opens a hidden window, renders through the same <code>viewer.render</code>, writes the PNG, and exits. When the app is already running, <code>render</code> goes over the bus to the open window instead. ADR 0005 proves this on both webviews and records the fallback (an off-screen visible window) if a hidden WebGL context is throttled.</li>
 </ul>
-<h3>Performance budgets (checked by <code>packages/viewer/bench</code> and E2E)</h3>
+<h3>Performance budgets (checked by <code>just bench</code> and E2E)</h3>
 <div class="table-wrap"><table>
 <tr><th>Measure</th><th>Rung 1 (~100)</th><th>Rung 2 (~500)</th><th>2,000 parts</th></tr>
 <tr><td>First load (cold library cache)</td><td>≤ 1.5 s</td><td>≤ 3 s</td><td>≤ 6 s</td></tr>
 <tr><td>Slider → updated viewer (run + check + diff), warm</td><td>≤ 0.8 s</td><td>≤ 1.5 s</td><td>≤ 3 s</td></tr>
 <tr><td>Orbit frame time, M1 / Intel Iris Xe class</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
 <tr><td>Frame time during a build animation (whole model added)</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
-<tr><td>Heap growth after 100 slider changes</td><td colspan="3">≤ 20 % over the first-load heap (leak test)</td></tr>
+<tr><td>Heap growth after 100 slider changes</td><td colspan="3">≤ 20 % over the first-load heap (leak test). WebView2 reads the JS heap; WKWebView has no heap API, so macOS reads the WebContent process's footprint.</td></tr>
 </table></div>
 <p class="small">WKWebView is tested first and WebView2 in CI. No WebGPU, no OffscreenCanvas dependency (OffscreenCanvas is used only where both webviews support it, behind feature detection), and no WASM requirement.</p>
 </section>
@@ -1370,7 +1370,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <tr><td><b>Agent replay</b></td><td>Both adapters end to end: streaming, tool calls into the real <code>emmet mcp</code>, approvals, question cards, redirects on each path, interrupt, resume, a crash mid-stream, malformed lines, an unknown event type</td><td><code>tests/fake-agents/fake-claude</code> and <code>fake-codex</code> replay <code>tests/replay/*.jsonl</code>, substituting paths, and assert the exact <code>AgentEvent</code> sequence and the final project state</td><td>Every PR</td></tr>
 <tr><td><b>App E2E</b></td><td>The key flows in section 14 on the real app: first run (with ldraw-mini), slider → viewer, finding → highlight, chat with a fake agent → model updates, approval card, trust prompt, error states</td><td>WebdriverIO + <code>@wdio/tauri-service</code> (embedded WebDriver plugin, debug builds only). Viewer assertions read <code>viewer.stats()</code> and ids, not pixels</td><td>Every PR on macOS; on Windows when <code>apps/</code>, <code>crates/</code>, or <code>packages/</code> change, and always on <code>main</code> and releases</td></tr>
 <tr><td><b>Visual</b></td><td>Viewer renders of 6 fixture scenes per OS, plus key screens in light and dark</td><td>pixelmatch with a tolerance, baselines per OS in <code>tests/e2e/baselines/</code>, an update script, and a diff image uploaded on failure</td><td>Every PR touching the viewer or UI</td></tr>
-<tr><td><b>Performance</b></td><td>Section 13's budgets</td><td><code>packages/viewer/bench</code> + E2E timing marks, results as a CI summary table</td><td>macOS every PR touching the viewer or core; both OSes nightly</td></tr>
+<tr><td><b>Performance</b></td><td>Section 13's budgets</td><td><code>just bench</code> (the viewer bench in the real app, <code>tests/e2e/specs/bench.e2e.mjs</code>) + E2E timing marks, results as a CI summary table</td><td>macOS every PR touching the viewer or core; both OSes nightly</td></tr>
 <tr><td><b>Release smoke</b></td><td>The installed artifact launches, the sidecars resolve, <code>emmet doctor</code> passes inside the bundle, the updater manifest verifies</td><td>A release workflow job installs the <code>.dmg</code> or NSIS build on the runner and runs checks</td><td>Every release and release dry run</td></tr>
 <tr><td><b>Live eval</b></td><td>Each rung once per agent: does the real loop produce good models?</td><td><code>just eval</code> on Barry's Mac, on his API keys (H-21; D-37) (section 16.1)</td><td>G1 (rung 1) and G2 (all rungs) only, within the D-38 budget. Never in CI, before releases, or mid-session.</td></tr>
 </table></div>

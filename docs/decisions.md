@@ -124,3 +124,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **The leak test on macOS.** WKWebView has no JS heap API (`performance.memory` is Chromium-only), so Barry chose:
   Windows reads the JS heap (precise, after a forced GC); macOS reads the app's WebContent process footprint with the
   system's `footprint` tool, plus the viewer's resource counts. Both hold to section 13's ≤ 20 % growth.
+- **0BSD in the license allowlist.** interprocess (emmet-bus, plan section 06) depends on doctest-file and recvmsg,
+  licensed only 0BSD. Barry allowed 0BSD (OSI-approved, public-domain-like, AGPL-compatible) in deny.toml over
+  per-crate exceptions or writing the socket and pipe by hand. ADR 0003 lists it.
+- **The paste advisory.** specta and tauri-specta (section 06) depend on paste, which RUSTSEC-2024-0436 marks
+  unmaintained (no vulnerability, no safe upgrade). Barry chose to ignore that one advisory in deny.toml, with a
+  reason, over dropping tauri-specta or relaxing unmaintained checks for every transitive crate.

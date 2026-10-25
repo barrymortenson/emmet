@@ -70,6 +70,18 @@ jobs:
         uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: just setup
       - run: just ci
+      # The viewer bench (plan section 13) on the app just ci built: the table goes to the job summary.
+      - run: just bench
+      # Screenshots (light and dark), renders, visual diffs, the leak and bench numbers.
+      - name: E2E output
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-macos
+          path: |
+            tests/e2e/out/
+            !tests/e2e/out/projects/
+          if-no-files-found: ignore
       - name: Timing
         if: always()
         run: |
@@ -112,6 +124,16 @@ jobs:
         run: cargo test -p emmet-spike-render -p emmet-spike-binaries --locked -- --nocapture
       - run: just build-app
       - run: just e2e
+      - run: just bench
+      - name: E2E output
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-windows
+          path: |
+            tests/e2e/out/
+            !tests/e2e/out/projects/
+          if-no-files-found: ignore
       - name: Timing
         if: always()
         run: |

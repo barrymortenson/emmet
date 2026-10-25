@@ -43,7 +43,6 @@ export const events = {
 
 /* Types */
 export type AppInfo = {
-	version: string,
 	recent: Recent[],
 	/**  The library release, or null when none is installed. */
 	library: string | null,

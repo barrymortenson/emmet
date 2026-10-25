@@ -112,7 +112,6 @@ pub struct UiState {
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct AppInfo {
-    pub version: String,
     pub recent: Vec<Recent>,
     /// The library release, or null when none is installed.
     pub library: Option<String>,
@@ -462,7 +461,6 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
 #[specta::specta]
 pub fn app_info(state: State<'_, AppState>) -> AppInfo {
     AppInfo {
-        version: env!("CARGO_PKG_VERSION").into(),
         recent: recent::list(&state.data),
         library: emmet_core::library::require(&state.data).ok().map(|i| i.release),
     }

@@ -39,9 +39,9 @@ deps:
     pnpm install --frozen-lockfile
     uv sync --project {{ dsl }} --frozen
 
-# Tauri dev with Vite HMR, under the dev bundle id so it never touches real app data.
-dev:
-    cd apps/desktop && pnpm tauri dev --config src-tauri/tauri.dev.conf.json -- --no-default-features
+# Tauri dev with Vite HMR, under the dev bundle id so it never touches real app data. `just dev <project>` opens it.
+dev *project:
+    cd apps/desktop && pnpm tauri dev --config src-tauri/tauri.dev.conf.json -- --no-default-features -- {{ project }}
 
 # Format, lint, and typecheck across Rust, TS, and Python, plus the SPDX headers.
 check:
@@ -131,9 +131,12 @@ eval *args:
 screenshots:
     @echo "just screenshots: not yet; session 6B adds it" && exit 1
 
-# Not yet: the viewer bench comes in 1B, the validator bench in 3A.
+# The viewer bench (plan section 13) in the real app: first load, slider → viewer, and orbit frame time for 93,
+# 500, and 2,000 parts. Prints the table and writes tests/e2e/out/bench-<os>.md. The validator bench arrives in 3A.
 bench:
-    @echo "just bench: not yet; sessions 1B and 3A add it" && exit 1
+    cargo build --locked -p emmet-cli -p emmet-it --bins
+    cd apps/desktop && EMMET_E2E=1 pnpm tauri build --debug --no-bundle --ci --features webdriver
+    EMMET_BENCH=1 pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs
 
 # Not yet: the signed demo build (release-dry --sign) comes in 1D.
 release-dry *args:

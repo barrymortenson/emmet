@@ -182,10 +182,13 @@ class EmmetViewer implements Viewer {
     this.controls.addEventListener("change", () => this.invalidate());
     this.fit();
     if (typeof ResizeObserver !== "undefined") {
-      this.resize = new ResizeObserver(() => {
-        this.fit();
-        this.invalidate();
-      });
+      // Applied on the next frame, so a resize never lays out again inside the observer's own callback.
+      this.resize = new ResizeObserver(() =>
+        requestAnimationFrame(() => {
+          this.fit();
+          this.invalidate();
+        }),
+      );
       this.resize.observe(canvas);
     }
     this.loop = this.loop.bind(this);
