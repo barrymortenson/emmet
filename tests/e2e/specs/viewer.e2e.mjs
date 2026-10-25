@@ -32,8 +32,18 @@ describe("the live viewer", () => {
     const count = (await stats()).instances;
     const slider = await $("#param-width");
     const started = Date.now();
-    // A real drag, from the middle of the track to the right (the embedded driver doesn't send keys to a range).
-    await browser.action("pointer").move({ origin: slider }).down().move({ origin: slider, x: 40, y: 0 }).up().perform();
+    if (process.platform === "darwin") {
+      // A real drag, from the middle of the track to the right (the embedded driver doesn't send keys to a range).
+      await browser.action("pointer").move({ origin: slider }).down().move({ origin: slider, x: 40, y: 0 }).up().perform();
+    } else {
+      // On WebView2 the embedded driver synthesizes pointer actions as DOM events, which never move a native range
+      // (ADR 0002). Set the value the way a drag does: the native setter, then input and change.
+      await browser.execute((el) => {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(el, "11");
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      }, slider);
+    }
     // Sample while the update lands: the old scene stays whole until the new one replaces it (no flicker).
     let lowest = Infinity;
     await browser.waitUntil(
