@@ -22,7 +22,10 @@ const resources = async () => {
   return { geometries: s.geometries, textures: s.textures, programs: s.programs, buckets: s.buckets };
 };
 
-describe("memory over 100 slider changes", () => {
+describe("memory over 100 slider changes", function () {
+  // 111 runs: about 2 minutes on CI's Windows runner, more than mocha's default.
+  this.timeout(600_000);
+
   it("grows at most 20 % over 100 changes", async () => {
     await open(projectDir("leak"));
     const change = async (i) => {

@@ -2,7 +2,7 @@
 // The projects each spec opens: fresh copies under tests/e2e/out/projects/, trusted with this data dir and put on the
 // recents list, so the spec can open them with open_recent.
 import { execFileSync } from "node:child_process";
-import { cpSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { bin, out, repo } from "./paths.mjs";
 
@@ -26,8 +26,18 @@ export function projectDir(name) {
   return join(out, "projects", name);
 }
 
+/** Empties `dir`. On Windows the app's watcher can hold the folder itself open (a retried spec), so when the folder
+ * can't go, its contents do. */
+function clear(dir) {
+  try {
+    rmSync(dir, { recursive: true, force: true });
+  } catch {
+    for (const name of readdirSync(dir)) rmSync(join(dir, name), { recursive: true, force: true, maxRetries: 5 });
+  }
+}
+
 function make(fixture, dir, params) {
-  rmSync(dir, { recursive: true, force: true });
+  clear(dir);
   if (fixture === "cottage") {
     emmet(["new", dir]);
   } else {
