@@ -29,7 +29,7 @@ window.EMMET_STATUS = {
       ],
       note: "Windows part loading in the render spike is slow (about 9 s for 5 parts) and unmeasured; 1B's first-load budget must check it (ADR 0005)"
     },
-    "1A": { status: "in-progress", branch: "bmortenson/s1a-engine-skeleton", started: "2026-10-24" },
+    "1A": { status: "review", pr: 9, branch: "bmortenson/s1a-engine-skeleton", started: "2026-10-24" },
     "1B": { status: "todo" },
     "1C": { status: "todo" },
     "1D": { status: "todo" },
