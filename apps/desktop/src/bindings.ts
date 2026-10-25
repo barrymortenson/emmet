@@ -121,6 +121,8 @@ export type ProjectView = {
 	root: string,
 	name: string,
 	trusted: boolean,
+	/**  Whether the watcher is running; when it isn't, edits don't rebuild on their own (use Rebuild). */
+	watching: boolean,
 };
 
 export type Recent = {
@@ -136,10 +138,14 @@ export type RenderJob = {
 	highlight: string[],
 };
 
-/**  A run ended: a new scene, or why it failed (the last good scene stays). */
+/**
+ *  A run ended. It carries a new scene, or why it failed (the last good scene stays), or neither with `stale` set:
+ *  the run built a model older than the one on screen (the generation check), so nothing changes but the status.
+ */
 export type RunFinished = {
 	scene: Scene | null,
 	error: Problem | null,
+	stale: boolean,
 };
 
 export type RunStarted = Record<string, never>;
@@ -162,6 +168,11 @@ export type UiState = {
 	scene: Scene | null,
 	/**  Why the last run failed, if it did. */
 	error: Problem | null,
+	/**
+	 *  Something the user should know that isn't a run's error: a project that didn't open at launch, a bus that
+	 *  didn't start.
+	 */
+	notice: string | null,
 };
 
 export type Value = null | boolean | number | string | Value[] | { [key in string]: Value };

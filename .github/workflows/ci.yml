@@ -124,8 +124,9 @@ jobs:
       # reruns them with their output shown.
       - name: Spike reports
         run: cargo test -p emmet-spike-render -p emmet-spike-binaries --locked -- --nocapture
-      # Windows E2E runs on main, and on a PR that changes the app, the engine, the viewer, the E2E specs, or how they
-      # run (plan section 16; Barry 2026-10-25): it adds about 9 minutes. just e2e builds the app inside the workspace
+      # Windows E2E runs on anything but a PR (main, and ci-hosted-mac.yml's call), and on a PR that changes the app,
+      # the engine, the viewer, the E2E specs, or how they run (plan section 16; Barry 2026-10-25): it adds about
+      # 9 minutes. just e2e builds the app inside the workspace
       # build just test already compiled; the mac job's just ci runs build-app too.
       - name: Windows E2E needed?
         id: e2e
@@ -137,7 +138,7 @@ jobs:
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Windows E2E skipped: nothing under apps/, crates/, packages/, or tests/e2e/ changed." >> "$GITHUB_STEP_SUMMARY"
+            echo "Windows E2E skipped: nothing under apps/, crates/, packages/, or tests/e2e/, the justfile, or ci.yml changed." >> "$GITHUB_STEP_SUMMARY"
           fi
       - if: steps.e2e.outputs.run == 'true'
         run: just e2e

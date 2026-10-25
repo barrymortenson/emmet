@@ -29,6 +29,8 @@ pub struct ProjectView {
     pub root: String,
     pub name: String,
     pub trusted: bool,
+    /// Whether the watcher is running; when it isn't, edits don't rebuild on their own (use Rebuild).
+    pub watching: bool,
 }
 
 /// An error for the UI: emmet's error envelope, with the user's file and line when there is one.
@@ -108,6 +110,9 @@ pub struct UiState {
     pub scene: Option<Scene>,
     /// Why the last run failed, if it did.
     pub error: Option<Problem>,
+    /// Something the user should know that isn't a run's error: a project that didn't open at launch, a bus that
+    /// didn't start.
+    pub notice: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -170,11 +175,13 @@ pub struct ProjectOpened {
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
 pub struct RunStarted {}
 
-/// A run ended: a new scene, or why it failed (the last good scene stays).
+/// A run ended. It carries a new scene, or why it failed (the last good scene stays), or neither with `stale` set:
+/// the run built a model older than the one on screen (the generation check), so nothing changes but the status.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
 pub struct RunFinished {
     pub scene: Option<Scene>,
     pub error: Option<Problem>,
+    pub stale: bool,
 }
 
 /// The bus asks the window to render: show `scene` if it's newer than what's on screen, render, and answer with
@@ -203,8 +210,25 @@ struct Open {
 struct Inner {
     project: Option<Open>,
     scene: Option<Scene>,
+    /// Whether `scene` came from a run or render this session. A scene read from an earlier build/ at open doesn't
+    /// hold back the next run: its generation could be from a counter that has since been reset.
+    scene_current: bool,
     error: Option<Problem>,
     running: bool,
+    notice: Option<String>,
+}
+
+impl Inner {
+    /// Shows `scene` unless one from a later run is already on screen (the generation check). True if it was taken.
+    fn accept(&mut self, scene: Scene) -> bool {
+        if self.scene_current && self.scene.as_ref().is_some_and(|s| s.generation > scene.generation) {
+            return false;
+        }
+        self.scene = Some(scene);
+        self.scene_current = true;
+        self.error = None;
+        true
+    }
 }
 
 struct BusAnswer {
@@ -220,6 +244,9 @@ pub struct AppState {
     runs: OnceLock<RunQueue>,
     pending: Mutex<HashMap<u64, mpsc::Sender<BusAnswer>>>,
     next: AtomicU64,
+    /// One params.json write at a time: each reads the file, checks the values with Python, and writes, so two at
+    /// once could lose one's change. Held on a blocking thread, never across an await.
+    params: Mutex<()>,
     pub render: Option<RenderJob>,
 }
 
@@ -232,6 +259,7 @@ impl AppState {
             runs: OnceLock::new(),
             pending: Mutex::new(HashMap::new()),
             next: AtomicU64::new(1),
+            params: Mutex::new(()),
             render,
         }
     }
@@ -258,6 +286,11 @@ impl AppState {
             .project
             .as_ref()
             .map(|o| o.root.clone())
+    }
+
+    /// Records something to tell the user that isn't a run's error (see [`UiState::notice`]).
+    pub fn notify(&self, notice: impl Into<String>) {
+        self.inner.lock().expect("state").notice = Some(notice.into());
     }
 
     fn project(&self) -> Result<Project, Box<Problem>> {
@@ -305,61 +338,86 @@ fn on_run_event(app: &AppHandle, ev: RunEvent) {
             if o.canceled || state.open_root().as_deref() != Some(o.project.as_path()) {
                 return;
             }
-            let finished = finish(&state, &o);
-            if let Some(f) = finished {
-                let _ = f.emit(app);
-            }
+            let _ = finish(&state, &o).emit(app);
         }
     }
 }
 
-/// Applies a run's outcome to the state. None when there's nothing to tell the window: the result is older than
-/// the scene on screen (the generation check).
-pub fn finish(state: &AppState, o: &Outcome) -> Option<RunFinished> {
+/// Applies a run's outcome to the state and says what the window should show. A run always ends with one, so the
+/// window never stays on "rebuilding".
+pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
     let mut inner = state.inner.lock().expect("state");
     inner.running = false;
-    if o.ok() {
-        let manifest = std::fs::read_to_string(o.project.join("build/manifest.json"))
-            .ok()
-            .and_then(|t| serde_json::from_str::<Value>(&t).ok())
-            .unwrap_or_default();
-        let mut scene = scene_from(o.placements.as_ref()?, &manifest, Some(o.ms))?;
-        scene.generation = o.generation.unwrap_or(scene.generation);
-        if inner.scene.as_ref().is_some_and(|s| s.generation > scene.generation) {
-            return None;
+    let failed = |inner: &mut Inner, error: Problem| {
+        inner.error = Some(error.clone());
+        RunFinished {
+            scene: None,
+            error: Some(error),
+            stale: false,
         }
-        inner.scene = Some(scene.clone());
-        inner.error = None;
-        return Some(RunFinished {
-            scene: Some(scene),
-            error: None,
-        });
-    }
-    let error = match &o.envelope {
-        Some(env) if env["ok"] == true => *Problem::internal("The run finished but build/placements.json is missing."),
-        Some(env) => Problem::from_envelope(&env["error"]),
-        None => *Problem::internal("emmet stopped before it finished the run (it was killed, or crashed)."),
     };
-    inner.error = Some(error.clone());
-    Some(RunFinished {
-        scene: None,
-        error: Some(error),
-    })
+    let error = match (&o.envelope, &o.placements) {
+        (Some(env), Some(Ok(placements))) if env["ok"] == true => {
+            let manifest = std::fs::read_to_string(o.project.join("build").join("manifest.json"))
+                .ok()
+                .and_then(|t| serde_json::from_str::<Value>(&t).ok())
+                .unwrap_or_default();
+            let Some(mut scene) = scene_from(placements, &manifest, Some(o.ms)) else {
+                return failed(
+                    &mut inner,
+                    *Problem::internal("build/placements.json isn't a list of placements this app can read."),
+                );
+            };
+            scene.generation = o.generation.unwrap_or(scene.generation);
+            if !inner.accept(scene.clone()) {
+                return RunFinished {
+                    scene: None,
+                    error: None,
+                    stale: true,
+                };
+            }
+            return RunFinished {
+                scene: Some(scene),
+                error: None,
+                stale: false,
+            };
+        }
+        (Some(env), Some(Err(why))) if env["ok"] == true => {
+            *Problem::internal(format!("The run finished, but the app can't use its result: {why}."))
+        }
+        (Some(env), _) if env["ok"] == true => {
+            *Problem::internal("The run finished but wrote no build/placements.json.")
+        }
+        (Some(env), _) => Problem::from_envelope(&env["error"]),
+        (None, _) => {
+            let said = if o.stderr.is_empty() {
+                String::new()
+            } else {
+                format!(" It said: {}", o.stderr)
+            };
+            Problem {
+                hint: "Run it again with Rebuild. If it keeps stopping, run emmet run in a terminal to see why.".into(),
+                ..*Problem::internal(format!("emmet stopped before it finished the run ({}).{said}", o.exit))
+            }
+        }
+    };
+    failed(&mut inner, error)
 }
 
-/// Opens the project at `dir` (or the one above it): watches it, shows its last build, and runs it if that's stale.
+/// Opens the project at `dir`: watches it, shows its last build, and runs it if that's stale or missing.
 pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
     let state = app.state::<AppState>();
     let project = Project::find(Some(dir))?;
     let root = project.root.clone();
+    let handle = app.clone();
+    let watched = root.clone();
+    let watcher = Watcher::start(&root, move || handle.state::<AppState>().request_run(&watched)).ok();
     let view = ProjectView {
         root: root.display().to_string(),
         name: project.config.name.clone(),
         trusted: project.is_trusted(&state.data),
+        watching: watcher.is_some(),
     };
-    let handle = app.clone();
-    let watched = root.clone();
-    let watcher = Watcher::start(&root, move || handle.state::<AppState>().request_run(&watched)).ok();
     let scene = read_scene(&root);
     let fresh = emmet_core::library::require(&state.data)
         .and_then(|lib| project.inputs_hash(&BTreeMap::new(), &lib.release))
@@ -369,7 +427,8 @@ pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
                 .ok()
                 .and_then(|t| serde_json::from_str::<Value>(&t).ok()),
         )
-        .is_some_and(|(hash, m)| m["inputs_hash"].as_str() == Some(hash.as_str()));
+        .is_some_and(|(hash, m)| m["inputs_hash"].as_str() == Some(hash.as_str()))
+        && scene.is_some();
     {
         let mut inner = state.inner.lock().expect("state");
         inner.project = Some(Open {
@@ -378,6 +437,7 @@ pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
             _watcher: watcher,
         });
         inner.scene = scene.clone();
+        inner.scene_current = false;
         inner.error = None;
         inner.running = false;
     }
@@ -429,12 +489,15 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
             let id = state.next.fetch_add(1, Ordering::SeqCst);
             let (tx, rx) = mpsc::channel();
             state.pending.lock().expect("pending").insert(id, tx);
+            // emmet render ran the model if it was out of date, so build/ may be newer than the window: show it
+            // first, through the same generation check as a run.
+            let scene = read_scene(&root).filter(|s| state.inner.lock().expect("state").accept(s.clone()));
             let event = BusRender {
                 id,
                 view,
                 size,
                 highlight: highlight.clone(),
-                scene: read_scene(&root),
+                scene,
             };
             if event.emit(app).is_err() {
                 state.pending.lock().expect("pending").remove(&id);
@@ -475,6 +538,7 @@ pub fn ui_state(state: State<'_, AppState>) -> UiState {
         running: inner.running,
         scene: inner.scene.clone(),
         error: inner.error.clone(),
+        notice: inner.notice.clone(),
     }
 }
 
@@ -548,11 +612,18 @@ pub async fn get_params(app: AppHandle) -> Result<ParamsView, Box<Problem>> {
 #[tauri::command]
 #[specta::specta]
 pub async fn set_params(app: AppHandle, values: BTreeMap<String, Value>) -> Result<ParamsView, Box<Problem>> {
-    let state = app.state::<AppState>();
-    let (data, project) = (state.data.clone(), state.project()?);
-    let params = tauri::async_runtime::spawn_blocking(move || emmet_core::ops::set_params(&data, &project, &values))
-        .await
-        .map_err(|e| Problem::internal(e.to_string()))??;
+    let (data, project) = {
+        let state = app.state::<AppState>();
+        (state.data.clone(), state.project()?)
+    };
+    let handle = app.clone();
+    let params = tauri::async_runtime::spawn_blocking(move || {
+        let state = handle.state::<AppState>();
+        let _one = state.params.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        emmet_core::ops::set_params(&data, &project, &values)
+    })
+    .await
+    .map_err(|e| Problem::internal(e.to_string()))??;
     params_view(params)
 }
 

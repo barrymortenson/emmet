@@ -26,9 +26,10 @@ describe("memory over 100 slider changes", () => {
   it("grows at most 20 % over 100 changes", async () => {
     await open(projectDir("leak"));
     const change = async (i) => {
-      // Every width from 6 to 16 in turn; each differs from the one before, so each change runs.
+      // Every width from 6 to 16 in turn, with the chimney on and off: each change differs from the one before, so
+      // each runs, and the chimney's bucket is made and dropped every time (the churn a leak would show in).
       const gen = await shown();
-      await invoke("set_params", { values: { width: 6 + (i % 11) } });
+      await invoke("set_params", { values: { width: 6 + (i % 11), chimney: i % 2 === 0 } });
       await nextScene(gen);
     };
     const warmup = process.platform === "darwin" ? 11 : 0;
@@ -38,9 +39,9 @@ describe("memory over 100 slider changes", () => {
     let settled, now;
     for (let i = warmup; i < warmup + 100; i++) {
       await change(i);
-      // i = 21 and i = 98 are both width 16: the same scene, seven cycles apart.
+      // i = 21 and i = 87 are the same scene (width 16, no chimney), three cycles of 22 apart.
       if (i === 21) settled = await resources();
-      if (i === 98) now = await resources();
+      if (i === 87) now = await resources();
     }
     await browser.pause(1000);
     const last = await measure();

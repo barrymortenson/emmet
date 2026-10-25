@@ -114,3 +114,21 @@ fn the_token_file_is_private_and_goes_with_the_app() {
     let r = send(&data, highlight(), Duration::from_secs(2));
     assert!(!r.delivered);
 }
+
+#[test]
+fn a_token_file_left_by_a_crashed_app_is_undelivered() {
+    let data = data();
+    std::fs::write(
+        info_path(&data),
+        r#"{"v":1,"name":"emmet-ffffffffffffffff.sock","token":"00","pid":1}"#,
+    )
+    .unwrap();
+    let started = std::time::Instant::now();
+    let r = send(&data, highlight(), Duration::from_secs(5));
+    assert!(!r.delivered);
+    assert_eq!(r.reason.as_deref(), Some("Emmet isn't running"));
+    assert!(
+        started.elapsed() < Duration::from_secs(2),
+        "a dead socket should fail fast"
+    );
+}

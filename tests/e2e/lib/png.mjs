@@ -72,7 +72,7 @@ export function encode({ width, height, data }) {
   return Buffer.concat([SIGNATURE, chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
 }
 
-/** Whether an image has more than one color: a blank render is one flat color. */
+/** Whether an image is one flat color: a blank render. */
 export function isBlank({ data }) {
   for (let i = 4; i < data.length; i += 4) {
     if (data[i] !== data[0] || data[i + 1] !== data[1] || data[i + 2] !== data[2]) return false;

@@ -26,7 +26,7 @@ function useTheme(): [Theme, (t: Theme | null) => void] {
 
 export function App() {
   const [info, setInfo] = useState<AppInfo | null>(null);
-  const [ui, setUi] = useState<UiState>({ project: null, running: false, scene: null, error: null });
+  const [ui, setUi] = useState<UiState>({ project: null, running: false, scene: null, error: null, notice: null });
   const [problem, setProblem] = useState<Problem | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [theme, forceTheme] = useTheme();
@@ -50,12 +50,14 @@ export function App() {
         shown: () => shown.current,
         project: () => root.current,
         drawnAt: () => drawnAt.current,
-        // A second viewer with an empty part cache, for the bench's cold first-load timings.
-        newViewer: () => {
+        // The app's part source, and a second viewer with an empty part cache (the bench's cold first loads; specs
+        // that wrap the part source).
+        library,
+        newViewer: (partSource = library) => {
           const c = document.createElement("canvas");
           c.style.cssText = "position:fixed;left:0;top:0;width:800px;height:600px;visibility:hidden";
           document.body.append(c);
-          return createViewer(c, { partSource: library, theme });
+          return createViewer(c, { partSource, theme });
         },
         theme: (t: Theme | null) => forceTheme(t),
       };
@@ -100,19 +102,21 @@ export function App() {
         root.current = payload.project.root;
         setSelected(null);
         viewer.current?.highlight([]);
-        setUi({ project: payload.project, running: false, scene: payload.scene ?? null, error: null });
+        setUi((u) => ({ ...u, project: payload.project, running: false, scene: payload.scene ?? null, error: null }));
         void show(payload.scene ?? null, payload.project.root);
         if (!payload.scene) void viewer.current?.update([]);
       }),
       events.runStarted.listen(() => setUi((u) => ({ ...u, running: true }))),
       events.runFinished.listen(({ payload }) => {
-        if (payload.scene) void show(payload.scene, root.current);
-        setUi((u) => ({
-          ...u,
-          running: false,
-          scene: payload.scene ?? u.scene,
-          error: payload.scene ? null : (payload.error ?? null),
-        }));
+        // A stale run, or a scene older than the one on screen (a bus render may have shown a newer build), changes
+        // nothing but the status.
+        const scene = payload.scene && payload.scene.generation >= shown.current ? payload.scene : null;
+        if (scene) void show(scene, root.current);
+        setUi((u) => {
+          if (scene) return { ...u, running: false, scene, error: null };
+          if (payload.error) return { ...u, running: false, error: payload.error };
+          return { ...u, running: false };
+        });
       }),
       events.busHighlight.listen(({ payload }) => viewer.current?.highlight(payload.ids)),
       events.busRender.listen(async ({ payload }) => {
@@ -124,11 +128,8 @@ export function App() {
             setUi((u) => ({ ...u, scene, error: null }));
             await show(scene, null);
           }
-          const { png, camera } = await v.render({
-            view: payload.view as View,
-            size: payload.size,
-            highlight: payload.highlight.length ? payload.highlight : undefined,
-          });
+          // Only the ids the request names are highlighted in the render, whatever the window shows.
+          const { png, camera } = await v.render({ view: payload.view as View, size: payload.size, highlight: payload.highlight });
           await commands.busReply(payload.id, base64(png), json(camera), null);
         } catch (e) {
           await commands.busReply(payload.id, null, null, e instanceof Error ? e.message : String(e));
@@ -178,6 +179,16 @@ export function App() {
       {problem && (
         <p className="notice" role="alert">
           {problem.message} {problem.hint}
+        </p>
+      )}
+      {ui.notice && (
+        <p className="notice" role="alert" id="app-notice">
+          {ui.notice}
+        </p>
+      )}
+      {ui.project && !ui.project.watching && (
+        <p className="notice" role="alert">
+          Emmet can't watch this folder, so edits won't rebuild on their own. Use Rebuild after a change.
         </p>
       )}
       {viewerError && (

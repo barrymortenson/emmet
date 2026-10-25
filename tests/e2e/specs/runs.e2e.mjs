@@ -40,4 +40,22 @@ describe("a run killed mid-way", () => {
     await expect($("#error-panel")).not.toBeExisting();
     await instances(120);
   });
+
+  it("a change while a run is going cancels it quietly and the newer one shows", async () => {
+    await invoke("set_params", { values: { delay: 5, count: 100 } });
+    await $("#status").waitUntil(async function () {
+      return (await this.getText()).includes("rebuilding");
+    }, { timeout: 20_000, timeoutMsg: "the slow run never started" });
+    await invoke("set_params", { values: { delay: 0, count: 60 } });
+    // Sampled until the newer scene is drawn: the canceled run never shows as an error.
+    let sawError = false;
+    await browser.waitUntil(
+      async () => {
+        sawError ||= await $("#error-panel").isExisting();
+        return (await stats()).instances === 60;
+      },
+      { timeout: 30_000, interval: 100, timeoutMsg: "the newer run never showed" },
+    );
+    expect(sawError).toBe(false);
+  });
 });

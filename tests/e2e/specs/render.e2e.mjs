@@ -3,16 +3,24 @@
 // over emmet-bus and render through its viewer, without moving its camera. tests/it/tests/render.rs covers the app
 // closed (render mode).
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect } from "@wdio/globals";
-import { camera, open, stats } from "../lib/app.mjs";
+import pixelmatch from "pixelmatch";
+import { camera, nextScene, open, render, shown, stats } from "../lib/app.mjs";
 import { mcp } from "../lib/mcp.mjs";
-import { bin, out } from "../lib/paths.mjs";
+import { bin, os, out, repo } from "../lib/paths.mjs";
 import { decode, isBlank } from "../lib/png.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const project = projectDir("render");
+
+const emmetJson = (project, args) =>
+  JSON.parse(
+    execFileSync(bin("emmet"), ["--json", "--data-dir", process.env.EMMET_DATA_DIR, "--project", project, ...args], {
+      encoding: "utf8",
+    }),
+  );
 
 function checkPng(bytes, size) {
   const img = decode(bytes);
@@ -67,6 +75,51 @@ describe("rendering with the app open", () => {
       await browser.waitUntil(async () => (await stats()).highlighted === 0);
     } finally {
       client.close();
+    }
+  });
+
+  it("a render shows only its own highlight, never the window's", async () => {
+    const plain = await render({ view: "iso", size: 256 });
+    const client = await mcp(project);
+    try {
+      await client.call("highlight", { ids: ["door"] });
+      await browser.waitUntil(async () => (await stats()).highlighted === 1);
+      expect(Buffer.compare(await render({ view: "iso", size: 256 }), plain)).toBe(0);
+      expect((await stats()).highlighted).toBe(1);
+      await client.call("highlight", { ids: [] });
+    } finally {
+      client.close();
+    }
+  });
+
+  it("a project the app doesn't have open renders in render mode, the same as the window would", async () => {
+    const other = projectDir("render-other");
+    const file = join(out, "render-other.png");
+    const env = emmetJson(other, ["render", "--view", "iso", "--size", "512", "--out", file]);
+    expect(env.ok).toBe(true);
+    expect(env.data.via).toBe("render-mode");
+    const actual = decode(readFileSync(file));
+    const baseline = decode(readFileSync(join(repo, "tests", "e2e", "baselines", os, "colors.png")));
+    const bad = pixelmatch(baseline.data, actual.data, null, 512, 512, { threshold: 0.1 });
+    expect(bad / (512 * 512)).toBeLessThanOrEqual(0.001);
+  });
+
+  it("a render right after an edit shows the edited model", async () => {
+    const before = await render({ view: "iso", size: 256 });
+    const modelPy = join(project, "model.py");
+    const text = readFileSync(modelPy, "utf8");
+    writeFileSync(modelPy, text.replace("chimney: bool = True", "chimney: bool = False"));
+    try {
+      // emmet render runs the stale model itself and shows the result in the window before rendering it.
+      const env = emmetJson(project, ["render", "--view", "iso", "--size", "256", "--out", join(out, "render-edit.png")]);
+      expect(env.data.via).toBe("app");
+      expect(Buffer.compare(readFileSync(join(out, "render-edit.png")), before)).not.toBe(0);
+      const manifest = JSON.parse(readFileSync(join(project, "build", "manifest.json"), "utf8"));
+      expect(await shown()).toBe(manifest.run.generation);
+    } finally {
+      const gen = await shown();
+      writeFileSync(modelPy, text);
+      await nextScene(gen);
     }
   });
 });

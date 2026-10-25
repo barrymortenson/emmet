@@ -2,11 +2,13 @@
 //! The `emmet-lib://` protocol (plan section 13): LDraw library files for the viewer, served from app data with an
 //! in-memory cache. `/pack?parts=3001,3004` returns every file those parts use in one reply (ADR 0005 found one
 //! request per file is what makes WebView2 slow). Names resolve only through an index of the files inside the
-//! library, built without following links, so no request can reach outside it.
+//! library (a link is indexed only when it leads to a file inside it), so no request can reach outside it. The index
+//! and cache are rebuilt when `library.json` changes, so installing or updating the library needs no restart.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::{Arc, Mutex};
+use std::time::SystemTime;
 
 use serde::Serialize;
 
@@ -35,10 +37,13 @@ pub struct Pack {
     pub missing: BTreeMap<String, Vec<String>>,
 }
 
+/// Lowercase `/`-separated path inside the library → the file.
+type Files = HashMap<String, PathBuf>;
+
 pub struct Library {
     root: PathBuf,
-    /// Lowercase `/`-separated path inside the library → the file.
-    index: OnceLock<HashMap<String, PathBuf>>,
+    /// The index, and the `library.json` time it was built for.
+    index: Mutex<Option<(Option<SystemTime>, Arc<Files>)>>,
     cache: Mutex<HashMap<String, Arc<String>>>,
 }
 
@@ -47,7 +52,7 @@ impl Library {
     pub fn new(root: impl Into<PathBuf>) -> Self {
         Self {
             root: root.into(),
-            index: OnceLock::new(),
+            index: Mutex::new(None),
             cache: Mutex::new(HashMap::new()),
         }
     }
@@ -67,7 +72,7 @@ impl Library {
                 .split(',')
                 .map(str::trim)
                 .filter(|s| !s.is_empty())
-                .take(2000)
+                .take(emmet_core::run::MAX_PARTS)
                 .collect();
             let body = serde_json::to_vec(&self.pack(&ids)).expect("pack serializes");
             return Reply {
@@ -119,7 +124,7 @@ impl Library {
     }
 
     /// A reference as LDrawLoader names it (`parts/s/x.dat`, `p/48/x.dat`, or a bare name), looked up the way the
-    /// loader searches: as named, then under parts/ and p/.
+    /// loader searches: a bare name under parts/, then p/, then as named.
     fn reference(&self, name: &str) -> Option<Arc<String>> {
         if name.starts_with("parts/") || name.starts_with("p/") {
             return self.file(name);
@@ -136,24 +141,40 @@ impl Library {
         if key.split('/').any(|s| s.is_empty() || s == "." || s == "..") || key.contains(['\\', ':']) {
             return None;
         }
+        // The index first: it clears the cache when the library changed.
+        let index = self.index();
         if let Some(hit) = self.cache.lock().expect("library cache").get(&key) {
             return Some(hit.clone());
         }
-        let path = self.index().get(&key)?;
-        let bytes = std::fs::read(path).ok()?;
+        let path = index.get(&key)?.clone();
+        let bytes = std::fs::read(&path).ok()?;
         let text = Arc::new(String::from_utf8_lossy(&bytes).into_owned());
         self.cache.lock().expect("library cache").insert(key, text.clone());
         Some(text)
     }
 
-    fn index(&self) -> &HashMap<String, PathBuf> {
-        self.index.get_or_init(|| {
-            let mut map = HashMap::new();
-            if let Ok(root) = emmet_core::fsx::canonical(&self.root) {
-                walk(&root, &root, &mut map);
-            }
-            map
-        })
+    /// The index for the installed library, rebuilt (with the cache cleared) when `library.json` changes. An empty
+    /// index (no library yet) isn't kept.
+    fn index(&self) -> Arc<Files> {
+        let stamp = self
+            .root
+            .parent()
+            .and_then(|d| std::fs::metadata(d.join("library.json")).ok())
+            .and_then(|m| m.modified().ok());
+        let mut index = self.index.lock().expect("library index");
+        if let Some((built, map)) = index.as_ref()
+            && *built == stamp
+        {
+            return map.clone();
+        }
+        let mut map = HashMap::new();
+        if let Ok(root) = emmet_core::fsx::canonical(&self.root) {
+            walk(&root, &root, &mut map);
+        }
+        let map = Arc::new(map);
+        self.cache.lock().expect("library cache").clear();
+        *index = (!map.is_empty()).then(|| (stamp, map.clone()));
+        map
     }
 }
 

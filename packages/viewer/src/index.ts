@@ -20,7 +20,7 @@ import {
 } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { type Diff, type Placement, bucketKey, diffPlacements, dirtyBuckets } from "./diff.js";
-import { type PartGeometry, PartCache, type PartSource } from "./parts.js";
+import { type PartGeometry, PartCache, type PartSource, partKey } from "./parts.js";
 
 export { bucketKey, diffPlacements, dirtyBuckets };
 export type { Diff, Placement, PartSource };
@@ -77,7 +77,7 @@ export interface Stats {
   programs: number;
   /** How many ids are highlighted. */
   highlighted: number;
-  /** Parts that couldn't load, with why; they aren't drawn. */
+  /** Parts the scene uses that couldn't load, with why; they aren't drawn. */
   failed: Record<string, string>;
   /** Placements on screen per diff kind in the last update. */
   lastDiff: { added: number; removed: number; moved: number; recolored: number; unchanged: number };
@@ -90,7 +90,8 @@ export interface Viewer {
   frame(ids?: string[]): void;
   setView(view: View): void;
   setTheme(theme: Theme): void;
-  /** A PNG of the whole model from `view`, drawn offscreen: the window's camera and canvas don't change. */
+  /** A PNG of the whole model from `view`, drawn offscreen with only `highlight` highlighted: the window's camera,
+   * canvas, and highlight don't change. Refuses when a part the scene uses failed or the last update failed. */
   render(options?: RenderOptions): Promise<Rendered>;
   stats(): Stats;
   /** The camera's world matrix, column-major (tests check the camera never moves on its own). */
@@ -131,7 +132,6 @@ interface Bucket {
   part: PartGeometry;
   color: number;
   ids: string[];
-  index: Map<string, number>;
   capacity: number;
   drawables: Drawable[];
 }
@@ -160,8 +160,11 @@ class EmmetViewer implements Viewer {
   private theme: Theme;
   private quality: "auto" | "low";
   private offscreen: WebGLRenderer | null = null;
-  /** Updates run one at a time, in call order, so a newer scene never lands under an older one. */
+  /** Updates and renders run one at a time, in call order, so a newer scene never lands under an older one and two
+   * renders never share a highlight. */
   private queue: Promise<unknown> = Promise.resolve();
+  /** Why the last update failed, if it did: a render then refuses rather than draw a stale scene. */
+  private broken: string | null = null;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -201,16 +204,41 @@ class EmmetViewer implements Viewer {
 
   // Every update applies at once until the build animation (D-34) reads UpdateOptions.
   update(placements: Placement[]): Promise<Diff> {
-    const run = this.queue.then(() => this.apply(placements));
+    return this.enqueue(async () => {
+      try {
+        const diff = await this.apply(placements);
+        this.broken = null;
+        return diff;
+      } catch (e) {
+        this.broken = e instanceof Error ? e.message : String(e);
+        throw e;
+      }
+    });
+  }
+
+  private enqueue<T>(job: () => Promise<T>): Promise<T> {
+    const run = this.queue.then(job);
     this.queue = run.catch(() => {});
     return run;
   }
 
+  /** Failed parts the current scene uses, with why. */
+  private failedHere(): [string, string][] {
+    const used = new Set([...this.placements.values()].map((p) => partKey(p.part)));
+    return [...this.cache.failed].filter(([id]) => used.has(id));
+  }
+
   /** Loads every new part first, then changes the scene in one synchronous pass, so no frame shows half a diff. */
   private async apply(placements: Placement[]): Promise<Diff> {
+    const failedBefore = new Set(this.cache.failed.keys());
     await this.cache.ensure(placements.map((p) => p.part));
     const diff = diffPlacements(this.placements.values(), placements);
     const dirty = dirtyBuckets(diff, this.placements);
+    // A part that failed before and loads now has no bucket yet, though its placements didn't change.
+    for (const p of placements) {
+      const k = partKey(p.part);
+      if (failedBefore.has(k) && this.cache.get(p.part)) dirty.add(bucketKey(p));
+    }
     this.placements = new Map(placements.map((p) => [p.id, p]));
     const members = new Map<string, Placement[]>();
     for (const p of this.placements.values()) {
@@ -246,7 +274,6 @@ class EmmetViewer implements Viewer {
       bucket = this.makeBucket(key, part, first.color, Math.max(4, 2 ** Math.ceil(Math.log2(list.length))));
     }
     bucket.ids = list.map((p) => p.id);
-    bucket.index = new Map(bucket.ids.map((id, i) => [id, i]));
     const m = new Matrix4();
     for (const d of bucket.drawables) {
       if (!(d.object instanceof InstancedMesh)) continue;
@@ -298,7 +325,7 @@ class EmmetViewer implements Viewer {
       drawables.unshift({ object: holder, kind: "mesh" });
     }
     for (const d of drawables) this.root.add(d.object);
-    const bucket: Bucket = { key, part, color, ids: [], index: new Map(), capacity, drawables };
+    const bucket: Bucket = { key, part, color, ids: [], capacity, drawables };
     this.buckets.set(key, bucket);
     return bucket;
   }
@@ -307,8 +334,13 @@ class EmmetViewer implements Viewer {
     for (const d of bucket.drawables) {
       this.root.remove(d.object);
       if (d.object instanceof InstancedMesh) d.object.dispose();
-      // The line geometry only borrows the part's attributes; disposing it frees this bucket's binding state.
-      else d.object.geometry.dispose();
+      else {
+        // The line geometry borrows the part's attributes, which other buckets still draw: let go of them first, so
+        // disposing frees only this bucket's own binding state.
+        const g = d.object.geometry;
+        for (const name of Object.keys(g.attributes)) g.deleteAttribute(name);
+        g.dispose();
+      }
     }
     this.buckets.delete(bucket.key);
   }
@@ -361,13 +393,18 @@ class EmmetViewer implements Viewer {
     this.invalidate();
   }
 
-  async render(options: RenderOptions = {}): Promise<Rendered> {
-    await this.queue;
-    const failed = [...this.cache.failed];
+  render(options: RenderOptions = {}): Promise<Rendered> {
+    return this.enqueue(() => this.renderNow(options));
+  }
+
+  private async renderNow(options: RenderOptions): Promise<Rendered> {
+    if (this.broken) throw new Error(`can't render: the last update failed (${this.broken})`);
+    const failed = this.failedHere();
     if (failed.length) throw new Error(`can't render: ${failed.map(([id, why]) => `${id} (${why})`).join("; ")}`);
     const size = Math.round(Math.min(Math.max(options.size ?? 768, 16), 4096));
     const name = options.view ?? "iso";
     const view = VIEWS[name];
+    if (!view) throw new Error(`there's no view '${String(name)}'`);
     // A second renderer on a detached canvas: the window's canvas, camera, and size stay as they are.
     const canvas = document.createElement("canvas");
     this.offscreen ??= new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
@@ -379,23 +416,28 @@ class EmmetViewer implements Viewer {
     const box = this.bounds();
     if (box.isEmpty()) camera.position.copy(view.dir).multiplyScalar(600);
     else this.place(camera, box, view.dir, view.up);
+    // The render's own highlight (none unless asked) and background, swapped in and back around one synchronous
+    // draw, so the window never draws a frame with them and its own highlight never leaks into a render.
     const before = this.highlighted;
-    if (options.highlight) this.highlight(options.highlight);
     const background = this.scene.background;
+    this.highlighted = new Set(options.highlight ?? []);
+    for (const b of this.buckets.values()) this.paint(b);
     this.scene.background = RENDER_BACKGROUND;
     try {
       r.render(this.scene, camera);
-      const blob = await new Promise<Blob | null>((resolve) => r.domElement.toBlob(resolve, "image/png"));
-      if (!blob) throw new Error("the webview couldn't encode the PNG");
-      const target = box.isEmpty() ? new Vector3() : box.getCenter(new Vector3());
-      return {
-        png: new Uint8Array(await blob.arrayBuffer()),
-        camera: { view: name, position: camera.position.toArray(), target: target.toArray(), fov: camera.fov },
-      };
     } finally {
       this.scene.background = background;
-      if (options.highlight) this.highlight([...before]);
+      this.highlighted = before;
+      for (const b of this.buckets.values()) this.paint(b);
     }
+    // preserveDrawingBuffer keeps the pixels until the next draw on this canvas.
+    const blob = await new Promise<Blob | null>((resolve) => r.domElement.toBlob(resolve, "image/png"));
+    if (!blob) throw new Error("the webview couldn't encode the PNG");
+    const target = box.isEmpty() ? new Vector3() : box.getCenter(new Vector3());
+    return {
+      png: new Uint8Array(await blob.arrayBuffer()),
+      camera: { view: name, position: camera.position.toArray(), target: target.toArray(), fov: camera.fov },
+    };
   }
 
   stats(): Stats {
@@ -417,7 +459,7 @@ class EmmetViewer implements Viewer {
       textures: info.memory.textures,
       programs: info.programs?.length ?? 0,
       highlighted: this.highlighted.size,
-      failed: Object.fromEntries(this.cache.failed),
+      failed: Object.fromEntries(this.failedHere()),
       lastDiff: { ...this.lastDiff },
     };
   }

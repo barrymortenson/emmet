@@ -71,7 +71,7 @@ pub struct Reply {
     /// The rendered PNG, base64.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub png: Option<String>,
-    /// Where the render's camera was: `{view, position, target}`.
+    /// Where the render's camera was: `{view, position, target, fov}`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub camera: Option<serde_json::Value>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -120,7 +120,8 @@ impl Server {
             .map_err(|e| Error::internal(format!("starting the bus on {name}: {e}")))?;
         #[cfg(unix)]
         restrict(&std::path::Path::new("/tmp").join(&name));
-        // 64 hex digits from OS-seeded keys (fsx::random_hex): about 128 bits a client must guess.
+        // 64 hex digits, but every RandomState in a thread grows from one OS-seeded 128-bit key, so about 128 bits a
+        // client must guess (fsx::random_hex).
         let token = fsx::random_hex(4);
         let info = Info {
             v: VERSION,
@@ -150,8 +151,10 @@ impl Server {
     }
 }
 
-impl Drop for Server {
-    fn drop(&mut self) {
+impl Server {
+    /// Stops answering and removes `bus.json` if it is still this server's. The app calls it as it exits, since
+    /// Tauri ends the process without dropping managed state; `Drop` calls it too.
+    pub fn close(&self) {
         self.stop.store(true, Ordering::SeqCst);
         let ours = std::fs::read_to_string(&self.info)
             .ok()
@@ -160,6 +163,12 @@ impl Drop for Server {
         if ours {
             let _ = std::fs::remove_file(&self.info);
         }
+    }
+}
+
+impl Drop for Server {
+    fn drop(&mut self) {
+        self.close();
     }
 }
 
@@ -180,15 +189,19 @@ fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send +
     let mut reader = BufReader::new(conn);
     let mut line = String::new();
     while reader.read_line(&mut line).is_ok_and(|n| n > 0) {
+        let mut refused = false;
         let reply = match serde_json::from_str::<Request>(line.trim()) {
             Ok(req) if req.v != VERSION => Reply {
                 id: req.id,
                 ..Reply::undelivered(format!("the app speaks bus v{VERSION}, not v{}", req.v))
             },
-            Ok(req) if !same(&req.token, token) => Reply {
-                id: req.id,
-                ..Reply::undelivered("wrong token")
-            },
+            Ok(req) if !same(&req.token, token) => {
+                refused = true;
+                Reply {
+                    id: req.id,
+                    ..Reply::undelivered("wrong token")
+                }
+            }
             Ok(req) => Reply {
                 id: req.id,
                 ..handler(req.message)
@@ -201,7 +214,7 @@ fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send +
             return;
         }
         // One wrong token ends the connection, so a client can't try tokens over one stream.
-        if reply.reason.as_deref() == Some("wrong token") {
+        if refused {
             return;
         }
         line.clear();

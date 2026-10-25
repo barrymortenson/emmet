@@ -76,7 +76,11 @@ fn the_library_protocol_refuses_a_link_out_of_the_library() {
     #[cfg(windows)]
     let made = std::os::windows::fs::symlink_file(dir.join("secret.txt"), &link).is_ok();
     if !made {
-        // Windows without Developer Mode can't make links; nothing to escape through then.
+        // Windows without Developer Mode can't make links, so there's nothing to escape through. CI must prove it.
+        assert!(
+            std::env::var_os("CI").is_none(),
+            "CI must be able to create symlinks for this test"
+        );
         eprintln!("skipped: this machine can't create symlinks");
         return;
     }
@@ -143,9 +147,32 @@ fn open_recent_refuses_a_link_to_an_unlisted_folder() {
     #[cfg(windows)]
     let made = std::os::windows::fs::symlink_dir(&other, &link).is_ok();
     if !made {
+        assert!(
+            std::env::var_os("CI").is_none(),
+            "CI must be able to create symlinks for this test"
+        );
         eprintln!("skipped: this machine can't create symlinks");
         return;
     }
     assert_eq!(recent::find(&data, &link.display().to_string()), None);
     assert!(Path::new(&link).exists());
+}
+
+#[test]
+fn the_library_protocol_sees_a_library_installed_or_updated_while_the_app_runs() {
+    let dir = emmet_it::temp_dir("lib-later");
+    let lib = Library::new(dir.join("ldraw"));
+    // Before any library: nothing, and nothing remembered.
+    assert_eq!(status(&lib, "/LDConfig.ldr"), 404);
+    let config = dir.join("ldraw/LDConfig.ldr");
+    std::fs::create_dir_all(config.parent().unwrap()).unwrap();
+    std::fs::write(&config, "0 !COLOUR Black CODE 0 VALUE #1B2A34 EDGE #808080\n").unwrap();
+    std::fs::write(dir.join("library.json"), r#"{"release": "one"}"#).unwrap();
+    assert_eq!(status(&lib, "/LDConfig.ldr"), 200);
+    // An update replaces the files and library.json; the cache doesn't serve the old text.
+    std::thread::sleep(std::time::Duration::from_millis(20));
+    std::fs::write(&config, "0 !COLOUR Red CODE 4 VALUE #C91A09 EDGE #333333\n").unwrap();
+    std::fs::write(dir.join("library.json"), r#"{"release": "two"}"#).unwrap();
+    let body = String::from_utf8(lib.respond("/LDConfig.ldr", None).body).unwrap();
+    assert!(body.contains("Red"), "{body}");
 }

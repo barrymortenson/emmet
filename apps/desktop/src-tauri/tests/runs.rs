@@ -38,10 +38,10 @@ fn finished(rx: &mpsc::Receiver<RunEvent>) -> Outcome {
 }
 
 fn count(o: &Outcome) -> usize {
-    o.placements
-        .as_ref()
-        .and_then(|p| p["parts"].as_array())
-        .map_or(0, Vec::len)
+    match &o.placements {
+        Some(Ok(p)) => p["parts"].as_array().map_or(0, Vec::len),
+        _ => 0,
+    }
 }
 
 #[test]
@@ -69,9 +69,16 @@ fn a_newer_request_cancels_the_run_in_progress() {
     ));
     std::thread::sleep(Duration::from_millis(300));
     std::fs::write(dir.join("params.json"), r#"{"count": 40}"#).unwrap();
+    let asked = Instant::now();
     q.request(&dir);
     let first = finished(&rx);
     assert!(first.canceled, "the slow run should be canceled: {:?}", first.envelope);
+    // Closing stdin stopped emmet (and its Python) at once; the queue's 2 s kill is only a backstop.
+    assert!(
+        asked.elapsed() < Duration::from_millis(1500),
+        "the cancel took {:?}: emmet didn't stop when its stdin closed",
+        asked.elapsed()
+    );
     let second = finished(&rx);
     assert!(second.ok(), "{:?}", second.envelope);
     assert_eq!(count(&second), 40);
@@ -149,31 +156,93 @@ fn kill_emmet_for(dir: &Path) {
 }
 
 #[test]
-fn a_result_older_than_the_scene_on_screen_is_dropped() {
+fn a_result_older_than_the_scene_on_screen_is_dropped_but_still_ends_the_run() {
     let dir = grid(r#"{"count": 5}"#);
     let (q, rx) = queue();
     q.request(&dir);
     let newer = finished(&rx);
-    let state = AppState::new(
-        emmet_core::data::DataDir::at(emmet_it::shared_data()),
-        emmet_it::emmet_bin(),
-        None,
-    );
-    let shown = finish(&state, &newer).expect("the first scene is shown");
-    let generation = shown.scene.unwrap().generation;
+    let state = state();
+    let shown = finish(&state, &newer);
+    let generation = shown.scene.expect("the first scene is shown").generation;
     let older = Outcome {
         generation: Some(generation - 1),
         ..newer.clone()
     };
+    // The window still hears the run ended, so it never stays on "rebuilding".
+    let stale = finish(&state, &older);
     assert!(
-        finish(&state, &older).is_none(),
-        "an older generation replaced the scene"
+        stale.stale && stale.scene.is_none() && stale.error.is_none(),
+        "{stale:?}"
     );
-    let failed = Outcome {
-        envelope: None,
-        placements: None,
-        ..newer
+}
+
+#[test]
+fn a_result_the_app_cant_read_is_an_error_not_silence() {
+    let dir = grid(r#"{"count": 5}"#);
+    let (q, rx) = queue();
+    q.request(&dir);
+    let ok = finished(&rx);
+    let state = state();
+    let unreadable = Outcome {
+        placements: Some(Err("build/placements.json doesn't parse: EOF".into())),
+        ..ok.clone()
     };
-    let f = finish(&state, &failed).expect("a failure is reported");
-    assert!(f.scene.is_none() && f.error.is_some());
+    let f = finish(&state, &unreadable);
+    assert!(
+        f.error.as_ref().is_some_and(|e| e.message.contains("doesn't parse")),
+        "{f:?}"
+    );
+    let wrong_shape = Outcome {
+        placements: Some(Ok(serde_json::json!({ "parts": "nope" }))),
+        ..ok
+    };
+    let f = finish(&state, &wrong_shape);
+    assert!(f.error.is_some() && !f.stale, "{f:?}");
+}
+
+/// A sidecar that crashes without an envelope: what it printed and how it exited reach the error panel.
+#[test]
+fn a_crash_reports_what_emmet_printed() {
+    let dir = emmet_it::temp_dir("crash");
+    let fake = if cfg!(windows) {
+        let p = dir.join("emmet.cmd");
+        std::fs::write(
+            &p,
+            "@echo off\r\necho thread 'main' panicked at boom 1>&2\r\nexit /b 3\r\n",
+        )
+        .unwrap();
+        p
+    } else {
+        let p = dir.join("emmet");
+        std::fs::write(&p, "#!/bin/sh\necho \"thread 'main' panicked at boom\" >&2\nexit 3\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        p
+    };
+    let (tx, rx) = mpsc::channel();
+    let q = RunQueue::start(fake, emmet_it::shared_data().to_path_buf(), move |ev| {
+        let _ = tx.send(ev);
+    });
+    q.request(&dir);
+    let o = finished(&rx);
+    assert!(o.envelope.is_none());
+    assert_eq!(o.exit, "exit code 3");
+    assert!(o.stderr.contains("panicked at boom"), "{:?}", o.stderr);
+    let e = finish(&state(), &o).error.expect("an error");
+    assert!(
+        e.message.contains("exit code 3") && e.message.contains("panicked at boom"),
+        "{}",
+        e.message
+    );
+}
+
+fn state() -> AppState {
+    AppState::new(
+        emmet_core::data::DataDir::at(emmet_it::shared_data()),
+        emmet_it::emmet_bin(),
+        None,
+    )
 }

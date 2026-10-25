@@ -13,11 +13,14 @@ use this same code, so an agent's render is what the window shows.
   mesh's `instanceMatrix`, so a diff only rewrites instance buffers. A 2,000-brick grid is 18 draw calls.
 - **Diff updates.** `update()` diffs the new list against the scene by Emmet id (added, removed, moved, recolored),
   loads every new part first, then rewrites only the touched buckets in one synchronous pass. No frame shows half a
-  diff, and the camera, highlight, and selection stay.
+  diff, and the camera and highlight stay.
 - **The camera never moves on its own.** Only `frame()` and `setView()` move it. The app frames a project's first
   scene by calling `setView("iso")`.
-- **Missing parts are reported, not drawn with holes** (ADR 0005): they're listed in `stats().failed`, and `render()`
-  refuses to render.
+- **Missing parts are reported, not drawn with holes** (ADR 0005): the scene's are listed in `stats().failed`, and
+  `render()` refuses to render while any are. The next update tries a failed part again (a dropped fetch, or a library
+  installed since).
+- **Renders are their own.** `render()` draws offscreen with only its `highlight` (none by default), queued behind
+  updates, so the window's camera and highlight never leak into a render and two renders never mix.
 - **On demand.** The scene draws when something changed (a diff, the camera, the size, orbit damping), not every
   frame.
 

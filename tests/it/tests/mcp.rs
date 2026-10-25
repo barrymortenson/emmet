@@ -296,6 +296,19 @@ async fn render() {
     };
     assert_eq!(mime, "image/png");
     emmet_it::check_png(&emmet_core::base64::decode(png).expect("base64"), 128);
+    // Several renders at once, each in its own render mode: each gets its own view back.
+    let (a, b) = tokio::join!(
+        client.call("render", json!({ "view": "top", "size": 128 })),
+        client.call("render", json!({ "view": "left", "size": 160 }))
+    );
+    assert_eq!(
+        (a.envelope["data"]["view"].clone(), b.envelope["data"]["view"].clone()),
+        (json!("top"), json!("left"))
+    );
+    for (c, size) in [(&a, 128), (&b, 160)] {
+        assert!(!c.is_error, "{}", c.envelope);
+        emmet_it::check_png(&emmet_core::base64::decode(&c.images[0].0).unwrap(), size);
+    }
     let c = client.call("render", json!({ "view": "sideways" })).await;
     assert!(c.is_error);
     assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");

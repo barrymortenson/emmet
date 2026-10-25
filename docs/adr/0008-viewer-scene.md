@@ -19,7 +19,7 @@ D-23 stands, as built in `packages/viewer` (its README has the API):
   `LDrawLoader.parse` reads without fetching anything. A model's parts load in one request, not hundreds.
 - **Instancing.** One `InstancedMesh` per (part, color). Edges and conditional lines are instanced too, sharing the
   mesh's `instanceMatrix` through an `InstancedBufferGeometry`: the edge material gets `USE_INSTANCING`, and the
-  conditional-line shader multiplies `instanceMatrix` into its four `modelViewMatrix` products. Main-color slots (16,
+  conditional-line shader multiplies `instanceMatrix` into each of its five `modelViewMatrix` products. Main-color slots (16,
   24) take the bucket's color; a part's fixed colors stay.
 - **Diff by Emmet id**, applied in one synchronous pass after every new part has loaded, rewriting only the buckets
   it touches.
@@ -34,8 +34,8 @@ and `missingColorMaterial`. A three.js update that changes them fails the E2E sp
 ## Bench
 
 `just bench` (`tests/e2e/specs/bench.e2e.mjs`) in the real app. First load is a new viewer with an empty part cache;
-slider → viewer is `set_params` through the watcher, the run, and the diff until the viewer has drawn it (median of
-6); orbit is the mean frame time over 120 frames turning the camera.
+slider → viewer is `set_params` through the watcher, the run, and the diff until the viewer has applied it (median
+of 6); orbit is the mean frame time over 120 frames turning the camera, or as many as fit in 10 s.
 
 macOS, this Mac (M-series, WKWebView), debug build, 2026-10-25:
 
@@ -46,8 +46,9 @@ macOS, this Mac (M-series, WKWebView), debug build, 2026-10-25:
 | grid 2000 | 2000 | 21 ms | 478 ms | 13.9 ms | 18 | 1,400,000 |
 
 Against section 13: first load ≤ 1.5 s (rung 1), slider → viewer ≤ 0.8 s warm, orbit ≤ 16 ms; all hold. The orbit
-frame time is the display's refresh interval (72 Hz here), so drawing isn't the limit. The grid scenes are one part
-(3001), already parsed by then, so their first load is the instancing alone.
+frame time is the display's refresh interval (72 Hz here), so drawing isn't the limit. The grid scenes are one small
+part (3001), fetched and parsed again by the bench's fresh viewer but served from the host's warm file cache, so
+their first load is mostly the instancing.
 
 Windows (CI, `windows-latest`, WebView2 with WebGL on a software renderer, no GPU; PR #11 run 40219092964):
 

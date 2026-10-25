@@ -27,15 +27,19 @@ pub struct Outcome {
     pub canceled: bool,
     /// emmet's JSON envelope, or None when emmet printed none (it crashed or was killed).
     pub envelope: Option<Value>,
-    /// build/placements.json after a successful run.
-    pub placements: Option<Value>,
+    /// build/placements.json after a successful run, or why it couldn't be read.
+    pub placements: Option<Result<Value, String>>,
     pub generation: Option<u64>,
     pub ms: u64,
+    /// How emmet exited ("exit code 2", "killed") and the end of what it printed to stderr, for a run that printed no
+    /// envelope.
+    pub exit: String,
+    pub stderr: String,
 }
 
 impl Outcome {
     pub fn ok(&self) -> bool {
-        self.envelope.as_ref().is_some_and(|e| e["ok"] == true) && self.placements.is_some()
+        self.envelope.as_ref().is_some_and(|e| e["ok"] == true) && matches!(self.placements, Some(Ok(_)))
     }
 }
 
@@ -77,7 +81,8 @@ impl RunQueue {
     }
 }
 
-/// Runs emmet once. Returns the outcome and, if a request came in meanwhile, that request (the run was canceled).
+/// Runs emmet once. Returns the outcome and the latest request that came in meanwhile, if one did (the run was
+/// canceled for it, unless it was still setting up Python).
 fn run_once(emmet: &Path, data: &Path, project: &Path, rx: &mpsc::Receiver<PathBuf>) -> (Outcome, Option<PathBuf>) {
     let started = Instant::now();
     let mut outcome = Outcome {
@@ -87,6 +92,8 @@ fn run_once(emmet: &Path, data: &Path, project: &Path, rx: &mpsc::Receiver<PathB
         placements: None,
         generation: None,
         ms: 0,
+        exit: String::new(),
+        stderr: String::new(),
     };
     let mut cmd = Command::new(emmet);
     cmd.arg("--json")
@@ -97,7 +104,7 @@ fn run_once(emmet: &Path, data: &Path, project: &Path, rx: &mpsc::Receiver<PathB
         .args(["run", "--cancel-on-eof"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::null());
+        .stderr(Stdio::piped());
     no_window(&mut cmd);
     let mut child = match cmd.spawn() {
         Ok(c) => c,
@@ -116,9 +123,18 @@ fn run_once(emmet: &Path, data: &Path, project: &Path, rx: &mpsc::Receiver<PathB
         let _ = stdout.read_to_string(&mut s);
         s
     });
+    let mut stderr = child.stderr.take().expect("piped stderr");
+    let errors = std::thread::spawn(move || {
+        let mut s = String::new();
+        let _ = stderr.read_to_string(&mut s);
+        s
+    });
     let mut newer = None;
+    let mut status = None;
+    let mut canceled = false;
     loop {
-        if let Ok(Some(_)) = child.try_wait() {
+        if let Ok(Some(s)) = child.try_wait() {
+            status = Some(s);
             break;
         }
         match rx.recv_timeout(Duration::from_millis(5)) {
@@ -128,20 +144,34 @@ fn run_once(emmet: &Path, data: &Path, project: &Path, rx: &mpsc::Receiver<PathB
                     latest = p;
                 }
                 newer = Some(latest);
-                cancel(&mut child);
-                break;
+                // A run that's still setting up Python finishes first: killing emmet then would leave its bootstrap
+                // lock behind, and the next run would wait on it for ten minutes.
+                if emmet_core::python::status(&emmet_core::data::DataDir::at(data)).ready {
+                    cancel(&mut child);
+                    canceled = true;
+                    break;
+                }
             }
             Err(RecvTimeoutError::Timeout) => {}
             // The app is closing: stop the run with it.
             Err(RecvTimeoutError::Disconnected) => {
                 cancel(&mut child);
+                canceled = true;
                 break;
             }
         }
     }
     let text = reader.join().unwrap_or_default();
+    let err = errors.join().unwrap_or_default();
+    // The last few lines are what explain a crash; a run's stderr is otherwise empty (the model's goes to run.log).
+    let tail: Vec<&str> = err.lines().filter(|l| !l.trim().is_empty()).collect();
+    outcome.stderr = tail[tail.len().saturating_sub(5)..].join("\n");
+    outcome.exit = match status.and_then(|s| s.code()) {
+        Some(code) => format!("exit code {code}"),
+        None => "killed".into(),
+    };
     outcome.ms = started.elapsed().as_millis() as u64;
-    if newer.is_some() {
+    if canceled {
         outcome.canceled = true;
         return (outcome, newer);
     }
@@ -153,12 +183,17 @@ fn run_once(emmet: &Path, data: &Path, project: &Path, rx: &mpsc::Receiver<PathB
     if let Some(env) = &outcome.envelope {
         outcome.generation = env["meta"]["generation"].as_u64();
         if env["ok"] == true {
-            outcome.placements = std::fs::read_to_string(project.join("build/placements.json"))
-                .ok()
-                .and_then(|t| serde_json::from_str(&t).ok());
+            let path = project.join("build").join("placements.json");
+            outcome.placements = Some(
+                std::fs::read_to_string(&path)
+                    .map_err(|e| format!("can't read {}: {e}", path.display()))
+                    .and_then(|t| {
+                        serde_json::from_str(&t).map_err(|e| format!("{} doesn't parse: {e}", path.display()))
+                    }),
+            );
         }
     }
-    (outcome, None)
+    (outcome, newer)
 }
 
 /// Closes stdin so emmet stops its Python and exits, then kills it if it hasn't within the grace period.

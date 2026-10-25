@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The live viewer on the real app (session 1B): open a project and see every part; a slider or an external edit
 // updates the scene in place without moving the camera; a broken model.py shows the error and its line while the last
-// good model stays; fixing it recovers. On the cottage template, opened at launch (lib/projects.mjs).
+// good model stays; fixing it recovers. On the cottage template, opened with open_recent (lib/projects.mjs).
 import { readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { $, expect } from "@wdio/globals";
@@ -62,7 +62,7 @@ describe("the live viewer", () => {
     const width = Number(await slider.getValue());
     expect(width).toBeGreaterThan(8);
     expect(JSON.parse(readFileSync(join(project, "params.json"), "utf8")).width).toBe(width);
-    // Section 13's budget on M-series; slower hosted runners only report it.
+    // 1B's budget (What good looks like: ≤ 1.0 s on M-series); slower hosted runners only report it.
     if (process.platform === "darwin" && process.env.RUNNER_ENVIRONMENT !== "github-hosted") expect(ms).toBeLessThan(1000);
   });
 
@@ -109,6 +109,9 @@ describe("the live viewer", () => {
   });
 
   it("emmet-lib serves the library and refuses paths outside it", async () => {
+    // The targets exist, so a 404 means refused, not missing: the library is <data>/ldraw.
+    const data = process.env.EMMET_DATA_DIR;
+    expect(existsSync(join(data, "library.json")) && existsSync(join(data, "machine-id"))).toBe(true);
     const statuses = await browser.execute(async () => {
       const base = window.__TAURI_INTERNALS__.convertFileSrc("", "emmet-lib");
       const get = async (p) => (await fetch(base + p)).status;
@@ -116,7 +119,7 @@ describe("the live viewer", () => {
         part: await get("parts/3001.dat"),
         upper: await get("PARTS/3001.DAT"),
         dotdot: await get("parts/..%2F..%2Flibrary.json"),
-        encoded: await get("%2e%2e/%2e%2e/machine-id"),
+        encoded: await get("%2e%2e/machine-id"),
         backslash: await get("parts%5C..%5C..%5Cmachine-id"),
         absolute: await get("%2Fetc%2Fhosts"),
       };
@@ -135,5 +138,65 @@ describe("the live viewer", () => {
     await nextScene(gen);
     expect(existsSync(join(project, "build", "placements.json"))).toBe(true);
     await instances(await partCount());
+  });
+
+  it("open_recent refuses a folder that isn't on the list", async () => {
+    const refused = await browser.execute(async () => {
+      try {
+        await window.__TAURI_INTERNALS__.invoke("open_recent", { path: "/" });
+        return false;
+      } catch {
+        return true;
+      }
+    });
+    expect(refused).toBe(true);
+  });
+
+  it("two parameter changes at once both land", async () => {
+    const gen = await shown();
+    await browser.execute(() =>
+      Promise.all([
+        window.__TAURI_INTERNALS__.invoke("set_params", { values: { depth: 8 } }),
+        window.__TAURI_INTERNALS__.invoke("set_params", { values: { wall_rows: 7 } }),
+      ]),
+    );
+    await nextScene(gen);
+    const saved = JSON.parse(readFileSync(join(project, "params.json"), "utf8"));
+    expect([saved.depth, saved.wall_rows]).toEqual([8, 7]);
+  });
+
+  it("reopening a project whose build lost its placements builds it again", async () => {
+    rmSync(join(project, "build", "placements.json"));
+    const root = await open(project);
+    expect(root).toBeTruthy();
+    expect(existsSync(join(project, "build", "placements.json"))).toBe(true);
+    await instances(await partCount());
+  });
+
+  it("a part that failed to load is tried again, and drawn when it loads", async () => {
+    const result = await browser.execute(async (placements) => {
+      // The app's part source, failing its first request, as a dropped fetch would.
+      let calls = 0;
+      const lib = window.__emmet.library;
+      const flaky = {
+        parts: (ids) => (calls++ === 0 ? Promise.reject(new Error("offline")) : lib.parts(ids)),
+        colors: () => lib.colors(),
+      };
+      const v = window.__emmet.newViewer(flaky);
+      await v.load(placements);
+      const first = v.stats();
+      const refused = await v.render({ size: 64 }).then(() => false, () => true);
+      await v.update(placements);
+      await v.nextFrame();
+      const second = v.stats();
+      const rendered = await v.render({ size: 64 }).then(() => true, () => false);
+      v.dispose();
+      return { failedFirst: Object.keys(first.failed).length, refused, failedAfter: Object.keys(second.failed).length, instances: second.instances, rendered };
+    }, (await invoke("ui_state")).scene.placements);
+    expect(result.failedFirst).toBeGreaterThan(0);
+    expect(result.refused).toBe(true);
+    expect(result.failedAfter).toBe(0);
+    expect(result.instances).toBe(await partCount());
+    expect(result.rendered).toBe(true);
   });
 });

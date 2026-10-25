@@ -6,7 +6,8 @@ How `emmet` and `emmet mcp` reach the running app for ephemeral UI events (plan 
 
 ## Finding the app
 
-While the app runs, it keeps `<data dir>/bus.json`, created readable by this user only:
+While the app runs, it keeps `<data dir>/bus.json` (created readable by this user only on macOS; the Windows ACL
+comes in 1C):
 
 ```json
 { "v": 1, "name": "emmet-0123456789abcdef.sock", "token": "<64 hex digits, new each launch>", "pid": 4242 }
@@ -39,6 +40,7 @@ One JSON object per line (NDJSON), one reply per request, on one connection:
 
 ## Never an error
 
-`emmet_bus::send` always returns a reply. No `bus.json`, no socket, a wrong token, another protocol version, or no
-answer in time is `delivered: false` with a `reason`. `emmet render` then falls back to render mode
-(`Emmet --render`, a hidden window, ADR 0005); MCP `highlight` reports "Emmet app not open".
+`emmet_bus::send` always returns a reply. No `bus.json`, no socket, a wrong token (which also ends the connection),
+another protocol version, another project open, or no answer in time is `delivered: false` with a `reason`.
+`emmet render` then falls back to render mode (`Emmet --render`, a hidden window, ADR 0005), and if that fails too,
+its error says why the open app wasn't used; MCP `highlight` reports "Emmet app not open" with the reason.

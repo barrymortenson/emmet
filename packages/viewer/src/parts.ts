@@ -107,7 +107,8 @@ export class PartCache {
   readonly colors: Colors;
   private parts = new Map<string, PartGeometry>();
   private pending = new Map<string, Promise<void>>();
-  /** Parts that couldn't load, with why. They are never drawn with holes (ADR 0005). */
+  /** Parts whose last load failed, with why. They are never drawn with holes (ADR 0005), and the next ensure() that
+   * asks for one tries it again (the library may have been installed, or a fetch may have failed once). */
   readonly failed = new Map<string, string>();
   /** The color table, loaded with the first parts; a failed load is tried again next time. */
   private ready: Promise<void> | null = null;
@@ -133,17 +134,17 @@ export class PartCache {
   }
 
   get(id: string): PartGeometry | undefined {
-    return this.parts.get(key(id));
+    return this.parts.get(partKey(id));
   }
 
   get size(): number {
     return this.parts.size;
   }
 
-  /** Loads every id not loaded yet, in one request. Resolves once each is loaded or failed. */
+  /** Loads every id not loaded yet (failed ones included), in one request. Resolves once each is loaded or failed. */
   async ensure(ids: Iterable<string>): Promise<void> {
     await (this.ready ??= this.loadColors());
-    const want = [...new Set([...ids].map(key))].filter((k) => !this.parts.has(k) && !this.failed.has(k));
+    const want = [...new Set([...ids].map(partKey))].filter((k) => !this.parts.has(k));
     const fresh = want.filter((k) => !this.pending.has(k));
     if (fresh.length) {
       const batch = this.fetch(fresh);
@@ -171,6 +172,7 @@ export class PartCache {
         }
         try {
           this.parts.set(id, await this.parse(id, text));
+          this.failed.delete(id);
         } catch (e) {
           this.failed.set(id, String(e instanceof Error ? e.message : e));
         }
@@ -212,7 +214,8 @@ export class PartCache {
   }
 }
 
-function key(id: string): string {
+/** A part id as the cache and the part source know it: lowercase, without ".dat". */
+export function partKey(id: string): string {
   return id.toLowerCase().replace(/\.dat$/, "");
 }
 

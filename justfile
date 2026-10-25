@@ -108,7 +108,8 @@ test *args: build
 
 # App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server and the E2E hooks, driven by
 # WebdriverIO. `just e2e viewer` runs one spec file from tests/e2e/specs/. The app is built inside the workspace build
-# (it embeds the frontend by default), so it reuses `just test`'s compile instead of a separate tauri build.
+# (it embeds the frontend by default), so its dependencies come from `just test`'s compile; only the webdriver
+# feature's crates and the app itself build again.
 e2e *spec: e2e-build
     pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs {{ if spec == "" { "" } else { "--spec specs/" + spec + ".e2e.mjs" } }}
 

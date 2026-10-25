@@ -50,3 +50,43 @@ fn a_model_that_fails_is_reported_not_rendered() {
     assert_eq!(code, 3, "{env}");
     assert_eq!(env["error"]["code"], "MODEL_EXEC_FAILED");
 }
+
+/// A bus.json left by an app that crashed names a socket nobody answers: render mode takes over, and an error says
+/// why the open app wasn't used.
+#[test]
+fn a_stale_bus_file_falls_back_to_render_mode() {
+    let dir = project("scene-colors");
+    let data = emmet_it::shared_data();
+    let info = data.join("bus.json");
+    let left = std::fs::read(&info).ok();
+    std::fs::write(
+        &info,
+        r#"{"v":1,"name":"emmet-0000000000000000.sock","token":"00","pid":1}"#,
+    )
+    .unwrap();
+    let (env, code) = emmet_in(&dir, &["render", "--size", "64"]);
+    let (env2, _) = {
+        let out = emmet_it::emmet()
+            .env("EMMET_APP", dir.join("no-such-app"))
+            .arg("--json")
+            .arg("--data-dir")
+            .arg(data)
+            .args(["render", "--size", "64", "--project"])
+            .arg(&dir)
+            .output()
+            .unwrap();
+        emmet_it::envelope(&out)
+    };
+    match left {
+        Some(bytes) => std::fs::write(&info, bytes).unwrap(),
+        None => std::fs::remove_file(&info).unwrap(),
+    }
+    assert_eq!(code, 0, "{env}");
+    assert_eq!(env["data"]["via"], "render-mode");
+    assert_eq!(env2["error"]["code"], "RENDER_UNAVAILABLE");
+    let message = env2["error"]["message"].as_str().unwrap();
+    assert!(
+        message.contains("The open app wasn't used: Emmet isn't running"),
+        "{message}"
+    );
+}

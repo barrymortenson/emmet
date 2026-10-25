@@ -17,7 +17,9 @@ fn changes(rx: &mpsc::Receiver<()>, wait: Duration) -> usize {
 
 #[test]
 fn only_sources_trigger_a_run_and_a_burst_triggers_one() {
-    let dir = emmet_core::fsx::canonical(&emmet_it::temp_dir("watch")).unwrap();
+    // Not canonical on purpose: on macOS the temp dir sits behind a link (/var → /private/var), and the watcher must
+    // still match what the OS reports.
+    let dir = emmet_it::temp_dir("watch");
     std::fs::create_dir_all(dir.join("models")).unwrap();
     std::fs::create_dir_all(dir.join("build")).unwrap();
     std::fs::write(dir.join("model.py"), "# v0\n").unwrap();

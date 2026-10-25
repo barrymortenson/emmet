@@ -13,8 +13,10 @@ import { decode, encode } from "../lib/png.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const SIZE = 512;
-/** At most this share of pixels may differ beyond pixelmatch's per-pixel threshold (GPU and driver noise). */
-const TOLERANCE = 0.01;
+/** At most this share of pixels may differ beyond pixelmatch's per-pixel threshold. CI's runs differ by 0 pixels on
+ * each OS; 0.1 % (262 pixels) leaves room for driver noise while one missing brick (about 1,000) fails, which the
+ * last test proves. */
+const TOLERANCE = 0.001;
 const baselines = join(repo, "tests", "e2e", "baselines", os);
 const update = process.env.EMMET_UPDATE_BASELINES === "1";
 
@@ -54,4 +56,23 @@ describe("visual baselines", () => {
       expect(share).toBeLessThanOrEqual(TOLERANCE);
     });
   }
+
+  it("the comparison catches one brick missing", async () => {
+    const png = await browser.execute(async () => {
+      const v = window.__emmet.viewer();
+      const scene = await window.__TAURI_INTERNALS__.invoke("ui_state");
+      // A brick in the front row of the top layer, which the front view sees whole.
+      const list = scene.scene.placements.filter((p) => p.id !== "b405");
+      await v.update(list);
+      const { png } = await v.render({ view: "front", size: 512 });
+      await v.update(scene.scene.placements);
+      let s = "";
+      for (let i = 0; i < png.length; i += 0x8000) s += String.fromCharCode(...png.subarray(i, i + 0x8000));
+      return btoa(s);
+    });
+    const actual = decode(Buffer.from(png, "base64"));
+    const expected = decode(readFileSync(join(baselines, "grid.png")));
+    const bad = pixelmatch(expected.data, actual.data, null, SIZE, SIZE, { threshold: 0.1 });
+    expect(bad / (SIZE * SIZE)).toBeGreaterThan(TOLERANCE);
+  });
 });

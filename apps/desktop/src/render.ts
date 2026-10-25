@@ -17,7 +17,7 @@ export async function renderMode(): Promise<void> {
     const { png, camera } = await viewer.render({
       view: job.view as Parameters<typeof viewer.setView>[0],
       size: job.size,
-      highlight: job.highlight.length ? job.highlight : undefined,
+      highlight: job.highlight,
     });
     await commands.renderDone(base64(png), json(camera));
   } catch (e) {

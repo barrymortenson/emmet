@@ -12,7 +12,7 @@ const PROJECTS = {
   hello: [],
   viewer: [["", "cottage"]],
   leak: [["", "cottage"]],
-  render: [["", "cottage"]],
+  render: [["", "cottage"], ["other", "scene-colors"]],
   runs: [["", "scene-grid"]],
   visual: [["", "cottage"], ["scene-colors", "scene-colors"], ["scene-grid", "scene-grid"]],
   bench: [["", "cottage"], ["grid500", "scene-grid"], ["grid2000", "scene-grid", { count: 2000 }]],

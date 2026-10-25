@@ -176,7 +176,7 @@
             "type": "integer"
           },
           "camera": {
-            "description": "The render's camera: `{view, position, target}` in the viewer's frame."
+            "description": "The render's camera: `{view, position, target, fov}` in the viewer's frame."
           },
           "highlighted": {
             "items": {

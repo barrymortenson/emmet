@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! `emmet render` and the MCP `render` tool (plan sections 09 and 13, D-24): a PNG through the viewer's own code. The
-//! running app renders it over the bus when it has the project open; otherwise emmet starts the app's render mode,
-//! a hidden window that renders and exits (ADR 0005).
+//! running app renders it over the bus when it has the project open; when the bus doesn't deliver (no app, another
+//! project open, or no answer in time), emmet starts the app's render mode, a hidden window that renders and exits
+//! (ADR 0005).
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -16,8 +17,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub const VIEWS: [&str; 6] = ["iso", "front", "back", "left", "right", "top"];
-/// How long the app may take to answer, and render mode to finish (a cold WebView2 on CI loads parts slowly).
+/// How long the open app may take to answer (its own window gives up at 25 s).
 const BUS_TIMEOUT: Duration = Duration::from_secs(30);
+/// How long render mode may take (a cold WebView2 on CI loads parts slowly; the app gives up at 100 s).
 const RENDER_MODE_TIMEOUT: Duration = Duration::from_secs(120);
 
 /// What a render produced; the PNG itself goes to a file (CLI) or into image content (MCP).
@@ -27,7 +29,7 @@ pub struct Rendered {
     pub size: u32,
     /// "app" (the running app, over the bus) or "render-mode" (a hidden window of the app).
     pub via: String,
-    /// The render's camera: `{view, position, target}` in the viewer's frame.
+    /// The render's camera: `{view, position, target, fov}` in the viewer's frame.
     pub camera: Option<serde_json::Value>,
     pub highlighted: Vec<String>,
     /// Where the PNG was written (CLI only).
@@ -77,7 +79,12 @@ pub fn render(data: &DataDir, project: &Project, view: &str, size: u32, highligh
             bytes,
         });
     }
-    render_mode(data, project, view, size, highlight)
+    let why = reply.reason.unwrap_or_default();
+    render_mode(data, project, view, size, highlight).map_err(|mut e| {
+        // Say why the open app wasn't used, too.
+        e.message = format!("{} (The open app wasn't used: {why}.)", e.message);
+        e
+    })
 }
 
 fn info(
@@ -144,11 +151,14 @@ fn app_binary() -> Option<PathBuf> {
 /// `Emmet --render <project> --view … --size … --out …` in a hidden window, then the PNG it wrote.
 fn render_mode(data: &DataDir, project: &Project, view: &str, size: u32, highlight: &[String]) -> Result<Png> {
     let app = app_binary()
-        .ok_or_else(|| unavailable("Emmet isn't open, and the Emmet app isn't installed next to emmet."))?;
+        .ok_or_else(|| unavailable("The Emmet app isn't installed next to emmet, so render mode can't run."))?;
+    // One file per render: an MCP server can render several views at once.
+    static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let n = N.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
     let out = project
         .build_dir()?
         .join("renders")
-        .join(format!(".render-{}.png", std::process::id()));
+        .join(format!(".render-{}-{n}.png", std::process::id()));
     std::fs::create_dir_all(out.parent().expect("renders/")).map_err(|e| Error::io(&out, e))?;
     let _ = std::fs::remove_file(&out);
     let mut cmd = Command::new(&app);
@@ -187,9 +197,22 @@ fn render_mode(data: &DataDir, project: &Project, view: &str, size: u32, highlig
         }
     };
     let log = log.join().unwrap_or_default();
+    // The app's own "render failed: …" line, else a panic's, never Rust's "note: run with RUST_BACKTRACE" line.
     let failed = |why: String| {
-        let last = log.lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("").trim();
-        unavailable(if last.is_empty() { why } else { format!("{why}: {last}") })
+        let lines: Vec<&str> = log
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with("note:"))
+            .collect();
+        let said = lines
+            .iter()
+            .rev()
+            .find(|l| l.starts_with("render failed:"))
+            .or_else(|| lines.iter().rev().find(|l| l.contains("panicked at")))
+            .or(lines.last())
+            .copied()
+            .unwrap_or("");
+        unavailable(if said.is_empty() { why } else { format!("{why}: {said}") })
     };
     match status {
         None => {

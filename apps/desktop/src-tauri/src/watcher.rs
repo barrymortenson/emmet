@@ -22,11 +22,13 @@ impl Watcher {
         let (tx, rx) = mpsc::channel::<()>();
         let base = root.clone();
         let mut inner = notify::recommended_watcher(move |event: notify::Result<notify::Event>| {
-            let Ok(event) = event else { return };
-            if event.kind.is_access() {
+            // An error (Windows reports a full change buffer this way) or a rescan means changes may have been
+            // missed: an extra run is better than a stale model shown as built.
+            let Ok(event) = event else {
+                let _ = tx.send(());
                 return;
-            }
-            if event.paths.iter().any(|p| is_source(&base, p)) {
+            };
+            if event.need_rescan() || (!event.kind.is_access() && event.paths.iter().any(|p| is_source(&base, p))) {
                 let _ = tx.send(());
             }
         })?;

@@ -69,6 +69,11 @@ pub fn parse_args(args: impl IntoIterator<Item = String>) -> Result<Args, String
             s => open = Some(PathBuf::from(s)),
         }
     }
+    if !["iso", "front", "back", "left", "right", "top"].contains(&view.as_str()) {
+        return Err(format!(
+            "there's no view '{view}': use iso, front, back, left, right, or top"
+        ));
+    }
     let render = match render {
         Some(project) => Some(RenderArgs {
             project,
@@ -235,18 +240,27 @@ pub fn run() {
                 Ok(server) => {
                     tauri_app.manage(server);
                 }
-                Err(e) => eprintln!(
-                    "Emmet: the bus didn't start, so emmet render and highlight won't reach this window: {}",
+                Err(e) => state.notify(format!(
+                    "emmet render and highlight can't reach this window: the bus didn't start ({}). They use render \
+                     mode instead.",
                     e.message
-                ),
+                )),
             }
             if let Some(dir) = &args.open
                 && let Err(e) = app::open(&handle, dir)
             {
-                eprintln!("Emmet: can't open {}: {}", dir.display(), e.message);
+                state.notify(format!("Couldn't open {}: {} {}", dir.display(), e.message, e.hint));
             }
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running Emmet");
+        .build(tauri::generate_context!())
+        .expect("error while building Emmet")
+        .run(|handle, event| {
+            // Tauri exits without dropping managed state, so the bus's token file is removed here.
+            if let tauri::RunEvent::Exit = event
+                && let Some(server) = handle.try_state::<emmet_bus::Server>()
+            {
+                server.close();
+            }
+        });
 }

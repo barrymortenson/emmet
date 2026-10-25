@@ -33,8 +33,12 @@ export function Params({ lastGeneration }: { running: boolean; lastGeneration: n
     };
   }, [lastGeneration]);
 
+  const [colorsProblem, setColorsProblem] = useState<Problem | null>(null);
   useEffect(() => {
-    void commands.listColors().then((r) => r.status === "ok" && setColors(r.data));
+    void commands.listColors().then((r) => {
+      if (r.status === "ok") setColors(r.data);
+      else setColorsProblem(r.error);
+    });
   }, []);
 
   const change = (name: string, value: Value) => {
@@ -48,6 +52,13 @@ export function Params({ lastGeneration }: { running: boolean; lastGeneration: n
       const r = await commands.setParams(batch);
       writes.current--;
       setProblem(r.status === "ok" ? null : r.error);
+      // Show what params.json holds now, unless another change is already on its way: a rejected value goes back.
+      if (writes.current === 0 && !Object.keys(pending.current).length) {
+        const now = r.status === "ok" ? r : await commands.getParams();
+        if (now.status === "ok" && writes.current === 0 && !Object.keys(pending.current).length) {
+          setValues(now.data.values as Record<string, Value>);
+        }
+      }
     }, SETTLE_MS);
   };
 
@@ -65,6 +76,11 @@ export function Params({ lastGeneration }: { running: boolean; lastGeneration: n
       {problem && (
         <p className="notice" role="alert">
           {problem.message} {problem.hint}
+        </p>
+      )}
+      {colorsProblem && (
+        <p className="notice" role="alert">
+          The color list isn't available: {colorsProblem.message} {colorsProblem.hint}
         </p>
       )}
       {params.params.length === 0 && <p className="muted">This model has no parameters.</p>}
