@@ -16,7 +16,10 @@ emmet-agent = { path = "crates/emmet-agent" }
 emmet-bus = { path = "crates/emmet-bus" }
 clap = { version = "4.6.7", features = ["derive"] }
 glam = "0.34.1"
+interprocess = "2.4.6"
 insta = { version = "1.49.0", features = ["json", "redactions"] }
+# The project watcher (plan section 07).
+notify = { version = "8.2.0", default-features = false, features = ["macos_fsevent"] }
 rmcp = { version = "3.7.0", features = ["server", "client", "macros", "schemars", "transport-io", "transport-child-process"] }
 rusqlite = { version = "0.41.0", features = ["bundled"] }
 schemars = "1.2.3"
@@ -31,6 +34,11 @@ ureq = { version = "3.5.0", default-features = false, features = ["rustls-no-pro
 zip = { version = "9.1.0", default-features = false, features = ["deflate"] }
 tauri = { version = "2.12.5", features = [] }
 tauri-build = { version = "2.7.4", features = [] }
+tauri-plugin-dialog = "2.8.3"
+# Typed commands and events with generated TS bindings (plan section 06).
+tauri-specta = { version = "=2.0.0-rc.26", features = ["derive", "typescript"] }
+specta = { version = "=2.0.0-rc.26", features = ["derive", "serde_json"] }
+specta-typescript = "=0.0.13"
 # E2E only: the embedded WebDriver server, behind emmet-desktop's `webdriver` feature (ADR 0002).
 tauri-plugin-wdio-webdriver = "1.5.1"
 

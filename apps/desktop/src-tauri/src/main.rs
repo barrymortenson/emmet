@@ -7,10 +7,5 @@
 compile_error!("the webdriver feature is for debug E2E builds only");
 
 fn main() {
-    let builder = tauri::Builder::default();
-    #[cfg(feature = "webdriver")]
-    let builder = builder.plugin(tauri_plugin_wdio_webdriver::init());
-    builder
-        .run(tauri::generate_context!())
-        .expect("error while running Emmet");
+    emmet_desktop::run();
 }

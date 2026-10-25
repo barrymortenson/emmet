@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "render",
+  "description": "Render mode's hidden window (ADR 0005): it reads its job and hands back the PNG, nothing else.",
+  "windows": ["render"],
+  "permissions": ["allow-render-job", "allow-render-done", "allow-render-failed"]
+}

@@ -12,6 +12,8 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@emmet/viewer": "workspace:*",
+    "@tauri-apps/api": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

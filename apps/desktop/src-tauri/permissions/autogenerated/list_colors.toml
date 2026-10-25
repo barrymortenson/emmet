@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-colors"
+description = "Enables the list_colors command without any pre-configured scope."
+commands.allow = ["list_colors"]
+
+[[permission]]
+identifier = "deny-list-colors"
+description = "Denies the list_colors command without any pre-configured scope."
+commands.deny = ["list_colors"]

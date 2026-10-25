@@ -2,6 +2,7 @@
 //! The engine the CLI, the MCP server, and the app share: LDraw files, the library and its parts index, colors,
 //! projects, running a model, and the JSON envelope. The validator, BOM, and steps arrive in later sessions.
 
+pub mod base64;
 pub mod colors;
 pub mod data;
 pub mod envelope;

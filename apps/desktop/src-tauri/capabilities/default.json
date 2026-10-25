@@ -1,7 +1,20 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "The main window gets no permissions until a session adds a typed command it needs.",
+  "description": "The main window: its typed commands by name, and listening for the host's events. No fs, shell, or dialog permissions; the host opens dialogs itself.",
   "windows": ["main"],
-  "permissions": []
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "allow-app-info",
+    "allow-ui-state",
+    "allow-open-dialog",
+    "allow-new-project-dialog",
+    "allow-open-recent",
+    "allow-get-params",
+    "allow-set-params",
+    "allow-list-colors",
+    "allow-rebuild",
+    "allow-bus-reply"
+  ]
 }

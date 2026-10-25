@@ -1,0 +1,647 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//! The app's state, its typed commands and events (tauri-specta), and the glue between the project, the watcher, the
+//! run queue, and the bus. The webview names no filesystem path except `open_recent`'s, which must be on the list.
+
+use std::collections::{BTreeMap, HashMap};
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, OnceLock, mpsc};
+use std::time::Duration;
+
+use emmet_core::data::DataDir;
+use emmet_core::envelope::Error;
+use emmet_core::project::{Project, Template};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use tauri::{AppHandle, Manager, State};
+use tauri_plugin_dialog::DialogExt;
+use tauri_specta::Event;
+
+use crate::recent::{self, Recent};
+use crate::runs::{Outcome, RunEvent, RunQueue};
+use crate::watcher::Watcher;
+
+/// How long the app waits for its own window to render for the bus.
+const BUS_RENDER_TIMEOUT: Duration = Duration::from_secs(25);
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ProjectView {
+    pub root: String,
+    pub name: String,
+    pub trusted: bool,
+}
+
+/// An error for the UI: emmet's error envelope, with the user's file and line when there is one.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Problem {
+    pub code: String,
+    pub message: String,
+    pub hint: String,
+    pub file: Option<String>,
+    pub line: Option<u32>,
+    pub excerpt: Option<String>,
+}
+
+impl From<Error> for Box<Problem> {
+    fn from(e: Error) -> Self {
+        let v = serde_json::to_value(&e).unwrap_or_default();
+        Box::new(Problem::from_envelope(&v))
+    }
+}
+
+impl Problem {
+    fn from_envelope(e: &Value) -> Self {
+        let s = |v: &Value| v.as_str().map(String::from);
+        let d = &e["details"];
+        Self {
+            code: s(&e["code"]).unwrap_or_else(|| "INTERNAL".into()),
+            message: s(&e["message"]).unwrap_or_default(),
+            hint: s(&e["hint"]).unwrap_or_default(),
+            file: s(&d["file"]),
+            line: d["line"].as_u64().map(|l| l as u32),
+            excerpt: s(&d["excerpt"]),
+        }
+    }
+
+    fn internal(message: impl Into<String>) -> Box<Self> {
+        Box::new(Self {
+            code: "INTERNAL".into(),
+            message: message.into(),
+            hint: String::new(),
+            file: None,
+            line: None,
+            excerpt: None,
+        })
+    }
+}
+
+/// One placed part, as build/placements.json lists it.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Placement {
+    pub id: String,
+    pub part: String,
+    pub color: u32,
+    pub matrix: Vec<f64>,
+    pub step: u32,
+    pub submodel: Vec<String>,
+    #[serde(default)]
+    pub src: Option<String>,
+}
+
+/// A built model on screen: what the viewer shows, and the run it came from.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Scene {
+    pub generation: u64,
+    pub model: String,
+    pub placements: Vec<Placement>,
+    pub parts: u32,
+    pub steps: u32,
+    /// How long the run took, or null for a scene read from an earlier build/.
+    pub ms: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct UiState {
+    pub project: Option<ProjectView>,
+    pub running: bool,
+    /// The last good model, which stays on screen while a run is going or after one fails.
+    pub scene: Option<Scene>,
+    /// Why the last run failed, if it did.
+    pub error: Option<Problem>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct AppInfo {
+    pub version: String,
+    pub recent: Vec<Recent>,
+    /// The library release, or null when none is installed.
+    pub library: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ParamSpec {
+    pub name: String,
+    /// int, float, bool, choice, or color.
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub default: Value,
+    #[serde(default)]
+    pub min: Option<f64>,
+    #[serde(default)]
+    pub max: Option<f64>,
+    #[serde(default)]
+    pub step: Option<f64>,
+    #[serde(default)]
+    pub choices: Option<Vec<Value>>,
+    pub help: String,
+    pub line: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ParamsView {
+    pub model: String,
+    pub doc: String,
+    pub file: String,
+    pub params: Vec<ParamSpec>,
+    pub values: BTreeMap<String, Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ColorView {
+    pub code: u32,
+    pub name: String,
+    pub rgb: String,
+}
+
+/// What render mode renders: the project's build/placements.json, from one view.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct RenderJob {
+    pub scene: Scene,
+    pub view: String,
+    pub size: u32,
+    pub highlight: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+pub struct ProjectOpened {
+    pub project: ProjectView,
+    pub scene: Option<Scene>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+pub struct RunStarted {}
+
+/// A run ended: a new scene, or why it failed (the last good scene stays).
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+pub struct RunFinished {
+    pub scene: Option<Scene>,
+    pub error: Option<Problem>,
+}
+
+/// The bus asks the window to render: show `scene` if it's newer than what's on screen, render, and answer with
+/// `bus_reply(id, …)`.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+pub struct BusRender {
+    pub id: u64,
+    pub view: String,
+    pub size: u32,
+    pub highlight: Vec<String>,
+    pub scene: Option<Scene>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+pub struct BusHighlight {
+    pub ids: Vec<String>,
+}
+
+struct Open {
+    root: PathBuf,
+    view: ProjectView,
+    _watcher: Option<Watcher>,
+}
+
+#[derive(Default)]
+struct Inner {
+    project: Option<Open>,
+    scene: Option<Scene>,
+    error: Option<Problem>,
+    running: bool,
+}
+
+struct BusAnswer {
+    png: Option<String>,
+    camera: Option<Value>,
+    error: Option<String>,
+}
+
+pub struct AppState {
+    pub data: DataDir,
+    emmet: PathBuf,
+    inner: Mutex<Inner>,
+    runs: OnceLock<RunQueue>,
+    pending: Mutex<HashMap<u64, mpsc::Sender<BusAnswer>>>,
+    next: AtomicU64,
+    pub render: Option<RenderJob>,
+}
+
+impl AppState {
+    pub fn new(data: DataDir, emmet: PathBuf, render: Option<RenderJob>) -> Self {
+        Self {
+            data,
+            emmet,
+            inner: Mutex::new(Inner::default()),
+            runs: OnceLock::new(),
+            pending: Mutex::new(HashMap::new()),
+            next: AtomicU64::new(1),
+            render,
+        }
+    }
+
+    /// Starts the run queue; its events go to the window.
+    pub fn start_runs(&self, app: &AppHandle) {
+        let handle = app.clone();
+        let queue = RunQueue::start(self.emmet.clone(), self.data.root().to_path_buf(), move |ev| {
+            on_run_event(&handle, ev)
+        });
+        let _ = self.runs.set(queue);
+    }
+
+    fn request_run(&self, root: &Path) {
+        if let Some(q) = self.runs.get() {
+            q.request(root);
+        }
+    }
+
+    fn open_root(&self) -> Option<PathBuf> {
+        self.inner
+            .lock()
+            .expect("state")
+            .project
+            .as_ref()
+            .map(|o| o.root.clone())
+    }
+
+    fn project(&self) -> Result<Project, Box<Problem>> {
+        let root = self
+            .open_root()
+            .ok_or_else(|| Problem::internal("No project is open."))?;
+        Ok(Project::find(Some(&root))?)
+    }
+}
+
+/// Reads a scene from the project's build/, if it has one.
+fn read_scene(root: &Path) -> Option<Scene> {
+    let placements: Value =
+        serde_json::from_str(&std::fs::read_to_string(root.join("build/placements.json")).ok()?).ok()?;
+    let manifest: Value = std::fs::read_to_string(root.join("build/manifest.json"))
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok())
+        .unwrap_or_default();
+    scene_from(&placements, &manifest, None)
+}
+
+fn scene_from(placements: &Value, manifest: &Value, ms: Option<u64>) -> Option<Scene> {
+    let list: Vec<Placement> = serde_json::from_value(placements["parts"].clone()).ok()?;
+    Some(Scene {
+        generation: manifest["run"]["generation"].as_u64().unwrap_or(0),
+        model: placements["model"].as_str().unwrap_or_default().to_string(),
+        parts: list.len() as u32,
+        steps: manifest["steps"].as_u64().unwrap_or(0) as u32,
+        placements: list,
+        ms,
+    })
+}
+
+fn on_run_event(app: &AppHandle, ev: RunEvent) {
+    let state = app.state::<AppState>();
+    match ev {
+        RunEvent::Started { project } => {
+            if state.open_root().as_deref() != Some(project.as_path()) {
+                return;
+            }
+            state.inner.lock().expect("state").running = true;
+            let _ = RunStarted {}.emit(app);
+        }
+        RunEvent::Finished(o) => {
+            if o.canceled || state.open_root().as_deref() != Some(o.project.as_path()) {
+                return;
+            }
+            let finished = finish(&state, &o);
+            if let Some(f) = finished {
+                let _ = f.emit(app);
+            }
+        }
+    }
+}
+
+/// Applies a run's outcome to the state. None when there's nothing to tell the window: the result is older than
+/// the scene on screen (the generation check).
+fn finish(state: &AppState, o: &Outcome) -> Option<RunFinished> {
+    let mut inner = state.inner.lock().expect("state");
+    inner.running = false;
+    if o.ok() {
+        let manifest = std::fs::read_to_string(o.project.join("build/manifest.json"))
+            .ok()
+            .and_then(|t| serde_json::from_str::<Value>(&t).ok())
+            .unwrap_or_default();
+        let mut scene = scene_from(o.placements.as_ref()?, &manifest, Some(o.ms))?;
+        scene.generation = o.generation.unwrap_or(scene.generation);
+        if inner.scene.as_ref().is_some_and(|s| s.generation > scene.generation) {
+            return None;
+        }
+        inner.scene = Some(scene.clone());
+        inner.error = None;
+        return Some(RunFinished {
+            scene: Some(scene),
+            error: None,
+        });
+    }
+    let error = match &o.envelope {
+        Some(env) if env["ok"] == true => *Problem::internal("The run finished but build/placements.json is missing."),
+        Some(env) => Problem::from_envelope(&env["error"]),
+        None => *Problem::internal("emmet stopped before it finished the run (it was killed, or crashed)."),
+    };
+    inner.error = Some(error.clone());
+    Some(RunFinished {
+        scene: None,
+        error: Some(error),
+    })
+}
+
+/// Opens the project at `dir` (or the one above it): watches it, shows its last build, and runs it if that's stale.
+pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
+    let state = app.state::<AppState>();
+    let project = Project::find(Some(dir))?;
+    let root = project.root.clone();
+    let view = ProjectView {
+        root: root.display().to_string(),
+        name: project.config.name.clone(),
+        trusted: project.is_trusted(&state.data),
+    };
+    let handle = app.clone();
+    let watched = root.clone();
+    let watcher = Watcher::start(&root, move || handle.state::<AppState>().request_run(&watched)).ok();
+    let scene = read_scene(&root);
+    let fresh = emmet_core::library::require(&state.data)
+        .and_then(|lib| project.inputs_hash(&BTreeMap::new(), &lib.release))
+        .ok()
+        .zip(
+            std::fs::read_to_string(root.join("build/manifest.json"))
+                .ok()
+                .and_then(|t| serde_json::from_str::<Value>(&t).ok()),
+        )
+        .is_some_and(|(hash, m)| m["inputs_hash"].as_str() == Some(hash.as_str()));
+    {
+        let mut inner = state.inner.lock().expect("state");
+        inner.project = Some(Open {
+            root: root.clone(),
+            view: view.clone(),
+            _watcher: watcher,
+        });
+        inner.scene = scene.clone();
+        inner.error = None;
+        inner.running = false;
+    }
+    recent::touch(&state.data, &root, &view.name);
+    let _ = ProjectOpened {
+        project: view.clone(),
+        scene,
+    }
+    .emit(app);
+    if !fresh {
+        state.request_run(&root);
+    }
+    Ok(view)
+}
+
+/// Answers a bus message for the open project (plan section 09, docs/spec/bus.md).
+pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
+    use emmet_bus::{Message, Reply};
+    let state = app.state::<AppState>();
+    let open = state.open_root();
+    let is_open = |project: &str| {
+        let want = emmet_core::fsx::canonical(Path::new(project)).ok();
+        want.is_some() && want == open
+    };
+    match msg {
+        Message::Highlight { project, ids } => {
+            if !is_open(&project) {
+                return Reply::undelivered("that project isn't open in Emmet");
+            }
+            let _ = BusHighlight { ids: ids.clone() }.emit(app);
+            Reply {
+                delivered: true,
+                highlighted: ids,
+                ..Default::default()
+            }
+        }
+        Message::Render {
+            project,
+            view,
+            size,
+            highlight,
+        } => {
+            if !is_open(&project) {
+                return Reply::undelivered("that project isn't open in Emmet");
+            }
+            let Some(root) = open.clone() else {
+                return Reply::undelivered("that project isn't open in Emmet");
+            };
+            let id = state.next.fetch_add(1, Ordering::SeqCst);
+            let (tx, rx) = mpsc::channel();
+            state.pending.lock().expect("pending").insert(id, tx);
+            let event = BusRender {
+                id,
+                view,
+                size,
+                highlight: highlight.clone(),
+                scene: read_scene(&root),
+            };
+            if event.emit(app).is_err() {
+                state.pending.lock().expect("pending").remove(&id);
+                return Reply::undelivered("the window isn't listening");
+            }
+            let answer = rx.recv_timeout(BUS_RENDER_TIMEOUT);
+            state.pending.lock().expect("pending").remove(&id);
+            match answer {
+                Ok(a) => Reply {
+                    delivered: true,
+                    png: a.png,
+                    camera: a.camera,
+                    error: a.error,
+                    highlighted: highlight,
+                    ..Default::default()
+                },
+                Err(_) => Reply::undelivered("the window didn't render in time"),
+            }
+        }
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn app_info(state: State<'_, AppState>) -> AppInfo {
+    AppInfo {
+        version: env!("CARGO_PKG_VERSION").into(),
+        recent: recent::list(&state.data),
+        library: emmet_core::library::require(&state.data).ok().map(|i| i.release),
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn ui_state(state: State<'_, AppState>) -> UiState {
+    let inner = state.inner.lock().expect("state");
+    UiState {
+        project: inner.project.as_ref().map(|o| o.view.clone()),
+        running: inner.running,
+        scene: inner.scene.clone(),
+        error: inner.error.clone(),
+    }
+}
+
+/// Opens a project folder picked in the system dialog.
+#[tauri::command]
+#[specta::specta]
+pub async fn open_dialog(app: AppHandle) -> Result<Option<ProjectView>, Box<Problem>> {
+    let dialog = app.dialog().clone();
+    let picked =
+        tauri::async_runtime::spawn_blocking(move || dialog.file().set_title("Open a project").blocking_pick_folder())
+            .await
+            .map_err(|e| Problem::internal(e.to_string()))?;
+    match picked.and_then(|p| p.into_path().ok()) {
+        Some(dir) => open(&app, &dir).map(Some),
+        None => Ok(None),
+    }
+}
+
+/// Creates a cottage project where the system save dialog says, and opens it.
+#[tauri::command]
+#[specta::specta]
+pub async fn new_project_dialog(app: AppHandle) -> Result<Option<ProjectView>, Box<Problem>> {
+    let dialog = app.dialog().clone();
+    let picked = tauri::async_runtime::spawn_blocking(move || {
+        dialog
+            .file()
+            .set_title("New project")
+            .set_file_name("cottage")
+            .blocking_save_file()
+    })
+    .await
+    .map_err(|e| Problem::internal(e.to_string()))?;
+    let Some(dir) = picked.and_then(|p| p.into_path().ok()) else {
+        return Ok(None);
+    };
+    let data = app.state::<AppState>().data.clone();
+    let created = tauri::async_runtime::spawn_blocking(move || {
+        emmet_core::ops::new_project(&data, &dir, Template::Cottage).map(|c| PathBuf::from(c.project))
+    })
+    .await
+    .map_err(|e| Problem::internal(e.to_string()))??;
+    open(&app, &created).map(Some)
+}
+
+/// Opens a project from the recents list. Any other path is refused.
+#[tauri::command]
+#[specta::specta]
+pub fn open_recent(app: AppHandle, path: String) -> Result<ProjectView, Box<Problem>> {
+    let data = app.state::<AppState>().data.clone();
+    let root = recent::find(&data, &path).ok_or_else(|| {
+        Box::new(Problem {
+            hint: "Open it with Open… instead.".into(),
+            ..*Problem::internal(format!("{path} isn't a recent project."))
+        })
+    })?;
+    open(&app, &root)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_params(app: AppHandle) -> Result<ParamsView, Box<Problem>> {
+    let state = app.state::<AppState>();
+    let (data, project) = (state.data.clone(), state.project()?);
+    let params = tauri::async_runtime::spawn_blocking(move || emmet_core::ops::get_params(&data, &project))
+        .await
+        .map_err(|e| Problem::internal(e.to_string()))??;
+    params_view(params)
+}
+
+/// Checks the values against the model's schema and writes params.json; the watcher then runs the model.
+#[tauri::command]
+#[specta::specta]
+pub async fn set_params(app: AppHandle, values: BTreeMap<String, Value>) -> Result<ParamsView, Box<Problem>> {
+    let state = app.state::<AppState>();
+    let (data, project) = (state.data.clone(), state.project()?);
+    let params = tauri::async_runtime::spawn_blocking(move || emmet_core::ops::set_params(&data, &project, &values))
+        .await
+        .map_err(|e| Problem::internal(e.to_string()))??;
+    params_view(params)
+}
+
+fn params_view(p: emmet_core::ops::Params) -> Result<ParamsView, Box<Problem>> {
+    serde_json::to_value(p)
+        .and_then(serde_json::from_value)
+        .map_err(|e| Problem::internal(format!("the params reply: {e}")))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_colors(app: AppHandle) -> Result<Vec<ColorView>, Box<Problem>> {
+    let data = app.state::<AppState>().data.clone();
+    let list = tauri::async_runtime::spawn_blocking(move || emmet_core::ops::list_colors(&data, None))
+        .await
+        .map_err(|e| Problem::internal(e.to_string()))??;
+    Ok(list
+        .colors
+        .into_iter()
+        .map(|c| ColorView {
+            code: c.code,
+            name: c.name,
+            rgb: c.rgb,
+        })
+        .collect())
+}
+
+/// Runs the open project's model again.
+#[tauri::command]
+#[specta::specta]
+pub fn rebuild(state: State<'_, AppState>) -> Result<(), Box<Problem>> {
+    let root = state
+        .open_root()
+        .ok_or_else(|| Problem::internal("No project is open."))?;
+    state.request_run(&root);
+    Ok(())
+}
+
+/// The window's answer to a [`BusRender`].
+#[tauri::command]
+#[specta::specta]
+pub fn bus_reply(
+    state: State<'_, AppState>,
+    id: u64,
+    png: Option<String>,
+    camera: Option<Value>,
+    error: Option<String>,
+) {
+    if let Some(tx) = state.pending.lock().expect("pending").remove(&id) {
+        let _ = tx.send(BusAnswer { png, camera, error });
+    }
+}
+
+/// Render mode: what to render.
+#[tauri::command]
+#[specta::specta]
+pub fn render_job(state: State<'_, AppState>) -> Option<RenderJob> {
+    state.render.clone()
+}
+
+/// Render mode: the PNG (base64) and camera. Writes them where `--out` says and exits.
+#[tauri::command]
+#[specta::specta]
+pub fn render_done(png: String, camera: Value) {
+    crate::finish_render(Ok((png, camera)));
+}
+
+/// Render mode: why the render failed. Exits with an error.
+#[tauri::command]
+#[specta::specta]
+pub fn render_failed(message: String) {
+    crate::finish_render(Err(message));
+}
+
+/// The render mode's job from `--render <project>`: the project's last build.
+pub fn render_job_for(dir: &Path, view: &str, size: u32, highlight: Vec<String>) -> Result<RenderJob, String> {
+    let project = Project::find(Some(dir)).map_err(|e| e.message)?;
+    let scene = read_scene(&project.root).ok_or_else(|| {
+        format!(
+            "{} has no build/placements.json; run emmet run first.",
+            project.root.display()
+        )
+    })?;
+    Ok(RenderJob {
+        scene,
+        view: view.into(),
+        size,
+        highlight,
+    })
+}

@@ -368,17 +368,7 @@ fn machine_secret(data: &DataDir) -> Result<String> {
     if let Some(id) = read() {
         return Ok(id);
     }
-    use std::hash::{BuildHasher, Hasher};
-    let mut id = String::new();
-    for _ in 0..4 {
-        let mut h = std::collections::hash_map::RandomState::new().build_hasher();
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map_or(0, |d| d.as_nanos());
-        h.write_u128(now);
-        h.write_u32(std::process::id());
-        id.push_str(&format!("{:016x}", h.finish()));
-    }
+    let id = fsx::random_hex(4);
     let tmp = path.with_extension(format!("{}.tmp", std::process::id()));
     write_atomic(&tmp, format!("{id}\n").as_bytes())?;
     let linked = std::fs::hard_link(&tmp, &path);

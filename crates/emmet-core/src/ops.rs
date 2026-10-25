@@ -187,6 +187,16 @@ pub fn run_model(
     crate::run::run_model(data, project, overrides)
 }
 
+/// [`run_model`] that stops when `cancel` is set (the app's run queue, through `emmet run --cancel-on-eof`).
+pub fn run_model_until(
+    data: &DataDir,
+    project: &Project,
+    overrides: &BTreeMap<String, serde_json::Value>,
+    cancel: &std::sync::atomic::AtomicBool,
+) -> (Result<RunSummary>, RunMeta) {
+    crate::run::run_model_until(data, project, overrides, cancel)
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Trusted {
     pub project: String,

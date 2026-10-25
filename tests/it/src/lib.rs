@@ -26,10 +26,13 @@ pub fn fixture(rel: &str) -> PathBuf {
     repo().join("tests/fixtures").join(rel)
 }
 
+/// target/<profile>/, from a test (target/<profile>/deps/) or a binary (target/<profile>/).
 fn target_dir() -> PathBuf {
     let mut dir = std::env::current_exe().expect("test exe path");
-    dir.pop(); // deps/
-    dir.pop(); // <profile>/
+    dir.pop();
+    if dir.ends_with("deps") {
+        dir.pop();
+    }
     dir
 }
 

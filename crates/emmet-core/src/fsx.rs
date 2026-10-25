@@ -39,6 +39,24 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {
     })
 }
 
+/// `words` × 64 random bits as hex, from the OS-seeded keys std hashes with, mixed with the time and process id.
+/// For secrets that only need to be unguessable to other local processes: the machine id and the bus token.
+pub fn random_hex(words: usize) -> String {
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    let mut out = String::new();
+    for _ in 0..words {
+        let mut h = RandomState::new().build_hasher();
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| d.as_nanos());
+        h.write_u128(now);
+        h.write_u32(std::process::id());
+        h.write_u64(COUNTER.fetch_add(1, Ordering::Relaxed));
+        out.push_str(&format!("{:016x}", h.finish()));
+    }
+    out
+}
+
 /// Lowercase hex sha256.
 pub fn sha256_hex(bytes: &[u8]) -> String {
     hex(&Sha256::digest(bytes))

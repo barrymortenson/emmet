@@ -7,12 +7,32 @@ license.workspace = true
 repository.workspace = true
 publish.workspace = true
 
+[lib]
+name = "emmet_desktop"
+path = "src/lib.rs"
+
+[[bin]]
+name = "emmet-desktop"
+path = "src/main.rs"
+
 [build-dependencies]
 tauri-build.workspace = true
 
 [dependencies]
+emmet-core.workspace = true
+emmet-bus.workspace = true
+notify.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+specta.workspace = true
+specta-typescript.workspace = true
 tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+tauri-specta.workspace = true
 tauri-plugin-wdio-webdriver = { workspace = true, optional = true }
+
+[dev-dependencies]
+emmet-it = { path = "../../../tests/it" }
 
 [features]
 # The embedded WebDriver server for E2E tests (ADR 0002). Only `just e2e` turns it on, and only in debug builds.

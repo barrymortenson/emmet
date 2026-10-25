@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-rebuild"
+description = "Enables the rebuild command without any pre-configured scope."
+commands.allow = ["rebuild"]
+
+[[permission]]
+identifier = "deny-rebuild"
+description = "Denies the rebuild command without any pre-configured scope."
+commands.deny = ["rebuild"]

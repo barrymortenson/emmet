@@ -109,7 +109,8 @@ test *args: build
 # App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server, driven by WebdriverIO.
 # `just e2e hello` runs one spec file from tests/e2e/specs/.
 e2e *spec:
-    cd apps/desktop && pnpm tauri build --debug --no-bundle --ci --features webdriver
+    cargo build --locked -p emmet-cli -p emmet-it --bins
+    cd apps/desktop && EMMET_E2E=1 pnpm tauri build --debug --no-bundle --ci --features webdriver
     pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs {{ if spec == "" { "" } else { "--spec specs/" + spec + ".e2e.mjs" } }}
 
 # Exactly what CI's mac job runs. It must pass before a session's final push.
