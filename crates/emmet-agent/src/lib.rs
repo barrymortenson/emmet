@@ -390,6 +390,28 @@ pub trait Session: Send {
     fn close(&mut self);
 }
 
+/// A plain id (letters, digits, `-`, `_`; at most 128): what a session id and a resume token must be, since they name
+/// files and reach the CLI's command line.
+pub fn plain_id(s: &str) -> bool {
+    !s.is_empty()
+        && s.len() <= 128
+        && !s.starts_with('-')
+        && s.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+}
+
+impl SessionConfig {
+    /// Refuses an id or resume token that isn't plain (see [`plain_id`]).
+    pub(crate) fn check(&self) -> Result<()> {
+        if !plain_id(&self.id) || self.resume.as_deref().is_some_and(|r| !plain_id(r)) {
+            return Err(AgentError::new(
+                AgentErrorCode::SpawnFailed,
+                "That chat session's id isn't one Emmet made, so it can't be resumed.",
+            ));
+        }
+        Ok(())
+    }
+}
+
 /// An adapter for `kind`, running the CLI with `env`; `data` is the app data dir (Claude's usage probe runs there).
 pub fn adapter(kind: AgentKind, env: &[(String, String)], data: &std::path::Path) -> Box<dyn AgentAdapter> {
     match kind {

@@ -222,8 +222,16 @@ fn append(project: &Path, session: &str, record: &ChatRecord) {
     }
 }
 
+/// The project's last session, if `.emmet/chat.json` is one this app wrote. The file comes with the project, which may
+/// be someone else's: an id that isn't ours, or a resume token that isn't a plain id, is ignored.
 fn last_session(project: &Path) -> Option<LastSession> {
-    serde_json::from_str(&std::fs::read_to_string(project.join(".emmet").join("chat.json")).ok()?).ok()
+    let last: LastSession =
+        serde_json::from_str(&std::fs::read_to_string(project.join(".emmet").join("chat.json")).ok()?).ok()?;
+    let ours = last.session.len() == 33
+        && last.session.starts_with('c')
+        && last.session[1..].bytes().all(|b| b.is_ascii_hexdigit());
+    let token_ok = last.resume.as_deref().is_none_or(emmet_agent::plain_id);
+    (ours && token_ok).then_some(last)
 }
 
 fn save_last(project: &Path, last: &LastSession) {

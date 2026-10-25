@@ -357,7 +357,7 @@ fn a_crash_mid_stream_then_resume() {
     );
     let args = rig.record("claude", 1)["args"].clone();
     let args: Vec<&str> = args.as_array().unwrap().iter().filter_map(|a| a.as_str()).collect();
-    assert!(args.windows(2).any(|w| w == ["--resume", resume.as_str()]), "{args:?}");
+    assert!(args.contains(&format!("--resume={resume}").as_str()), "{args:?}");
 }
 
 #[test]
@@ -633,4 +633,23 @@ fn allowing_a_command_for_the_session_doesnt_allow_others() {
     s.respond(&id, Decision::Deny).unwrap();
     ev.turn();
     s.close();
+}
+
+/// A session id or resume token comes back from the project's .emmet/, which may be someone else's: one that isn't a
+/// plain id never reaches a path or the command line.
+#[test]
+fn a_resume_token_that_isnt_a_plain_id_is_refused() {
+    let rig = Rig::new("claude-bad-resume", "claude", "plain-turn");
+    for (id, resume) in [("../../escape", None), ("ok", Some("--bare")), ("ok", Some("a b"))] {
+        let mut cfg = rig.cfg.clone();
+        cfg.id = id.into();
+        cfg.resume = resume.map(String::from);
+        let err = rig.adapter(CLAUDE).start(cfg).err().expect("refused");
+        assert!(
+            err.message.contains("isn't one Emmet made"),
+            "{id} {resume:?}: {}",
+            err.message
+        );
+    }
+    assert!(!rig.fake.join("claude-0.json").exists(), "the CLI never started");
 }

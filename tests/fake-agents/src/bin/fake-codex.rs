@@ -151,7 +151,14 @@ impl Input {
             if let Some(i) = self.queue.iter().position(fits) {
                 return self.queue.remove(i);
             }
-            self.queue.push_back(read()?);
+            let got = read()?;
+            // Only independent lines wait their turn: a request while a response is expected, or a redirect. Any other
+            // request in the wrong place is a protocol error, reported at once.
+            let independent = want.get("method").is_none() || got["method"] == "turn/steer";
+            if !independent && !fits(&got) && got.get("method").is_some() {
+                fail(format!("expected {} from the adapter, got {got}", want["method"]));
+            }
+            self.queue.push_back(got);
         }
     }
 

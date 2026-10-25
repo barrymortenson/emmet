@@ -92,7 +92,8 @@ pub fn args(mcp: &std::path::Path, resume: Option<&str>, model: Option<&str>) ->
         .map(String::from),
     );
     if let Some(r) = resume {
-        a.extend(["--resume".into(), r.into()]);
+        // One argument, so a token could never read as a flag (and cfg.check() allows only plain ids).
+        a.push(format!("--resume={r}"));
     }
     if let Some(m) = model {
         a.extend(["--model".into(), m.into()]);
@@ -125,6 +126,7 @@ impl AgentAdapter for Claude {
     }
 
     fn start(&self, cfg: SessionConfig) -> Result<Box<dyn Session>> {
+        cfg.check()?;
         let bin = self.bin()?;
         let dir = session_dir(&cfg)?;
         let mcp = dir.join("mcp.json");

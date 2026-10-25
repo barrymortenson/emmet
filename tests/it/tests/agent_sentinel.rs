@@ -84,7 +84,13 @@ fn run(home: &Path, cli: &str, kind: AgentKind, scenario: &str, texts: &[&str]) 
         ev.exit();
         let mut cfg = rig.cfg.clone();
         cfg.resume = Some(resume);
-        rig.scenario(cli, "", "plain-turn");
+        // A resumed Codex sends thread/resume, which 0B's resume.jsonl answers in its second process.
+        if kind == AgentKind::Codex {
+            rig.scenario(cli, "", "resume");
+            std::fs::write(rig.fake.join("codex.count"), "1").unwrap();
+        } else {
+            rig.scenario(cli, "", "plain-turn");
+        }
         let (mut s, mut ev) = rig.start_with(kind, cfg);
         s.send(turn("Reply with exactly the word: ready")).unwrap();
         ev.turn();

@@ -116,6 +116,7 @@ impl AgentAdapter for Codex {
     }
 
     fn start(&self, cfg: SessionConfig) -> Result<Box<dyn Session>> {
+        cfg.check()?;
         let bin = detect::find(AgentKind::Codex, &self.env)
             .ok_or_else(|| AgentError::new(AgentErrorCode::NotInstalled, "Codex isn't installed."))?;
         let key = keychain::get(&self.env)?.ok_or_else(|| {
