@@ -11,6 +11,7 @@ use std::time::Instant;
 use clap::{CommandFactory, Parser, Subcommand};
 use emmet_core::data::DataDir;
 use emmet_core::envelope::{Envelope, Error, Meta, Result};
+use emmet_core::project::{Project, Template};
 use emmet_core::{library, ops};
 use serde::Serialize;
 
@@ -39,6 +40,31 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Create a project: model.py, params.json, CARD.md, AGENTS.md, and a trust marker.
+    New {
+        dir: PathBuf,
+        #[arg(long, value_enum, default_value_t = TemplateArg::Cottage)]
+        template: TemplateArg,
+    },
+    /// Run the model and write build/model.mpd, placements.json, and manifest.json.
+    Run {
+        /// Parameter values for this run only, on top of params.json.
+        #[arg(long = "params", value_name = "K=V", num_args = 1..)]
+        params: Vec<String>,
+    },
+    /// Show the model's parameters and values, or set values in params.json.
+    Params {
+        /// Set a value (repeatable). A value equal to the default is dropped from params.json.
+        #[arg(long = "set", value_name = "K=V", num_args = 1..)]
+        set: Vec<String>,
+    },
+    /// Trust the project on this machine, so its model.py may run.
+    Trust,
+    /// Check the library, the parts index, and Python; --fix sets up what it can.
+    Doctor {
+        #[arg(long)]
+        fix: bool,
+    },
     /// Search parts by words and dimensions ("brick 2x4", "slope 45 2 x 2").
     Search {
         #[arg(required = true, num_args = 1..)]
@@ -69,6 +95,12 @@ enum Command {
         #[arg(long, value_name = "DIR", hide = true)]
         write_schemas: Option<PathBuf>,
     },
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum TemplateArg {
+    Cottage,
+    Empty,
 }
 
 #[derive(Subcommand)]
@@ -132,6 +164,113 @@ fn main() -> ExitCode {
     };
     let data = DataDir::resolve(cli.data_dir.as_deref());
     match command {
+        Command::New { dir, template } => {
+            let template = match template {
+                TemplateArg::Cottage => Template::Cottage,
+                TemplateArg::Empty => Template::Empty,
+            };
+            let out = data.and_then(|d| ops::new_project(&d, dir, template));
+            let project = out.as_ref().ok().map(|c| c.project.clone());
+            let mut out = Output::from(out);
+            out.project = project;
+            finish(&cli, started, out, |c| {
+                format!(
+                    "Created {} in {}. Next: emmet run --project {}",
+                    c.name,
+                    c.project,
+                    dir.display()
+                )
+            })
+        }
+        Command::Run { params } => {
+            let mut meta = emmet_core::run::RunMeta::default();
+            let mut root = None;
+            let out = data.and_then(|d| {
+                let overrides = key_values(params)?;
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                let (result, m) = ops::run_model(&d, &project, &overrides);
+                meta = m;
+                result
+            });
+            let out = Output {
+                result: out,
+                project: root,
+                inputs_hash: meta.inputs_hash,
+                generation: meta.generation,
+            };
+            finish(&cli, started, out, |r| {
+                format!(
+                    "Built {} parts in {} steps ({:.2} s) → build/model.mpd",
+                    r.parts,
+                    r.steps,
+                    r.ms as f64 / 1000.0
+                )
+            })
+        }
+        Command::Params { set } => {
+            let mut root = None;
+            let out = data.and_then(|d| {
+                let values = key_values(set)?;
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                if values.is_empty() {
+                    ops::get_params(&d, &project)
+                } else {
+                    ops::set_params(&d, &project, &values)
+                }
+            });
+            let mut out = Output::from(out);
+            out.project = root;
+            finish(&cli, started, out, |p| {
+                let mut lines = vec![format!("{} ({})", p.model, p.file)];
+                for spec in &p.params {
+                    let range = match (spec.min, spec.max) {
+                        (Some(a), Some(b)) => format!(" [{}–{}]", emmet_core::ldraw::num(a), emmet_core::ldraw::num(b)),
+                        _ => String::new(),
+                    };
+                    let mark = if p.changed.contains(&spec.name) {
+                        " (changed)"
+                    } else {
+                        ""
+                    };
+                    lines.push(format!(
+                        "  {} = {}{range}  {}{mark}",
+                        spec.name, p.values[&spec.name], spec.help
+                    ));
+                }
+                lines.join("\n")
+            })
+        }
+        Command::Trust => {
+            let out = data.and_then(|d| {
+                let project = Project::find(cli.project.as_deref())?;
+                ops::trust(&d, &project)
+            });
+            finish(&cli, started, out.into(), |t| {
+                format!("Trusted {} on this machine.", t.project)
+            })
+        }
+        Command::Doctor { fix } => {
+            let out = data.map(|d| ops::doctor(&d, *fix));
+            let ready = out.as_ref().is_ok_and(|d| d.ready);
+            let code = finish(&cli, started, out.into(), |d| {
+                d.checks
+                    .iter()
+                    .map(|c| {
+                        let fix = c.fix.as_ref().map_or(String::new(), |f| format!("  → {f}"));
+                        format!("{} {:<12} {}{fix}", if c.ok { "ok " } else { "!! " }, c.name, c.detail)
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            });
+            // Exit 4 (environment) when something isn't ready; the envelope still carries every check.
+            if code == ExitCode::SUCCESS && !ready {
+                ExitCode::from(4)
+            } else {
+                code
+            }
+        }
         Command::Search { query, category, limit } => {
             let q = query.join(" ");
             let out = data.and_then(|d| ops::search_parts(&d, &q, category.as_deref(), *limit));
@@ -263,6 +402,23 @@ fn library_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &
             })
         }
     }
+}
+
+/// `k=v` pairs as parameter values: JSON when the value parses as JSON (8, true, "Tan"), else the text itself.
+fn key_values(pairs: &[String]) -> Result<std::collections::BTreeMap<String, serde_json::Value>> {
+    let mut out = std::collections::BTreeMap::new();
+    for pair in pairs {
+        let Some((k, v)) = pair.split_once('=') else {
+            return Err(Error::new(
+                emmet_core::envelope::ErrorCode::ParamInvalid,
+                format!("'{pair}' isn't name=value."),
+                "Write each value as name=value, for example width=10 or wall_color=\"Dark Tan\".",
+            ));
+        };
+        let value = serde_json::from_str(v).unwrap_or_else(|_| serde_json::Value::String(v.to_string()));
+        out.insert(k.trim().to_string(), value);
+    }
+    Ok(out)
 }
 
 fn size_text(size: Option<emmet_core::index::Size>) -> String {

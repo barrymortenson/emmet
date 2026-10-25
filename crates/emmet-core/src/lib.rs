@@ -10,6 +10,9 @@ pub mod index;
 pub mod ldraw;
 pub mod library;
 pub mod ops;
+pub mod project;
+pub mod python;
+pub mod run;
 pub mod text;
 
 /// The workspace version, which the CLI reports. The desktop app and emmet_dsl keep their own copies until

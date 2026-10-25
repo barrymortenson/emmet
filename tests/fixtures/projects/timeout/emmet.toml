@@ -1,0 +1,8 @@
+# A test fixture (tests/it). created_by is a foreign machine, so tests trust it first.
+schema = 1
+name = "Timeout"
+created_by = "m:0000000000000000"
+library = "ldraw-mini"
+
+[run]
+timeout = 1

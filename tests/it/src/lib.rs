@@ -233,30 +233,52 @@ pub fn copy_tree(from: &Path, to: &Path) {
     }
 }
 
-/// Replaces values that change from run to run or machine to machine, for snapshots.
-pub fn redact(mut v: Value, project: Option<&Path>) -> Value {
-    fn walk(v: &mut Value, project: &str) {
+/// Replaces values that change from run to run or machine to machine, for snapshots: each path in `paths` (in
+/// either separator style) by its label, and the envelope's timing and version.
+pub fn redact(mut v: Value, paths: &[(&Path, &str)]) -> Value {
+    fn walk(v: &mut Value, paths: &[(String, &str)]) {
         match v {
-            Value::String(s) if !project.is_empty() => {
-                let fwd = project.replace('\\', "/");
-                *s = s.replace(project, "[project]").replace(&fwd, "[project]");
+            Value::String(s) => {
+                for (p, label) in paths {
+                    *s = s.replace(p.as_str(), label).replace(&p.replace('\\', "/"), label);
+                }
+                *s = s.replace('\\', "/");
             }
-            Value::Array(a) => a.iter_mut().for_each(|x| walk(x, project)),
-            Value::Object(o) => o.values_mut().for_each(|x| walk(x, project)),
+            Value::Array(a) => a.iter_mut().for_each(|x| walk(x, paths)),
+            Value::Object(o) => o.values_mut().for_each(|x| walk(x, paths)),
             _ => {}
         }
     }
-    let p = project.map(|p| p.display().to_string()).unwrap_or_default();
-    walk(&mut v, &p);
+    // Longest first, so a path inside another is replaced before its parent; canonical forms too (/private/var).
+    let mut all: Vec<(String, &str)> = Vec::new();
+    for (p, label) in paths {
+        all.push((p.display().to_string(), label));
+        if let Ok(c) = p.canonicalize() {
+            all.push((c.display().to_string(), label));
+        }
+    }
+    all.sort_by_key(|(p, _)| std::cmp::Reverse(p.len()));
+    walk(&mut v, &all);
     if let Some(meta) = v.get_mut("meta").and_then(Value::as_object_mut) {
-        for key in ["ms", "emmet"] {
+        for key in ["ms", "emmet", "inputs_hash"] {
             if meta.contains_key(key) {
                 meta.insert(key.into(), Value::String(format!("[{key}]")));
             }
         }
-        if meta.contains_key("project") {
-            meta.insert("project".into(), Value::String("[project]".into()));
-        }
     }
     v
+}
+
+/// Runs `emmet --json --data-dir <shared> <args> --project <dir>`.
+pub fn emmet_in(project: &Path, args: &[&str]) -> (Value, i32) {
+    let out = emmet()
+        .arg("--json")
+        .arg("--data-dir")
+        .arg(shared_data())
+        .args(args)
+        .arg("--project")
+        .arg(project)
+        .output()
+        .expect("run emmet");
+    envelope(&out)
 }
