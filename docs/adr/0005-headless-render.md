@@ -51,8 +51,9 @@ windows job's "Spike reports" step, the two tests running in parallel at 256²):
 | ldraw-mini house (5 parts), hidden | 594 | 720 | 9,718 | 9,840 | **9,849 ms** |
 
 Both PNGs pass the test's checks, so a hidden WebView2 renders WebGL too. **Loading parts is the cost:** about 9 s for
-a 5-part model, against 0.7 s on the Mac. LDrawLoader fetches each part, subpart, and primitive separately, and on
-WebView2 each custom-protocol request is slow. This doesn't change the decision, but it is a risk for section 13's
+a 5-part model, against 0.7 s on the Mac. LDrawLoader fetches each part, subpart, and primitive as its own request,
+so the likely cause is the cost per custom-protocol request on WebView2 (or the software renderer's slower CPU); 0B
+didn't measure which. This doesn't change the decision, but it is a risk for section 13's
 first-load budget (≤ 1.5 s for rung 1): 1B should serve parts in bulk (a packed part bundle per model, or one request
 for all of a model's files) and measure on Windows first.
 
