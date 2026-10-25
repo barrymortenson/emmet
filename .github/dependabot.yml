@@ -1,24 +1,29 @@
 # Weekly, grouped updates (plan section 06). Minor and patch updates share a PR per ecosystem, which may merge when CI
-# is green; each major update gets its own PR.
+# is green; each major update gets its own PR. Titles start "deps:" (AGENTS.md's PR title rule); Dependabot writes
+# the rest, versions included.
 version: 2
 updates:
   - package-ecosystem: cargo
     directory: /
+    commit-message: { prefix: "deps" }
     schedule: { interval: weekly }
     groups:
       cargo-minor: { update-types: [minor, patch] }
   - package-ecosystem: npm
     directory: /
+    commit-message: { prefix: "deps" }
     schedule: { interval: weekly }
     groups:
       npm-minor: { update-types: [minor, patch] }
   - package-ecosystem: uv
     directory: /python/emmet_dsl
+    commit-message: { prefix: "deps" }
     schedule: { interval: weekly }
     groups:
       uv-minor: { update-types: [minor, patch] }
   - package-ecosystem: github-actions
     directory: /
+    commit-message: { prefix: "deps" }
     schedule: { interval: weekly }
     groups:
       actions-minor: { update-types: [minor, patch] }

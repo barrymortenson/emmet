@@ -31,7 +31,8 @@ Open one PR from the current branch into main (plan section 19, rules 1 and 12),
 
 Follow `.github/PULL_REQUEST_TEMPLATE.md`. For a session:
 
-- **Title:** `Session <id>: <the session's title, lightly shortened>`.
+- **Title:** `<id>: <outcome>`, 50 characters or fewer, plain words, no version numbers or paths ("0B: Research
+  spikes and ADRs"). Other PRs: `<area>: <change>`.
 - **Done when:** the session's list from `docs/plan.html` (`<div class="session" … data-session="<id>"`), word for word,
   each item ticked with its evidence (test name, command plus result line, screenshot, file) after checking it holds
   on this branch. Not ticked without evidence.

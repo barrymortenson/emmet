@@ -43,6 +43,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   r/lego, the LDraw forum), and decides go, no-go, or pivot from the eval reports and his own testing. Plan sections
   02, 03 (D-18's wording), 21 (Phase 1, 1D: no demo kit; the signed build stays), 22 (H-06 and its guide), and 23 (the
   risk row) are updated. The launch posts and video at 7A/7B are unchanged.
+- **PR titles.** `<session id>: <outcome>` for a session, `<area>: <change>` otherwise, 50 characters or fewer, plain
+  words, no version numbers or paths. In AGENTS.md (and its copy in plan section 25), agent rule 1, `/create-pr`, and
+  the PR template; Dependabot's titles start `deps:`, and keep their version text because majors keep their own PR
+  (section 06). Rejected: grouping Dependabot majors too; Conventional Commits.
 
 ## 2026-10-24, session 0A
 

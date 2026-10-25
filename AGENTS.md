@@ -22,4 +22,6 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
   Barry's name where the license needs it (copyright lines, TRADEMARKS.md) and in commits and sign-offs, which use his
   GitHub noreply address; and third-party authors' names that a license requires us to keep (LDraw parts, OMR models,
   and their attribution files).
+- PR titles: `<session id>: <outcome>` for a session ("0B: Research spikes and ADRs"), `<area>: <change>` otherwise
+  ("ci: Cache the E2E build"); 50 characters or fewer, plain words, no version numbers or paths.
 - US English.

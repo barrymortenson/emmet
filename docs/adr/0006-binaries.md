@@ -21,7 +21,22 @@ can open `CONOUT$` only when one is attached). `tests/spikes/binaries/tests/subs
 - `only_the_console_subsystem_has_a_console` (Windows only): `console-echo` reports `console=true`, `gui-echo`
   reports `console=false`.
 
-Windows CI (`windows-latest`, the 0B PR's `windows` job): WINDOWS_RESULT
+Windows CI (`windows-latest`, PR #3, run 40152000860, inside `just test`):
+
+```
+     Running tests\subsystems.rs (target\debug\deps\subsystems-….exe)
+test only_the_console_subsystem_has_a_console ... ok
+test both_subsystems_answer_over_pipes ... ok
+```
+
+The windows job's "Spike reports" step (run 40152761697, `cargo test … -- --nocapture`) prints the reports:
+
+```
+console-echo: ["console=true"], gui-echo: ["console=false"]
+test only_the_console_subsystem_has_a_console ... ok
+```
+
+So on Windows the GUI-subsystem exe answers over pipes but has no console, and the console exe has one.
 
 ## Decision
 

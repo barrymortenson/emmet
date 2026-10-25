@@ -42,7 +42,19 @@ macOS (this Mac, WKWebView, Apple silicon), debug build, from process start:
 The images are correct (the cube, and the rung 3 shortlist renders in `docs/spec/ladder/`), so a hidden WKWebView
 renders WebGL without the fallback. Model time is almost all part loading on a cold cache; the viewer caches parts.
 
-Windows (CI, `windows-latest`, WebView2, no GPU, so WebGL runs on a software renderer): WINDOWS_RESULT
+Windows (CI, `windows-latest`, WebView2, no GPU, so WebGL runs on a software renderer; PR #3 run 40152761697, the
+windows job's "Spike reports" step, the two tests running in parallel at 256²):
+
+| Render | Window | Script loaded | Model loaded | Rendered | PNG written |
+|---|---|---|---|---|---|
+| Cube, hidden | 625 ms | 747 | 777 | 859 | **871 ms** |
+| ldraw-mini house (5 parts), hidden | 594 | 720 | 9,718 | 9,840 | **9,849 ms** |
+
+Both PNGs pass the test's checks, so a hidden WebView2 renders WebGL too. **Loading parts is the cost:** about 9 s for
+a 5-part model, against 0.7 s on the Mac. LDrawLoader fetches each part, subpart, and primitive separately, and on
+WebView2 each custom-protocol request is slow. This doesn't change the decision, but it is a risk for section 13's
+first-load budget (≤ 1.5 s for rung 1): 1B should serve parts in bulk (a packed part bundle per model, or one request
+for all of a model's files) and measure on Windows first.
 
 ## Decision
 
