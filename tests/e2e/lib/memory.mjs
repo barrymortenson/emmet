@@ -27,7 +27,14 @@ export async function measure() {
     const before = new Set((process.env.EMMET_E2E_WEBCONTENT_BEFORE ?? "").split(",").filter(Boolean).map(Number));
     const ours = webContentPids().filter((p) => !before.has(p));
     if (!ours.length) throw new Error("found no WebContent process for the app");
-    return { bytes: ours.reduce((sum, p) => sum + footprint(p), 0), what: `WebContent footprint (${ours.length} process)` };
+    // The median of three samples, so one allocator burst doesn't decide the test.
+    const samples = [];
+    for (let i = 0; i < 3; i++) {
+      samples.push(ours.reduce((sum, p) => sum + footprint(p), 0));
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    samples.sort((a, b) => a - b);
+    return { bytes: samples[1], what: `WebContent footprint (pids ${ours.join(", ")})` };
   }
   const heap = await browser.execute(() => {
     window.gc?.();

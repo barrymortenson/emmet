@@ -122,7 +122,8 @@ jobs:
       # reruns them with their output shown.
       - name: Spike reports
         run: cargo test -p emmet-spike-render -p emmet-spike-binaries --locked -- --nocapture
-      - run: just build-app
+      # just e2e builds the app inside the workspace build that just test already compiled; the mac job's just ci
+      # runs build-app too.
       - run: just e2e
       - run: just bench
       - name: E2E output

@@ -132,3 +132,7 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   reason, over dropping tauri-specta or relaxing unmaintained checks for every transitive crate.
 - **1B's Windows CI run.** As for 1A, Barry approved opening 1B's PR as a draft so CI runs on Windows, and marking it
   ready (with 1B set to review) once every Done when item holds.
+- **The macOS leak baseline.** The WebContent footprint at first load varies 125–400 MB between runs, and the first
+  pass through the widths adds about 25 MB of one-time allocations (part geometry, shaders, JIT), which put a low
+  baseline at 20.1 %. Barry chose to take the macOS baseline after one warm-up cycle through every width (11 changes),
+  then hold 100 more changes to ≤ 20 % with the steady resource counts; Windows keeps the first-load JS heap baseline.

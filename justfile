@@ -106,12 +106,17 @@ test *args: build
       esac
     done
 
-# App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server, driven by WebdriverIO.
-# `just e2e hello` runs one spec file from tests/e2e/specs/.
-e2e *spec:
-    cargo build --locked -p emmet-cli -p emmet-it --bins
-    cd apps/desktop && EMMET_E2E=1 pnpm tauri build --debug --no-bundle --ci --features webdriver
+# App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server and the E2E hooks, driven by
+# WebdriverIO. `just e2e viewer` runs one spec file from tests/e2e/specs/. The app is built inside the workspace build
+# (it embeds the frontend by default), so it reuses `just test`'s compile instead of a separate tauri build.
+e2e *spec: e2e-build
     pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs {{ if spec == "" { "" } else { "--spec specs/" + spec + ".e2e.mjs" } }}
+
+# The E2E build: the frontend with EMMET_E2E=1, then the workspace with emmet-desktop's `webdriver` feature (never in
+# a release build; main.rs refuses it without debug assertions).
+e2e-build:
+    cd apps/desktop && EMMET_E2E=1 pnpm build
+    cargo build --workspace --locked --features emmet-desktop/webdriver
 
 # Exactly what CI's mac job runs. It must pass before a session's final push.
 ci: check
@@ -133,9 +138,7 @@ screenshots:
 
 # The viewer bench (plan section 13) in the real app: first load, slider → viewer, and orbit frame time for 93,
 # 500, and 2,000 parts. Prints the table and writes tests/e2e/out/bench-<os>.md. The validator bench arrives in 3A.
-bench:
-    cargo build --locked -p emmet-cli -p emmet-it --bins
-    cd apps/desktop && EMMET_E2E=1 pnpm tauri build --debug --no-bundle --ci --features webdriver
+bench: e2e-build
     EMMET_BENCH=1 pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs
 
 # Not yet: the signed demo build (release-dry --sign) comes in 1D.

@@ -1179,7 +1179,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <tr><td>Slider → updated viewer (run + check + diff), warm</td><td>≤ 0.8 s</td><td>≤ 1.5 s</td><td>≤ 3 s</td></tr>
 <tr><td>Orbit frame time, M1 / Intel Iris Xe class</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
 <tr><td>Frame time during a build animation (whole model added)</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
-<tr><td>Heap growth after 100 slider changes</td><td colspan="3">≤ 20 % over the first-load heap (leak test). WebView2 reads the JS heap; WKWebView has no heap API, so macOS reads the WebContent process's footprint.</td></tr>
+<tr><td>Heap growth after 100 slider changes</td><td colspan="3">≤ 20 % over the first-load heap (leak test). WebView2 reads the JS heap. WKWebView has no heap API, so macOS reads the WebContent process's footprint, with the baseline after one warm-up cycle through every width (its first-load footprint varies too much to compare against).</td></tr>
 </table></div>
 <p class="small">WKWebView is tested first and WebView2 in CI. No WebGPU, no OffscreenCanvas dependency (OffscreenCanvas is used only where both webviews support it, behind feature detection), and no WASM requirement.</p>
 </section>
