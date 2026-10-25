@@ -165,6 +165,8 @@ test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the ch
   const at = (b) => run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: b, EMMET_CI_FULL: "" } }).out;
   assert.match(at(base), /^windows=true$/m);
   assert.match(at(green), /^mac=false$/m);
+  const bad = run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: "0".repeat(40), EMMET_CI_FULL: "" } });
+  assert.notEqual(bad.code, 0, "a base that isn't a commit must fail, not scope to nothing");
 });
 
 test("DCO runs on every event but a push to main, so the hosted fallback's ci check covers sign-offs", () => {

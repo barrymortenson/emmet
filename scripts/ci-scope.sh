@@ -9,7 +9,9 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 base=${EMMET_CI_BASE:-$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD)}
-changed=$( { git diff --name-only "$base"; git ls-files --others --exclude-standard; } | sort -u)
+# Separate steps, so a base that isn't a commit fails here instead of reading as "nothing changed".
+diff=$(git diff --name-only "$base")
+changed=$( { echo "$diff"; git ls-files --others --exclude-standard; } | sed '/^$/d' | sort -u)
 any() { grep -qE "$1" <<<"$changed"; }
 flag() { if [[ $full == true ]] || any "$2"; then echo "$1=true"; else echo "$1=false"; fi; }
 
