@@ -72,8 +72,8 @@ points git at the hooks in `.githooks/`. On Windows, run `just` from Git Bash.
 | `just setup` | Check the toolchain, install dependencies into the repo, install the git hooks |
 | `just dev` | The app with hot reload, under the dev bundle id `com.emmetbuilder.emmet.dev` |
 | `just check` | Format, lint, typecheck, and SPDX headers (seconds) |
-| `just test [filter]` | Integration tests, fastest first; `just test --changed` runs only those affected by your changes |
-| `just ci` | Everything CI's mac job runs; it must pass before you push |
+| `just test [filter]` | Integration tests, fastest first; `just test --changed` runs only those affected by your changes; run it before you push |
+| `just ci` | What CI's mac job runs, scoped to what your changes can break (CI runs it for you) |
 | `just plan` | Check the status file and open the plan |
 | `just e2e [spec]` | Build the debug app with the embedded WebDriver server and run the E2E specs (`just e2e hello` runs one) |
 | `just eval`, `just screenshots`, `just bench`, `just release-dry`, `just release` | Not yet; each one names the session that adds it |

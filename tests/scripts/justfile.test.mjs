@@ -62,7 +62,8 @@ for (const [change, picked] of [
   [null, "nothing"],
   [".github/workflows/ci.yml", "scripts"],
   ["rust-toolchain.toml", "scripts python viewer desktop rust"],
-  ["tests/spikes/binaries/src/lib.rs", "rust"],
+  ["crates/emmet-core/src/lib.rs", "rust"],
+  ["docs/plan-status.js", "scripts"],
 ]) {
   test(`just test --changed with ${change ?? "no change"} runs ${picked}`, { skip }, () => {
     const r = justTest(project(change), "--changed");

@@ -1,6 +1,8 @@
 [workspace]
 resolver = "3"
-members = ["crates/*", "apps/desktop/src-tauri", "tests/it", "tests/spikes/binaries", "tests/spikes/headless-render"]
+members = ["crates/*", "apps/desktop/src-tauri", "tests/it"]
+# The 0B spikes answered their questions (ADRs 0005, 0006) and are kept for reference only, out of the build and CI.
+exclude = ["tests/spikes"]
 
 [workspace.package]
 version = "0.1.0"

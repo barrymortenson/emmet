@@ -1,9 +1,14 @@
 name: ci
 
+# A PR's own pushes only: the merge to main was already tested as the PR's merge commit, so main doesn't run it again.
+# Everything runs weekly, by hand, and on a PR labeled full-ci; otherwise scripts/ci-scope.sh picks what the change
+# can break (plan section 16).
 on:
   pull_request:
-  push:
-    branches: [main]
+    types: [opened, synchronize, reopened, labeled]
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
   # ci-hosted-mac.yml calls this to run everything on hosted runners.
   workflow_call:
 
@@ -15,12 +20,56 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # What to run. A push to a PR whose last push passed ci is scoped to its own commits; otherwise to the whole PR.
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    outputs:
+      base: ${{ steps.scope.outputs.base }}
+      full: ${{ steps.scope.outputs.full }}
+      mac: ${{ steps.scope.outputs.mac }}
+      windows: ${{ steps.scope.outputs.windows }}
+      e2e_windows: ${{ steps.scope.outputs.e2e_windows }}
+      bench: ${{ steps.scope.outputs.bench }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ' ') }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          full=0; base=""
+          if [[ "$EVENT" != pull_request || " $LABELS " == *" full-ci "* ]]; then
+            full=1
+          else
+            base=$PR_BASE
+            if [[ "$ACTION" == synchronize ]] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null &&
+              [[ "$(gh api "repos/$GITHUB_REPOSITORY/commits/$BEFORE/check-runs?check_name=ci" --jq '[.check_runs[].conclusion] | first')" == success ]]; then
+              base=$BEFORE
+            fi
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          EMMET_CI_FULL=$full EMMET_CI_BASE=$base scripts/ci-scope.sh | tee -a "$GITHUB_OUTPUT"
+          echo "ci scope: base ${base:-none (full)}; $(EMMET_CI_FULL=$full EMMET_CI_BASE=$base scripts/ci-scope.sh | tr '\n' ' ')" >> "$GITHUB_STEP_SUMMARY"
+
   mac:
     # The self-hosted Mac takes trusted events only (D-13, plan section 17): Barry's pushes to main, and PRs Barry opened
     # from a branch in this repo when he triggered the run. Forks, Dependabot, someone else's push to Barry's PR, and
     # manual runs use hosted macos-latest. GitHub's == ignores case; tests/scripts/ci.test.mjs does too.
     runs-on: ${{ fromJSON((github.repository == 'barrymortenson/emmet' && github.actor == 'barrymortenson' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'barrymortenson'))) && '["self-hosted","macOS","emmet"]' || '"macos-latest"') }}
     timeout-minutes: 20
+    needs: scope
+    if: needs.scope.outputs.mac == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -69,9 +118,11 @@ jobs:
       - if: runner.environment == 'github-hosted'
         uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: just setup
+      # just ci runs scripts/ci-scope.sh again with the same inputs, so it picks the same scope.
       - run: just ci
-      # The viewer bench (plan section 13) on the app just ci built: the table goes to the job summary.
-      - run: just bench
+        env:
+          EMMET_CI_BASE: ${{ needs.scope.outputs.base }}
+          EMMET_CI_FULL: ${{ needs.scope.outputs.full == 'true' && '1' || '' }}
       # Screenshots (light and dark), renders, visual diffs, the leak and bench numbers.
       - name: E2E output
         if: always()
@@ -89,6 +140,8 @@ jobs:
           echo "mac job ($RUNNER_ENVIRONMENT): $(( s / 60 ))m $(( s % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
 
   windows:
+    needs: scope
+    if: needs.scope.outputs.windows == 'true'
     runs-on: windows-latest
     timeout-minutes: 25
     defaults:
@@ -99,7 +152,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # The E2E paths check below diffs against the PR's base.
+          # just test --changed diffs against the scope's base.
           fetch-depth: 0
       - run: echo "CI_START=$(date +%s)" >> "$GITHUB_ENV"
       # As on the Mac: test data outside target/, which rust-cache saves.
@@ -119,30 +172,13 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: rustup toolchain install
       - run: just deps
-      - run: just test
-      # The 0B spikes' own reports (ADR 0005 timings, ADR 0006 console check): already built and tested above; this
-      # reruns them with their output shown.
-      - name: Spike reports
-        run: cargo test -p emmet-spike-render -p emmet-spike-binaries --locked -- --nocapture
-      # Windows E2E runs on anything but a PR (main, and ci-hosted-mac.yml's call), and on a PR that changes the app,
-      # the engine, the viewer, the E2E specs, or how they run (plan section 16; Barry 2026-10-25): it adds about
-      # 9 minutes. just e2e builds the app inside the workspace
-      # build just test already compiled; the mac job's just ci runs build-app too.
-      - name: Windows E2E needed?
-        id: e2e
+      - run: just test ${{ needs.scope.outputs.full != 'true' && '--changed' || '' }}
         env:
-          EVENT: ${{ github.event_name }}
-          BASE: ${{ github.event.pull_request.base.sha }}
-        run: |
-          if [[ "$EVENT" != "pull_request" ]] || git diff --name-only "$BASE" HEAD | grep -qE '^(apps|crates|packages|tests/e2e)/|^justfile$|^\.github/workflows/ci\.yml$'; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Windows E2E skipped: nothing under apps/, crates/, packages/, or tests/e2e/, the justfile, or ci.yml changed." >> "$GITHUB_STEP_SUMMARY"
-          fi
-      - if: steps.e2e.outputs.run == 'true'
+          EMMET_CI_BASE: ${{ needs.scope.outputs.base }}
+      # Windows E2E (about 5 minutes) only when the native side or the specs change, or with everything else.
+      - if: needs.scope.outputs.e2e_windows == 'true'
         run: just e2e
-      - if: steps.e2e.outputs.run == 'true'
+      - if: needs.scope.outputs.bench == 'true'
         run: just bench
       - name: E2E output
         if: always()
@@ -184,14 +220,14 @@ jobs:
         run: scripts/dco-check.sh "$BASE" "$HEAD"
       - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs
 
-  # The one required check: green only when every job above is.
+  # The one required check: green only when scope and plan passed and each OS job passed or was scoped out.
   ci:
     if: always()
-    needs: [mac, windows, plan]
+    needs: [scope, mac, windows, plan]
     runs-on: ubuntu-latest
     steps:
       - env:
-          RESULTS: ${{ needs.mac.result }} ${{ needs.windows.result }} ${{ needs.plan.result }}
+          RESULTS: ${{ needs.scope.result }} ${{ needs.mac.result }} ${{ needs.windows.result }} ${{ needs.plan.result }}
         run: |
-          echo "mac windows plan: $RESULTS"
-          [[ "$RESULTS" == "success success success" ]]
+          echo "scope mac windows plan: $RESULTS"
+          [[ "$RESULTS" =~ ^success\ (success|skipped)\ (success|skipped)\ success$ ]]

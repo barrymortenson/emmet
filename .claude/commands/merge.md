@@ -41,7 +41,7 @@ looks like, `data-after`, `data-waits-merge`) and the phase box it sits in. Chec
 ## 3. Update docs/plan-status.js on the branch
 
 - The session: `status: "done"`, keeping `pr`, `branch`, and `started`; add `evidence` (2-4 short lines taken from the
-  PR, such as the `just ci` result line, "CI ci check green #<n>", and the key test files) and a `note` only if
+  PR, such as "CI ci check green #<n>", and the key test files) and a `note` only if
   something is worth knowing later. No `sha`: the merge SHA doesn't exist yet. A reconcile run can add it.
 - YOU steps this PR finished or verified, as its description shows: `done` with today's date and a short note.
 - Blockers this PR resolved: set `closed` to today's date.
@@ -50,7 +50,8 @@ looks like, `data-after`, `data-waits-merge`) and the phase box it sits in. Chec
   Never change another session's status. Never record progress in `docs/plan.html` (rule 13).
 - Write US English, and flag British spellings you see in the file rather than copying them.
 
-Then run `node scripts/plan-check.mjs` and `just ci`; both must pass. Show the status diff, commit it with
+Then run `node scripts/plan-check.mjs`; it must pass (a status-only commit needs no other local check, and CI scopes it
+to the plan job). Show the status diff, commit it with
 `git commit -s -m "Set <id> to done before the merge"`, and push. If nothing in the status file changed, don't make
 an empty commit.
 

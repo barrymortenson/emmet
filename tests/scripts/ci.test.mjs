@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// .github/workflows: the mac job reaches the self-hosted runner only for trusted events (D-13), and every action is
-// pinned by SHA. Evaluates the real runs-on expression from ci.yml.
+// .github/workflows: the mac job reaches the self-hosted runner only for trusted events (D-13), every action is
+// pinned by SHA, and scripts/ci-scope.sh runs each OS job only when a change can break it. Evaluates the real runs-on
+// expression from ci.yml and runs the real scope script in a temp repo.
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { ROOT } from "./helpers.mjs";
+import { ROOT, run, tempRepo, writeFiles } from "./helpers.mjs";
 
 const workflows = join(ROOT, ".github/workflows");
 const ci = readFileSync(join(workflows, "ci.yml"), "utf8");
@@ -96,13 +97,74 @@ test("the self-hosted mac job runs the runner guard, with the PR fields, right a
   for (const step of steps.slice(0, i)) assert.match(step, /^uses: actions\/checkout@/, `a step runs before the guard: ${step}`);
 });
 
-test("the aggregate ci check needs every other job, runs always, and passes only when each succeeded", () => {
+test("the aggregate ci check needs every other job, runs always, and lets only the OS jobs be skipped", () => {
   const others = Object.keys(jobs).filter((j) => j !== "ci");
   const agg = jobs.ci;
   assert.match(agg, /^ {4}if: always\(\)$/m, "without always() a failed job skips ci, and a skipped required check passes");
   assert.deepEqual(agg.match(/needs: \[(.*)\]/)[1].split(/,\s*/).sort(), [...others].sort());
-  for (const j of others) assert.match(agg, new RegExp(`\\$\\{\\{ needs\\.${j}\\.result \\}\\}`));
-  assert.match(agg, new RegExp(`== "${others.map(() => "success").join(" ")}"`));
+  assert.match(agg, /RESULTS: \$\{\{ needs\.scope\.result \}\} \$\{\{ needs\.mac\.result \}\} \$\{\{ needs\.windows\.result \}\} \$\{\{ needs\.plan\.result \}\}\n/);
+  const pattern = new RegExp(agg.match(/=~ (.+) \]\]/)[1].replaceAll("\\ ", " "));
+  for (const ok of ["success success success success", "success skipped skipped success", "success success skipped success"]) {
+    assert.match(ok, pattern, ok);
+  }
+  for (const bad of ["skipped skipped skipped success", "success failure skipped success", "success skipped cancelled success", "success success success skipped"]) {
+    assert.doesNotMatch(bad, pattern, bad);
+  }
+  for (const job of ["mac", "windows"]) {
+    assert.match(jobs[job], /^ {4}needs: scope\n {4}if: needs\.scope\.outputs\.\w+ == 'true'$/m, job);
+  }
+});
+
+/** scripts/ci-scope.sh's answers after committing a base, then changing `change` (null: nothing). */
+function scope(change, env = {}) {
+  const { dir, git } = tempRepo();
+  writeFiles(dir, { "README.md": "", "crates/a.rs": "" });
+  git("add", "-A");
+  git("commit", "-q", "-m", "base");
+  if (change) writeFiles(dir, { [change]: "changed\n" });
+  const r = run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: "", EMMET_CI_FULL: "", ...env } });
+  assert.equal(r.code, 0, r.out);
+  const out = Object.fromEntries(r.out.trim().split("\n").map((l) => l.split("=")));
+  return Object.keys(out).filter((k) => out[k] === "true").join(" ") || "nothing";
+}
+
+for (const [change, runs] of [
+  [null, "nothing"],
+  ["docs/plan-status.js", "nothing"],
+  ["README.md", "nothing"],
+  ["docs/spec/mcp/tools.json", "mac"],
+  ["scripts/plan-check.mjs", "mac"],
+  ["apps/desktop/src/App.tsx", "mac e2e_mac"],
+  ["packages/viewer/src/index.ts", "mac e2e_mac"],
+  ["crates/emmet-core/src/lib.rs", "mac windows e2e_mac"],
+  ["python/emmet_dsl/src/emmet_dsl/model.py", "mac windows e2e_mac"],
+  ["apps/desktop/src-tauri/src/main.rs", "mac windows e2e_mac e2e_windows build_app"],
+  ["tests/e2e/specs/viewer.e2e.mjs", "mac windows e2e_mac e2e_windows"],
+  ["deny.toml", "mac deps"],
+  ["Cargo.lock", "full mac windows deps e2e_mac e2e_windows build_app bench"],
+  [".github/workflows/ci.yml", "full mac windows deps e2e_mac e2e_windows build_app bench"],
+]) {
+  test(`ci scope: ${change ?? "no change"} runs ${runs}`, { skip: process.platform === "win32" }, () => {
+    assert.equal(scope(change), runs);
+  });
+}
+
+test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the changes to those after it", { skip: process.platform === "win32" }, () => {
+  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac windows deps e2e_mac e2e_windows build_app bench");
+  const { dir, git } = tempRepo();
+  writeFiles(dir, { "crates/a.rs": "" });
+  git("add", "-A");
+  git("commit", "-q", "-m", "base");
+  const base = git("rev-parse", "HEAD").trim();
+  writeFiles(dir, { "crates/a.rs": "changed\n" });
+  git("commit", "-q", "-am", "rust");
+  const green = git("rev-parse", "HEAD").trim();
+  writeFiles(dir, { "docs/plan-status.js": "" });
+  git("add", "-A");
+  git("commit", "-q", "-m", "status");
+  const at = (b) => run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: b, EMMET_CI_FULL: "" } }).out;
+  assert.match(at(base), /^windows=true$/m);
+  assert.match(at(green), /^mac=false$/m);
 });
 
 test("DCO runs on every event but a push to main, so the hosted fallback's ci check covers sign-offs", () => {

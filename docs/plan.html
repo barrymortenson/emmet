@@ -1363,14 +1363,14 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <h3>Layers</h3>
 <div class="table-wrap"><table>
 <tr><th>Layer</th><th>What</th><th>How</th><th>Runs</th></tr>
-<tr><td><b>CLI goldens</b></td><td>Every command against <code>tests/fixtures/projects/*</code>: <code>.mpd</code>, placements, validation, BOM, steps, error envelopes</td><td><code>tests/it</code> spawns the built binary with <code>--data-dir</code> pointing at ldraw-mini, and snapshots with insta (JSON, redacting timings)</td><td>Every PR, both OSes</td></tr>
+<tr><td><b>CLI goldens</b></td><td>Every command against <code>tests/fixtures/projects/*</code>: <code>.mpd</code>, placements, validation, BOM, steps, error envelopes</td><td><code>tests/it</code> spawns the built binary with <code>--data-dir</code> pointing at ldraw-mini, and snapshots with insta (JSON, redacting timings)</td><td>PRs touching the engine, the DSL, or the fixtures, both OSes</td></tr>
 <tr><td><b>Reproducibility</b></td><td>A clean <code>build/</code> regenerates byte-identical output, apart from the run-only fields (section 07)</td><td>Run twice, compare hashes, on both OSes</td><td>Every PR</td></tr>
 <tr><td><b>MCP contracts</b></td><td>Every tool: schema, structured output validates, text summary snapshot, error shapes</td><td>An <code>rmcp</code> client against <code>emmet mcp</code></td><td>Every PR</td></tr>
 <tr><td><b>Validator corpus</b></td><td>Precision on official models, recall on mutations, speed</td><td><code>tests/it/validator_*</code></td><td>PR (small corpus), nightly (full)</td></tr>
 <tr><td><b>Agent replay</b></td><td>Both adapters end to end: streaming, tool calls into the real <code>emmet mcp</code>, approvals, question cards, redirects on each path, interrupt, resume, a crash mid-stream, malformed lines, an unknown event type</td><td><code>tests/fake-agents/fake-claude</code> and <code>fake-codex</code> replay <code>tests/replay/*.jsonl</code>, substituting paths, and assert the exact <code>AgentEvent</code> sequence and the final project state</td><td>Every PR</td></tr>
-<tr><td><b>App E2E</b></td><td>The key flows in section 14 on the real app: first run (with ldraw-mini), slider → viewer, finding → highlight, chat with a fake agent → model updates, approval card, trust prompt, error states</td><td>WebdriverIO + <code>@wdio/tauri-service</code> (embedded WebDriver plugin, debug builds only). Viewer assertions read <code>viewer.stats()</code> and ids, not pixels</td><td>Every PR on macOS; on Windows when <code>apps/</code>, <code>crates/</code>, or <code>packages/</code> change, and always on <code>main</code> and releases</td></tr>
-<tr><td><b>Visual</b></td><td>Viewer renders of 6 fixture scenes per OS, plus key screens in light and dark</td><td>pixelmatch with a tolerance, baselines per OS in <code>tests/e2e/baselines/</code>, an update script, and a diff image uploaded on failure</td><td>Every PR touching the viewer or UI</td></tr>
-<tr><td><b>Performance</b></td><td>Section 13's budgets</td><td><code>just bench</code> (the viewer bench in the real app, <code>tests/e2e/specs/bench.e2e.mjs</code>) + E2E timing marks, results as a CI summary table</td><td>macOS every PR touching the viewer or core; both OSes nightly</td></tr>
+<tr><td><b>App E2E</b></td><td>The key flows in section 14 on the real app: first run (with ldraw-mini), slider → viewer, finding → highlight, chat with a fake agent → model updates, approval card, trust prompt, error states</td><td>WebdriverIO + <code>@wdio/tauri-service</code> (embedded WebDriver plugin, debug builds only). Viewer assertions read <code>viewer.stats()</code> and ids, not pixels</td><td>macOS on PRs touching <code>apps/</code>, <code>crates/</code>, <code>packages/</code>, the DSL, or the specs; Windows on PRs touching <code>apps/desktop/src-tauri/</code> or the specs; both weekly, with the <code>full-ci</code> label, and on releases</td></tr>
+<tr><td><b>Visual</b></td><td>Viewer renders of 6 fixture scenes per OS, plus key screens in light and dark</td><td>pixelmatch with a tolerance, baselines per OS in <code>tests/e2e/baselines/</code>, an update script, and a diff image uploaded on failure</td><td>With App E2E</td></tr>
+<tr><td><b>Performance</b></td><td>Section 13's budgets</td><td><code>just bench</code> (the viewer bench in the real app, <code>tests/e2e/specs/bench.e2e.mjs</code>) + E2E timing marks, results as a CI summary table</td><td>Both OSes weekly and with the <code>full-ci</code> label: a summary table, not a gate</td></tr>
 <tr><td><b>Release smoke</b></td><td>The installed artifact launches, the sidecars resolve, <code>emmet doctor</code> passes inside the bundle, the updater manifest verifies</td><td>A release workflow job installs the <code>.dmg</code> or NSIS build on the runner and runs checks</td><td>Every release and release dry run</td></tr>
 <tr><td><b>Live eval</b></td><td>Each rung once per agent: does the real loop produce good models?</td><td><code>just eval</code> on Barry's Mac, on his API keys (H-21; D-37) (section 16.1)</td><td>G1 (rung 1) and G2 (all rungs) only, within the D-38 budget. Never in CI, before releases, or mid-session.</td></tr>
 </table></div>
@@ -1392,6 +1392,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <h3>Rules that keep this fast</h3>
 <ul class="small">
 <li><b>CI time budget:</b> a PR's macOS job finishes in ≤ 10 minutes and the Windows job in ≤ 15. A test that pushes past the budget moves to nightly or gets faster. Timings are printed in the job summary.</li>
+<li><b>Run only what a change can break:</b> <code>scripts/ci-scope.sh</code> picks the jobs from the changed paths (prose runs only the plan job; the UI and viewer skip Windows, which covers paths, processes, the sidecars, and Python), a push after a green run tests only its own commits, and a merge doesn't rerun on <code>main</code>. A change to the toolchain, a lockfile, the justfile, or a workflow runs everything, as do the weekly run and the <code>full-ci</code> label.</li>
 <li><b>Flaky tests:</b> one retry is allowed in E2E only. A test that needs it twice in a week is quarantined with an issue and fixed within the phase. Nothing is quarantined silently.</li>
 <li><b>Fixtures stay small:</b> ldraw-mini is ~200 parts, and replay files are under 200 KB each.</li>
 <li><b>No mocks of our own code:</b> fakes exist only at external boundaries (the agent CLIs, the network downloads).</li>
@@ -1404,7 +1405,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <h3>Workflows</h3>
 <div class="table-wrap"><table>
 <tr><th>Workflow</th><th>Trigger</th><th>Jobs</th></tr>
-<tr><td><code>ci.yml</code></td><td>PR, push to <code>main</code></td><td><code>mac</code> on <code>[self-hosted, macOS, emmet]</code> for trusted events, or <code>macos-latest</code> for PRs from forks and Dependabot (lint, build, integration, replay, E2E, visual, perf when relevant) · <code>windows</code> on <code>windows-latest</code> (build, integration, replay, E2E when paths match) · <code>plan</code> (plan-check, schemas fresh, bindings fresh) · <code>ci</code> (the aggregate required check)</td></tr>
+<tr><td><code>ci.yml</code></td><td>PR pushes, weekly, manual</td><td><code>scope</code> (<code>scripts/ci-scope.sh</code>: which jobs the change needs) · <code>mac</code> on <code>[self-hosted, macOS, emmet]</code> for trusted events, or <code>macos-latest</code> for PRs from forks and Dependabot (lint, build, integration, replay, E2E, visual, perf when relevant) · <code>windows</code> on <code>windows-latest</code> (build, integration, replay, E2E when paths match) · <code>plan</code> (plan-check, schemas fresh, bindings fresh) · <code>ci</code> (the aggregate required check)</td></tr>
 <tr><td><code>nightly.yml</code></td><td>Schedule (03:00 local), manual</td><td>Full LDraw library + full OMR corpus, perf on both OSes, Windows E2E always, <code>cargo deny</code> advisories refresh</td></tr>
 <tr><td><code>ci-hosted-mac.yml</code></td><td>Manual</td><td>The whole <code>ci</code> workflow, with <code>mac</code> on <code>macos-latest</code>, for when the self-hosted runner is down (paid minutes)</td></tr>
 <tr><td><code>parts-data.yml</code> (6A)</td><td>Weekly schedule, manual</td><td>On a hosted runner: download Rebrickable's archive once, run <code>scripts/build-parts-data</code> and its checks, sign the pack, and publish it as a GitHub Release (section 12)</td></tr>
@@ -1441,7 +1442,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <tr><td><code>just check</code></td><td>Format, lint, and typecheck across Rust, TS, and Python (seconds).</td></tr>
 <tr><td><code>just test [filter]</code></td><td>Integration tests, fastest first. <code>--changed</code> runs only the tests affected by changed paths.</td></tr>
 <tr><td><code>just e2e [spec]</code></td><td>Builds the debug app with the WebDriver plugin and runs the WebdriverIO specs.</td></tr>
-<tr><td><code>just ci</code></td><td>Exactly what CI's <code>mac</code> job runs. It must pass before a session's final push.</td></tr>
+<tr><td><code>just ci</code></td><td>What CI's <code>mac</code> job runs, scoped by <code>scripts/ci-scope.sh</code> to what the change can break. CI runs it; locally <code>just check</code> and <code>just test --changed</code> are enough.</td></tr>
 <tr><td><code>just eval --rung N [--agent a]</code></td><td>Live eval (section 16.1). It bills Barry's API keys, so only Barry starts it: it shows the run count and expected cost, asks first, and stays within the D-38 budget.</td></tr>
 <tr><td><code>just screenshots</code></td><td>Light and dark screenshots of key screens into <code>docs/screenshots/</code> for PRs and the site.</td></tr>
 <tr><td><code>just bench</code></td><td>Viewer and validator benchmarks.</td></tr>
@@ -1465,7 +1466,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <li><b>Pick.</b> The rail's <i>Up next</i> lists sessions whose "after" sessions are done and whose before-start human steps are done. Sessions marked "can run alongside" may run in parallel (one agent per git worktree, at most two at once) when Barry says so for that run.</li>
 <li><b>Copy and paste.</b> <b>Copy prompt with rules</b> → paste into Claude Code or Codex in <code>~/Sites/emmet</code> (or a worktree). The clipboard holds the agent rules, the session's goal, what gets built, Done when, What good looks like, the sections to read, and the prompt.</li>
 <li><b>Check, spec, build.</b> The agent verifies the prerequisites against <code>origin/main</code>, sets the session to <code>in-progress</code> in <code>docs/plan-status.js</code> as its first commit, writes a short spec (<code>docs/spec/sessions/&lt;id&gt;.md</code>: each acceptance item → the test that proves it), then builds with tests.</li>
-<li><b>Hand over.</b> <code>just ci</code> green locally; one PR whose description repeats the Done when list, each item ticked with evidence (test name, command plus result line, screenshot); the status set to <code>review</code> with the PR number. Then it stops. In Claude Code, <code>/create-pr</code> (<code>.claude/commands/create-pr.md</code>) does this step and then runs the PR review toolkit on the PR, fixing what holds up. The agent runs it only when the work is ready; Barry can run it at any point.</li>
+<li><b>Hand over.</b> <code>just check</code> and <code>just test --changed</code> green locally and the PR's <code>ci</code> check green; one PR whose description repeats the Done when list, each item ticked with evidence (test name, command plus result line, screenshot); the status set to <code>review</code> with the PR number. Then it stops. In Claude Code, <code>/create-pr</code> (<code>.claude/commands/create-pr.md</code>) does this step and then runs the PR review toolkit on the PR, fixing what holds up. The agent runs it only when the work is ready; Barry can run it at any point.</li>
 <li><b>Merge.</b> Barry reviews and merges once CI is green (or tells the agent it may merge for this run). The status file's <code>done</code> is set on the branch just before the merge (the PR's last commit), so it lands with the work. In Claude Code, <code>/merge</code> (<code>.claude/commands/merge.md</code>) does this step: it checks the session's Done when list and before-merge YOU steps, sets <code>done</code> with evidence, waits for the required checks, and merges.</li>
 </ol>
 
@@ -1538,10 +1539,13 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 4. First commit: set the session to in-progress in docs/plan-status.js (branch name, today's date) and write
    docs/spec/sessions/&lt;id&gt;.md: each Done when and What good looks like item, mapped to the test or command that
    proves it, plus the files you expect to touch. Then build.
-5. Integration tests first. Prove behavior at the highest practical level (CLI golden, MCP contract, replay,
-   E2E) and write unit tests only for dense logic. Every bug you fix gets a test that would have caught it. Never
-   delete, skip, or weaken a test, lint, or gate to get green. Run `just test --changed` while working and
-   `just ci` before the final push; quote its result line in the PR.
+5. Integration tests first, sized to real risk. Prove behavior at the highest practical level (CLI golden, MCP
+   contract, replay, E2E) and write unit tests only for dense logic. Test where a bug is likely or costly (parsing,
+   paths, processes, IPC, data loss, what the user sees), not every line: no tests of constants, wiring, or what the
+   type checker proves, and no second test of a behavior another test covers. Every bug you fix gets a test that
+   would have caught it. Never weaken a test, lint, or gate to get green; a redundant test may go, with the reason
+   in the commit. Run `just check` and `just test --changed` before you push; CI runs the rest, scoped to the
+   change. Push in batches, not every commit: each push to a PR runs CI. Quote the PR's ci check in the PR.
 6. Stay fast and small. No new dependency, tool, service, or top-level directory unless plan sections 05-06 name it,
    or Barry approves it (ask with the trade-off and the smallest option, then record an ADR). Keep the CI time
    budget in section 16. Prefer deleting code to adding it.
@@ -2738,7 +2742,7 @@ models from real LDraw parts by writing a parametric Python model (emmet_dsl). T
 is docs/plan-status.js. Section 19 of the plan has the agent rules; they apply to every task here.
 
 ## Commands
-just setup · just dev · just check · just test [--changed] · just e2e · just ci (must pass before the final push)
+just setup · just dev · just check · just test [--changed] · just e2e · just ci (CI's mac job, scoped to the change)
 
 ## Map
 crates/emmet-core (LDraw, index, validator, BOM, steps) · crates/emmet-agent (Claude/Codex adapters) ·
@@ -2748,7 +2752,7 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
 ## Invariants
 - Project files are the source of truth; build/ is derived and reproducible.
 - Never write to ~/.claude, ~/.codex or any user-level agent config.
-- Integration tests first; unit tests only for dense logic; never weaken a test to get green.
+- Integration tests first; unit tests only for dense logic; test in proportion to real risk; never weaken a test to get green.
 - No new dependency or tool without approval (plan section 19, rule 6).
 - Every IPC path is checked against the project root; all process spawning is in Rust.
 - No secrets, real names, emails or personal paths in the repo, fixtures, transcripts or screenshots. The exceptions:
