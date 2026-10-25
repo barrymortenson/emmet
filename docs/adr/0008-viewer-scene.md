@@ -49,7 +49,19 @@ Against section 13: first load ≤ 1.5 s (rung 1), slider → viewer ≤ 0.8 s w
 frame time is the display's refresh interval (72 Hz here), so drawing isn't the limit. The grid scenes are one part
 (3001), already parsed by then, so their first load is the instancing alone.
 
-Windows (CI, `windows-latest`, WebView2 on a software renderer): the job summary of the PR's CI run; the PR quotes it.
+Windows (CI, `windows-latest`, WebView2 with WebGL on a software renderer, no GPU; PR #11 run 40219092964):
+
+| Scene | Parts | First load | Slider → viewer | Orbit frame | Draw calls | Triangles |
+|---|---|---|---|---|---|---|
+| cottage | 93 | 7,247 ms | 948 ms | 35 ms | 30 | 76,306 |
+| grid 500 | 500 | 131 ms | 785 ms | 130.8 ms (77 frames in 10 s) | 18 | 350,000 |
+| grid 2000 | 2000 | 68 ms | 923 ms | 583.7 ms (18 frames in 10 s) | 18 | 1,400,000 |
+
+**Open risk: first load on Windows.** 7.2 s for the cottage's parts misses section 13's 1.5 s, and orbit misses 16 ms,
+on a runner that draws WebGL on the CPU. Packing parts helped (ADR 0005 measured about 9 s for 5 parts, one request
+per file); what's left is parsing and drawing on that CPU, which says little about a real GPU. The check on real
+Windows hardware (the H-04 VM, from 1C) decides whether WebView2 needs more, such as caching parsed part geometry
+across launches. D-23 stands either way: the per-part cost is the loader's work, not the scene design.
 
 ## Consequences
 
