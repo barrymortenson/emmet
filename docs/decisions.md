@@ -136,3 +136,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   pass through the widths adds about 25 MB of one-time allocations (part geometry, shaders, JIT), which put a low
   baseline at 20.1 %. Barry chose to take the macOS baseline after one warm-up cycle through every width (11 changes),
   then hold 100 more changes to ≤ 20 % with the steady resource counts; Windows keeps the first-load JS heap baseline.
+- **The Windows CI budget.** With 1B's E2E specs the Windows job takes about 19 minutes (test 5.6, spike reports 2.1,
+  E2E build 4.6, specs 4.2, bench about 1), over section 16's 15. Barry chose to run Windows E2E and the bench only
+  on main and on PRs that change apps/, crates/, packages/, tests/e2e/, the justfile, or ci.yml (section 16 allows
+  the paths filter), over moving the leak test and bench to a nightly run or raising the budget. Such PRs take
+  about 19 minutes on Windows.

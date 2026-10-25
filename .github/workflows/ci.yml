@@ -99,6 +99,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # The E2E paths check below diffs against the PR's base.
+          fetch-depth: 0
       - run: echo "CI_START=$(date +%s)" >> "$GITHUB_ENV"
       # As on the Mac: test data outside target/, which rust-cache saves.
       - name: Test data dirs
@@ -122,10 +124,25 @@ jobs:
       # reruns them with their output shown.
       - name: Spike reports
         run: cargo test -p emmet-spike-render -p emmet-spike-binaries --locked -- --nocapture
-      # just e2e builds the app inside the workspace build that just test already compiled; the mac job's just ci
-      # runs build-app too.
-      - run: just e2e
-      - run: just bench
+      # Windows E2E runs on main, and on a PR that changes the app, the engine, the viewer, the E2E specs, or how they
+      # run (plan section 16; Barry 2026-10-25): it adds about 9 minutes. just e2e builds the app inside the workspace
+      # build just test already compiled; the mac job's just ci runs build-app too.
+      - name: Windows E2E needed?
+        id: e2e
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [[ "$EVENT" != "pull_request" ]] || git diff --name-only "$BASE" HEAD | grep -qE '^(apps|crates|packages|tests/e2e)/|^justfile$|^\.github/workflows/ci\.yml$'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Windows E2E skipped: nothing under apps/, crates/, packages/, or tests/e2e/ changed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: steps.e2e.outputs.run == 'true'
+        run: just e2e
+      - if: steps.e2e.outputs.run == 'true'
+        run: just bench
       - name: E2E output
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
