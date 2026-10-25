@@ -469,6 +469,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-37</td><td>Terms gate</td><td>A feature that touches an AI provider (accounts, sign-in, credentials, billing, usage data, model requests, or names and logos) is built only if the provider's current published text permits that exact use. The quote and its date go in section 10's terms matrix. Anything ambiguous needs the provider's written confirmation (kept in <code>docs/terms/</code>) or it isn't built. The matrix is re-checked in 0B, at G1 and G2, and in 7B. If a provider's terms change, the affected feature is switched off before the next release.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-38</td><td>Scripted-run budget</td><td>Scripted runs (anything that drives a real agent CLI automatically, billed to Barry's API keys) are kept to a minimum. <b>Replay first:</b> every behavior that recorded transcripts can test is tested that way. <b>Recordings:</b> 0B records each protocol scenario once per CLI (one retry if a recording is unusable). Later fixtures come from Barry's own hand sessions in the app, which are saved and scrubbed anyway. <b>Live evals:</b> only at G1 (rung 1, one run per agent: 2 runs) and G2 (rungs 1–3 and the three-photo rung, one run each per agent: 12 runs). A failed run gets at most one rerun, after a fix. None at Phase 4's exit, before releases, in CI, or for iterating mid-session; iteration uses replays and hand sessions. <code>just eval</code> shows the run count and the expected cost from past reports and asks first. It refuses to go past the gate's budget in <code>docs/evals/budget.json</code> unless Barry passes <code>--over-budget</code>.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-39</td><td>Repo bootstrap and protection</td><td><code>main</code> gets exactly one direct push, ever: in 0A, with Barry's approval of the exact commands, the empty initial commit is pushed to create the remote, before the hooks and protection exist. After that, protection on <code>main</code> requires a PR and the green <code>ci</code> check with 0 required approvals (Barry is the only maintainer and can't approve his own PRs), blocks force-push and deletion, and has no bypass list.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-40</td><td>Agent permissions</td><td>Sandbox first, like nurb: each CLI's own sandbox (Claude Code's through <code>--settings</code>, Codex's <code>workspace-write</code> with <code>/tmp</code> excluded) is the guard, and Emmet approves what runs inside it. Approval cards appear only for what the sandbox can't contain, and for every shell command and web request under Claude Code on native Windows, which has no sandbox. Section 10 has the flags and the table; 1C proves them on both OSes.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 </table></div>
 </section>
 
@@ -906,6 +907,7 @@ pub enum AgentEvent {
   --permission-prompt-tool mcp__emmet_host__approve \
   --allowedTools "mcp__emmet__*" "mcp__emmet_host__ask_user" "Read(./**)" "Edit(model.py)" "Edit(models/**)" "Edit(CARD.md)" \
   --disallowedTools "AskUserQuestion" \
+  --settings '&lt;the sandbox settings, or on native Windows the ask rules (D-40, below)&gt;' \
   --append-system-prompt "&lt;EMMET.md doctrine pointer&gt;" \
   [--resume &lt;session-id&gt;] [--model &lt;user choice&gt;]          <span class="c"># cwd = project folder</span></code></pre>
 <ul class="small">
@@ -913,6 +915,7 @@ pub enum AgentEvent {
 <li><code>mcp.json</code> lives in the app's per-session directory (app data, not the project). It lists <code>emmet</code> (the sidecar's absolute path, <code>mcp --project … --session …</code>) and <code>emmet_host</code> (<code>mcp-host --session …</code>), plus any user-added servers later (D-31).</li>
 <li>The process gets a raised MCP tool timeout (<code>MCP_TOOL_TIMEOUT</code> in its environment) so <code>ask_user</code> can wait for a slow answer. 0B confirms the variable and any cap.</li>
 <li>Stop sends the stream-JSON interrupt control request. Redirects are written to stdin as user messages mid-turn if 0B shows Claude Code takes them at the next step; otherwise they use the queued path.</li>
+<li><b>Sandbox first (D-40).</b> On macOS: <code>--settings '{"sandbox":{"enabled":true,"failIfUnavailable":true}}'</code>, so Claude Code runs commands inside its own sandbox and approves them without a card (<code>autoAllowBashIfSandboxed</code> defaults to on), and the session fails to start rather than run unsandboxed. On native Windows, where Claude Code has no sandbox: <code>--settings '{"permissions":{"ask":["Bash","WebFetch","WebSearch"]}}'</code>, so every shell command and web request is a card (0B showed the ask rule reaches the permission prompt tool even for read-only commands). <code>--settings</code> adds session settings only; it isn't <code>--setting-sources</code> and touches no credential. 1C proves both.</li>
 <li>Never <code>--bare</code> (it skips the user's sign-in) and never <code>--setting-sources</code>, environment filtering, or added credential variables. Anything that changes which credential Claude Code picks would restrict a sign-in method, which Anthropic's conditions forbid (D-37). The environment is the one the user's login shell gives, the same as their terminal.</li>
 <li>Events map from stream-JSON <code>system/init</code>, <code>assistant</code> partial messages, <code>tool_use</code>, <code>tool_result</code>, and <code>result</code> (usage). Unknown event types are logged and ignored, never fatal.</li>
 </ul>
@@ -925,7 +928,8 @@ pub enum AgentEvent {
   -c 'mcp_servers.emmet.command="&lt;abs path to emmet&gt;"' -c 'mcp_servers.emmet.args=["mcp","--project","&lt;dir&gt;","--session","&lt;id&gt;"]' \
   -c 'mcp_servers.emmet_host.command="&lt;abs path to emmet&gt;"' -c 'mcp_servers.emmet_host.args=["mcp-host","--session","&lt;id&gt;"]' \
   -c 'mcp_servers.emmet_host.tool_timeout_sec=3600' \
-  -c 'sandbox_mode="workspace-write"' -c 'approval_policy="on-request"'
+  -c 'sandbox_mode="workspace-write"' -c 'approval_policy="on-request"' \
+  -c 'sandbox_workspace_write.exclude_slash_tmp=true' -c 'sandbox_workspace_write.exclude_tmpdir_env_var=true'
 <span class="c"># then JSON-RPC over stdio (newline-delimited):</span>
 initialize {clientInfo: {name: "emmet", title: "Emmet", version}} → thread/start {cwd, developerInstructions: EMMET.md pointer} → turn/start {input}
 server → client requests for command/file approvals → Approval events → respond()</code></pre>
@@ -948,13 +952,13 @@ server → client requests for command/file approvals → Approval events → re
 <div class="table-wrap"><table>
 <tr><th>Action</th><th>Default</th></tr>
 <tr><td>Emmet MCP tools</td><td>Allowed</td></tr>
-<tr><td>Read files in the project</td><td>Allowed</td></tr>
-<tr><td>Edit <code>model.py</code>, <code>models/**</code>, <code>CARD.md</code></td><td>Allowed (and visible as file-change cards)</td></tr>
-<tr><td>Edit anything else in the project, or anything outside it</td><td>Ask (approval card: Allow once / Allow for this session / Deny)</td></tr>
-<tr><td>Shell commands, web fetch and search</td><td>Ask</td></tr>
+<tr><td>Read files</td><td>Allowed (both CLIs' sandboxes let reads through, as nurb's does)</td></tr>
+<tr><td>Edits and shell commands inside the project</td><td>Allowed: they run inside the CLI's own sandbox, which is the guard (D-40), and show as activity and file-change cards</td></tr>
+<tr><td>Anything the sandbox can't contain: a write outside the project, a command that asks to leave the sandbox, network the sandbox doesn't allow</td><td>Ask (approval card: Allow once / Allow for this session / Deny)</td></tr>
+<tr><td>Claude Code on native Windows (no sandbox): shell commands, web fetch and search</td><td>Ask</td></tr>
 <tr><td>Third-party MCP tools (8F)</td><td>Ask the first time per tool</td></tr>
 </table></div>
-<p class="small"><b>What each CLI enforces.</b> The table is the target; 0B (ADR 0001) records how close each CLI gets. Claude Code: the allow and deny rules above, with <code>Read</code> scoped to the project (<code>Read(./**)</code>); 0B confirms the rule syntax and that a read outside the project asks. Codex: with <code>workspace-write</code> and <code>approval_policy="on-request"</code>, Codex may edit any file in the workspace and run sandboxed commands without asking, which is looser than the table. 0B tests <code>on-request</code> against <code>untrusted</code>, and the adapter uses whichever matches the table. If neither does, this table gets a Codex column with the difference, and onboarding says it in one sentence.</p>
+<p class="small"><b>What each CLI enforces.</b> 0B (ADR 0001) measured both CLIs against the earlier ask-first table: Claude Code ran read-only shell commands without asking, and Codex on <code>on-request</code> asked only to leave its sandbox, so the table is sandbox first, like nurb's (D-40). Approval cards are kept for what the kernel can't decide, because a card on every step teaches people to click Allow without reading. Claude Code: the sandbox settings above on macOS and the ask rules on native Windows; Emmet's <code>approve</code> tool allows edits inside the project and reads, and turns every other request into a card. Codex: <code>workspace-write</code> with <code>/tmp</code> and <code>$TMPDIR</code> excluded and <code>approval_policy="on-request"</code>: commands and edits inside the project run without asking, a request to escalate out of the sandbox is a card, and Emmet accepts the <code>mcp_tool_call</code> approvals for its own two servers (0B: Codex asks for each MCP tool call). 1C proves the table on macOS and Windows, including Codex's Windows sandbox, and checks that the Python runtime still works with the temp directories excluded.</p>
 
 <h3>Questions, redirects, and stops</h3>
 <p>These three work the same on both agents, because they run through Emmet's own tools and bus, not through either CLI's UI.</p>

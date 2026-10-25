@@ -79,7 +79,7 @@ function rpc(s, ws) {
 }
 
 const text = (t) => [{ type: "text", text: t }];
-const completed = (s) => s.waitFor((m) => m?.method === "turn/completed", 300_000, "turn/completed");
+const completed = (s, ms = 300_000) => s.waitFor((m) => m?.method === "turn/completed", ms, "turn/completed");
 const toolStarted = (s, server) =>
   s.waitFor((m) => m?.method === "item/started" && m.params?.item?.type === "mcpToolCall" && (!server || m.params.item.server === server), 180_000, "mcpToolCall started");
 
@@ -98,9 +98,9 @@ async function thread(c, ws) {
   return r.thread.id;
 }
 
-async function turn(s, c, threadId, t) {
+async function turn(s, c, threadId, t, ms) {
   const r = await c.call("turn/start", { threadId, input: text(t), effort: "low" });
-  return { turnId: r.turn.id, done: completed(s) };
+  return { turnId: r.turn.id, done: completed(s, ms) };
 }
 
 const SCENARIOS = {
@@ -171,11 +171,11 @@ const SCENARIOS = {
   },
   "block-default": async (s, c, ws) => {
     const th = await thread(c, ws);
-    await (await turn(s, c, th, "Use the emmet server's block tool with seconds=600, then tell me exactly what it returned.")).done;
+    await (await turn(s, c, th, "Use the emmet server's block tool with seconds=600, then tell me exactly what it returned.", 900_000)).done;
   },
   "block-raised": async (s, c, ws) => {
     const th = await thread(c, ws);
-    await (await turn(s, c, th, "Use the emmet_host server's block tool with seconds=600, then tell me exactly what it returned.")).done;
+    await (await turn(s, c, th, "Use the emmet_host server's block tool with seconds=600, then tell me exactly what it returned.", 900_000)).done;
   },
 };
 

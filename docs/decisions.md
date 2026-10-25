@@ -14,6 +14,15 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   Emmet has its website and a business email. Until then H-20 is `waiting`; the description must be sent before 7B
   merges. The draft is kept for that step. Accepting the Commercial Terms is what lets Emmet run Claude Code, so 0B
   starts now. Plan sections 10, 21, and 22 and 7B's merge wait are updated to match.
+- **D-40: permissions are sandbox first, like nurb.** 0B found Claude Code runs read-only shell commands without
+  asking, and Codex on `on-request` asks almost nothing. Barry asked what nurb does: it answers every permission request
+  "allow once" and relies on an OS sandbox (macOS Seatbelt: read anything, write only to the project, the app's data,
+  temp, caches, and the agents' own state) instead of approval cards. Decision: each CLI's own sandbox guards the
+  chat pane: Claude Code through `--settings` with `sandbox.enabled` and `failIfUnavailable`, Codex with
+  `workspace-write` and `/tmp` excluded. Emmet approves what runs inside the sandbox; cards appear only for what the
+  sandbox can't contain, and for every shell command under Claude Code on native Windows, which has no sandbox (ask
+  rules there). Plan section 10 and section 03 change to match; 1C proves it on both OSes. Rejected: an ask rule with
+  cards for every shell command; accepting the gap.
 
 ## 2026-10-24, session 0A
 
