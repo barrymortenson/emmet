@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Prints one hash for every tracked file the mac and windows jobs' tests can read: the index's modes and blob ids,
+# leaving out the files that only record progress (docs/plan-status.js, docs/decisions.md, CHANGELOG.md), which the
+# plan job checks on every run. ci.yml keys each OS job's pass marker on it, so a run on code that already passed on
+# that OS (a re-run, or a commit that only moves the status) skips the job's work.
+# Usage: scripts/ci-inputs-hash [repo dir]
+set -euo pipefail
+cd "${1:-.}"
+git ls-files --stage | grep -v -E $'\t(docs/plan-status\\.js|docs/decisions\\.md|CHANGELOG\\.md)$' | git hash-object --stdin

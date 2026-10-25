@@ -103,3 +103,11 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **D-37 Terms gate.** A feature that touches an AI provider (accounts, sign-in, credentials, billing, usage data, model requests, or names and logos) is built only if the provider's current published text permits that exact use.
 - **D-38 Scripted-run budget.** Scripted runs (anything that drives a real agent CLI automatically, billed to Barry's API keys) are kept to a minimum.
 - **D-39 Repo bootstrap and protection.** main gets exactly one direct push, ever: in 0A, with Barry's approval of the exact commands, the empty initial commit is pushed to create the remote, before the hooks and protection exist.
+
+## 2026-10-24, CI
+
+- **Skip CI work that already passed.** After a 1A fix re-ran a green 11-minute Windows job, Barry chose to have each
+  OS job skip its work when the same code (every tracked file but the status file, the decision log, and the
+  CHANGELOG) already passed on that OS, keyed by `scripts/ci-inputs-hash` and a pass marker in the Actions cache. That
+  approves actions/cache, pinned by SHA. The mac job still runs gitleaks on a skipped run. Over one workflow per OS
+  (which changes the required checks) and re-running failed jobs by hand.

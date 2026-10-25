@@ -55,6 +55,7 @@ update merges when CI is green, and a major update gets its own PR with a note (
 | pnpm/action-setup | v6.1.0 | `ea17c68df8912ef543352723c149a84f56e3d413` |
 | astral-sh/setup-uv | v10.3.2 | `07a047e608db84b3d8c06cd9a7c7dcc9c355c18e` |
 | Swatinem/rust-cache | v2.9.3 | `d1527c8f67ef9af357290475d4af4b0fab8f12e0` |
+| actions/cache (`restore`, `save`; the CI pass markers, added later) | v6.1.0 | `55cc8345863c7cc4c66a329aec7e433d2d1c52a9` |
 | taiki-e/install-action | v2.87.31 | `1e29709c0ec63babbe8f266397a465f29a825f91` |
 
 ## Why these

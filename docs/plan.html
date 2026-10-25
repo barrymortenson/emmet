@@ -1391,6 +1391,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <h3>Rules that keep this fast</h3>
 <ul class="small">
 <li><b>CI time budget:</b> a PR's macOS job finishes in ≤ 10 minutes and the Windows job in ≤ 15. A test that pushes past the budget moves to nightly or gets faster. Timings are printed in the job summary.</li>
+<li><b>No second run of code that passed:</b> each OS job keys a pass marker on a hash of the files its tests read (<code>scripts/ci-inputs-hash</code>, which leaves out <code>docs/plan-status.js</code>, <code>docs/decisions.md</code>, and <code>CHANGELOG.md</code>). A run on code that already passed on that OS, such as a re-run or a commit that only moves the status, skips the job's work; the mac job still runs gitleaks, and the plan job always runs (Barry 2026-10-24).</li>
 <li><b>Flaky tests:</b> one retry is allowed in E2E only. A test that needs it twice in a week is quarantined with an issue and fixed within the phase. Nothing is quarantined silently.</li>
 <li><b>Fixtures stay small:</b> ldraw-mini is ~200 parts, and replay files are under 200 KB each.</li>
 <li><b>No mocks of our own code:</b> fakes exist only at external boundaries (the agent CLIs, the network downloads).</li>

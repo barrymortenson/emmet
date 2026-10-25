@@ -27,5 +27,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
+- CI skips a mac or windows job's work when the same code already passed on that OS (`scripts/ci-inputs-hash`), so
+  re-runs and status-only commits don't repeat an 11-minute Windows run.
+
 - Agent permissions are sandbox first (D-40), section 10 quotes OpenAI's current wording, and the LDCad shadow
   library's connector data will ship as its own CC BY-SA 4.0 file (Q-01).

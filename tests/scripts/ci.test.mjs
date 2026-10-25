@@ -110,3 +110,25 @@ test("DCO runs on every event but a push to main, so the hosted fallback's ci ch
   assert.match(plan, /- name: DCO\n {8}if: github\.event_name != 'push'\n/);
   assert.match(plan, /BASE: \$\{\{ github\.event\.pull_request\.base\.sha \|\| 'origin\/main' \}\}/);
 });
+
+test("each OS job skips its work when the same code already passed on that OS, and saves the marker only when it ran", () => {
+  const always = { mac: ["Runner guard", "Install gitleaks", "Timing"], windows: ["Timing"] };
+  for (const job of ["mac", "windows"]) {
+    const steps = jobs[job].split(/\n(?= {6}- )/).slice(1);
+    const at = steps.findIndex((s) => s.includes("name: Already passed?"));
+    assert.ok(at > 0, `${job}: no pass-marker lookup`);
+    assert.match(steps[at], /key: ci-pass-\$\{\{ runner\.os \}\}-\$\{\{ steps\.inputs\.outputs\.hash \}\}/);
+    assert.match(steps[at], /lookup-only: true/);
+    assert.match(steps[at - 1], /run: echo "hash=\$\(scripts\/ci-inputs-hash\)" >> "\$GITHUB_OUTPUT"/);
+    for (const step of steps.slice(at + 1)) {
+      const name = step.match(/name: (.+)/)?.[1];
+      if (always[job].includes(name) || name === "Secrets") continue;
+      assert.match(step, /if: .*steps\.passed\.outputs\.cache-hit != 'true'/, `${job}: this step runs even when skipped:\n${step}`);
+    }
+    const save = steps.find((s) => s.includes("actions/cache/save@"));
+    assert.ok(save && /key: ci-pass-\$\{\{ runner\.os \}\}-\$\{\{ steps\.inputs\.outputs\.hash \}\}/.test(save), `${job}: no marker save`);
+    assert.ok(steps.indexOf(save) > steps.findIndex((s) => /run: just (ci|e2e)/.test(s)), `${job}: the marker is saved before the work`);
+  }
+  // A skipped mac run still scans for secrets.
+  assert.match(jobs.mac, /name: Secrets\n {8}if: steps\.passed\.outputs\.cache-hit == 'true'\n {8}run: gitleaks git/);
+});
