@@ -117,6 +117,14 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **1A's Windows CI run.** ci.yml runs only on pull requests, so Barry approved opening 1A's PR as a draft for CI and
   marking it ready (with 1A set to review) once every Done when item holds.
 
+## 2026-10-25, session 1C
+
+- **The keychain store for the Codex API key.** Plan section 06 names no keychain crate, the workspace forbids unsafe
+  code, and Windows has no built-in command that reads a stored secret. Barry chose `keyring-core` with only the
+  apple-native and windows-native stores (MIT/Apache-2.0; on macOS it uses security-framework, already in the tree)
+  over shelling out to `/usr/bin/security` on macOS only, or Emmet's own FFI with an unsafe exception. ADR 0009 records
+  it.
+
 ## 2026-10-25, session 1B
 
 - **@types/three for the viewer.** three.js ships no TypeScript types, so Barry approved `@types/three` 0.186.0 (MIT,
