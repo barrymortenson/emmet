@@ -14,7 +14,7 @@ line, a screenshot, or a file. Leave an item unticked with the reason if it isn'
 
 ## Checks
 
-- [ ] `just ci` passes locally (paste the result line)
+- [ ] `just check` and `just test --changed` pass locally, and the PR's `ci` check is green
 - [ ] Every commit is signed off (`git commit -s`)
 - [ ] UI changes: light and dark screenshots on macOS and Windows
 - [ ] Any change to the CSP or Tauri capabilities is called out here

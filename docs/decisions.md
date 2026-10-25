@@ -141,3 +141,16 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   on main and on PRs that change apps/, crates/, packages/, tests/e2e/, the justfile, or ci.yml (section 16 allows
   the paths filter), over moving the leak test and bench to a nightly run or raising the budget. Such PRs take
   about 19 minutes on Windows.
+
+## 2026-10-25, CI scope
+
+- **CI runs only what a change can break.** The 1B PR took about 12 minutes a push (Windows E2E 5, bench 2, setup 2)
+  and ran everything again on main after the merge. Barry asked for CI that runs full or both-platform tests only when
+  needed, so: `scripts/ci-scope.sh` picks the jobs from the changed paths (prose skips both OS jobs; the UI and viewer
+  skip Windows; Windows E2E only for `apps/desktop/src-tauri/` and the specs); a push after a green run tests only
+  its own commits; main no longer reruns a merged PR; the bench (no assertions) runs only weekly, by hand, or with the
+  `full-ci` label; the 0B spike crates leave the workspace; and `just ci` is CI's job, not a step before each push.
+  This replaces 1B's Windows CI budget decision above. A change to the toolchain, a lockfile, the justfile, or a
+  workflow still runs everything.
+- **Tests sized to real risk.** Rule 5 now asks for tests where a bug is likely or costly, not for every line, and
+  allows deleting a redundant test with the reason in the commit.

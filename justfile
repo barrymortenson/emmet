@@ -62,16 +62,19 @@ build:
 build-app:
     cd apps/desktop && pnpm tauri build --debug --no-bundle --ci
 
-# Integration tests, fastest first. `just test --changed` runs only those affected by changed paths (a toolchain or
-# root config change runs them all); any other argument filters test names. Written for bash 3.2, macOS's /bin/bash.
-test *args: build
+# Integration tests, fastest first. `just test --changed` runs only those affected by the paths changed since
+# EMMET_CI_BASE or the merge-base with main (a toolchain or root config change runs them all); any other argument
+# filters test names. It builds only when a suite needs the build. Written for bash 3.2, macOS's /bin/bash.
+test *args:
     #!/usr/bin/env bash
     set -euo pipefail
     args="{{ args }}"
     all=(scripts python viewer desktop rust)
     if [[ "$args" == "--changed" ]]; then
-      base=$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD)
-      changed=$( { git diff --name-only "$base"; git ls-files --others --exclude-standard; } | sort -u)
+      base=${EMMET_CI_BASE:-$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD)}
+      # Separate steps, so a base that isn't a commit fails here instead of reading as "nothing changed".
+      diff=$(git diff --name-only "$base")
+      changed=$( { echo "$diff"; git ls-files --others --exclude-standard; } | sed '/^$/d' | sort -u)
       pick() { grep -qE "$1" <<<"$changed"; }
       if ! pick '^(justfile|\.node-version|rust-toolchain\.toml|rustfmt\.toml|package\.json|pnpm-(lock|workspace)\.yaml|tsconfig\.base\.json|eslint\.config\.js)$'; then
         all=()
@@ -80,10 +83,15 @@ test *args: build
         if pick '^packages/viewer/'; then all+=(viewer); fi
         if pick '^apps/desktop/'; then all+=(desktop); fi
         # The Rust integration tests also embed or read the DSL, data/, the fixtures, and docs/spec/mcp/.
-        if pick '^(crates/|tests/it/|tests/fixtures/|python/emmet_dsl/src/|data/|docs/spec/mcp/|tests/spikes/(binaries|headless-render)/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
+        if pick '^(crates/|tests/it/|tests/fixtures/|python/emmet_dsl/src/|data/|docs/spec/mcp/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
       fi
       args=""
       echo "test --changed: ${all[*]:-nothing}"
+    fi
+    # The same steps as `just build`: the desktop crate embeds apps/desktop/dist, and the JS tests read the builds.
+    if grep -qE 'viewer|desktop|rust' <<<"${all[*]:-}"; then
+      pnpm -r build
+      cargo build --workspace --locked
     fi
     # Empty arrays expand with ${a[@]+...}: bash 3.2 calls a bare "${a[@]}" unbound under set -u.
     node_filter=(); py_filter=(); [[ -n "$args" ]] && node_filter=(--test-name-pattern "$args") && py_filter=(-k "$args")
@@ -108,26 +116,33 @@ test *args: build
 
 # App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server and the E2E hooks, driven by
 # WebdriverIO. `just e2e viewer` runs one spec file from tests/e2e/specs/. The app is built inside the workspace build
-# (it embeds the frontend by default), so its dependencies come from `just test`'s compile; only the webdriver
-# feature's crates and the app itself build again.
+# (it embeds the frontend by default), so after `just test` only the webdriver feature's crates and the app build again.
 e2e *spec: e2e-build
     pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs {{ if spec == "" { "" } else { "--spec specs/" + spec + ".e2e.mjs" } }}
 
 # The E2E build: the frontend with EMMET_E2E=1, then the workspace with emmet-desktop's `webdriver` feature (never in
 # a release build; main.rs refuses it without debug assertions).
 e2e-build:
+    pnpm --filter @emmet/viewer build
     cd apps/desktop && EMMET_E2E=1 pnpm build
     cargo build --workspace --locked --features emmet-desktop/webdriver
 
-# Exactly what CI's mac job runs. It must pass before a session's final push.
-ci: check
-    cargo deny check
+# What CI's mac job runs, scoped by scripts/ci-scope.sh to what the changes since main can break: lint and secrets
+# always; the affected tests; E2E, the release-protocol build, and the audits only when their paths changed. CI runs it,
+# so there is no need to run it locally before a push. EMMET_CI_FULL=1 runs everything, as CI does weekly.
+ci:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    eval "$(scripts/ci-scope.sh)"
+    echo "ci scope: full=$full deps=$deps e2e=$e2e_mac build_app=$build_app bench=$bench"
+    just check
     gitleaks git --redact --no-banner .
-    pnpm audit --prod
-    just test
-    just build-app
-    just e2e
-    @echo "ci: ok"
+    if [[ $deps == true ]]; then cargo deny check && pnpm audit --prod; fi
+    if [[ $full == true ]]; then just test; else just test --changed; fi
+    if [[ $build_app == true ]]; then just build-app; fi
+    if [[ $e2e_mac == true ]]; then just e2e; fi
+    if [[ $bench == true ]]; then just bench; fi
+    echo "ci: ok"
 
 # Not yet: live evals (section 16.1) arrive in 1D; they bill Barry's API keys and ask first.
 eval *args:

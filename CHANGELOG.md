@@ -48,5 +48,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
+- CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push
+  after a green run tests only its own commits, and main doesn't rerun merged PRs. Everything runs weekly, by hand, or
+  with the `full-ci` label. `just test` builds only when a suite needs it, and the 0B spike crates left the workspace.
 - Agent permissions are sandbox first (D-40), section 10 quotes OpenAI's current wording, and the LDCad shadow
   library's connector data will ship as its own CC BY-SA 4.0 file (Q-01).

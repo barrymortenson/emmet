@@ -11,7 +11,7 @@ Open one PR from the current branch into main (plan section 19, rules 1 and 12),
 - **Barry ran `/create-pr`:** that authorizes opening this one PR now, ready or not. Items that don't hold yet stay
   unticked in the description with the reason.
 - **You decided to run it:** only inside a session run whose prompt has you open the PR (rule 12), and only when the
-  work is ready: `just ci` passes and every Done when item holds. If an item can't be finished, ask Barry with
+  work is ready: `just check` and `just test --changed` pass and every Done when item holds. If an item can't be finished, ask Barry with
   AskUserQuestion before opening, and leave it unticked with the reason. Otherwise keep working and don't open the PR.
 - Never on main, never a second PR for the same branch, and never a merge. Merging is `/merge`, run by Barry.
   `gh pr view --json number,state,isDraft` finds the branch's PR: an `OPEN` one that's a draft gets this command's
@@ -25,7 +25,8 @@ Open one PR from the current branch into main (plan section 19, rules 1 and 12),
 - The session is the `docs/plan-status.js` entry whose `branch` is this branch, else the id in a `bmortenson/s<id>-…`
   branch name, uppercased (`s0a` → `0A`). No session (tooling, docs, a reconcile): use the template's sections that apply and skip the session
   steps below.
-- `node scripts/plan-check.mjs` and `just ci` pass. Keep the `ci:` result line for the description.
+- `node scripts/plan-check.mjs`, `just check`, and `just test --changed` pass. CI runs the rest (`just ci`, scoped to
+  the change); its `ci` check is the evidence for the description.
 
 ## 2. Write the description
 
@@ -37,7 +38,7 @@ Follow `.github/PULL_REQUEST_TEMPLATE.md`. For a session:
   each item ticked with its evidence (test name, command plus result line, screenshot, file) after checking it holds
   on this branch. Not ticked without evidence.
 - **What good looks like:** how the work meets each item, with numbers where the plan asks for them.
-- **Checks:** the template's list, with the `just ci` result line. UI work needs light and dark screenshots on macOS
+- **Checks:** the template's list, with the PR's `ci` check (it lands after the PR opens; add it then). UI work needs light and dark screenshots on macOS
   and Windows.
 - Then, where they apply: a CSP or capabilities section (any loosening said plainly), things to know (decisions made,
   deviations from the plan, anything Barry should look at), and the YOU steps this PR needs from Barry.
@@ -63,7 +64,7 @@ Then act on what it finds:
 - Fix the critical and important ones that hold up on this branch, each bug with a test that would have caught it
   (rule 5). Never weaken a test, lint, or gate to settle a finding.
 - A fix that would change the plan, an ADR, a section 03 decision, or the frozen design: ask Barry (rule 10).
-- Run `just ci`, commit with sign-off, push, and update the description where the fixes change its evidence. Add a
+- Run `just check` and `just test --changed`, commit every fix with sign-off, push once, and update the description where the fixes change its evidence. Add a
   short "Review" section: what was fixed, and what was left and why.
 
 ## 5. Stop

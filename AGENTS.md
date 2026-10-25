@@ -5,7 +5,7 @@ models from real LDraw parts by writing a parametric Python model (emmet_dsl). T
 is docs/plan-status.js. Section 19 of the plan has the agent rules; they apply to every task here.
 
 ## Commands
-just setup · just dev · just check · just test [--changed] · just e2e · just ci (must pass before the final push)
+just setup · just dev · just check · just test [--changed] · just e2e · just ci (CI's mac job, scoped to the change)
 
 ## Map
 crates/emmet-core (LDraw, index, validator, BOM, steps) · crates/emmet-agent (Claude/Codex adapters) ·
@@ -15,7 +15,7 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
 ## Invariants
 - Project files are the source of truth; build/ is derived and reproducible.
 - Never write to ~/.claude, ~/.codex or any user-level agent config.
-- Integration tests first; unit tests only for dense logic; never weaken a test to get green.
+- Integration tests first; unit tests only for dense logic; test in proportion to real risk; never weaken a test to get green.
 - No new dependency or tool without approval (plan section 19, rule 6).
 - Every IPC path is checked against the project root; all process spawning is in Rust.
 - No secrets, real names, emails or personal paths in the repo, fixtures, transcripts or screenshots. The exceptions:

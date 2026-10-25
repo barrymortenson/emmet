@@ -17,7 +17,8 @@ The README lists the tools `just setup` expects.
 ## Rules for changes
 
 - Integration tests first: prove behavior through the real `emmet` binary, the real app, or the real Python. Every
-  bug fix comes with a test that would have caught it. Never delete, skip, or weaken a test to get green.
+  bug fix comes with a test that would have caught it. Test in proportion to real risk: no tests of constants, wiring,
+  or what the type checker proves. Never skip or weaken a test to get green.
 - Every new source file starts with an SPDX header: `SPDX-License-Identifier: AGPL-3.0-or-later`, or
   `SPDX-License-Identifier: Apache-2.0` under `python/emmet_dsl/`, `data/techniques/`, and the project templates.
   CI checks it (`node scripts/spdx-check.mjs`).

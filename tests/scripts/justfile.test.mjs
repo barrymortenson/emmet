@@ -35,7 +35,7 @@ function justTest(dir, ...args) {
   }
   const just = run("sh", ["-c", "command -v just"]).out.trim();
   const r = run(just, ["--justfile", join(ROOT, "justfile"), "--working-directory", dir, "--no-deps", "test", ...args], {
-    env: { PATH: `${bin}:${process.env.PATH}` },
+    env: { PATH: `${bin}:${process.env.PATH}`, EMMET_CI_BASE: "" },
   });
   return { ...r, calls: readFileSync(log, "utf8") };
 }
@@ -62,7 +62,8 @@ for (const [change, picked] of [
   [null, "nothing"],
   [".github/workflows/ci.yml", "scripts"],
   ["rust-toolchain.toml", "scripts python viewer desktop rust"],
-  ["tests/spikes/binaries/src/lib.rs", "rust"],
+  ["crates/emmet-core/src/lib.rs", "rust"],
+  ["docs/plan-status.js", "scripts"],
 ]) {
   test(`just test --changed with ${change ?? "no change"} runs ${picked}`, { skip }, () => {
     const r = justTest(project(change), "--changed");
@@ -70,6 +71,15 @@ for (const [change, picked] of [
     assert.match(r.out, new RegExp(`test --changed: ${picked}\n`));
   });
 }
+
+test("just test --changed fails on a base that isn't a commit, instead of running nothing", { skip }, () => {
+  const bin = tempDir();
+  const r = run(run("sh", ["-c", "command -v just"]).out.trim(), ["--justfile", join(ROOT, "justfile"), "--working-directory", project(), "--no-deps", "test", "--changed"], {
+    env: { PATH: `${bin}:${process.env.PATH}`, EMMET_CI_BASE: "0000000000000000000000000000000000000000" },
+  });
+  assert.notEqual(r.code, 0, r.out);
+  assert.doesNotMatch(r.out, /test --changed: nothing/);
+});
 
 test("just test fails when a suite's tests are missing", { skip }, () => {
   const dir = project();
