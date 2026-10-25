@@ -11,7 +11,7 @@ pub struct Parsed {
 /// Finds the first run of two or three numbers joined by `x` (or `×`, `*`, `by`), with or without spaces. Numbers
 /// may be decimals (`0.667`) or fractions (`2/3`).
 pub fn parse(query: &str) -> Parsed {
-    let lower = query.to_lowercase().replace('×', " x ").replace('*', " x ");
+    let lower = query.to_lowercase().replace(['×', '*'], " x ");
     // Split "2x4" into "2 x 4" without touching words like "box".
     let mut spaced = String::new();
     let chars: Vec<char> = lower.chars().collect();

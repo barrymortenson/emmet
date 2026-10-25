@@ -59,8 +59,9 @@ pub struct Error {
     pub code: ErrorCode,
     pub message: String,
     pub hint: String,
+    // Boxed, so a `Result` carrying an `Error` stays small.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub details: Option<Details>,
+    pub details: Option<Box<Details>>,
 }
 
 impl Error {
@@ -74,13 +75,13 @@ impl Error {
     }
 
     pub fn with_details(mut self, details: Details) -> Self {
-        self.details = Some(details);
+        self.details = Some(Box::new(details));
         self
     }
 
     /// An error about a file with no line, such as a path that couldn't be read.
     pub fn at_file(mut self, file: impl Into<String>) -> Self {
-        self.details.get_or_insert_with(Details::default).file = Some(file.into());
+        self.details.get_or_insert_with(Default::default).file = Some(file.into());
         self
     }
 

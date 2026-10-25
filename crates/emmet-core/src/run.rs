@@ -167,7 +167,7 @@ fn run_inner(
                 }
                 None => {
                     let mut e = crate::ops::unknown_part(&index, &need.part)?;
-                    let d = e.details.get_or_insert_with(Details::default);
+                    let d = e.details.get_or_insert_with(Default::default);
                     d.file = Some(need.file.clone());
                     d.line = Some(need.line);
                     e.hint = format!("{} Fix {} line {} and run again.", e.hint, need.file, need.line);

@@ -252,8 +252,11 @@ fn box_from_blob(blob: &[u8]) -> Option<[f64; 6]> {
     (blob.len() == 48).then(|| std::array::from_fn(|i| f64::from_le_bytes(blob[i * 8..i * 8 + 8].try_into().unwrap())))
 }
 
-/// (part synonyms as (term, expansion), color abbreviations as (abbreviation, full name)).
-fn synonyms_toml() -> (Vec<(String, String)>, Vec<(String, String)>) {
+/// Pairs of words: (term, expansion) for parts, (abbreviation, full name) for colors.
+type Pairs = Vec<(String, String)>;
+
+/// The part synonyms and color abbreviations in data/synonyms.toml.
+fn synonyms_toml() -> (Pairs, Pairs) {
     let doc: toml::Table = SYNONYMS.parse().expect("data/synonyms.toml parses (checked by tests)");
     let mut parts = Vec::new();
     if let Some(t) = doc.get("parts").and_then(|v| v.as_table()) {

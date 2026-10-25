@@ -28,7 +28,7 @@ fn check(root: &Value, schema: &Value, value: &Value, path: &str, errors: &mut V
     if let Some(r) = s.get("$ref").and_then(Value::as_str) {
         match r
             .strip_prefix("#/")
-            .map(|p| p.split('/').fold(Some(root), |v, k| v.and_then(|v| v.get(k))))
+            .map(|p| p.split('/').try_fold(root, |v, k| v.get(k)))
         {
             Some(Some(target)) => check(root, target, value, path, errors),
             _ => errors.push(format!("{path}: unresolved $ref {r}")),
