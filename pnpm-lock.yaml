@@ -51,6 +51,9 @@ catalogs:
     react-dom:
       specifier: 19.3.1
       version: 19.3.1
+    three:
+      specifier: 0.186.1
+      version: 0.186.1
     typescript:
       specifier: 6.0.3
       version: 6.0.3
@@ -135,6 +138,12 @@ importers:
       '@wdio/tauri-service':
         specifier: 'catalog:'
         version: 1.5.1(expect-webdriverio@6.1.0)(supports-color@8.1.1)(tsx@4.23.15)(webdriverio@9.32.0(supports-color@8.1.1))
+
+  tests/spikes/headless-render:
+    dependencies:
+      three:
+        specifier: 'catalog:'
+        version: 0.186.1
 
 packages:
 
@@ -2416,6 +2425,9 @@ packages:
   text-decoder@1.2.7:
     resolution: {integrity: sha512-vlLytXkeP4xvEq2otHeJfSQIRyWxo/oZGEbXrtEEF9Hnmrdly59sUbzZ/QgyWuLYHctCHxFF4tRQZNQ9k60ExQ==}
 
+  three@0.186.1:
+    resolution: {integrity: sha512-blFeqb49wRCSGUGj7gtpfnSGHy2lwDk94RhUmS1c/hTby70kvChbWpkJ4Pm1390LqzzvTmzgXKHPEafJwCb8jA==}
+
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
@@ -3168,7 +3180,7 @@ snapshots:
 
   '@types/ws@8.18.2':
     dependencies:
-      '@types/node': 20.19.43
+      '@types/node': 26.6.5
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -5039,6 +5051,8 @@ snapshots:
       b4a: 1.9.0
     transitivePeerDependencies:
       - react-native-b4a
+
+  three@0.186.1: {}
 
   tinyglobby@0.2.17:
     dependencies:

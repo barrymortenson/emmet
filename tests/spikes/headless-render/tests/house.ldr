@@ -1,0 +1,8 @@
+0 A tiny house from ldraw-mini parts, for the ADR 0005 render test
+0 Name: house.ldr
+0 Author: Emmet
+1 2 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+1 4 -20 -24 -40 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 20 -24 40 1 0 0 0 1 0 0 0 1 3001.dat
+1 15 0 -48 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 320 0 -72 0 1 0 0 0 1 0 0 0 1 3039.dat

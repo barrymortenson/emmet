@@ -41,7 +41,10 @@ const dump = execFileSync("unzip", ["-c", zip, "ldraw/parts/*.dat", "-x", "ldraw
 for (const line of dump.split(/\r?\n/)) {
   const m = line.match(/^\s+inflating: \S*?parts\/([^/]+)\.dat\s*$/i); // macOS unzip prints "draw/parts/…"
   if (m) current = m[1].toLowerCase();
-  else if (current && line.startsWith("0 ")) titles.set(current, line.slice(2).trim()), (current = null);
+  else if (current && line.startsWith("0 ")) {
+    titles.set(current, line.slice(2).trim());
+    current = null;
+  }
 }
 const ldIds = [...titles.keys()];
 const ldSet = new Set(ldIds);

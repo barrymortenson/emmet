@@ -40,7 +40,7 @@ function walk(path, out) {
   }
   const rel = relative(home, path);
   if (st.isDirectory()) {
-    let names = [];
+    let names;
     try {
       names = readdirSync(path);
     } catch {

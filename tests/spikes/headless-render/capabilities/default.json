@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The spike's render window calls only its own commands (save_png, mark, fail).",
+  "windows": ["render"],
+  "permissions": []
+}

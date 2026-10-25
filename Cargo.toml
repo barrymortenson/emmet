@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/*", "apps/desktop/src-tauri", "tests/it"]
+members = ["crates/*", "apps/desktop/src-tauri", "tests/it", "tests/spikes/binaries", "tests/spikes/headless-render"]
 
 [workspace.package]
 version = "0.1.0"

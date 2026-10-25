@@ -71,7 +71,9 @@ export function record({ cli, scenario, cmd, args, ws, env, meta, append }) {
     let msg = line;
     try {
       msg = JSON.parse(line);
-    } catch {}
+    } catch {
+      // not JSON: keep the line as text
+    }
     write("out", msg);
     events.push(msg);
     for (const fn of listeners) fn(msg);

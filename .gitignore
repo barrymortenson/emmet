@@ -7,3 +7,4 @@ __pycache__/
 .dev-data/
 .DS_Store
 apps/desktop/src-tauri/gen/
+tests/spikes/headless-render/gen/

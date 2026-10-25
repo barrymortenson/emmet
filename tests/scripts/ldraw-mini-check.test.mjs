@@ -57,7 +57,10 @@ test("ldraw-mini-check fails on a file outside the manifest and attribution", ()
 });
 
 test("ldraw-mini-check fails when a license text is missing", () => {
-  const r = fixture(({ "CAlicense4.txt": _, ...f }) => f);
+  const r = fixture((f) => {
+    delete f["CAlicense4.txt"];
+    return f;
+  });
   assert.equal(r.code, 1);
   assert.match(r.out, /CAlicense4.txt is missing/);
 });

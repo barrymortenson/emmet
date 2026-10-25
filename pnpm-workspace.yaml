@@ -2,6 +2,7 @@ packages:
   - apps/*
   - packages/*
   - tests/e2e
+  - tests/spikes/headless-render
 
 # Install scripts that don't run: the E2E suite uses the embedded WebDriver server, so no browser driver downloads
 # (ADR 0002), and esbuild's binary comes from its platform package without its check script.
@@ -25,6 +26,7 @@ catalog:
   eslint: 10.13.0
   globals: 17.13.0
   react: 19.3.1
+  three: 0.186.1
   react-dom: 19.3.1
   typescript: 6.0.3
   typescript-eslint: 8.72.0
