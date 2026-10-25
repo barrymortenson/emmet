@@ -52,15 +52,19 @@ describe("viewer bench", () => {
         updates.push((await browser.execute(() => window.__emmet.drawnAt())) - t0);
       }
 
+      // At most ORBIT_FRAMES frames or 10 s: WebView2 on CI's software renderer draws a 2,000-part frame slowly, and a
+      // WebDriver script has 30 s.
       const orbit = await browser.execute(async (frames) => {
         const v = window.__emmet.viewer();
         await v.nextFrame();
         const t0 = performance.now();
-        for (let i = 0; i < frames; i++) {
+        let n = 0;
+        while (n < frames && performance.now() - t0 < 10_000) {
           v.orbit(0.03);
           await v.nextFrame();
+          n++;
         }
-        return (performance.now() - t0) / frames;
+        return { ms: (performance.now() - t0) / n, frames: n };
       }, ORBIT_FRAMES);
       const s = await stats();
       rows.push({
@@ -68,7 +72,8 @@ describe("viewer bench", () => {
         parts: s.instances,
         firstLoadMs: Math.round(load.ms),
         updateMs: Math.round(median(updates)),
-        orbitFrameMs: Number(orbit.toFixed(1)),
+        orbitFrameMs: Number(orbit.ms.toFixed(1)),
+        orbitFrames: orbit.frames,
         drawCalls: s.drawCalls,
         triangles: s.triangles,
       });
@@ -78,7 +83,7 @@ describe("viewer bench", () => {
       "",
       "| Scene | Parts | First load | Slider → viewer (median of 6) | Orbit frame | Draw calls | Triangles |",
       "|---|---|---|---|---|---|---|",
-      ...rows.map((r) => `| ${r.scene} | ${r.parts} | ${r.firstLoadMs} ms | ${r.updateMs} ms | ${r.orbitFrameMs} ms | ${r.drawCalls} | ${r.triangles} |`),
+      ...rows.map((r) => `| ${r.scene} | ${r.parts} | ${r.firstLoadMs} ms | ${r.updateMs} ms | ${r.orbitFrameMs} ms${r.orbitFrames < ORBIT_FRAMES ? ` (${r.orbitFrames} frames)` : ""} | ${r.drawCalls} | ${r.triangles} |`),
     ].join("\n");
     console.log(`\n${table}\n`);
     mkdirSync(out, { recursive: true });
