@@ -15,7 +15,6 @@ import {
   Matrix4,
   PerspectiveCamera,
   Scene,
-  Sphere,
   Vector3,
   WebGLRenderer,
 } from "three";
@@ -76,6 +75,8 @@ export interface Stats {
   geometries: number;
   textures: number;
   programs: number;
+  /** How many ids are highlighted. */
+  highlighted: number;
   /** Parts that couldn't load, with why; they aren't drawn. */
   failed: Record<string, string>;
   /** Placements on screen per diff kind in the last update. */
@@ -102,6 +103,8 @@ export interface Viewer {
 }
 
 const BACKGROUND: Record<Theme, number> = { light: 0xf3f4f6, dark: 0x1f2125 };
+/** Renders (for agents, exports, and baselines) look the same whatever the window's theme. */
+const RENDER_BACKGROUND = new Color(0xf3f4f6);
 const DIM = new Color(0.35, 0.35, 0.38);
 const WHITE = new Color(1, 1, 1);
 const FOV = 35;
@@ -375,6 +378,8 @@ class EmmetViewer implements Viewer {
     else this.place(camera, box, view.dir, view.up);
     const before = this.highlighted;
     if (options.highlight) this.highlight(options.highlight);
+    const background = this.scene.background;
+    this.scene.background = RENDER_BACKGROUND;
     try {
       r.render(this.scene, camera);
       const blob = await new Promise<Blob | null>((resolve) => r.domElement.toBlob(resolve, "image/png"));
@@ -385,6 +390,7 @@ class EmmetViewer implements Viewer {
         camera: { view: name, position: camera.position.toArray(), target: target.toArray(), fov: camera.fov },
       };
     } finally {
+      this.scene.background = background;
       if (options.highlight) this.highlight([...before]);
     }
   }
@@ -407,6 +413,7 @@ class EmmetViewer implements Viewer {
       geometries: info.memory.geometries,
       textures: info.memory.textures,
       programs: info.programs?.length ?? 0,
+      highlighted: this.highlighted.size,
       failed: Object.fromEntries(this.cache.failed),
       lastDiff: { ...this.lastDiff },
     };
@@ -497,17 +504,30 @@ class EmmetViewer implements Viewer {
     return box;
   }
 
-  /** Puts `camera` on `dir` from the box's center, far enough back to see all of it. */
+  /** Puts `camera` on `dir` from the box's center, just far enough back that every corner of the box is in view. */
   private place(camera: PerspectiveCamera, box: Box3, dir: Vector3, up: Vector3): void {
-    const sphere = box.getBoundingSphere(new Sphere());
-    const fov = (camera.fov * Math.PI) / 180;
-    const fit = Math.min(fov, 2 * Math.atan(Math.tan(fov / 2) * camera.aspect));
-    const distance = (sphere.radius / Math.sin(fit / 2)) * 1.05;
+    const center = box.getCenter(new Vector3());
     camera.up.copy(up);
-    camera.position.copy(sphere.center).addScaledVector(dir, distance);
+    camera.position.copy(center).add(dir);
+    camera.lookAt(center);
+    camera.updateMatrixWorld();
+    const right = new Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+    const upward = new Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+    const tanV = Math.tan((camera.fov * Math.PI) / 360);
+    const tanH = tanV * camera.aspect;
+    let distance = 0;
+    const v = new Vector3();
+    for (let i = 0; i < 8; i++) {
+      v.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).sub(center);
+      // A corner sits `toward` nearer the camera than the center, so the camera backs off that much more.
+      const toward = v.dot(dir);
+      distance = Math.max(distance, Math.abs(v.dot(right)) / tanH + toward, Math.abs(v.dot(upward)) / tanV + toward);
+    }
+    distance = Math.max(distance * 1.08, 1);
+    camera.position.copy(center).addScaledVector(dir, distance);
     camera.near = Math.max(distance / 100, 0.1);
     camera.far = distance * 100;
-    camera.lookAt(sphere.center);
+    camera.lookAt(center);
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
   }

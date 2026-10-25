@@ -8,6 +8,7 @@
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
 import { basename } from "node:path";
+import { webContentPids } from "./lib/memory.mjs";
 import { appBinary, bin, out } from "./lib/paths.mjs";
 import { prepareProject } from "./lib/projects.mjs";
 
@@ -29,6 +30,9 @@ export const config = {
   onPrepare() {
     process.env.EMMET_DATA_DIR = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
     process.env.EMMET_E2E_OUT = out;
+    // WKWebView has no JS heap API, so the leak test reads the app's WebContent processes: the ones that appear after
+    // this hook, which runs before the service starts the app (docs/decisions.md, 2026-10-25).
+    if (process.platform === "darwin") process.env.EMMET_E2E_WEBCONTENT_BEFORE = webContentPids().join(",");
     // WebView2: exact heap numbers and window.gc() for the leak test.
     if (process.platform === "win32") {
       process.env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--enable-precise-memory-info --js-flags=--expose-gc";
