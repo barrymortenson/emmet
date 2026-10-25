@@ -21,8 +21,7 @@ the site, apart from the catalog downloads. `terms-check` prints them as a check
   "is available to all open-source partners" is no longer on the overview, which now describes ChatGPT plan usage
   for open-source and locally hosted apps (with an interest form for paid or remotely hosted ones). "without a client
   secret or partner API key" moved to the sign-in page as "needs neither a client secret nor a partner API key".
-  The meaning of the 1E row looks the same; the change is recorded here and in ADR 0003, and section 10 keeps the
-  old wording until Barry settles it (D-37).
+  The meaning of the 1E row is the same, and Barry chose to quote today's text (2026-10-24); section 10 now does.
 - **Rebrickable** ([downloads](https://rebrickable.com/downloads/), [terms](https://rebrickable.com/terms/)): read in
   a browser (both pages answer scripts with a Cloudflare challenge). Every phrase section 12 quotes is still there.
   The downloads page now also offers the complete catalog as one archive.

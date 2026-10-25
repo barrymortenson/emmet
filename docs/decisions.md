@@ -23,6 +23,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   sandbox can't contain, and for every shell command under Claude Code on native Windows, which has no sandbox (ask
   rules there). Plan section 10 and section 03 change to match; 1C proves it on both OSes. Rejected: an ask rule with
   cards for every shell command; accepting the gap.
+- **Section 10's OpenAI quotes.** Two phrases in the Codex column changed wording since planning ("is available to all
+  open-source partners" is gone; "without a client secret or partner API key" moved to the sign-in page as "needs
+  neither a client secret nor a partner API key"). The basis is the same, so section 10 quotes today's text and the
+  1E row stays Build with conditions. Rejected: holding 1E for OpenAI's written confirmation; dropping ChatGPT plan use.
 
 ## 2026-10-24, session 0A
 
