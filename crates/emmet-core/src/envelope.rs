@@ -131,7 +131,18 @@ pub struct Meta {
     pub ms: u64,
 }
 
-/// `{ ok, data | error, warnings, meta }`.
+/// A message the user typed while the agent worked, attached to an MCP tool result (D-33, plan section 09). Only
+/// `emmet mcp --session` (the app's chat) ever sets these.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct UserNote {
+    pub id: String,
+    pub text: String,
+    /// When the user sent it, as RFC 3339.
+    pub at: String,
+}
+
+/// `{ ok, data | error, warnings, meta }`, plus `user_notes` on an MCP tool result when the user has redirected the
+/// agent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Envelope<T> {
     pub ok: bool,
@@ -141,6 +152,9 @@ pub struct Envelope<T> {
     pub error: Option<Error>,
     pub warnings: Vec<Warning>,
     pub meta: Meta,
+    /// What the user just said, newest last. It overrides the current plan (the doctrine says how to handle it).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub user_notes: Vec<UserNote>,
 }
 
 impl<T> Envelope<T> {
@@ -152,6 +166,7 @@ impl<T> Envelope<T> {
                 error: None,
                 warnings,
                 meta,
+                user_notes: vec![],
             },
             Err(error) => Self {
                 ok: false,
@@ -159,6 +174,7 @@ impl<T> Envelope<T> {
                 error: Some(error),
                 warnings,
                 meta,
+                user_notes: vec![],
             },
         }
     }

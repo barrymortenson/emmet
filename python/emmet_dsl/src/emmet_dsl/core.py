@@ -54,14 +54,17 @@ class Handle:
 
     @property
     def id(self) -> str:
+        """The part's Emmet id, as the viewer, highlight, and findings name it."""
         return self._p.id
 
     @property
     def min(self) -> tuple:
+        """The (x, y, z) corner of the part's body with the lowest values."""
         return self._p.box[0]
 
     @property
     def max(self) -> tuple:
+        """The (x, y, z) corner of the part's body with the highest values; the next part can sit at max's z."""
         return self._p.box[1]
 
     def __repr__(self) -> str:

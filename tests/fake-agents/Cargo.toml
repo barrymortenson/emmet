@@ -1,0 +1,18 @@
+[package]
+name = "emmet-fake-agents"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# fake-claude and fake-codex: stand-ins for the agent CLIs at their protocol boundary (plan section 16, ADR 0009).
+# Tests select them with EMMET_CLAUDE_BIN and EMMET_CODEX_BIN; they're never shipped.
+[dependencies]
+rmcp.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true

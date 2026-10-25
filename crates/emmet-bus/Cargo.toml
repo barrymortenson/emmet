@@ -13,5 +13,9 @@ interprocess.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
+# The bus pipe's ACL is SDDL, which interprocess takes as a wide string (approved 2026-10-25, ADR 0009).
+[target.'cfg(windows)'.dependencies]
+widestring.workspace = true
+
 [lints]
 workspace = true

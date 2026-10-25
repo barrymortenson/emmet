@@ -1,0 +1,12 @@
+---
+source: tests/it/tests/agent_claude.rs
+expression: rig.outline(&events)
+---
+{
+  "stream": [
+    "started claude-haiku-5-5 (API key)",
+    "text: ready",
+    "usage",
+    "turn_done Completed"
+  ]
+}

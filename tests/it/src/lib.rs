@@ -6,6 +6,7 @@
 //! APPDATA on Windows) points at the test home. CI's runner guard sets `EMMET_DATA_DIR` and `EMMET_TEST_HOME` inside
 //! the runner's temp dir; locally they default to `target/it-data` and `target/it-home`.
 
+pub mod agents;
 pub mod schema;
 
 use std::path::{Path, PathBuf};
@@ -27,7 +28,7 @@ pub fn fixture(rel: &str) -> PathBuf {
 }
 
 /// target/<profile>/, from a test (target/<profile>/deps/) or a binary (target/<profile>/).
-fn target_dir() -> PathBuf {
+pub fn target_dir() -> PathBuf {
     let mut dir = std::env::current_exe().expect("test exe path");
     dir.pop();
     if dir.ends_with("deps") {

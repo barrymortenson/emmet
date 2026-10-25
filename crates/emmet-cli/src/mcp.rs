@@ -16,8 +16,12 @@ use emmet_core::run::{RunMeta, RunSummary};
 use rmcp::handler::server::router::tool::ToolRouter;
 use rmcp::handler::server::tool::schema_for_output;
 use rmcp::handler::server::wrapper::Parameters;
-use rmcp::model::{CallToolResult, ContentBlock, Implementation, ServerCapabilities, ServerConfig};
-use rmcp::{ServerHandler, ServiceExt, tool, tool_handler, tool_router};
+use rmcp::model::{
+    CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock, Implementation, ServerCapabilities,
+    ServerConfig,
+};
+use rmcp::service::RequestContext;
+use rmcp::{ErrorData, RoleServer, ServerHandler, ServiceExt, tool, tool_handler, tool_router};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -92,10 +96,17 @@ pub struct Highlighted {
     pub reason: Option<String>,
 }
 
+/// The doctrine (plan section 10), embedded in the binary: printed by `emmet rules` and the `rules` tool.
+pub const DOCTRINE: &str = include_str!("../doctrine/EMMET.md");
+/// The DSL vocabulary, generated from emmet_dsl's docstrings: printed by `emmet api` and the `api` tool.
+pub const API: &str = include_str!("../doctrine/api.md");
+
 #[derive(Clone)]
 pub struct EmmetMcp {
     data: DataDir,
     project: Option<PathBuf>,
+    /// The app's chat session, which turns on redirect notes (`--session`, set only by the app).
+    session: Option<String>,
     tool_router: ToolRouter<Self>,
 }
 
@@ -157,10 +168,11 @@ fn error_text(e: &Error) -> String {
 
 #[tool_router(router = tool_router)]
 impl EmmetMcp {
-    pub fn new(data: DataDir, project: Option<PathBuf>) -> Self {
+    pub fn new(data: DataDir, project: Option<PathBuf>, session: Option<String>) -> Self {
         Self {
             data,
             project,
+            session,
             tool_router: Self::tool_router(),
         }
     }
@@ -356,6 +368,19 @@ impl EmmetMcp {
         })
     }
 
+    /// How to build with Emmet: the frame and units, the loop, building in stages, when to ask, and redirects. Read it
+    /// once, before anything else.
+    #[tool]
+    async fn rules(&self, Parameters(_): Parameters<NoArgs>) -> CallToolResult {
+        CallToolResult::success(vec![ContentBlock::text(DOCTRINE)])
+    }
+
+    /// The emmet_dsl vocabulary for model.py: @model, Model.add, Model.step, Handle, and the param types.
+    #[tool]
+    async fn api(&self, Parameters(_): Parameters<NoArgs>) -> CallToolResult {
+        CallToolResult::success(vec![ContentBlock::text(API)])
+    }
+
     /// LDraw colors: code, name, RGB, finish, and other accepted spellings.
     #[tool(output_schema = schema_for_output::<Envelope<ColorList>>())]
     async fn list_colors(&self, Parameters(args): Parameters<ColorsArgs>) -> CallToolResult {
@@ -389,8 +414,72 @@ fn size(s: Option<emmet_core::index::Size>) -> String {
     .unwrap_or_default()
 }
 
+impl EmmetMcp {
+    /// The session's pending redirect notes, taken from the app over the bus (D-33). None without `--session`, or
+    /// when the app doesn't answer.
+    fn take_notes(&self) -> Vec<emmet_core::envelope::UserNote> {
+        let Some(session) = &self.session else {
+            return vec![];
+        };
+        let reply = emmet_bus::send(
+            &self.data,
+            emmet_bus::Message::Notes {
+                session: session.clone(),
+            },
+            std::time::Duration::from_secs(5),
+        );
+        reply
+            .answer
+            .filter(|_| reply.delivered)
+            .and_then(|a| serde_json::from_value(a).ok())
+            .unwrap_or_default()
+    }
+}
+
+/// Puts the user's notes at the front of a tool result: in the envelope's `user_notes`, and as a first text line.
+fn attach_notes(result: &mut CallToolResult, notes: Vec<emmet_core::envelope::UserNote>) {
+    if notes.is_empty() {
+        return;
+    }
+    let said: Vec<String> = notes.iter().map(|n| format!("\"{}\"", n.text)).collect();
+    result.content.insert(
+        0,
+        ContentBlock::text(format!(
+            "The user just said: {}. This overrides your current plan: acknowledge it in one line, then change course.",
+            said.join(" and then ")
+        )),
+    );
+    let value = serde_json::to_value(notes).expect("notes serialize");
+    match result.structured_content.as_mut().and_then(Value::as_object_mut) {
+        Some(env) => {
+            env.insert("user_notes".into(), value);
+        }
+        None => result.structured_content = Some(serde_json::json!({ "user_notes": value })),
+    }
+}
+
 #[tool_handler(router = self.tool_router)]
 impl ServerHandler for EmmetMcp {
+    /// The router's call, plus the session's notes (the macro writes the rest of the handler).
+    async fn call_tool(
+        &self,
+        request: CallToolRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> std::result::Result<CallToolResponse, ErrorData> {
+        let tcc = rmcp::handler::server::tool::ToolCallContext::new(self, request, context);
+        let mut response = self.tool_router.call(tcc).await?;
+        if self.session.is_some()
+            && let CallToolResponse::Complete(result) = &mut response
+        {
+            let me = self.clone();
+            let notes = tokio::task::spawn_blocking(move || me.take_notes())
+                .await
+                .unwrap_or_default();
+            attach_notes(result, notes);
+        }
+        Ok(response)
+    }
+
     fn get_info(&self) -> ServerConfig {
         let mut info = ServerConfig::new(ServerCapabilities::builder().enable_tools().build());
         info.server_info = Implementation::new("emmet", emmet_core::version());
@@ -404,15 +493,14 @@ impl ServerHandler for EmmetMcp {
     }
 }
 
-/// Serves MCP on stdin and stdout until the client closes them. `session` turns on redirect notes once the bus
-/// exists (1C); until then it's accepted and unused.
-pub fn serve(data: DataDir, project: Option<PathBuf>, _session: Option<String>) -> Result<()> {
+/// Serves MCP on stdin and stdout until the client closes them. `session` (the app's chat) turns on redirect notes.
+pub fn serve(data: DataDir, project: Option<PathBuf>, session: Option<String>) -> Result<()> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .map_err(|e| Error::internal(format!("starting the MCP runtime: {e}")))?;
     rt.block_on(async move {
-        let service = EmmetMcp::new(data, project)
+        let service = EmmetMcp::new(data, project, session)
             .serve(rmcp::transport::stdio())
             .await
             .map_err(|e| Error::internal(format!("starting the MCP server: {e}")))?;
@@ -435,7 +523,7 @@ struct ToolSchema {
 
 /// Writes each tool's input and output schema to `dir`, from the same router the server serves. Returns the count.
 pub fn write_schemas(dir: &Path) -> Result<usize> {
-    let server = EmmetMcp::new(DataDir::at(dir), None);
+    let server = EmmetMcp::new(DataDir::at(dir), None, None);
     let tools = server.tool_router.list_all();
     std::fs::create_dir_all(dir).map_err(|e| Error::io(dir, e))?;
     for t in &tools {

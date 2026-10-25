@@ -517,6 +517,7 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
                 Err(_) => Reply::undelivered("the window didn't render in time"),
             }
         }
+        _ => Reply::undelivered("the chat isn't wired up yet"),
     }
 }
 

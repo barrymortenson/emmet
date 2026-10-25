@@ -1,0 +1,20 @@
+---
+source: tests/it/tests/agent_claude.rs
+expression: rig.outline(&all)
+---
+{
+  "stream": [
+    "started claude-haiku-5-5 (API key)",
+    "tool_call ToolSearch",
+    "tool_result ok mcp__emmet_host__ask_user",
+    "tool_call mcp__emmet_host__ask_user",
+    "tool_result ok The user chose: 6 bricks",
+    "text: Six bricks tall, then.",
+    "usage",
+    "turn_done Completed"
+  ],
+  "cards": [
+    "question How tall should the wall be?",
+    "question_closed answered"
+  ]
+}

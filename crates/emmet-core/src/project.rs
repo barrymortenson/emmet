@@ -411,9 +411,15 @@ fn card(name: &str, what: &str) -> String {
     )
 }
 
+/// The pointer every agent gets (plan section 10): the app passes it through Claude Code's `--append-system-prompt`
+/// and Codex's `developerInstructions`, and a new project's AGENTS.md (and CLAUDE.md) starts with it, so a terminal
+/// agent behaves the same way. The doctrine itself stays in the binary and is read through the `rules` tool.
+pub const AGENT_POINTER: &str = "You are operating Emmet, which builds brick models from real LDraw parts. Before \
+anything else, call the emmet `rules` tool (in a terminal without Emmet's MCP server: `emmet rules`) and follow it.";
+
 fn agents(name: &str) -> String {
     format!(
-        "# {name}: an Emmet project\n\nThis folder is a brick model. The model is the Python in model.py, written with emmet_dsl, and build/ is\ngenerated from it: never edit build/.\n\n- Edit model.py (and models/*.py), then run `emmet run --json` and fix what it reports. Errors name the file\n  and line, with a hint.\n- Find parts with `emmet search <words>` (for example `emmet search brick 2x4`) and check one with\n  `emmet part <id>`. List colors with `emmet colors`, and parameters with `emmet params`.\n- Units: x runs right and y runs back, in studs; z runs up, in plates (3 plates make a brick). `at=` is the\n  lowest corner of the part's body, studs left out, after `rot` quarter turns.\n- CARD.md says what this model is, its design notes, and what not to do. Keep it current.\n- No file I/O outside this folder and no network in model code.\n"
+        "# {name}: an Emmet project\n\n{AGENT_POINTER}\n\nThis folder is a brick model. The model is the Python in model.py, written with emmet_dsl, and build/ is\ngenerated from it: never edit build/.\n\n- Edit model.py (and models/*.py), then run `emmet run --json` and fix what it reports. Errors name the file\n  and line, with a hint.\n- Find parts with `emmet search <words>` (for example `emmet search brick 2x4`) and check one with\n  `emmet part <id>`. List colors with `emmet colors`, and parameters with `emmet params`.\n- Units: x runs right and y runs back, in studs; z runs up, in plates (3 plates make a brick). `at=` is the\n  lowest corner of the part's body, studs left out, after `rot` quarter turns.\n- CARD.md says what this model is, its design notes, and what not to do. Keep it current.\n- No file I/O outside this folder and no network in model code.\n"
     )
 }
 

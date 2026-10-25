@@ -1,0 +1,15 @@
+---
+source: tests/it/tests/agent_claude.rs
+expression: rig.outline(&events)
+---
+{
+  "stream": [
+    "started claude-haiku-5-5 (API key)",
+    "tool_call ToolSearch",
+    "tool_result ok mcp__emmet__ping",
+    "tool_call mcp__emmet__ping",
+    "error Crashed",
+    "turn_done Crashed",
+    "exited 1"
+  ]
+}

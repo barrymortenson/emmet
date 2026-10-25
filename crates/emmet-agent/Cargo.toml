@@ -7,5 +7,22 @@ license.workspace = true
 repository.workspace = true
 publish.workspace = true
 
+[dependencies]
+emmet-core.workspace = true
+keyring-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+specta = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+apple-native-keyring-store.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-native-keyring-store.workspace = true
+
+[features]
+# specta::Type on the event and usage types, for the app's generated TypeScript bindings.
+specta = ["dep:specta"]
+
 [lints]
 workspace = true

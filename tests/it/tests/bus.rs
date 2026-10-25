@@ -34,7 +34,7 @@ fn a_message_reaches_the_handler_and_its_reply_comes_back() {
             highlighted: ids,
             ..Default::default()
         },
-        Message::Render { .. } => Reply::undelivered("no window"),
+        _ => Reply::undelivered("no window"),
     })
     .unwrap();
     let r = send(&data, highlight(), Duration::from_secs(5));
