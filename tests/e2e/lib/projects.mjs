@@ -16,6 +16,7 @@ const PROJECTS = {
   runs: [["", "scene-grid"]],
   visual: [["", "cottage"], ["scene-colors", "scene-colors"], ["scene-grid", "scene-grid"]],
   bench: [["", "cottage"], ["grid500", "scene-grid"], ["grid2000", "scene-grid", { count: 2000 }]],
+  chat: [["", "agent"], ["codex", "agent"]],
 };
 
 export function emmet(args, options = {}) {

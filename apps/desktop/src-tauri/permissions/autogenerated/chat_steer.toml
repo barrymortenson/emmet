@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-chat-steer"
+description = "Enables the chat_steer command without any pre-configured scope."
+commands.allow = ["chat_steer"]
+
+[[permission]]
+identifier = "deny-chat-steer"
+description = "Denies the chat_steer command without any pre-configured scope."
+commands.deny = ["chat_steer"]

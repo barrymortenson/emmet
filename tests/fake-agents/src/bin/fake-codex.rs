@@ -34,6 +34,7 @@ fn main() {
     let mut deferred: Option<Value> = None;
     let mut last_in: Option<String> = None;
     let mut lines: Vec<Line> = script;
+    let mut input = Input::default();
     let mut i = 0;
     while i < lines.len() {
         let line = &lines[i];
@@ -66,18 +67,16 @@ fn main() {
         match line.dir.as_str() {
             "in" => {
                 last_in = line.msg["method"].as_str().map(String::from);
-                let Some(got) = read() else { std::process::exit(0) };
                 let want = &line.msg;
                 // A turn/start mid-turn folds into the running turn (0B, mid-turn-start); Emmet sends turn/steer for
-                // the same thing, which the recorded answer serves too.
-                let folded = in_turn && want["method"] == "turn/start" && got["method"] == "turn/steer";
+                // the same thing, which the recorded answer serves too (Input::take).
+                let Some(got) = input.take(want, in_turn) else {
+                    std::process::exit(0)
+                };
                 if want["method"] == "turn/start" {
                     in_turn = true;
                 }
                 match want["method"].as_str() {
-                    Some(m) if got["method"] != m && !folded => {
-                        fail(format!("expected {m} from the adapter, got {got}"))
-                    }
                     Some(_) => {
                         if let Some(id) = want.get("id") {
                             ids.insert(id.to_string(), got["id"].clone());
@@ -85,9 +84,6 @@ fn main() {
                     }
                     // A response to one of our requests.
                     None => {
-                        if got.get("method").is_some() || got["id"] != want["id"] {
-                            fail(format!("expected the response to request {}, got {got}", want["id"]));
-                        }
                         if let Some(item) = asked.remove(&want["id"].to_string()) {
                             let d = got["result"]["decision"]
                                 .as_str()
@@ -126,13 +122,46 @@ fn main() {
                     if crash {
                         std::process::exit(code);
                     }
-                    exit_after_eof(code);
+                    input.finish(code);
                 }
             }
             _ => {}
         }
     }
-    exit_after_eof(0)
+    input.finish(0)
+}
+
+/// What the adapter wrote, taken in the order the recording expects it. Independent messages can arrive in either order
+/// (a redirect typed just as a tool-call approval goes out), as Codex itself allows, so a line that isn't the expected
+/// one waits in the queue for its turn.
+#[derive(Default)]
+struct Input {
+    queue: std::collections::VecDeque<Value>,
+}
+
+impl Input {
+    /// The first message that fits `want`: a request with its method (a turn/steer for a mid-turn turn/start), or the
+    /// response to its id.
+    fn take(&mut self, want: &Value, in_turn: bool) -> Option<Value> {
+        let fits = |got: &Value| match want["method"].as_str() {
+            Some(m) => got["method"] == m || (in_turn && m == "turn/start" && got["method"] == "turn/steer"),
+            None => got.get("method").is_none() && got["id"] == want["id"],
+        };
+        loop {
+            if let Some(i) = self.queue.iter().position(fits) {
+                return self.queue.remove(i);
+            }
+            self.queue.push_back(read()?);
+        }
+    }
+
+    /// The recording ended: nothing may be left, and the adapter closes stdin.
+    fn finish(&mut self, code: i32) -> ! {
+        if let Some(v) = self.queue.front() {
+            fail(format!("the adapter wrote {v}, which the recording never asked for"));
+        }
+        exit_after_eof(code)
+    }
 }
 
 /// What Codex does as an item completes: an MCP tool call runs on the real server, and an approved file change is

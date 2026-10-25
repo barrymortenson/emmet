@@ -20,6 +20,7 @@ tauri-build.workspace = true
 
 [dependencies]
 emmet-core.workspace = true
+emmet-agent = { workspace = true, features = ["specta"] }
 emmet-bus.workspace = true
 notify.workspace = true
 serde.workspace = true

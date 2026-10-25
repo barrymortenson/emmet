@@ -30,23 +30,125 @@ export const commands = {
 	renderDone: (png: string, camera: Value) => __TAURI_INVOKE<void>("render_done", { png, camera }),
 	/**  Render mode: why the render failed. Exits with an error. */
 	renderFailed: (message: string) => __TAURI_INVOKE<void>("render_failed", { message }),
+	/**  The agents Emmet found: only a detected, signed-in agent can start a chat; the others carry the fix. */
+	agents: (refresh: boolean) => __TAURI_INVOKE<AgentView[]>("agents", { refresh }),
+	/**
+	 *  Starts a chat with `kind` on the open project, ending any chat that's running. With `resume`, it continues the
+	 *  project's last session for that agent.
+	 */
+	chatStart: (kind: AgentKind, resume: boolean) => typedError<string, Problem>(__TAURI_INVOKE("chat_start", { kind, resume })),
+	/**  A message from the user: a new turn, or (while the agent works) a redirect. */
+	chatSend: (text: string) => typedError<null, Problem>(__TAURI_INVOKE("chat_send", { text })),
+	/**  A redirect while the agent works (D-33): returns the note, which `NoteDelivered` marks once it's out. */
+	chatSteer: (text: string) => typedError<UserNote, Problem>(__TAURI_INVOKE("chat_steer", { text })),
+	/**  Changes a redirect that hasn't gone out, or withdraws it (`text` null). False if it's already delivered. */
+	chatNote: (id: string, text: string | null) => typedError<boolean, Problem>(__TAURI_INVOKE("chat_note", { id, text })),
+	/**  Stop (Esc): the turn ends at once; an open question is canceled, and pending redirects go out as the next turn. */
+	chatStop: () => typedError<null, Problem>(__TAURI_INVOKE("chat_stop")),
+	chatRespond: (id: string, decision: Decision) => typedError<null, Problem>(__TAURI_INVOKE("chat_respond", { id, decision })),
+	chatAnswer: (id: string, answer: Answer) => typedError<null, Problem>(__TAURI_INVOKE("chat_answer", { id, answer })),
+	/**  The open project's chat: the live session, the last one (to resume), and its history. */
+	chatState: () => __TAURI_INVOKE<ChatState>("chat_state"),
+	/**  Ends the running chat (New chat). Its history stays in the project's .emmet/. */
+	chatEnd: () => __TAURI_INVOKE<void>("chat_end"),
+	/**
+	 *  Plan usage (D-36): fetched only when the user asks (opening the popover, ⟳, the end of a turn they started), at
+	 *  most once a minute. Codex reports its billing state only.
+	 */
+	usage: (kind: AgentKind) => __TAURI_INVOKE<UsageSnapshot | null>("usage", { kind }),
+	/**  Whether the keychain holds an OpenAI API key for Codex (the key itself never leaves the host). */
+	openaiKeySaved: () => __TAURI_INVOKE<boolean>("openai_key_saved"),
+	/**  Saves the OpenAI API key in the OS keychain (Settings → Agents), or removes it (`key` null). */
+	openaiKeySet: (key: string | null) => typedError<boolean, Problem>(__TAURI_INVOKE("openai_key_set", { key })),
 };
 
 /** Events */
 export const events = {
 	busHighlight: makeEvent<BusHighlight, BusHighlight>("bus-highlight"),
 	busRender: makeEvent<BusRender, BusRender>("bus-render"),
+	chatEvent: makeEvent<ChatEvent, ChatEvent>("chat-event"),
 	projectOpened: makeEvent<ProjectOpened, ProjectOpened>("project-opened"),
 	runFinished: makeEvent<RunFinished, RunFinished>("run-finished"),
 	runStarted: makeEvent<RunStarted, RunStarted>("run-started"),
 };
 
 /* Types */
+export type AgentErrorCode = "not_installed" | "not_signed_in" | 
+/**  The CLI couldn't be started. */
+"spawn_failed" | 
+/**  The CLI exited when it shouldn't have. */
+"crashed" | 
+/**  The CLI's key was refused. */
+"auth_failed" | 
+/**  No credit or plan usage left. */
+"quota_exceeded" | 
+/**  The CLI reported an error of its own. */
+"agent" | 
+/**  The session already ended. */
+"closed" | "io";
+
+/**  The normalized event stream (plan section 10). */
+export type AgentEvent = { type: "started"; resume: string; model: string | null; billing: Billing | null } | 
+/**  Streamed text; deltas with one `message` id belong to one message. */
+{ type: "text"; message: string; delta: string } | { type: "reasoning"; message: string; delta: string } | { type: "tool_call"; id: string; name: string; input: Value } | { type: "tool_result"; id: string; ok: boolean; summary: string } | 
+/**  A file in the project changed while the agent worked. `path` is relative to the project, with `/`. */
+{ type: "file_change"; path: string; kind: ChangeKind } | { type: "approval"; id: string; kind: ApprovalKind; 
+/**  The tool or request ("Bash", "commandExecution"). */
+tool: string; 
+/**  What it would do, for the card: the command, the file. */
+detail: string } | 
+/**  The approval card went away without the user (Stop, or the CLI resolved it). */
+{ type: "approval_closed"; id: string } | { type: "question"; id: string; question: Question } | 
+/**  The question card closes: answered, or canceled with `reason` ("stopped"). */
+{ type: "question_closed"; id: string; reason: string | null } | { type: "note_delivered"; id: string; path: SteerPath } | { type: "usage"; input: number; output: number } | { type: "turn_done"; reason: DoneReason } | 
+/**  Live plan usage from the CLI (Claude's rate_limit_event). */
+{ type: "limits"; snapshot: UsageSnapshot } | { type: "error"; code: AgentErrorCode; message: string } | 
+/**  The CLI process ended. No events follow. */
+{ type: "exited"; code: number | null };
+
+export type AgentKind = "claude" | "codex";
+
+/**  What the picker shows for one agent. */
+export type AgentView = {
+	kind: AgentKind,
+	/**  "Claude Code", "Codex". */
+	name: string,
+	detection: Detection,
+	/**  "Claude · Max plan", "Codex · API key". */
+	badge: string,
+	/**  Said when the account that pays may not be the one the user expects (D-35). */
+	warning: string | null,
+};
+
+/**  The user's answer to a question card. */
+export type Answer = {
+	choices: string[],
+	/**  What the user typed in Other. */
+	other?: string | null,
+};
+
 export type AppInfo = {
 	recent: Recent[],
 	/**  The library release, or null when none is installed. */
 	library: string | null,
 };
+
+export type ApprovalKind = 
+/**  A shell command. */
+"command" | 
+/**  A file change outside what Emmet allows on its own. */
+"edit" | 
+/**  Reading outside the sandbox, the network, or more permissions. */
+"permission" | 
+/**  Any other tool. */
+"tool";
+
+/**  Who pays for the session's model requests (D-35): shown in the picker and the chat header. */
+export type Billing = 
+/**  The user's subscription; `name` is its plan ("Max") when the CLI says. */
+{ kind: "plan"; name: string | null } | 
+/**  An API key; `source` names where it came from (`ANTHROPIC_API_KEY`, the keychain). */
+{ kind: "api_key"; source: string | null } | { kind: "unknown" };
 
 export type BusHighlight = {
 	ids: string[],
@@ -64,10 +166,82 @@ export type BusRender = {
 	scene: Scene | null,
 };
 
+export type ChangeKind = "added" | "modified" | "removed";
+
+/**
+ *  One agent event for the window. `at` is when the host had it (Unix ms), so the window can measure the time from
+ *  event to pixels (plan section 10's 50 ms).
+ */
+export type ChatEvent = {
+	session: string,
+	seq: number,
+	at: number | null,
+	event: AgentEvent,
+};
+
+/**  One line of a chat's history: something the user sent, or an agent event. */
+export type ChatRecord = {
+	at: number | null,
+	user?: string | null,
+	event?: AgentEvent | null,
+};
+
+export type ChatState = {
+	/**  The session that's running, if one is. */
+	live: LiveSession | null,
+	last: LastSession | null,
+	history: ChatRecord[],
+};
+
 export type ColorView = {
 	code: number,
 	name: string,
 	rgb: string,
+};
+
+export type Credits = {
+	enabled: boolean,
+	used: number | null,
+	limit: number | null,
+	currency: string | null,
+};
+
+export type Decision = "allow_once" | "allow_session" | "deny";
+
+/**  What detection found for one CLI (plan section 10: path, version, supported range, signed in). */
+export type Detection = {
+	kind: AgentKind,
+	path: string | null,
+	version: string | null,
+	/**  Inside the version range this Emmet was tested with. Outside it the chat still works, with a quiet note. */
+	supported: boolean,
+	signed_in: boolean,
+	billing: Billing,
+	/**  The one step that makes the agent usable, when it isn't: a command for the user's terminal, or a setting. */
+	fix: string | null,
+	/**  A quiet note: an untested version. */
+	note: string | null,
+};
+
+export type DoneReason = "completed" | 
+/**  The user pressed Stop. */
+"interrupted" | 
+/**  The CLI ended the turn with an error (a bad key, no credit, a model error). */
+"failed" | 
+/**  The CLI exited mid-turn. */
+"crashed";
+
+/**  The project's last chat session, kept in `.emmet/chat.json` so it can be resumed. */
+export type LastSession = {
+	kind: AgentKind,
+	session: string,
+	resume: string | null,
+};
+
+/**  The chat that's running. */
+export type LiveSession = {
+	session: string,
+	kind: AgentKind,
 };
 
 export type ParamSpec = {
@@ -125,6 +299,20 @@ export type ProjectView = {
 	watching: boolean,
 };
 
+/**  A question from `emmet_host ask_user` (D-32). */
+export type Question = {
+	question: string,
+	header?: string | null,
+	options: QuestionOption[],
+	multi?: boolean,
+};
+
+/**  One option on a question card. */
+export type QuestionOption = {
+	label: string,
+	description?: string | null,
+};
+
 export type Recent = {
 	path: string,
 	name: string,
@@ -161,6 +349,15 @@ export type Scene = {
 	ms: number | null,
 };
 
+/**  How a redirect reaches the agent (D-33, ADR 0001). */
+export type SteerPath = 
+/**  Mid-turn input in the CLI's own protocol, at its next step. */
+"native" | 
+/**  Attached to the next Emmet tool result as `user_notes`. */
+"queued" | 
+/**  Sent as the next turn, because the turn ended (or was stopped) first. */
+"next_turn";
+
 export type UiState = {
 	project: ProjectView | null,
 	running: boolean,
@@ -173,6 +370,53 @@ export type UiState = {
 	 *  didn't start.
 	 */
 	notice: string | null,
+};
+
+export type UsageSnapshot = {
+	agent: AgentKind,
+	billing: Billing,
+	windows: UsageWindow[],
+	credits: Credits | null,
+	source: UsageSource,
+	/**  Unix milliseconds. */
+	updated_at: number,
+	status: UsageStatus,
+	/**  Why there are no meters, when `status` is unavailable. */
+	failure: string | null,
+};
+
+export type UsageSource = "usage_report" | "rate_limit_event" | "billing";
+
+export type UsageStatus = 
+/**  Meters from the CLI. */
+"ok" | 
+/**  A limit is reached: the CLI is rejecting requests until a reset. */
+"limited" | 
+/**  Billed to an API key, which has no plan meters. */
+"api_key" | 
+/**  The CLI didn't report usage (see `failure`). */
+"unavailable" | "unknown";
+
+/**  One meter: "Session 4 %, resets in 3h", "Week · Fable 0 %". */
+export type UsageWindow = {
+	/**  The CLI's own name for it (`session`, `weekly_all`, `five_hour`). */
+	kind: string,
+	group: string,
+	label: string,
+	/**  0–100, or None when the CLI gave no number. */
+	percent: number | null,
+	/**  Unix seconds. */
+	resets_at: number | null,
+	/**  What it's limited to (a model, "Fable"), if anything. */
+	scope: string | null,
+};
+
+/**  A redirect: text the user typed while the agent worked (D-33). */
+export type UserNote = {
+	id: string,
+	text: string,
+	/**  RFC 3339. */
+	at: string,
 };
 
 export type Value = null | boolean | number | string | Value[] | { [key in string]: Value };

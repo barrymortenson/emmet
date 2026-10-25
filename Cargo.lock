@@ -1025,6 +1025,7 @@ dependencies = [
 name = "emmet-desktop"
 version = "0.1.0"
 dependencies = [
+ "emmet-agent",
  "emmet-bus",
  "emmet-core",
  "emmet-it",
