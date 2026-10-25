@@ -130,3 +130,5 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **The paste advisory.** specta and tauri-specta (section 06) depend on paste, which RUSTSEC-2024-0436 marks
   unmaintained (no vulnerability, no safe upgrade). Barry chose to ignore that one advisory in deny.toml, with a
   reason, over dropping tauri-specta or relaxing unmaintained checks for every transitive crate.
+- **1B's Windows CI run.** As for 1A, Barry approved opening 1B's PR as a draft so CI runs on Windows, and marking it
+  ready (with 1B set to review) once every Done when item holds.
