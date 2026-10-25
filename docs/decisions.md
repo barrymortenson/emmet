@@ -39,6 +39,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   Windows evidence (E2E, render, binaries) needs it. It is marked ready only when every Done when item holds.
 - **H-11: rung 3 rebuilds 6743-1 Street Speeder** (165 pieces, 69 part and color lines, 92% common parts), from the
   shortlist of five in `docs/spec/ladder.md`. Its OMR main model matches the Rebrickable inventory exactly.
+- **G1 without a demo or posts.** Barry skips the 60-second demo video and the community posts at G1 (Eurobricks,
+  r/lego, the LDraw forum), and decides go, no-go, or pivot from the eval reports and his own testing. Plan sections
+  02, 03 (D-18's wording), 21 (Phase 1, 1D: no demo kit; the signed build stays), 22 (H-06 and its guide), and 23 (the
+  risk row) are updated. The launch posts and video at 7A/7B are unchanged.
 
 ## 2026-10-24, session 0A
 

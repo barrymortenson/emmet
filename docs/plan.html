@@ -388,7 +388,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <p>Every model on the ladder uses <b>official LDraw parts only</b>, in colors those parts were actually produced in. A rung counts as reached when its live eval run (section 16) passes on <b>both</b> agents. Each rung runs once per agent, and a failed run gets at most one rerun after a fix (D-38).</p>
 <div class="table-wrap"><table>
 <tr><th>Rung</th><th>Model</th><th>Size</th><th>What it proves</th><th>Gates</th></tr>
-<tr><td><b>1</b></td><td><b>Cottage</b> on a green baseplate: four walls, door, windows, a sloped roof, an optional chimney. Sliders: width, depth, wall height, wall color, roof color, chimney on/off.</td><td>~50–120 parts</td><td>The loop works end to end: prompt → model.py → run → viewer → check → fix, on both agents, with live sliders.</td><td>Phase 1 exit (G1 demo)</td></tr>
+<tr><td><b>1</b></td><td><b>Cottage</b> on a green baseplate: four walls, door, windows, a sloped roof, an optional chimney. Sliders: width, depth, wall height, wall color, roof color, chimney on/off.</td><td>~50–120 parts</td><td>The loop works end to end: prompt → model.py → run → viewer → check → fix, on both agents, with live sliders.</td><td>Phase 1 exit (G1)</td></tr>
 <tr><td><b>2</b></td><td><b>Train station with a track loop</b>: a platform of any length with a canopy, benches, a ticket booth, and a loop of official track (straight 53401, curve 53400 R40, one switch) running past it. Sliders: platform length, canopy style, loop size, colors, and switch on/off.</td><td>~300–500 parts</td><td>Repeats, submodels, technique use, real connectivity (tiles, plates, track on plates), steps and BOM at a realistic size, and viewer performance.</td><td>Phase 3 reference model; Phase 4 exit (replay and hand sessions; its live run is at G2)</td></tr>
 <tr><td><b>P</b></td><td><b>Photo to model</b>: three subjects Barry photographs himself (two brick models, one real building), two angles each (H-23). The agent gets the first angle and the prompt "build this", plus the second angle if it asks.</td><td>50–300 parts</td><td>Image input on both agents, proportion judgment in studs, and asking instead of guessing. Scored by Barry with a short rubric (section 16.1).</td><td>Phase 5 exit (G2)</td></tr>
 <tr><td><b>3</b></td><td><b>Official set rebuild</b>: one set from the LDraw Official Model Repository (OMR), 150–400 parts, chosen by Barry (H-11). The agent gets the set's name and a photo description, never the OMR file.</td><td>150–400 parts</td><td>Objective accuracy: the BOM and the placements are scored against the OMR model as ground truth.</td><td>Phase 5 exit (G2: the working proof of concept)</td></tr>
@@ -447,7 +447,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-15</td><td>Agent tests</td><td>Every PR replays recorded agent transcripts through fake <code>claude</code>/<code>codex</code> binaries: deterministic, no tokens. Live evals (<code>just eval</code>) run only at G1 and G2, within the scripted-run budget (D-38), on Barry's real CLIs at the phase gates.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-16</td><td>Design</td><td>The agent builds clickable HTML mockups of three directions. Barry picks one (UX-1, H-07) and signs the frozen design (UX-2, H-08).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-17</td><td>Website</td><td>A static Astro site in <code>site/</code> in this repo, deployed to Cloudflare Workers static assets with PR previews. Cookieless Cloudflare Web Analytics at most. It starts after the proof of concept works (G2).</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
-<tr><td class="id">D-18</td><td>macOS signing</td><td>Barry is enrolled in the Apple Developer Program. Every build that leaves this Mac is signed with Developer ID and notarized, from the G1 demo build onward.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-18</td><td>macOS signing</td><td>Barry is enrolled in the Apple Developer Program. Every build that leaves this Mac is signed with Developer ID and notarized, from the G1 build onward.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-19</td><td>Windows checks</td><td>Barry's hands-on Windows checks run in a Windows 11 ARM VM on this Mac. x64 behavior is proven by hosted CI and by beta testers.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-20</td><td>Windows installer</td><td>NSIS only (which the updater supports), unsigned through the beta, with SmartScreen guidance. Azure Trusted Signing comes after launch.</td><td><span class="pill decided">Brief</span> + <span class="pill rec">Proposed</span></td></tr>
 <tr><td class="id">D-21</td><td>Distribution</td><td>Release binaries and the updater manifest are GitHub Releases on the public repo, and the parts data pack is its own release series there. The site's download buttons read them. No separate releases repo.</td><td><span class="pill decided">Barry 2026-10-24</span> (follows from D-12)</td></tr>
@@ -911,17 +911,17 @@ pub enum AgentEvent {
   --append-system-prompt "&lt;EMMET.md doctrine pointer&gt;" \
   [--resume &lt;session-id&gt;] [--model &lt;user choice&gt;]          <span class="c"># cwd = project folder</span></code></pre>
 <ul class="small">
-<li>All of these flags exist in Claude Code 2.1.310 (checked during planning). 0B records real transcripts, and the adapter is tested against them.</li>
+<li>All of these flags work in Claude Code 2.1.310; <code>--permission-prompt-tool</code> is hidden from <code>--help</code> but works. 0B recorded real transcripts with them (ADR 0001, <code>tests/replay/claude/</code>), and the adapter is tested against them.</li>
 <li><code>mcp.json</code> lives in the app's per-session directory (app data, not the project). It lists <code>emmet</code> (the sidecar's absolute path, <code>mcp --project … --session …</code>) and <code>emmet_host</code> (<code>mcp-host --session …</code>), plus any user-added servers later (D-31).</li>
-<li>The process gets a raised MCP tool timeout (<code>MCP_TOOL_TIMEOUT</code> in its environment) so <code>ask_user</code> can wait for a slow answer. 0B confirms the variable and any cap.</li>
-<li>Stop sends the stream-JSON interrupt control request. Redirects are written to stdin as user messages mid-turn if 0B shows Claude Code takes them at the next step; otherwise they use the queued path.</li>
+<li>The process gets a raised MCP tool timeout, <code>MCP_TOOL_TIMEOUT=3600000</code> (1 h) in its environment, so <code>ask_user</code> can wait for a slow answer. 0B: the default already outlasts 10 minutes, and no cap showed up (24 h and 2<sup>31</sup> ms were accepted).</li>
+<li>Stop sends the stream-JSON interrupt control request. Redirects are written to stdin as user messages mid-turn: 0B showed Claude Code takes them at the next step, in the same turn (the native path).</li>
 <li><b>Sandbox first (D-40).</b> On macOS: <code>--settings '{"sandbox":{"enabled":true,"failIfUnavailable":true}}'</code>, so Claude Code runs commands inside its own sandbox and approves them without a card (<code>autoAllowBashIfSandboxed</code> defaults to on), and the session fails to start rather than run unsandboxed. On native Windows, where Claude Code has no sandbox: <code>--settings '{"permissions":{"ask":["Bash","WebFetch","WebSearch"]}}'</code>, so every shell command and web request is a card (0B showed the ask rule reaches the permission prompt tool even for read-only commands). <code>--settings</code> adds session settings only; it isn't <code>--setting-sources</code> and touches no credential. 1C proves both.</li>
 <li>Never <code>--bare</code> (it skips the user's sign-in) and never <code>--setting-sources</code>, environment filtering, or added credential variables. Anything that changes which credential Claude Code picks would restrict a sign-in method, which Anthropic's conditions forbid (D-37). The environment is the one the user's login shell gives, the same as their terminal.</li>
-<li>Events map from stream-JSON <code>system/init</code>, <code>assistant</code> partial messages, <code>tool_use</code>, <code>tool_result</code>, and <code>result</code> (usage). Unknown event types are logged and ignored, never fatal.</li>
+<li>Events map from stream-JSON <code>system/init</code>, <code>assistant</code> partial messages, <code>tool_use</code>, <code>tool_result</code>, <code>result</code> (usage), and <code>rate_limit_event</code>. MCP tools are deferred, so the model calls the built-in <code>ToolSearch</code> before an Emmet tool, and long tool calls send <code>tool_progress</code> heartbeats every 30 s (0B). Unknown event types are logged and ignored, never fatal.</li>
 </ul>
 
 <h3>Codex adapter</h3>
-<pre><code>OPENAI_API_KEY=&lt;the user's key, from the OS keychain&gt; codex app-server --listen stdio:// \
+<pre><code>OPENAI_API_KEY=&lt;the user's key, from the OS keychain&gt; codex app-server --listen stdio:// --strict-config \
   -c 'model_provider="emmet_api_key"' -c 'model_providers.emmet_api_key.name="OpenAI API key"' \
   -c 'model_providers.emmet_api_key.base_url="https://api.openai.com/v1"' -c 'model_providers.emmet_api_key.env_key="OPENAI_API_KEY"' \
   -c 'model_providers.emmet_api_key.wire_api="responses"' -c 'model_providers.emmet_api_key.requires_openai_auth=false' \
@@ -935,9 +935,9 @@ initialize {clientInfo: {name: "emmet", title: "Emmet", version}} → thread/sta
 server → client requests for command/file approvals → Approval events → respond()</code></pre>
 <ul class="small">
 <li><code>codex app-server generate-json-schema</code> output for each supported Codex version is committed under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>, and the adapter's types are checked against it. A Codex update that changes the schema shows up as a failing test, not a broken chat.</li>
-<li>Exact method names and parameters come from the generated schema in 0B. The names above follow the published app-server docs (threads, turns, items, and server-initiated approvals).</li>
-<li>The provider block pins the session to the user's API key and keeps the app-server off the CLI's own <code>codex login</code> (<code>requires_openai_auth=false</code>), which Emmet never uses (D-35). 1E adds OpenAI's documented Sign in with ChatGPT provider (<code>env_key="ACCESS_TOKEN"</code>) for plan users; the API-key provider stays for users who prefer a key. 0B confirms the key names against the Codex config reference.</li>
-<li>Stop uses the app-server's turn interrupt. If the committed schema has a method that adds input to a running turn, redirects use it; otherwise they use the queued path. Codex approvals stay on server requests, so <code>emmet_host</code> carries only <code>ask_user</code> here.</li>
+<li>Exact method names and parameters come from the generated schema committed in 0B: <code>initialize</code>, <code>account/read</code>, <code>thread/start</code>, <code>thread/resume</code>, <code>turn/start</code>, <code>turn/steer</code>, <code>turn/interrupt</code>, and the server requests for command, file-change, and MCP tool-call approvals (ADR 0001).</li>
+<li>The provider block pins the session to the user's API key and keeps the app-server off the CLI's own <code>codex login</code> (<code>requires_openai_auth=false</code>), which Emmet never uses (D-35). 1E adds OpenAI's documented Sign in with ChatGPT provider (<code>env_key="ACCESS_TOKEN"</code>) for plan users; the API-key provider stays for users who prefer a key. 0B confirmed the key names with <code>--strict-config</code>, which rejects an unknown <code>-c</code> key, so the adapter passes it.</li>
+<li>Stop uses the app-server's <code>turn/interrupt</code>. Redirects use <code>turn/steer</code>, which 0B showed reaches the model at its next step (the native path). Codex approvals stay on server requests, so <code>emmet_host</code> carries only <code>ask_user</code> here, with <code>tool_timeout_sec=3600</code> because Codex's default MCP tool timeout is 300 s (0B).</li>
 </ul>
 
 <h3>Instructions the agent gets</h3>
@@ -993,7 +993,7 @@ server → client requests for command/file approvals → Approval events → re
 <tr><td>Reading a CLI's credentials, calling private endpoints, writing user-level agent config, presenting as another client</td><td><span class="pill gate">Never</span></td><td><span class="pill gate">Never</span></td></tr>
 </table></div>
 <ul>
-<li><b>What the user sees.</b> The agent picker and chat header say which account pays: "Claude · Max plan" or "Claude · API key" (from Claude Code's <code>system/init</code>, confirmed in 0B), and "Codex · API key". If Claude Code will bill an API key from the user's environment and the user expected their plan, Emmet says so and explains how to change it in their own shell. Emmet never changes it for them.</li>
+<li><b>What the user sees.</b> The agent picker and chat header say which account pays: "Claude · Max plan" or "Claude · API key" (from Claude Code's <code>system/init</code>: 0B found <code>apiKeySource</code> is <code>"none"</code> on a plan and names the variable on a key, and a key in the environment wins over the plan), and "Codex · API key". If Claude Code will bill an API key from the user's environment and the user expected their plan, Emmet says so and explains how to change it in their own shell. Emmet never changes it for them.</li>
 <li><b>No Emmet-initiated model turns.</b> Every turn starts from something the user did: a message, an answer, "Ask agent to fix", or a redirect.</li>
 <li><b>Re-checks.</b> 0B writes <code>docs/terms/</code> (each quote, its URL, and its date). G1, G2, and 7B re-read the pages and diff them. A change that removes the basis for a row turns that feature off before the next release, and Barry decides what replaces it.</li>
 <li><b>Terminal mode is the safe harbor.</b> Nothing else in Emmet depends on the chat pane, so users can always run their own CLI on their own sign-in.</li>
@@ -1005,7 +1005,7 @@ server → client requests for command/file approvals → Approval events → re
 <ul>
 <li><b>Source.</b> Sending <code>/usage</code> to a short-lived <code>claude -p --input-format stream-json</code> process returns <code>usage_report.rate_limits.limits[]</code>: each meter's <code>kind</code>, <code>group</code>, <code>percent</code>, <code>resets_at</code>, and <code>scope</code> (such as the Fable model), plus <code>extra_usage</code> for usage credits. During turns, <code>rate_limit_event</code> carries <code>status</code>, <code>utilization</code>, and <code>resetsAt</code>, and <code>credits_required</code> when included usage is exhausted. Both types are in Anthropic's Agent SDK reference; the report is marked experimental.</li>
 <li><b>When.</b> Only on user actions: opening the popover, pressing ⟳, and the end of a turn the user started. At most once a minute, with no background polling. Between fetches, live events update the bar, and it shows "Updated 8m ago".</li>
-<li><b>The probe.</b> The <code>/usage</code> process is the user's own Claude Code with the same environment as their terminal, in an empty directory in app data, with no MCP servers or tools. 0B confirms it spends no model tokens and how to keep it out of the user's session history.</li>
+<li><b>The probe.</b> The <code>/usage</code> process is the user's own Claude Code with the same environment as their terminal, in an empty directory in app data, with no MCP servers or tools, and <code>--no-session-persistence</code>. 0B: it spends no model tokens (0 tokens, <code>num_turns: 0</code>), the report arrives on the <code>assistant</code> message as <code>usage_report</code>, and without that flag it saves a session.</li>
 <li><b>One shape.</b> <code>UsageSnapshot { agent, billing, windows: [{ kind, group, label, percent, resets_at, scope }], credits, source, updated_at, status, failure }</code>. Rows render in the order Claude Code reports them, so a new meter appears without an Emmet release. A future agent plugs in through <code>usage()</code> only when its provider documents a source.</li>
 <li><b>Honest states.</b> API key, unavailable, and unknown each have their own label. A meter never shows 0 % because data is missing.</li>
 <li><b>In the chat.</b> At 90 % of a Claude window, one quiet line before the next turn ("Claude's 5-hour limit is at 92%, resets in 40m"). On a rejection, a card with the reset time, and "Continue with Codex" if Codex is set up (a new session; the files carry the state). For Codex on a ChatGPT plan, OpenAI's limit card with "Manage usage" as the primary action.</li>
@@ -1612,7 +1612,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <ol>
 <li><b>Day 1:</b> H-01 (approve the repo), then session <a href="#session-0a">0A</a>. While it runs, register the runner (H-02).</li>
 <li><b>Day 2:</b> confirm the CLIs are signed in (H-03), accept Anthropic's Commercial Terms (H-20), and create the eval API keys (H-21), then run <a href="#session-0b">0B</a> (the research ADRs, which settle the protocols and licenses everything else leans on).</li>
-<li><b>Weeks 1–3: the spike</b>, <a href="#session-1a">1A</a> → <a href="#session-1b">1B</a> → <a href="#session-1c">1C</a> → <a href="#session-1d">1D</a>, with <a href="#session-1e">1E</a> beside 1D. Set up the Windows VM (H-04) and the signing identity (H-05) along the way. End with the 60-second demo and the G1 decision.</li>
+<li><b>Weeks 1–3: the spike</b>, <a href="#session-1a">1A</a> → <a href="#session-1b">1B</a> → <a href="#session-1c">1C</a> → <a href="#session-1d">1D</a>, with <a href="#session-1e">1E</a> beside 1D. Set up the Windows VM (H-04) and the signing identity (H-05) along the way. End with the G1 decision, made from the test results.</li>
 <li><b>Critical path to the proof of concept:</b> 0A → 0B → 1A → 1B → 1C → 1D → (G1) → 3A ∥ 3B → 4A → 4B ∥ 4C → 5A ∥ 5B → (G2). Design (2A → 2B) runs alongside 1D and Phase 3.</li>
 </ol>
 </div>
@@ -1620,7 +1620,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <div class="table-wrap"><table>
 <tr><th>Phase</th><th>Delivers</th><th>Sessions</th></tr>
 <tr><td><a href="#phase-0">0 · Foundation</a></td><td>A public AGPL-3.0 repo with CI green on the self-hosted Mac and hosted Windows; this plan and its tracker in the repo; ADRs that settle the agent protocols, E2E on macOS, licenses, data mapping, and headless render; the ldraw-mini fixture; the ladder spec.</td><td><a href="#session-0a">0A</a> <a href="#session-0b">0B</a></td></tr>
-<tr><td><a href="#phase-1">1 · Spike: prove the loop</a></td><td>From the app, a prompt to <b>either</b> agent builds rung 1 from real parts, live in the viewer, with sliders and a basic check that feeds back to the agent; a signed, notarized demo build; the 60-second demo posted; the <span class="pill gate">G1</span> go/no-go.</td><td><a href="#session-1a">1A</a> <a href="#session-1b">1B</a> <a href="#session-1c">1C</a> <a href="#session-1d">1D</a> <a href="#session-1e">1E</a></td></tr>
+<tr><td><a href="#phase-1">1 · Spike: prove the loop</a></td><td>From the app, a prompt to <b>either</b> agent builds rung 1 from real parts, live in the viewer, with sliders and a basic check that feeds back to the agent; a signed, notarized build; the <span class="pill gate">G1</span> go/no-go from the test results.</td><td><a href="#session-1a">1A</a> <a href="#session-1b">1B</a> <a href="#session-1c">1C</a> <a href="#session-1d">1D</a> <a href="#session-1e">1E</a></td></tr>
 <tr><td><a href="#phase-2">2 · Design</a></td><td>Three clickable directions, Barry's pick (UX-1), then a frozen design system and every screen and state, signed (UX-2).</td><td><a href="#session-2a">2A</a> <a href="#session-2b">2B</a></td></tr>
 <tr><td><a href="#phase-3">3 · Engine MVP</a></td><td>Validator v1 that meets its precision, recall, and speed targets; DSL v1, steps, BOM, colors and availability, techniques; a hand-written rung 2 reference model that validates clean; a technique library mined from official models.</td><td><a href="#session-3a">3A</a> <a href="#session-3b">3B</a> <a href="#session-3c">3C</a></td></tr>
 <tr><td><a href="#phase-4">4 · App MVP</a></td><td>The full app to the frozen design: shell and first run, the full chat and agent UX, and a polished viewer within budget; photo to model; native PDF instructions. Rung 2 passes in replay and in Barry's hand session; its live run is part of G2.</td><td><a href="#session-4a">4A</a> <a href="#session-4b">4B</a> <a href="#session-4c">4C</a> <a href="#session-4d">4D</a> <a href="#session-4e">4E</a></td></tr>
@@ -1751,18 +1751,18 @@ If a finding contradicts section 03 or 10, stop and ask before you change the pl
 <div class="phase" id="phase-1" data-phase="1">
 <div class="ph-top"><span class="pnum">Phase 1</span><h3>Spike: prove the loop</h3></div>
 <div class="pbar"><i></i></div>
-<p>Two to three weeks. Build the thinnest real version of every layer, then close the loop on rung 1 with both agents. The UI is functional, not designed: Phase 2 designs it while Phase 3 deepens the engine. The phase ends with a signed demo build, a 60-second video, community posts, and the <span class="pill gate">G1</span> decision.</p>
+<p>Two to three weeks. Build the thinnest real version of every layer, then close the loop on rung 1 with both agents. The UI is functional, not designed: Phase 2 designs it while Phase 3 deepens the engine. The phase ends with a signed build and the <span class="pill gate">G1</span> decision, which Barry makes from the eval reports and his own testing (no demo video or community posts at G1; Barry 2026-10-24).</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> <b>H-04</b>: a Windows 11 ARM VM with both CLIs installed and signed in (<a href="#g-h04">guide</a>), needed by the end of 1C.</li>
 <li><span class="pill you">YOU</span> <b>H-05</b>: a Developer ID Application certificate in the keychain and an App Store Connect API key for notarization (<a href="#g-h05">guide</a>), needed by 1D.</li>
-<li><span class="pill you">YOU</span> <b>H-06 / G1</b>: run <code>just eval --rung 1</code>, record the 60-second demo, post it, and decide go, no-go, or pivot (<a href="#g-h06">guide</a>).</li>
+<li><span class="pill you">YOU</span> <b>H-06 / G1</b>: run <code>just eval --rung 1</code>, test the app yourself, and decide go, no-go, or pivot from the results (<a href="#g-h06">guide</a>).</li>
 </ul></div>
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
 <tr data-session="1A"><td><a href="#session-1a">1A</a></td><td>Engine walking skeleton: LDraw, library, index, DSL v0, CLI, MCP</td><td>0B</td><td>&nbsp;</td><td>L</td></tr>
 <tr data-session="1B"><td><a href="#session-1b">1B</a></td><td>App shell and live viewer, render mode</td><td>1A</td><td>&nbsp;</td><td>L</td></tr>
 <tr data-session="1C"><td><a href="#session-1c">1C</a></td><td>Agent bridge for Claude Code and Codex, chat v0 with question cards and redirects, replay harness</td><td>1B</td><td>&nbsp;</td><td>L</td></tr>
-<tr data-session="1D"><td><a href="#session-1d">1D</a></td><td>Close the loop: checks v0, renders to the agent, build animation v0, eval v0, signed demo</td><td>1C</td><td>1E, 2A</td><td>M</td></tr>
+<tr data-session="1D"><td><a href="#session-1d">1D</a></td><td>Close the loop: checks v0, renders to the agent, build animation v0, eval v0, signed build</td><td>1C</td><td>1E, 2A</td><td>M</td></tr>
 <tr data-session="1E"><td><a href="#session-1e">1E</a></td><td>Codex on your ChatGPT plan (Sign in with ChatGPT)</td><td>1C</td><td>1D, 2A</td><td>M</td></tr>
 </table></div>
 
@@ -1876,9 +1876,9 @@ give me exact steps to run and what to screenshot, and wait for me. If either CL
 transcripts, record new transcripts (scrubbed) and note the change in ADR 0001.</code></pre></details>
 </div>
 
-<div class="session" id="session-1d" data-session="1D" data-phase="1" data-title="Close the loop and ship a signed demo" data-after="1C" data-waits="" data-waits-merge="H-05" data-read="02, 09, 11, 13, 16, 17">
-<h4><span class="s-id">1D</span> Close the loop and ship a signed demo<span class="s-meta">after 1C · alongside 2A · size M · YOU: H-05 before merge; then H-06/G1</span></h4>
-<p class="goal"><b>Goal:</b> The agent can check and look at its own work, so rung 1 comes out right on both agents. A live eval proves it, and a signed, notarized build is ready for the demo.</p>
+<div class="session" id="session-1d" data-session="1D" data-phase="1" data-title="Close the loop and ship a signed build" data-after="1C" data-waits="" data-waits-merge="H-05" data-read="02, 09, 11, 13, 16, 17">
+<h4><span class="s-id">1D</span> Close the loop and ship a signed build<span class="s-meta">after 1C · alongside 2A · size M · YOU: H-05 before merge; then H-06/G1</span></h4>
+<p class="goal"><b>Goal:</b> The agent can check and look at its own work, so rung 1 comes out right on both agents. A live eval proves it, and a signed, notarized build is ready for Barry's testing at G1.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><b>validate v0:</b> collision by shrunk body boxes; connectivity by stud/anti-stud primitive matching (the primitive table started here); floating parts; unknown and obsolete parts; findings with ids and source lines in <code>build/validation.json</code>; <code>emmet check</code>; MCP <code>validate</code> with the compact summary; MCP <code>highlight</code>.</li>
@@ -1887,8 +1887,7 @@ transcripts, record new transcripts (scrubbed) and note the change in ADR 0001.<
 <li><b>Doctrine:</b> the run → validate → render → fix loop, "show a draft in the first minute", "build in visible stages", and "say numbers".</li>
 <li><b>Build animation v0:</b> <code>viewer.update(…, { animate: "build" })</code> for agent runs: added parts appear one at a time in build order with a simple drop, capped at 6 s, skipped by any new run. Sliders stay instant. 4C polishes it.</li>
 <li><b><code>just eval</code> v0</b> through <code>emmet eval</code>: runs the rung 1 prompt from <code>docs/spec/ladder.md</code> through each real CLI in a temp project, headless, on Barry's API keys only (D-37), answering <code>ask_user</code> from the rung's answer script (section 16.1), one run per agent, showing the run count and expected cost and asking first (D-38), auto-allowing only Emmet tools and model-file edits; scores per section 16.1; writes <code>docs/evals/&lt;date&gt;-rung1.md</code> with renders; offers to save scrubbed transcripts as replay fixtures.</li>
-<li><b>Signed demo build:</b> <code>just release-dry --sign</code> produces a universal <code>.dmg</code> signed with Developer ID and notarized with <code>notarytool</code> (API key from the keychain profile), plus an unsigned NSIS build from CI.</li>
-<li><b>Demo kit:</b> <code>docs/demo/rung1.md</code>, a 60-second storyboard (prompt → a question card → the model building in stages → a mid-turn redirect → finding → fix → slider → BOM), plus draft posts for Eurobricks, r/lego, and the LDraw forum.</li>
+<li><b>Signed build:</b> <code>just release-dry --sign</code> produces a universal <code>.dmg</code> signed with Developer ID and notarized with <code>notarytool</code> (API key from the keychain profile), plus an unsigned NSIS build from CI.</li>
 <li>A replay test where the agent receives an injected collision finding and fixes it (from a recorded live run).</li>
 </ul>
 <div class="s-dh">Done when</div>
@@ -1897,20 +1896,19 @@ transcripts, record new transcripts (scrubbed) and note the change in ADR 0001.<
 <li>Clicking a finding highlights its parts and shows the line (E2E on both OSes).</li>
 <li>A dry-run <code>emmet eval --rung 1</code> works with fake agents in CI, and Barry's live run report is committed (one run per agent).</li>
 <li>The <code>.dmg</code> passes <code>spctl --assess --type open --context context:primary-signature</code> and <code>stapler validate</code>, and opens in a fresh macOS user account (H-05 done).</li>
-<li>The demo storyboard and the draft posts are in <code>docs/demo/</code>.</li>
 </ul>
 <div class="s-dh">What good looks like</div>
 <ul class="good">
 <li>Rung 1 passes its live run on each agent, with at most one rerun after a fix (otherwise the PR says exactly why and what 3A/3B will change).</li>
 <li>The validator never needs a suppression on the cottage.</li>
-<li>The demo build feels finished at its scale: no debug UI, no console errors.</li>
+<li>The signed build feels finished at its scale: no debug UI, no console errors.</li>
 </ul>
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 1D. Build validate v0, the Checks drawer, and bom v0 first, with tests. Then the eval harness:
 test it with the fake agents in CI, then ask me to run `just eval --rung 1` once per agent (it bills my
 API keys; tell me the expected time and cost). Iterate on the doctrine and DSL helpers with replays and my hand
 sessions in the app, not repeated eval runs; at most one rerun per agent after a fix. If rung 1 still fails, report
-why. For signing, give me the H-05 guide steps and verify with spctl and stapler after I'm done. End with the
-demo storyboard and draft posts; I record and post (H-06).</code></pre></details>
+why. For signing, give me the H-05 guide steps and verify with spctl and stapler after I'm done. Then stop: I decide
+G1 from the eval reports and my own testing (H-06).</code></pre></details>
 </div>
 <div class="session" id="session-1e" data-session="1E" data-phase="1" data-title="Codex on your ChatGPT plan (Sign in with ChatGPT)" data-after="1C" data-waits="" data-waits-merge="" data-read="03, 10, 14, 15">
 <h4><span class="s-id">1E</span> Codex on your ChatGPT plan (Sign in with ChatGPT)<span class="s-meta">after 1C · alongside 1D, 2A · size M</span></h4>
@@ -2566,7 +2564,7 @@ the terms don't allow it.</code></pre></details>
 <tr data-h="H-03"><td>H-03</td><td>Confirm Claude Code and Codex are signed in on this Mac</td><td>0B start</td><td>Run <code>claude</code> once; <code>codex login status</code></td></tr>
 <tr data-h="H-04"><td>H-04</td><td>Windows 11 ARM VM with both CLIs installed and signed in</td><td>1C merge</td><td><a href="#g-h04">guide</a></td></tr>
 <tr data-h="H-05"><td>H-05</td><td>Developer ID Application certificate in the keychain + notarytool keychain profile</td><td>1D merge</td><td><a href="#g-h05">guide</a></td></tr>
-<tr data-h="H-06"><td>H-06</td><td><span class="pill gate">G1</span> Run the rung 1 eval, record the 60-second demo, post it, decide go / no-go / pivot</td><td>3A, 3B start</td><td><a href="#g-h06">guide</a></td></tr>
+<tr data-h="H-06"><td>H-06</td><td><span class="pill gate">G1</span> Run the rung 1 eval, test the app, decide go / no-go / pivot from the results</td><td>3A, 3B start</td><td><a href="#g-h06">guide</a></td></tr>
 <tr data-h="H-07"><td>H-07</td><td>UX-1: pick a design direction</td><td>2A merge, 2B start</td><td>Asked in 2A</td></tr>
 <tr data-h="H-08"><td>H-08</td><td>UX-2: sign the frozen design (<code>docs/design/SIGNOFF.md</code>)</td><td>2B merge, 4A start</td><td>Asked in 2B</td></tr>
 <tr data-h="H-09"><td>H-09</td><td><span class="pill gate">G2</span> Run the live eval once for rungs 1–3 and the photo rung on both agents, and confirm the POC works</td><td>5A merge; 6A, 6B start</td><td><a href="#g-h09">guide</a></td></tr>
@@ -2616,13 +2614,12 @@ the terms don't allow it.</code></pre></details>
 <li>Tell the agent your Team ID (not a secret). The release job uses the keychain identity and the <code>emmet-notary</code> profile on the self-hosted runner, so no Apple secret goes into GitHub.</li>
 </ol>
 </details>
-<details id="g-h06"><summary>H-06 G1: eval, demo, post, decide</summary>
+<details id="g-h06"><summary>H-06 G1: eval, test, decide</summary>
 <ol class="small">
 <li>Run <code>just eval --rung 1 --agent claude</code>, then the same with <code>--agent codex</code> (one run each). Read the report in <code>docs/evals/</code>. If one fails, the agent proposes a fix, and that agent gets one rerun.</li>
-<li>Record the 60-second demo following <code>docs/demo/rung1.md</code> (QuickTime screen recording is fine; 1080p, with the system appearance you like best).</li>
-<li>Post the video with the drafts in <code>docs/demo/</code> to Eurobricks (digital building tools), r/lego, and the LDraw forum. Link the public repo.</li>
+<li>Use the signed build yourself on a model or two: the loop, the sliders, the checks.</li>
 <li>Run <code>scripts/terms-check</code> and <code>scripts/name-check</code> (D-37, H-17). The agent reads the diffs; a changed terms quote holds the decision until you've settled what it affects.</li>
-<li>After about a week, decide: <b>go</b> (continue the plan), <b>pivot</b> (say what changes; the agent updates the plan in a PR), or <b>no-go</b> (stop; the spike stays public as it is). Suggested bar for "go": rung 1 passes on both agents, and at least a handful of people ask to try it.</li>
+<li>Decide from the eval reports and your own testing: <b>go</b> (continue the plan), <b>pivot</b> (say what changes; the agent updates the plan in a PR), or <b>no-go</b> (stop; the spike stays public as it is). Suggested bar for "go": rung 1 passes on both agents, and the loop holds up in your own use. There's no demo video or community post at G1 (Barry 2026-10-24).</li>
 <li>Tell the agent the decision. It records <code>gates.G1</code> and <code>H-06</code> in the status file.</li>
 </ol>
 </details>
@@ -2701,7 +2698,7 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Public from day one: early work is visible, and a self-hosted runner serves a public repo</td><td>Medium</td><td>The personal-details pass and gitleaks before the first push; self-hosted jobs for trusted events only, fork PRs on hosted runners, and approval for outside contributors' workflows (section 17).</td><td>0A</td></tr>
 <tr><td>Self-hosted runner security</td><td>Medium</td><td>Repo-only registration, the runner guard, trusted events only from day one, and fork PRs on hosted runners.</td><td>0A</td></tr>
 <tr><td>Live eval cost on Barry's API keys, and too few runs to catch flaky behavior</td><td>Low</td><td>The D-38 budget (14 runs across G1 and G2, plus reruns of failures), replay everywhere else, the CLIs' own cost figures in each report, and a spend cap on each key. Barry's hand sessions add real coverage at no scripted cost.</td><td>1D, 5A</td></tr>
-<tr><td>A fast-moving niche: someone polishes an existing tool first</td><td>Medium</td><td>A demo at the end of week 3 (G1), with the UX and validator as the differentiators.</td><td>Phase 1</td></tr>
+<tr><td>A fast-moving niche: someone polishes an existing tool first</td><td>Medium</td><td>G1 at the end of week 3 checks the loop works, with the UX and validator as the differentiators.</td><td>Phase 1</td></tr>
 <tr><td>Narrow audience (hobbyists who also pay for Claude or Codex)</td><td>Medium</td><td>G1's community response decides further investment.</td><td>G1</td></tr>
 <tr><td>Photo input, native PDF, and technique mining in the MVP push G2 later</td><td>Medium</td><td>Each is its own session in a parallel lane (3C beside Phase 4; 4D beside 4C and 4E), the gates stay objective, and none blocks G1.</td><td>3C, 4D, 4E</td></tr>
 <tr><td>Scope creep and dev-experience bloat</td><td>Medium</td><td>Rule 6 (no new tools without approval), CI time budgets, and Phase 8 holding the deferred features.</td><td>All</td></tr>
@@ -2988,7 +2985,7 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
       openBlk.map(function (b) { return esc(b.id) + " (" + esc(b.session) + "): " + esc(b.text); }).join("<br>") + "</div>";
   }
   var gates = (S && S.gates) || {};
-  html += '<div class="k">Gates</div><div class="v">G1 demo: ' + esc((gates.G1 && gates.G1.status) || "todo") +
+  html += '<div class="k">Gates</div><div class="v">G1: ' + esc((gates.G1 && gates.G1.status) || "todo") +
     " · G2 POC: " + esc((gates.G2 && gates.G2.status) || "todo") + "</div>";
   html += '<div class="k">By phase</div>';
   $$(".phase[data-phase]").forEach(function (ph) {
