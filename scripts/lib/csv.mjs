@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// A small CSV reader for the 0B data spikes (no dependencies).
+// A small RFC 4180 CSV reader and writer for the data scripts and spikes (no dependencies).
 
 /** RFC 4180 CSV rows as objects keyed by the header. */
 export function csv(text) {
@@ -32,4 +32,9 @@ export function csv(text) {
   }
   const [head, ...body] = rows;
   return body.filter((r) => r.length > 1).map((r) => Object.fromEntries(head.map((h, i) => [h, r[i]])));
+}
+
+/** One CSV line, quoting a field only when it needs it. */
+export function csvLine(fields) {
+  return fields.map((f) => (/[",\n\r]/.test(f ?? "") ? `"${String(f).replaceAll('"', '""')}"` : (f ?? ""))).join(",");
 }

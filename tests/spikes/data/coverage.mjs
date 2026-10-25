@@ -12,7 +12,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
-import { csv } from "./csv.mjs";
+import { csv } from "../../../scripts/lib/csv.mjs";
 
 const [rbDir, zip, ...sets] = process.argv.slice(2);
 if (!rbDir || !zip) {

@@ -10,7 +10,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
-import { csv } from "../data/csv.mjs";
+import { csv } from "../../../scripts/lib/csv.mjs";
 
 const [omrFile, rbDir, limit = "30"] = process.argv.slice(2);
 const load = (f) => csv(gunzipSync(readFileSync(join(rbDir, `${f}.csv.gz`))).toString("utf8"));
