@@ -114,16 +114,28 @@ impl Index {
             args.push(fts.to_string().into());
         }
         if dims.len() >= 2 {
+            // A part matches by its measured body size, or by the dimensions its name gives (a window's glass, a
+            // hinge half). The third number is a height in bricks (3 plates), as LDraw names write it.
             let (a, b) = (dims[0], dims[1]);
             sql.push_str(
-                " AND ((abs(p.size_x - ?) < 0.3 AND abs(p.size_y - ?) < 0.3) OR (abs(p.size_x - ?) < 0.3 AND abs(p.size_y - ?) < 0.3))",
+                " AND (((abs(p.size_x - ?) < 0.3 AND abs(p.size_y - ?) < 0.3) OR (abs(p.size_x - ?) < 0.3 AND abs(p.size_y - ?) < 0.3))",
             );
             args.extend([a, b, b, a].map(Into::into));
             if let Some(&h) = dims.get(2) {
-                // The third number is a height in bricks (3 plates), as LDraw names write it.
                 sql.push_str(" AND abs(p.size_z - ?) < 1.0");
                 args.push((3.0 * h).into());
             }
+            sql.push_str(" OR (' ' || p.name || ' ') LIKE ? OR (' ' || p.name || ' ') LIKE ?)");
+            let named = |order: &[f64]| {
+                format!(
+                    "% {} %",
+                    order.iter().map(|d| dim_text(*d)).collect::<Vec<_>>().join(" x ")
+                )
+            };
+            let mut swapped = dims.to_vec();
+            swapped.swap(0, 1);
+            args.push(named(dims).into());
+            args.push(named(&swapped).into());
         }
         if let Some(c) = category {
             sql.push_str(" AND lower(p.category) = lower(?)");
@@ -159,6 +171,12 @@ impl Index {
         }
         Ok(out)
     }
+}
+
+/// A dimension as LDraw names write it: "2", "0.667".
+fn dim_text(d: f64) -> String {
+    let s = format!("{:.3}", d);
+    s.trim_end_matches('0').trim_end_matches('.').to_string()
 }
 
 /// Boosts plain, current parts: printed, obsolete, moved, hidden, and sticker parts sink unless the query asks for
