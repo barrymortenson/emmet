@@ -35,6 +35,8 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   them. The no-real-names invariant gets a second exception for third-party authors' names a license requires (LDraw
   parts, OMR models, their attribution files), in AGENTS.md, its copy in plan section 25, and agent rule 7 in section
   19. Rejected: keeping the names without changing the text; committing no named files (no ldraw-mini).
+- **A draft PR so CI runs.** Approved `gh pr create --draft` for 0B (PR #3), as in 0A: CI runs only on PRs, and the
+  Windows evidence (E2E, render, binaries) needs it. It is marked ready only when every Done when item holds.
 
 ## 2026-10-24, session 0A
 
