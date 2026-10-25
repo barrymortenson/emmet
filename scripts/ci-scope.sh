@@ -29,10 +29,11 @@ else
 fi
 # Windows: what behaves differently there (paths, processes, the sidecars, Python under uv, line endings in fixtures).
 # The UI and the viewer run the same JS in WebView2, so the Mac covers them.
-flag windows '^(crates/|apps/desktop/src-tauri/|tests/(it|fixtures|replay|e2e)/|python/emmet_dsl/src/|data/)'
+flag windows '^(crates/|apps/desktop/src-tauri/|tests/(it|fixtures|replay|e2e|fake-agents)/|python/emmet_dsl/src/|data/)'
 flag deps '^deny\.toml$'
-flag e2e_mac '^(apps/|crates/|packages/|tests/(e2e|fixtures)/|python/emmet_dsl/src/|data/)'
-flag e2e_windows '^(apps/desktop/src-tauri/|tests/e2e/)'
+flag e2e_mac '^(apps/|crates/|packages/|tests/(e2e|fixtures|replay|fake-agents)/|python/emmet_dsl/src/|data/)'
+# The agent bridge spawns the CLIs and talks to them over pipes: the chat specs run on Windows when it changes.
+flag e2e_windows '^(apps/desktop/src-tauri/|tests/e2e/|crates/emmet-agent/|tests/fake-agents/)'
 flag build_app '^apps/desktop/src-tauri/'
 # The bench asserts nothing (its numbers are a summary table), so it runs only with everything else.
 echo "bench=$full"

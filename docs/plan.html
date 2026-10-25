@@ -841,7 +841,7 @@ def cottage(
 <tr><td><code>emmet library status|install|update|verify</code></td><td>LDraw library management</td></tr>
 <tr><td><code>emmet doctor [--fix]</code> · <code>emmet trust</code></td><td>Environment check (Python, library, index, agents and their versions, render); trust the current project</td></tr>
 <tr><td><code>emmet mcp [--project dir] [--session id]</code></td><td>The stdio MCP server. <code>--session</code> is set only by the app, and turns on redirect notes (below)</td></tr>
-<tr><td><code>emmet mcp-host --session id</code></td><td>The app-internal <code>emmet_host</code> server (<code>approve</code>, <code>ask_user</code>), which talks to the running app over the bus. Hidden from <code>--help</code></td></tr>
+<tr><td><code>emmet mcp-host --session id</code></td><td>The app-internal <code>emmet_host</code> server (<code>approve</code>, <code>ask_user</code>) for the project (<code>--project</code>), which talks to the running app over the bus (<code>docs/spec/bus.md</code>). Hidden from <code>--help</code></td></tr>
 <tr><td><code>emmet eval --rung 1|2|3|photo --agent claude|codex [--runs 1]</code></td><td>Live eval (dev builds, and hidden in release builds)</td></tr>
 </table></div>
 <p class="small">Global flags: <code>--project &lt;dir&gt;</code> (default: search upward from cwd), <code>--json</code> (the envelope; the default output is human-readable), <code>--data-dir</code> (override app data, used by tests and dev).</p>
@@ -860,6 +860,7 @@ def cottage(
 <tr><td><code>technique</code></td><td><code>name?</code></td><td>The list, or <code>{name, doc, snippet, parts}</code></td><td>The doc's first lines</td></tr>
 <tr><td><code>list_colors</code></td><td><code>part?</code></td><td><code>[{code, name, rgb, produced_for_part?}]</code></td><td>Compact list</td></tr>
 <tr><td><code>highlight</code></td><td><code>ids</code> or <code>finding</code></td><td><code>{delivered: bool}</code></td><td>"Highlighted in the viewer", or "Emmet app not open"</td></tr>
+<tr><td><code>rules</code> · <code>api</code></td><td>none</td><td>Text only: the doctrine (EMMET.md) and the DSL vocabulary, as <code>emmet rules</code> and <code>emmet api</code> print them (1C: section 10 has the agent read the doctrine through a tool)</td><td>The text</td></tr>
 </table></div>
 <p class="small">A second, app-internal server <code>emmet_host</code> exposes <code>approve</code> for Claude Code's <code>--permission-prompt-tool</code> and <code>ask_user</code> for question cards (section 10). It's injected only by the app, never by terminal users; a terminal agent asks in its own terminal.</p>
 <div class="table-wrap"><table>
@@ -885,21 +886,26 @@ pub trait Session: Send {
     fn send(&amp;mut self, turn: UserTurn) -&gt; Result&lt;(), AgentError&gt;;    // text (+ structured context: selection, finding)
     fn respond(&amp;mut self, id: ApprovalId, d: Decision) -&gt; Result&lt;(), AgentError&gt;;
     fn interrupt(&amp;mut self) -&gt; Result&lt;(), AgentError&gt;;
-    fn steer(&amp;mut self, note: UserNote) -&gt; Result&lt;SteerPath, AgentError&gt;; // Native, or Queued for the next emmet tool result
+    fn answer(&amp;mut self, id: QuestionId, a: Answer) -&gt; Result&lt;(), AgentError&gt;;   // a question card (1C)
+    fn steer(&amp;mut self, text: &amp;str) -&gt; Result&lt;UserNote, AgentError&gt;; // NoteDelivered says by which path
+    fn cancel_note(&amp;mut self, id: NoteId) -&gt; bool;  fn edit_note(&amp;mut self, id: NoteId, text: &amp;str) -&gt; bool; // until delivered
     fn events(&amp;mut self) -&gt; EventStream;                            // AgentEvent below
     fn resume_token(&amp;self) -&gt; Option&lt;String&gt;;                      // Claude session id / Codex thread id
+    fn close(&amp;mut self);
 }
 pub enum AgentEvent {
-    Started { resume: String, model: Option&lt;String&gt; },
-    Text { delta: String }, Reasoning { delta: String },
+    Started { resume: String, model: Option&lt;String&gt;, billing: Option&lt;Billing&gt; },
+    Text { message: String, delta: String }, Reasoning { message: String, delta: String },
     ToolCall { id: String, name: String, input: Value }, ToolResult { id: String, ok: bool, summary: String },
     FileChange { path: PathBuf, kind: ChangeKind },
-    Approval { id: ApprovalId, kind: ApprovalKind, detail: String },
+    Approval { id: ApprovalId, kind: ApprovalKind, tool: String, detail: String }, ApprovalClosed { id: ApprovalId },
     Question { id: QuestionId, question: Question },                // from emmet_host.ask_user, via the bus
+    QuestionClosed { id: QuestionId, reason: Option&lt;String&gt; },
     NoteDelivered { id: NoteId, path: SteerPath },
     Usage { input: u64, output: u64 }, TurnDone { reason: DoneReason },
     Limits { snapshot: UsageSnapshot },                              // live: Claude's rate_limit_event
     Error { code: AgentErrorCode, message: String },
+    Exited { code: Option&lt;i32&gt; },                                 // the CLI ended; nothing follows
 }</code></pre>
 
 <h3>Claude Code adapter</h3>
@@ -959,7 +965,7 @@ server → client requests for command/file approvals → Approval events → re
 <tr><td>Claude Code on native Windows (no sandbox): shell commands, web fetch and search</td><td>Ask</td></tr>
 <tr><td>Third-party MCP tools (8F)</td><td>Ask the first time per tool</td></tr>
 </table></div>
-<p class="small"><b>What each CLI enforces.</b> 0B (ADR 0001) measured both CLIs against the earlier ask-first table: Claude Code ran read-only shell commands without asking, and Codex on <code>on-request</code> asked only to leave its sandbox, so the table is sandbox first, like nurb's (D-40). Approval cards are kept for what the kernel can't decide, because a card on every step teaches people to click Allow without reading. Claude Code: the sandbox settings above on macOS and the ask rules on native Windows; Emmet's <code>approve</code> tool allows edits inside the project and reads, and turns every other request into a card. Codex: <code>workspace-write</code> with <code>/tmp</code> and <code>$TMPDIR</code> excluded and <code>approval_policy="on-request"</code>: commands and edits inside the project run without asking, a request to escalate out of the sandbox is a card, and Emmet accepts the <code>mcp_tool_call</code> approvals for its own two servers (0B: Codex asks for each MCP tool call). 1C proves the table on macOS and Windows, including Codex's Windows sandbox, and checks that the Python runtime still works with the temp directories excluded.</p>
+<p class="small"><b>What each CLI enforces.</b> 0B (ADR 0001) measured both CLIs against the earlier ask-first table: Claude Code ran read-only shell commands without asking, and Codex on <code>on-request</code> asked only to leave its sandbox, so the table is sandbox first, like nurb's (D-40). Approval cards are kept for what the kernel can't decide, because a card on every step teaches people to click Allow without reading. Claude Code: the sandbox settings above on macOS and the ask rules on native Windows; Emmet's <code>approve</code> tool allows edits inside the project and reads, and turns every other request into a card; inside the project, agent config (dot folders and files, <code>AGENTS.md</code>, <code>CLAUDE.md</code>) is a card too, and "Allow for this session" covers that one command, host, or file (ADR 0009). Codex: <code>workspace-write</code> with <code>/tmp</code> and <code>$TMPDIR</code> excluded and <code>approval_policy="on-request"</code>: commands and edits inside the project run without asking, a request to escalate out of the sandbox is a card, and Emmet accepts the <code>mcp_tool_call</code> approvals for its own two servers (0B: Codex asks for each MCP tool call). 1C proves the table on macOS and Windows, including Codex's Windows sandbox, and checks that the Python runtime still works with the temp directories excluded.</p>
 
 <h3>Questions, redirects, and stops</h3>
 <p>These three work the same on both agents, because they run through Emmet's own tools and bus, not through either CLI's UI.</p>
@@ -1346,7 +1352,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <tr><td>Webview compromise escalates (XSS from part names, chat markdown)</td><td>Strict CSP (<code>default-src 'self'</code>, no inline script, <code>connect-src</code> only the IPC and <code>emmet-lib:</code>), no remote content, markdown rendered without raw HTML, and Tauri capabilities scoped to specific commands with no shell or fs plugins for the frontend.</td><td>CSP test + capabilities audit (5B)</td></tr>
 <tr><td>Path traversal through IPC or a project file</td><td>Every path argument is canonicalized and must sit under the project root or app data. Symlinks escaping the root are refused.</td><td>Integration (1B, 5B)</td></tr>
 <tr><td>Malicious library or data download</td><td>HTTPS only, sha256 pinned per Emmet release, zip-slip guard, size limits.</td><td>Integration (1A)</td></tr>
-<tr><td>Another local process drives the app through the socket</td><td>The socket or pipe is user-only (0600, or a named pipe with a user-only ACL), plus a per-launch random token in a 0600 file in app data. Messages are UI-only and can't run code.</td><td>Integration (1C)</td></tr>
+<tr><td>Another local process drives the app through the socket</td><td>The socket or pipe is user-only (0600, or a named pipe with a user-only ACL), plus a per-launch random token in a 0600 file in app data that never crosses the socket: each request and reply proves it with a hash bound to a fresh nonce and the message, so neither side can be impersonated or replayed (1C, <code>docs/spec/bus.md</code>). Messages are UI-only and can't run code.</td><td>Integration (1C)</td></tr>
 <tr><td>Update hijack</td><td>Tauri updater signatures (key held by Barry, H-13) over HTTPS from the repo's GitHub Releases, and macOS notarization.</td><td>Release smoke (6A)</td></tr>
 <tr><td>Secrets or personal data in the repo (it's public from day one)</td><td>gitleaks pre-commit and in CI, GitHub secret scanning and push protection, transcript scrubbing, no real usernames or paths in fixtures, and a personal-details pass before the first push (0A).</td><td>CI every PR, 0A</td></tr>
 <tr><td>Supply chain</td><td>Lockfiles committed, cargo-deny (advisories + license allowlist), <code>pnpm audit --prod</code>, Dependabot, GitHub Actions pinned by SHA, and the self-hosted runner limited to this repo with a guard script (section 17).</td><td>CI every PR</td></tr>
@@ -1368,7 +1374,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <tr><td><b>MCP contracts</b></td><td>Every tool: schema, structured output validates, text summary snapshot, error shapes</td><td>An <code>rmcp</code> client against <code>emmet mcp</code></td><td>Every PR</td></tr>
 <tr><td><b>Validator corpus</b></td><td>Precision on official models, recall on mutations, speed</td><td><code>tests/it/validator_*</code></td><td>PR (small corpus), nightly (full)</td></tr>
 <tr><td><b>Agent replay</b></td><td>Both adapters end to end: streaming, tool calls into the real <code>emmet mcp</code>, approvals, question cards, redirects on each path, interrupt, resume, a crash mid-stream, malformed lines, an unknown event type</td><td><code>tests/fake-agents/fake-claude</code> and <code>fake-codex</code> replay <code>tests/replay/*.jsonl</code>, substituting paths, and assert the exact <code>AgentEvent</code> sequence and the final project state</td><td>Every PR</td></tr>
-<tr><td><b>App E2E</b></td><td>The key flows in section 14 on the real app: first run (with ldraw-mini), slider → viewer, finding → highlight, chat with a fake agent → model updates, approval card, trust prompt, error states</td><td>WebdriverIO + <code>@wdio/tauri-service</code> (embedded WebDriver plugin, debug builds only). Viewer assertions read <code>viewer.stats()</code> and ids, not pixels</td><td>macOS on PRs touching <code>apps/</code>, <code>crates/</code>, <code>packages/</code>, the DSL, or the specs; Windows on PRs touching <code>apps/desktop/src-tauri/</code> or the specs; both weekly, with the <code>full-ci</code> label, and on releases</td></tr>
+<tr><td><b>App E2E</b></td><td>The key flows in section 14 on the real app: first run (with ldraw-mini), slider → viewer, finding → highlight, chat with a fake agent → model updates, approval card, trust prompt, error states</td><td>WebdriverIO + <code>@wdio/tauri-service</code> (embedded WebDriver plugin, debug builds only). Viewer assertions read <code>viewer.stats()</code> and ids, not pixels</td><td>macOS on PRs touching <code>apps/</code>, <code>crates/</code>, <code>packages/</code>, the DSL, or the specs; Windows on PRs touching <code>apps/desktop/src-tauri/</code>, the agent bridge (<code>crates/emmet-agent/</code>, <code>tests/fake-agents/</code>), or the specs; both weekly, with the <code>full-ci</code> label, and on releases</td></tr>
 <tr><td><b>Visual</b></td><td>Viewer renders of 6 fixture scenes per OS, plus key screens in light and dark</td><td>pixelmatch with a tolerance, baselines per OS in <code>tests/e2e/baselines/</code>, an update script, and a diff image uploaded on failure</td><td>With App E2E</td></tr>
 <tr><td><b>Performance</b></td><td>Section 13's budgets</td><td><code>just bench</code> (the viewer bench in the real app, <code>tests/e2e/specs/bench.e2e.mjs</code>) + E2E timing marks, results as a CI summary table</td><td>Both OSes weekly and with the <code>full-ci</code> label: a summary table, not a gate</td></tr>
 <tr><td><b>Release smoke</b></td><td>The installed artifact launches, the sidecars resolve, <code>emmet doctor</code> passes inside the bundle, the updater manifest verifies</td><td>A release workflow job installs the <code>.dmg</code> or NSIS build on the runner and runs checks</td><td>Every release and release dry run</td></tr>

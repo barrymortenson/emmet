@@ -124,6 +124,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   apple-native and windows-native stores (MIT/Apache-2.0; on macOS it uses security-framework, already in the tree)
   over shelling out to `/usr/bin/security` on macOS only, or Emmet's own FFI with an unsafe exception. ADR 0009 records
   it.
+- **The Windows bus pipe's ACL.** Section 15 wants the pipe user-only. interprocess takes a security descriptor as
+  SDDL in a `widestring::U16CStr`, and doesn't re-export the type. Barry chose widestring as a direct Windows-only
+  dependency of emmet-bus (already in the tree through interprocess) over keeping Windows' default pipe ACL (owner,
+  SYSTEM, and administrators may write; others may read) or FFI with an unsafe exception. ADR 0009 records it.
 
 ## 2026-10-25, session 1B
 

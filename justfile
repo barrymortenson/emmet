@@ -82,8 +82,9 @@ test *args:
         if pick '^python/'; then all+=(python); fi
         if pick '^packages/viewer/'; then all+=(viewer); fi
         if pick '^apps/desktop/'; then all+=(desktop); fi
-        # The Rust integration tests also embed or read the DSL, data/, the fixtures, and docs/spec/mcp/.
-        if pick '^(crates/|tests/it/|tests/fixtures/|python/emmet_dsl/src/|data/|docs/spec/mcp/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
+        # The Rust integration tests also embed or read the DSL, data/, the fixtures, the fake agents and their
+        # transcripts, and docs/spec/mcp/.
+        if pick '^(crates/|tests/it/|tests/fixtures/|tests/fake-agents/|tests/replay/|python/emmet_dsl/src/|data/|docs/spec/mcp/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
       fi
       args=""
       echo "test --changed: ${all[*]:-nothing}"

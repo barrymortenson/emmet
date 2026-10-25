@@ -53,6 +53,8 @@ update merges when CI is green, and a major update gets its own PR with a note (
 | @wdio/tauri-service | 1.5.1 |
 | @wdio/cli, @wdio/local-runner, @wdio/mocha-framework, @wdio/spec-reporter | 9.32.0 |
 | @wdio/globals | 9.31.3 |
+| keyring-core, apple-native-keyring-store, windows-native-keyring-store (the Codex key in the keychain; approved 2026-10-25, ADR 0009) | 1.0.1, 1.0.2, 1.1.0 |
+| widestring (Windows only: the bus pipe's ACL; approved 2026-10-25, ADR 0009) | 1.2.1 |
 
 ### GitHub Actions (pinned by SHA)
 
