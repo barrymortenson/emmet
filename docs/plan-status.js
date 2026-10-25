@@ -29,7 +29,16 @@ window.EMMET_STATUS = {
       ],
       note: "Windows part loading in the render spike is slow (about 9 s for 5 parts) and unmeasured; 1B's first-load budget must check it (ADR 0005)"
     },
-    "1A": { status: "review", pr: 9, branch: "bmortenson/s1a-engine-skeleton", started: "2026-10-24" },
+    "1A": {
+      status: "done", pr: 9, branch: "bmortenson/s1a-engine-skeleton", started: "2026-10-24",
+      evidence: [
+        "just ci on this Mac: ci: ok",
+        "CI ci check green #9 (run 40164346894: mac on emmet-mac, windows, plan)",
+        "tests/it/tests/{run,errors,search,mcp,library,frame,runner}.rs; python/emmet_dsl/tests/test_stdlib_only.py",
+        "warm run 96 ms, ldraw-mini reindex 0.092 s, full library reindex 4.05 s, search 0.056 ms a query"
+      ],
+      note: "LDView and LeoCAD fail Gatekeeper, so Emmet's three.js render stood in for the screenshot (Barry); a fresh library install fails its checksum once LDraw publishes 2026-10 until Emmet pins it (ADR 0007, 6A)"
+    },
     "1B": { status: "todo" },
     "1C": { status: "todo" },
     "1D": { status: "todo" },
