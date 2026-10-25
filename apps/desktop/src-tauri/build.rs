@@ -17,6 +17,15 @@ fn main() {
         "render_done",
         "render_failed",
     ];
+    // The tests in tests/ link Tauri too, and on Windows they need the Common Controls v6 manifest that tauri-build
+    // embeds only in the app.
+    if std::env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("msvc") {
+        let manifest =
+            std::path::Path::new(&std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("windows-test-manifest.xml");
+        println!("cargo:rerun-if-changed={}", manifest.display());
+        println!("cargo:rustc-link-arg-tests=/MANIFEST:EMBED");
+        println!("cargo:rustc-link-arg-tests=/MANIFESTINPUT:{}", manifest.display());
+    }
     tauri_build::try_build(
         tauri_build::Attributes::new().app_manifest(tauri_build::AppManifest::new().commands(commands)),
     )
