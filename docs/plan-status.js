@@ -19,7 +19,16 @@ window.EMMET_STATUS = {
       ],
       note: "1A and 1C must use the test HOME and data dir the runner guard sets; CLAUDE.md is a symlink, a text file on Windows without core.symlinks"
     },
-    "0B": { status: "review", pr: 3, branch: "bmortenson/s0b-research-adrs", started: "2026-10-24" },
+    "0B": {
+      status: "done", pr: 3, branch: "bmortenson/s0b-research-adrs", started: "2026-10-24",
+      evidence: [
+        "just ci on this Mac: ci: ok",
+        "CI ci check green #3 (run 40154710641: mac on emmet-mac, windows, plan)",
+        "docs/adr/0001-0006, tests/replay/{claude,codex}/, tests/fixtures/ldraw-mini/, docs/spec/ladder.md",
+        "tests/e2e/specs/hello.e2e.mjs, tests/scripts/{scrub-transcript,ldraw-mini-check}.test.mjs"
+      ],
+      note: "Windows part loading in the render spike is slow (about 9 s for 5 parts) and unmeasured; 1B's first-load budget must check it (ADR 0005)"
+    },
     "1A": { status: "todo" },
     "1B": { status: "todo" },
     "1C": { status: "todo" },
