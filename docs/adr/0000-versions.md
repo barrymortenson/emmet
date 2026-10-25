@@ -40,6 +40,11 @@ update merges when CI is green, and a major update gets its own PR with a note (
 | typescript-eslint | 8.72.0 |
 | globals | 17.13.0 |
 | ruff | 0.17.2 |
+| three (0B render spike; the viewer later) | 0.186.1 |
+| tauri-plugin-wdio-webdriver (E2E only, behind the `webdriver` feature; ADR 0002) | 1.5.1 |
+| @wdio/tauri-service | 1.5.1 |
+| @wdio/cli, @wdio/local-runner, @wdio/mocha-framework, @wdio/spec-reporter | 9.32.0 |
+| @wdio/globals | 9.31.3 |
 
 ### GitHub Actions (pinned by SHA)
 
@@ -58,6 +63,7 @@ update merges when CI is green, and a major update gets its own PR with a note (
 - **TypeScript 6.0.3**, not 7.0.2: typescript-eslint 8.72 supports TypeScript below 6.1.
 - **Node 22.21.1 and pnpm 11.22.0** are the versions active on the development Mac. Node 24 and pnpm 12 are also
   installed there; moving to them is a major update with its own PR.
+- **WebdriverIO 9, not 10:** `@wdio/tauri-service` 1.5.1 declares `webdriverio ^9.0.0` (ADR 0002). Added in 0B.
 - **`globals`** is the one package outside the plan's named list: the eslint config needs it for Node globals in
   scripts and tests. It is data only, with no dependencies.
 - **The macOS cross targets** (`x86_64-apple-darwin` for the universal build, D-01) aren't in `rust-toolchain.toml` yet,

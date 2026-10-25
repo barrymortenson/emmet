@@ -15,6 +15,10 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
 - The crates (`emmet-core`, `emmet-agent`, `emmet-bus`), the viewer package (`createViewer`), and the Python package
   (`emmet_dsl.__version__`) are one-function stubs. Each builds and has an integration test.
 - CI on macOS and Windows, the license, SPDX, DCO, secret, and supply-chain checks, and the plan tracker check.
+- `just e2e`: an end-to-end test drives the real app through WebdriverIO (`tests/e2e/`).
+- Research results in `docs/adr/` (agent protocols, E2E, licenses, data mapping, headless render, binaries), test
+  fixtures (`tests/fixtures/ldraw-mini/`, `tests/fixtures/rebrickable-mini/`, `tests/replay/`), and the model ladder
+  the evals measure against (`docs/spec/ladder.md`). Spike code lives in `tests/spikes/`.
 
 The app icon is a placeholder until the design phase.
 
@@ -54,7 +58,13 @@ points git at the hooks in `.githooks/`. On Windows, run `just` from Git Bash.
 | `just test [filter]` | Integration tests, fastest first; `just test --changed` runs only those affected by your changes |
 | `just ci` | Everything CI's mac job runs; it must pass before you push |
 | `just plan` | Check the status file and open the plan |
-| `just e2e`, `just eval`, `just screenshots`, `just bench`, `just release-dry`, `just release` | Not yet; each one names the session that adds it |
+| `just e2e [spec]` | Build the debug app with the embedded WebDriver server and run the E2E specs (`just e2e hello` runs one) |
+| `just eval`, `just screenshots`, `just bench`, `just release-dry`, `just release` | Not yet; each one names the session that adds it |
+
+Scripts run by hand: `scripts/scrub-transcript` (scrub an agent transcript before committing it),
+`scripts/make-ldraw-mini` and `scripts/make-rebrickable-mini` (rebuild the fixtures from the pinned downloads),
+`scripts/terms-check` (re-read the provider terms at the gates), and `scripts/name-check` (re-run the trademark
+search for the name at the gates).
 
 ## License
 

@@ -79,7 +79,7 @@ test *args: build
         if pick '^python/'; then all+=(python); fi
         if pick '^packages/viewer/'; then all+=(viewer); fi
         if pick '^apps/desktop/'; then all+=(desktop); fi
-        if pick '^(crates/|tests/it/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
+        if pick '^(crates/|tests/it/|tests/spikes/(binaries|headless-render)/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
       fi
       args=""
       echo "test --changed: ${all[*]:-nothing}"
@@ -105,9 +105,11 @@ test *args: build
       esac
     done
 
-# Not yet: 1B sets up the WebdriverIO harness and its first specs.
+# App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server, driven by WebdriverIO.
+# `just e2e hello` runs one spec file from tests/e2e/specs/.
 e2e *spec:
-    @echo "just e2e: not yet; session 1B adds it" && exit 1
+    cd apps/desktop && pnpm tauri build --debug --no-bundle --ci --features webdriver
+    pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs {{ if spec == "" { "" } else { "--spec specs/" + spec + ".e2e.mjs" } }}
 
 # Exactly what CI's mac job runs. It must pass before a session's final push.
 ci: check
@@ -116,6 +118,7 @@ ci: check
     pnpm audit --prod
     just test
     just build-app
+    just e2e
     @echo "ci: ok"
 
 # Not yet: live evals (section 16.1) arrive in 1D; they bill Barry's API keys and ask first.

@@ -98,7 +98,12 @@ jobs:
       - run: rustup toolchain install
       - run: just deps
       - run: just test
+      # The 0B spikes' own reports (ADR 0005 timings, ADR 0006 console check): already built and tested above; this
+      # reruns them with their output shown.
+      - name: Spike reports
+        run: cargo test -p emmet-spike-render -p emmet-spike-binaries --locked -- --nocapture
       - run: just build-app
+      - run: just e2e
       - name: Timing
         if: always()
         run: |
@@ -118,6 +123,8 @@ jobs:
           node-version-file: .node-version
       - run: node scripts/plan-check.mjs
       - run: node scripts/spdx-check.mjs
+      # The LDraw parts in the test fixture keep their license, authors, and bytes (ADR 0003).
+      - run: node scripts/ldraw-mini-check.mjs
       # A PR checks its own commits. The hosted fallback (ci-hosted-mac.yml, a manual run) checks the branch against main,
       # since its ci check can stand in for the Mac's.
       - name: DCO
@@ -126,7 +133,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || 'origin/main' }}
           HEAD: ${{ github.event.pull_request.head.sha || 'HEAD' }}
         run: scripts/dco-check.sh "$BASE" "$HEAD"
-      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs
+      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs
 
   # The one required check: green only when every job above is.
   ci:

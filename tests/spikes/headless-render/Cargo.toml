@@ -1,0 +1,18 @@
+[package]
+name = "emmet-spike-render"
+description = "ADR 0005 spike: render three.js in a hidden Tauri window and write a PNG"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+tauri.workspace = true
+
+[lints]
+workspace = true

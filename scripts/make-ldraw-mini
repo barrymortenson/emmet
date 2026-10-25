@@ -1,0 +1,142 @@
+#!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Builds tests/fixtures/ldraw-mini/ from the official LDraw complete.zip (plan section 12, ADR 0003): the parts listed
+// in PARTS.txt plus every subpart and primitive they reference, copied byte for byte with their headers, the license
+// texts, LDConfig.ldr, a sha256 manifest, and ATTRIBUTION.md. Run by hand when the pinned release changes:
+//
+//   curl -fLo <empty dir>/complete.zip https://library.ldraw.org/library/updates/complete.zip
+//   scripts/make-ldraw-mini <empty dir>/complete.zip
+//
+// That URL always serves the newest release, so after the next one the pinned sha256 below stops matching and the
+// script says so: update RELEASE and ZIP_SHA256 deliberately.
+//
+// The zip is only read through `unzip`; nothing inside it is executed. scripts/ldraw-mini-check.mjs checks the result.
+
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const RELEASE = "2026-09";
+const ZIP_SHA256 = "f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2";
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const OUT = join(ROOT, "tests/fixtures/ldraw-mini");
+const EXTRA = ["LDConfig.ldr", "CAreadme.txt", "CAlicense.txt", "CAlicense4.txt"];
+const OWN = new Set(["PARTS.txt", "ATTRIBUTION.md", "MANIFEST.sha256"]);
+
+const zip = process.argv[2];
+if (!zip) {
+  console.error("usage: scripts/make-ldraw-mini <complete.zip>");
+  process.exit(2);
+}
+const sha = (buf) => createHash("sha256").update(buf).digest("hex");
+const got = sha(readFileSync(zip));
+if (got !== ZIP_SHA256) {
+  console.error(`make-ldraw-mini: ${zip} has sha256 ${got}, not the pinned ${RELEASE} release (${ZIP_SHA256}).`);
+  console.error("Update RELEASE and ZIP_SHA256 in this script when moving to a new release.");
+  process.exit(1);
+}
+
+const entries = execFileSync("unzip", ["-Z1", zip], { encoding: "utf8", maxBuffer: 64 << 20 }).split("\n").filter(Boolean);
+const byLower = new Map(entries.map((e) => [e.toLowerCase(), e]));
+const read = (entry) => execFileSync("unzip", ["-p", zip, entry], { maxBuffer: 64 << 20 });
+
+/** The zip entry for a reference made from a part file, in LDraw's search order (parts/, then p/). */
+function resolve(ref) {
+  const r = ref.replace(/\\/g, "/").toLowerCase();
+  for (const dir of ["ldraw/parts/", "ldraw/p/"]) if (byLower.has(dir + r)) return byLower.get(dir + r);
+  return null;
+}
+
+/** The file names a part references: type-1 lines, and type-1 lines carried in `0 !:` TEXMAP geometry lines. */
+function refs(buf) {
+  const out = [];
+  for (const raw of buf.toString("latin1").split(/\r?\n/)) {
+    const line = raw.replace(/^0 !:\s+/, "").trim();
+    const tok = line.split(/\s+/);
+    if (tok[0] === "1" && tok.length >= 15) out.push(tok.slice(14).join(" "));
+  }
+  return out;
+}
+
+const wanted = readFileSync(join(OUT, "PARTS.txt"), "utf8")
+  .split("\n")
+  .map((l) => l.replace(/#.*/, "").trim())
+  .flatMap((l) => l.split(/\s+/))
+  .filter(Boolean);
+if (!wanted.length) {
+  console.error("make-ldraw-mini: PARTS.txt lists no parts");
+  process.exit(1);
+}
+
+const files = new Map(); // zip entry → content
+const missing = [];
+const queue = wanted.map((id) => [`${id}.dat`, "PARTS.txt"]);
+while (queue.length) {
+  const [ref, from] = queue.shift();
+  const entry = resolve(ref);
+  if (!entry) {
+    missing.push(`${ref} (from ${from})`);
+    continue;
+  }
+  if (files.has(entry)) continue;
+  const buf = read(entry);
+  files.set(entry, buf);
+  for (const r of refs(buf)) queue.push([r, entry.replace(/^ldraw\//, "")]);
+}
+if (missing.length) {
+  console.error(`make-ldraw-mini: ${missing.length} references don't resolve:\n  ${missing.join("\n  ")}`);
+  process.exit(1);
+}
+for (const f of EXTRA) files.set(`ldraw/${f}`, read(byLower.get(`ldraw/${f}`.toLowerCase())));
+
+// Replace everything but this directory's own files.
+for (const d of ["parts", "p", ...EXTRA]) rmSync(join(OUT, d), { recursive: true, force: true });
+const manifest = [];
+const rows = [];
+for (const [entry, buf] of [...files].sort(([a], [b]) => a.localeCompare(b))) {
+  const rel = entry.replace(/^ldraw\//, "");
+  if (OWN.has(rel)) throw new Error(`${rel} would overwrite this fixture's own file`);
+  mkdirSync(dirname(join(OUT, rel)), { recursive: true });
+  writeFileSync(join(OUT, rel), buf);
+  manifest.push(`${sha(buf)}  ${rel}`);
+  if (/\.dat$/i.test(rel)) {
+    const head = buf.toString("latin1").split(/\r?\n/).slice(0, 20);
+    const field = (re) => (head.find((l) => re.test(l)) ?? "").replace(re, "").trim();
+    rows.push(`| ${rel} | ${head[0].replace(/^0\s*/, "").replace(/\|/g, "\\|")} | ${field(/^0 Author:/).replace(/\|/g, "\\|")} | ${field(/^0 !LICENSE/)} |`);
+  }
+}
+writeFileSync(join(OUT, "MANIFEST.sha256"), manifest.join("\n") + "\n");
+
+const parts = rows.filter((r) => r.startsWith("| parts/") && !r.startsWith("| parts/s/")).length;
+writeFileSync(
+  join(OUT, "ATTRIBUTION.md"),
+  `# ldraw-mini: attribution
+
+This directory is a subset of the **LDraw.org Parts Library**, release ${RELEASE}, from
+https://library.ldraw.org/library/updates/complete.zip (sha256 \`${ZIP_SHA256}\`). It is a test fixture for Emmet
+(plan section 12): ${parts} parts, their subparts and primitives, and the library's \`LDConfig.ldr\`.
+
+- **Creators:** each file's \`0 Author:\` line, repeated in the table below. LDraw.org's \`CAreadme.txt\` names
+  "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
+- **Licenses:** each file's \`0 !LICENSE\` line. Parts are licensed under CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/, full text in \`CAlicense4.txt\`) or CC BY 2.0
+  (https://creativecommons.org/licenses/by/2.0/, full text in \`CAlicense.txt\`); "CCAL version 2.0" means CC BY 2.0.
+  See \`CAreadme.txt\`.
+- **Changes:** none. Every file is copied byte for byte, headers included; \`MANIFEST.sha256\` holds their hashes.
+  \`PARTS.txt\`, \`MANIFEST.sha256\`, and this file are Emmet's.
+
+LDraw is a trademark of the Estate of James Jessiman. LEGO is a trademark of the LEGO Group, which does not sponsor,
+authorize, or endorse this project.
+
+Regenerate with \`scripts/make-ldraw-mini <complete.zip>\`; \`scripts/ldraw-mini-check.mjs\` checks this directory.
+
+## Files
+
+| File | Title | Author | License |
+|------|-------|--------|---------|
+${rows.join("\n")}
+`,
+);
+console.log(`make-ldraw-mini: ${parts} parts, ${files.size} files from LDraw ${RELEASE} → ${OUT}`);

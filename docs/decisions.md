@@ -3,6 +3,55 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-24, session 0B
+
+- **H-03.** Both CLIs are signed in on this Mac: Claude Code on Barry's plan, Codex with ChatGPT
+  (`codex login status`: "Logged in using ChatGPT").
+- **H-21.** The eval keys are in the keychain as `emmet-eval-anthropic` and `emmet-eval-openai`, each with a
+  spend cap.
+- **H-20: send the description to Anthropic later.** Barry accepted the Commercial Terms through his Console account
+  and read the legal page on 2026-10-24. Sending Anthropic the description of how Emmet runs Claude Code waits until
+  Emmet has its website and a business email. Until then H-20 is `waiting`; the description must be sent before 7B
+  merges. The draft is kept for that step. Accepting the Commercial Terms is what lets Emmet run Claude Code, so 0B
+  starts now. Plan sections 10, 21, and 22 and 7B's merge wait are updated to match.
+- **D-40: permissions are sandbox first, like nurb.** 0B found Claude Code runs read-only shell commands without
+  asking, and Codex on `on-request` asks almost nothing. Barry asked what nurb does: it answers every permission request
+  "allow once" and relies on an OS sandbox (macOS Seatbelt: read anything, write only to the project, the app's data,
+  temp, caches, and the agents' own state) instead of approval cards. Decision: each CLI's own sandbox guards the
+  chat pane: Claude Code through `--settings` with `sandbox.enabled` and `failIfUnavailable`, Codex with
+  `workspace-write` and `/tmp` excluded. Emmet approves what runs inside the sandbox; cards appear only for what the
+  sandbox can't contain, and for every shell command under Claude Code on native Windows, which has no sandbox (ask
+  rules there). Plan section 10 and section 03 change to match; 1C proves it on both OSes. Rejected: an ask rule with
+  cards for every shell command; accepting the gap.
+- **Section 10's OpenAI quotes.** Two phrases in the Codex column changed wording since planning ("is available to all
+  open-source partners" is gone; "without a client secret or partner API key" moved to the sign-in page as "needs
+  neither a client secret nor a partner API key"). The basis is the same, so section 10 quotes today's text and the
+  1E row stays Build with conditions. Rejected: holding 1E for OpenAI's written confirmation; dropping ChatGPT plan use.
+- **Q-01: the LDCad shadow library ships as CC BY-SA data.** It is CC BY-SA 4.0 (ADR 0003). The connector table built
+  from it ships as its own data file under CC BY-SA 4.0 with attribution to the LDCad Shadow Library, kept separate
+  from the AGPL code; overrides cover what it misses (track, the 9V switch). Rejected: building it on the user's
+  machine from a first-run download; not using it.
+- **License credits are allowed.** LDraw part and OMR model headers name their authors, and CC BY requires keeping
+  them. The no-real-names invariant gets a second exception for third-party authors' names a license requires (LDraw
+  parts, OMR models, their attribution files), in AGENTS.md, its copy in plan section 25, and agent rule 7 in section
+  19. Rejected: keeping the names without changing the text; committing no named files (no ldraw-mini).
+- **A draft PR so CI runs.** Approved `gh pr create --draft` for 0B (PR #3), as in 0A: CI runs only on PRs, and the
+  Windows evidence (E2E, render, binaries) needs it. It is marked ready only when every Done when item holds.
+- **H-11: rung 3 rebuilds 6743-1 Street Speeder** (165 pieces, 69 part and color lines, 92% common parts), from the
+  shortlist of five in `docs/spec/ladder.md`. Its OMR main model matches the Rebrickable inventory exactly.
+- **G1 without a demo or posts.** Barry skips the 60-second demo video and the community posts at G1 (Eurobricks,
+  r/lego, the LDraw forum), and decides go, no-go, or pivot from the eval reports and his own testing. Plan sections
+  02, 03 (D-18's wording), 21 (Phase 1, 1D: no demo kit; the signed build stays), 22 (H-06 and its guide), and 23 (the
+  risk row) are updated. The launch posts and video at 7A/7B are unchanged.
+- **No note to Rebrickable (H-24 not needed).** Its downloads terms already allow the pack with credit (Q-02), and Q-14 is
+  settled by reading: the Terms' clause is about training models on Rebrickable content, Emmet trains nothing, and its
+  tools only answer the user's own agent with small facts. 3B no longer waits on a reply; if Rebrickable ever objects,
+  that use is switched off. The draft note is deleted.
+- **PR titles.** `<session id>: <outcome>` for a session, `<area>: <change>` otherwise, 50 characters or fewer, plain
+  words, no version numbers or paths. In AGENTS.md (and its copy in plan section 25), agent rule 1, `/create-pr`, and
+  the PR template; Dependabot's titles start `deps:`, and keep their version text because majors keep their own PR
+  (section 06). Rejected: grouping Dependabot majors too; Conventional Commits.
+
 ## 2026-10-24, session 0A
 
 - **Personal-details pass.** Before the first push: drop the full name from the plan header and the H-05 example,

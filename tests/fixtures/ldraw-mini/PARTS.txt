@@ -1,0 +1,82 @@
+# The top-level parts in ldraw-mini: everything rungs 1 and 2 need (plan section 02), plus a few aliases and an
+# obsolete part for the validator's alias and obsolete rules. scripts/make-ldraw-mini adds every subpart and primitive
+# these reference. One id per line; text after # is a comment.
+
+# Baseplates
+3811    # Baseplate 32 x 32
+3867    # Baseplate 16 x 16
+3645    # Baseplate 24 x 40
+
+# Bricks
+3005 3004 3622 3010 3009 3008 6111 6112 2465   # 1 x 1 to 1 x 16
+3003 3002 3001 2456 3007 3006                  # 2 x 2 to 2 x 10
+2357    # Brick 2 x 2 Corner
+3062b   # Brick 1 x 1 Round, hollow stud (chimney, lamps)
+3941    # Brick 2 x 2 Round
+2453b   # Brick 1 x 1 x 5 (canopy columns)
+2454b   # Brick 1 x 2 x 5
+3245c   # Brick 1 x 2 x 2
+30145   # Brick 2 x 2 x 3
+3065    # Brick 1 x 2 without center stud (transparent window filler)
+87087   # Brick 1 x 1 with stud on 1 side (SNOT)
+4070    # Brick 1 x 1 with headlight (SNOT)
+3581    # Brick 1 x 1 x 2 with shutter holder
+6541    # Technic Brick 1 x 1 with hole
+
+# Plates
+3024 3023b 3623 3710 3666 3460 4477 60479      # 1 x 1 to 1 x 12
+3022 3021 3020 3795 3034 3832 2445 4282        # 2 x 2 to 2 x 16
+3031 3032 3035 3030 3029                       # 4 x 4 to 4 x 12
+3958 3036 3033 3028                            # 6 x 6 to 6 x 12
+41539 92438                                    # 8 x 8, 8 x 16
+3794b 15573   # jumper plates (half-stud offset)
+32028   # Plate 1 x 2 with door rail
+6141    # Plate 1 x 1 Round
+4032a   # Plate 2 x 2 Round
+60474   # Plate 4 x 4 Round
+2429 2430     # hinge plate 1 x 4 base and top
+4081b   # Plate 1 x 1 with clip
+99780 99781 3956   # brackets
+
+# Tiles
+3070b 3069b 63864 2431 6636 4162 3068b 87079 6881b
+98138 4150 14769   # round tiles
+2412b   # Tile 1 x 2 grille
+
+# Slopes and roof
+3040b 3039 3038 3037 3045 3043 3041 3046 3044c 3048b
+4286 3298 4161 3297 3299 3300
+60481a 4460b 54200
+3665a 3747a    # inverted
+
+# Doors, windows, walls
+60596 60623    # door frame and door
+60592 60601    # window 1 x 2 x 2 and glass
+60593 60602    # window 1 x 2 x 3 and glass
+60594 60603    # window 1 x 4 x 3 and glass
+3582 30046     # shutter, lattice pane
+4865b 4864b 4215b 87552 30413   # panels (ticket booth)
+3659 3307 6005  # arches
+3185 30055 3633 # fences and railings
+
+# Details
+4079    # seat 2 x 2 (benches)
+4589    # cone 1 x 1 (lamps)
+87994   # bar 3L
+4274    # Technic pin 1/2
+3742 2423 6255  # plants
+4740    # dish 2 x 2 inverted
+
+# Track (rung 2): plastic straight and curve R40, and a 9V switch, which connects to plastic track. The 2026-09
+# library has no plastic switch.
+53401   # Train Track 6 Studs Wide Straight
+53400   # Train Track 6 Studs Wide Curved
+75541-f1 75541-f2   # 9V Switch Right, straight and branching
+75542-f1 75542-f2   # 9V Switch Left, straight and branching
+2866    # 9V Points Lever
+
+# Aliases and an obsolete part (validator rules alias_part and obsolete_part)
+3023    # ~Moved to 3023b
+3040    # ~Moved to 3040b
+4073    # ~Moved to 6141
+3660a   # ~Slope Brick 45 2 x 2 Inverted (Obsolete)

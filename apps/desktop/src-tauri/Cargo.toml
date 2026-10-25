@@ -12,6 +12,11 @@ tauri-build.workspace = true
 
 [dependencies]
 tauri.workspace = true
+tauri-plugin-wdio-webdriver = { workspace = true, optional = true }
+
+[features]
+# The embedded WebDriver server for E2E tests (ADR 0002). Only `just e2e` turns it on, and only in debug builds.
+webdriver = ["dep:tauri-plugin-wdio-webdriver"]
 
 [lints]
 workspace = true

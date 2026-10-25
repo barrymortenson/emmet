@@ -1,0 +1,176 @@
+#!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Scrubs a recorded agent transcript (JSON lines) so it can be committed as a replay fixture (plan section 10).
+//
+//   scripts/scrub-transcript <in.jsonl> <out.jsonl> [--path <abs path>=<TOKEN>]... [--redact <word>]... [--portable]
+//
+// Every string value and key is rewritten, so the output stays valid JSON. Streaming deltas are scrubbed joined, since a
+// path or a token can be split across chunks: when a joined Claude content block or Codex item changes, the first
+// chunk gets the scrubbed text and the rest become empty, so the joined content is still exact.
+//   paths    --path mappings, then 0B spike workspaces (<WS>), the home directory (<HOME>), temp dirs (<TMP>)
+//   names    the username and hostname (<USER>, <HOST>), plus each --redact word (<REDACTED>)
+//   secrets  anything shaped like an API key, token, or JWT, any value under a token-like key, and email addresses
+//   ids      Anthropic message ids (msg_…) become msg_0001, msg_0002, … per file: they aren't secret, but gitleaks'
+//            generic-api-key rule flags them under "api_message_id", and replay doesn't need the real values
+// The output is byte-identical when scrubbed again. Fails if the input has a line that isn't JSON. --portable applies
+// only the rules that don't depend on this machine (no home, temp dir, username, or hostname), which is how a test on
+// any machine checks that a committed transcript is already scrubbed.
+
+import { readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { homedir, hostname, tmpdir, userInfo } from "node:os";
+import { pathToFileURL } from "node:url";
+
+// A key whose value is a credential: matched on its ending after camelCase and hyphens become snake_case, so
+// apiKey, x-api-key, OPENAI_API_KEY, sessionToken, and client_secret all count, and input_tokens or apiKeySource don't.
+const SECRET_ENDING = "(?:api_?key|secret_?key|private_?key|token|secret|password|passwd|authorization|cookie)";
+const isSecretKey = (k) =>
+  new RegExp(`(?:^|_)${SECRET_ENDING}$`).test(k.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/-/g, "_").toLowerCase());
+// The same, for a key inside JSON text: any quoted key ending that way, in any case and with any separators.
+const SECRET_KEYS = '[A-Za-z0-9_-]*?(?:api[_-]?key|secret[_-]?key|private[_-]?key|token|secret|password|passwd|authorization|cookie)';
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const real = (p) => {
+  try {
+    return realpathSync(p);
+  } catch {
+    return p;
+  }
+};
+// A path as it appears in a transcript: as given, resolved, without macOS's /private, with forward slashes, and the
+// way Claude Code encodes a directory into a folder name (every non-alphanumeric character becomes "-").
+const variants = (p) => {
+  const base = [p, real(p), p.replace(/^\/private/, ""), p.replace(/\\/g, "/")];
+  return [...new Set([...base, ...base.map((v) => v.replace(/[^A-Za-z0-9]/g, "-"))])].filter((v) => v.length > 1);
+};
+
+// `home`, `tmp`, `user`, and `host` default to this machine's; tests pass their own.
+export function rules({ paths = [], redact = [], portable = false, home = homedir(), tmp = tmpdir(), user = userInfo().username, host = hostname() } = {}) {
+  const r = [];
+  for (const [from, to] of paths) for (const v of variants(from)) r.push([new RegExp(esc(v), "g"), to]);
+  // 0B spike workspaces: <tmp>/emmet-spike-<scenario>-XXXXXX
+  r.push([/(?:[A-Za-z]:)?[\\/][^\s"'<>]*?[\\/]emmet-spike-[a-z0-9-]+-[A-Za-z0-9]{6}/g, "<WS>"]);
+  // The same, as Claude Code encodes a directory into a folder name (before the temp-directory rules split it).
+  r.push([/(?:-private)?-tmp-emmet-spike-[a-z0-9-]+-[A-Za-z0-9]{6}/g, "<WS>"]);
+  // Longest first, so a temp dir inside the home directory becomes <TMP>, not <HOME>/….
+  const dirs = portable ? [] : [...variants(tmp).map((v) => [v, "<TMP>"]), ...variants(home).map((v) => [v, "<HOME>"])];
+  for (const [v, to] of dirs.sort((a, b) => b[0].length - a[0].length)) r.push([new RegExp(esc(v), "g"), to]);
+  r.push([/(?:\/private)?\/var\/folders\/[^/\s"']+\/[^/\s"']+\/T(?=[/\s"']|$)/g, "<TMP>"]);
+  r.push([/-(?:private-)?var-folders-[A-Za-z0-9]{2}-[A-Za-z0-9-]{20,40}-T(?=-|$|[\s"'])/g, "<TMP>"]);
+  r.push([/(?:\/private)?\/tmp(?=\/)/g, "<TMP>"]);
+  // A spike workspace as Claude Code encodes it into a folder name, once its temp prefix is gone.
+  r.push([/<TMP>-emmet-spike-[a-z0-9-]+-[A-Za-z0-9]{6}/g, "<WS>"]);
+  // Secrets before names, so a username inside a token can't split it.
+  r.push([/sk-ant-[A-Za-z0-9_*-]{8,}/g, "<REDACTED>"]);
+  r.push([/sk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_*-]{16,}/g, "<REDACTED>"]);
+  r.push([/eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/g, "<REDACTED>"]);
+  r.push([/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[abpr]-[A-Za-z0-9-]{10,})\b/g, "<REDACTED>"]);
+  r.push([/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/-]{16,}=*/g, "$1 <REDACTED>"]);
+  r.push([/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g, "<EMAIL>"]);
+  // A token-like key inside JSON that is itself a string (streamed tool input, tool results, command output), plain
+  // or escaped one level, as the object-key rule below does for parsed JSON.
+  r.push([new RegExp(`("${SECRET_KEYS}"\\s*:\\s*)(?:"(?:[^"\\\\]|\\\\.)*"|-?\\d[\\d.eE+-]*)`, "gi"), '$1"<REDACTED>"']);
+  r.push([new RegExp(`(\\\\"${SECRET_KEYS}\\\\"\\s*:\\s*)\\\\"(?:[^"\\\\]|\\\\[^"])*?\\\\"`, "gi"), '$1\\"<REDACTED>\\"']);
+  for (const w of redact) r.push([new RegExp(`\\b${esc(w)}\\b`, "gi"), "<REDACTED>"]);
+  if (portable) return r;
+  // A dotted hostname always; a bare name or first label only when it's long enough not to be a common word ("Mac",
+  // whether the machine is "Mac" or "Mac.localdomain").
+  for (const h of new Set([host, host.split(".")[0]])) if (h.includes(".") || h.length >= 6) r.push([new RegExp(`\\b${esc(h)}\\b`, "gi"), "<HOST>"]);
+  if (user.length > 2) r.push([new RegExp(`\\b${esc(user)}\\b`, "gi"), "<USER>"]);
+  return r;
+}
+
+
+export function scrubValue(v, r) {
+  if (typeof v === "string") {
+    let s = v;
+    for (const [re, to] of r) s = s.replace(re, to);
+    return s;
+  }
+  if (Array.isArray(v)) return v.map((x) => scrubValue(x, r));
+  if (v && typeof v === "object") {
+    const o = {};
+    for (const [k, x] of Object.entries(v))
+      o[scrubValue(k, r)] = isSecretKey(k) && x !== "" && x !== null && typeof x !== "boolean" ? "<REDACTED>" : scrubValue(x, r);
+    return o;
+  }
+  return v;
+}
+
+/** The streaming chunks in a transcript, grouped per Claude content block or Codex item, as [holder, key] pairs. */
+function deltaGroups(lines) {
+  const groups = new Map();
+  let message = 0;
+  for (const line of lines) {
+    const m = line?.msg;
+    if (!m || typeof m !== "object") continue;
+    const ev = m.type === "stream_event" ? m.event : null;
+    if (ev?.type === "message_start") message++;
+    if (ev?.type === "content_block_delta" && ev.delta) {
+      const key = ["partial_json", "text", "thinking"].find((k) => typeof ev.delta[k] === "string");
+      if (key) {
+        const g = `claude|${m.session_id}|${message}|${ev.index}|${key}`;
+        if (!groups.has(g)) groups.set(g, []);
+        groups.get(g).push([ev.delta, key]);
+      }
+    }
+    if (typeof m.method === "string" && /delta$/i.test(m.method) && typeof m.params?.delta === "string") {
+      const g = `codex|${m.method}|${m.params.itemId}|${m.params.summaryIndex ?? m.params.contentIndex ?? ""}`;
+      if (!groups.has(g)) groups.set(g, []);
+      groups.get(g).push([m.params, "delta"]);
+    }
+  }
+  return [...groups.values()];
+}
+
+export function scrubText(text, opts) {
+  const ids = new Map();
+  const r = [...rules(opts), [/\bmsg_[A-Za-z0-9]{20,}\b/g, (id) => ids.get(id) ?? (ids.set(id, `msg_${String(ids.size + 1).padStart(4, "0")}`), ids.get(id))]];
+  const lines = text
+    .split("\n")
+    .filter((l) => l.trim())
+    .map((l, i) => {
+      try {
+        return JSON.parse(l);
+      } catch {
+        throw new Error(`line ${i + 1} is not JSON`);
+      }
+    });
+  for (const pieces of deltaGroups(lines)) {
+    const joined = pieces.map(([o, k]) => o[k]).join("");
+    const clean = scrubValue(joined, r);
+    if (clean === joined) continue;
+    pieces.forEach(([o, k], i) => (o[k] = i === 0 ? clean : ""));
+  }
+  return lines.map((obj) => JSON.stringify(scrubValue(obj, r))).join("\n") + "\n";
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(real(process.argv[1])).href) {
+  const pos = [];
+  const paths = [];
+  const redact = [];
+  let portable = false;
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === "--path") {
+      const [from, to] = (argv[++i] ?? "").split(/=(?=[^=]*$)/);
+      if (!from || !to) {
+        console.error("scrub-transcript: --path takes <abs path>=<TOKEN>");
+        process.exit(2);
+      }
+      paths.push([from, to]);
+    } else if (argv[i] === "--redact") redact.push(argv[++i]);
+    else if (argv[i] === "--portable") portable = true;
+    else pos.push(argv[i]);
+  }
+  if (pos.length !== 2) {
+    console.error("usage: scrub-transcript <in.jsonl> <out.jsonl> [--path <abs>=<TOKEN>]... [--redact <word>]... [--portable]");
+    process.exit(2);
+  }
+  try {
+    const out = scrubText(readFileSync(pos[0], "utf8"), { paths, redact, portable });
+    writeFileSync(pos[1], out);
+    console.log(`scrub-transcript: ${pos[1]} (${out.split("\n").length - 1} lines, ${Buffer.byteLength(out)} bytes)`);
+  } catch (e) {
+    console.error(`scrub-transcript: ${pos[0]}: ${e.message}`);
+    process.exit(1);
+  }
+}

@@ -1,0 +1,12 @@
+[package]
+name = "emmet-spike-binaries"
+description = "ADR 0006 spike: a console-subsystem and a GUI-subsystem exe serving stdio on Windows"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true

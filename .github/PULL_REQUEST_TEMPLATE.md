@@ -1,4 +1,5 @@
-<!-- Session PRs: one session, one PR (plan section 19). Other PRs: fill in what applies. -->
+<!-- Session PRs: one session, one PR (plan section 19). Other PRs: fill in what applies.
+Title: `<id>: <outcome>` for a session, `<area>: <change>` otherwise; 50 characters or fewer, no versions or paths. -->
 
 ## What and why
 
