@@ -39,9 +39,9 @@ deps:
     pnpm install --frozen-lockfile
     uv sync --project {{ dsl }} --frozen
 
-# Tauri dev with Vite HMR, under the dev bundle id so it never touches real app data.
-dev:
-    cd apps/desktop && pnpm tauri dev --config src-tauri/tauri.dev.conf.json
+# Tauri dev with Vite HMR, under the dev bundle id so it never touches real app data. `just dev <project>` opens it.
+dev *project:
+    cd apps/desktop && pnpm tauri dev --config src-tauri/tauri.dev.conf.json -- --no-default-features -- {{ project }}
 
 # Format, lint, and typecheck across Rust, TS, and Python, plus the SPDX headers.
 check:
@@ -106,11 +106,18 @@ test *args: build
       esac
     done
 
-# App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server, driven by WebdriverIO.
-# `just e2e hello` runs one spec file from tests/e2e/specs/.
-e2e *spec:
-    cd apps/desktop && pnpm tauri build --debug --no-bundle --ci --features webdriver
+# App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server and the E2E hooks, driven by
+# WebdriverIO. `just e2e viewer` runs one spec file from tests/e2e/specs/. The app is built inside the workspace build
+# (it embeds the frontend by default), so its dependencies come from `just test`'s compile; only the webdriver
+# feature's crates and the app itself build again.
+e2e *spec: e2e-build
     pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs {{ if spec == "" { "" } else { "--spec specs/" + spec + ".e2e.mjs" } }}
+
+# The E2E build: the frontend with EMMET_E2E=1, then the workspace with emmet-desktop's `webdriver` feature (never in
+# a release build; main.rs refuses it without debug assertions).
+e2e-build:
+    cd apps/desktop && EMMET_E2E=1 pnpm build
+    cargo build --workspace --locked --features emmet-desktop/webdriver
 
 # Exactly what CI's mac job runs. It must pass before a session's final push.
 ci: check
@@ -130,9 +137,10 @@ eval *args:
 screenshots:
     @echo "just screenshots: not yet; session 6B adds it" && exit 1
 
-# Not yet: the viewer bench comes in 1B, the validator bench in 3A.
-bench:
-    @echo "just bench: not yet; sessions 1B and 3A add it" && exit 1
+# The viewer bench (plan section 13) in the real app: first load, slider → viewer, and orbit frame time for 93,
+# 500, and 2,000 parts. Prints the table and writes tests/e2e/out/bench-<os>.md. The validator bench arrives in 3A.
+bench: e2e-build
+    EMMET_BENCH=1 pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs
 
 # Not yet: the signed demo build (release-dry --sign) comes in 1D.
 release-dry *args:

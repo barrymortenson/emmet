@@ -5,7 +5,7 @@ from real LDraw parts. The agent writes a parametric Python model, and you watch
 sliders, buildability checks, a parts list, and build steps. It runs locally: no hosting, no accounts, and you bring
 your own agent.
 
-**Status: the engine works from a terminal; the app doesn't use it yet.** The build plan is [`docs/plan.html`](docs/plan.html) (open it
+**Status: the engine works from a terminal, and the app opens a project and shows it live.** The build plan is [`docs/plan.html`](docs/plan.html) (open it
 in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
 
 ## What works today
@@ -21,11 +21,18 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
   with the same operations for an agent. `--json` prints the JSON envelope from plan section 09. Python 3.13 and the
   DSL install themselves through uv on first use. The DSL is in [`docs/spec/dsl.md`](docs/spec/dsl.md), the project
   folder in [`docs/spec/project-format.md`](docs/spec/project-format.md).
-- `just dev`: opens the Emmet window, which shows the name and version.
-- `emmet-agent`, `emmet-bus`, and the viewer package (`createViewer`) are still one-function stubs. Each builds and has
-  an integration test.
+- The app (session 1B): `just dev [project]` opens a project folder and shows its model in the 3D viewer
+  ([`packages/viewer`](packages/viewer/README.md)). Edit `model.py` in any editor, or drag a slider in the params
+  drawer, and the viewer updates in place without moving the camera; a broken model shows the error and its line
+  while the last good model stays. Plain UI for now; Phase 2 designs it.
+- `emmet render [--view iso] [--size 1024] [--highlight ids] [--out file.png]`: a PNG through the open app over
+  [emmet-bus](docs/spec/bus.md), or the app's hidden render mode when it isn't open. `emmet mcp` has `render` (image
+  content) and `highlight` too.
+- `just bench`: the viewer's load, update, and orbit timings in the real app (ADR 0008).
+- `emmet-agent` is still a one-function stub; it builds and has an integration test.
 - CI on macOS and Windows, the license, SPDX, DCO, secret, and supply-chain checks, and the plan tracker check.
-- `just e2e`: an end-to-end test drives the real app through WebdriverIO (`tests/e2e/`).
+- `just e2e`: end-to-end specs drive the real app through WebdriverIO (`tests/e2e/`): the live viewer, rendering with
+  the app open, a killed run, a leak test, and visual baselines.
 - Research results in `docs/adr/` (agent protocols, E2E, licenses, data mapping, headless render, binaries), test
   fixtures (`tests/fixtures/ldraw-mini/`, `tests/fixtures/rebrickable-mini/`, `tests/replay/`), and the model ladder
   the evals measure against (`docs/spec/ladder.md`). Spike code lives in `tests/spikes/`.

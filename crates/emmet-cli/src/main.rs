@@ -3,6 +3,7 @@
 //! prints the result, as the JSON envelope with `--json` or as text.
 
 mod mcp;
+mod render;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -53,6 +54,24 @@ enum Command {
         /// Parameter values for this run only, on top of params.json.
         #[arg(long = "params", value_name = "K=V", num_args = 1..)]
         params: Vec<String>,
+        /// Stop the run (and its Python) when stdin closes. The app's run queue cancels a run it no longer needs this
+        /// way.
+        #[arg(long, hide = true)]
+        cancel_on_eof: bool,
+    },
+    /// Render the model to a PNG through the running app, or the app's hidden render mode when it isn't open. Runs
+    /// the model first if build/ is out of date.
+    Render {
+        #[arg(long, default_value = "iso", value_parser = clap::builder::PossibleValuesParser::new(render::VIEWS))]
+        view: String,
+        #[arg(long, default_value_t = 1024)]
+        size: u32,
+        /// Emmet ids to highlight, comma-separated.
+        #[arg(long, value_delimiter = ',')]
+        highlight: Vec<String>,
+        /// Where to write the PNG (default: build/renders/<view>.png).
+        #[arg(long, value_name = "FILE")]
+        out: Option<PathBuf>,
     },
     /// Show the model's parameters and values, or set values in params.json.
     Params {
@@ -199,14 +218,22 @@ fn main() -> ExitCode {
                 )
             })
         }
-        Command::Run { params } => {
+        Command::Run { params, cancel_on_eof } => {
             let mut meta = emmet_core::run::RunMeta::default();
             let mut root = None;
+            let cancel = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+            if *cancel_on_eof {
+                let flag = cancel.clone();
+                std::thread::spawn(move || {
+                    let _ = std::io::copy(&mut std::io::stdin(), &mut std::io::sink());
+                    flag.store(true, std::sync::atomic::Ordering::SeqCst);
+                });
+            }
             let out = data.and_then(|d| {
                 let overrides = key_values(params)?;
                 let project = Project::find(cli.project.as_deref())?;
                 root = Some(project.root.display().to_string());
-                let (result, m) = ops::run_model(&d, &project, &overrides);
+                let (result, m) = ops::run_model_until(&d, &project, &overrides, &cancel);
                 meta = m;
                 result
             });
@@ -222,6 +249,42 @@ fn main() -> ExitCode {
                     r.parts,
                     r.steps,
                     r.ms as f64 / 1000.0
+                )
+            })
+        }
+        Command::Render {
+            view,
+            size,
+            highlight,
+            out,
+        } => {
+            let mut root = None;
+            let result = data.and_then(|d| {
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                let png = render::render(&d, &project, view, *size, highlight)?;
+                let path = match out {
+                    Some(p) => std::path::absolute(p).unwrap_or_else(|_| p.clone()),
+                    None => render::default_out(&project, view)?,
+                };
+                render::write_png(&path, &png)?;
+                let mut info = png.info;
+                info.path = Some(path.display().to_string());
+                Ok(info)
+            });
+            let mut out = Output::from(result);
+            out.project = root;
+            finish(&cli, started, out, |r| {
+                format!(
+                    "Rendered the {} view at {} px ({}) → {}",
+                    r.view,
+                    r.size,
+                    if r.via == "app" {
+                        "in the open app"
+                    } else {
+                        "in render mode"
+                    },
+                    r.path.as_deref().unwrap_or("")
                 )
             })
         }

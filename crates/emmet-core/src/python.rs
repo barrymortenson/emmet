@@ -257,7 +257,11 @@ fn build_wheel() -> Vec<u8> {
     let mut record = String::new();
     for (name, bytes) in &files {
         let digest = sha2::Digest::finalize(<sha2::Sha256 as sha2::Digest>::new_with_prefix(bytes));
-        record.push_str(&format!("{name},sha256={},{}\n", base64_url(&digest), bytes.len()));
+        record.push_str(&format!(
+            "{name},sha256={},{}\n",
+            crate::base64::encode_url(&digest),
+            bytes.len()
+        ));
     }
     record.push_str(&format!("{dist}/RECORD,,\n"));
     files.push((format!("{dist}/RECORD"), record.into_bytes()));
@@ -273,22 +277,6 @@ fn build_wheel() -> Vec<u8> {
     }
     zip.finish().expect("wheel finish");
     buf.into_inner()
-}
-
-/// URL-safe base64 without padding, as wheel RECORD files use.
-fn base64_url(bytes: &[u8]) -> String {
-    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-    let mut out = String::new();
-    for chunk in bytes.chunks(3) {
-        let n = chunk
-            .iter()
-            .enumerate()
-            .fold(0u32, |acc, (i, b)| acc | (u32::from(*b) << (16 - 8 * i)));
-        for i in 0..=chunk.len() {
-            out.push(ALPHABET[((n >> (18 - 6 * i)) & 63) as usize] as char);
-        }
-    }
-    out
 }
 
 /// A lock file held while bootstrapping, so two emmets don't build the venv at once. A lock older than 10 minutes is

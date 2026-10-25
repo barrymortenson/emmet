@@ -116,3 +116,28 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   (ADR 0005) against the real 2026-09 library, in place of an LDView or LeoCAD screenshot.
 - **1A's Windows CI run.** ci.yml runs only on pull requests, so Barry approved opening 1A's PR as a draft for CI and
   marking it ready (with 1A set to review) once every Done when item holds.
+
+## 2026-10-25, session 1B
+
+- **@types/three for the viewer.** three.js ships no TypeScript types, so Barry approved `@types/three` 0.186.0 (MIT,
+  dev-only) over hand-written declarations or a plain-JS viewer. ADR 0000 lists it.
+- **The leak test on macOS.** WKWebView has no JS heap API (`performance.memory` is Chromium-only), so Barry chose:
+  Windows reads the JS heap (precise, after a forced GC); macOS reads the app's WebContent process footprint with the
+  system's `footprint` tool, plus the viewer's resource counts. Both hold to section 13's ≤ 20 % growth.
+- **0BSD in the license allowlist.** interprocess (emmet-bus, plan section 06) depends on doctest-file and recvmsg,
+  licensed only 0BSD. Barry allowed 0BSD (OSI-approved, public-domain-like, AGPL-compatible) in deny.toml over
+  per-crate exceptions or writing the socket and pipe by hand. ADR 0003 lists it.
+- **The paste advisory.** specta and tauri-specta (section 06) depend on paste, which RUSTSEC-2024-0436 marks
+  unmaintained (no vulnerability, no safe upgrade). Barry chose to ignore that one advisory in deny.toml, with a
+  reason, over dropping tauri-specta or relaxing unmaintained checks for every transitive crate.
+- **1B's Windows CI run.** As for 1A, Barry approved opening 1B's PR as a draft so CI runs on Windows, and marking it
+  ready (with 1B set to review) once every Done when item holds.
+- **The macOS leak baseline.** The WebContent footprint at first load varies 125–400 MB between runs, and the first
+  pass through the widths adds about 25 MB of one-time allocations (part geometry, shaders, JIT), which put a low
+  baseline at 20.1 %. Barry chose to take the macOS baseline after one warm-up cycle through every width (11 changes),
+  then hold 100 more changes to ≤ 20 % with the steady resource counts; Windows keeps the first-load JS heap baseline.
+- **The Windows CI budget.** With 1B's E2E specs the Windows job takes about 19 minutes (test 5.6, spike reports 2.1,
+  E2E build 4.6, specs 4.2, bench about 1), over section 16's 15. Barry chose to run Windows E2E and the bench only
+  on main and on PRs that change apps/, crates/, packages/, tests/e2e/, the justfile, or ci.yml (section 16 allows
+  the paths filter), over moving the leak test and bench to a nightly run or raising the budget. Such PRs take
+  about 19 minutes on Windows.

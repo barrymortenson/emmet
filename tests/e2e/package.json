@@ -13,6 +13,7 @@
     "@wdio/local-runner": "catalog:",
     "@wdio/mocha-framework": "catalog:",
     "@wdio/spec-reporter": "catalog:",
-    "@wdio/tauri-service": "catalog:"
+    "@wdio/tauri-service": "catalog:",
+    "pixelmatch": "catalog:"
   }
 }

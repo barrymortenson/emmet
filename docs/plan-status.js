@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-24",
+  updated: "2026-10-25",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -39,7 +39,16 @@ window.EMMET_STATUS = {
       ],
       note: "LDView and LeoCAD fail Gatekeeper, so Emmet's three.js render stood in for the screenshot (Barry); a fresh library install fails its checksum once LDraw publishes 2026-10 until Emmet pins it (ADR 0007, 6A)"
     },
-    "1B": { status: "todo" },
+    "1B": {
+      status: "done", pr: 11, branch: "bmortenson/s1b-app-shell-viewer", started: "2026-10-25",
+      evidence: [
+        "just ci on this Mac: ci: ok",
+        "CI ci check green #11 (run 40224311960: mac on emmet-mac, windows, plan); E2E 6/6 spec files on both OSes",
+        "tests/e2e/specs/{viewer,leak,render,runs,visual}.e2e.mjs; apps/desktop/src-tauri/tests/{paths,runs,watcher,bindings}.rs; tests/it/tests/{render,bus}.rs",
+        "bench (ADR 0008): cottage first load 691 ms, slider → viewer 501 ms, orbit 13.9 ms on macOS"
+      ],
+      note: "Windows first load 7-8 s on CI's software WebGL misses section 13; check on real hardware (H-04, 1C)"
+    },
     "1C": { status: "todo" },
     "1D": { status: "todo" },
     "1E": { status: "todo" },

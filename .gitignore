@@ -9,3 +9,4 @@ __pycache__/
 apps/desktop/src-tauri/gen/
 tests/spikes/headless-render/gen/
 /tmp/
+tests/e2e/out/

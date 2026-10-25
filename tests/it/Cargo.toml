@@ -12,6 +12,7 @@ publish.workspace = true
 emmet-core.workspace = true
 emmet-agent.workspace = true
 emmet-bus.workspace = true
+interprocess.workspace = true
 glam.workspace = true
 insta.workspace = true
 rmcp.workspace = true

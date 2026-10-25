@@ -110,6 +110,12 @@ datakurre's (the other search hits are for the unrelated Bricks Builder WordPres
 **Decision:** 0B copies no outside code. Every later session follows the default stance: read for ideas, and ask Barry
 before copying anything, with the license and the attribution it needs.
 
+## Dependency licenses (1B)
+
+`deny.toml`'s allowlist gained **0BSD** on 2026-10-25 (Barry, docs/decisions.md): interprocess, which emmet-bus uses,
+depends on doctest-file and recvmsg, licensed only 0BSD. 0BSD is OSI-approved and asks for nothing, not even
+attribution, so it fits under AGPL-3.0-or-later.
+
 ## Rerun
 
 ```sh

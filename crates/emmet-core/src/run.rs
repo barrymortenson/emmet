@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use schemars::JsonSchema;
@@ -98,8 +99,19 @@ pub fn run_model(
     project: &Project,
     overrides: &BTreeMap<String, Value>,
 ) -> (Result<RunSummary>, RunMeta) {
+    run_model_until(data, project, overrides, &AtomicBool::new(false))
+}
+
+/// [`run_model`], stopped as soon as `cancel` is set: Python is killed and the run fails with "canceled". The app's
+/// run queue cancels a run it no longer needs this way (through `emmet run --cancel-on-eof`).
+pub fn run_model_until(
+    data: &DataDir,
+    project: &Project,
+    overrides: &BTreeMap<String, Value>,
+    cancel: &AtomicBool,
+) -> (Result<RunSummary>, RunMeta) {
     let mut meta = RunMeta::default();
-    let result = run_inner(data, project, overrides, &mut meta);
+    let result = run_inner(data, project, overrides, &mut meta, cancel);
     (result, meta)
 }
 
@@ -108,6 +120,7 @@ fn run_inner(
     project: &Project,
     overrides: &BTreeMap<String, Value>,
     meta: &mut RunMeta,
+    cancel: &AtomicBool,
 ) -> Result<RunSummary> {
     let started = Instant::now();
     project.require_trusted(data)?;
@@ -148,7 +161,7 @@ fn run_inner(
             params_source: source,
             manifest: manifest.clone(),
         };
-        let reply = call(&python, project, &req)?;
+        let reply = call(&python, project, &req, cancel)?;
         if reply.ok {
             let data: RunData = serde_json::from_value(reply.data.unwrap_or_default())
                 .map_err(|e| Error::internal(format!("emmet_dsl's run reply doesn't match what emmet expects: {e}")))?;
@@ -238,7 +251,7 @@ pub fn schema(data: &DataDir, project: &Project, overrides: &BTreeMap<String, Va
         params_source: source,
         manifest: Value::Null,
     };
-    let reply = call(&python, project, &req)?;
+    let reply = call(&python, project, &req, &AtomicBool::new(false))?;
     match (reply.ok, reply.data, reply.error) {
         (true, Some(data), _) => Ok(data),
         (_, _, Some(e)) => Err(with_excerpt(project, e)),
@@ -322,7 +335,7 @@ fn with_excerpt(project: &Project, mut e: Error) -> Error {
 }
 
 /// Runs the DSL once: request on stdin, reply on stdout, stderr to build/run.log.
-fn call(python: &Path, project: &Project, req: &Request) -> Result<Reply> {
+fn call(python: &Path, project: &Project, req: &Request, cancel: &AtomicBool) -> Result<Reply> {
     let timeout = project.config.run.timeout.max(0.1);
     let request = json!({
         "mode": req.mode,
@@ -371,6 +384,15 @@ fn call(python: &Path, project: &Project, req: &Request) -> Result<Reply> {
             .map_err(|e| Error::internal(format!("waiting for Python: {e}")))?
         {
             break Some(status);
+        }
+        if cancel.load(Ordering::SeqCst) {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(Error::new(
+                ErrorCode::Internal,
+                "The run was canceled.",
+                "A newer run replaced it; nothing to fix.",
+            ));
         }
         if started.elapsed() > deadline {
             let _ = child.kill();

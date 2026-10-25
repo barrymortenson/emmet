@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-bus-reply"
+description = "Enables the bus_reply command without any pre-configured scope."
+commands.allow = ["bus_reply"]
+
+[[permission]]
+identifier = "deny-bus-reply"
+description = "Denies the bus_reply command without any pre-configured scope."
+commands.deny = ["bus_reply"]

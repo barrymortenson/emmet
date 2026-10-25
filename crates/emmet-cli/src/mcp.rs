@@ -64,6 +64,34 @@ pub struct ColorsArgs {
     pub part: Option<String>,
 }
 
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct RenderArgs {
+    /// iso (default), front, back, left, right, or top.
+    #[serde(default)]
+    pub view: Option<String>,
+    /// Emmet ids to highlight; everything else is dimmed.
+    #[serde(default)]
+    pub highlight: Option<Vec<String>>,
+    /// Width and height in pixels (default 768).
+    #[serde(default)]
+    pub size: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct HighlightArgs {
+    /// Emmet ids to highlight in the open app's viewer; an empty list clears the highlight.
+    pub ids: Vec<String>,
+}
+
+/// Whether the open app showed the highlight.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct Highlighted {
+    pub delivered: bool,
+    /// Why not, when it wasn't delivered.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
 #[derive(Clone)]
 pub struct EmmetMcp {
     data: DataDir,
@@ -257,6 +285,77 @@ impl EmmetMcp {
         })
     }
 
+    /// Render the model to a PNG (image content) through the viewer: the open Emmet app, or its hidden render mode.
+    /// Runs the model first if build/ is out of date.
+    #[tool(output_schema = schema_for_output::<Envelope<crate::render::Rendered>>())]
+    async fn render(&self, Parameters(args): Parameters<RenderArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let (data, me) = (self.data.clone(), self.clone());
+        let view = args.view.unwrap_or_else(|| "iso".into());
+        let (out, root) = blocking(
+            move || {
+                with_project(&me, |p| {
+                    crate::render::render(
+                        &data,
+                        p,
+                        &view,
+                        args.size.unwrap_or(768),
+                        &args.highlight.unwrap_or_default(),
+                    )
+                })
+            },
+            |e| (Err(e), None),
+        )
+        .await;
+        let image = out.as_ref().ok().map(|png| emmet_core::base64::encode(&png.bytes));
+        let mut call = result(started, out.map(|png| png.info), RunMeta::default(), root, |r| {
+            let lit = if r.highlighted.is_empty() {
+                String::new()
+            } else {
+                format!(", highlighting {}", r.highlighted.join(", "))
+            };
+            format!("The {} view at {} px{lit}.", r.view, r.size)
+        });
+        if let Some(png) = image {
+            call.content.insert(0, ContentBlock::image(png, "image/png"));
+        }
+        call
+    }
+
+    /// Highlight parts by Emmet id in the open Emmet app's viewer. Says so when the app isn't open.
+    #[tool(output_schema = schema_for_output::<Envelope<Highlighted>>())]
+    async fn highlight(&self, Parameters(args): Parameters<HighlightArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let (data, me) = (self.data.clone(), self.clone());
+        let (out, root) = blocking(
+            move || {
+                with_project(&me, |p| {
+                    let reply = emmet_bus::send(
+                        &data,
+                        emmet_bus::Message::Highlight {
+                            project: p.root.display().to_string(),
+                            ids: args.ids,
+                        },
+                        std::time::Duration::from_secs(5),
+                    );
+                    Ok(Highlighted {
+                        delivered: reply.delivered,
+                        reason: reply.reason,
+                    })
+                })
+            },
+            |e| (Err(e), None),
+        )
+        .await;
+        result(started, out, RunMeta::default(), root, |h| {
+            if h.delivered {
+                "Highlighted in the viewer.".into()
+            } else {
+                format!("Emmet app not open ({}).", h.reason.as_deref().unwrap_or("no answer"))
+            }
+        })
+    }
+
     /// LDraw colors: code, name, RGB, finish, and other accepted spellings.
     #[tool(output_schema = schema_for_output::<Envelope<ColorList>>())]
     async fn list_colors(&self, Parameters(args): Parameters<ColorsArgs>) -> CallToolResult {
@@ -297,8 +396,8 @@ impl ServerHandler for EmmetMcp {
         info.server_info = Implementation::new("emmet", emmet_core::version());
         info.instructions = Some(
             "Emmet builds brick models from real LDraw parts. Edit model.py, call run_model, and fix what it reports. \
-             Find parts with search_parts and check one with part_info. Units: x right and y back in studs, z up in \
-             plates."
+             Find parts with search_parts and check one with part_info. Look at the result with render. Units: x right \
+             and y back in studs, z up in plates."
                 .into(),
         );
         info
