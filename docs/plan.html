@@ -661,7 +661,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td>Types across IPC</td><td>tauri-specta</td><td>Generates TS bindings for commands and events, so the UI and host can't drift. CI fails if the bindings are stale.</td></tr>
 <tr><td>Frontend</td><td>React 19, TypeScript strict, Vite, Radix UI primitives, lucide-react, Zustand for UI state</td><td>D-03, D-29. No router (one window, panes), no CSS framework.</td></tr>
 <tr><td>3D</td><td>three.js (current release), <code>LDrawLoader</code>, <code>LineSegments2</code> for edges</td><td>WebGL2 only. The viewer is plain TS with no React inside it.</td></tr>
-<tr><td>Rust core</td><td>stable Rust (pinned), serde, thiserror, rusqlite (bundled + FTS5), parry3d (narrow phase), glam, zip, sha2, notify</td><td>Pure where possible. I/O lives in thin modules.</td></tr>
+<tr><td>Rust core</td><td>stable Rust (pinned), serde, thiserror, rusqlite (bundled + FTS5), parry3d (narrow phase), glam, zip, sha2, notify, toml, ureq (the library download; ADR 0007)</td><td>Pure where possible. I/O lives in thin modules.</td></tr>
 <tr><td>MCP</td><td><code>rmcp</code> (official Rust MCP SDK), stdio transport, schemars for tool schemas</td><td>D-07. Schemas are exported to <code>docs/spec/mcp/</code> and checked in CI.</td></tr>
 <tr><td>CLI</td><td>clap (derive)</td><td>Every command has a <code>--json</code> envelope.</td></tr>
 <tr><td>Local socket</td><td>interprocess (Unix socket / named pipe)</td><td>D-09.</td></tr>
@@ -688,6 +688,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 │  ├─ model.mpd          LDraw multi-part document with !EMMET id/source meta lines
 │  ├─ manifest.json      inputs hash, emmet + library + parts data versions, part count, timings, generation counter
 │  ├─ placements.json    flat list for the viewer: id, part, color, matrix, step, submodel path
+│  ├─ part-geometry.json · colors.json   what emmet run hands the DSL: the used parts' body boxes, the color table
 │  ├─ validation.json    findings (section 11)
 │  ├─ bom.json · steps.json
 │  ├─ run.log            stdout/stderr of the last run, capped
@@ -722,8 +723,8 @@ preferred = "claude"           <span class="c"># or "codex"; the UI remembers th
 
 <h3>Frame and units</h3>
 <ul>
-<li><b>Z is up.</b> <code>x</code> runs right and <code>y</code> runs back, both in <b>studs</b> (1 stud = 20 LDU). <code>z</code> counts <b>plates</b> (1 plate = 8 LDU, 1 brick = 3 plates = 24 LDU). The DSL converts to LDraw's −Y-up LDU frame on output, and a fixture test pins the signs.</li>
-<li><b>Footprint placement.</b> <code>at=(x, y, z)</code> is the minimum corner of the part's body footprint, studs excluded, after rotation. A 2×4 brick at <code>(0, 0, 0)</code> with <code>rot=0</code> covers x 0–2, y 0–4, z 0–3. Offsets come from the part's body box in the index.</li>
+<li><b>Z is up.</b> <code>x</code> runs right and <code>y</code> runs back, both in <b>studs</b> (1 stud = 20 LDU). <code>z</code> counts <b>plates</b> (1 plate = 8 LDU, 1 brick = 3 plates = 24 LDU). The DSL converts to LDraw's −Y-up LDU frame on output: the DSL point (x, y, z) is the LDraw point (20·y, −8·z, −20·x), a proper rotation, so <code>rot</code> stays a rotation. A fixture test pins the signs against a hand-checked <code>.ldr</code>.</li>
+<li><b>Footprint placement.</b> <code>at=(x, y, z)</code> is the minimum corner of the part's body footprint, studs excluded, after rotation. A 2×4 brick at <code>(0, 0, 0)</code> with <code>rot=0</code> covers x 0–2, y 0–4, z 0–3. Offsets come from the part's body box in the index. A baseplate is half a plate thick, so a model on one starts at z = 0.5.</li>
 <li><b>Rotation.</b> <code>rot</code> is a quarter-turn count about Z (0–3) by default. <code>rot=Rot(x=90, z=45)</code> handles anything else, and <code>add_raw(part, color, matrix_ldu)</code> is the escape hatch.</li>
 <li><b>Parts</b> are referenced by LDraw id (<code>"3001"</code>) or by a helper (<code>Brick(2, 4)</code>, <code>Plate(1, 6)</code>, <code>Tile(2, 2)</code>, <code>Slope(45, 2, 1)</code>). Helpers resolve through the index and fail loudly with suggestions.</li>
 <li><b>Colors</b> are referenced by name (LDraw, Rebrickable, or BrickLink spelling; "Light Bluish Gray" and "LBG" both work) or by LDraw code.</li>
@@ -754,13 +755,13 @@ def cottage(
         m.add("3811", "Green", at=(0, 0, 0), id="base")
     for row in range(wall_rows):
         with m.step(f"Walls, row {row + 1}"):
-            m.wall(x=2, y=2, z=1 + 3 * row, length=width, depth=depth,
+            m.wall(x=2, y=2, z=0.5 + 3 * row, length=width, depth=depth,
                    color=wall_color, bond="running", openings=door_and_windows(width, row))
     with m.step("Roof"):
-        m.use("gable_roof", x=2, y=2, z=1 + 3 * wall_rows, width=width, depth=depth, color=roof_color)
+        m.use("gable_roof", x=2, y=2, z=0.5 + 3 * wall_rows, width=width, depth=depth, color=roof_color)
     if chimney:
         with m.step("Chimney"):
-            m.stack(Brick(1, 2), "Reddish Brown", at=(width - 1, depth // 2, 1 + 3 * wall_rows), count=4)
+            m.stack(Brick(1, 2), "Reddish Brown", at=(width - 1, depth // 2, 0.5 + 3 * wall_rows), count=4)
     return m</code></pre>
 
 <h3>API surface (v1, finished in 3B)</h3>
@@ -790,7 +791,7 @@ def cottage(
 <!-- ============================================================ 09 -->
 <section id="s09">
 <h2><span class="num">09</span>CLI and MCP contracts</h2>
-<p>The CLI and the MCP server call the same functions in <code>emmet-core</code>. Every result uses one envelope. MCP tools return the same <code>data</code> as structured content, plus a short text summary sized for an agent's context.</p>
+<p>The CLI and the MCP server call the same functions in <code>emmet-core</code>. Every result uses one envelope. MCP tools return the same envelope as structured content (marked as an error result when <code>ok</code> is false), plus a short text summary sized for an agent's context.</p>
 
 <h3>Envelope</h3>
 <pre><code><span class="c">// success</span>
@@ -806,7 +807,7 @@ def cottage(
              "hint": "Did you mean 'width'? Fix model.py line 18 and run again.",
              "details": { "file": "model.py", "line": 18, "excerpt": "    m.wall(length=widht, …)" } },
   "meta": { … } }</code></pre>
-<p class="small">Validation findings are <b>not</b> errors: <code>validate</code> returns <code>ok: true</code> with findings. <code>emmet check --strict</code> exits 1 when there are error-severity findings. Exit codes: 0 ok · 1 findings under <code>--strict</code> · 2 usage error · 3 runtime error · 4 environment (library, Python, or agent missing).</p>
+<p class="small">Validation findings are <b>not</b> errors: <code>validate</code> returns <code>ok: true</code> with findings. <code>emmet check --strict</code> exits 1 when there are error-severity findings. Exit codes: 0 ok · 1 findings under <code>--strict</code> · 2 usage error (<code>PROJECT_NOT_FOUND</code> included) · 3 runtime error · 4 environment (library, Python, or agent missing).</p>
 
 <h3>Error codes</h3>
 <div class="table-wrap"><table>
@@ -848,7 +849,7 @@ def cottage(
 <h3>MCP tools (server name <code>emmet</code>)</h3>
 <div class="table-wrap"><table>
 <tr><th>Tool</th><th>Input</th><th>Output (structured)</th><th>Text summary</th></tr>
-<tr><td><code>search_parts</code></td><td><code>query</code>, <code>category?</code>, <code>limit?=10</code></td><td><code>[{id, name, category, size:{x,y,z}, colors_count, flags}]</code></td><td>One line per part</td></tr>
+<tr><td><code>search_parts</code></td><td><code>query</code>, <code>category?</code>, <code>limit?=10</code></td><td><code>{query, parts: [{id, name, category, size:{x,y,z}, colors_count, flags}]}</code> (<code>colors_count</code> is null until the parts data pack, 3B)</td><td>One line per part</td></tr>
 <tr><td><code>part_info</code></td><td><code>id</code></td><td>Name, size in studs and plates, connectors summary, produced colors, alternates, flags</td><td>Short spec plus the top colors</td></tr>
 <tr><td><code>run_model</code></td><td><code>params?</code></td><td><code>{parts, steps, submodels, bbox, ms, generation}</code> or an error envelope</td><td>"Built 412 parts in 18 steps (0.31 s)", or the error with file:line</td></tr>
 <tr><td><code>validate</code></td><td><code>rules?</code></td><td><code>{counts_by_rule, findings[≤50], total, clean}</code></td><td>Counts plus the top 10 findings with ids, positions, and source lines; "full list in build/validation.json"</td></tr>
@@ -1339,7 +1340,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <h2><span class="num">15</span>Security and privacy</h2>
 <div class="table-wrap"><table>
 <tr><th>Threat</th><th>Control</th><th>Tested in</th></tr>
-<tr><td>A shared project's <code>model.py</code> runs code on open</td><td>Workspace trust (D-27): projects with a foreign <code>created_by</code> or no marker open read-only. The <code>.mpd</code> renders, and nothing executes until the user trusts it.</td><td>E2E + integration (5B)</td></tr>
+<tr><td>A shared project's <code>model.py</code> runs code on open</td><td>Workspace trust (D-27): projects without a valid trust marker open read-only. The marker is a hash of a secret kept in app data and the project's path, so nothing a project carries (<code>created_by</code> included) can trust it. The <code>.mpd</code> renders, and nothing executes until the user trusts it.</td><td>E2E + integration (5B)</td></tr>
 <tr><td>Model code misbehaves (loops, huge output, reads secrets from env)</td><td>Subprocess with <code>python -I</code>, cwd = project, an environment allowlist (no API keys, no tokens), a 30 s timeout, output caps (20,000 parts, 10 MB log), and a kill on cancel.</td><td>Integration (1A, 5B)</td></tr>
 <tr><td>Agent does something unexpected</td><td>The default permission policy (section 10): only Emmet tools and model-file edits are pre-allowed, everything else asks, and Codex runs with <code>workspace-write</code>.</td><td>Replay tests of approval flows (1C, 4B)</td></tr>
 <tr><td>Webview compromise escalates (XSS from part names, chat markdown)</td><td>Strict CSP (<code>default-src 'self'</code>, no inline script, <code>connect-src</code> only the IPC and <code>emmet-lib:</code>), no remote content, markdown rendered without raw HTML, and Tauri capabilities scoped to specific commands with no shell or fs plugins for the frontend.</td><td>CSP test + capabilities audit (5B)</td></tr>
@@ -1782,7 +1783,7 @@ If a finding contradicts section 03 or 10, stop and ask before you change the pl
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
-<li><code>emmet new demo &amp;&amp; emmet run --project demo</code> produces an <code>.mpd</code> that opens correctly in LDView or LeoCAD (screenshot in the PR), on macOS; the Windows CI job runs the same golden test.</li>
+<li><code>emmet new demo &amp;&amp; emmet run --project demo</code> produces an <code>.mpd</code> that opens correctly in LDView or LeoCAD (screenshot in the PR), on macOS; the Windows CI job runs the same golden test. (Barry 2026-10-24: neither app passes Gatekeeper, so Emmet's own three.js render stands in for the screenshot.)</li>
 <li>Every error code in section 09 that 1A can raise has a golden test with the envelope, the user's file and line, and a hint.</li>
 <li>The search golden set passes (expected part in the top 3 for every query), and queries average ≤ 20 ms.</li>
 <li><code>emmet mcp</code> passes the contract test for every tool listed, and the committed schemas are fresh.</li>

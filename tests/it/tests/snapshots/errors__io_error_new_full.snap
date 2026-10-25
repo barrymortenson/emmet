@@ -1,0 +1,20 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "IO_ERROR",
+    "details": {
+      "file": "[dir]"
+    },
+    "hint": "Pick a new folder name, or empty that folder first.",
+    "message": "[dir] already exists and isn't empty."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]"
+  },
+  "ok": false,
+  "warnings": []
+}

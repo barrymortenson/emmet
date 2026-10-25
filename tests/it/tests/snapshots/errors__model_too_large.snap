@@ -1,0 +1,25 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "MODEL_TOO_LARGE",
+    "details": {
+      "excerpt": "        m.add(\"3024\", \"Red\", at=(x, y, i // 1024))",
+      "file": "model.py",
+      "line": 11
+    },
+    "hint": "Reduce repeats, or use larger parts.",
+    "message": "The model places more than 20,000 parts."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

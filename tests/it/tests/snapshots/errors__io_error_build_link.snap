@@ -1,0 +1,23 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "IO_ERROR",
+    "details": {
+      "file": "build"
+    },
+    "hint": "Delete build/ and run again; Emmet recreates it.",
+    "message": "build/ in this project is a link or a file, not a folder; Emmet won't write through it."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

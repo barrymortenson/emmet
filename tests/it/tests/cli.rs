@@ -24,8 +24,11 @@ fn emmet() -> Command {
 fn version_json_is_the_success_envelope() {
     let out = emmet().args(["--version", "--json"]).output().expect("run emmet");
     assert!(out.status.success(), "exit {:?}", out.status);
-    let v: serde_json::Value = serde_json::from_slice(&out.stdout).expect("stdout is JSON");
+    let mut v: serde_json::Value = serde_json::from_slice(&out.stdout).expect("stdout is JSON");
     let version = env!("CARGO_PKG_VERSION");
+    // meta.ms is the command's wall time (plan section 09), so only its type is fixed.
+    let ms = v["meta"].as_object_mut().and_then(|m| m.remove("ms"));
+    assert!(ms.as_ref().is_some_and(serde_json::Value::is_u64), "meta.ms: {ms:?}");
     assert_eq!(
         v,
         serde_json::json!({ "ok": true, "data": { "version": version }, "warnings": [], "meta": { "emmet": version } })

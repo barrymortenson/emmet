@@ -1,0 +1,20 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "PROJECT_NOT_FOUND",
+    "details": {
+      "file": "[dir]"
+    },
+    "hint": "Run emmet new <dir> to make one, or pass --project <dir>.",
+    "message": "There's no Emmet project (emmet.toml) at [dir]."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]"
+  },
+  "ok": false,
+  "warnings": []
+}

@@ -25,6 +25,16 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - `scripts/scrub-transcript`, `scripts/terms-check` (with the provider quotes in `docs/terms/`), and the model ladder
   spec (`docs/spec/ladder.md`), with rung 3 rebuilding 6743-1 Street Speeder.
 
+- The engine walking skeleton (session 1A): an LDraw parser and writer with body boxes (studs left out); the
+  library manager (`emmet library status|install|verify`: the pinned 2026-09 `complete.zip`, sha256-checked,
+  resumable, with a zip-slip guard); the parts index in SQLite FTS5 with dimension parsing, synonyms
+  (`data/synonyms.toml`), and ranking (`emmet search`, `emmet part`, `emmet colors`); emmet_dsl v0 (`@model`,
+  `Model.add`, `Model.step`, parameters from the signature, the Z-up stud and plate frame with footprint placement,
+  ids with file:line, color names, error codes); the Python bootstrap through uv; `emmet new` (cottage and empty
+  templates), `emmet run`, `emmet params`, `emmet trust`, `emmet doctor`; and `emmet mcp` with `search_parts`,
+  `part_info`, `run_model`, `get_params`, `set_params`, and `list_colors`, whose schemas are in `docs/spec/mcp/`.
+  New dependencies: ureq and toml (ADR 0007).
+
 ### Changed
 
 - Agent permissions are sandbox first (D-40), section 10 quotes OpenAI's current wording, and the LDCad shadow

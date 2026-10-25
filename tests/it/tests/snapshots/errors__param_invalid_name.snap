@@ -1,0 +1,25 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "PARAM_INVALID",
+    "details": {
+      "excerpt": "{ \"widht\": 6 }",
+      "file": "params.json",
+      "line": 1
+    },
+    "hint": "Did you mean 'width'? The model's parameters are: width, color.",
+    "message": "There's no parameter 'widht' (from params.json)."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

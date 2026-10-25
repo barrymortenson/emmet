@@ -1,0 +1,25 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "MODEL_EXEC_FAILED",
+    "details": {
+      "excerpt": "    m.add(\"3001\", \"Red\", at=(0, 0, 0)",
+      "file": "model.py",
+      "line": 9
+    },
+    "hint": "Fix model.py line 9 and run again.",
+    "message": "SyntaxError: '(' was never closed"
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

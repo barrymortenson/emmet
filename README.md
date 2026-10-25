@@ -5,15 +5,25 @@ from real LDraw parts. The agent writes a parametric Python model, and you watch
 sliders, buildability checks, a parts list, and build steps. It runs locally: no hosting, no accounts, and you bring
 your own agent.
 
-**Status: foundation only.** Nothing builds a model yet. The build plan is [`docs/plan.html`](docs/plan.html) (open it
+**Status: the engine works from a terminal; the app doesn't use it yet.** The build plan is [`docs/plan.html`](docs/plan.html) (open it
 in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
 
 ## What works today
 
-- `emmet --version [--json]`: the CLI prints its version, or the JSON envelope from plan section 09.
+- The `emmet` CLI (session 1A) turns a Python model into an LDraw `.mpd` from the real LDraw library:
+  ```sh
+  cargo build -p emmet-cli
+  target/debug/emmet library install        # the pinned LDraw release, about 150 MB, into .dev-data/ in a debug build
+  target/debug/emmet new demo && target/debug/emmet run --project demo   # → demo/build/model.mpd
+  ```
+  Also `emmet search <words>` (try `brick 2x4`), `emmet part <id>`, `emmet colors`, `emmet params [--set k=v]`,
+  `emmet trust`, `emmet doctor [--fix]`, `emmet library status|install|verify`, and `emmet mcp`, a stdio MCP server
+  with the same operations for an agent. `--json` prints the JSON envelope from plan section 09. Python 3.13 and the
+  DSL install themselves through uv on first use. The DSL is in [`docs/spec/dsl.md`](docs/spec/dsl.md), the project
+  folder in [`docs/spec/project-format.md`](docs/spec/project-format.md).
 - `just dev`: opens the Emmet window, which shows the name and version.
-- The crates (`emmet-core`, `emmet-agent`, `emmet-bus`), the viewer package (`createViewer`), and the Python package
-  (`emmet_dsl.__version__`) are one-function stubs. Each builds and has an integration test.
+- `emmet-agent`, `emmet-bus`, and the viewer package (`createViewer`) are still one-function stubs. Each builds and has
+  an integration test.
 - CI on macOS and Windows, the license, SPDX, DCO, secret, and supply-chain checks, and the plan tracker check.
 - `just e2e`: an end-to-end test drives the real app through WebdriverIO (`tests/e2e/`).
 - Research results in `docs/adr/` (agent protocols, E2E, licenses, data mapping, headless render, binaries), test

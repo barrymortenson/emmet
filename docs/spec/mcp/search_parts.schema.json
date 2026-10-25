@@ -1,0 +1,311 @@
+{
+  "name": "search_parts",
+  "description": "Search LDraw parts by words and dimensions. Returns ids, names, categories, and sizes (x and y in studs, z in\nplates).",
+  "input": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "category": {
+        "default": null,
+        "description": "Only parts in this category (Brick, Plate, Slope, Tile, …).",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "limit": {
+        "default": null,
+        "description": "How many parts to return (default 10, at most 100).",
+        "format": "uint",
+        "minimum": 0,
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "query": {
+        "description": "Words and dimensions, for example \"brick 2x4\" or \"slope 45 2 x 2\".",
+        "type": "string"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "type": "object"
+  },
+  "output": {
+    "$defs": {
+      "Details": {
+        "description": "Where an error happened and what else helps fix it. Every field is optional.",
+        "properties": {
+          "excerpt": {
+            "description": "The source line, as written.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "description": "The file: relative to the project root for model errors, otherwise the full path.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line": {
+            "description": "1-based line in `file`.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "suggestions": {
+            "description": "Close matches; part ids for `UNKNOWN_PART` (color and parameter suggestions are in the hint).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Error": {
+        "description": "A failure: what happened, where, and what to try.",
+        "properties": {
+          "code": {
+            "$ref": "#/$defs/ErrorCode"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Details"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hint": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "hint"
+        ],
+        "type": "object"
+      },
+      "ErrorCode": {
+        "description": "The error codes in plan section 09.",
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "PROJECT_UNTRUSTED",
+          "MODEL_EXEC_FAILED",
+          "MODEL_TIMEOUT",
+          "MODEL_TOO_LARGE",
+          "UNKNOWN_PART",
+          "UNKNOWN_COLOR",
+          "PARAM_INVALID",
+          "LIBRARY_MISSING",
+          "LIBRARY_CORRUPT",
+          "PYTHON_MISSING",
+          "RENDER_UNAVAILABLE",
+          "IO_ERROR",
+          "INTERNAL"
+        ],
+        "type": "string"
+      },
+      "Meta": {
+        "description": "Facts about the run that produced a result.",
+        "properties": {
+          "emmet": {
+            "description": "The Emmet version.",
+            "type": "string"
+          },
+          "generation": {
+            "description": "The project's run counter, after a run.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "inputs_hash": {
+            "description": "sha256 of the model's inputs (plan section 07), after a run.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ms": {
+            "description": "Wall time of the command in milliseconds.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project": {
+            "description": "The project root, when the command ran in one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "emmet",
+          "ms"
+        ],
+        "type": "object"
+      },
+      "SearchHit": {
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "colors_count": {
+            "description": "Colors the part was produced in, or None until the parts data pack (3B) is installed.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Size"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "flags"
+        ],
+        "type": "object"
+      },
+      "SearchResult": {
+        "properties": {
+          "parts": {
+            "items": {
+              "$ref": "#/$defs/SearchHit"
+            },
+            "type": "array"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "parts"
+        ],
+        "type": "object"
+      },
+      "Size": {
+        "description": "Size in DSL units at `rot=0`: x and y in studs, z in plates (plan section 08).",
+        "properties": {
+          "x": {
+            "format": "double",
+            "type": "number"
+          },
+          "y": {
+            "format": "double",
+            "type": "number"
+          },
+          "z": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "z"
+        ],
+        "type": "object"
+      },
+      "Warning": {
+        "description": "A non-fatal note attached to a success.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "data": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/SearchResult"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Error"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "meta": {
+        "$ref": "#/$defs/Meta"
+      },
+      "ok": {
+        "type": "boolean"
+      },
+      "warnings": {
+        "items": {
+          "$ref": "#/$defs/Warning"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "ok",
+      "warnings",
+      "meta"
+    ],
+    "type": "object"
+  }
+}

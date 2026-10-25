@@ -1,0 +1,25 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "UNKNOWN_COLOR",
+    "details": {
+      "excerpt": "    m.add(\"3001\", \"Purpel\", at=(0, 0, 3))",
+      "file": "models/walls.py",
+      "line": 9
+    },
+    "hint": "Did you mean 'Purple', 'Sand Purple', or 'Trans Purple'? Use an LDraw color name in any spelling, an abbreviation like LBG, or an LDraw code; emmet colors lists them.",
+    "message": "There's no color 'Purpel'."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "generation": 1,
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}

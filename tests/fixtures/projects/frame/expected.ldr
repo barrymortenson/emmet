@@ -1,0 +1,16 @@
+0 What tests/fixtures/projects/frame/model.py must produce, worked out by hand from plan section 08
+0 A DSL point (x, y, z) in studs, studs, plates is the LDraw point (20y, -8z, -20x) in LDU.
+0 Each origin is at minus the minimum corner of the part's rotated body box, which excludes studs.
+0 Brick 2 x 4 at (0,0,0): body x -1..1, y -2..2, z -3..0, so the origin is (1,2,3).
+1 4 40 -24 -20 1 0 0 0 1 0 0 0 1 3001.dat
+0 rot=1 turns +y to -x; the body becomes x -2..2, y -1..1; at (0,0,3) the origin is (2,1,6).
+1 4 20 -48 -40 0 0 -1 0 1 0 1 0 0 3001.dat
+0 Plate 1 x 1 at (2,1,0): body x and y -0.5..0.5, z -1..0; origin (2.5,1.5,1).
+1 15 30 -8 -50 1 0 0 0 1 0 0 0 1 3024.dat
+0 Slope 45 2 x 2 at (4,0,0), rot=3: the slope faces -Z in its own frame, which is +x; rot=3 turns it to -y.
+0 Body at rot=0 x -0.5..1.5, y -1..1; turned, x -1..1, y -1.5..0.5; origin (5,1.5,3).
+1 4 30 -24 -100 0 0 1 0 1 0 -1 0 0 3039.dat
+0 Brick 1 x 2 at (0,4,0), rot=2: body x -0.5..0.5, y -1..1 either way; origin (0.5,5,3).
+1 1 100 -24 -10 -1 0 0 0 1 0 0 0 -1 3004.dat
+0 Plate 1 x 1 at (6.5,0.5,1): origin (7,1,2).
+1 71 20 -16 -140 1 0 0 0 1 0 0 0 1 3024.dat

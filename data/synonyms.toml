@@ -1,0 +1,48 @@
+# Search synonyms (plan section 12), embedded in emmet at build time and copied into the parts index.
+#
+# [parts]: a query word on the left also matches each entry on the right (all of an entry's words), so "flat 2x2"
+# finds tiles. Entries are in the library's own words, so "centre" keeps LDraw's spelling.
+# [colors]: an abbreviation on the left works anywhere a color name does ("LBG" for Light Bluish Gray).
+
+[parts]
+flat = ["tile"]
+smooth = ["tile"]
+roof = ["slope"]
+roofing = ["slope"]
+wedge = ["slope"]
+cheese = ["slope 31", "slope 30"]
+base = ["baseplate"]
+ground = ["baseplate"]
+rail = ["track"]
+rails = ["track"]
+points = ["switch"]
+turnout = ["switch"]
+pane = ["glass"]
+glazing = ["glass"]
+cylinder = ["round"]
+circle = ["round"]
+offset = ["groove centre stud"]
+jumper = ["groove centre stud"]
+snot = ["bracket", "stud on 1 side", "headlight"]
+lamp = ["cone", "headlight"]
+light = ["headlight"]
+leaves = ["plant"]
+tree = ["plant"]
+bush = ["plant"]
+bench = ["seat"]
+chair = ["seat"]
+railing = ["fence"]
+gate = ["fence"]
+stick = ["bar"]
+rod = ["bar"]
+
+[colors]
+lbg = "Light Bluish Gray"
+dbg = "Dark Bluish Gray"
+lbgray = "Light Bluish Gray"
+dbgray = "Dark Bluish Gray"
+lgray = "Light Gray"
+dgray = "Dark Gray"
+trans-clear = "Trans Clear"
+clear = "Trans Clear"
+dark-tan = "Dark Tan"

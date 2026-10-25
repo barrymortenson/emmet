@@ -1,0 +1,18 @@
+---
+source: tests/it/tests/errors.rs
+expression: v
+---
+{
+  "error": {
+    "code": "PYTHON_MISSING",
+    "hint": "Install uv (https://docs.astral.sh/uv/), then run emmet doctor --fix.",
+    "message": "Python isn't set up for models yet, and uv (which installs it) isn't next to emmet or on PATH."
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]",
+    "project": "[project]"
+  },
+  "ok": false,
+  "warnings": []
+}
