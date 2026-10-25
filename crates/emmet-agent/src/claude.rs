@@ -9,7 +9,7 @@
 use std::collections::HashSet;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::time::Duration;
 
 use serde_json::{Value, json};
@@ -133,7 +133,7 @@ impl AgentAdapter for Claude {
         std::fs::write(&mcp, serde_json::to_vec_pretty(&mcp_config(&cfg)).expect("json"))
             .map_err(|e| AgentError::new(AgentErrorCode::Io, format!("writing {}: {e}", mcp.display())))?;
         let args = args(&mcp, cfg.resume.as_deref(), cfg.model.as_deref());
-        let mut cmd = Command::new(&bin);
+        let mut cmd = detect::command(&bin);
         cmd.args(&args).current_dir(&cfg.project);
         set_env(&mut cmd, &cfg.env);
         cmd.env("MCP_TOOL_TIMEOUT", MCP_TOOL_TIMEOUT);
@@ -167,7 +167,7 @@ impl AgentAdapter for Claude {
 /// servers and no saved session. It spends no model tokens. The report arrives on the assistant message.
 fn probe(bin: &std::path::Path, dir: &std::path::Path, env: &[(String, String)]) -> UsageSnapshot {
     let unavailable = |why: String| UsageSnapshot::without_meters(AgentKind::Claude, Billing::Unknown, Some(why));
-    let mut cmd = Command::new(bin);
+    let mut cmd = detect::command(bin);
     cmd.args([
         "-p",
         "--input-format",

@@ -76,10 +76,37 @@ pub fn find(kind: AgentKind, env: &[(String, String)]) -> Option<PathBuf> {
         .find(|p| p.is_file())
 }
 
+/// The command that starts the CLI at `bin`. An npm install on Windows leaves a `.cmd` shim, and a batch file can't be
+/// given arguments like Codex's `-c key="value"` safely, so Emmet runs the package's own launcher with node instead.
+pub fn command(bin: &Path) -> Command {
+    let shim = bin
+        .extension()
+        .is_some_and(|e| e.eq_ignore_ascii_case("cmd") || e.eq_ignore_ascii_case("bat"));
+    let launcher = match bin
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .map(str::to_ascii_lowercase)
+        .as_deref()
+    {
+        Some("codex") => "node_modules/@openai/codex/bin/codex.js",
+        Some("claude") => "node_modules/@anthropic-ai/claude-code/cli.js",
+        _ => "",
+    };
+    if shim
+        && !launcher.is_empty()
+        && let Some(js) = bin.parent().map(|d| d.join(launcher)).filter(|js| js.is_file())
+    {
+        let mut cmd = Command::new("node");
+        cmd.arg(js);
+        return cmd;
+    }
+    Command::new(bin)
+}
+
 /// Runs the CLI with `args` and the user's environment, and returns its stdout, or None if it fails or takes more
 /// than 15 s.
 pub(crate) fn output(bin: &Path, args: &[&str], env: &[(String, String)]) -> Option<String> {
-    let mut cmd = Command::new(bin);
+    let mut cmd = command(bin);
     cmd.args(args)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -201,4 +228,31 @@ pub fn claude_auth(status: &Value) -> (bool, Billing) {
         Billing::Unknown
     };
     (signed_in, billing)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_npm_shim_runs_its_launcher_with_node() {
+        let dir = std::env::temp_dir().join(format!("emmet-shim-{}", std::process::id()));
+        let js = dir.join("node_modules/@openai/codex/bin/codex.js");
+        std::fs::create_dir_all(js.parent().unwrap()).unwrap();
+        std::fs::write(&js, "").unwrap();
+        std::fs::write(dir.join("codex.cmd"), "").unwrap();
+        let cmd = command(&dir.join("codex.cmd"));
+        assert_eq!(cmd.get_program(), "node");
+        assert_eq!(cmd.get_args().collect::<Vec<_>>(), [js.as_os_str()]);
+        // A real program, or a shim whose package isn't there, runs as itself.
+        assert_eq!(
+            command(&dir.join("codex.exe")).get_program(),
+            dir.join("codex.exe").as_os_str()
+        );
+        assert_eq!(
+            command(&dir.join("claude.cmd")).get_program(),
+            dir.join("claude.cmd").as_os_str()
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }

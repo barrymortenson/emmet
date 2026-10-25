@@ -7,7 +7,6 @@
 pub mod types;
 
 use std::collections::{HashMap, HashSet};
-use std::process::Command;
 
 use serde_json::{Value, json};
 
@@ -127,7 +126,7 @@ impl AgentAdapter for Codex {
         })?;
         session_dir(&cfg)?;
         let args = args(&cfg);
-        let mut cmd = Command::new(&bin);
+        let mut cmd = detect::command(&bin);
         cmd.args(&args).current_dir(&cfg.project);
         set_env(&mut cmd, &cfg.env);
         cmd.env(KEY_VAR, key);

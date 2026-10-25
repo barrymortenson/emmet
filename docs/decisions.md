@@ -128,6 +128,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   SDDL in a `widestring::U16CStr`, and doesn't re-export the type. Barry chose widestring as a direct Windows-only
   dependency of emmet-bus (already in the tree through interprocess) over keeping Windows' default pipe ACL (owner,
   SYSTEM, and administrators may write; others may read) or FFI with an unsafe exception. ADR 0009 records it.
+- **1C's Windows CI run.** As for 1A and 1B, Barry approved opening 1C's PR (#13) as a draft so CI runs on Windows,
+  marked ready only when every Done when item holds, including his live checks and H-04.
 
 ## 2026-10-25, session 1B
 
