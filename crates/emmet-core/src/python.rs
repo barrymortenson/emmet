@@ -26,6 +26,7 @@ macro_rules! dsl_files {
 /// The `emmet_dsl` package, file by file. `tests/it/tests/python.rs` checks this list against the folder.
 pub const DSL_FILES: &[(&str, &str)] = dsl_files![
     "__init__.py",
+    "api.py",
     "core.py",
     "emit.py",
     "errors.py",
