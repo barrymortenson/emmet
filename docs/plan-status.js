@@ -59,7 +59,7 @@ window.EMMET_STATUS = {
       ],
       note: "Barry's design and feature notes from the live check go to docs/design/notes.md in a small PR, for 2A"
     },
-    "1D": { status: "todo" },
+    "1D": { status: "in-progress", branch: "bmortenson/s1d-close-loop-signed-build", started: "2026-10-25" },
     "1E": { status: "todo" },
     "1F": { status: "todo" },
     "2A": { status: "todo" },
