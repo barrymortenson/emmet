@@ -3,6 +3,7 @@
 // and EMMET_CODEX_BIN, they read their transcript from EMMET_FAKE_DIR, and Codex's API key comes from a file keychain.
 // The app runs with HOME (USERPROFILE on Windows) in a test home holding sentinel agent configs, which the chat spec
 // hashes before and after (D-26): Emmet must never write a user's .claude or .codex.
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -62,4 +63,43 @@ export function agentConfigHashes() {
   };
   for (const top of [".claude", ".claude.json", ".codex"]) walk(join(agentHome, top));
   return out;
+}
+
+// Sign in with ChatGPT (1E): fake-openai stands in for OpenAI's sign-in endpoints (EMMET_FAKE_OPENAI), and the fake
+// browser (EMMET_FAKE_BROWSER) follows the authorize redirect to the app's loopback callback and notes each URL the app
+// opens in fakeDir/opened.txt.
+export const openaiDir = join(out, "openai");
+let openai = null;
+
+/** Starts fake-openai for the run and points the app at it (wdio's onPrepare). */
+export async function startOpenAi() {
+  rmSync(openaiDir, { recursive: true, force: true });
+  mkdirSync(openaiDir, { recursive: true });
+  openai = spawn(bin("fake-openai"), [openaiDir], { stdio: ["ignore", "pipe", "inherit"] });
+  const base = await new Promise((resolve, reject) => {
+    openai.stdout.once("data", (d) => resolve(String(d).trim()));
+    openai.once("error", reject);
+  });
+  Object.assign(process.env, { EMMET_FAKE_OPENAI: base, EMMET_FAKE_BROWSER: fakeDir });
+}
+
+export function stopOpenAi() {
+  openai?.kill();
+}
+
+/** How fake-openai answers from now on (its docs list the settings). */
+export function setOpenAi(cfg) {
+  writeFileSync(join(openaiDir, "openai.json"), JSON.stringify(cfg));
+}
+
+/** Every token fake-openai issued in this run. */
+export function issuedTokens() {
+  const file = join(openaiDir, "issued.txt");
+  return existsSync(file) ? readFileSync(file, "utf8").split("\n").filter(Boolean) : [];
+}
+
+/** The URLs the app opened in the (fake) browser. */
+export function opened() {
+  const file = join(fakeDir, "opened.txt");
+  return existsSync(file) ? readFileSync(file, "utf8").split("\n").filter(Boolean) : [];
 }

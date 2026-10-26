@@ -5,7 +5,8 @@
 //!
 //!   fake-openai <dir>
 //!
-//! It prints its base URL, then serves until killed. Each request is recorded in `<dir>/openai.jsonl`. How it
+//! It prints its base URL, then serves until killed. Each request is recorded in `<dir>/openai.jsonl`, and each token
+//! it issues in `<dir>/issued.txt`, so a leak test knows what to look for. How it
 //! answers comes from `<dir>/openai.json`, read on every request so a test can change it mid-run:
 //!
 //! - `account` `{sub, email}`: who signs in (default `user-1`, `builder@example.com`)
@@ -144,6 +145,15 @@ impl Fake {
         let _ = writeln!(f, "{}", json!({ "kind": kind, "params": params }));
     }
 
+    fn issued(&self, token: &str) {
+        let mut f = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(self.dir.join("issued.txt"))
+            .expect("the issued log");
+        let _ = writeln!(f, "{token}");
+    }
+
     fn jwt(&self, claims: Value, tamper: &str) -> String {
         let alg = if tamper == "alg" { "HS256" } else { "RS256" };
         let head = b64(json!({ "alg": alg, "kid": "test", "typ": "JWT" })
@@ -172,6 +182,8 @@ impl Fake {
         let refresh = format!("fake-refresh-{n}-{salt}");
         st.refresh.insert(refresh.clone(), (client_id.into(), scope.into()));
         drop(st);
+        self.issued(&access);
+        self.issued(&refresh);
         let expires_in = cfg["expires_in"].as_i64().unwrap_or(3600);
         let mut v = json!({
             "access_token": access,
@@ -193,7 +205,9 @@ impl Fake {
                 "exp": if tamper == "exp" { t - 3600 } else { t + 3600 },
                 "nonce": if tamper == "nonce" { "not-the-nonce" } else { nonce },
             });
-            v["id_token"] = json!(self.jwt(claims, tamper));
+            let id = self.jwt(claims, tamper);
+            self.issued(&id);
+            v["id_token"] = json!(id);
         }
         v
     }

@@ -62,7 +62,17 @@ export function PlanNotice({ account, onDone }: { account: string; onDone: () =>
     onDone();
   };
   return (
-    <dialog ref={dialog} className="settings plan-notice" id="plan-notice" aria-labelledby="plan-notice-title" onClose={done}>
+    <dialog
+      ref={dialog}
+      className="settings plan-notice"
+      id="plan-notice"
+      aria-labelledby="plan-notice-title"
+      // React passes a dialog's close up to the dialogs around it; this one closing mustn't close Settings.
+      onClose={(e) => {
+        e.stopPropagation();
+        done();
+      }}
+    >
       <h2 id="plan-notice-title">You're using your ChatGPT plan</h2>
       <p>Eligible usage in this app uses your ChatGPT plan. Manage usage in your ChatGPT settings.</p>
       <form method="dialog">

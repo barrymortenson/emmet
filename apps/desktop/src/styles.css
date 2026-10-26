@@ -601,3 +601,12 @@ button.link {
 .codex-billing .use-plan p {
   margin: 0 0 6px;
 }
+/* OpenAI's welcome notice keeps its words as written, not as a section label. */
+.plan-notice h2 {
+  font-size: 15px;
+  text-transform: none;
+  color: var(--text);
+}
+.codex-billing input[type="radio"] {
+  accent-color: var(--accent);
+}
