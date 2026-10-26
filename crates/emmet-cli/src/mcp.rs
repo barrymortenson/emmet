@@ -33,9 +33,12 @@ pub struct SearchArgs {
     /// Only parts in this category (Brick, Plate, Slope, Tile, …).
     #[serde(default)]
     pub category: Option<String>,
-    /// How many parts to return (default 10, at most 100).
+    /// How many parts to return (default 10, at most 100), per query.
     #[serde(default)]
     pub limit: Option<usize>,
+    /// More queries to answer in the same call (up to 9): look up everything a stage needs at once.
+    #[serde(default)]
+    pub more: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -212,26 +215,44 @@ impl EmmetMcp {
         Project::find(self.project.as_deref())
     }
 
-    /// Search LDraw parts by words and dimensions. Returns ids, names, categories, and sizes (x and y in studs, z in
-    /// plates).
+    /// Search LDraw parts by words and dimensions; `more` asks several queries in one call. Returns ids, names,
+    /// categories, and sizes (x and y in studs, z in plates), which is usually all you need to place a part.
     #[tool(output_schema = schema_for_output::<Envelope<SearchResult>>())]
     async fn search_parts(&self, Parameters(args): Parameters<SearchArgs>) -> CallToolResult {
         let started = Instant::now();
         let data = self.data.clone();
         let out = blocking(
-            move || ops::search_parts(&data, &args.query, args.category.as_deref(), args.limit.unwrap_or(10)),
+            move || {
+                ops::search_many(
+                    &data,
+                    &args.query,
+                    &args.more.unwrap_or_default(),
+                    args.category.as_deref(),
+                    args.limit.unwrap_or(10),
+                )
+            },
             Err,
         )
         .await;
         result(started, out, RunMeta::default(), None, |r| {
-            if r.parts.is_empty() {
-                return format!("No parts match '{}'.", r.query);
+            let one = |r: &SearchResult| {
+                if r.parts.is_empty() {
+                    return format!("No parts match '{}'.", r.query);
+                }
+                r.parts
+                    .iter()
+                    .map(|p| format!("{} {}{}", p.id, p.name, size(p.size)))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            };
+            if r.more.is_empty() {
+                return one(r);
             }
-            r.parts
-                .iter()
-                .map(|p| format!("{} {}{}", p.id, p.name, size(p.size)))
+            std::iter::once(r)
+                .chain(r.more.iter())
+                .map(|q| format!("## {}\n{}", q.query, one(q)))
                 .collect::<Vec<_>>()
-                .join("\n")
+                .join("\n\n")
         })
     }
 
@@ -552,7 +573,8 @@ fn with_project<T>(me: &EmmetMcp, f: impl FnOnce(&Project) -> Result<T>) -> (Res
 fn size(s: Option<emmet_core::index::Size>) -> String {
     s.map(|s| {
         let n = |v: f64| emmet_core::ldraw::num((v * 100.0).round() / 100.0);
-        format!(": {} x {} studs, {} plates", n(s.x), n(s.y), n(s.z))
+        let plates = if n(s.z) == "1" { "plate" } else { "plates" };
+        format!(": {} x {} studs, {} {plates}", n(s.x), n(s.y), n(s.z))
     })
     .unwrap_or_default()
 }

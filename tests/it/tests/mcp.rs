@@ -155,6 +155,28 @@ async fn search_parts() {
     assert_eq!(c.text.lines().count(), 3, "one line per part");
     let c = client.call("search_parts", json!({ "query": "zzzz" })).await;
     assert_eq!((c.is_error, c.text.as_str()), (false, "No parts match 'zzzz'."));
+    // Several queries in one call: each answered in order, under its own heading.
+    let c = client
+        .call(
+            "search_parts",
+            json!({ "query": "brick 2x4", "more": ["plate 2x4", "zzzz"], "limit": 1 }),
+        )
+        .await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["more"][0]["parts"][0]["id"], "3020");
+    assert_eq!(c.envelope["data"]["more"][1]["parts"], json!([]));
+    assert_eq!(
+        c.text,
+        "## brick 2x4\n3001 Brick 2 x 4: 2 x 4 studs, 3 plates\n\n## plate 2x4\n3020 Plate 2 x 4: 2 x 4 studs, 1 plate\n\n## zzzz\nNo parts match 'zzzz'."
+    );
+    let ten: Vec<String> = (0..10).map(|i| format!("brick {i}")).collect();
+    let c = client
+        .call("search_parts", json!({ "query": "brick", "more": ten }))
+        .await;
+    assert_eq!(
+        c.envelope["error"]["code"], "PARAM_INVALID",
+        "at most 10 queries a call"
+    );
     // The error shape: no library in this data dir.
     let empty = temp_dir("mcp-no-library");
     let client = connect_with(None, &empty).await;
@@ -175,7 +197,7 @@ async fn part_info() {
     let c = client.call("part_info", json!({ "id": "3023" })).await;
     assert_eq!(
         c.text,
-        "3023 ~Moved to 3023b (Moved): 1 x 2 studs, 1 plates. Flags: alias. Use 3023b instead"
+        "3023 ~Moved to 3023b (Moved): 1 x 2 studs, 1 plate. Flags: alias. Use 3023b instead"
     );
     let c = client.call("part_info", json!({ "id": "3001x" })).await;
     assert!(c.is_error);
@@ -459,6 +481,7 @@ async fn rules_and_api_return_the_doctrine_and_the_dsl() {
         "Run → validate → render → fix",
         "Show a draft in the first minute",
         "Keep it lean",
+        "Real parts for real things",
         "never write it",
         "Say numbers",
         "ask_user",

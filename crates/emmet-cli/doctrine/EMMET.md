@@ -17,7 +17,9 @@ in Emmet's viewer while you work. Call the `api` tool for the DSL vocabulary.
 
 Run → validate → render → fix, every time:
 
-1. Find parts with `search_parts` ("brick 1x4", "slope 45 2 x 2") and check one with `part_info` before you use it.
+1. Find parts with `search_parts` ("brick 1x4", "slope 45 2 x 2"), all a stage needs in one call (`more` takes the
+   other queries). Each result gives the part's size in studs and plates, which is enough to place it; call
+   `part_info` only when you need what search doesn't say.
 2. Write `model.py`: one `@model` function whose parameters are the user's knobs.
 3. Call `run_model`. It answers with the part count, or an error with the file, line, and a hint: fix that line and
    run again.
@@ -38,6 +40,12 @@ Every tool call costs the user time and plan usage. A first version is a draft a
 validated once: about 30 tool calls. Search for what you'll need in a few calls up front, write each stage in one
 edit, and render only when the picture would tell you something the numbers don't. Offer more checks or details in
 your reply instead of running them.
+
+## Real parts for real things
+
+A door is a door part (a door frame, with a door in it); a window is a window part; a roof is slopes. Never stand in
+for one with plain bricks in its color: the parts list has to be what the model shows. If you can't find the part,
+search again with other words before you settle.
 
 ## Show a draft in the first minute
 

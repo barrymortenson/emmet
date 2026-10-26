@@ -724,7 +724,8 @@ fn key_values(pairs: &[String]) -> Result<std::collections::BTreeMap<String, ser
 fn size_text(size: Option<emmet_core::index::Size>) -> String {
     let Some(s) = size else { return String::new() };
     let n = |v: f64| emmet_core::ldraw::num((v * 100.0).round() / 100.0);
-    format!("  [{} x {} studs, {} plates]", n(s.x), n(s.y), n(s.z))
+    let plates = if n(s.z) == "1" { "plate" } else { "plates" };
+    format!("  [{} x {} studs, {} {plates}]", n(s.x), n(s.y), n(s.z))
 }
 
 /// Prints the envelope (`--json`) or the text, and turns the result into the exit code (plan section 09).

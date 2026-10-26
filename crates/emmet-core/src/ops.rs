@@ -18,6 +18,37 @@ use crate::run::{RunMeta, RunSummary};
 pub struct SearchResult {
     pub query: String,
     pub parts: Vec<SearchHit>,
+    /// The results of the other queries asked in the same call, in order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub more: Vec<SearchResult>,
+}
+
+/// The most queries one `search_parts` call runs.
+pub const MAX_QUERIES: usize = 10;
+
+/// [`search_parts`] for `query` and each of `more` (at most [`MAX_QUERIES`] in all), in one call.
+pub fn search_many(
+    data: &DataDir,
+    query: &str,
+    more: &[String],
+    category: Option<&str>,
+    limit: usize,
+) -> Result<SearchResult> {
+    if more.len() + 1 > MAX_QUERIES {
+        return Err(Error::new(
+            ErrorCode::ParamInvalid,
+            format!(
+                "That's {} queries; one call runs at most {MAX_QUERIES}.",
+                more.len() + 1
+            ),
+            "Split them over two calls.",
+        ));
+    }
+    let mut first = search_parts(data, query, category, limit)?;
+    for q in more {
+        first.more.push(search_parts(data, q, category, limit)?);
+    }
+    Ok(first)
 }
 
 pub fn search_parts(data: &DataDir, query: &str, category: Option<&str>, limit: usize) -> Result<SearchResult> {
@@ -26,6 +57,7 @@ pub fn search_parts(data: &DataDir, query: &str, category: Option<&str>, limit: 
     Ok(SearchResult {
         query: query.into(),
         parts,
+        more: vec![],
     })
 }
 
