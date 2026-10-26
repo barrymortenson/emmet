@@ -29,6 +29,8 @@ const BUDGET: Duration = Duration::from_secs(10 * 60);
 const MAX_TURNS: usize = 40;
 const MIN_PARTS: usize = 40;
 const MIN_PARAMS: usize = 3;
+/// The largest replay fixture (plan section 16).
+const MAX_FIXTURE: u64 = 200_000;
 /// After the budget, how long the run may go on before it's stopped (it fails the budget either way).
 const GRACE: Duration = Duration::from_secs(2 * 60);
 
@@ -611,7 +613,9 @@ fn params_that_change(
     let mut changing = Vec::new();
     let mut not = Vec::new();
     for spec in &params.params {
-        let Some(other) = other_value(spec) else {
+        // Varied from the value the build has now: an agent may leave params.json set (the first live run did).
+        let current = params.values.get(&spec.name).unwrap_or(&spec.default);
+        let Some(other) = other_value(spec, current) else {
             not.push(format!("{} (no other value)", spec.name));
             continue;
         };
@@ -633,12 +637,12 @@ fn params_that_change(
     (changing.len(), detail)
 }
 
-/// A valid value other than the default: the far end of a range, the other bool, another choice or color.
-fn other_value(spec: &emmet_core::ops::ParamSpec) -> Option<Value> {
+/// A valid value other than `current`: the far end of a range, the other bool, another choice or color.
+fn other_value(spec: &emmet_core::ops::ParamSpec, current: &Value) -> Option<Value> {
     match spec.kind.as_str() {
-        "bool" => Some(Value::Bool(!spec.default.as_bool()?)),
+        "bool" => Some(Value::Bool(!current.as_bool()?)),
         "int" | "float" => {
-            let d = spec.default.as_f64()?;
+            let d = current.as_f64()?;
             let target = match (spec.min, spec.max) {
                 (_, Some(max)) if max != d => max,
                 (Some(min), _) if min != d => min,
@@ -650,9 +654,9 @@ fn other_value(spec: &emmet_core::ops::ParamSpec) -> Option<Value> {
                 Value::from(target)
             })
         }
-        "choice" => spec.choices.as_ref()?.iter().find(|c| **c != spec.default).cloned(),
+        "choice" => spec.choices.as_ref()?.iter().find(|c| *c != current).cloned(),
         "color" => {
-            let d = spec.default.as_str().unwrap_or("").to_lowercase();
+            let d = current.as_str().unwrap_or("").to_lowercase();
             Some(Value::from(if d == "blue" { "Red" } else { "Blue" }))
         }
         _ => None,
@@ -733,11 +737,30 @@ fn write_report(path: &Path, agent: AgentKind, rung: &Rung, r: &Report, date: &s
     let existing = std::fs::read_to_string(path).ok();
     let text = match existing {
         Some(text) => {
-            let (open, close) = (format!("<!-- eval:{tag} -->"), format!("<!-- /eval:{tag} -->"));
-            match (text.find(&open), text.find(&close)) {
-                (Some(a), Some(b)) if b > a => format!("{}{section}{}", &text[..a], &text[b + close.len()..]),
-                _ => format!("{}\n\n{section}\n", text.trim_end()),
-            }
+            // An earlier run of this agent today stays (D-38 allows one rerun after a fix, and the report keeps
+            // both): its markers are renamed so this run adds a section after it.
+            let earlier = (1..)
+                .find(|n| !text.contains(&format!("<!-- eval:{tag}-run{n} -->")))
+                .unwrap_or(1);
+            let kept = text
+                .replace(
+                    &format!("<!-- eval:{tag} -->"),
+                    &format!("<!-- eval:{tag}-run{earlier} -->"),
+                )
+                .replace(
+                    &format!("<!-- /eval:{tag} -->"),
+                    &format!("<!-- /eval:{tag}-run{earlier} -->"),
+                );
+            let section = if kept != text {
+                section.replacen(
+                    &format!("## {}", r.run.agent),
+                    &format!("## {} (rerun)", r.run.agent),
+                    1,
+                )
+            } else {
+                section
+            };
+            format!("{}\n\n{section}\n", kept.trim_end())
         }
         None => format!(
             "# Live eval: {} ({date})\n\nRun by `emmet eval --rung 1` (plan section 16.1, D-38): one run per agent on the eval API \
@@ -795,6 +818,17 @@ fn offer_fixture(agent: AgentKind, r: &Report) -> Result<()> {
         .map_err(|e| Error::internal(format!("running scripts/scrub-transcript: {e}")))?;
     if !status.success() {
         return Err(Error::internal("scripts/scrub-transcript failed; nothing was saved."));
+    }
+    // Replay fixtures stay under 200 KB each (plan section 16).
+    let size = std::fs::metadata(&out).map(|m| m.len()).unwrap_or(0);
+    if size > MAX_FIXTURE {
+        let _ = std::fs::remove_file(&out);
+        eprintln!(
+            "Not saved: the scrubbed transcript is {} KB, and replay fixtures stay under {} KB. It's kept at {transcript}.",
+            size / 1000,
+            MAX_FIXTURE / 1000
+        );
+        return Ok(());
     }
     eprintln!("Saved {}.", out.display());
     Ok(())

@@ -130,6 +130,32 @@ fn the_cottage_validates_clean_at_every_corner() {
     }
 }
 
+/// `--params` (MCP validate's `params`) checks other slider values in one call and leaves params.json as it was: the
+/// first live eval's agent wrote params.json from the shell to do this, and left it changed.
+#[test]
+fn check_with_params_leaves_params_json() {
+    let dir = temp_dir("check-params").join("cottage");
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(shared_data())
+        .arg("new")
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let before = std::fs::read_to_string(dir.join("params.json")).unwrap();
+    let (v, code) = check(&dir, &["--strict", "--params", "width=16", "depth=12", "chimney=false"]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], json!([]));
+    let built: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(dir.join("build/placements.json")).unwrap()).unwrap();
+    assert!(
+        built["parts"].as_array().unwrap().len() > 150,
+        "the build is the 16 x 12 one"
+    );
+    assert_eq!(std::fs::read_to_string(dir.join("params.json")).unwrap(), before);
+}
+
 /// `emmet run && emmet check` on a clean build/ reproduces validation.json byte for byte (plan section 07).
 #[test]
 fn validation_json_is_reproducible() {

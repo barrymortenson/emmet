@@ -70,6 +70,9 @@ enum Command {
         /// Only these rules (repeatable): collision, floating, unknown_part, obsolete_part, alias_part.
         #[arg(long = "rule", value_name = "RULE")]
         rules: Vec<String>,
+        /// Check the model run with these values, on top of params.json (which isn't changed).
+        #[arg(long = "params", value_name = "K=V", num_args = 1..)]
+        params: Vec<String>,
     },
     /// The parts list (part × color × quantity), written to build/bom.json. Runs the model first if build/ is out of
     /// date.
@@ -313,7 +316,7 @@ fn main() -> ExitCode {
                 )
             })
         }
-        Command::Check { strict, rules } => {
+        Command::Check { strict, rules, params } => {
             let mut root = None;
             let mut meta = (None, None);
             let out = data.and_then(|d| {
@@ -331,7 +334,7 @@ fn main() -> ExitCode {
                     .collect::<Result<Vec<_>>>()?;
                 let project = Project::find(cli.project.as_deref())?;
                 root = Some(project.root.display().to_string());
-                let v = ops::check(&d, &project, &rules)?;
+                let v = ops::check_with(&d, &project, &rules, &key_values(params)?)?;
                 meta = (v.inputs_hash.clone(), None);
                 Ok(v)
             });

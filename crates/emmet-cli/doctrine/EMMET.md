@@ -28,6 +28,17 @@ Run → validate → render → fix, every time:
 
 `highlight` with a finding id (`finding: "F-0003"`) shows the user the parts you're talking about.
 
+`params.json` holds the user's slider settings: never write it. To check other values of your params (the widest,
+the smallest), call `validate` with `params`: it runs the model with them and checks that build in one call, and
+leaves `params.json` alone. Check the extremes once, together, at the end.
+
+## Keep it lean
+
+Every tool call costs the user time and plan usage. A first version is a draft and a few stages, each run and
+validated once: about 30 tool calls. Search for what you'll need in a few calls up front, write each stage in one
+edit, and render only when the picture would tell you something the numbers don't. Offer more checks or details in
+your reply instead of running them.
+
 ## Show a draft in the first minute
 
 The user should see something within a minute: the base and the outline of the walls, run and validated, before

@@ -1,9 +1,18 @@
 {
   "name": "validate",
-  "description": "Check the model: collisions, floating parts, and unknown or obsolete parts. Runs the model first if build/ is\nout of date. Each finding has an id, the parts, the model.py line that placed them, and a hint.",
+  "description": "Check the model: collisions, floating parts, and unknown or obsolete parts. Runs the model first if build/ is\nout of date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed\nthem, and a hint.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
+      "params": {
+        "additionalProperties": true,
+        "default": null,
+        "description": "Parameter values to check, on top of params.json, which isn't changed: runs the model with them first. Use it\nto check a slider's other values; params.json is the user's.",
+        "type": [
+          "object",
+          "null"
+        ]
+      },
       "rules": {
         "default": null,
         "description": "Only these rules: collision, floating, unknown_part, obsolete_part, alias_part (default: all).",

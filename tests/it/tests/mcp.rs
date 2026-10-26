@@ -458,6 +458,8 @@ async fn rules_and_api_return_the_doctrine_and_the_dsl() {
         "Build in visible stages",
         "Run → validate → render → fix",
         "Show a draft in the first minute",
+        "Keep it lean",
+        "never write it",
         "Say numbers",
         "ask_user",
         "user_notes",

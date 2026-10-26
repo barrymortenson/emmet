@@ -96,6 +96,10 @@ pub struct ValidateArgs {
     /// Only these rules: collision, floating, unknown_part, obsolete_part, alias_part (default: all).
     #[serde(default)]
     pub rules: Option<Vec<String>>,
+    /// Parameter values to check, on top of params.json, which isn't changed: runs the model with them first. Use it
+    /// to check a slider's other values; params.json is the user's.
+    #[serde(default)]
+    pub params: Option<BTreeMap<String, Value>>,
 }
 
 /// What `validate` returns: the counts, and the first findings (all of them are in build/validation.json).
@@ -362,7 +366,8 @@ impl EmmetMcp {
     }
 
     /// Check the model: collisions, floating parts, and unknown or obsolete parts. Runs the model first if build/ is
-    /// out of date. Each finding has an id, the parts, the model.py line that placed them, and a hint.
+    /// out of date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed
+    /// them, and a hint.
     #[tool(output_schema = schema_for_output::<Envelope<Checked>>())]
     async fn validate(&self, Parameters(args): Parameters<ValidateArgs>) -> CallToolResult {
         let started = Instant::now();
@@ -384,7 +389,7 @@ impl EmmetMcp {
                             })
                         })
                         .collect::<Result<Vec<_>>>()?;
-                    ops::check(&data, p, &rules)
+                    ops::check_with(&data, p, &rules, &args.params.unwrap_or_default())
                 })
             },
             |e| (Err(e), None),

@@ -365,7 +365,22 @@ pub fn built_placements(project: &Project) -> Result<(Vec<crate::ldraw::placemen
 /// Validates the project's current build (running the model first if build/ is stale) and, when every rule runs,
 /// writes build/validation.json. `rules` empty means every rule.
 pub fn check(data: &DataDir, project: &Project, rules: &[crate::check::Rule]) -> Result<crate::check::Validation> {
-    ensure_built(data, project)?;
+    check_with(data, project, rules, &BTreeMap::new())
+}
+
+/// [`check`] of the model run with `overrides` on top of params.json (params.json isn't changed): how an agent
+/// checks a slider's other values in one call.
+pub fn check_with(
+    data: &DataDir,
+    project: &Project,
+    rules: &[crate::check::Rule],
+    overrides: &BTreeMap<String, serde_json::Value>,
+) -> Result<crate::check::Validation> {
+    if overrides.is_empty() {
+        ensure_built(data, project)?;
+    } else {
+        run_model(data, project, overrides).0?;
+    }
     check_build(data, project, rules)
 }
 
