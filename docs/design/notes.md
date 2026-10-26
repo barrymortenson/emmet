@@ -45,3 +45,14 @@ Barry used 1C's plain chat pane on the cottage, with Claude Code on his Max plan
 8. **The baseplate as an option.** A baseplate of about 30 × 30 studs by default, which the user can turn off. The
    cottage already stands on the standard 32 × 32 baseplate (part 3811), the closest real size. 3B: every template
    gets a baseplate on/off parameter; with it off, the model starts at the ground instead of on the plate.
+
+## 2026-10-26, from the 1E hand run
+
+Homes proposed, not yet approved by Barry.
+
+9. **New can't start a blank model.** New always makes the cottage, so "New model from a prompt" (section 14's key
+   flow) has no way in from the app; the CLI already has `emmet new --template empty`. Proposed home: 4A, with New
+   offering "Start with the Cottage example" or "New model from a prompt" (an empty baseplate).
+10. **"Look again" doesn't say what it does.** It runs agent detection again (each CLI's version and sign-in), for
+    after installing an agent or signing in from a terminal. Proposed home: 4A, renamed (for example "Check agents
+    again") or replaced by re-detecting when the window regains focus.
