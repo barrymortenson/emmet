@@ -33,6 +33,9 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
   tools and the viewer updates as it works; approvals and questions appear as cards, and you can redirect it mid-turn
   or stop it. Claude Code uses your own sign-in; Codex runs on your OpenAI API key (Settings → Agents, kept in the
   keychain). `emmet rules` and `emmet api` print what the agent reads.
+- Checks (session 1D): `emmet check` finds collisions, floating parts, and unknown or obsolete parts, each with the
+  `model.py` line that placed it; `emmet bom` lists the parts. In the app, the Checks drawer highlights a finding's
+  parts and shows its line, and "Ask agent to fix" sends it to the chat; agent runs build up part by part.
 - CI on macOS and Windows, the license, SPDX, DCO, secret, and supply-chain checks, and the plan tracker check.
 - `just e2e`: end-to-end specs drive the real app through WebdriverIO (`tests/e2e/`): the live viewer, rendering with
   the app open, a killed run, a leak test, and visual baselines.
@@ -79,7 +82,10 @@ points git at the hooks in `.githooks/`. On Windows, run `just` from Git Bash.
 | `just ci` | What CI's mac job runs, scoped to what your changes can break (CI runs it for you) |
 | `just plan` | Check the status file and open the plan |
 | `just e2e [spec]` | Build the debug app with the embedded WebDriver server and run the E2E specs (`just e2e hello` runs one) |
-| `just eval`, `just screenshots`, `just bench`, `just release-dry`, `just release` | Not yet; each one names the session that adds it |
+| `just bench` | The viewer's load, update, and orbit timings in the real app |
+| `just eval --rung 1 --agent claude` | One live eval run on the eval API key (bills it; asks first). Quit the app first |
+| `just release-dry [--sign]` | A universal macOS `.dmg` (signed and notarized with `--sign`); on Windows, the NSIS installer |
+| `just screenshots`, `just release` | Not yet; each one names the session that adds it |
 
 Scripts run by hand: `scripts/scrub-transcript` (scrub an agent transcript before committing it),
 `scripts/make-ldraw-mini` and `scripts/make-rebrickable-mini` (rebuild the fixtures from the pinned downloads),

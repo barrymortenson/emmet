@@ -161,9 +161,10 @@ screenshots:
 bench: e2e-build
     EMMET_BENCH=1 pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs
 
-# Not yet: the signed demo build (release-dry --sign) comes in 1D.
+# A release build without a release (scripts/release-dry.sh): a universal .dmg on macOS (--sign: Developer ID,
+# notarized and stapled, H-05), the unsigned NSIS installer on Windows.
 release-dry *args:
-    @echo "just release-dry: not yet; session 1D adds it" && exit 1
+    scripts/release-dry.sh {{ args }}
 
 # Not yet: the version-bump PR helper arrives in 6A.
 release version:

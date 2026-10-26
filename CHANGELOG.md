@@ -60,6 +60,23 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   through the real MCP servers; replay, sentinel, and E2E chat tests for both agents. New dependencies (approved,
   ADR 0009): keyring-core with the macOS and Windows stores, and widestring on Windows.
 
+- Closing the loop (session 1D): validate v0 checks collisions (shrunk body boxes as oriented boxes), floating parts
+  (stud connections; the stud primitive table starts here), and unknown, obsolete, and alias parts, and writes
+  findings with ids, source lines, and hints to `build/validation.json` (`emmet check [--strict] [--rule]`, MCP
+  `validate`). bom v0 lists part × color × quantity (`emmet bom [--format json|csv]`, MCP `bom`). MCP `highlight` and
+  `emmet render --highlight` take a finding id. `[[check.allow]]` in emmet.toml allows a finding (ADR 0010).
+- The app's Checks drawer lists the findings; a click highlights the parts and shows the `model.py` lines that placed
+  them, and "Ask agent to fix" sends one to the chat. A Parts drawer lists the BOM. Agent runs build up in the viewer
+  part by part (`viewer.update(…, { animate: "build" })`, D-34); sliders stay instant. A Set up button installs the
+  library and Python on first run.
+- The doctrine's loop is run → validate → render → fix, with a draft in the first minute.
+- `just eval --rung 1 --agent claude|codex` (`emmet eval`): one live run through the real CLI on the eval API key,
+  scored per section 16.1 and written to `docs/evals/` (D-37, D-38). `--dry-run` runs it with the fake agents in CI.
+- `just release-dry [--sign]`: a universal macOS `.dmg` with the emmet and uv sidecars, signed with Developer ID,
+  notarized, and stapled with `--sign`; CI's `nsis` job builds the unsigned Windows installer.
+- Validator fixtures: `broken-*` projects, an unknown-part `.mpd`, and the five smallest stud-built OMR models
+  (`tests/fixtures/omr/`, CC BY 2.0, credited in its ATTRIBUTION.md).
+
 ### Security
 
 - emmet-bus authenticates both ways: the token never crosses the socket, each request and reply proves it bound to a
@@ -79,5 +96,9 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - `docs/design/notes.md` holds the design and feature notes from the 1C live check, required reading for 2A. 4A gets
   a default Emmet folder for new projects, 3B a baseplate on/off parameter in every template, 4B nurb-style agent
   switching with Start fresh, and choosing a step hides the later ones (section 13, 4C).
+- Body boxes keep underside tubes (a 1 x 1 round plate measured 3 LDU tall) and leave out hand-drawn corner studs
+  (door and window frames measured a stud taller than they stack); the parts index rebuilds itself (schema 2).
+- The app fills its window: the panes take the height left by the title bar, any notices, and the status bar.
+- The plan's rail shows one session under Up next, the first in plan order.
 - Checking for the Codex API key no longer reads it, so a rebuilt dev app doesn't ask for the login keychain password
   at launch; the key is read only when a Codex session starts.

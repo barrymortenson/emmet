@@ -35,5 +35,7 @@ flag e2e_mac '^(apps/|crates/|packages/|tests/(e2e|fixtures|replay|fake-agents)/
 # The agent bridge spawns the CLIs and talks to them over pipes: the chat specs run on Windows when it changes.
 flag e2e_windows '^(apps/desktop/src-tauri/|tests/e2e/|crates/emmet-agent/|tests/fake-agents/)'
 flag build_app '^apps/desktop/src-tauri/'
+# The unsigned NSIS installer (release-dry on Windows): a release build, so only when the release files change.
+flag nsis '^(scripts/release-dry\.sh|apps/desktop/src-tauri/tauri\.release\.conf\.json)$'
 # The bench asserts nothing (its numbers are a summary table), so it runs only with everything else.
 echo "bench=$full"

@@ -102,15 +102,15 @@ test("the aggregate ci check needs every other job, runs always, and lets only t
   const agg = jobs.ci;
   assert.match(agg, /^ {4}if: always\(\)$/m, "without always() a failed job skips ci, and a skipped required check passes");
   assert.deepEqual(agg.match(/needs: \[(.*)\]/)[1].split(/,\s*/).sort(), [...others].sort());
-  assert.match(agg, /RESULTS: \$\{\{ needs\.scope\.result \}\} \$\{\{ needs\.mac\.result \}\} \$\{\{ needs\.windows\.result \}\} \$\{\{ needs\.plan\.result \}\}\n/);
+  assert.match(agg, /RESULTS: \$\{\{ needs\.scope\.result \}\} \$\{\{ needs\.mac\.result \}\} \$\{\{ needs\.windows\.result \}\} \$\{\{ needs\.plan\.result \}\} \$\{\{ needs\.nsis\.result \}\}\n/);
   const pattern = new RegExp(agg.match(/=~ (.+) \]\]/)[1].replaceAll("\\ ", " "));
-  for (const ok of ["success success success success", "success skipped skipped success", "success success skipped success"]) {
+  for (const ok of ["success success success success success", "success skipped skipped success skipped", "success success skipped success skipped"]) {
     assert.match(ok, pattern, ok);
   }
-  for (const bad of ["skipped skipped skipped success", "success failure skipped success", "success skipped cancelled success", "success success success skipped"]) {
+  for (const bad of ["skipped skipped skipped success skipped", "success failure skipped success skipped", "success skipped cancelled success skipped", "success success success skipped skipped", "success success success success failure"]) {
     assert.doesNotMatch(bad, pattern, bad);
   }
-  for (const job of ["mac", "windows"]) {
+  for (const job of ["mac", "windows", "nsis"]) {
     assert.match(jobs[job], /^ {4}needs: scope\n {4}if: needs\.scope\.outputs\.\w+ == 'true'$/m, job);
   }
 });
@@ -144,8 +144,10 @@ for (const [change, runs] of [
   ["tests/fake-agents/src/lib.rs", "mac windows e2e_mac e2e_windows"],
   ["tests/replay/claude/plain-turn.jsonl", "mac windows e2e_mac"],
   ["deny.toml", "mac deps"],
-  ["Cargo.lock", "full mac windows deps e2e_mac e2e_windows build_app bench"],
-  [".github/workflows/ci.yml", "full mac windows deps e2e_mac e2e_windows build_app bench"],
+  ["scripts/release-dry.sh", "mac nsis"],
+  ["apps/desktop/src-tauri/tauri.release.conf.json", "mac windows e2e_mac e2e_windows build_app nsis"],
+  ["Cargo.lock", "full mac windows deps e2e_mac e2e_windows build_app nsis bench"],
+  [".github/workflows/ci.yml", "full mac windows deps e2e_mac e2e_windows build_app nsis bench"],
 ]) {
   test(`ci scope: ${change ?? "no change"} runs ${runs}`, { skip: process.platform === "win32" }, () => {
     assert.equal(scope(change), runs);
@@ -153,7 +155,7 @@ for (const [change, runs] of [
 }
 
 test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the changes to those after it", { skip: process.platform === "win32" }, () => {
-  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac windows deps e2e_mac e2e_windows build_app bench");
+  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac windows deps e2e_mac e2e_windows build_app nsis bench");
   const { dir, git } = tempRepo();
   writeFiles(dir, { "crates/a.rs": "" });
   git("add", "-A");
