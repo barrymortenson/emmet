@@ -40,7 +40,7 @@ read.
   (https://www.ldraw.org/docs-main/official-model-repository-omr/rules-and-procedures-for-the-official-model-repository.html)
   say legacy models use the dual 2.0/4.0 line unless the author re-licensed, and embedded parts keep their own line.
   The five shortlist files downloaded in 0B carry "Redistributable under CCAL version 2.0" (CC BY 2.0).
-- **Decision (Q-09):** yes. Small OMR models may be committed as fixtures (`tests/fixtures/omr/`, 3A) under the same
+- **Decision (Q-09):** yes. Small OMR models may be committed as fixtures (`tests/fixtures/omr/`, from 1D) under the same
   rule as ldraw-mini: unmodified, headers intact, an attribution file naming each model's author and license. Renders
   of OMR models (such as the rung 3 shortlist in `docs/spec/ladder/`) are not derivative works, and the ladder spec
   credits each model's author anyway.

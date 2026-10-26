@@ -845,7 +845,7 @@ def cottage(
 <tr><td><code>emmet doctor [--fix]</code> · <code>emmet trust</code></td><td>Environment check (Python, library, index, agents and their versions, render); trust the current project</td></tr>
 <tr><td><code>emmet mcp [--project dir] [--session id]</code></td><td>The stdio MCP server. <code>--session</code> is set only by the app, and turns on redirect notes (below)</td></tr>
 <tr><td><code>emmet mcp-host --session id</code></td><td>The app-internal <code>emmet_host</code> server (<code>approve</code>, <code>ask_user</code>) for the project (<code>--project</code>), which talks to the running app over the bus (<code>docs/spec/bus.md</code>). Hidden from <code>--help</code></td></tr>
-<tr><td><code>emmet eval --rung 1|2|3|photo --agent claude|codex [--runs 1]</code></td><td>Live eval (dev builds, and hidden in release builds)</td></tr>
+<tr><td><code>emmet eval --rung 1|2|3|photo --agent claude|codex [--dry-run] [--yes] [--out dir]</code></td><td>Live eval, one run (dev builds, and hidden in release builds). <code>--dry-run</code> runs it with the fake agents (CI); <code>--yes</code> skips the question before a live run</td></tr>
 </table></div>
 <p class="small">Global flags: <code>--project &lt;dir&gt;</code> (default: search upward from cwd), <code>--json</code> (the envelope; the default output is human-readable), <code>--data-dir</code> (override app data, used by tests and dev).</p>
 
@@ -1089,7 +1089,7 @@ pub struct Connection { a: (PlacedId, usize), b: (PlacedId, usize), kind: ConnKi
 
 <h3>Corpus</h3>
 <ul>
-<li><code>tests/fixtures/omr/</code>: 10 small official models committed (if ADR 0003 allows) for per-PR gates. The nightly job adds 20–40 larger ones, cached on the runner.</li>
+<li><code>tests/fixtures/omr/</code>: 10 small official models committed (ADR 0003) for per-PR gates: 1D's five smallest stud-built ones with current part ids, and five more in 3A. The nightly job adds 20–40 larger ones, cached on the runner.</li>
 <li><code>tests/it/validator_mutations.rs</code>: a seeded mutation generator over the corpus and the ladder reference models. It reports recall per rule.</li>
 <li><code>tests/fixtures/projects/broken-*</code>: one project per rule with exactly the expected findings, as a snapshot.</li>
 </ul>
@@ -1458,7 +1458,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <tr><td><code>just eval --rung N [--agent a]</code></td><td>Live eval (section 16.1). It bills Barry's API keys, so only Barry starts it: it shows the run count and expected cost, asks first, and stays within the D-38 budget.</td></tr>
 <tr><td><code>just screenshots</code></td><td>Light and dark screenshots of key screens into <code>docs/screenshots/</code> for PRs and the site.</td></tr>
 <tr><td><code>just bench</code></td><td>Viewer and validator benchmarks.</td></tr>
-<tr><td><code>just release-dry [--sign]</code></td><td>Builds the release artifacts locally, signed if asked.</td></tr>
+<tr><td><code>just release-dry [--sign]</code></td><td>Builds the release artifacts locally: a universal macOS <code>.dmg</code> with the emmet and uv sidecars (with <code>--sign</code>: Developer ID, notarized, and stapled, H-05), or the unsigned NSIS installer on Windows (CI's <code>nsis</code> job).</td></tr>
 <tr><td><code>just plan</code></td><td>Opens <code>docs/plan.html</code> and runs <code>scripts/plan-check.mjs</code>.</td></tr>
 </table></div>
 <ul class="small">
