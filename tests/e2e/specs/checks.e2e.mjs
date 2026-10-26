@@ -63,6 +63,8 @@ describe("checks", () => {
   });
 
   it("logged no console errors", async () => {
-    expect(await errors()).toEqual([]);
+    const all = await errors();
+    for (const e of all) console.log(`console error:\n${e}`);
+    expect(all).toEqual([]);
   });
 });

@@ -13,7 +13,8 @@ if (__EMMET_TEST_HOOKS__) {
   (window as unknown as { __emmetErrors: string[] }).__emmetErrors = errors;
   const original = console.error.bind(console);
   console.error = (...args: unknown[]) => {
-    errors.push(args.map(String).join(" "));
+    // With where it came from, so a spec can tell the app's errors from a test driver's.
+    errors.push(`${args.map(String).join(" ")}\n${new Error().stack ?? ""}`);
     original(...args);
   };
   window.addEventListener("error", (e) => errors.push(`uncaught: ${e.message}`));
