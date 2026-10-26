@@ -117,12 +117,13 @@ describe("Codex on the ChatGPT plan", () => {
     const r = JSON.parse(readFileSync(record, "utf8"));
     writeFileSync(record, JSON.stringify({ ...r, expires_at: Math.floor(Date.now() / 1000) + 600 }));
     setOpenAi({ refresh_delay_ms: 2000 });
-    await say("Reply with exactly the word: ready");
+    // Timed from the send: a command on the window's thread blocks the click itself until the renewal is done.
     const started = Date.now();
+    await say("Reply with exactly the word: ready");
     await browser.execute(() => 1);
     const ms = Date.now() - started;
     console.log(`window answered in ${ms} ms during the renewal`);
-    expect(ms).toBeLessThan(1000);
+    expect(ms).toBeLessThan(1500);
     await (await $("#chat-new")).waitForExist({ timeout: 30_000 });
     expect(JSON.parse(readFileSync(record, "utf8")).access_token).not.toBe(r.access_token);
     setOpenAi({});
