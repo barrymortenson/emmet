@@ -3,6 +3,29 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-25, setup for non-technical users and Google's agent
+
+- **D-41: agent setup without a terminal.** Barry wants Emmet to be for people who aren't technical and want to use
+  their AI plans, even small ones, so the barrier has to be low. Today a user installs Claude Code or Codex from a
+  terminal and signs in to Claude there; nurb and Orca expect the same. Barry chose to add all of it to the plan: a
+  new session, 1F (after 1C, beside 1D, 1E, and 2A), installs either CLI with the provider's own official installer
+  after one click and runs each CLI's own sign-in with no terminal, with plain guidance on which plans work. 4A
+  restyles it, and 4B adds a model and effort picker so small plans last longer.
+- **D-37 amended: best reading, not written confirmation.** Barry: providers are unlikely to answer questions about
+  their terms, so Emmet takes its best reading of the published text and tries it, instead of waiting for written
+  confirmation. Users see a notice that Emmet doesn't control what Anthropic, OpenAI, or Google do: it tries to follow
+  their policies, but they can change them or act on accounts, so use is at the user's own risk. The reasoning for
+  each such row goes in `docs/terms/`, and a feature is still switched off if its provider objects.
+- **H-20: no description to Anthropic.** For the same reason, Barry dropped sending Anthropic the description of how
+  Emmet runs Claude Code. H-20 is done (the Commercial Terms were accepted on 2026-10-24), 7B no longer waits on it,
+  and the draft (`docs/terms/anthropic-description.md`) is removed.
+- **D-42: Google's agent.** Gemini CLI was replaced by Antigravity CLI for free and Google One users on 2026-06-18.
+  Google bans third-party software that harvests or piggybacks on its CLI's sign-in; Emmet never touches it. Barry
+  noted that tools like nurb and Orca already use these CLIs this way. He chose terminal mode in 1F (checked by hand
+  in H-25) and the chat pane in a new session, 4F (after 1F, before 4B), running the user's unmodified `agy` in
+  Google's documented headless mode on his best reading, over waiting for Google's written answer (no YOU step to ask
+  Google) or keeping it in the backlog.
+
 ## 2026-10-24, session 0B
 
 - **H-03.** Both CLIs are signed in on this Mac: Claude Code on Barry's plan, Codex with ChatGPT

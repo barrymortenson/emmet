@@ -12,9 +12,7 @@ the site, apart from the catalog downloads. `terms-check` prints them as a check
 
 - **Anthropic** ([legal and compliance](https://code.claude.com/docs/en/legal-and-compliance)): every phrase section
   10 quotes is still there. The page also says products may accurately say "in plain text" that they run Claude Code.
-  H-20: Barry accepted the Commercial Terms through his Console account on 2026-10-24; the description of how Emmet
-  runs Claude Code (`anthropic-description.md`) waits for the website and a business email, and goes out before 7B
-  merges.
+  H-20: Barry accepted the Commercial Terms through his Console account on 2026-10-24.
 - **OpenAI** ([overview](https://developers.openai.com/siwc/token-sharing-open-source),
   [sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in),
   [app-server](https://learn.chatgpt.com/docs/app-server)): two of section 10's phrases have changed since planning.
@@ -26,9 +24,29 @@ the site, apart from the catalog downloads. `terms-check` prints them as a check
   a browser (both pages answer scripts with a Cloudflare challenge). Every phrase section 12 quotes is still there.
   The downloads page now also offers the complete catalog as one archive.
 
+## 2026-10-25: best reading, not written confirmation
+
+Barry amended D-37: providers rarely answer questions about their terms, so where the published text doesn't settle
+a use, Emmet builds on Barry's best reading of it, records the reasoning here, and shows users a notice that use is at
+their own risk. No description goes to Anthropic (H-20 is done with the Commercial Terms accepted), and no question
+goes to Google.
+
+- **Google** ([Gemini CLI terms](https://github.com/google-gemini/gemini-cli/blob/main/docs/resources/tos-privacy.md),
+  [FAQ](https://geminicli.com/docs/resources/faq/),
+  [quotas](https://geminicli.com/docs/resources/quota-and-pricing/),
+  [Antigravity headless mode](https://antigravity.google/docs/cli/headless/)): Gemini CLI "was replaced by
+  Antigravity CLI on June 18th, 2026" for unpaid and Google One users. Google forbids software that will "harvest or
+  piggyback on Gemini CLI's OAuth authentication to access our backend services". Antigravity's headless mode is
+  documented to "script agent tasks, integrate with CI pipelines, and capture machine-readable output", and "uses
+  your cached credentials". Barry's reading (D-42): the prohibition is about software that takes the CLI's sign-in to
+  call Google itself. Emmet starting the user's own unmodified `agy` in its documented headless mode, on the sign-in
+  the user gave `agy`, for turns the user starts, is use of Google's CLI, not of its sign-in; Google did the same with
+  Zed in 2025 ([Zed's post](https://zed.dev/blog/bring-your-own-agent-to-zed)). Terminal mode (1F) and the chat pane
+  (4F) are built on that. Two Google forum replies say the pattern is supported, from accounts with no Google role
+  shown, so they aren't relied on. 4F adds these phrases to `quotes.json`.
+
 ## Files
 
 - `quotes.json`: the phrases, their URLs, and what each one supports.
-- `anthropic-description.md`: the description of how Emmet runs Claude Code, for Barry to send later (H-20).
 
 These are readings of published terms for building Emmet, not legal advice.

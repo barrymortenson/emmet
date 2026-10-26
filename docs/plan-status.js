@@ -61,6 +61,7 @@ window.EMMET_STATUS = {
     },
     "1D": { status: "todo" },
     "1E": { status: "todo" },
+    "1F": { status: "todo" },
     "2A": { status: "todo" },
     "2B": { status: "todo" },
     "3A": { status: "todo" },
@@ -71,6 +72,7 @@ window.EMMET_STATUS = {
     "4C": { status: "todo" },
     "4D": { status: "todo" },
     "4E": { status: "todo" },
+    "4F": { status: "todo" },
     "5A": { status: "todo" },
     "5B": { status: "todo" },
     "6A": { status: "todo" },
@@ -102,11 +104,12 @@ window.EMMET_STATUS = {
     "H-17": { status: "done", note: "best-judgment search 2026-10-24; keep Emmet (D-30)" },
     "H-18": { status: "not-needed", note: "public from day one (D-12)" },
     "H-19": { status: "todo" },
-    "H-20": { status: "waiting", date: "2026-10-24", note: "Commercial Terms accepted through the Console account; legal page read 2026-10-24. The description to Anthropic waits for the website and a business email, before 7B merges" },
+    "H-20": { status: "done", date: "2026-10-24", note: "Commercial Terms accepted through the Console account; legal page read 2026-10-24. No description to Anthropic (Barry 2026-10-25, D-37)" },
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
     "H-22": { status: "todo" },
     "H-23": { status: "todo" },
-    "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" }
+    "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
+    "H-25": { status: "todo" }
   },
   blockers: [],
   gates: {
