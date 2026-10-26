@@ -59,7 +59,16 @@ window.EMMET_STATUS = {
       ],
       note: "Barry's design and feature notes from the live check go to docs/design/notes.md in a small PR, for 2A"
     },
-    "1D": { status: "in-progress", branch: "bmortenson/s1d-close-loop-signed-build", started: "2026-10-25" },
+    "1D": {
+      status: "review", pr: 17, branch: "bmortenson/s1d-close-loop-signed-build", started: "2026-10-25",
+      evidence: [
+        "CI ci check green #17 (run 40393047071: mac with E2E and bench, windows with E2E, nsis, plan)",
+        "tests/it/tests/{check,validator_corpus,eval}.rs; tests/e2e/specs/checks.e2e.mjs on both OSes",
+        "docs/evals/2026-10-26-rung1.md: rung 1 passes on Claude Code and Codex, each after one rerun (D-38)",
+        "H-05: notarized .dmg, spctl and stapler pass; docs/spec/sessions/1D/fresh-account.png"
+      ],
+      note: "G1 (H-06) is Barry's decision from the eval report and his own testing"
+    },
     "1E": { status: "todo" },
     "1F": { status: "todo" },
     "2A": { status: "todo" },
