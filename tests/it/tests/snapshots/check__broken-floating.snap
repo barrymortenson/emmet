@@ -1,0 +1,51 @@
+---
+source: tests/it/tests/check.rs
+expression: "snapshot(&dir, v)"
+---
+{
+  "data": {
+    "allowed": [],
+    "clean": false,
+    "counts": {
+      "floating": 1
+    },
+    "findings": [
+      {
+        "at": [
+          0.0,
+          0.0,
+          5.0
+        ],
+        "hint": "They start 1 plate above tower/1 (Brick 2 x 4), which ends at z=4: lower them by 1 plate, or put a part under them.",
+        "id": "F-0001",
+        "message": "2 parts at z=5 aren't held by any stud: they touch nothing below them.",
+        "parts": [
+          "tower/2",
+          "tower/cap"
+        ],
+        "rule": "floating",
+        "severity": "error",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 11
+          },
+          {
+            "file": "model.py",
+            "line": 12
+          }
+        ]
+      }
+    ],
+    "inputs_hash": "[inputs_hash]",
+    "schema": 1
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "<project>"
+  },
+  "ok": true,
+  "warnings": []
+}

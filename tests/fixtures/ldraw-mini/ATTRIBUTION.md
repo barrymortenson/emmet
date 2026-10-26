@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 177 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 186 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -33,6 +33,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/1-4cyli.dat | Cylinder 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4cylo.dat | Cylinder Open 0.25 | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4cyls.dat | Cylinder Sloped 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-4cyls2.dat | Cylinder Sloped 0.25 Convex | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4disc.dat | Disc 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4edge.dat | Circle 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ndis.dat | Disc Negative 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -51,6 +52,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/1-8ring8.dat | Ring  8 x 0.125 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-8sphe.dat | Sphere 0.125 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-8tang.dat | Disc Negative Tangent 0.125 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-8tndis.dat | Disc Negative Truncated 0.125 | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4chrd.dat | Chord 0.5 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4cylc.dat | Cylinder Closed 0.5 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4cyli.dat | Cylinder 0.5 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -59,6 +61,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/2-4disc.dat | Disc 0.5 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4edge.dat | Circle 0.5 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4ndis.dat | Disc Negative 0.5 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/2-4ring1.dat | Ring  1 x 0.5 | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4ring2.dat | Ring  2 x 0.5 | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4ring3.dat | Ring  3 x 0.5 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4ring4.dat | Ring  4 x 0.5 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -88,6 +91,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/3-8ndis.dat | Disc Negative 0.375 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-8ring12.dat | Ring 12 x 0.375 | Niels Karsdorp [nielsk] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-8ring2.dat | Ring  2 x 0.375 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/3-8ring3.dat | Ring  3 x 0.375 | Niels Karsdorp [nielsk] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/4-4con0.dat | Cone  0 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/4-4con1.dat | Cone  1 x 1.0 | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/4-4con10.dat | Cone 10 x 1.0 | Niels Karsdorp [nielsk] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -256,7 +260,10 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/tri4.dat | Triangular Prism with 2 Square Faces and 2 Triangular Faces | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/triangle.dat | Triangle | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/14769.dat | Tile  2 x  2 Round with Round Underside Stud | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/15570.dat | =Plate  1 x  1 Round | [PTadmin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/15573.dat | Plate  1 x  2 with Groove with 1 Centre Stud, without Understud | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/18860.dat | =Brick  1 x  1 Round with Hollow Stud | [PTadmin] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/20.dat | ~Wheel Centre Small for Steel Axle | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2357.dat | Brick  2 x  2 Corner | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2412b.dat | Tile  1 x  2 Grille with Groove | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/2423.dat | Plant Leaves  4 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -327,6 +334,8 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/3068b.dat | Tile  2 x  2 with Groove | Takeshi Takahashi [RainbowDolphin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3069b.dat | Tile  1 x  2 with Groove | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3070b.dat | Tile  1 x  1 with Groove | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/3137.dat | Brick  2 x  2 with Axle Brackets | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/3137c05.dat | Brick  2 x  2 with Red Wheels (Complete) with Tyres  6/ 50 x  8 Offset Tread | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3185.dat | Fence Lattice  1 x  4 x  2 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/32028.dat | Plate  1 x  2 with Door Rail | Remco Braak [remco1974] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/3245c.dat | Brick  1 x  2 x  2 without Understud | Stephan Meisinger [smr] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
@@ -341,6 +350,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/3622.dat | Brick  1 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3623.dat | Plate  1 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3633.dat | Fence Lattice  1 x  4 x  1 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/3641.dat | Tyre  6/ 50 x  8 Offset Tread | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3645.dat | Baseplate 24 x 40 | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3659.dat | Arch  1 x  4 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3660a.dat | ~Slope Brick 45  2 x  2 Inverted without Inner Stopper Ring (Obsolete) | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -465,6 +475,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/3460s01.dat | ~Plate  1 x  8 without Front Face | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3622s01.dat | ~Brick  1 x  3 without Front Face | Takeshi Takahashi [RainbowDolphin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3623s01.dat | ~Plate  1 x  3 without Front Face | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/3641s01.dat | ~Tyre  6/ 50 x  8 Offset Tread Eigth | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3660as01.dat | ~Slope Brick 45  2 x  2 Inverted without Inner Stopper Ring without Front Face | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3665as01.dat | ~Slope Brick 45  2 x  1 Inverted without Inner Stopper Ring and Front Face | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3666s01.dat | ~Plate  1 x  6 without Front Face | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -512,6 +523,9 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/u9097.dat | ~Train Track  9V Switch Right - Curved Metal Rail, End Section of Main Rail | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/u9098.dat | ~Train Track  9V Switch Right - Curved Metal Rail, Closure Rail | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/u9099.dat | ~Train Track  9V Switch Right - Curved Metal Rail, Frog Rail | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/u9132.dat | ~Axle Steel  4 x 72 LDU | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/u9132c01.dat | ~Axle Steel  4 x  72 LDU with Two Wheels  4 x  8 | William Howard [WilliamH] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/u9132c05.dat | ~Axle Steel  4 x  72 LDU with Two Wheels  4 x  8 with Tyres  6/ 50 x  8 Offset Tread | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/u9171.dat | ~Train Track  9V Switch - Internal Contact Plate | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/u9172.dat | ~Train Track  9V Switch Right - External Contact Plate | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/u9173.dat | ~Train Track  9V Switch - Internal Contact Plate for Switch Function | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |

@@ -125,6 +125,7 @@ async fn lists_exactly_the_tools_built_so_far() {
         names,
         [
             "api",
+            "bom",
             "get_params",
             "highlight",
             "list_colors",
@@ -133,7 +134,8 @@ async fn lists_exactly_the_tools_built_so_far() {
             "rules",
             "run_model",
             "search_parts",
-            "set_params"
+            "set_params",
+            "validate"
         ]
     );
     let info = client.service.peer_info().expect("server info");
@@ -333,6 +335,66 @@ async fn highlight() {
     assert!(!c.is_error, "{}", c.envelope);
     assert_eq!(c.envelope["data"]["delivered"], false);
     assert!(c.text.starts_with("Emmet app not open"), "{}", c.text);
+}
+
+/// A finding id highlights the finding's parts; one that build/validation.json doesn't have is a usage error.
+#[tokio::test]
+async fn highlight_a_finding() {
+    let dir = project("broken-collision");
+    let client = connect(Some(&dir)).await;
+    let v = client.call("validate", json!({})).await;
+    assert_eq!(v.envelope["data"]["findings"][0]["id"], "F-0001");
+    let c = client.call("highlight", json!({ "finding": "F-0001" })).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["delivered"], false, "no app is open");
+    let c = client.call("highlight", json!({ "finding": "F-0099" })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+    assert!(c.text.contains("F-0099"), "{}", c.text);
+}
+
+/// validate: counts and findings with ids, source lines, and hints, errors first; the text reads like a compiler's
+/// error list and points at build/validation.json.
+#[tokio::test]
+async fn validate_tool() {
+    let dir = project("broken-floating");
+    let client = connect(Some(&dir)).await;
+    assert_matches_committed(&client, "validate");
+    let c = client.call("validate", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    let data = &c.envelope["data"];
+    assert_eq!(data["total"], 1);
+    assert_eq!(data["clean"], false);
+    assert_eq!(data["counts_by_rule"], json!({ "floating": 1 }));
+    assert_eq!(data["findings"][0]["parts"], json!(["tower/2", "tower/cap"]));
+    assert_eq!(
+        data["findings"][0]["source"][0],
+        json!({ "file": "model.py", "line": 11 })
+    );
+    insta::assert_snapshot!(c.text);
+    assert!(dir.join("build/validation.json").is_file());
+    let c = client.call("validate", json!({ "rules": ["collision"] })).await;
+    assert_eq!(c.envelope["data"]["total"], 0);
+    assert_eq!(c.text, "No findings: the model is clean.");
+    let c = client.call("validate", json!({ "rules": ["wobbly"] })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+}
+
+/// bom: part × color × quantity with totals, the most-used lines first.
+#[tokio::test]
+async fn bom_tool() {
+    let dir = project("broken-floating");
+    let client = connect(Some(&dir)).await;
+    assert_matches_committed(&client, "bom");
+    let c = client.call("bom", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    let data = &c.envelope["data"];
+    assert_eq!(data["totals"], json!({ "pieces": 4, "lines": 3, "parts": 3 }));
+    assert_eq!(data["lines"][0]["part"], "3001");
+    assert_eq!(data["lines"][0]["qty"], 2);
+    assert_eq!(data["lines"][0]["color_name"], "Red");
+    insta::assert_snapshot!(c.text);
 }
 
 /// With `--session` (the app's chat), a tool result starts with what the user just said (D-33): `user_notes` in the

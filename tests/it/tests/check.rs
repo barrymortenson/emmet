@@ -1,0 +1,176 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//! `emmet check` (validate v0, plan section 11) and `emmet bom` against the project fixtures: each broken-* project
+//! gets exactly its findings, the cottage gets none at any slider setting, and build/validation.json is reproducible.
+
+use std::path::Path;
+
+use emmet_it::{emmet, emmet_in, envelope, project, redact, shared_data, temp_dir};
+use serde_json::{Value, json};
+
+fn check(dir: &Path, args: &[&str]) -> (Value, i32) {
+    let mut all = vec!["check"];
+    all.extend_from_slice(args);
+    emmet_in(dir, &all)
+}
+
+/// The envelope with the project's path and the build's inputs hash (it changes with every Emmet version) masked.
+fn snapshot(dir: &Path, v: Value) -> Value {
+    let mut v = redact(v, &[(dir, "<project>")]);
+    if let Some(h) = v.pointer_mut("/data/inputs_hash").filter(|h| h.is_string()) {
+        *h = json!("[inputs_hash]");
+    }
+    v
+}
+
+#[test]
+fn each_broken_project_gets_exactly_its_findings() {
+    for name in [
+        "broken-collision",
+        "broken-floating",
+        "broken-obsolete-part",
+        "broken-alias-part",
+    ] {
+        let dir = project(name);
+        let (v, code) = check(&dir, &[]);
+        assert_eq!(code, 0, "findings aren't errors without --strict: {v}");
+        insta::assert_json_snapshot!(name, snapshot(&dir, v));
+        let written: Value =
+            serde_json::from_slice(&std::fs::read(dir.join("build/validation.json")).unwrap()).unwrap();
+        let (again, _) = check(&dir, &[]);
+        assert_eq!(
+            written, again["data"],
+            "{name}: validation.json is the result, and the same twice"
+        );
+    }
+}
+
+#[test]
+fn strict_exits_1_on_errors_only() {
+    let (v, code) = check(&project("broken-collision"), &["--strict"]);
+    assert_eq!((code, v["ok"].clone()), (1, json!(true)), "{v}");
+    let (v, code) = check(&project("broken-obsolete-part"), &["--strict"]);
+    assert_eq!(code, 0, "warnings don't fail --strict: {v}");
+    let (v, code) = check(&project("broken-collision"), &["--rule", "floating", "--strict"]);
+    assert_eq!(code, 0, "--rule checks only that rule: {v}");
+    let (v, code) = check(&project("broken-collision"), &["--rule", "wobbly"]);
+    assert_eq!((code, v["error"]["code"].clone()), (3, json!("PARAM_INVALID")), "{v}");
+}
+
+#[test]
+fn check_runs_a_stale_model_first() {
+    let dir = project("broken-floating");
+    assert!(!dir.join("build").exists());
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["counts"], json!({ "floating": 1 }), "{v}");
+    // Lower the floating brick onto the first: the next check sees the edit without a run in between.
+    let model = dir.join("model.py");
+    let text = std::fs::read_to_string(&model).unwrap();
+    std::fs::write(
+        &model,
+        text.replace("at=(0, 0, 5)", "at=(0, 0, 4)")
+            .replace("at=(0, 0, 8)", "at=(0, 0, 7)"),
+    )
+    .unwrap();
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["findings"], json!([]), "{v}");
+    assert_eq!(v["data"]["clean"], true);
+}
+
+#[test]
+fn an_allowed_finding_moves_to_allowed() {
+    let dir = project("broken-floating");
+    let toml = dir.join("emmet.toml");
+    let mut text = std::fs::read_to_string(&toml).unwrap();
+    text.push_str(
+        "\n[[check.allow]]\nrule = \"floating\"\nparts = [\"tower/2\", \"tower/cap\"]\nreason = \"held by hand\"\n",
+    );
+    std::fs::write(&toml, text).unwrap();
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["findings"], json!([]), "{v}");
+    assert_eq!(v["data"]["allowed"][0]["reason"], "held by hand");
+    assert_eq!(v["data"]["clean"], true);
+}
+
+/// The rung 1 reference: the cottage template validates clean at its defaults and at the corners of its sliders, with
+/// no allow entries (plan section 21, 1D's What good looks like).
+#[test]
+fn the_cottage_validates_clean_at_every_corner() {
+    let dir = temp_dir("check-cottage").join("cottage");
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(shared_data())
+        .arg("new")
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert!(
+        !std::fs::read_to_string(dir.join("emmet.toml"))
+            .unwrap()
+            .contains("[check")
+    );
+    let corners: &[&[&str]] = &[
+        &[],
+        &["width=6", "depth=4", "wall_rows=6", "chimney=false"],
+        &["width=16", "depth=12", "wall_rows=9"],
+        &["width=6", "depth=12", "wall_rows=9"],
+        &["width=16", "depth=4", "wall_rows=6"],
+        &["width=11", "depth=10", "wall_rows=7", "chimney=false"],
+    ];
+    for set in corners {
+        if !set.is_empty() {
+            let mut args = vec!["params", "--set"];
+            args.extend_from_slice(set);
+            let (v, code) = emmet_in(&dir, &args);
+            assert_eq!(code, 0, "{v}");
+        }
+        let (v, code) = check(&dir, &["--strict"]);
+        assert_eq!(code, 0, "{set:?}: {v}");
+        assert_eq!(v["data"]["findings"], json!([]), "{set:?}: {v}");
+    }
+}
+
+/// `emmet run && emmet check` on a clean build/ reproduces validation.json byte for byte (plan section 07).
+#[test]
+fn validation_json_is_reproducible() {
+    let dir = project("broken-collision");
+    check(&dir, &[]);
+    let first = std::fs::read(dir.join("build/validation.json")).unwrap();
+    std::fs::remove_dir_all(dir.join("build")).unwrap();
+    emmet_in(&dir, &["run"]);
+    check(&dir, &[]);
+    assert_eq!(first, std::fs::read(dir.join("build/validation.json")).unwrap());
+}
+
+#[test]
+fn bom_lists_part_color_quantity() {
+    let dir = project("broken-floating");
+    let (v, code) = emmet_in(&dir, &["bom"]);
+    assert_eq!(code, 0, "{v}");
+    insta::assert_json_snapshot!(snapshot(&dir, v));
+    assert!(dir.join("build/bom.json").is_file());
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(shared_data())
+        .args(["bom", "--format", "csv", "--project"])
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let csv = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(
+        csv.lines().take(2).collect::<Vec<_>>(),
+        ["part,name,color,color_name,qty", "3001,Brick 2 x 4,4,Red,2"]
+    );
+    let (v, _) = envelope(
+        &emmet()
+            .arg("--json")
+            .arg("--data-dir")
+            .arg(shared_data())
+            .args(["bom", "--project"])
+            .arg(temp_dir("bom-none"))
+            .output()
+            .unwrap(),
+    );
+    assert_eq!(v["error"]["code"], "PROJECT_NOT_FOUND");
+}

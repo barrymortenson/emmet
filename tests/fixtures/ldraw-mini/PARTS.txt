@@ -75,8 +75,13 @@
 75542-f1 75542-f2   # 9V Switch Left, straight and branching
 2866    # 9V Points Lever
 
-# Aliases and an obsolete part (validator rules alias_part and obsolete_part)
+# Moved, obsolete, and alias parts (validator rules obsolete_part and alias_part)
 3023    # ~Moved to 3023b
 3040    # ~Moved to 3040b
 4073    # ~Moved to 6141
 3660a   # ~Slope Brick 45 2 x 2 Inverted (Obsolete)
+15570   # =Plate 1 x 1 Round (an alias of 6141)
+18860   # =Brick 1 x 1 Round with Hollow Stud (an alias of 3062b)
+
+# What the OMR fixtures use beyond the above (tests/fixtures/omr/)
+3137c05 # Brick 2 x 2 with Red Wheels (Complete)

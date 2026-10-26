@@ -1,0 +1,32 @@
+---
+source: tests/it/tests/validator_corpus.rs
+expression: v
+---
+{
+  "schema": 1,
+  "inputs_hash": null,
+  "clean": false,
+  "counts": {
+    "unknown_part": 1
+  },
+  "findings": [
+    {
+      "id": "F-0001",
+      "rule": "unknown_part",
+      "severity": "error",
+      "parts": [
+        "part/2",
+        "part/3"
+      ],
+      "source": [],
+      "at": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "message": "2 parts use '3001x', which isn't in the LDraw library.",
+      "hint": "Find the part with search_parts (emmet search) and use its id."
+    }
+  ],
+  "allowed": []
+}

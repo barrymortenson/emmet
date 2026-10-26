@@ -1,0 +1,45 @@
+0 FILE 544-1 - main.ldr
+0 main
+0 Name: 544-1 - main.ldr
+0 Author: Takeshi Takahashi [RainbowDolphin]
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 ROTATION CENTER 0 0 0 1 "Custom"
+0 ROTATION CONFIG 0 0
+1 0 0 0 0 1 0 0 0 1 0 0 0 1 544-1 - Car.ldr
+
+
+
+
+0 FILE 544-1 - Car.ldr
+0 Car
+0 Name: 544-1 - Car.ldr
+0 Author: Takeshi Takahashi [RainbowDolphin]
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+0 ROTATION CENTER 0 0 0 1 "Custom"
+0 ROTATION CONFIG 0 0
+1 4 0 0 20 1 0 0 0 1 0 0 0 1 3034.dat
+1 4 0 0 -20 1 0 0 0 1 0 0 0 1 3034.dat
+0 STEP
+1 4 -70 8 0 0 0 1 0 1 0 -1 0 0 3010.dat
+1 4 70 8 0 0 0 1 0 1 0 -1 0 0 3010.dat
+1 4 0 8 0 0 0 1 0 1 0 -1 0 0 3001.dat
+1 0 -40 8 0 0 0 1 0 1 0 -1 0 0 3137c05.dat
+1 0 40 8 0 0 0 1 0 1 0 -1 0 0 3137c05.dat
+0 STEP
+1 4 10 -24 0 0 0 1 0 1 0 -1 0 0 3010.dat
+1 4 30 -24 0 0 0 -1 0 1 0 1 0 0 3297.dat
+1 47 -10 -24 20 0 0 1 0 1 0 -1 0 0 3039.dat
+1 47 -10 -24 -20 0 0 1 0 1 0 -1 0 0 3039.dat
+0 STEP
+1 4 10 -32 20 1 0 0 0 1 0 0 0 1 3021.dat
+1 4 10 -32 -20 1 0 0 0 1 0 0 0 1 3021.dat
+
+
+
+
+
+
+
+

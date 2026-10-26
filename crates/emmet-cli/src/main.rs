@@ -60,6 +60,22 @@ enum Command {
         #[arg(long, hide = true)]
         cancel_on_eof: bool,
     },
+    /// Check the model for collisions, floating parts, and unknown or obsolete parts, and write build/validation.json.
+    /// Runs the model first if build/ is out of date.
+    Check {
+        /// Exit 1 when there's an error-severity finding.
+        #[arg(long)]
+        strict: bool,
+        /// Only these rules (repeatable): collision, floating, unknown_part, obsolete_part, alias_part.
+        #[arg(long = "rule", value_name = "RULE")]
+        rules: Vec<String>,
+    },
+    /// The parts list (part × color × quantity), written to build/bom.json. Runs the model first if build/ is out of
+    /// date.
+    Bom {
+        #[arg(long, value_enum, default_value_t = BomFormat::Json)]
+        format: BomFormat,
+    },
     /// Render the model to a PNG through the running app, or the app's hidden render mode when it isn't open. Runs
     /// the model first if build/ is out of date.
     Render {
@@ -127,6 +143,12 @@ enum Command {
         #[arg(long)]
         session: String,
     },
+}
+
+#[derive(Clone, Copy, PartialEq, clap::ValueEnum)]
+enum BomFormat {
+    Json,
+    Csv,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -261,6 +283,69 @@ fn main() -> ExitCode {
                     r.steps,
                     r.ms as f64 / 1000.0
                 )
+            })
+        }
+        Command::Check { strict, rules } => {
+            let mut root = None;
+            let mut meta = (None, None);
+            let out = data.and_then(|d| {
+                let rules = rules
+                    .iter()
+                    .map(|r| {
+                        emmet_core::check::Rule::parse(r).ok_or_else(|| {
+                            Error::new(
+                                emmet_core::envelope::ErrorCode::ParamInvalid,
+                                format!("There's no rule '{r}'."),
+                                "Use collision, floating, unknown_part, obsolete_part, or alias_part.",
+                            )
+                        })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                let v = ops::check(&d, &project, &rules)?;
+                meta = (v.inputs_hash.clone(), None);
+                Ok(v)
+            });
+            let errors = out.as_ref().map_or(0, |v| v.errors());
+            let out = Output {
+                result: out,
+                project: root,
+                inputs_hash: meta.0,
+                generation: meta.1,
+            };
+            let code = finish(&cli, started, out, check_text);
+            // Findings aren't errors; --strict makes error-severity findings exit 1 (plan section 09).
+            if code == ExitCode::SUCCESS && *strict && errors > 0 {
+                ExitCode::from(1)
+            } else {
+                code
+            }
+        }
+        Command::Bom { format } => {
+            let mut root = None;
+            let out = data.and_then(|d| {
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                ops::bom(&d, &project)
+            });
+            let mut out = Output::from(out);
+            out.project = root;
+            let csv = *format == BomFormat::Csv;
+            finish(&cli, started, out, |b| {
+                if csv {
+                    return emmet_core::bom::csv(b).trim_end().to_string();
+                }
+                let mut lines: Vec<String> = b
+                    .lines
+                    .iter()
+                    .map(|l| format!("{:>4} × {:<10} {:<24} {}", l.qty, l.part, l.color_name, l.name))
+                    .collect();
+                lines.push(format!(
+                    "{} pieces: {} parts in {} part × color lines → build/bom.json",
+                    b.totals.pieces, b.totals.parts, b.totals.lines
+                ));
+                lines.join("\n")
             })
         }
         Command::Render {
@@ -507,6 +592,37 @@ fn library_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &
             })
         }
     }
+}
+
+/// Findings as a compiler-style list: `error[collision] F-0001: …`, then `--> model.py:41` and `help:`.
+fn check_text(v: &emmet_core::check::Validation) -> String {
+    if v.findings.is_empty() {
+        let allowed = if v.allowed.is_empty() {
+            String::new()
+        } else {
+            format!(" ({} allowed in emmet.toml)", v.allowed.len())
+        };
+        return format!("No findings{allowed}. → build/validation.json");
+    }
+    let mut out = Vec::new();
+    for f in &v.findings {
+        let severity = serde_json::to_value(f.severity)
+            .ok()
+            .and_then(|s| s.as_str().map(String::from))
+            .unwrap_or_default();
+        out.push(format!("{severity}[{}] {}: {}", f.rule.name(), f.id, f.message));
+        for s in &f.source {
+            out.push(format!("  --> {}:{}", s.file, s.line));
+        }
+        out.push(format!("help: {}", f.hint));
+    }
+    let counts: Vec<String> = v.counts.iter().map(|(r, n)| format!("{n} {r}")).collect();
+    out.push(format!(
+        "{} findings ({}) → build/validation.json",
+        v.findings.len(),
+        counts.join(", ")
+    ));
+    out.join("\n")
 }
 
 /// `k=v` pairs as parameter values: JSON when the value parses as JSON (8, true, "Tan"), else the text itself.
