@@ -2,6 +2,7 @@
 //! The `emmet` CLI (plan section 09). Every command calls one `emmet_core` operation; this file parses arguments and
 //! prints the result, as the JSON envelope with `--json` or as text.
 
+mod eval;
 mod host;
 mod mcp;
 mod render;
@@ -137,12 +138,39 @@ enum Command {
         #[arg(long, value_name = "DIR", hide = true)]
         write_schemas: Option<PathBuf>,
     },
+    /// Live eval (plan section 16.1): one run of a ladder rung through a real agent CLI, on the eval API keys (D-37),
+    /// scored and written to docs/evals/. It says what it bills and asks first (D-38). A dev tool.
+    #[command(hide = !cfg!(debug_assertions))]
+    Eval {
+        #[arg(long, default_value = "1")]
+        rung: String,
+        #[arg(long, value_enum)]
+        agent: AgentArg,
+        /// For the fake agents (CI): no keychain, no question before it starts.
+        #[arg(long)]
+        dry_run: bool,
+        /// Don't ask before a live run.
+        #[arg(long)]
+        yes: bool,
+        /// Where the report and its render go (default: docs/evals/).
+        #[arg(long, value_name = "DIR")]
+        out: Option<PathBuf>,
+        /// Where to make the run's project (default: a new temp folder).
+        #[arg(long, value_name = "DIR")]
+        work: Option<PathBuf>,
+    },
     /// The app-internal `emmet_host` MCP server for a chat session: approve and ask_user, over the bus.
     #[command(hide = true)]
     McpHost {
         #[arg(long)]
         session: String,
     },
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum AgentArg {
+    Claude,
+    Codex,
 }
 
 #[derive(Clone, Copy, PartialEq, clap::ValueEnum)]
@@ -495,6 +523,54 @@ fn main() -> ExitCode {
             d.trim_end().to_string()
         }),
         Command::Api => finish(&cli, started, Output::from(Ok(mcp::API)), |d| d.trim_end().to_string()),
+        Command::Eval {
+            rung,
+            agent,
+            dry_run,
+            yes,
+            out,
+            work,
+        } => {
+            let opts = eval::Options {
+                rung: rung.clone(),
+                agent: match agent {
+                    AgentArg::Claude => emmet_agent::AgentKind::Claude,
+                    AgentArg::Codex => emmet_agent::AgentKind::Codex,
+                },
+                dry_run: *dry_run,
+                yes: *yes,
+                out: out.clone(),
+                work: work.clone(),
+            };
+            let result = data.and_then(|d| eval::eval(&d, &opts));
+            let pass = result.as_ref().is_ok_and(|r| r.pass);
+            let code = finish(&cli, started, result.into(), |r| {
+                let mut lines = vec![format!(
+                    "Rung 1 on {}: {} ({} min {} s, {} turns)",
+                    r.run.agent,
+                    if r.pass { "pass" } else { "fail" },
+                    r.run.seconds / 60,
+                    r.run.seconds % 60,
+                    r.run.turns
+                )];
+                for s in &r.scores {
+                    lines.push(format!(
+                        "  {} {}: {}",
+                        if s.pass { "ok " } else { "!! " },
+                        s.name,
+                        s.detail
+                    ));
+                }
+                lines.push(format!("Project: {}", r.project));
+                lines.join("\n")
+            });
+            // A run that finished but failed its scores exits 1, like a check under --strict.
+            if code == ExitCode::SUCCESS && !pass {
+                ExitCode::from(1)
+            } else {
+                code
+            }
+        }
         Command::McpHost { session } => {
             let out = data.and_then(|d| {
                 let project = Project::find(cli.project.as_deref())?;

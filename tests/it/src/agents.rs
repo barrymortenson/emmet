@@ -102,6 +102,7 @@ impl Rig {
                 env: vec![],
                 hub: hub(),
                 native_steer: true,
+                openai_key: None,
             },
             project,
             fake,

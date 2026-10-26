@@ -12,6 +12,23 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
+// What the rung 1 runs write: the cottage template, the hand-written rung 1 reference (1D's emmet eval dry run).
+const cottage = readFileSync(join(here, "../../crates/emmet-core/templates/cottage/model.py"), "utf8");
+const rung1 = readFileSync(join(here, "../../docs/spec/ladder.md"), "utf8")
+  .split("## Rung 1")[1]
+  .split("\n")
+  .filter((l) => l.startsWith(">"))
+  .map((l) => l.slice(1).trim())
+  .join(" ");
+const style = {
+  question: "Which style should the cottage have?",
+  header: "Style",
+  options: [
+    { label: "Classic: tan walls and a dark red roof", description: "Recommended" },
+    { label: "Modern: white walls and a black roof" },
+  ],
+};
+const finished = "The cottage is up: 8 x 6 studs, 6 bricks tall, 93 parts, 0 errors. Sliders: width, depth, wall rows, wall color, roof color, chimney.";
 const load = (cli, name) =>
   readFileSync(join(here, cli, `${name}.jsonl`), "utf8")
     .split("\n")
@@ -85,6 +102,26 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     result("toolu_run", placeholder),
     text("msg_0004", "Built it: the row is 10 bricks wide now."),
     done("Built it: the row is 10 bricks wide now."),
+    exit(0),
+  ]);
+
+  // Rung 1 through emmet eval (1D): a style question, the whole model written at once, run, validate.
+  save("claude", "rung1", "tool-call.jsonl", "rung 1's prompt: a question, model.py written, run_model, validate", [
+    meta,
+    user(rung1),
+    init,
+    ...search("msg_0001", "toolu_search1", "mcp__emmet_host__ask_user"),
+    use("msg_0002", "toolu_ask", "mcp__emmet_host__ask_user", style),
+    result("toolu_ask", placeholder),
+    use("msg_0003", "toolu_write", "Write", { file_path: "<WS>/project/model.py", content: cottage }),
+    result("toolu_write", "File created successfully at: <WS>/project/model.py"),
+    ...search("msg_0004", "toolu_search2", "mcp__emmet__run_model"),
+    use("msg_0005", "toolu_run", "mcp__emmet__run_model", {}),
+    result("toolu_run", placeholder),
+    use("msg_0006", "toolu_validate", "mcp__emmet__validate", {}),
+    result("toolu_validate", placeholder),
+    text("msg_0007", finished),
+    done(finished),
     exit(0),
   ]);
 
@@ -221,6 +258,20 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
       { label: "3 bricks", description: "A garden wall" },
     ],
   };
+  // Rung 1 through emmet eval (1D): a style question, model.py written whole (an add), run, validate.
+  const write = change.map((l) => {
+    const c = clone(l);
+    c.msg.params.item.changes = [{ path: "<WS>/project/model.py", kind: { type: "add" }, diff: cottage }];
+    return c;
+  });
+  save("codex", "rung1", "tool-call.jsonl, permissions-untrusted.jsonl", "rung 1's prompt: a question, model.py written, run_model, validate", [
+    ...turnText(head, rung1),
+    ...tool("emmet_host", "ask_user", style, 1),
+    ...write,
+    ...tool("emmet", "run_model", {}, 2),
+    ...tool("emmet", "validate", {}, 3),
+    ...finish(finished),
+  ]);
   save("codex", "ask-user", "tool-call.jsonl", "a real ask_user question, answered in the same turn", [
     ...turnText(head, "Build a wall."),
     ...tool("emmet_host", "ask_user", ask, 1),

@@ -145,9 +145,12 @@ ci:
     if [[ $bench == true ]]; then just bench; fi
     echo "ci: ok"
 
-# Not yet: live evals (section 16.1) arrive in 1D; they bill Barry's API keys and ask first.
-eval *args:
-    @echo "just eval: not yet; session 1D adds it (D-38)" && exit 1
+# A live eval (plan section 16.1): `just eval --rung 1 --agent claude` (or codex). One run through the real CLI on
+# the eval API key from the keychain (H-21, D-37); it says what it bills and asks first (D-38), then writes
+# docs/evals/<date>-rung1.md. Quit the app first: the eval answers on its bus. The build puts the app next to emmet for
+# the render.
+eval *args: build
+    target/debug/emmet eval {{ args }}
 
 # Not yet: light and dark screenshots of key screens, for PRs and the guide.
 screenshots:

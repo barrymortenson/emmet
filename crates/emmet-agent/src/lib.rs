@@ -135,6 +135,9 @@ pub struct SessionConfig {
     /// Deliver redirects natively mid-turn where the CLI supports it (ADR 0001); off, they wait for the next Emmet
     /// tool result instead.
     pub native_steer: bool,
+    /// An OpenAI API key for Codex in place of the one in the keychain: `emmet eval` passes Barry's eval key (D-37).
+    /// The app leaves it None.
+    pub openai_key: Option<String>,
 }
 
 /// A message the user sends to start a turn.

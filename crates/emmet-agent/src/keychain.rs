@@ -83,3 +83,19 @@ pub fn clear(env: &[(String, String)]) -> Result<()> {
         Err(e) => Err(failed(e)),
     }
 }
+
+/// A live-eval API key (H-21, D-37): the generic password Barry stored for this user under `service`
+/// (`emmet-eval-anthropic`, `emmet-eval-openai`) with `security add-generic-password -s <service> -a "$USER" -w`.
+/// Only `emmet eval` reads these; the app never does.
+pub fn eval_key(service: &str) -> Result<Option<String>> {
+    store()?;
+    let user = std::env::var("USER")
+        .or_else(|_| std::env::var("USERNAME"))
+        .unwrap_or_default();
+    let entry = keyring_core::Entry::new(service, &user).map_err(failed)?;
+    match entry.get_password() {
+        Ok(k) => Ok(Some(k.trim().to_string()).filter(|k| !k.is_empty())),
+        Err(keyring_core::Error::NoEntry) => Ok(None),
+        Err(e) => Err(failed(e)),
+    }
+}

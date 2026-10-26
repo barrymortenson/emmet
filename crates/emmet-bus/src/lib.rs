@@ -343,6 +343,16 @@ fn serve(conn: Stream, token: &str, seen: &std::sync::Mutex<Seen>, handler: &(dy
 
 /// Sends one message to the app for this data dir and waits up to `timeout` for the reply. Never fails: no app, a
 /// stale token file, or no answer in time is `delivered: false` with the reason.
+/// True when something answers on the socket `bus.json` names: an app (or `emmet eval`) is serving this data dir.
+/// [`Server::start`] takes the socket over, so a second server checks this first.
+pub fn listening(data: &DataDir) -> bool {
+    std::fs::read_to_string(info_path(data))
+        .ok()
+        .and_then(|t| serde_json::from_str::<Info>(&t).ok())
+        .and_then(|info| socket(&info.name).ok())
+        .is_some_and(|name| Stream::connect(name).is_ok())
+}
+
 pub fn send(data: &DataDir, message: Message, timeout: Duration) -> Reply {
     let Some(info) = std::fs::read_to_string(info_path(data))
         .ok()
