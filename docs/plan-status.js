@@ -49,7 +49,7 @@ window.EMMET_STATUS = {
       ],
       note: "Windows first load 7-8 s on CI's software WebGL misses section 13; check on real hardware (H-04, 1C)"
     },
-    "1C": { status: "in-progress", branch: "bmortenson/s1c-agent-bridge", started: "2026-10-25" },
+    "1C": { status: "review", pr: 13, branch: "bmortenson/s1c-agent-bridge", started: "2026-10-25" },
     "1D": { status: "todo" },
     "1E": { status: "todo" },
     "2A": { status: "todo" },
