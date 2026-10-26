@@ -239,6 +239,8 @@ const KIND_WORDS: Record<ApprovalKind, string> = {
 
 type Props = {
   project: ProjectView | null;
+  /** A message from elsewhere in the app for the agent ("Ask agent to fix"); each new `n` sends it once. */
+  ask: { text: string; n: number } | null;
   /** Bumped when Settings changes an agent's sign-in: detect again. */
   agentsChanged: number;
   /** A quiet line before the next turn: a plan limit at 90 % or more. */
@@ -252,7 +254,7 @@ type Props = {
   onAgent: (kind: AgentKind | null) => void;
 };
 
-export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits, onStatus, onAgent }: Props) {
+export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLimits, onStatus, onAgent }: Props) {
   const [chat, dispatch] = useReducer(reduce, empty);
   const [agents, setAgents] = useState<AgentView[] | null>(null);
   const [state, setState] = useState<ChatState | null>(null);
@@ -354,10 +356,12 @@ export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits,
     if (!resume) dispatch({ type: "reset", records: [], live: true });
   };
 
-  const send = async () => {
-    const t = text.trim();
+  /** Sends what's in the composer, or `given` (a message from elsewhere in the app): a turn, a redirect while the agent
+   * works, or the open question's Other answer. */
+  const send = async (given?: string) => {
+    const t = (given ?? text).trim();
     if (!t || !live) return;
-    setText("");
+    if (given == null) setText("");
     // While a question is open, what the user types is its Other answer (plan section 10).
     if (chat.question) {
       await run(() => commands.chatAnswer(chat.question!, { choices: [], other: t }));
@@ -375,6 +379,19 @@ export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits,
   };
 
   const stop = () => void run(() => commands.chatStop());
+
+  // "Ask agent to fix": the finding goes to the live session like a message the user typed.
+  const asked = useRef(0);
+  useEffect(() => {
+    if (!ask || ask.n === asked.current) return;
+    asked.current = ask.n;
+    if (!live) {
+      setError("Start a chat with an agent first, then ask it to fix the finding.");
+      return;
+    }
+    void send(ask.text);
+    // Only a new ask sends; send reads the session as it is then.
+  }, [ask]);
 
   const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {

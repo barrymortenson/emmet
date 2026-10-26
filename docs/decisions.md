@@ -3,6 +3,21 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-26, session 1D
+
+- **Up next shows one session.** Barry: the rail's Up next should name one session, not every unblocked one; fixed in
+  1D. It names the first in plan order whose "after" sessions are done (sections 19 and 20).
+- **A draft PR before the live evals and H-05.** With validate, the drawers, the eval harness, and the release dry
+  run built and tested, Barry chose a draft PR now, so CI runs on macOS and Windows while he runs `just eval` and does
+  H-05, over waiting until every Done when item holds or running CI by hand without a PR. The PR lists Done when 3
+  and 4 as pending him, and turns ready when they hold.
+- **The LDraw pin moves to 2026-10, and 6A mirrors each pinned library.** LDraw replaced `complete.zip` with 2026-10
+  today and serves no older complete archive, so fresh installs failed the sha256 check (found in H-05's
+  fresh-account check). Barry chose to bump the pin now and have 6A publish each pinned `complete.zip`, unmodified with
+  its attribution, as a GitHub Release asset that the library manager falls back to (plan section 12; CC BY allows it),
+  over accepting whatever release LDraw serves (installs would differ, and integrity would rest on HTTPS alone) or
+  bumping with no lasting fix (fresh installs break each month).
+
 ## 2026-10-25, design notes from the 1C live check
 
 - **Homes for the two features with no session.** Barry's notes are in `docs/design/notes.md`, required reading for

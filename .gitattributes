@@ -4,3 +4,5 @@
 *.icns binary
 # LDraw part files keep their CRLF line endings byte for byte (ADR 0003; scripts/ldraw-mini-check.mjs).
 tests/fixtures/ldraw-mini/** -text
+# The OMR models too: unmodified, as LDraw publishes them (ADR 0003).
+tests/fixtures/omr/*.mpd -text

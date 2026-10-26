@@ -1,6 +1,6 @@
 {
   "name": "search_parts",
-  "description": "Search LDraw parts by words and dimensions. Returns ids, names, categories, and sizes (x and y in studs, z in\nplates).",
+  "description": "Search LDraw parts by words and dimensions; `more` asks several queries in one call. Returns ids, names,\ncategories, and sizes (x and y in studs, z in plates), which is usually all you need to place a part.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
@@ -14,11 +14,22 @@
       },
       "limit": {
         "default": null,
-        "description": "How many parts to return (default 10, at most 100).",
+        "description": "How many parts to return (default 10, at most 100), per query.",
         "format": "uint",
         "minimum": 0,
         "type": [
           "integer",
+          "null"
+        ]
+      },
+      "more": {
+        "default": null,
+        "description": "More queries to answer in the same call (up to 9): look up everything a stage needs at once.",
+        "items": {
+          "type": "string"
+        },
+        "type": [
+          "array",
           "null"
         ]
       },
@@ -210,6 +221,13 @@
       },
       "SearchResult": {
         "properties": {
+          "more": {
+            "description": "The results of the other queries asked in the same call, in order.",
+            "items": {
+              "$ref": "#/$defs/SearchResult"
+            },
+            "type": "array"
+          },
           "parts": {
             "items": {
               "$ref": "#/$defs/SearchHit"

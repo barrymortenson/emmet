@@ -27,6 +27,22 @@ pub struct Config {
     pub agent: AgentConfig,
     #[serde(default)]
     pub run: RunConfig,
+    #[serde(default, skip_serializing_if = "CheckConfig::is_empty")]
+    pub check: CheckConfig,
+}
+
+/// `[check]`: findings the user has decided to allow (`[[check.allow]] rule = "floating", parts = ["flag/1"],
+/// reason = "…"`). The validator lists them under `allowed` instead of as findings.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct CheckConfig {
+    #[serde(default)]
+    pub allow: Vec<crate::check::Allow>,
+}
+
+impl CheckConfig {
+    fn is_empty(&self) -> bool {
+        self.allow.is_empty()
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

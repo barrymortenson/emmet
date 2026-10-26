@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The engine the CLI, the MCP server, and the app share: LDraw files, the library and its parts index, colors,
-//! projects, running a model, and the JSON envelope. The validator, BOM, and steps arrive in later sessions.
+//! projects, running a model, the validator (v0), the BOM, and the JSON envelope. Steps arrive in 3B.
 
 pub mod base64;
+pub mod bom;
+pub mod check;
 pub mod colors;
 pub mod data;
 pub mod envelope;

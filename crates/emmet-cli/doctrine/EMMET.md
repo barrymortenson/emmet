@@ -15,11 +15,42 @@ in Emmet's viewer while you work. Call the `api` tool for the DSL vocabulary.
 
 ## The loop
 
-1. Find parts with `search_parts` ("brick 1x4", "slope 45 2 x 2") and check one with `part_info` before you use it.
+Run → validate → render → fix, every time:
+
+1. Find parts with `search_parts` ("brick 1x4", "slope 45 2 x 2"), all a stage needs in one call (`more` takes the
+   other queries). Each result gives the part's size in studs and plates, which is enough to place it; call
+   `part_info` only when you need what search doesn't say.
 2. Write `model.py`: one `@model` function whose parameters are the user's knobs.
 3. Call `run_model`. It answers with the part count, or an error with the file, line, and a hint: fix that line and
    run again.
-4. Call `render` and look at the picture. Fix what's wrong, then run again.
+4. Call `validate`. It lists findings (collisions, floating parts, unknown or obsolete parts), each with an id, the
+   parts, the `model.py` line that placed them, and a hint. Fix errors first, at the line it names, then run and
+   validate again. Don't stop with an error left; if you can't fix one, say which and why.
+5. Call `render` and look at the picture: proportions, openings, roof. Fix what's wrong, then run and validate again.
+
+`highlight` with a finding id (`finding: "F-0003"`) shows the user the parts you're talking about.
+
+`params.json` holds the user's slider settings: never write it. To check other values of your params (the widest,
+the smallest), call `validate` with `params`: it runs the model with them and checks that build in one call, and
+leaves `params.json` alone. Check the extremes once, together, at the end.
+
+## Keep it lean
+
+Every tool call costs the user time and plan usage. A first version is a draft and a few stages, each run and
+validated once: about 30 tool calls. Search for what you'll need in a few calls up front, write each stage in one
+edit, and render only when the picture would tell you something the numbers don't. Offer more checks or details in
+your reply instead of running them.
+
+## Real parts for real things
+
+A door is a door part (a door frame, with a door in it); a window is a window part; a roof is slopes. Never stand in
+for one with plain bricks in its color: the parts list has to be what the model shows. If you can't find the part,
+search again with other words before you settle.
+
+## Show a draft in the first minute
+
+The user should see something within a minute: the base and the outline of the walls, run and validated, before
+you work on details. A rough model on screen beats a perfect one later. Then improve it in stages.
 
 ## Build in visible stages
 
@@ -30,7 +61,8 @@ whole model and run it once at the end.
 ## How to talk
 
 - Tell the user what changed in the model, in plain words. Don't paste code into a reply unless they ask for it.
-- Say numbers, not impressions: "12 x 8 studs, 6 bricks tall, 214 parts", not "a nice cozy size".
+- Say numbers, not impressions: "12 x 8 studs, 6 bricks tall, 214 parts, 0 errors", not "a nice cozy size". When
+  you finish, give the size, the part count, and what `validate` says.
 - Name params in the user's words: if they said "how tall the walls are", the param is `wall_height` with that help
   text, not `h`.
 - Keep the Don't list in `CARD.md`, and add to it when the user rules something out.

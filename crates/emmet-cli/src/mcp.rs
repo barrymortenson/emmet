@@ -33,9 +33,12 @@ pub struct SearchArgs {
     /// Only parts in this category (Brick, Plate, Slope, Tile, …).
     #[serde(default)]
     pub category: Option<String>,
-    /// How many parts to return (default 10, at most 100).
+    /// How many parts to return (default 10, at most 100), per query.
     #[serde(default)]
     pub limit: Option<usize>,
+    /// More queries to answer in the same call (up to 9): look up everything a stage needs at once.
+    #[serde(default)]
+    pub more: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -84,8 +87,39 @@ pub struct RenderArgs {
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct HighlightArgs {
     /// Emmet ids to highlight in the open app's viewer; an empty list clears the highlight.
+    #[serde(default)]
     pub ids: Vec<String>,
+    /// A finding id from validate ("F-0003"): highlights its parts.
+    #[serde(default)]
+    pub finding: Option<String>,
 }
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ValidateArgs {
+    /// Only these rules: collision, floating, unknown_part, obsolete_part, alias_part (default: all).
+    #[serde(default)]
+    pub rules: Option<Vec<String>>,
+    /// Parameter values to check, on top of params.json, which isn't changed: runs the model with them first. Use it
+    /// to check a slider's other values; params.json is the user's.
+    #[serde(default)]
+    pub params: Option<BTreeMap<String, Value>>,
+}
+
+/// What `validate` returns: the counts, and the first findings (all of them are in build/validation.json).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct Checked {
+    pub counts_by_rule: BTreeMap<String, usize>,
+    /// The first 50, errors first, in source order.
+    pub findings: Vec<emmet_core::check::Finding>,
+    pub total: usize,
+    /// No errors and no warnings.
+    pub clean: bool,
+}
+
+/// The most findings `validate` returns; the rest are in build/validation.json.
+const MAX_FINDINGS: usize = 50;
+/// How many findings the text summary lists.
+const SUMMARY_FINDINGS: usize = 10;
 
 /// Whether the open app showed the highlight.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -181,26 +215,44 @@ impl EmmetMcp {
         Project::find(self.project.as_deref())
     }
 
-    /// Search LDraw parts by words and dimensions. Returns ids, names, categories, and sizes (x and y in studs, z in
-    /// plates).
+    /// Search LDraw parts by words and dimensions; `more` asks several queries in one call. Returns ids, names,
+    /// categories, and sizes (x and y in studs, z in plates), which is usually all you need to place a part.
     #[tool(output_schema = schema_for_output::<Envelope<SearchResult>>())]
     async fn search_parts(&self, Parameters(args): Parameters<SearchArgs>) -> CallToolResult {
         let started = Instant::now();
         let data = self.data.clone();
         let out = blocking(
-            move || ops::search_parts(&data, &args.query, args.category.as_deref(), args.limit.unwrap_or(10)),
+            move || {
+                ops::search_many(
+                    &data,
+                    &args.query,
+                    &args.more.unwrap_or_default(),
+                    args.category.as_deref(),
+                    args.limit.unwrap_or(10),
+                )
+            },
             Err,
         )
         .await;
         result(started, out, RunMeta::default(), None, |r| {
-            if r.parts.is_empty() {
-                return format!("No parts match '{}'.", r.query);
+            let one = |r: &SearchResult| {
+                if r.parts.is_empty() {
+                    return format!("No parts match '{}'.", r.query);
+                }
+                r.parts
+                    .iter()
+                    .map(|p| format!("{} {}{}", p.id, p.name, size(p.size)))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            };
+            if r.more.is_empty() {
+                return one(r);
             }
-            r.parts
-                .iter()
-                .map(|p| format!("{} {}{}", p.id, p.name, size(p.size)))
+            std::iter::once(r)
+                .chain(r.more.iter())
+                .map(|q| format!("## {}\n{}", q.query, one(q)))
                 .collect::<Vec<_>>()
-                .join("\n")
+                .join("\n\n")
         })
     }
 
@@ -334,7 +386,76 @@ impl EmmetMcp {
         call
     }
 
-    /// Highlight parts by Emmet id in the open Emmet app's viewer. Says so when the app isn't open.
+    /// Check the model: collisions, floating parts, and unknown or obsolete parts. Runs the model first if build/ is
+    /// out of date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed
+    /// them, and a hint.
+    #[tool(output_schema = schema_for_output::<Envelope<Checked>>())]
+    async fn validate(&self, Parameters(args): Parameters<ValidateArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let (data, me) = (self.data.clone(), self.clone());
+        let (out, root) = blocking(
+            move || {
+                with_project(&me, |p| {
+                    let rules = args
+                        .rules
+                        .unwrap_or_default()
+                        .iter()
+                        .map(|r| {
+                            emmet_core::check::Rule::parse(r).ok_or_else(|| {
+                                Error::new(
+                                    emmet_core::envelope::ErrorCode::ParamInvalid,
+                                    format!("There's no rule '{r}'."),
+                                    "Use collision, floating, unknown_part, obsolete_part, or alias_part.",
+                                )
+                            })
+                        })
+                        .collect::<Result<Vec<_>>>()?;
+                    ops::check_with(&data, p, &rules, &args.params.unwrap_or_default())
+                })
+            },
+            |e| (Err(e), None),
+        )
+        .await;
+        let meta = RunMeta {
+            inputs_hash: out.as_ref().ok().and_then(|v| v.inputs_hash.clone()),
+            generation: None,
+        };
+        let out = out.map(|v| Checked {
+            counts_by_rule: v.counts,
+            total: v.findings.len(),
+            clean: v.clean,
+            findings: v.findings.into_iter().take(MAX_FINDINGS).collect(),
+        });
+        result(started, out, meta, root, validate_text)
+    }
+
+    /// The parts list: part × color × quantity, with totals. Runs the model first if build/ is out of date.
+    #[tool(output_schema = schema_for_output::<Envelope<emmet_core::bom::Bom>>())]
+    async fn bom(&self, Parameters(_): Parameters<NoArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let (data, me) = (self.data.clone(), self.clone());
+        let (out, root) = blocking(move || with_project(&me, |p| ops::bom(&data, p)), |e| (Err(e), None)).await;
+        result(started, out, RunMeta::default(), root, |b| {
+            let top: Vec<String> = b
+                .lines
+                .iter()
+                .take(8)
+                .map(|l| format!("{} × {} {}", l.qty, l.color_name, l.name))
+                .collect();
+            let more = if b.lines.len() > top.len() { ", …" } else { "" };
+            format!(
+                "{} pieces: {} parts in {} part × color lines. Most used: {}{more}. Availability arrives with the parts \
+                 data pack.",
+                b.totals.pieces,
+                b.totals.parts,
+                b.totals.lines,
+                top.join(", ")
+            )
+        })
+    }
+
+    /// Highlight parts in the open Emmet app's viewer, by Emmet id or by a finding id from validate. Says so when the
+    /// app isn't open.
     #[tool(output_schema = schema_for_output::<Envelope<Highlighted>>())]
     async fn highlight(&self, Parameters(args): Parameters<HighlightArgs>) -> CallToolResult {
         let started = Instant::now();
@@ -342,11 +463,14 @@ impl EmmetMcp {
         let (out, root) = blocking(
             move || {
                 with_project(&me, |p| {
+                    let mut ids = args.ids;
+                    ids.extend(args.finding);
+                    let ids = crate::render::expand_findings(p, &ids)?;
                     let reply = emmet_bus::send(
                         &data,
                         emmet_bus::Message::Highlight {
                             project: p.root.display().to_string(),
-                            ids: args.ids,
+                            ids,
                         },
                         std::time::Duration::from_secs(5),
                     );
@@ -399,6 +523,46 @@ impl EmmetMcp {
     }
 }
 
+/// Counts, then the first findings like a compiler's error list: `F-0001 error collision model.py:41 at (3, 4, 2):
+/// message Hint.`
+fn validate_text(c: &Checked) -> String {
+    if c.total == 0 {
+        return "No findings: the model is clean.".into();
+    }
+    let counts: Vec<String> = c.counts_by_rule.iter().map(|(r, n)| format!("{n} {r}")).collect();
+    let mut lines = vec![format!("{} findings: {}.", c.total, counts.join(", "))];
+    for f in c.findings.iter().take(SUMMARY_FINDINGS) {
+        let severity = serde_json::to_value(f.severity)
+            .ok()
+            .and_then(|s| s.as_str().map(String::from))
+            .unwrap_or_default();
+        let at = f
+            .source
+            .first()
+            .map_or(String::new(), |s| format!(" {}:{}", s.file, s.line));
+        let n = |v: f64| emmet_core::ldraw::num(v);
+        lines.push(format!(
+            "{} {severity} {}{at} at ({}, {}, {}): {} {}",
+            f.id,
+            f.rule.name(),
+            n(f.at[0]),
+            n(f.at[1]),
+            n(f.at[2]),
+            f.message,
+            f.hint
+        ));
+    }
+    if c.total > SUMMARY_FINDINGS {
+        lines.push(format!(
+            "…and {} more; the full list is in build/validation.json.",
+            c.total - SUMMARY_FINDINGS
+        ));
+    } else {
+        lines.push("The full list is in build/validation.json.".into());
+    }
+    lines.join("\n")
+}
+
 fn with_project<T>(me: &EmmetMcp, f: impl FnOnce(&Project) -> Result<T>) -> (Result<T>, Option<String>) {
     match me.find_project() {
         Ok(p) => (f(&p), Some(p.root.display().to_string())),
@@ -409,7 +573,8 @@ fn with_project<T>(me: &EmmetMcp, f: impl FnOnce(&Project) -> Result<T>) -> (Res
 fn size(s: Option<emmet_core::index::Size>) -> String {
     s.map(|s| {
         let n = |v: f64| emmet_core::ldraw::num((v * 100.0).round() / 100.0);
-        format!(": {} x {} studs, {} plates", n(s.x), n(s.y), n(s.z))
+        let plates = if n(s.z) == "1" { "plate" } else { "plates" };
+        format!(": {} x {} studs, {} {plates}", n(s.x), n(s.y), n(s.z))
     })
     .unwrap_or_default()
 }
@@ -484,9 +649,9 @@ impl ServerHandler for EmmetMcp {
         let mut info = ServerConfig::new(ServerCapabilities::builder().enable_tools().build());
         info.server_info = Implementation::new("emmet", emmet_core::version());
         info.instructions = Some(
-            "Emmet builds brick models from real LDraw parts. Edit model.py, call run_model, and fix what it reports. \
-             Find parts with search_parts and check one with part_info. Look at the result with render. Units: x right \
-             and y back in studs, z up in plates."
+            "Emmet builds brick models from real LDraw parts. Edit model.py, call run_model, then validate, and fix \
+             what they report. Find parts with search_parts and check one with part_info. Look at the result with \
+             render. Units: x right and y back in studs, z up in plates."
                 .into(),
         );
         info

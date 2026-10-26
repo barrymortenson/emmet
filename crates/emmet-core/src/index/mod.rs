@@ -20,7 +20,7 @@ use crate::ldraw::geometry::{Aabb, LibFiles, Measurer};
 use crate::ldraw::{Line, Meta};
 
 /// Bumped when the schema or what goes into it changes; an older index is rebuilt.
-const SCHEMA: &str = "1";
+const SCHEMA: &str = "2";
 
 const SYNONYMS: &str = include_str!("../../../../data/synonyms.toml");
 

@@ -845,7 +845,7 @@ def cottage(
 <tr><td><code>emmet doctor [--fix]</code> · <code>emmet trust</code></td><td>Environment check (Python, library, index, agents and their versions, render); trust the current project</td></tr>
 <tr><td><code>emmet mcp [--project dir] [--session id]</code></td><td>The stdio MCP server. <code>--session</code> is set only by the app, and turns on redirect notes (below)</td></tr>
 <tr><td><code>emmet mcp-host --session id</code></td><td>The app-internal <code>emmet_host</code> server (<code>approve</code>, <code>ask_user</code>) for the project (<code>--project</code>), which talks to the running app over the bus (<code>docs/spec/bus.md</code>). Hidden from <code>--help</code></td></tr>
-<tr><td><code>emmet eval --rung 1|2|3|photo --agent claude|codex [--runs 1]</code></td><td>Live eval (dev builds, and hidden in release builds)</td></tr>
+<tr><td><code>emmet eval --rung 1|2|3|photo --agent claude|codex [--dry-run] [--yes] [--out dir]</code></td><td>Live eval, one run (dev builds, and hidden in release builds). <code>--dry-run</code> runs it with the fake agents (CI); <code>--yes</code> skips the question before a live run</td></tr>
 </table></div>
 <p class="small">Global flags: <code>--project &lt;dir&gt;</code> (default: search upward from cwd), <code>--json</code> (the envelope; the default output is human-readable), <code>--data-dir</code> (override app data, used by tests and dev).</p>
 
@@ -1089,7 +1089,7 @@ pub struct Connection { a: (PlacedId, usize), b: (PlacedId, usize), kind: ConnKi
 
 <h3>Corpus</h3>
 <ul>
-<li><code>tests/fixtures/omr/</code>: 10 small official models committed (if ADR 0003 allows) for per-PR gates. The nightly job adds 20–40 larger ones, cached on the runner.</li>
+<li><code>tests/fixtures/omr/</code>: 10 small official models committed (ADR 0003) for per-PR gates: 1D's five smallest stud-built ones with current part ids, and five more in 3A. The nightly job adds 20–40 larger ones, cached on the runner.</li>
 <li><code>tests/it/validator_mutations.rs</code>: a seeded mutation generator over the corpus and the ladder reference models. It reports recall per rule.</li>
 <li><code>tests/fixtures/projects/broken-*</code>: one project per rule with exactly the expected findings, as a snapshot.</li>
 </ul>
@@ -1103,7 +1103,8 @@ pub struct Connection { a: (PlacedId, usize), b: (PlacedId, usize), kind: ConnKi
 <li>First run downloads the official complete library (<code>complete.zip</code> from library.ldraw.org) at the release pinned by this Emmet version, checks its sha256, and unzips it into app data (<code>~/Library/Application Support/com.emmetbuilder.emmet/ldraw/</code>, <code>%APPDATA%\com.emmetbuilder.emmet\ldraw\</code>). It shows a progress bar and is resumable. The unzip refuses entries that escape the target (zip-slip).</li>
 <li><code>emmet library update</code> moves to a newer pinned release that a later Emmet version ships. Projects record the release they last ran against, and the UI notes when a project was built on an older library.</li>
 <li>The release workflow builds and ships the parts index (<code>parts.sqlite</code>) for the pinned library, so first run doesn't spend a minute indexing. A local rebuild is <code>emmet library verify --reindex</code>.</li>
-<li><b>License.</b> The library is CC BY 4.0, with some older parts still CC BY 2.0. Both require attribution. The About screen, <code>NOTICE</code>, and the site credit LDraw.org and the part authors. Emmet doesn't modify or redistribute part files except in the <code>ldraw-mini</code> test fixture, which keeps every header and ships an <code>ATTRIBUTION.md</code>.</li>
+<li><b>License.</b> The library is CC BY 4.0, with some older parts still CC BY 2.0. Both require attribution. The About screen, <code>NOTICE</code>, and the site credit LDraw.org and the part authors. Emmet doesn't modify part files. It redistributes them only as the <code>ldraw-mini</code> test fixture, which keeps every header and ships an <code>ATTRIBUTION.md</code>, and, from 6A, as an unmodified mirror of each pinned <code>complete.zip</code>.</li>
+<li><b>The mirror (6A).</b> library.ldraw.org serves only the newest <code>complete.zip</code> and monthly incremental updates, so a pinned release can't be downloaded once LDraw publishes the next one (2026-10 replaced 2026-09 on 2026-10-26 and broke fresh installs). 6A publishes each pinned <code>complete.zip</code> unmodified, with its <code>CAreadme.txt</code> and sha256, as a GitHub Release asset on the repo; first run downloads from LDraw.org while it still serves the pinned release and from the mirror after. The pin moves only with an Emmet release.</li>
 <li><b>Path handling.</b> Subfile references are case-insensitive with mixed <code>\</code> and <code>/</code>. Index keys are lowercased, separators normalized, and <code>PathBuf</code> is used everywhere. Windows tests cover this.</li>
 </ul>
 
@@ -1458,7 +1459,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 <tr><td><code>just eval --rung N [--agent a]</code></td><td>Live eval (section 16.1). It bills Barry's API keys, so only Barry starts it: it shows the run count and expected cost, asks first, and stays within the D-38 budget.</td></tr>
 <tr><td><code>just screenshots</code></td><td>Light and dark screenshots of key screens into <code>docs/screenshots/</code> for PRs and the site.</td></tr>
 <tr><td><code>just bench</code></td><td>Viewer and validator benchmarks.</td></tr>
-<tr><td><code>just release-dry [--sign]</code></td><td>Builds the release artifacts locally, signed if asked.</td></tr>
+<tr><td><code>just release-dry [--sign]</code></td><td>Builds the release artifacts locally: a universal macOS <code>.dmg</code> with the emmet and uv sidecars (with <code>--sign</code>: Developer ID, notarized, and stapled, H-05), or the unsigned NSIS installer on Windows (CI's <code>nsis</code> job).</td></tr>
 <tr><td><code>just plan</code></td><td>Opens <code>docs/plan.html</code> and runs <code>scripts/plan-check.mjs</code>.</td></tr>
 </table></div>
 <ul class="small">
@@ -1475,7 +1476,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 
 <h3>One session, start to finish</h3>
 <ol class="steps">
-<li><b>Pick.</b> The rail's <i>Up next</i> lists sessions whose "after" sessions are done and whose before-start human steps are done. Sessions marked "can run alongside" may run in parallel (one agent per git worktree, at most two at once) when Barry says so for that run.</li>
+<li><b>Pick.</b> The rail's <i>Up next</i> names one session: the first in plan order whose "after" sessions are done, with any before-start human steps it still needs. Sessions marked "can run alongside" may run in parallel (one agent per git worktree, at most two at once) when Barry says so for that run; copy those from the session itself.</li>
 <li><b>Copy and paste.</b> <b>Copy prompt with rules</b> → paste into Claude Code or Codex in <code>~/Sites/emmet</code> (or a worktree). The clipboard holds the agent rules, the session's goal, what gets built, Done when, What good looks like, the sections to read, and the prompt.</li>
 <li><b>Check, spec, build.</b> The agent verifies the prerequisites against <code>origin/main</code>, sets the session to <code>in-progress</code> in <code>docs/plan-status.js</code> as its first commit, writes a short spec (<code>docs/spec/sessions/&lt;id&gt;.md</code>: each acceptance item → the test that proves it), then builds with tests.</li>
 <li><b>Hand over.</b> <code>just check</code> and <code>just test --changed</code> green locally and the PR's <code>ci</code> check green; one PR whose description repeats the Done when list, each item ticked with evidence (test name, command plus result line, screenshot); the status set to <code>review</code> with the PR number. Then it stops. In Claude Code, <code>/create-pr</code> (<code>.claude/commands/create-pr.md</code>) does this step and then runs the PR review toolkit on the PR, fixing what holds up. The agent runs it only when the work is ready; Barry can run it at any point.</li>
@@ -1617,7 +1618,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <li><code>done</code> needs <code>pr</code> and at least one evidence line. A session's status changes only on that session's branch (or on the reconcile branch).</li>
 <li><code>scripts/plan-check.mjs</code> (Node, no dependencies, written in 0A) runs in CI and fails when: an id in the status file doesn't exist in this plan or the reverse; a status value is invalid; <code>done</code> lacks a PR or evidence; <code>blocked</code> lacks an open blocker; a session is <code>in-progress</code>/<code>review</code>/<code>done</code> while a session it comes after is not done (a warning, not a failure, when Barry allowed it); or a session's <code>data-after</code> names a session that doesn't exist.</li>
 </ul>
-<p class="small">The rail shows: overall progress (sessions done of the total, excluding Phase 8), <i>Working on</i>, <i>Up next</i> with a copy button, <i>Waiting on you</i> (human steps that block a session that's up next or underway), <i>Blocked</i>, the gates, and a bar per phase. If the file is missing or broken, the rail says so and nothing shows as done.</p>
+<p class="small">The rail shows: overall progress (sessions done of the total, excluding Phase 8), <i>Working on</i>, <i>Up next</i> (one session) with a copy button, <i>Waiting on you</i> (human steps that block a session that's up next or underway), <i>Blocked</i>, the gates, and a bar per phase. If the file is missing or broken, the rail says so and nothing shows as done.</p>
 </section>
 
 <!-- ============================================================ 21 -->
@@ -2458,6 +2459,7 @@ pass in about an hour, then wait for my results and fix what I find before openi
 <li><code>docs/release.md</code>: the runbook covering tag, verify, publish, rollback, and a revoked-key procedure.</li>
 <li>A log-scan step that fails the release if anything secret-shaped appears in the job logs.</li>
 <li><code>parts-data.yml</code>: a weekly hosted-runner workflow that downloads Rebrickable's archive once, runs <code>scripts/build-parts-data</code> and its checks, signs the pack, and publishes it and <code>parts-data.json</code> as a GitHub Release on the repo. The app's weekly data check and rollback to the previous pack, plus a smoke test.</li>
+<li>The LDraw library mirror (section 12): each pinned <code>complete.zip</code>, unmodified, as a GitHub Release asset with its sha256 and attribution; the library manager falls back to it when LDraw.org serves a newer release, and a test installs from it.</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
@@ -2689,10 +2691,11 @@ the terms don't allow it.</code></pre></details>
 <details id="g-h05"><summary>H-05 Signing and notarization (about 20 minutes)</summary>
 <ol class="small">
 <li>developer.apple.com → Certificates → <b>+</b> → <b>Developer ID Application</b> (needs the Account Holder role). Create the CSR in Keychain Access (Certificate Assistant → Request a Certificate…), upload it, download the certificate, and double-click it to install into the login keychain.</li>
-<li>Check: <code>security find-identity -v -p codesigning</code> lists <i>Developer ID Application: &lt;your name&gt; (TEAMID)</i>.</li>
+<li>Check: <code>security find-identity -v -p codesigning</code> lists <i>Developer ID Application: &lt;your name&gt; (TEAMID)</i>. If it shows up only without <code>-v</code>, the keychain lacks Apple's intermediate: <code>curl -fsSLo /tmp/DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer &amp;&amp; security add-certificates -k ~/Library/Keychains/login.keychain-db /tmp/DeveloperIDG2CA.cer</code>.</li>
 <li>App Store Connect → Users and Access → Integrations → App Store Connect API → generate a Team key with the Developer role. Download the <code>.p8</code> (you only get one chance).</li>
 <li>Store it for notarytool: <code>xcrun notarytool store-credentials emmet-notary --key ~/Downloads/AuthKey_XXXX.p8 --key-id XXXX --issuer &lt;issuer-id&gt;</code>. Then move the <code>.p8</code> into your password manager and delete it from Downloads.</li>
 <li>Tell the agent your Team ID (not a secret). The release job uses the keychain identity and the <code>emmet-notary</code> profile on the self-hosted runner, so no Apple secret goes into GitHub.</li>
+<li>Run <code>just release-dry --sign</code> (it notarizes, staples, and runs spctl and stapler). The agent copies the <code>.dmg</code> to <code>/Users/Shared</code> marked as downloaded; open it in a new Standard account, click Set up, and build a model. Then log that account out and delete it: while a second account stays logged in, the self-hosted runner's mac E2E times out waiting for frames (1D).</li>
 </ol>
 </details>
 <details id="g-h06"><summary>H-06 G1: eval, test, decide</summary>
@@ -3034,9 +3037,10 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
   var doneN = counted.filter(function (id) { return DONE[sst(id)]; }).length;
   var pct = counted.length ? Math.round(doneN / counted.length * 100) : 0;
   var now = ids.filter(function (id) { var st = sst(id); return st === "in-progress" || st === "review"; });
+  // One session, the first in plan order whose "after" sessions are done (section 19, Pick).
   var next = counted.filter(function (id) {
     return sst(id) === "todo" && words(byId[id], "data-after").every(function (a) { return DONE[sst(a)]; });
-  });
+  }).slice(0, 1);
   var blocked = ids.filter(function (id) { return sst(id) === "blocked"; });
   var openBlk = ((S && S.blockers) || []).filter(function (b) { return !b.closed; });
   var waiting = {};

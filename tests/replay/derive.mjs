@@ -12,6 +12,30 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
+// What the rung 1 runs write: the cottage template, the hand-written rung 1 reference (1D's emmet eval dry run).
+const cottage = readFileSync(join(here, "../../crates/emmet-core/templates/cottage/model.py"), "utf8");
+const rung1 = readFileSync(join(here, "../../docs/spec/ladder.md"), "utf8")
+  .split("## Rung 1")[1]
+  .split("\n")
+  .filter((l) => l.startsWith(">"))
+  .map((l) => l.slice(1).trim())
+  .join(" ");
+const style = {
+  question: "Which style should the cottage have?",
+  header: "Style",
+  options: [
+    { label: "Classic: tan walls and a dark red roof", description: "Recommended" },
+    { label: "Modern: white walls and a black roof" },
+  ],
+};
+// The fix-a-finding flow (1D): what "Ask agent to fix" sends for broken-collision's F-0001, and the fix.
+const askFix =
+  "Fix F-0001 (collision, parts wall/a, wall/b at model.py:10, model.py:11): wall/a (Brick 2 x 4) and wall/b (Brick 2 x 4) " +
+  "overlap by 1 stud. They share 1 stud side by side. Move wall/b by 1 stud, or use a shorter part. Then run validate again.";
+const before = '    m.add("3001", "Blue", at=(1, 0, 1), id="wall/b")';
+const after = '    m.add("3001", "Blue", at=(2, 0, 1), id="wall/b")';
+const fixed = "Fixed F-0001: wall/b now starts at x=2, beside wall/a. validate reports 0 findings.";
+const finished = "The cottage is up: 8 x 6 studs, 6 bricks tall, 93 parts, 0 errors. Sliders: width, depth, wall rows, wall color, roof color, chimney.";
 const load = (cli, name) =>
   readFileSync(join(here, cli, `${name}.jsonl`), "utf8")
     .split("\n")
@@ -85,6 +109,49 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     result("toolu_run", placeholder),
     text("msg_0004", "Built it: the row is 10 bricks wide now."),
     done("Built it: the row is 10 bricks wide now."),
+    exit(0),
+  ]);
+
+  // Rung 1 through emmet eval (1D): a style question, the whole model written at once, run, validate.
+  save("claude", "rung1", "tool-call.jsonl", "rung 1's prompt: a question, model.py written, run_model, validate", [
+    meta,
+    user(rung1),
+    init,
+    ...search("msg_0001", "toolu_search1", "mcp__emmet_host__ask_user"),
+    use("msg_0002", "toolu_ask", "mcp__emmet_host__ask_user", style),
+    result("toolu_ask", placeholder),
+    use("msg_0003", "toolu_write", "Write", { file_path: "<WS>/project/model.py", content: cottage }),
+    result("toolu_write", "File created successfully at: <WS>/project/model.py"),
+    ...search("msg_0004", "toolu_search2", "mcp__emmet__run_model"),
+    use("msg_0005", "toolu_run", "mcp__emmet__run_model", {}),
+    result("toolu_run", placeholder),
+    use("msg_0006", "toolu_validate", "mcp__emmet__validate", {}),
+    result("toolu_validate", placeholder),
+    text("msg_0007", finished),
+    done(finished),
+    exit(0),
+  ]);
+
+  save("claude", "fix-collision", "tool-call.jsonl", "a finding sent by Ask agent to fix: validate, an Edit at its line, run, validate", [
+    meta,
+    user(askFix),
+    init,
+    ...search("msg_0001", "toolu_search1", "mcp__emmet__validate"),
+    use("msg_0002", "toolu_validate1", "mcp__emmet__validate", {}),
+    result("toolu_validate1", placeholder),
+    use("msg_0003", "toolu_edit", "Edit", {
+      file_path: "<WS>/project/model.py",
+      old_string: before,
+      new_string: after,
+      replace_all: false,
+    }),
+    result("toolu_edit", "The file <WS>/project/model.py has been updated successfully."),
+    use("msg_0004", "toolu_run", "mcp__emmet__run_model", {}),
+    result("toolu_run", placeholder),
+    use("msg_0005", "toolu_validate2", "mcp__emmet__validate", {}),
+    result("toolu_validate2", placeholder),
+    text("msg_0006", fixed),
+    done(fixed),
     exit(0),
   ]);
 
@@ -221,6 +288,35 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
       { label: "3 bricks", description: "A garden wall" },
     ],
   };
+  // Rung 1 through emmet eval (1D): a style question, model.py written whole (an add), run, validate.
+  const write = change.map((l) => {
+    const c = clone(l);
+    c.msg.params.item.changes = [{ path: "<WS>/project/model.py", kind: { type: "add" }, diff: cottage }];
+    return c;
+  });
+  save("codex", "rung1", "tool-call.jsonl, permissions-untrusted.jsonl", "rung 1's prompt: a question, model.py written, run_model, validate", [
+    ...turnText(head, rung1),
+    ...tool("emmet_host", "ask_user", style, 1),
+    ...write,
+    ...tool("emmet", "run_model", {}, 2),
+    ...tool("emmet", "validate", {}, 3),
+    ...finish(finished),
+  ]);
+  const edit = change.map((l) => {
+    const c = clone(l);
+    c.msg.params.item.changes = [
+      { path: "<WS>/project/model.py", kind: { type: "update", move_path: null }, diff: `@@ -11 +11 @@\n-${before}\n+${after}\n` },
+    ];
+    return c;
+  });
+  save("codex", "fix-collision", "tool-call.jsonl, permissions-untrusted.jsonl", "a finding sent by Ask agent to fix: validate, a fileChange at its line, run, validate", [
+    ...turnText(head, askFix),
+    ...tool("emmet", "validate", {}, 1),
+    ...edit,
+    ...tool("emmet", "run_model", {}, 2),
+    ...tool("emmet", "validate", {}, 3),
+    ...finish(fixed),
+  ]);
   save("codex", "ask-user", "tool-call.jsonl", "a real ask_user question, answered in the same turn", [
     ...turnText(head, "Build a wall."),
     ...tool("emmet_host", "ask_user", ask, 1),

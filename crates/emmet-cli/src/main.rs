@@ -2,6 +2,7 @@
 //! The `emmet` CLI (plan section 09). Every command calls one `emmet_core` operation; this file parses arguments and
 //! prints the result, as the JSON envelope with `--json` or as text.
 
+mod eval;
 mod host;
 mod mcp;
 mod render;
@@ -59,6 +60,25 @@ enum Command {
         /// way.
         #[arg(long, hide = true)]
         cancel_on_eof: bool,
+    },
+    /// Check the model for collisions, floating parts, and unknown or obsolete parts, and write build/validation.json.
+    /// Runs the model first if build/ is out of date.
+    Check {
+        /// Exit 1 when there's an error-severity finding.
+        #[arg(long)]
+        strict: bool,
+        /// Only these rules (repeatable): collision, floating, unknown_part, obsolete_part, alias_part.
+        #[arg(long = "rule", value_name = "RULE")]
+        rules: Vec<String>,
+        /// Check the model run with these values, on top of params.json (which isn't changed).
+        #[arg(long = "params", value_name = "K=V", num_args = 1..)]
+        params: Vec<String>,
+    },
+    /// The parts list (part × color × quantity), written to build/bom.json. Runs the model first if build/ is out of
+    /// date.
+    Bom {
+        #[arg(long, value_enum, default_value_t = BomFormat::Json)]
+        format: BomFormat,
     },
     /// Render the model to a PNG through the running app, or the app's hidden render mode when it isn't open. Runs
     /// the model first if build/ is out of date.
@@ -121,12 +141,45 @@ enum Command {
         #[arg(long, value_name = "DIR", hide = true)]
         write_schemas: Option<PathBuf>,
     },
+    /// Live eval (plan section 16.1): one run of a ladder rung through a real agent CLI, on the eval API keys (D-37),
+    /// scored and written to docs/evals/. It says what it bills and asks first (D-38). A dev tool.
+    #[command(hide = !cfg!(debug_assertions))]
+    Eval {
+        #[arg(long, default_value = "1")]
+        rung: String,
+        #[arg(long, value_enum)]
+        agent: AgentArg,
+        /// For the fake agents (CI): no keychain, no question before it starts.
+        #[arg(long)]
+        dry_run: bool,
+        /// Don't ask before a live run.
+        #[arg(long)]
+        yes: bool,
+        /// Where the report and its render go (default: docs/evals/).
+        #[arg(long, value_name = "DIR")]
+        out: Option<PathBuf>,
+        /// Where to make the run's project (default: a new temp folder).
+        #[arg(long, value_name = "DIR")]
+        work: Option<PathBuf>,
+    },
     /// The app-internal `emmet_host` MCP server for a chat session: approve and ask_user, over the bus.
     #[command(hide = true)]
     McpHost {
         #[arg(long)]
         session: String,
     },
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum AgentArg {
+    Claude,
+    Codex,
+}
+
+#[derive(Clone, Copy, PartialEq, clap::ValueEnum)]
+enum BomFormat {
+    Json,
+    Csv,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -261,6 +314,69 @@ fn main() -> ExitCode {
                     r.steps,
                     r.ms as f64 / 1000.0
                 )
+            })
+        }
+        Command::Check { strict, rules, params } => {
+            let mut root = None;
+            let mut meta = (None, None);
+            let out = data.and_then(|d| {
+                let rules = rules
+                    .iter()
+                    .map(|r| {
+                        emmet_core::check::Rule::parse(r).ok_or_else(|| {
+                            Error::new(
+                                emmet_core::envelope::ErrorCode::ParamInvalid,
+                                format!("There's no rule '{r}'."),
+                                "Use collision, floating, unknown_part, obsolete_part, or alias_part.",
+                            )
+                        })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                let v = ops::check_with(&d, &project, &rules, &key_values(params)?)?;
+                meta = (v.inputs_hash.clone(), None);
+                Ok(v)
+            });
+            let errors = out.as_ref().map_or(0, |v| v.errors());
+            let out = Output {
+                result: out,
+                project: root,
+                inputs_hash: meta.0,
+                generation: meta.1,
+            };
+            let code = finish(&cli, started, out, check_text);
+            // Findings aren't errors; --strict makes error-severity findings exit 1 (plan section 09).
+            if code == ExitCode::SUCCESS && *strict && errors > 0 {
+                ExitCode::from(1)
+            } else {
+                code
+            }
+        }
+        Command::Bom { format } => {
+            let mut root = None;
+            let out = data.and_then(|d| {
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                ops::bom(&d, &project)
+            });
+            let mut out = Output::from(out);
+            out.project = root;
+            let csv = *format == BomFormat::Csv;
+            finish(&cli, started, out, |b| {
+                if csv {
+                    return emmet_core::bom::csv(b).trim_end().to_string();
+                }
+                let mut lines: Vec<String> = b
+                    .lines
+                    .iter()
+                    .map(|l| format!("{:>4} × {:<10} {:<24} {}", l.qty, l.part, l.color_name, l.name))
+                    .collect();
+                lines.push(format!(
+                    "{} pieces: {} parts in {} part × color lines → build/bom.json",
+                    b.totals.pieces, b.totals.parts, b.totals.lines
+                ));
+                lines.join("\n")
             })
         }
         Command::Render {
@@ -410,6 +526,54 @@ fn main() -> ExitCode {
             d.trim_end().to_string()
         }),
         Command::Api => finish(&cli, started, Output::from(Ok(mcp::API)), |d| d.trim_end().to_string()),
+        Command::Eval {
+            rung,
+            agent,
+            dry_run,
+            yes,
+            out,
+            work,
+        } => {
+            let opts = eval::Options {
+                rung: rung.clone(),
+                agent: match agent {
+                    AgentArg::Claude => emmet_agent::AgentKind::Claude,
+                    AgentArg::Codex => emmet_agent::AgentKind::Codex,
+                },
+                dry_run: *dry_run,
+                yes: *yes,
+                out: out.clone(),
+                work: work.clone(),
+            };
+            let result = data.and_then(|d| eval::eval(&d, &opts));
+            let pass = result.as_ref().is_ok_and(|r| r.pass);
+            let code = finish(&cli, started, result.into(), |r| {
+                let mut lines = vec![format!(
+                    "Rung 1 on {}: {} ({} min {} s, {} turns)",
+                    r.run.agent,
+                    if r.pass { "pass" } else { "fail" },
+                    r.run.seconds / 60,
+                    r.run.seconds % 60,
+                    r.run.turns
+                )];
+                for s in &r.scores {
+                    lines.push(format!(
+                        "  {} {}: {}",
+                        if s.pass { "ok " } else { "!! " },
+                        s.name,
+                        s.detail
+                    ));
+                }
+                lines.push(format!("Project: {}", r.project));
+                lines.join("\n")
+            });
+            // A run that finished but failed its scores exits 1, like a check under --strict.
+            if code == ExitCode::SUCCESS && !pass {
+                ExitCode::from(1)
+            } else {
+                code
+            }
+        }
         Command::McpHost { session } => {
             let out = data.and_then(|d| {
                 let project = Project::find(cli.project.as_deref())?;
@@ -509,6 +673,37 @@ fn library_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &
     }
 }
 
+/// Findings as a compiler-style list: `error[collision] F-0001: …`, then `--> model.py:41` and `help:`.
+fn check_text(v: &emmet_core::check::Validation) -> String {
+    if v.findings.is_empty() {
+        let allowed = if v.allowed.is_empty() {
+            String::new()
+        } else {
+            format!(" ({} allowed in emmet.toml)", v.allowed.len())
+        };
+        return format!("No findings{allowed}. → build/validation.json");
+    }
+    let mut out = Vec::new();
+    for f in &v.findings {
+        let severity = serde_json::to_value(f.severity)
+            .ok()
+            .and_then(|s| s.as_str().map(String::from))
+            .unwrap_or_default();
+        out.push(format!("{severity}[{}] {}: {}", f.rule.name(), f.id, f.message));
+        for s in &f.source {
+            out.push(format!("  --> {}:{}", s.file, s.line));
+        }
+        out.push(format!("help: {}", f.hint));
+    }
+    let counts: Vec<String> = v.counts.iter().map(|(r, n)| format!("{n} {r}")).collect();
+    out.push(format!(
+        "{} findings ({}) → build/validation.json",
+        v.findings.len(),
+        counts.join(", ")
+    ));
+    out.join("\n")
+}
+
 /// `k=v` pairs as parameter values: JSON when the value parses as JSON (8, true, "Tan"), else the text itself.
 fn key_values(pairs: &[String]) -> Result<std::collections::BTreeMap<String, serde_json::Value>> {
     let mut out = std::collections::BTreeMap::new();
@@ -529,7 +724,8 @@ fn key_values(pairs: &[String]) -> Result<std::collections::BTreeMap<String, ser
 fn size_text(size: Option<emmet_core::index::Size>) -> String {
     let Some(s) = size else { return String::new() };
     let n = |v: f64| emmet_core::ldraw::num((v * 100.0).round() / 100.0);
-    format!("  [{} x {} studs, {} plates]", n(s.x), n(s.y), n(s.z))
+    let plates = if n(s.z) == "1" { "plate" } else { "plates" };
+    format!("  [{} x {} studs, {} {plates}]", n(s.x), n(s.y), n(s.z))
 }
 
 /// Prints the envelope (`--json`) or the text, and turns the result into the exit code (plan section 09).

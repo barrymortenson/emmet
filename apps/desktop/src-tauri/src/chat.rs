@@ -329,6 +329,7 @@ fn start(app: &AppHandle, root: PathBuf, kind: AgentKind, resume: bool) -> Resul
         env: state.chat.env().to_vec(),
         hub: state.chat.hub.clone(),
         native_steer: true,
+        openai_key: None,
     };
     let adapter = emmet_agent::adapter(kind, &cfg.env, state.data.root());
     let mut session = adapter.start(cfg).map_err(agent_problem)?;

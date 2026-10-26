@@ -7,7 +7,9 @@ import { type ColorView, commands, type ParamSpec, type ParamsView, type Problem
 /** How long a slider waits after the last change before writing params.json. */
 const SETTLE_MS = 60;
 
-export function Params({ lastGeneration }: { running: boolean; lastGeneration: number }) {
+/** `onWrite` is called as a change goes to params.json, so the app knows the next run came from a slider (and shows it
+ * without the build animation, plan section 13). */
+export function Params({ lastGeneration, onWrite }: { running: boolean; lastGeneration: number; onWrite?: () => void }) {
   const [params, setParams] = useState<ParamsView | null>(null);
   const [values, setValues] = useState<Record<string, Value>>({});
   const [colors, setColors] = useState<ColorView[]>([]);
@@ -49,6 +51,7 @@ export function Params({ lastGeneration }: { running: boolean; lastGeneration: n
       const batch = pending.current;
       pending.current = {};
       writes.current++;
+      onWrite?.();
       const r = await commands.setParams(batch);
       writes.current--;
       setProblem(r.status === "ok" ? null : r.error);
@@ -64,15 +67,13 @@ export function Params({ lastGeneration }: { running: boolean; lastGeneration: n
 
   if (!params) {
     return (
-      <section className="drawer" aria-label="Parameters">
-        <h2>Parameters</h2>
+      <section aria-label="Parameters">
         <p className="muted">{problem ? `Parameters unavailable: ${problem.message}` : "Reading the model's parameters…"}</p>
       </section>
     );
   }
   return (
-    <section className="drawer" aria-label="Parameters">
-      <h2>Parameters</h2>
+    <section aria-label="Parameters">
       {problem && (
         <p className="notice" role="alert">
           {problem.message} {problem.hint}

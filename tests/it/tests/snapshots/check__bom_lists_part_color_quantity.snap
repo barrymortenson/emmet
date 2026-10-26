@@ -1,0 +1,49 @@
+---
+source: tests/it/tests/check.rs
+expression: "snapshot(&dir, v)"
+---
+{
+  "data": {
+    "lines": [
+      {
+        "availability": null,
+        "color": 4,
+        "color_name": "Red",
+        "name": "Brick 2 x 4",
+        "part": "3001",
+        "qty": 2,
+        "rebrickable_id": null
+      },
+      {
+        "availability": null,
+        "color": 4,
+        "color_name": "Red",
+        "name": "Plate 2 x 4",
+        "part": "3020",
+        "qty": 1,
+        "rebrickable_id": null
+      },
+      {
+        "availability": null,
+        "color": 2,
+        "color_name": "Green",
+        "name": "Plate 4 x 4",
+        "part": "3031",
+        "qty": 1,
+        "rebrickable_id": null
+      }
+    ],
+    "totals": {
+      "lines": 3,
+      "parts": 3,
+      "pieces": 4
+    }
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]",
+    "project": "<project>"
+  },
+  "ok": true,
+  "warnings": []
+}

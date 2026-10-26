@@ -30,6 +30,8 @@ export const commands = {
 	renderDone: (png: string, camera: Value) => __TAURI_INVOKE<void>("render_done", { png, camera }),
 	/**  Render mode: why the render failed. Exits with an error. */
 	renderFailed: (message: string) => __TAURI_INVOKE<void>("render_failed", { message }),
+	/**  Installs the library (when it's missing) and sets Python up, then rebuilds the open project. */
+	setup: () => typedError<null, Problem>(__TAURI_INVOKE("setup")),
 	/**  The agents Emmet found: only a detected, signed-in agent can start a chat; the others carry the fix. */
 	agents: (refresh: boolean) => __TAURI_INVOKE<AgentView[]>("agents", { refresh }),
 	/**
@@ -131,6 +133,8 @@ export type AppInfo = {
 	recent: Recent[],
 	/**  The library release, or null when none is installed. */
 	library: string | null,
+	/**  Whether Python and emmet_dsl are set up for models (`emmet doctor --fix` does it). */
+	python: boolean,
 };
 
 export type ApprovalKind = 
@@ -149,6 +153,21 @@ export type Billing =
 { kind: "plan"; name: string | null } | 
 /**  An API key; `source` names where it came from (`ANTHROPIC_API_KEY`, the keychain). */
 { kind: "api_key"; source: string | null } | { kind: "unknown" };
+
+export type Bom = {
+	lines: BomLine[],
+	pieces: number,
+	/**  Different parts, in any color. */
+	parts: number,
+};
+
+export type BomLine = {
+	part: string,
+	name: string,
+	color: number,
+	color_name: string,
+	qty: number,
+};
 
 export type BusHighlight = {
 	ids: string[],
@@ -193,6 +212,15 @@ export type ChatState = {
 	history: ChatRecord[],
 };
 
+export type Checks = {
+	findings: Finding[],
+	errors: number,
+	/**  No errors and no warnings. */
+	clean: boolean,
+	/**  Why the validator couldn't run, when it couldn't. */
+	problem: string | null,
+};
+
 export type ColorView = {
 	code: number,
 	name: string,
@@ -230,6 +258,18 @@ export type DoneReason = "completed" |
 "failed" | 
 /**  The CLI exited mid-turn. */
 "crashed";
+
+/**  One validator finding (plan section 11), for the Checks drawer. */
+export type Finding = {
+	id: string,
+	rule: string,
+	/**  error, warning, or info. */
+	severity: string,
+	parts: string[],
+	source: SourceLine[],
+	message: string,
+	hint: string,
+};
 
 /**  The project's last chat session, kept in `.emmet/chat.json` so it can be resumed. */
 export type LastSession = {
@@ -347,6 +387,18 @@ export type Scene = {
 	steps: number,
 	/**  How long the run took, or null for a scene read from an earlier build/. */
 	ms: number | null,
+	/**  The validator's findings for this build (the Checks drawer), or null when they couldn't be made. */
+	checks?: Checks | null,
+	/**  The parts list (the Parts drawer), or null when it couldn't be made. */
+	bom?: Bom | null,
+};
+
+/**  A line of the model's source that placed a finding's parts, with its text. */
+export type SourceLine = {
+	file: string,
+	line: number,
+	/**  The line as written, or null when the file can't be read (or isn't inside the project). */
+	text: string | null,
 };
 
 /**  How a redirect reaches the agent (D-33, ADR 0001). */

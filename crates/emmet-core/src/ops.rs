@@ -18,6 +18,37 @@ use crate::run::{RunMeta, RunSummary};
 pub struct SearchResult {
     pub query: String,
     pub parts: Vec<SearchHit>,
+    /// The results of the other queries asked in the same call, in order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub more: Vec<SearchResult>,
+}
+
+/// The most queries one `search_parts` call runs.
+pub const MAX_QUERIES: usize = 10;
+
+/// [`search_parts`] for `query` and each of `more` (at most [`MAX_QUERIES`] in all), in one call.
+pub fn search_many(
+    data: &DataDir,
+    query: &str,
+    more: &[String],
+    category: Option<&str>,
+    limit: usize,
+) -> Result<SearchResult> {
+    if more.len() + 1 > MAX_QUERIES {
+        return Err(Error::new(
+            ErrorCode::ParamInvalid,
+            format!(
+                "That's {} queries; one call runs at most {MAX_QUERIES}.",
+                more.len() + 1
+            ),
+            "Split them over two calls.",
+        ));
+    }
+    let mut first = search_parts(data, query, category, limit)?;
+    for q in more {
+        first.more.push(search_parts(data, q, category, limit)?);
+    }
+    Ok(first)
 }
 
 pub fn search_parts(data: &DataDir, query: &str, category: Option<&str>, limit: usize) -> Result<SearchResult> {
@@ -26,6 +57,7 @@ pub fn search_parts(data: &DataDir, query: &str, category: Option<&str>, limit: 
     Ok(SearchResult {
         query: query.into(),
         parts,
+        more: vec![],
     })
 }
 
@@ -325,4 +357,111 @@ pub fn new_project(data: &DataDir, dir: &std::path::Path, template: crate::proje
         name: project.config.name,
         files,
     })
+}
+
+/// Runs the model when build/placements.json is missing or manifest.json's inputs hash isn't the current one.
+pub fn ensure_built(data: &DataDir, project: &Project) -> Result<()> {
+    let manifest = read_json(&project.root.join("build/manifest.json"));
+    let library = crate::library::require(data)?;
+    let current = project.inputs_hash(&BTreeMap::new(), &library.release)?;
+    let fresh = project.root.join("build/placements.json").is_file()
+        && manifest.as_ref().and_then(|m| m["inputs_hash"].as_str()) == Some(current.as_str());
+    if !fresh {
+        run_model(data, project, &BTreeMap::new()).0?;
+    }
+    Ok(())
+}
+
+fn read_json(path: &std::path::Path) -> Option<serde_json::Value> {
+    std::fs::read_to_string(path)
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok())
+}
+
+/// The placements of the project's current build, and the inputs hash they were built from.
+pub fn built_placements(project: &Project) -> Result<(Vec<crate::ldraw::placements::Placement>, Option<String>)> {
+    let path = project.root.join("build/placements.json");
+    let text = std::fs::read_to_string(&path).map_err(|e| Error::io(&path, e))?;
+    let doc: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+        Error::internal(format!("build/placements.json doesn't parse: {e}")).at_file("build/placements.json")
+    })?;
+    let rows = serde_json::from_value(doc["parts"].clone()).map_err(|e| {
+        Error::internal(format!("build/placements.json isn't a list of placements: {e}"))
+            .at_file("build/placements.json")
+    })?;
+    let hash =
+        read_json(&project.root.join("build/manifest.json")).and_then(|m| m["inputs_hash"].as_str().map(String::from));
+    Ok((rows, hash))
+}
+
+/// Validates the project's current build (running the model first if build/ is stale) and, when every rule runs,
+/// writes build/validation.json. `rules` empty means every rule.
+pub fn check(data: &DataDir, project: &Project, rules: &[crate::check::Rule]) -> Result<crate::check::Validation> {
+    check_with(data, project, rules, &BTreeMap::new())
+}
+
+/// [`check`] of the model run with `overrides` on top of params.json (params.json isn't changed): how an agent
+/// checks a slider's other values in one call.
+pub fn check_with(
+    data: &DataDir,
+    project: &Project,
+    rules: &[crate::check::Rule],
+    overrides: &BTreeMap<String, serde_json::Value>,
+) -> Result<crate::check::Validation> {
+    if overrides.is_empty() {
+        ensure_built(data, project)?;
+    } else {
+        run_model(data, project, overrides).0?;
+    }
+    check_build(data, project, rules)
+}
+
+/// [`check`] on build/ as it is, without running the model: for the app, right after its own run.
+pub fn check_build(
+    data: &DataDir,
+    project: &Project,
+    rules: &[crate::check::Rule],
+) -> Result<crate::check::Validation> {
+    let (placements, hash) = built_placements(project)?;
+    let all = rules.is_empty();
+    let rules = if all {
+        crate::check::Rule::ALL.to_vec()
+    } else {
+        rules.to_vec()
+    };
+    let validation = validate_placements(data, &placements, &rules, &project.config.check.allow, hash)?;
+    if all {
+        let text = serde_json::to_string_pretty(&validation).expect("validation serializes") + "\n";
+        crate::fsx::write_atomic(&project.root.join("build/validation.json"), text.as_bytes())?;
+    }
+    Ok(validation)
+}
+
+/// The validator over any placements: a project's build, or an .mpd's (`ldraw::placements`).
+pub fn validate_placements(
+    data: &DataDir,
+    placements: &[crate::ldraw::placements::Placement],
+    rules: &[crate::check::Rule],
+    allow: &[crate::check::Allow],
+    inputs_hash: Option<String>,
+) -> Result<crate::check::Validation> {
+    let index = Index::ensure(data)?;
+    let lib = crate::ldraw::geometry::LibFiles::probe(&data.ldraw());
+    crate::check::validate(&index, &lib, placements, rules, allow, inputs_hash)
+}
+
+/// The parts list of the project's current build (running the model first if build/ is stale); writes build/bom.json.
+pub fn bom(data: &DataDir, project: &Project) -> Result<crate::bom::Bom> {
+    ensure_built(data, project)?;
+    bom_build(data, project)
+}
+
+/// [`bom`] on build/ as it is, without running the model.
+pub fn bom_build(data: &DataDir, project: &Project) -> Result<crate::bom::Bom> {
+    let (placements, _) = built_placements(project)?;
+    let index = Index::ensure(data)?;
+    let bom = crate::bom::bom(&index, &placements)?;
+    let text = serde_json::to_string_pretty(&bom).expect("bom serializes") + "\n";
+    crate::fsx::write_atomic(&project.root.join("build/bom.json"), text.as_bytes())?;
+    Ok(bom)
 }

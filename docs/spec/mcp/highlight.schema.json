@@ -1,10 +1,19 @@
 {
   "name": "highlight",
-  "description": "Highlight parts by Emmet id in the open Emmet app's viewer. Says so when the app isn't open.",
+  "description": "Highlight parts in the open Emmet app's viewer, by Emmet id or by a finding id from validate. Says so when the\napp isn't open.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
+      "finding": {
+        "default": null,
+        "description": "A finding id from validate (\"F-0003\"): highlights its parts.",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
       "ids": {
+        "default": [],
         "description": "Emmet ids to highlight in the open app's viewer; an empty list clears the highlight.",
         "items": {
           "type": "string"
@@ -12,9 +21,6 @@
         "type": "array"
       }
     },
-    "required": [
-      "ids"
-    ],
     "type": "object"
   },
   "output": {

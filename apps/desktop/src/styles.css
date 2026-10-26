@@ -76,9 +76,10 @@ h2 {
   color: var(--muted);
   margin: 14px 0 6px;
 }
+/* A column: the title bar, any notices, the panes (which take the rest), the status bar. */
 .app {
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 .titlebar {
@@ -98,9 +99,21 @@ h2 {
   background: var(--error-bg);
   color: var(--error);
 }
+.setup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.setup p {
+  margin: 0;
+}
 .panes {
   display: grid;
   grid-template-columns: 220px 1fr 360px;
+  flex: 1;
   min-height: 0;
 }
 .tree,
@@ -138,7 +151,8 @@ h2 {
 }
 .center {
   display: grid;
-  grid-template-rows: 1fr auto;
+  /* The viewer keeps at least 200 px; a long drawer scrolls instead of squeezing it out. */
+  grid-template-rows: minmax(200px, 1fr) auto;
   min-width: 0;
   min-height: 0;
 }
@@ -169,11 +183,79 @@ h2 {
   display: flex;
   gap: 4px;
 }
-.drawer {
+.drawers {
   border-top: 1px solid var(--line);
-  padding: 0 12px 12px;
-  max-height: 40vh;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 6px 12px 0;
+}
+.tabs button[aria-selected="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.tabs button.has-errors {
+  color: var(--error);
+}
+.drawer {
+  padding: 8px 12px 12px;
+  max-height: min(40vh, 320px);
   overflow: auto;
+}
+.checks ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.finding {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: none;
+  padding: 3px 6px;
+}
+.finding:hover {
+  border-color: var(--line);
+}
+.finding[aria-pressed="true"] {
+  border-color: var(--accent);
+}
+.severity {
+  font-weight: 600;
+}
+.severity.error {
+  color: var(--error);
+}
+.severity.info {
+  color: var(--muted);
+}
+.where,
+.mono,
+.location {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+.where {
+  color: var(--muted);
+}
+.finding-detail {
+  margin-top: 8px;
+}
+.finding-detail .source {
+  margin: 0 0 6px;
+}
+.bom {
+  border-collapse: collapse;
+  width: 100%;
+}
+.bom th,
+.bom td {
+  text-align: left;
+  padding: 2px 8px 2px 0;
+  border-bottom: 1px solid var(--line);
 }
 .params {
   display: grid;

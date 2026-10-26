@@ -14,6 +14,8 @@ use glam::{DMat3, DVec3};
 pub struct LibFiles {
     pub root: PathBuf,
     files: HashMap<String, PathBuf>,
+    /// Look files up on disk as they're asked for instead of from a scan (see [`LibFiles::probe`]).
+    probe: bool,
 }
 
 impl LibFiles {
@@ -28,11 +30,34 @@ impl LibFiles {
         Ok(Self {
             root: root.to_path_buf(),
             files,
+            probe: false,
         })
     }
 
-    pub fn path(&self, reference: &str) -> Option<&Path> {
-        self.files.get(&normalize_ref(reference)).map(PathBuf::as_path)
+    /// Finds files on disk when asked, in the same order, without scanning the library first: for reading a few
+    /// parts (the validator) rather than all of them (the index). The library's files are lowercase, as LDraw
+    /// publishes them.
+    pub fn probe(root: &Path) -> Self {
+        Self {
+            root: root.to_path_buf(),
+            files: HashMap::new(),
+            probe: true,
+        }
+    }
+
+    pub fn path(&self, reference: &str) -> Option<PathBuf> {
+        let key = normalize_ref(reference);
+        if !self.probe {
+            return self.files.get(&key).cloned();
+        }
+        // A reference is a relative name inside the library; one that climbs out of it, or is absolute, is no file.
+        if key.split('/').any(|c| c.is_empty() || c == "." || c == "..") || key.contains(':') {
+            return None;
+        }
+        ["parts", "p"]
+            .iter()
+            .map(|dir| self.root.join(dir).join(&key))
+            .find(|p| p.is_file())
     }
 
     /// The parts in `parts/` (not subparts), as (reference name, path), sorted by name.
@@ -121,12 +146,64 @@ impl Aabb {
     }
 }
 
-/// Stud primitives (`stud*.dat`, and the `stug*.dat` stud groups) at any depth. The underside tubes share the prefix
-/// and sit inside the body, so leaving them out doesn't change the box.
-pub fn is_stud(reference: &str) -> bool {
+/// The System stud primitives a part's top studs are drawn with, by base name (plan section 11's primitive table,
+/// started in 1D). Each is a stud whose base is its origin and which points along its own −Y. Not here: the underside
+/// tubes and posts (`stud3`, `stud4*`, `stud12`, `stud16*`, `stud18a`, `stud21a`, `stud22a`, `stud23*`, `stud2s*`),
+/// the Duplo, Quatro, and Scala studs, and the `studline` placeholder. `stug-*` stud groups aren't listed: they're made
+/// of these.
+pub const SYSTEM_STUDS: &[&str] = &[
+    "stud",    // Stud
+    "studa",   // Stud without Base Edges
+    "stud2",   // Stud Open
+    "stud2a",  // Stud Open without Base Edges
+    "stud6",   // Stud Open For Round 2x2 Parts
+    "stud6a",  // Stud Open For Round 2x2 Parts without Base Edges
+    "stud9",   // Stud Open with Small Holes
+    "stud10",  // Stud Truncated Laterally Curved 40D for Round 2 x 2 Parts
+    "stud13",  // Stud Truncated Laterally Straight 38D for Electric Light & Sound Bricks
+    "stud15",  // Stud Truncated Laterally Straight 40D for Round 2 x 2 Parts
+    "stud17",  // Stud Open For Octagonal Parts
+    "stud17a", // Stud Open For Octagonal Parts without Base Edges
+    "stud26",  // Stud without Logo
+    "studel",  // Stud with Electric Contact
+    "studh",   // Stud with Hole at Outer Edge (Holder for Window/Door Bump)
+    "studhl",  // Stud with Hole at Outer Edge with LEGO Logo - Left
+    "studhr",  // Stud with Hole at Outer Edge with LEGO Logo - Right
+    "studp01", // Stud with Dot Pattern
+    "studx",   // Stud Cross
+    "studxa",  // Stud Cross without Base Edges
+    "stud-logo",
+    "stud-logo2",
+    "stud-logo3",
+    "stud-logo4",
+    "stud-logo5", // Stud with LEGO Logo
+    "stud2-logo",
+    "stud2-logo2",
+    "stud2-logo3",
+    "stud2-logo4",
+    "stud2-logo5", // Stud Open with LEGO Logo
+];
+
+/// Top studs of the other systems (Duplo, Quatro, Scala): left out of body boxes like System studs, but no connectors.
+const OTHER_TOP_STUDS: &[&str] = &["stud5", "stud7", "stud7a", "stud14", "stud19", "stud20", "stud24"];
+
+fn base_name(reference: &str) -> String {
     let name = normalize_ref(reference);
     let base = name.rsplit('/').next().unwrap_or(&name);
-    base.starts_with("stud") || base.starts_with("stug")
+    base.strip_suffix(".dat").unwrap_or(base).to_string()
+}
+
+/// True when `reference` names one of [`SYSTEM_STUDS`] (in `p/`, `p/8/`, or `p/48/`, any case, either separator).
+pub fn is_system_stud(reference: &str) -> bool {
+    SYSTEM_STUDS.contains(&base_name(reference).as_str())
+}
+
+/// The stud primitives body boxes leave out: top studs of every system and the `stug*` stud groups, at any depth.
+/// Underside tubes and posts stay in: most sit inside the body, and some are its outside (a 1 x 1 round plate's lower
+/// half is a `stud4`).
+pub fn is_stud(reference: &str) -> bool {
+    let base = base_name(reference);
+    base.starts_with("stug") || SYSTEM_STUDS.contains(&base.as_str()) || OTHER_TOP_STUDS.contains(&base.as_str())
 }
 
 /// Measures parts, caching each file's parsed lines and its own box.
@@ -137,6 +214,10 @@ pub struct Measurer<'a> {
 }
 
 const MAX_DEPTH: usize = 32;
+/// A stud's height, and its diameter with its edge lines, in LDU.
+const STUD_HEIGHT: f64 = 4.0;
+const STUD_WIDTH: f64 = 13.0;
+const STUD_PITCH: f64 = 20.0;
 
 impl<'a> Measurer<'a> {
     pub fn new(lib: &'a LibFiles) -> Self {
@@ -156,7 +237,7 @@ impl<'a> Measurer<'a> {
         let parsed = self
             .lib
             .path(&key)
-            .and_then(|p| std::fs::read(p).ok())
+            .and_then(|p| std::fs::read(&p).ok())
             .and_then(|bytes| {
                 let text = String::from_utf8_lossy(&bytes);
                 parse(&text)
@@ -169,10 +250,90 @@ impl<'a> Measurer<'a> {
 
     /// The body box: every vertex of every line type 2–4, recursively, leaving out studs. Falls back to the box with
     /// studs for a part that is nothing but studs. None when the file is missing or has no geometry.
+    ///
+    /// Some parts draw a few studs by hand instead of with stud primitives (door and window frames draw their cut
+    /// corner studs that way), which would make the body a stud taller than the part stacks. When the box's top is a
+    /// stud's height above the part's origin plane and everything above that plane is stud-sized islands no taller
+    /// than a stud, the top is the origin plane.
     pub fn body_box(&mut self, reference: &str) -> Option<Aabb> {
-        self.file_box(reference, true, 0)
-            .or_else(|| self.file_box(reference, false, 0))
-            .map(Aabb::rounded)
+        let found = self
+            .file_box(reference, true, 0)
+            .or_else(|| self.file_box(reference, false, 0))?;
+        let mut b = found.rounded();
+        if (b.min.y + STUD_HEIGHT).abs() < 0.01 && self.hand_drawn_studs(reference) {
+            b.min.y = 0.0;
+        }
+        Some(b)
+    }
+
+    /// True when every piece of geometry above the part's origin plane (y < 0, LDraw's up) rises at most a stud's
+    /// height above it, in islands no wider than a stud, on a body at least a stud wide each way (a brick-system top, not
+    /// a hose segment or a pin).
+    fn hand_drawn_studs(&mut self, reference: &str) -> bool {
+        let mut pieces = Vec::new();
+        self.pieces(reference, DMat3::IDENTITY, DVec3::ZERO, 0, &mut pieces);
+        let (above, rest): (Vec<Aabb>, Vec<Aabb>) = pieces.into_iter().partition(|p| p.min.y < -0.01);
+        // A piece may run down into the body (a cut stud's sides do); none may rise more than a stud above the plane.
+        if above.is_empty() || above.iter().any(|p| p.min.y < -STUD_HEIGHT - 0.01) {
+            return false;
+        }
+        let mut body = None;
+        for p in rest {
+            Aabb::add(&mut body, p);
+        }
+        let Some(body) = body else { return false };
+        if body.max.x - body.min.x < STUD_PITCH - 0.5 || body.max.z - body.min.z < STUD_PITCH - 0.5 {
+            return false;
+        }
+        // Islands: pieces whose footprints touch, joined.
+        let mut islands: Vec<Aabb> = Vec::new();
+        for p in above {
+            let mut merged = p;
+            islands.retain(|i| {
+                let touch = i.min.x <= merged.max.x + 0.5
+                    && merged.min.x <= i.max.x + 0.5
+                    && i.min.z <= merged.max.z + 0.5
+                    && merged.min.z <= i.max.z + 0.5;
+                if touch {
+                    merged = Aabb {
+                        min: merged.min.min(i.min),
+                        max: merged.max.max(i.max),
+                    };
+                }
+                !touch
+            });
+            islands.push(merged);
+        }
+        islands
+            .iter()
+            .all(|i| i.max.x - i.min.x <= STUD_WIDTH && i.max.z - i.min.z <= STUD_WIDTH)
+    }
+
+    /// The box of every line type 2–4 and every stud-free subfile, in the part's frame (studs left out).
+    fn pieces(&mut self, reference: &str, m: DMat3, t: DVec3, depth: usize, out: &mut Vec<Aabb>) {
+        if depth > MAX_DEPTH {
+            return;
+        }
+        let Some(lines) = self.lines(reference) else { return };
+        for line in lines.iter() {
+            let points: &[DVec3] = match line {
+                Line::Sub { pos, matrix, file, .. } => {
+                    if !is_stud(file) {
+                        self.pieces(file, m * *matrix, m * *pos + t, depth + 1, out);
+                    }
+                    continue;
+                }
+                Line::Edge { points, .. } => points,
+                Line::Tri { points, .. } => points,
+                Line::Quad { points, .. } => points,
+                Line::Optional { .. } | Line::Meta(_) | Line::Blank => continue,
+            };
+            let mut acc = None;
+            for p in points {
+                Aabb::add(&mut acc, Aabb::point(m * *p + t));
+            }
+            out.extend(acc);
+        }
     }
 
     fn file_box(&mut self, reference: &str, skip_studs: bool, depth: usize) -> Option<Aabb> {

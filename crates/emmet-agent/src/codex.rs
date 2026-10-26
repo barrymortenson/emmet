@@ -118,7 +118,11 @@ impl AgentAdapter for Codex {
         cfg.check()?;
         let bin = detect::find(AgentKind::Codex, &self.env)
             .ok_or_else(|| AgentError::new(AgentErrorCode::NotInstalled, "Codex isn't installed."))?;
-        let key = keychain::get(&self.env)?.ok_or_else(|| {
+        let key = match cfg.openai_key.clone() {
+            Some(k) => Some(k),
+            None => keychain::get(&self.env)?,
+        };
+        let key = key.ok_or_else(|| {
             AgentError::new(
                 AgentErrorCode::NotSignedIn,
                 "Add your OpenAI API key in Settings → Agents.",

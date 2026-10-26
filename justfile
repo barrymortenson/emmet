@@ -145,9 +145,12 @@ ci:
     if [[ $bench == true ]]; then just bench; fi
     echo "ci: ok"
 
-# Not yet: live evals (section 16.1) arrive in 1D; they bill Barry's API keys and ask first.
-eval *args:
-    @echo "just eval: not yet; session 1D adds it (D-38)" && exit 1
+# A live eval (plan section 16.1): `just eval --rung 1 --agent claude` (or codex). One run through the real CLI on
+# the eval API key from the keychain (H-21, D-37); it says what it bills and asks first (D-38), then writes
+# docs/evals/<date>-rung1.md. Quit the app first: the eval answers on its bus. The build puts the app next to emmet for
+# the render.
+eval *args: build
+    target/debug/emmet eval {{ args }}
 
 # Not yet: light and dark screenshots of key screens, for PRs and the guide.
 screenshots:
@@ -158,9 +161,10 @@ screenshots:
 bench: e2e-build
     EMMET_BENCH=1 pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs
 
-# Not yet: the signed demo build (release-dry --sign) comes in 1D.
+# A release build without a release (scripts/release-dry.sh): a universal .dmg on macOS (--sign: Developer ID,
+# notarized and stapled, H-05), the unsigned NSIS installer on Windows.
 release-dry *args:
-    @echo "just release-dry: not yet; session 1D adds it" && exit 1
+    scripts/release-dry.sh {{ args }}
 
 # Not yet: the version-bump PR helper arrives in 6A.
 release version:

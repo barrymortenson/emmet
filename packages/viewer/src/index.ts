@@ -19,9 +19,11 @@ import {
   WebGLRenderer,
 } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { CAP_MS, DROP, PART_MS, buildOrder, drop, stagger } from "./animate.js";
 import { type Diff, type Placement, bucketKey, diffPlacements, dirtyBuckets } from "./diff.js";
 import { type PartGeometry, PartCache, type PartSource, partKey } from "./parts.js";
 
+export { CAP_MS, DROP, PART_MS, buildOrder, drop, stagger };
 export { bucketKey, diffPlacements, dirtyBuckets };
 export type { Diff, Placement, PartSource };
 export type { PartGeometry } from "./parts.js";
@@ -38,7 +40,8 @@ export interface ViewerOptions {
 }
 
 export interface UpdateOptions {
-  /** Build animation arrives with D-34 (1D); every update applies at once until then. */
+  /** "build" drops the added parts in one at a time, in build order (D-34); "none" (the default, and every slider
+   * run) applies the update at once. Reduced motion turns "build" off. */
   animate?: "build" | "none";
 }
 
@@ -77,6 +80,8 @@ export interface Stats {
   programs: number;
   /** How many ids are highlighted. */
   highlighted: number;
+  /** Parts the build animation hasn't put in place yet (0 when none is running). */
+  animating: number;
   /** Parts the scene uses that couldn't load, with why; they aren't drawn. */
   failed: Record<string, string>;
   /** Placements on screen per diff kind in the last update. */
@@ -86,7 +91,12 @@ export interface Stats {
 export interface Viewer {
   load(placements: Placement[]): Promise<Diff>;
   update(placements: Placement[], options?: UpdateOptions): Promise<Diff>;
+  /** Highlights the ids and dims the rest; "issue" also tints them (a finding's parts). [] clears it. */
   highlight(ids: string[], options?: { mode?: HighlightMode }): void;
+  /** The highlighted ids. */
+  highlighted(): string[];
+  /** Jumps a running build animation to its end. */
+  skipAnimation(): void;
   frame(ids?: string[]): void;
   setView(view: View): void;
   setTheme(theme: Theme): void;
@@ -108,6 +118,9 @@ const BACKGROUND: Record<Theme, number> = { light: 0xf3f4f6, dark: 0x1f2125 };
 const RENDER_BACKGROUND = new Color(0xf3f4f6);
 const DIM = new Color(0.35, 0.35, 0.38);
 const WHITE = new Color(1, 1, 1);
+/** A finding's parts: their own color, pushed toward red. */
+const ISSUE = new Color(1, 0.42, 0.36);
+const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 const FOV = 35;
 
 /** Where the camera sits for each view, from the target, in the viewer's frame (Y up; LDraw is flipped to it). DSL x
@@ -124,6 +137,15 @@ const VIEWS: Record<View, { dir: Vector3; up: Vector3 }> = {
 interface Drawable {
   object: InstancedMesh | LineSegments;
   kind: "mesh" | "edges" | "conditional";
+}
+
+/** One part in a running build animation: where it is in its bucket, where it ends up, and when it starts. */
+interface Falling {
+  bucket: Bucket;
+  index: number;
+  home: Matrix4;
+  at: number;
+  done: boolean;
 }
 
 /** Every instance of one part in one color. */
@@ -150,7 +172,10 @@ class EmmetViewer implements Viewer {
   private cache: PartCache;
   private placements = new Map<string, Placement>();
   private buckets = new Map<string, Bucket>();
-  private highlighted = new Set<string>();
+  private lit = new Set<string>();
+  private mode: HighlightMode = "select";
+  /** The running build animation: its parts, and when it started (performance.now()). */
+  private falling: { parts: Falling[]; start: number } | null = null;
   private dirty = true;
   private raf = 0;
   private frames: number[] = [];
@@ -183,6 +208,13 @@ class EmmetViewer implements Viewer {
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.addEventListener("change", () => this.invalidate());
+    // A click in the viewer skips the build animation; orbiting (a drag) doesn't.
+    let down: [number, number] | null = null;
+    canvas.addEventListener("pointerdown", (e) => (down = [e.clientX, e.clientY]));
+    canvas.addEventListener("pointerup", (e) => {
+      if (down && Math.hypot(e.clientX - down[0], e.clientY - down[1]) < 4) this.skipAnimation();
+      down = null;
+    });
     this.fit();
     if (typeof ResizeObserver !== "undefined") {
       // Applied on the next frame, so a resize never lays out again inside the observer's own callback.
@@ -202,11 +234,10 @@ class EmmetViewer implements Viewer {
     return this.update(placements);
   }
 
-  // Every update applies at once until the build animation (D-34) reads UpdateOptions.
-  update(placements: Placement[]): Promise<Diff> {
+  update(placements: Placement[], options: UpdateOptions = {}): Promise<Diff> {
     return this.enqueue(async () => {
       try {
-        const diff = await this.apply(placements);
+        const diff = await this.apply(placements, options.animate === "build" && !reducedMotion());
         this.broken = null;
         return diff;
       } catch (e) {
@@ -228,10 +259,12 @@ class EmmetViewer implements Viewer {
     return [...this.cache.failed].filter(([id]) => used.has(id));
   }
 
-  /** Loads every new part first, then changes the scene in one synchronous pass, so no frame shows half a diff. */
-  private async apply(placements: Placement[]): Promise<Diff> {
+  /** Loads every new part first, then changes the scene in one synchronous pass, so no frame shows half a diff. With
+   * `animate`, the added parts then drop in one at a time; an animation still running finishes first. */
+  private async apply(placements: Placement[], animate: boolean): Promise<Diff> {
     const failedBefore = new Set(this.cache.failed.keys());
     await this.cache.ensure(placements.map((p) => p.part));
+    this.skipAnimation();
     const diff = diffPlacements(this.placements.values(), placements);
     const dirty = dirtyBuckets(diff, this.placements);
     // A part that failed before and loads now has no bucket yet, though its placements didn't change.
@@ -249,6 +282,7 @@ class EmmetViewer implements Viewer {
       list.push(p);
     }
     for (const k of dirty) this.writeBucket(k, members.get(k) ?? []);
+    if (animate && diff.added.length) this.startAnimation(diff.added);
     this.lastDiff = {
       added: diff.added.length,
       removed: diff.removed.length,
@@ -345,21 +379,83 @@ class EmmetViewer implements Viewer {
     this.buckets.delete(bucket.key);
   }
 
-  /** Sets each instance's tint: full color, or dimmed while something else is highlighted. */
+  /** Sets each instance's tint: full color, or dimmed while something else is highlighted, or tinted as an issue. */
   private paint(bucket: Bucket): void {
-    const any = this.highlighted.size > 0;
+    const any = this.lit.size > 0;
+    const on = this.mode === "issue" ? ISSUE : WHITE;
     for (const d of bucket.drawables) {
       if (!(d.object instanceof InstancedMesh) || !d.object.instanceColor) continue;
       const mesh = d.object;
-      bucket.ids.forEach((id, i) => mesh.setColorAt(i, !any || this.highlighted.has(id) ? WHITE : DIM));
+      bucket.ids.forEach((id, i) => mesh.setColorAt(i, !any ? WHITE : this.lit.has(id) ? on : DIM));
       mesh.instanceColor!.needsUpdate = true;
     }
   }
 
-  highlight(ids: string[]): void {
-    this.highlighted = new Set(ids);
+  highlight(ids: string[], options: { mode?: HighlightMode } = {}): void {
+    this.lit = new Set(ids);
+    this.mode = options.mode ?? "select";
     for (const b of this.buckets.values()) this.paint(b);
     this.invalidate();
+  }
+
+  highlighted(): string[] {
+    return [...this.lit];
+  }
+
+  /** Hides the added parts and schedules them in build order. */
+  private startAnimation(added: Placement[]): void {
+    const order = buildOrder(added);
+    const gap = stagger(order.length);
+    const index = new Map<string, [Bucket, number]>();
+    for (const b of this.buckets.values()) b.ids.forEach((id, i) => index.set(id, [b, i]));
+    const parts: Falling[] = [];
+    order.forEach((p, n) => {
+      const found = index.get(p.id);
+      if (!found) return; // a part that failed to load has no instance to animate
+      const [bucket, i] = found;
+      parts.push({ bucket, index: i, home: new Matrix4().fromArray(p.matrix), at: n * gap, done: false });
+      this.setInstance(bucket, i, HIDDEN);
+    });
+    if (parts.length) this.falling = { parts, start: performance.now() };
+  }
+
+  /** Moves the falling parts to where they are at `now`; the animation ends when the last one lands. */
+  private stepAnimation(now: number): void {
+    const f = this.falling;
+    if (!f) return;
+    const m = new Matrix4();
+    let left = 0;
+    for (const part of f.parts) {
+      if (part.done) continue;
+      const d = drop(now - f.start - part.at);
+      if (!d.visible) {
+        this.setInstance(part.bucket, part.index, HIDDEN);
+      } else {
+        m.copy(part.home);
+        m.elements[13]! -= d.lift; // up is −Y in LDraw
+        this.setInstance(part.bucket, part.index, m);
+      }
+      part.done = d.done;
+      if (!d.done) left++;
+    }
+    if (!left) this.falling = null;
+  }
+
+  skipAnimation(): void {
+    const f = this.falling;
+    if (!f) return;
+    for (const part of f.parts) this.setInstance(part.bucket, part.index, part.home);
+    this.falling = null;
+    this.invalidate();
+  }
+
+  /** Sets one instance's matrix in every mesh of its bucket (the lines share the first mesh's). */
+  private setInstance(bucket: Bucket, index: number, m: Matrix4): void {
+    for (const d of bucket.drawables) {
+      if (!(d.object instanceof InstancedMesh)) continue;
+      d.object.setMatrixAt(index, m);
+      d.object.instanceMatrix.needsUpdate = true;
+    }
   }
 
   frame(ids?: string[]): void {
@@ -418,17 +514,28 @@ class EmmetViewer implements Viewer {
     else this.place(camera, box, view.dir, view.up);
     // The render's own highlight (none unless asked) and background, swapped in and back around one synchronous
     // draw, so the window never draws a frame with them and its own highlight never leaks into a render.
-    const before = this.highlighted;
+    const before = this.lit;
+    const mode = this.mode;
     const background = this.scene.background;
-    this.highlighted = new Set(options.highlight ?? []);
+    this.lit = new Set(options.highlight ?? []);
+    this.mode = "select";
     for (const b of this.buckets.values()) this.paint(b);
     this.scene.background = RENDER_BACKGROUND;
+    // A render shows the finished model, never a frame of the build animation, which carries on in the window.
+    const falling = this.falling;
+    if (falling) for (const part of falling.parts) this.setInstance(part.bucket, part.index, part.home);
     try {
       r.render(this.scene, camera);
     } finally {
       this.scene.background = background;
-      this.highlighted = before;
+      this.lit = before;
+      this.mode = mode;
       for (const b of this.buckets.values()) this.paint(b);
+      if (falling) {
+        for (const part of falling.parts) part.done = false;
+        this.stepAnimation(performance.now());
+        this.invalidate();
+      }
     }
     // preserveDrawingBuffer keeps the pixels until the next draw on this canvas.
     const blob = await new Promise<Blob | null>((resolve) => r.domElement.toBlob(resolve, "image/png"));
@@ -458,7 +565,8 @@ class EmmetViewer implements Viewer {
       geometries: info.memory.geometries,
       textures: info.memory.textures,
       programs: info.programs?.length ?? 0,
-      highlighted: this.highlighted.size,
+      highlighted: this.lit.size,
+      animating: this.falling ? this.falling.parts.filter((p) => !p.done).length : 0,
       failed: Object.fromEntries(this.failedHere()),
       lastDiff: { ...this.lastDiff },
     };
@@ -500,6 +608,10 @@ class EmmetViewer implements Viewer {
   private loop(now: number): void {
     this.raf = requestAnimationFrame(this.loop);
     const moving = this.controls.update();
+    if (this.falling) {
+      this.stepAnimation(performance.now());
+      this.dirty = true;
+    }
     if (!this.dirty && !moving) {
       this.frames = [];
       return;
@@ -601,4 +713,9 @@ function addLights(scene: Scene): void {
   const fill = new DirectionalLight(0xffffff, 0.6);
   fill.position.set(1.5, 0.5, -1);
   scene.add(fill);
+}
+
+/** The system's reduced-motion setting (plan section 13): it turns the build animation off. */
+function reducedMotion(): boolean {
+  return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 }

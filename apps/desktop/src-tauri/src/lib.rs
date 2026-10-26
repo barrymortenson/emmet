@@ -12,6 +12,7 @@ pub mod library;
 pub mod paths;
 pub mod recent;
 pub mod runs;
+pub mod setup;
 pub mod watcher;
 
 use std::path::PathBuf;
@@ -106,6 +107,7 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             render_job,
             render_done,
             render_failed,
+            crate::setup::setup,
             crate::chat::agents,
             crate::chat::chat_start,
             crate::chat::chat_send,

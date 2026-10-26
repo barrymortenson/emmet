@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-25",
+  updated: "2026-10-26",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -59,7 +59,16 @@ window.EMMET_STATUS = {
       ],
       note: "Barry's design and feature notes from the live check go to docs/design/notes.md in a small PR, for 2A"
     },
-    "1D": { status: "todo" },
+    "1D": {
+      status: "done", pr: 17, branch: "bmortenson/s1d-close-loop-signed-build", started: "2026-10-25",
+      evidence: [
+        "CI ci check green #17 (run 40393047071: mac with E2E and bench, windows with E2E, nsis, plan)",
+        "tests/it/tests/{check,validator_corpus,eval}.rs; tests/e2e/specs/checks.e2e.mjs on both OSes",
+        "docs/evals/2026-10-26-rung1.md: rung 1 passes on Claude Code and Codex, each after one rerun (D-38)",
+        "H-05: notarized .dmg, spctl and stapler pass; docs/spec/sessions/1D/fresh-account.png"
+      ],
+      note: "G1 (H-06) is Barry's decision from the eval report and his own testing"
+    },
     "1E": { status: "todo" },
     "1F": { status: "todo" },
     "2A": { status: "todo" },
@@ -89,7 +98,7 @@ window.EMMET_STATUS = {
     "H-02": { status: "done", date: "2026-10-24", note: "runner emmet-mac registered by the agent with approval; PR #1 mac job green on it" },
     "H-03": { status: "done", date: "2026-10-24", note: "Claude Code 2.1.310 on Barry's plan; Codex 0.160.1 logged in using ChatGPT" },
     "H-04": { status: "done", date: "2026-10-25", note: "Windows 11 ARM VM (Parallels); Claude Code (native installer, Max plan) and Codex 0.164.0 (npm, API key) both edited the model from Emmet; ADR 0001's Windows section" },
-    "H-05": { status: "todo", note: "Apple Developer Program: enrolled" },
+    "H-05": { status: "done", date: "2026-10-26", note: "Developer ID Application certificate and the emmet-notary notarytool profile in the login keychain; just release-dry --sign: notarization Accepted, spctl accepted (Notarized Developer ID), stapler validate worked; the .dmg opened, set up, and built the cottage in a fresh Standard macOS account" },
     "H-06": { status: "todo" },
     "H-07": { status: "todo" },
     "H-08": { status: "todo" },

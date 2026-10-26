@@ -4,7 +4,6 @@
 //! project open, or no answer in time), emmet starts the app's render mode, a hidden window that renders and exits
 //! (ADR 0005).
 
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
@@ -53,7 +52,8 @@ pub fn render(data: &DataDir, project: &Project, view: &str, size: u32, highligh
         ));
     }
     let size = size.clamp(16, 4096);
-    ensure_built(data, project)?;
+    emmet_core::ops::ensure_built(data, project)?;
+    let highlight = &expand_findings(project, highlight)?;
     let root = project.root.display().to_string();
     let reply = emmet_bus::send(
         data,
@@ -106,19 +106,36 @@ fn info(
     }
 }
 
-/// Runs the model when build/placements.json is missing or manifest.json's inputs hash isn't the current one.
-fn ensure_built(data: &DataDir, project: &Project) -> Result<()> {
-    let manifest = std::fs::read_to_string(project.root.join("build/manifest.json"))
-        .ok()
-        .and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok());
-    let library = emmet_core::library::require(data)?;
-    let current = project.inputs_hash(&BTreeMap::new(), &library.release)?;
-    let fresh = project.root.join("build/placements.json").is_file()
-        && manifest.as_ref().and_then(|m| m["inputs_hash"].as_str()) == Some(current.as_str());
-    if !fresh {
-        emmet_core::ops::run_model(data, project, &BTreeMap::new()).0?;
+/// The highlight list with each finding id (`F-0003`) replaced by its parts, from build/validation.json.
+pub fn expand_findings(project: &Project, highlight: &[String]) -> Result<Vec<String>> {
+    if !highlight.iter().any(|h| is_finding_id(h)) {
+        return Ok(highlight.to_vec());
     }
-    Ok(())
+    let path = project.root.join("build/validation.json");
+    let validation: Option<emmet_core::check::Validation> = std::fs::read_to_string(&path)
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok());
+    let mut out = Vec::new();
+    for h in highlight {
+        if !is_finding_id(h) {
+            out.push(h.clone());
+            continue;
+        }
+        let finding = validation.as_ref().and_then(|v| v.finding(h)).ok_or_else(|| {
+            Error::new(
+                ErrorCode::ParamInvalid,
+                format!("There's no finding {h} in build/validation.json."),
+                "Run validate (emmet check) first; finding ids come from its latest result.",
+            )
+        })?;
+        out.extend(finding.parts.iter().cloned());
+    }
+    Ok(out)
+}
+
+pub fn is_finding_id(s: &str) -> bool {
+    let s = s.trim();
+    s.len() > 2 && s[..2].eq_ignore_ascii_case("F-") && s[2..].bytes().all(|b| b.is_ascii_digit())
 }
 
 fn unavailable(message: impl Into<String>) -> Error {

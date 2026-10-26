@@ -15,11 +15,11 @@ use crate::envelope::{Error, ErrorCode, Result};
 use crate::fsx::{self, write_atomic};
 
 /// The library release this Emmet version pins, and where it comes from.
-pub const RELEASE: &str = "2026-09";
+pub const RELEASE: &str = "2026-10";
 pub const URL: &str = "https://library.ldraw.org/library/updates/complete.zip";
-pub const SHA256: &str = "f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2";
+pub const SHA256: &str = "023083918da2d3697c794fb4267975509584f3611b993095874206a803fa610f";
 
-/// Refuse downloads and unzipped contents past these sizes (the 2026-09 zip is 146 MB, about 500 MB unzipped).
+/// Refuse downloads and unzipped contents past these sizes (the 2026-10 zip is 147 MB, about 550 MB unzipped).
 const MAX_DOWNLOAD: u64 = 1 << 30;
 const MAX_UNZIPPED: u64 = 4 << 30;
 

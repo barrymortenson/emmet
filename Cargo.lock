@@ -996,6 +996,7 @@ name = "emmet-cli"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "emmet-agent",
  "emmet-bus",
  "emmet-core",
  "rmcp",

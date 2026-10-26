@@ -1,17 +1,30 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The functional UI (plan section 14, before Phase 2 designs it): a project tree, the viewer with a params drawer,
-// a run panel with the error and its traceback, the chat pane, and a status line with plan usage. The last good model
-// stays on screen while a run is going or after one fails.
+// The functional UI (plan section 14, before Phase 2 designs it): a project tree, the viewer with the Parameters,
+// Checks, and Parts drawers, a run panel with the error and its traceback, the chat pane, and a status line with plan
+// usage. The last good model stays on screen while a run is going or after one fails.
 import { createViewer, type View, type Viewer } from "@emmet/viewer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { type AgentKind, type AppInfo, commands, events, type Problem, type Scene, type UiState, type UsageSnapshot } from "./bindings";
+import {
+  type AgentKind,
+  type AppInfo,
+  commands,
+  events,
+  type Finding,
+  type Problem,
+  type Scene,
+  type UiState,
+  type UsageSnapshot,
+} from "./bindings";
 import { ChatPane } from "./Chat";
+import { Checks, checksLabel, fixRequest } from "./Checks";
 import { base64, json, library, placements } from "./library";
 import { Params } from "./Params";
+import { Parts, partsLabel } from "./Parts";
 import { Settings } from "./Settings";
 import { limitWarning, UsageBar } from "./Usage";
 
 type Theme = "light" | "dark";
+type Drawer = "params" | "checks" | "parts";
 const VIEWS: View[] = ["iso", "front", "back", "left", "right", "top"];
 
 /** The system appearance, unless a test overrides it with data-theme. */
@@ -49,6 +62,13 @@ export function App() {
   const [chatStatus, setChatStatus] = useState<string | null>(null);
   const [settings, setSettings] = useState(false);
   const [agentsChanged, setAgentsChanged] = useState(0);
+  const [drawer, setDrawer] = useState<Drawer>("params");
+  /** First run: "idle", "running" (the library download and Python), or why it failed. */
+  const [setup, setSetup] = useState<"idle" | "running" | string>("idle");
+  /** A finding to send to the chat ("Ask agent to fix"); `n` counts the asks, so the same finding can go twice. */
+  const [ask, setAsk] = useState<{ text: string; n: number } | null>(null);
+  /** A slider wrote params.json: the run it causes shows at once, without the build animation (plan section 13). */
+  const sliderRun = useRef(false);
   const onTurnEnd = useCallback(() => setTurns((n) => n + 1), []);
 
   // The viewer lives as long as the window.
@@ -89,13 +109,16 @@ export function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  /** Shows a scene if it's newer than the one on screen (the generation check), framing a project's first one. */
-  const show = useCallback(async (scene: Scene | null, root: string | null) => {
+  /** Shows a scene if it's newer than the one on screen (the generation check), framing a project's first one. A
+   * project's first scene and a slider's runs appear at once; other runs (the agent's, an edit) build up part by part
+   * (D-34). */
+  const show = useCallback(async (scene: Scene | null, root: string | null, animate: "build" | "none" = "none") => {
     const v = viewer.current;
     if (!v || !scene || scene.generation < shown.current) return;
     shown.current = scene.generation;
+    const first = root != null && framed.current !== root;
     try {
-      await v.update(placements(scene), { animate: "none" });
+      await v.update(placements(scene), { animate: first ? "none" : animate });
       drawnAt.current = performance.now();
       const failed = Object.entries(v.stats().failed);
       setViewerError(failed.length ? `Some parts can't be shown: ${failed.map(([id, why]) => `${id} (${why})`).join("; ")}` : null);
@@ -116,6 +139,7 @@ export function App() {
         framed.current = null;
         root.current = payload.project.root;
         setSelected(null);
+        setDrawer("params");
         viewer.current?.highlight([]);
         setUi((u) => ({ ...u, project: payload.project, running: false, scene: payload.scene ?? null, error: null }));
         void show(payload.scene ?? null, payload.project.root);
@@ -126,7 +150,11 @@ export function App() {
         // A stale run, or a scene older than the one on screen (a bus render may have shown a newer build), changes
         // nothing but the status.
         const scene = payload.scene && payload.scene.generation >= shown.current ? payload.scene : null;
-        if (scene) void show(scene, root.current);
+        const animate = sliderRun.current ? "none" : "build";
+        if (scene) {
+          sliderRun.current = false;
+          void show(scene, root.current, animate);
+        }
         setUi((u) => {
           if (scene) return { ...u, running: false, scene, error: null };
           if (payload.error) return { ...u, running: false, error: payload.error };
@@ -141,7 +169,7 @@ export function App() {
           if (payload.scene && payload.scene.generation > shown.current) {
             const scene = payload.scene;
             setUi((u) => ({ ...u, scene, error: null }));
-            await show(scene, null);
+            await show(scene, null, "build");
           }
           // Only the ids the request names are highlighted in the render, whatever the window shows.
           const { png, camera } = await v.render({ view: payload.view as View, size: payload.size, highlight: payload.highlight });
@@ -166,13 +194,23 @@ export function App() {
     void commands.appInfo().then(setInfo);
   };
 
-  const highlight = (key: string, ids: string[]) => {
+  const highlight = (key: string, ids: string[], mode: "issue" | "select" = "select") => {
     const next = selected === key ? null : key;
     setSelected(next);
-    viewer.current?.highlight(next ? ids : []);
+    viewer.current?.highlight(next ? ids : [], { mode });
   };
 
   const scene = ui.scene;
+  // A finding that a new build no longer has stops being highlighted.
+  const findings = scene?.checks?.findings;
+  useEffect(() => {
+    if (selected?.startsWith("finding:") && !findings?.some((f) => `finding:${f.id}` === selected)) {
+      setSelected(null);
+      viewer.current?.highlight([]);
+    }
+  }, [findings, selected]);
+  const pickFinding = (f: Finding) => highlight(`finding:${f.id}`, f.parts, "issue");
+  const askToFix = (f: Finding) => setAsk((a) => ({ text: fixRequest(f), n: (a?.n ?? 0) + 1 }));
   return (
     <div className="app">
       <header className="titlebar">
@@ -198,6 +236,33 @@ export function App() {
         <p className="notice" role="alert">
           {problem.message} {problem.hint}
         </p>
+      )}
+      {info && (!info.library || !info.python) && (
+        <div className="setup" role="region" aria-label="Set up" id="setup">
+          {setup === "running" ? (
+            <p>Setting up: downloading the LDraw parts library (about 150 MB) and Python. This takes a minute or two.</p>
+          ) : (
+            <>
+              <p>
+                Emmet needs the LDraw parts library and Python before it can build a model. Setting them up downloads about
+                150 MB once.
+              </p>
+              <button
+                type="button"
+                id="setup-button"
+                onClick={async () => {
+                  setSetup("running");
+                  const r = await commands.setup();
+                  setSetup(r.status === "ok" ? "idle" : `${r.error.message} ${r.error.hint}`.trim());
+                  void commands.appInfo().then(setInfo);
+                }}
+              >
+                Set up
+              </button>
+              {setup !== "idle" && <p className="notice">{setup}</p>}
+            </>
+          )}
+        </div>
       )}
       {ui.notice && (
         <p className="notice" role="alert" id="app-notice">
@@ -239,12 +304,60 @@ export function App() {
               </div>
             )}
           </div>
-          {ui.project && <Params key={ui.project.root} running={ui.running} lastGeneration={scene?.generation ?? -1} />}
+          {ui.project && (
+            <section className="drawers" aria-label="Model">
+              <div className="tabs" role="tablist">
+                {(
+                  [
+                    ["params", "Parameters"],
+                    ["checks", checksLabel(scene?.checks)],
+                    ["parts", partsLabel(scene?.bom)],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    id={`tab-${key}`}
+                    aria-selected={drawer === key}
+                    className={key === "checks" && scene?.checks?.errors ? "has-errors" : undefined}
+                    onClick={() => setDrawer(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="drawer" role="tabpanel" hidden={drawer !== "params"}>
+                <Params
+                  key={ui.project.root}
+                  running={ui.running}
+                  lastGeneration={scene?.generation ?? -1}
+                  onWrite={() => (sliderRun.current = true)}
+                />
+              </div>
+              {drawer === "checks" && (
+                <div className="drawer" role="tabpanel" id="checks">
+                  <Checks
+                    checks={scene?.checks}
+                    selected={selected?.startsWith("finding:") ? selected.slice(8) : null}
+                    onPick={pickFinding}
+                    onAsk={askToFix}
+                  />
+                </div>
+              )}
+              {drawer === "parts" && (
+                <div className="drawer" role="tabpanel" id="parts">
+                  <Parts bom={scene?.bom} />
+                </div>
+              )}
+            </section>
+          )}
         </main>
         <aside className="side" aria-label="Run and chat">
           <RunPanel ui={ui} />
           <ChatPane
             project={ui.project ?? null}
+            ask={ask}
             agentsChanged={agentsChanged}
             warning={limitWarning(limits ?? usage)}
             onTurnEnd={onTurnEnd}

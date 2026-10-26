@@ -714,3 +714,33 @@ fn candidates(root: &Value, schema: &Value) -> Vec<Value> {
     }
     out
 }
+
+/// A finding sent by "Ask agent to fix" (1D): the agent validates, gets broken-collision's real F-0001, edits the line
+/// it names, runs, and validates clean. Derived from the recordings until a live run is recorded (plan section 21).
+#[test]
+fn a_collision_finding_is_fixed_at_its_line() {
+    let rig = rig("codex-fix-collision", "derived-fix-collision");
+    let broken = emmet_it::fixture("projects/broken-collision/model.py");
+    std::fs::copy(&broken, rig.project.join("model.py")).unwrap();
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Fix F-0001 (collision, parts wall/a, wall/b at model.py:10, model.py:11): wall/a (Brick 2 x 4) and wall/b (Brick 2 x 4) overlap by 1 stud. They share 1 stud side by side. Move wall/b by 1 stud, or use a shorter part. Then run validate again.")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let results: Vec<String> = events
+        .iter()
+        .filter_map(|e| match e {
+            emmet_agent::AgentEvent::ToolResult { summary, .. } => Some(summary.clone()),
+            _ => None,
+        })
+        .collect();
+    let first = results
+        .iter()
+        .find(|r| r.contains("F-0001"))
+        .expect("validate reported the collision");
+    assert!(first.contains("collision model.py:10"), "{first}");
+    assert!(results.last().unwrap().contains("No findings"), "{results:?}");
+    assert!(rig.model_py().contains(r#"at=(2, 0, 1), id="wall/b""#));
+    let (v, code) = emmet_it::emmet_json(&["check", "--strict", "--project", rig.project.to_str().unwrap()]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]));
+}
