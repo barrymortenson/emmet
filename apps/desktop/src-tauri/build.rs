@@ -16,6 +16,7 @@ fn main() {
         "render_job",
         "render_done",
         "render_failed",
+        "setup",
         "agents",
         "chat_start",
         "chat_send",
