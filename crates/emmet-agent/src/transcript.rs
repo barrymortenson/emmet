@@ -2,7 +2,9 @@
 //! Transcript capture (plan section 10): every line of a session's protocol stream, both ways, in the project's
 //! `.emmet/transcripts/<session>.jsonl` (local, never shared). The lines are the `{t, dir, msg}` of 0B's recordings,
 //! so `scripts/scrub-transcript` turns a live session into a replay fixture for tests/replay/. The session's secrets
-//! (an API key, a ChatGPT access token) are replaced before a line is written, wherever the CLI echoed them.
+//! (an API key, a ChatGPT access token) are replaced before a line is written, wherever the CLI echoed them within
+//! that line. A secret split across two streamed deltas would get through, which is why Codex is also told never to
+//! pass its credential variables to the agent's commands (codex.rs).
 
 use std::fs::File;
 use std::io::{BufWriter, Write};

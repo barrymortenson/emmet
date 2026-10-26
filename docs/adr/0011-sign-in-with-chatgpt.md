@@ -52,13 +52,26 @@ with `rand` (about 10 new crates) and `jsonwebtoken`.
 - Refreshes hold an in-process lock and a file lock (`chatgpt/refresh.lock`, std's `File::lock`), then reread the
   record, so two windows or processes never spend one rotating refresh token twice.
 - A Codex session renews only between turns: before a turn that would start with less than 30 minutes of token left,
-  or after the API refused the token (a 401). It then restarts the app-server with the new `ACCESS_TOKEN`,
-  initializes, and `thread/resume`s the saved thread (OpenAI's rule). The chat never sees the old process's exit. A
-  token never expires mid-turn unless a turn runs past 30 minutes; then the turn fails with the sign-in error and the
-  next turn renews. Emmet never starts a turn on its own (plan section 10).
+  or after the API rejected the sign-in (an `AuthFailed` error: a 401, or OpenAI's invalid-user and scope codes). It
+  then restarts the app-server with the new `ACCESS_TOKEN`, initializes, and `thread/resume`s the saved thread
+  (OpenAI's rule). The chat never sees the old process's exit, and a restarted process's card and note ids carry its
+  generation (`g1-a1`), so none repeats an earlier one. A token can still expire mid-turn when a turn runs past 30
+  minutes, or when `earliest_refresh_at` or an unreachable OpenAI let a turn start with as little as a minute left;
+  the turn then fails with the sign-in error, and the next one renews. Emmet never starts a turn on its own (plan
+  section 10). The renewal runs off the window's thread (`chat_send` and `chat_steer` are async).
+- A renewal that loses plan use (the user turned it off in ChatGPT) ends the plan session's turns with the fix.
+- Each engine's hub registration has an owner token, so a slow-exiting old process can't unregister its successor.
 - `earliest_refresh_at` is honored. A network failure or 5xx keeps the credentials and uses a token that's still good.
   An unusable refresh token clears the access and refresh tokens (the ID token stays for `id_token_hint`), and the
-  account shows as signed out.
+  account shows as signed out, as it does when its keychain record is gone. `invalid_client` forgets the registration,
+  so the next Continue with ChatGPT registers anew.
+- A first registration's issued client id is saved as soon as the callback brings it, so any later failure's retry
+  reuses it rather than register Emmet again.
+- Files Emmet can't read (`accounts.json`, `host.json`, a keychain record) are errors that name them. They never read
+  as empty: an unreadable `accounts.json` stops Codex rather than move it to the API key, and is never saved over. Every
+  write to the accounts or a record holds the refresh lock.
+- The browser page after the callback says to go back to Emmet, not that sign-in worked: Emmet still has to exchange
+  the code and check the ID token. A sign-in with no answer in 10 minutes reports a timeout, apart from Cancel.
 
 ### The app-server and errors
 
@@ -71,8 +84,11 @@ with `rand` (about 10 new crates) and `jsonwebtoken`.
 
 ### Secrets in outputs
 
-The engine takes a session's secrets (the API key, or the access token) and replaces them with `<redacted>` in every
-transcript line and every event, wherever the CLI echoed them. A test seeds tokens through fake-openai, has the fake
+The engine takes a session's secrets (the API key, or every access token the session used) and replaces them with
+`<redacted>` in each transcript line and each event (a crash report's stderr lines included), and an event that
+won't read back once redacted is replaced, never passed on. A secret split across two streamed deltas would get
+through, so Codex is also pinned to keep credential variables out of the agent's commands
+(`shell_environment_policy.ignore_default_excludes=false`; its default excludes `*KEY*` and `*TOKEN*`). A test seeds tokens through fake-openai, has the fake
 CLI echo them on stderr, in an error, and in text, and greps every file Emmet wrote and every event; the E2E spec does
 the same over the app's data, the project, and the run's output. Emmet has no log file and no diagnostics bundle yet;
 6B's bundle must join both tests.
@@ -89,4 +105,6 @@ eligibility and self-hosted VMs don't apply: Emmet has no plans or prices and ru
 - A `fake-openai` in `tests/fake-agents` (`EMMET_FAKE_OPENAI`) and a fake browser (`EMMET_FAKE_BROWSER`), debug builds
   only, like `EMMET_FAKE_KEYCHAIN`.
 - The window gains seven typed commands (`chatgpt_*`, `open_chatgpt_usage`); none takes a URL. The CSP is unchanged.
+- The status bar's Codex billing is the running chat's, not the saved choice, and sign-out stops only the chat on that
+  account.
 - 4B restyles the notice, the label, the limit card, and the picker; the button keeps OpenAI's format.

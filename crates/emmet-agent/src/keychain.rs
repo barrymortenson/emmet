@@ -5,7 +5,8 @@
 //! per Sign in with ChatGPT registration (`chatgpt:<client id>`, 1E).
 //!
 //! Tests never touch the real keychain: in a debug build, `EMMET_FAKE_KEYCHAIN=<file>` in the agents' environment
-//! keeps the API key in that file instead, and each other entry in `<file>.<entry>`.
+//! keeps the API key in that file instead, and each other entry in `<file>.<entry>`, with any character but ASCII
+//! letters, digits, `_`, and `-` made `-` (so `chatgpt:<id>` is `<file>.chatgpt-<id>`).
 
 use std::collections::HashMap;
 use std::path::PathBuf;

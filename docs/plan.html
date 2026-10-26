@@ -939,7 +939,8 @@ pub enum AgentEvent {
   -c 'mcp_servers.emmet_host.command="&lt;abs path to emmet&gt;"' -c 'mcp_servers.emmet_host.args=["mcp-host","--session","&lt;id&gt;"]' \
   -c 'mcp_servers.emmet_host.tool_timeout_sec=3600' \
   -c 'sandbox_mode="workspace-write"' -c 'approval_policy="on-request"' \
-  -c 'sandbox_workspace_write.exclude_slash_tmp=true' -c 'sandbox_workspace_write.exclude_tmpdir_env_var=true'
+  -c 'sandbox_workspace_write.exclude_slash_tmp=true' -c 'sandbox_workspace_write.exclude_tmpdir_env_var=true' \
+  -c 'shell_environment_policy.ignore_default_excludes=false'      # the key or token never reaches the agent's commands (1E)
 <span class="c"># then JSON-RPC over stdio (newline-delimited):</span>
 initialize {clientInfo: {name: "Emmet", title: "Emmet", version}} → thread/start {cwd, developerInstructions: EMMET.md pointer} → turn/start {input}
 server → client requests for command/file approvals → Approval events → respond()</code></pre>

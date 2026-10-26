@@ -84,6 +84,8 @@ struct Shared {
     child: Mutex<Option<Child>>,
     session: String,
     hub: Hub,
+    /// This engine's registration in the hub.
+    owner: u64,
     kind: AgentKind,
 }
 
@@ -115,7 +117,7 @@ impl Engine {
         let stdout = child.stdout.take().expect("piped stdout");
         let stderr = child.stderr.take().expect("piped stderr");
         let (tx, rx) = channel();
-        cfg.hub.register(&cfg.id, tx.clone());
+        let owner = cfg.hub.register(&cfg.id, tx.clone());
         let shared = Arc::new(Shared {
             state: Mutex::new(State {
                 proto,
@@ -138,6 +140,7 @@ impl Engine {
             child: Mutex::new(Some(child)),
             session: cfg.id.clone(),
             hub: cfg.hub.clone(),
+            owner,
             kind,
         });
         let reader = shared.clone();
@@ -262,7 +265,8 @@ impl Shared {
     fn file_changes(&self, s: &mut State) {
         let now = Snapshot::scan(&s.project);
         for (path, kind) in s.files.diff(&now) {
-            let _ = s.tx.send(AgentEvent::FileChange { path, kind });
+            let ev = s.clean(AgentEvent::FileChange { path, kind });
+            let _ = s.tx.send(ev);
         }
         s.files = now;
     }
@@ -315,9 +319,8 @@ impl Shared {
                 });
             }
         }
-        // Unregistered before Exited, so a session restarted on the same id (a renewed ChatGPT token) is never
-        // unregistered by its predecessor's exit.
-        self.hub.unregister(&self.session);
+        // Only this engine's registration: a session restarted on the same id (a renewed ChatGPT token) keeps its own.
+        self.hub.unregister(&self.session, self.owner);
         let _ = s.tx.send(AgentEvent::Exited { code });
     }
 
@@ -337,7 +340,11 @@ impl State {
         }
         let text = serde_json::to_string(&ev).expect("an event serializes");
         match redact(&text, &self.secrets) {
-            Some(t) => serde_json::from_str(&t).unwrap_or(ev),
+            // Fails closed: an event that won't read back once redacted is never passed on as it was.
+            Some(t) => serde_json::from_str(&t).unwrap_or(AgentEvent::Error {
+                code: AgentErrorCode::Agent,
+                message: "The agent said something Emmet hid because it held a credential.".into(),
+            }),
             None => ev,
         }
     }

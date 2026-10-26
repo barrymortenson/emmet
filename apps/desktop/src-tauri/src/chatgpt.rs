@@ -35,23 +35,23 @@ fn changed(app: &AppHandle) {
     app.state::<AppState>().chat.forget_agents();
 }
 
-/// The live chat is Codex on the ChatGPT plan: OpenAI's sign-out starts by stopping its requests.
-fn stop_plan_chat(app: &AppHandle) {
+/// OpenAI's sign-out starts by stopping requests: the live chat ends if it bills `account`.
+fn stop_plan_chat(app: &AppHandle, account: &str) {
     let chat = &app.state::<AppState>().chat;
-    if chat.live_on_plan() {
+    if chat.live_plan().as_deref() == Some(account) {
         chat.close();
     }
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn chatgpt_state(app: AppHandle) -> CodexBilling {
-    let ChatGptState { accounts, codex } = chatgpt(&app).state();
-    CodexBilling {
+pub fn chatgpt_state(app: AppHandle) -> Result<CodexBilling, Box<Problem>> {
+    let ChatGptState { accounts, codex } = chatgpt(&app).state().map_err(problem)?;
+    Ok(CodexBilling {
         accounts,
         choice: codex,
-        key_saved: emmet_agent::keychain::has(app.state::<AppState>().chat.env()).unwrap_or(false),
-    }
+        key_saved: emmet_agent::keychain::has(app.state::<AppState>().chat.env()).map_err(problem)?,
+    })
 }
 
 /// Continue with ChatGPT: a new account (`account` null), or the saved one again; `consent` asks OpenAI for the
@@ -97,7 +97,7 @@ pub fn chatgpt_cancel(app: AppHandle) {
 #[tauri::command]
 #[specta::specta]
 pub async fn chatgpt_sign_out(app: AppHandle, account: String) -> Result<SignOut, Box<Problem>> {
-    stop_plan_chat(&app);
+    stop_plan_chat(&app, &account);
     let handle = app.clone();
     let result = tauri::async_runtime::spawn_blocking(move || chatgpt(&handle).sign_out(&account))
         .await

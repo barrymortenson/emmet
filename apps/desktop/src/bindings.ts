@@ -62,7 +62,7 @@ export const commands = {
 	openaiKeySaved: () => __TAURI_INVOKE<boolean>("openai_key_saved"),
 	/**  Saves the OpenAI API key in the OS keychain (Settings → Agents), or removes it (`key` null). */
 	openaiKeySet: (key: string | null) => typedError<boolean, Problem>(__TAURI_INVOKE("openai_key_set", { key })),
-	chatgptState: () => __TAURI_INVOKE<CodexBilling>("chatgpt_state"),
+	chatgptState: () => typedError<CodexBilling, Problem>(__TAURI_INVOKE("chatgpt_state")),
 	/**
 	 *  Continue with ChatGPT: a new account (`account` null), or the saved one again; `consent` asks OpenAI for the
 	 *  permission screen again, to enable plan use after a decline. Waits for the browser; `chatgpt_cancel` stops it.
@@ -439,11 +439,14 @@ export type SignInResult =
 /**  `notice`: show the one-time "You're using your ChatGPT plan" now. */
 { kind: "signed_in"; account: AccountView; notice: boolean } | 
 /**  The user declined in the browser (`access_denied`). */
-{ kind: "declined" } | { kind: "canceled" };
+{ kind: "declined" } | { kind: "canceled" } | 
+/**  No answer from the browser in 10 minutes. */
+{ kind: "timed_out" };
 
 export type SignOut = {
 	/**
-	 *  OpenAI confirmed the revocation. If not, the tokens are cleared anyway, and the user can disconnect Emmet in
+	 *  OpenAI confirmed it revoked the session. False when it didn't, or when there was no refresh token left to
+	 *  revoke (the record was gone or unreadable); the tokens are cleared anyway, and the user can disconnect Emmet in
 	 *  ChatGPT Settings.
 	 */
 	confirmed: boolean,

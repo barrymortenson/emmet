@@ -131,7 +131,7 @@ fn declined_consent_stops_without_an_exchange() {
     plan.openai.set(json!({ "decline": true }));
     assert_eq!(plan.sign_in(None, false).unwrap(), SignInResult::Declined);
     assert!(plan.openai.requests("token").is_empty(), "no code is exchanged");
-    assert!(plan.chatgpt().state().accounts.is_empty());
+    assert!(plan.chatgpt().state().unwrap().accounts.is_empty());
 }
 
 #[test]
@@ -142,19 +142,26 @@ fn callback_problems_are_refused() {
     let cancel = Arc::new(AtomicBool::new(false));
     let (c, chatgpt) = (cancel.clone(), plan.chatgpt());
     let t = std::thread::spawn(move || chatgpt.sign_in(None, false, &c));
-    while plan.openai.requests("authorize").is_empty() {
+    // The listener answered the callback 400 and is still waiting.
+    while !plan.callbacks().contains(&"400".to_string()) {
         std::thread::sleep(Duration::from_millis(20));
     }
-    std::thread::sleep(Duration::from_millis(500));
+    assert!(!t.is_finished(), "a callback with another state ended the sign-in");
     cancel.store(true, Ordering::SeqCst);
     assert_eq!(t.join().unwrap().unwrap(), SignInResult::Canceled);
     assert!(plan.openai.requests("token").is_empty());
 
-    // A registration callback with no issued client id is incomplete.
-    plan.openai.set(json!({ "callback_client_id": "" }));
-    let e = plan.sign_in(None, false).unwrap_err();
-    assert!(e.message.contains("didn't finish registering"), "{e}");
-    assert!(plan.openai.requests("token").is_empty());
+    // A registration callback with no issued client id, or with the registration entrypoint as one, is incomplete.
+    for given in ["", "dynamic_agent_client"] {
+        plan.openai.set(json!({ "callback_client_id": given }));
+        let e = plan.sign_in(None, false).unwrap_err();
+        assert!(e.message.contains("didn't finish registering"), "{given:?}: {e}");
+        assert!(plan.openai.requests("token").is_empty());
+        assert!(
+            !plan.data.join("chatgpt/accounts.json").exists(),
+            "{given:?}: nothing saved"
+        );
+    }
 
     // A returning sign-in's callback naming another client is rejected; the account is untouched.
     plan.openai.set(json!({}));
@@ -200,7 +207,10 @@ fn invalid_grant_on_exchange_keeps_the_client() {
     plan.openai.set(json!({ "exchange_error": "invalid_grant" }));
     let e = plan.sign_in(None, false).unwrap_err();
     assert!(e.message.contains("try again"), "{e}");
-    assert!(plan.chatgpt().state().accounts.is_empty(), "nothing to pick yet");
+    assert!(
+        plan.chatgpt().state().unwrap().accounts.is_empty(),
+        "nothing to pick yet"
+    );
     plan.openai.set(json!({}));
     plan.signed_in(None);
     let a = plan.openai.requests("authorize");
@@ -221,7 +231,7 @@ fn bad_id_tokens_are_refused() {
             plan.record(&format!("oaiapp_{tamper}")).is_none(),
             "{tamper}: nothing stored"
         );
-        let state = plan.chatgpt().state();
+        let state = plan.chatgpt().state().unwrap();
         assert_eq!(state.accounts.len(), 1, "{tamper}");
         assert!(state.accounts[0].active, "{tamper}: the active account stays");
     }
@@ -265,12 +275,6 @@ fn enable_plan_use_asks_for_consent_again() {
     assert_eq!(param(a, "client_id"), ID);
     assert!(param(a, "scope").contains("chatgpt.tokens.use.direct"));
     assert!(matches!(plan.chatgpt().codex_use(), CodexUse::Plan { .. }));
-    // Once seen, never again on a later sign-in.
-    plan.chatgpt().notice_seen(ID).unwrap();
-    let SignInResult::SignedIn { notice, .. } = plan.sign_in(Some(ID), false).unwrap() else {
-        panic!()
-    };
-    assert!(!notice);
 }
 
 #[test]
@@ -292,6 +296,7 @@ fn two_accounts_stay_apart() {
     let active = |plan: &Plan| -> Vec<(String, bool)> {
         plan.chatgpt()
             .state()
+            .unwrap()
             .accounts
             .into_iter()
             .map(|a| (a.id, a.active))
@@ -301,7 +306,7 @@ fn two_accounts_stay_apart() {
     // Switching doesn't sign the other out, and a sign-in to the first uses its own client id.
     plan.chatgpt().choose(Some(ID)).unwrap();
     assert_eq!(active(&plan), [(ID.into(), true), ("oaiapp_test2".into(), false)]);
-    assert!(plan.chatgpt().state().accounts.iter().all(|a| a.signed_in));
+    assert!(plan.chatgpt().state().unwrap().accounts.iter().all(|a| a.signed_in));
     plan.openai
         .set(json!({ "account": { "sub": "user-1", "email": "builder@example.com" } }));
     let first = plan.signed_in(Some(ID));
@@ -326,7 +331,7 @@ fn sign_out_revokes_and_keeps_the_registration() {
         ("refresh_token", ID)
     );
     assert!(plan.record(ID).is_none(), "the tokens are cleared");
-    let a = &plan.chatgpt().state().accounts[0];
+    let a = &plan.chatgpt().state().unwrap().accounts[0];
     assert!(a.id == ID && !a.signed_in, "the registration stays: {a:?}");
     assert_eq!(
         std::fs::read_to_string(plan.data.join("chatgpt/host.json")).unwrap(),
@@ -433,7 +438,7 @@ fn refresh_errors() {
         r["access_token"].is_null() && r["refresh_token"].is_null() && r["id_token"].is_string(),
         "{r}"
     );
-    assert!(!plan.chatgpt().state().accounts[0].signed_in);
+    assert!(!plan.chatgpt().state().unwrap().accounts[0].signed_in);
 
     // A 503 never erases credentials: a token that's still good is used; an expired one is an error to retry.
     let plan = Plan::new("refresh-503");
@@ -449,13 +454,98 @@ fn refresh_errors() {
     let e = plan.chatgpt().access_token(ID, None, RENEW_BEFORE).unwrap_err();
     assert!(e.message.contains("Try again"), "{e}");
     assert_eq!(plan.record(ID).unwrap()["refresh_token"], before["refresh_token"]);
-    assert!(plan.chatgpt().state().accounts[0].signed_in);
+    assert!(plan.chatgpt().state().unwrap().accounts[0].signed_in);
 
-    // invalid_client: a configuration error, credentials kept.
+    // invalid_client: OpenAI no longer knows the registration, so it's forgotten and the next sign-in registers anew.
     plan.openai.set(json!({ "refresh_error": "invalid_client" }));
     let e = plan.chatgpt().access_token(ID, None, RENEW_BEFORE).unwrap_err();
     assert!(e.message.contains("invalid_client"), "{e}");
-    assert_eq!(plan.record(ID).unwrap()["refresh_token"], before["refresh_token"]);
+    assert!(plan.record(ID).is_none());
+    assert!(plan.chatgpt().state().unwrap().accounts.is_empty());
+    plan.openai.set(json!({ "client_id": "oaiapp_new" }));
+    plan.signed_in(None);
+    assert_eq!(
+        param(plan.openai.requests("authorize").last().unwrap(), "client_id"),
+        "dynamic_agent_client"
+    );
+}
+
+#[test]
+fn earliest_refresh_at_defers_the_refresh() {
+    let plan = Plan::new("earliest");
+    plan.openai.set(json!({ "earliest_refresh_in": 3000 }));
+    plan.signed_in(None);
+    let before = plan.record(ID).unwrap()["access_token"].clone();
+    expire_in(&plan, 600);
+    assert_eq!(
+        plan.chatgpt().access_token(ID, None, RENEW_BEFORE).unwrap(),
+        before.as_str().unwrap()
+    );
+    assert_eq!(plan.openai.requests("token").len(), 1, "not before OpenAI allows");
+    // With a minute or less left, it refreshes anyway.
+    expire_in(&plan, 30);
+    assert_ne!(
+        plan.chatgpt().access_token(ID, None, RENEW_BEFORE).unwrap(),
+        before.as_str().unwrap()
+    );
+}
+
+/// Files Emmet can't read are errors that stop Codex, never an empty list that moves it to the API key or is saved
+/// over; a keychain record that's gone shows the account signed out.
+#[test]
+fn unreadable_state_is_never_taken_for_empty() {
+    let plan = Plan::new("unreadable");
+    plan.signed_in(None);
+    let accounts = plan.data.join("chatgpt/accounts.json");
+    std::fs::write(&accounts, "{ not json").unwrap();
+    let CodexUse::PlanOff { fix, .. } = plan.chatgpt().codex_use() else {
+        panic!("Codex must not run on anything")
+    };
+    assert!(fix.contains("accounts.json"), "{fix}");
+    assert!(plan.chatgpt().choose(None).is_err());
+    assert_eq!(
+        std::fs::read_to_string(&accounts).unwrap(),
+        "{ not json",
+        "never saved over"
+    );
+    let host = plan.data.join("chatgpt/host.json");
+    std::fs::write(&host, "garbage").unwrap();
+    assert!(plan.chatgpt().host_id().is_err(), "never a new host id");
+
+    let plan = Plan::new("lost-record");
+    plan.signed_in(None);
+    std::fs::remove_file(format!("{}.chatgpt-{ID}", plan.keychain.display())).unwrap();
+    let e = plan.chatgpt().access_token(ID, None, RENEW_BEFORE).unwrap_err();
+    assert_eq!(e.code, AgentErrorCode::NotSignedIn);
+    assert!(!plan.chatgpt().state().unwrap().accounts[0].signed_in);
+    assert!(!plan.chatgpt().sign_out(ID).unwrap().confirmed, "nothing was revoked");
+}
+
+/// A crash report quotes the CLI's last stderr lines: a token among them is hidden there too.
+#[test]
+fn a_crash_report_hides_the_token() {
+    let plan = Plan::new("crash");
+    plan.signed_in(None);
+    let token = plan.record(ID).unwrap()["access_token"].as_str().unwrap().to_string();
+    let rig = Rig::new("chatgpt-crash", "codex", "derived-plan-echo-token-crash").with_plan(&plan);
+    let (mut s, mut ev) = rig.start(AgentKind::Codex);
+    s.send(UserTurn {
+        text: "Reply with exactly the word: ready".into(),
+    })
+    .unwrap();
+    let events = ev.exit();
+    let crash = events
+        .iter()
+        .find_map(|e| match e {
+            AgentEvent::Error {
+                code: AgentErrorCode::Crashed,
+                message,
+            } => Some(message.clone()),
+            _ => None,
+        })
+        .expect("a crash report");
+    assert!(crash.contains("Bearer <redacted>"), "{crash}");
+    assert!(!serde_json::to_string(&events).unwrap().contains(&token));
 }
 
 /// Every file under `dir`, as text.

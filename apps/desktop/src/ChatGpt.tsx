@@ -37,7 +37,8 @@ export function PlanLabel() {
 }
 
 /** OpenAI's usage-limit message, compact: the ChatGPT identity visible and Manage usage the primary action. Emmet sells
- * no credits, so there's no second action, and no reset time: OpenAI's error doesn't say whose limit it is. */
+ * no credits, so there's no second action, and no reset time: OpenAI's error doesn't say when the limit ends, or whose
+ * limit it is. */
 export function LimitCard() {
   return (
     <div className="card limit-card" role="alert" id="limit-card">
@@ -96,7 +97,11 @@ export function CodexAccounts({ onChanged }: { onChanged: () => void }) {
   const [message, setMessage] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const load = useCallback(async () => setBilling(await commands.chatgptState()), []);
+  const load = useCallback(async () => {
+    const r = await commands.chatgptState();
+    if (r.status === "ok") setBilling(r.data);
+    else setMessage(`${r.error.message} ${r.error.hint}`.trim());
+  }, []);
   useEffect(() => {
     void load();
   }, [load]);
@@ -114,6 +119,8 @@ export function CodexAccounts({ onChanged }: { onChanged: () => void }) {
     if (r.status === "error") setMessage(`${r.error.message} ${r.error.hint}`.trim());
     else if (r.data.kind === "declined")
       setMessage("ChatGPT plan use isn't enabled. Enable ChatGPT plan usage, or use an OpenAI API key.");
+    else if (r.data.kind === "timed_out")
+      setMessage("Emmet didn't hear back from your browser in 10 minutes. Press Continue with ChatGPT to try again.");
     else if (r.data.kind === "signed_in") {
       if (r.data.notice) setNotice(r.data.account.id);
       if (!r.data.account.plan)
@@ -141,7 +148,12 @@ export function CodexAccounts({ onChanged }: { onChanged: () => void }) {
     await after();
   };
 
-  if (!billing) return null;
+  if (!billing)
+    return message ? (
+      <p className="notice" role="alert" id="chatgpt-message">
+        {message}
+      </p>
+    ) : null;
   const onPlan = billing.choice === "chatgpt";
   return (
     <div className="codex-billing" id="codex-billing">

@@ -425,5 +425,11 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     },
     ...plain.slice(turnStarted + 1).flatMap((l) => (l === plain.find((x) => x.msg.method === "item/agentMessage/delta") ? [l, echoText] : [l])),
   ]);
+  // The same CLI crashes mid-turn right after printing the token: the crash report quotes its last stderr lines.
+  save("codex", "plan-echo-token-crash", "plain-turn.jsonl", "the CLI prints its ACCESS_TOKEN on stderr, then crashes", [
+    ...plain.slice(0, turnStarted + 1),
+    { t: 0, dir: "err", msg: "fatal: request with Authorization: Bearer <ACCESS_TOKEN> failed" },
+    exit(1, true),
+  ]);
 }
 console.log("derive: ok");

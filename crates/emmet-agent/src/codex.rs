@@ -32,8 +32,8 @@ const OURS: &[&str] = &["emmet", "emmet_host"];
 pub const KEY_VAR: &str = "OPENAI_API_KEY";
 /// The variable OpenAI's ChatGPT plan provider reads the access token from.
 pub const TOKEN_VAR: &str = "ACCESS_TOKEN";
-/// A plan session renews its token before a turn that would start with less than this left, so a turn always has at
-/// least this long before the token expires (access tokens last an hour).
+/// A plan session renews its token before a turn that would start with less than this left. OpenAI's
+/// `earliest_refresh_at`, or a refresh that can't reach OpenAI, can still start a turn with as little as a minute left.
 pub const RENEW_BEFORE: Duration = Duration::from_secs(30 * 60);
 
 pub struct Codex {
@@ -137,6 +137,9 @@ pub fn args(cfg: &SessionConfig, plan: bool) -> Vec<String> {
         "approval_policy=\"on-request\"".into(),
         "sandbox_workspace_write.exclude_slash_tmp=true".into(),
         "sandbox_workspace_write.exclude_tmpdir_env_var=true".into(),
+        // Codex keeps variables named like *KEY* and *TOKEN* out of the agent's shell commands by default; pinned, so a
+        // user's own config can't hand the session's key or ChatGPT token to a command (1E, ADR 0011).
+        "shell_environment_policy.ignore_default_excludes=false".into(),
     ];
     let mut a: Vec<String> = ["app-server", "--listen", "stdio://", "--strict-config"]
         .map(String::from)
@@ -148,8 +151,9 @@ pub fn args(cfg: &SessionConfig, plan: bool) -> Vec<String> {
     a
 }
 
-/// Starts one app-server process on `secret` (the API key, or the plan's access token).
-fn spawn(cfg: &SessionConfig, bin: &Path, plan: bool, secret: &str) -> Result<Engine> {
+/// Starts one app-server process on `secret` (the API key, or the plan's access token). `secrets` (it, and any token
+/// the session used before) never reach the transcript or an event.
+fn spawn(cfg: &SessionConfig, bin: &Path, plan: bool, secret: &str, secrets: Vec<String>) -> Result<Engine> {
     session_dir(cfg)?;
     let args = args(cfg, plan);
     let mut cmd = detect::command(bin);
@@ -164,14 +168,7 @@ fn spawn(cfg: &SessionConfig, bin: &Path, plan: bool, secret: &str) -> Result<En
         plan,
         ..Default::default()
     };
-    Engine::spawn(
-        AgentKind::Codex,
-        cfg,
-        cmd,
-        Box::new(proto),
-        meta,
-        vec![secret.to_string()],
-    )
+    Engine::spawn(AgentKind::Codex, cfg, cmd, Box::new(proto), meta, secrets)
 }
 
 impl AgentAdapter for Codex {
@@ -228,15 +225,16 @@ impl AgentAdapter for Codex {
                 "Continue with ChatGPT, or add your OpenAI API key, in Settings → Agents.",
             )
         })?;
-        Ok(Box::new(spawn(&cfg, &bin, false, &key)?))
+        Ok(Box::new(spawn(&cfg, &bin, false, &key, vec![key.clone()])?))
     }
 
     /// OpenAI documents no usage source for an API key or a ChatGPT plan, so Codex reports its billing state only
-    /// (D-36); on a plan the app shows "Using ChatGPT plan" with Manage usage.
+    /// (D-36): what a new chat would use. A running chat keeps what it started with; the app shows that one.
     fn usage(&self) -> Result<UsageSnapshot> {
         let billing = match self.chatgpt().codex_use() {
             CodexUse::ApiKey => key_billing(),
-            _ => plan_billing(),
+            CodexUse::Plan { .. } => plan_billing(),
+            CodexUse::PlanOff { .. } => Billing::Unknown,
         };
         Ok(UsageSnapshot::without_meters(AgentKind::Codex, billing, None))
     }
@@ -244,18 +242,21 @@ impl AgentAdapter for Codex {
 
 /// A Codex session on the user's ChatGPT plan. OpenAI's rule for the app-server: when the token renews, restart it
 /// with the new `ACCESS_TOKEN`, initialize, and `thread/resume` the saved thread. Emmet renews only between turns:
-/// before one that would start with less than [`RENEW_BEFORE`] left, or after the API refused the token. The chat sees
-/// one session throughout: the old process's exit is never passed on.
+/// before one that would start with less than [`RENEW_BEFORE`] left, or after the API rejected the sign-in (an
+/// `AuthFailed` error). The chat sees one session throughout: the old process's exit is never passed on, and the ids of
+/// a restarted process's cards and notes carry its generation (`g1-a1`), so they never repeat an earlier one's.
 struct PlanSession {
     cfg: SessionConfig,
     bin: PathBuf,
     chatgpt: ChatGpt,
     id: String,
     token: String,
+    /// Every token this session ran on: a retired one is still valid until it expires.
+    tokens: Vec<String>,
     engine: Engine,
     /// Which engine is current: a retired engine's events stop at its exit.
     generation: Arc<AtomicU64>,
-    /// The API refused the token (a 401): renew before the next turn.
+    /// The API rejected the sign-in: renew before the next turn.
     refused: Arc<AtomicBool>,
     tx: Sender<crate::AgentEvent>,
     events: Option<EventStream>,
@@ -263,15 +264,36 @@ struct PlanSession {
     ended: Option<Receiver<()>>,
 }
 
+/// An id from engine generation `g`, as the chat sees it.
+fn tag(g: u64, id: String) -> String {
+    if g == 0 { id } else { format!("g{g}-{id}") }
+}
+
+/// The current engine's ids carry their generation; anything else is an earlier engine's, gone with it.
+fn tagged(e: &mut AgentEvent, g: u64) {
+    if g == 0 {
+        return;
+    }
+    match e {
+        AgentEvent::Approval { id, .. }
+        | AgentEvent::ApprovalClosed { id }
+        | AgentEvent::Question { id, .. }
+        | AgentEvent::QuestionClosed { id, .. }
+        | AgentEvent::NoteDelivered { id, .. } => *id = tag(g, std::mem::take(id)),
+        _ => {}
+    }
+}
+
 impl PlanSession {
     fn start(cfg: SessionConfig, bin: PathBuf, chatgpt: ChatGpt, id: String, token: String) -> Result<Self> {
-        let engine = spawn(&cfg, &bin, true, &token)?;
+        let engine = spawn(&cfg, &bin, true, &token, vec![token.clone()])?;
         let (tx, rx) = channel();
         let mut s = Self {
             cfg,
             bin,
             chatgpt,
             id,
+            tokens: vec![token.clone()],
             token,
             engine,
             generation: Arc::new(AtomicU64::new(0)),
@@ -292,7 +314,7 @@ impl PlanSession {
         let (done, ended) = channel();
         self.ended = Some(ended);
         std::thread::spawn(move || {
-            for ev in rx {
+            for mut ev in rx {
                 if generation.load(Ordering::SeqCst) != mine {
                     if matches!(ev, AgentEvent::Exited { .. }) {
                         break;
@@ -308,6 +330,7 @@ impl PlanSession {
                 ) {
                     refused.store(true, Ordering::SeqCst);
                 }
+                tagged(&mut ev, mine);
                 if tx.send(ev).is_err() {
                     break;
                 }
@@ -316,12 +339,33 @@ impl PlanSession {
         });
     }
 
-    /// Before a turn: a fresh enough token, and if it changed, a new app-server on it, resuming the thread.
+    /// An id the chat gave back, as the current engine knows it; None if it was an earlier engine's.
+    fn own<'a>(&self, id: &'a str) -> Option<&'a str> {
+        match self.generation.load(Ordering::SeqCst) {
+            0 => Some(id),
+            g => id.strip_prefix(&format!("g{g}-")),
+        }
+    }
+
+    /// Before a turn: a fresh enough token, and if it changed, a new app-server on it, resuming the thread. Plan use
+    /// lost with the renewal (the user turned it off in ChatGPT) ends the plan session's turns, rather than run on.
     fn renew(&mut self) -> Result<()> {
-        let refused = self.refused.swap(false, Ordering::SeqCst);
+        let refused = self.refused.load(Ordering::SeqCst);
+        // Cleared only once renewed: after a failed renewal the next turn tries again rather than reuse the token.
         let token = self
             .chatgpt
             .access_token(&self.id, refused.then_some(self.token.as_str()), RENEW_BEFORE)?;
+        self.refused.store(false, Ordering::SeqCst);
+        match self.chatgpt.codex_use() {
+            CodexUse::Plan { id, .. } if id == self.id => {}
+            CodexUse::PlanOff { fix, .. } => return Err(AgentError::new(AgentErrorCode::NotSignedIn, fix)),
+            _ => {
+                return Err(AgentError::new(
+                    AgentErrorCode::NotSignedIn,
+                    "Codex's ChatGPT account changed in Settings. Start a new chat to use it.",
+                ));
+            }
+        }
         if token == self.token {
             return Ok(());
         }
@@ -333,11 +377,16 @@ impl PlanSession {
         }
         let mut cfg = self.cfg.clone();
         cfg.resume = thread.or(cfg.resume);
-        self.engine = spawn(&cfg, &self.bin, true, &token)?;
+        self.tokens.push(token.clone());
+        self.engine = spawn(&cfg, &self.bin, true, &token, self.tokens.clone())?;
         self.cfg = cfg;
         self.token = token;
         self.forward();
         Ok(())
+    }
+
+    fn gone(what: &str) -> AgentError {
+        AgentError::new(AgentErrorCode::Closed, format!("That {what} is no longer open."))
     }
 }
 
@@ -350,11 +399,13 @@ impl Session for PlanSession {
     }
 
     fn respond(&mut self, approval: &str, decision: Decision) -> Result<()> {
-        self.engine.respond(approval, decision)
+        let id = self.own(approval).ok_or_else(|| Self::gone("approval"))?;
+        self.engine.respond(id, decision)
     }
 
     fn answer(&mut self, question: &str, answer: Answer) -> Result<()> {
-        self.engine.answer(question, answer)
+        let id = self.own(question).ok_or_else(|| Self::gone("question"))?;
+        self.engine.answer(id, answer)
     }
 
     fn interrupt(&mut self) -> Result<()> {
@@ -366,15 +417,20 @@ impl Session for PlanSession {
         if !self.engine.running() {
             self.renew()?;
         }
-        self.engine.steer(text)
+        let mut note = self.engine.steer(text)?;
+        note.id = tag(self.generation.load(Ordering::SeqCst), note.id);
+        Ok(note)
     }
 
     fn cancel_note(&mut self, id: &str) -> bool {
-        self.engine.cancel_note(id)
+        self.own(id).is_some_and(|id| self.engine.cancel_note(id))
     }
 
     fn edit_note(&mut self, id: &str, text: &str) -> bool {
-        self.engine.edit_note(id, text)
+        match self.own(id) {
+            Some(id) => self.engine.edit_note(id, text),
+            None => false,
+        }
     }
 
     fn events(&mut self) -> EventStream {
@@ -811,7 +867,8 @@ fn http_status(info: &Value) -> Option<u64> {
 }
 
 /// An error as an event, with its code: on the ChatGPT plan, OpenAI's recovery first and Codex's own words (with the
-/// status, code, and request id) after; otherwise a refused key, no credit, or anything else.
+/// status, code, and request id) after. Any other error, on either provider, is a refused key, no credit, or anything
+/// else, with Codex's message as it is.
 fn agent_error(e: &Value, fallback: &str, plan: bool) -> AgentEvent {
     let message = e["message"].as_str().unwrap_or(fallback);
     let info = &e["codexErrorInfo"];
@@ -826,7 +883,7 @@ fn agent_error(e: &Value, fallback: &str, plan: bool) -> AgentEvent {
                 (Some("usageLimitExceeded"), _) => Some((AgentErrorCode::QuotaExceeded, LIMIT)),
                 (_, Some(401)) => Some((
                     AgentErrorCode::AuthFailed,
-                    "ChatGPT didn't accept the sign-in or its plan permission. Check the account in Settings → Agents.",
+                    "ChatGPT didn't accept the sign-in. Send your message again: Emmet renews the sign-in first.",
                 )),
                 (_, Some(403)) => Some((
                     AgentErrorCode::Agent,

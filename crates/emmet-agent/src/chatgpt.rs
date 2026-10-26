@@ -12,8 +12,12 @@
 //!   example record, never in a file, a log, or a transcript.
 //! - The flow: a loopback listener on 127.0.0.1, then the system browser, with a fresh state, nonce, and PKCE verifier
 //!   per attempt; the code exchange; the ID token's signature and claims; the granted scopes.
-//! - Renewal: refreshes are serialized (a lock in this process and a file lock across processes) and replace the
-//!   whole token set. Sign-out revokes the refresh token, then clears the record and keeps the registration.
+//! - Renewal: refreshes are serialized (a lock in this process and a file lock across processes; every write to the
+//!   accounts or a record takes it too) and replace each token the response carries, keeping the refresh token, ID
+//!   token, and scopes only when it leaves them out. Sign-out revokes the refresh token, then clears the record and
+//!   keeps the registration.
+//! - A file or record Emmet can't read is an error that names it, never an empty list: an unreadable `accounts.json`
+//!   must not move Codex to the API key, nor be saved over.
 //!
 //! Tests point the issuer at `fake-openai` with `EMMET_FAKE_OPENAI=<base URL>`, and replace the system browser with
 //! `EMMET_FAKE_BROWSER=<dir>`, in a debug build only, like `EMMET_FAKE_KEYCHAIN`.
@@ -170,12 +174,15 @@ pub enum SignInResult {
     /// The user declined in the browser (`access_denied`).
     Declined,
     Canceled,
+    /// No answer from the browser in 10 minutes.
+    TimedOut,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 pub struct SignOut {
-    /// OpenAI confirmed the revocation. If not, the tokens are cleared anyway, and the user can disconnect Emmet in
+    /// OpenAI confirmed it revoked the session. False when it didn't, or when there was no refresh token left to
+    /// revoke (the record was gone or unreadable); the tokens are cleared anyway, and the user can disconnect Emmet in
     /// ChatGPT Settings.
     pub confirmed: bool,
 }
@@ -287,14 +294,15 @@ fn http() -> ureq::Agent {
         .new_agent()
 }
 
-/// A form POST: the status and the JSON body (Null if it isn't JSON). Err only when there was no answer.
+/// A form POST: the status and the JSON body (Null if it isn't JSON). Err when there was no whole answer: a body cut
+/// off mid-download is a network failure, not OpenAI's.
 fn post_form(url: &str, form: &[(&str, &str)]) -> std::result::Result<(u16, Value), String> {
     let mut r = http()
         .post(url)
         .send_form(form.iter().copied())
         .map_err(|e| e.to_string())?;
     let status = r.status().as_u16();
-    let body = r.body_mut().read_to_string().unwrap_or_default();
+    let body = r.body_mut().read_to_string().map_err(|e| e.to_string())?;
     Ok((status, serde_json::from_str(&body).unwrap_or(Value::Null)))
 }
 
@@ -325,8 +333,9 @@ fn oauth_error(body: &Value) -> String {
 }
 
 /// Opens `url` in the system browser. `EMMET_FAKE_BROWSER=<dir>` (a debug build only) instead notes it in
-/// `<dir>/opened.txt` (an authorize URL as just its path, since a returning one carries `id_token_hint`) and, for the
-/// fake issuer, fetches it and follows the redirect to the loopback callback, as a browser would.
+/// `<dir>/opened.txt` (an authorize URL without its query, since a returning one carries `id_token_hint`) and, for the
+/// fake issuer, fetches it and follows the redirect to the loopback callback, as a browser would, noting the callback's
+/// HTTP status in `<dir>/callbacks.txt`.
 pub fn open_url(env: &[(String, String)], url: &str) -> Result<()> {
     if cfg!(debug_assertions)
         && let Some(dir) = env::get(env, "EMMET_FAKE_BROWSER")
@@ -343,9 +352,20 @@ pub fn open_url(env: &[(String, String)], url: &str) -> Result<()> {
             .map_err(io)?;
         let _ = writeln!(f, "{noted}");
         if fake_issuer(env).is_some_and(|base| url.starts_with(&base)) {
-            let url = url.to_string();
+            let (url, dir) = (url.to_string(), PathBuf::from(dir));
             std::thread::spawn(move || {
-                let _ = ureq::get(&url).call();
+                let status = match ureq::get(&url).call() {
+                    Ok(r) => r.status().as_u16().to_string(),
+                    Err(ureq::Error::StatusCode(c)) => c.to_string(),
+                    Err(e) => e.to_string(),
+                };
+                if let Ok(mut f) = std::fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(dir.join("callbacks.txt"))
+                {
+                    let _ = writeln!(f, "{status}");
+                }
             });
         }
         return Ok(());
@@ -362,10 +382,16 @@ pub fn open_url(env: &[(String, String)], url: &str) -> Result<()> {
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null());
     crate::session::no_window(&mut cmd);
-    let mut child = cmd
-        .spawn()
+    // Both hand the URL to the system and exit at once, so their status says whether a browser got it.
+    let status = cmd
+        .status()
         .map_err(|e| err(AgentErrorCode::Io, format!("couldn't open the browser: {e}")))?;
-    std::thread::spawn(move || child.wait());
+    if !status.success() {
+        return Err(err(
+            AgentErrorCode::Io,
+            format!("couldn't open the browser ({status}). Is a default web browser set?"),
+        ));
+    }
     Ok(())
 }
 
@@ -390,25 +416,34 @@ fn respond(mut s: &TcpStream, status: &str, body: &str) {
     let _ = s.flush();
 }
 
+enum Waited {
+    Callback(Vec<(String, String)>),
+    Canceled,
+    TimedOut,
+}
+
 /// Waits for the browser's callback with this attempt's `state`. A request with another state (a stale tab, or a
-/// forgery) is answered and ignored, and the wait goes on. None if canceled or out of time.
-fn wait_callback(
-    listener: &TcpListener,
-    state: &str,
-    cancel: &AtomicBool,
-    until: Instant,
-) -> Result<Option<Vec<(String, String)>>> {
+/// forgery) is answered and ignored, and the wait goes on, as it does after a failed accept.
+fn wait_callback(listener: &TcpListener, state: &str, cancel: &AtomicBool, until: Instant) -> Result<Waited> {
     listener.set_nonblocking(true).map_err(io)?;
-    while Instant::now() < until && !cancel.load(Ordering::SeqCst) {
+    loop {
+        if cancel.load(Ordering::SeqCst) {
+            return Ok(Waited::Canceled);
+        }
+        if Instant::now() >= until {
+            return Ok(Waited::TimedOut);
+        }
         let stream = match listener.accept() {
             Ok((s, _)) => s,
-            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+            Err(_) => {
                 std::thread::sleep(Duration::from_millis(20));
                 continue;
             }
-            Err(e) => return Err(io(e)),
         };
-        let _ = stream.set_nonblocking(false);
+        // An accepted socket can inherit the listener's non-blocking mode; read it blocking, or not at all.
+        if stream.set_nonblocking(false).is_err() {
+            continue;
+        }
         let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
         let mut line = String::new();
         if BufReader::new((&stream).take(8192)).read_line(&mut line).is_err() {
@@ -429,6 +464,7 @@ fn wait_callback(
             );
             continue;
         }
+        // Emmet still has to exchange the code and check the ID token, so the page doesn't say it worked.
         let declined = pairs.iter().any(|(k, _)| k == "error");
         respond(
             &stream,
@@ -436,12 +472,11 @@ fn wait_callback(
             if declined {
                 "Nothing was changed. You can close this tab and go back to Emmet."
             } else {
-                "You're signed in. You can close this tab and go back to Emmet."
+                "You can close this tab. Emmet finishes signing you in and shows the result."
             },
         );
-        return Ok(Some(pairs));
+        return Ok(Waited::Callback(pairs));
     }
-    Ok(None)
 }
 
 fn get<'a>(pairs: &'a [(String, String)], key: &str) -> Option<&'a str> {
@@ -513,7 +548,8 @@ impl ChatGpt {
         get_json(&format!("{}/.well-known/openid-configuration", self.issuer))
     }
 
-    /// An endpoint from discovery: HTTPS on OpenAI's own host (any URL from the fake).
+    /// An endpoint from discovery, accepted only under the issuer's base URL (`https://auth.openai.com/`, or the
+    /// fake's in tests).
     fn endpoint(&self, d: &Value, key: &str) -> Result<String> {
         let url = d[key].as_str().unwrap_or("");
         let ours = url.starts_with(&format!("{}/", self.issuer));
@@ -526,27 +562,43 @@ impl ChatGpt {
         Ok(url.to_string())
     }
 
-    /// This machine's `ext_agent_host_id`, made and saved the first time it's asked for.
+    /// A file in `chatgpt/`, or None if it isn't there. Any other failure to read it is an error that names it.
+    fn read(&self, name: &str) -> Result<Option<String>> {
+        let file = self.dir.join(name);
+        match std::fs::read_to_string(&file) {
+            Ok(s) => Ok(Some(s)),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+            Err(e) => Err(unreadable(&file, &e.to_string())),
+        }
+    }
+
+    /// This machine's `ext_agent_host_id`, made and saved the first time it's asked for. A `host.json` that can't be
+    /// read is an error, never a new id: the id must stay the same for the host's life.
     pub fn host_id(&self) -> Result<String> {
-        let file = self.dir.join("host.json");
-        if let Some(id) = std::fs::read_to_string(&file)
-            .ok()
-            .and_then(|s| serde_json::from_str::<Value>(&s).ok())
-            .and_then(|v| v["ext_agent_host_id"].as_str().map(String::from))
-        {
-            return Ok(id);
+        if let Some(text) = self.read("host.json")? {
+            return serde_json::from_str::<Value>(&text)
+                .ok()
+                .and_then(|v| v["ext_agent_host_id"].as_str().map(String::from))
+                .ok_or_else(|| unreadable(&self.dir.join("host.json"), "it has no ext_agent_host_id"));
         }
         let id = new_host_id();
         std::fs::create_dir_all(&self.dir).map_err(io)?;
-        emmet_core::fsx::write_atomic(&file, json!({ "ext_agent_host_id": id }).to_string().as_bytes()).map_err(io)?;
+        emmet_core::fsx::write_atomic(
+            &self.dir.join("host.json"),
+            json!({ "ext_agent_host_id": id }).to_string().as_bytes(),
+        )
+        .map_err(io)?;
         Ok(id)
     }
 
-    fn load(&self) -> Accounts {
-        std::fs::read_to_string(self.dir.join("accounts.json"))
-            .ok()
-            .and_then(|s| serde_json::from_str(&s).ok())
-            .unwrap_or_default()
+    /// The accounts: empty if there's no `accounts.json` yet; an error if there is one Emmet can't read.
+    fn load(&self) -> Result<Accounts> {
+        match self.read("accounts.json")? {
+            None => Ok(Accounts::default()),
+            Some(text) => {
+                serde_json::from_str(&text).map_err(|e| unreadable(&self.dir.join("accounts.json"), &e.to_string()))
+            }
+        }
     }
 
     fn save(&self, a: &Accounts) -> Result<()> {
@@ -558,12 +610,35 @@ impl ChatGpt {
         .map_err(io)
     }
 
+    /// Changes the accounts under the lock, so a refresh or another window can't save a stale copy over it.
+    fn update<T>(&self, f: impl FnOnce(&mut Accounts) -> Result<T>) -> Result<T> {
+        let _locks = self.lock()?;
+        self.update_locked(f)
+    }
+
+    /// [`Self::update`] for a caller that already holds the lock.
+    fn update_locked<T>(&self, f: impl FnOnce(&mut Accounts) -> Result<T>) -> Result<T> {
+        let mut a = self.load()?;
+        let out = f(&mut a)?;
+        self.save(&a)?;
+        Ok(out)
+    }
+
     fn entry(id: &str) -> String {
         format!("chatgpt:{id}")
     }
 
+    /// The registration's keychain record, or None. A record that doesn't parse is an error, never "signed out".
     fn credentials(&self, id: &str) -> Result<Option<Credentials>> {
-        Ok(keychain::get_entry(&self.env, &Self::entry(id))?.and_then(|s| serde_json::from_str(&s).ok()))
+        match keychain::get_entry(&self.env, &Self::entry(id))? {
+            None => Ok(None),
+            Some(s) => serde_json::from_str(&s).map(Some).map_err(|e| {
+                err(
+                    AgentErrorCode::Io,
+                    format!("Emmet can't read its keychain entry {}: {e}", Self::entry(id)),
+                )
+            }),
+        }
     }
 
     fn store(&self, c: &Credentials) -> Result<()> {
@@ -575,9 +650,9 @@ impl ChatGpt {
     }
 
     /// The saved accounts and the user's choice, without reading a secret.
-    pub fn state(&self) -> ChatGptState {
-        let a = self.load();
-        ChatGptState {
+    pub fn state(&self) -> Result<ChatGptState> {
+        let a = self.load()?;
+        Ok(ChatGptState {
             accounts: a
                 .registrations
                 .iter()
@@ -585,12 +660,21 @@ impl ChatGpt {
                 .map(|r| view(r, a.active.as_deref()))
                 .collect(),
             codex: a.codex,
-        }
+        })
     }
 
-    /// What Codex runs on now. No secret is read.
+    /// What Codex runs on now. No secret is read. Accounts Emmet can't read stop Codex with the reason, rather than
+    /// move it to the API key.
     pub fn codex_use(&self) -> CodexUse {
-        let a = self.load();
+        let a = match self.load() {
+            Ok(a) => a,
+            Err(e) => {
+                return CodexUse::PlanOff {
+                    id: None,
+                    fix: e.message,
+                };
+            }
+        };
         if a.codex != Some(Choice::ChatGpt) {
             return CodexUse::ApiKey;
         }
@@ -630,30 +714,32 @@ impl ChatGpt {
 
     /// Codex runs on the ChatGPT account `id`, or on the API key (None). Signing in to an account also chooses it.
     pub fn choose(&self, id: Option<&str>) -> Result<()> {
-        let mut a = self.load();
-        match id {
-            Some(id) => {
-                if !a.registrations.iter().any(|r| r.client_id == id) {
-                    return Err(err(
-                        AgentErrorCode::NotSignedIn,
-                        "That ChatGPT account isn't saved in Emmet.",
-                    ));
+        self.update(|a| {
+            match id {
+                Some(id) => {
+                    if !a.registrations.iter().any(|r| r.client_id == id) {
+                        return Err(err(
+                            AgentErrorCode::NotSignedIn,
+                            "That ChatGPT account isn't saved in Emmet.",
+                        ));
+                    }
+                    a.active = Some(id.into());
+                    a.codex = Some(Choice::ChatGpt);
                 }
-                a.active = Some(id.into());
-                a.codex = Some(Choice::ChatGpt);
+                None => a.codex = Some(Choice::ApiKey),
             }
-            None => a.codex = Some(Choice::ApiKey),
-        }
-        self.save(&a)
+            Ok(())
+        })
     }
 
     /// The one-time notice was shown for `id`.
     pub fn notice_seen(&self, id: &str) -> Result<()> {
-        let mut a = self.load();
-        if let Some(r) = a.registrations.iter_mut().find(|r| r.client_id == id) {
-            r.notice_seen = true;
-        }
-        self.save(&a)
+        self.update(|a| {
+            if let Some(r) = a.registrations.iter_mut().find(|r| r.client_id == id) {
+                r.notice_seen = true;
+            }
+            Ok(())
+        })
     }
 
     /// Signs in in the system browser: a new account (`account` None), or again to the saved one. `consent` asks
@@ -661,7 +747,7 @@ impl ChatGpt {
     /// becomes active only once its ID token and identity are validated.
     pub fn sign_in(&self, account: Option<&str>, consent: bool, cancel: &AtomicBool) -> Result<SignInResult> {
         let host = self.host_id()?;
-        let accounts = self.load();
+        let accounts = self.load()?;
         // A saved account, or a first registration whose exchange failed: its issued client id is reused.
         let reg = match account {
             Some(id) => Some(
@@ -720,8 +806,10 @@ impl ChatGpt {
             q.push(("prompt", "consent"));
         }
         open_url(&self.env, &format!("{}?{}", self.authorize_url(), query(&q)))?;
-        let Some(cb) = wait_callback(&listener, &state, cancel, Instant::now() + WAIT)? else {
-            return Ok(SignInResult::Canceled);
+        let cb = match wait_callback(&listener, &state, cancel, Instant::now() + WAIT)? {
+            Waited::Callback(cb) => cb,
+            Waited::Canceled => return Ok(SignInResult::Canceled),
+            Waited::TimedOut => return Ok(SignInResult::TimedOut),
         };
         drop(listener);
         if let Some(e) = get(&cb, "error") {
@@ -760,6 +848,19 @@ impl ChatGpt {
                 r.client_id.clone()
             }
         };
+        if reg.is_none() {
+            // Saved before anything else can fail, so a retry reuses the issued client id instead of registering
+            // Emmet again; it stays out of the picker until a sign-in validates it.
+            self.update(|a| {
+                a.registrations.retain(|x| x.client_id != client_id);
+                a.registrations.push(Registration {
+                    client_id: client_id.clone(),
+                    label: "ChatGPT account".into(),
+                    ..Default::default()
+                });
+                Ok(())
+            })?;
+        }
 
         let (status, body) = post_form(
             &self.token_url(),
@@ -779,15 +880,8 @@ impl ChatGpt {
             )
         })?;
         if status != 200 {
+            // The code is spent; the next attempt reuses the issued client id (saved above).
             let code = oauth_error(&body);
-            if code == "invalid_grant" && reg.is_none() {
-                // The code is spent; the next attempt reuses the issued client id instead of registering again.
-                self.upsert(Registration {
-                    client_id: client_id.clone(),
-                    label: "ChatGPT account".into(),
-                    ..Default::default()
-                })?;
-            }
             return Err(err(
                 AgentErrorCode::AuthFailed,
                 if code == "invalid_grant" {
@@ -831,8 +925,16 @@ impl ChatGpt {
                 ),
             ));
         }
-        let scopes = tokens.scopes.clone().unwrap_or_default();
+        // The token response's scopes decide; OAuth lets it leave them out when they're the ones the callback gave.
+        let scopes = tokens
+            .scopes
+            .clone()
+            .or_else(|| get(&cb, "scope").map(|s| s.split_whitespace().map(String::from).collect()))
+            .unwrap_or_default();
         let plan = scopes.iter().any(|s| s == PLAN_SCOPE);
+        // Under the lock from here: a refresh of this registration in a running chat can't write its older record
+        // over this one, or save stale accounts.
+        let _locks = self.lock()?;
         self.store(&Credentials {
             email: claims.email.clone(),
             issuer: self.issuer.clone(),
@@ -849,53 +951,49 @@ impl ChatGpt {
             scopes,
             saved_at: time::rfc3339(time::now_ms()),
         })?;
-        let mut a = self.load();
-        let label = match a
-            .registrations
-            .iter()
-            .find(|r| r.client_id == client_id && r.subject.is_some())
-        {
-            Some(r) => r.label.clone(),
-            None => unique_label(&a, claims.email.as_deref()),
-        };
-        let seen = a
-            .registrations
-            .iter()
-            .find(|r| r.client_id == client_id)
-            .is_some_and(|r| r.notice_seen);
-        let r = Registration {
-            client_id: client_id.clone(),
-            subject: Some(claims.sub),
-            email: claims.email,
-            label,
-            plan,
-            signed_in: true,
-            notice_seen: seen,
-        };
-        a.registrations.retain(|x| x.client_id != client_id);
-        a.registrations.push(r.clone());
-        a.active = Some(client_id);
-        a.codex = Some(Choice::ChatGpt);
-        self.save(&a)?;
+        let (r, active) = self.update_locked(|a| {
+            let label = match a
+                .registrations
+                .iter()
+                .find(|r| r.client_id == client_id && r.subject.is_some())
+            {
+                Some(r) => r.label.clone(),
+                None => unique_label(a, claims.email.as_deref()),
+            };
+            let seen = a
+                .registrations
+                .iter()
+                .find(|r| r.client_id == client_id)
+                .is_some_and(|r| r.notice_seen);
+            let r = Registration {
+                client_id: client_id.clone(),
+                subject: Some(claims.sub),
+                email: claims.email,
+                label,
+                plan,
+                signed_in: true,
+                notice_seen: seen,
+            };
+            a.registrations.retain(|x| x.client_id != client_id);
+            a.registrations.push(r.clone());
+            a.active = Some(client_id.clone());
+            a.codex = Some(Choice::ChatGpt);
+            Ok((r, a.active.clone()))
+        })?;
         Ok(SignInResult::SignedIn {
-            account: view(&r, a.active.as_deref()),
-            notice: plan && !seen,
+            account: view(&r, active.as_deref()),
+            notice: r.plan && !r.notice_seen,
         })
     }
 
-    fn upsert(&self, r: Registration) -> Result<()> {
-        let mut a = self.load();
-        a.registrations.retain(|x| x.client_id != r.client_id);
-        a.registrations.push(r);
-        self.save(&a)
-    }
-
+    /// Changes registration `id`'s flags. The caller holds the lock.
     fn set_flags(&self, id: &str, f: impl FnOnce(&mut Registration)) -> Result<()> {
-        let mut a = self.load();
-        if let Some(r) = a.registrations.iter_mut().find(|r| r.client_id == id) {
-            f(r);
-        }
-        self.save(&a)
+        self.update_locked(|a| {
+            if let Some(r) = a.registrations.iter_mut().find(|r| r.client_id == id) {
+                f(r);
+            }
+            Ok(())
+        })
     }
 
     /// Holds the refresh locks: this process's, then `refresh.lock` for other processes.
@@ -912,8 +1010,10 @@ impl ChatGpt {
         Ok((g, f))
     }
 
-    /// An access token for `id` that's good for at least `min_valid`, refreshed if needed. `refused` is a token the
-    /// API refused (a 401): it's renewed even if it hasn't expired, unless another caller already replaced it.
+    /// An access token for `id`, refreshed if it has less than `min_valid` left. When OpenAI's `earliest_refresh_at`
+    /// hasn't passed, or the refresh can't reach OpenAI (a network failure or a 5xx), the current token is returned
+    /// if it has more than a minute left. `refused` is a token the API refused: it's renewed even if it hasn't
+    /// expired, unless another caller already replaced it.
     pub fn access_token(&self, id: &str, refused: Option<&str>, min_valid: Duration) -> Result<String> {
         let _locks = self.lock()?;
         let signed_out = || {
@@ -922,8 +1022,15 @@ impl ChatGpt {
                 "Your ChatGPT sign-in has ended. Continue with ChatGPT in Settings → Agents to sign in again.",
             )
         };
-        let mut c = self.credentials(id)?.ok_or_else(signed_out)?;
-        let current = c.access_token.clone().ok_or_else(signed_out)?;
+        // No record (the keychain was cleared), or one without tokens: signed out, as the picker will now say.
+        let Some(mut c) = self.credentials(id)? else {
+            self.set_flags(id, |r| r.signed_in = false)?;
+            return Err(signed_out());
+        };
+        let (Some(current), Some(refresh)) = (c.access_token.clone(), c.refresh_token.clone()) else {
+            self.set_flags(id, |r| r.signed_in = false)?;
+            return Err(signed_out());
+        };
         let now = now_s();
         let left = c.expires_at - now;
         let renewed_elsewhere = refused.is_some_and(|r| r != current);
@@ -932,7 +1039,6 @@ impl ChatGpt {
         if renewed_elsewhere || !want || too_early {
             return Ok(current);
         }
-        let refresh = c.refresh_token.clone().ok_or_else(signed_out)?;
         let answer = post_form(
             &self.token_url(),
             &[
@@ -968,15 +1074,29 @@ impl ChatGpt {
                 self.set_flags(id, |r| r.signed_in = false)?;
                 return Err(signed_out());
             }
+            if code == "invalid_client" {
+                // A registration OpenAI no longer knows can't be signed in to again: forget it, so Continue with
+                // ChatGPT registers afresh.
+                keychain::clear_entry(&self.env, &Self::entry(id))?;
+                self.update_locked(|a| {
+                    a.registrations.retain(|r| r.client_id != id);
+                    if a.active.as_deref() == Some(id) {
+                        a.active = None;
+                    }
+                    Ok(())
+                })?;
+                return Err(err(
+                    AgentErrorCode::NotSignedIn,
+                    "OpenAI no longer accepts Emmet's registration for this ChatGPT account (invalid_client), so \
+                     Emmet removed it. Continue with ChatGPT in Settings → Agents to sign in again.",
+                ));
+            }
             return Err(err(
                 AgentErrorCode::AuthFailed,
-                if code == "invalid_client" {
-                    "OpenAI no longer accepts Emmet's registration for this ChatGPT account (invalid_client). \
-                     Sign out of it in Settings → Agents, then add it again."
-                        .to_string()
-                } else {
-                    format!("OpenAI refused to renew your ChatGPT sign-in ({status} {code}).")
-                },
+                format!(
+                    "OpenAI refused to renew your ChatGPT sign-in ({status} {code}). If it keeps happening, sign out \
+                     in Settings → Agents and sign in again."
+                ),
             ));
         }
         let t = Tokens::from(&body)?;
@@ -1003,12 +1123,14 @@ impl ChatGpt {
     /// registration and the host id stay, for a later sign-in.
     pub fn sign_out(&self, id: &str) -> Result<SignOut> {
         let _locks = self.lock()?;
-        let mut confirmed = true;
-        if let Some(rt) = self.credentials(id)?.and_then(|c| c.refresh_token) {
-            confirmed = self.revoke(id, &rt);
-        }
-        keychain::clear_entry(&self.env, &Self::entry(id))?;
+        // Confirmed only when OpenAI says it revoked a refresh token. A record that's gone or unreadable has none to
+        // revoke, so the session may still be live at OpenAI.
+        let confirmed = match self.credentials(id).ok().flatten().and_then(|c| c.refresh_token) {
+            Some(rt) => self.revoke(id, &rt),
+            None => false,
+        };
         self.set_flags(id, |r| r.signed_in = false)?;
+        keychain::clear_entry(&self.env, &Self::entry(id))?;
         Ok(SignOut { confirmed })
     }
 
@@ -1041,6 +1163,18 @@ impl ChatGpt {
     }
 }
 
+/// A file in `chatgpt/` Emmet can't read, as an error that says which and what to do.
+fn unreadable(file: &Path, why: &str) -> AgentError {
+    err(
+        AgentErrorCode::Io,
+        format!(
+            "Emmet can't read {} ({why}). Fix or remove that file, then try again; removing it forgets the saved \
+             ChatGPT accounts.",
+            file.display()
+        ),
+    )
+}
+
 fn view(r: &Registration, active: Option<&str>) -> AccountView {
     AccountView {
         id: r.client_id.clone(),
@@ -1048,7 +1182,7 @@ fn view(r: &Registration, active: Option<&str>) -> AccountView {
         email: r.email.clone(),
         active: active == Some(r.client_id.as_str()),
         signed_in: r.signed_in,
-        plan: r.plan,
+        plan: r.signed_in && r.plan,
     }
 }
 

@@ -84,8 +84,8 @@ struct Live {
     project: PathBuf,
     id: String,
     kind: AgentKind,
-    /// Codex on the user's ChatGPT plan.
-    plan: bool,
+    /// The ChatGPT account Codex runs on, when it's on the user's plan.
+    plan: Option<String>,
     session: Box<dyn Session>,
 }
 
@@ -162,9 +162,21 @@ impl Chat {
         *self.agents.lock().expect("agents") = None;
     }
 
-    /// The running chat is Codex on the ChatGPT plan.
-    pub fn live_on_plan(&self) -> bool {
-        self.live.lock().expect("live").as_ref().is_some_and(|l| l.plan)
+    /// The ChatGPT account the running chat bills, if it's Codex on a plan.
+    pub fn live_plan(&self) -> Option<String> {
+        self.live.lock().expect("live").as_ref().and_then(|l| l.plan.clone())
+    }
+
+    /// Who the running chat bills, if it's a `kind` chat: what it started with, whatever Settings says since.
+    fn live_billing(&self, kind: AgentKind) -> Option<Billing> {
+        let live = self.live.lock().expect("live");
+        let l = live.as_ref().filter(|l| l.kind == kind && kind == AgentKind::Codex)?;
+        Some(match l.plan {
+            Some(_) => emmet_agent::codex::plan_billing(),
+            None => Billing::ApiKey {
+                source: Some("keychain".into()),
+            },
+        })
     }
 
     /// Ends the running session, if any.
@@ -352,11 +364,10 @@ fn start(app: &AppHandle, root: PathBuf, kind: AgentKind, resume: bool) -> Resul
         openai_key: None,
     };
     let adapter = emmet_agent::adapter(kind, &cfg.env, state.data.root());
-    let plan = kind == AgentKind::Codex
-        && matches!(
-            emmet_agent::chatgpt::ChatGpt::new(state.data.root(), &cfg.env).codex_use(),
-            emmet_agent::chatgpt::CodexUse::Plan { .. }
-        );
+    let plan = match emmet_agent::chatgpt::ChatGpt::new(state.data.root(), &cfg.env).codex_use() {
+        emmet_agent::chatgpt::CodexUse::Plan { id, .. } if kind == AgentKind::Codex => Some(id),
+        _ => None,
+    };
     let mut session = adapter.start(cfg).map_err(agent_problem)?;
     let events = session.events();
     save_last(
@@ -426,11 +437,26 @@ fn pump(app: &AppHandle, root: &Path, id: &str, kind: AgentKind, events: emmet_a
     }
 }
 
+/// Runs `f` off the main thread: a turn on the ChatGPT plan may first renew the token and restart Codex (1E), which
+/// would freeze the window if a command ran it on the main thread, as Tauri does with a command that isn't async.
+async fn blocking<T: Send + 'static>(
+    app: AppHandle,
+    f: impl FnOnce(&AppHandle) -> Result<T, Box<Problem>> + Send + 'static,
+) -> Result<T, Box<Problem>> {
+    tauri::async_runtime::spawn_blocking(move || f(&app))
+        .await
+        .map_err(|e| problem(e.to_string()))?
+}
+
 /// A message from the user: a new turn, or (while the agent works) a redirect.
 #[tauri::command]
 #[specta::specta]
-pub fn chat_send(app: AppHandle, text: String) -> Result<(), Box<Problem>> {
-    with_live(&app, |l| {
+pub async fn chat_send(app: AppHandle, text: String) -> Result<(), Box<Problem>> {
+    blocking(app, move |app| send(app, text)).await
+}
+
+fn send(app: &AppHandle, text: String) -> Result<(), Box<Problem>> {
+    with_live(app, |l| {
         append(
             &l.project,
             &l.id,
@@ -447,8 +473,12 @@ pub fn chat_send(app: AppHandle, text: String) -> Result<(), Box<Problem>> {
 /// A redirect while the agent works (D-33): returns the note, which `NoteDelivered` marks once it's out.
 #[tauri::command]
 #[specta::specta]
-pub fn chat_steer(app: AppHandle, text: String) -> Result<UserNote, Box<Problem>> {
-    with_live(&app, |l| {
+pub async fn chat_steer(app: AppHandle, text: String) -> Result<UserNote, Box<Problem>> {
+    blocking(app, move |app| steer(app, text)).await
+}
+
+fn steer(app: &AppHandle, text: String) -> Result<UserNote, Box<Problem>> {
+    with_live(app, |l| {
         let note = l.session.steer(&text).map_err(agent_problem)?;
         append(
             &l.project,
@@ -541,6 +571,10 @@ pub async fn usage(app: AppHandle, kind: AgentKind) -> Option<UsageSnapshot> {
             && when.elapsed() < USAGE_EVERY
         {
             return Some(snap.clone());
+        }
+        // A running Codex chat bills what it started with; the status bar says that, not the saved choice.
+        if let Some(billing) = chat.live_billing(kind) {
+            return Some(UsageSnapshot::without_meters(kind, billing, None));
         }
         let snap = emmet_agent::adapter(kind, chat.env(), state.data.root()).usage().ok()?;
         if kind == AgentKind::Claude {

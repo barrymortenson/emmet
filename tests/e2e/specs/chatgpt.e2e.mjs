@@ -5,7 +5,7 @@
 // composer and in the status bar; the usage-limit card with Manage usage first; a decline; and the notice never again.
 // Then no token fake-openai issued is anywhere in the app's data, the project, or the run's logs.
 import { $, expect } from "@wdio/globals";
-import { existsSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { instances, invoke, open, screenshots } from "../lib/app.mjs";
 import { fakeDir, issuedTokens, opened, scenario, setOpenAi } from "../lib/agents.mjs";
@@ -93,7 +93,8 @@ describe("Codex on the ChatGPT plan", () => {
 
   it("says Using ChatGPT plan by the composer and in the status bar", async () => {
     await closeSettings();
-    scenario("codex", "plain-turn");
+    // resume.jsonl: the first app-server, then the one a renewal restarts, which resumes the thread.
+    scenario("codex", "resume");
     const pick = await $("#agent-codex");
     await pick.waitForEnabled({ timeout: 30_000 });
     expect(await browser.execute(() => document.getElementById("agent-codex")?.nextElementSibling?.textContent)).toBe(
@@ -108,6 +109,23 @@ describe("Codex on the ChatGPT plan", () => {
     await waitFor("Manage usage didn't open ChatGPT's usage page", () =>
       opened().includes("https://chatgpt.com/settings/usage"),
     );
+  });
+
+  it("stays responsive while a turn renews the token", async () => {
+    // Ten minutes left, and a refresh that takes 2 s: the turn renews first, off the window's thread.
+    const record = join(fakeDir, "keychain.chatgpt-oaiapp_test1");
+    const r = JSON.parse(readFileSync(record, "utf8"));
+    writeFileSync(record, JSON.stringify({ ...r, expires_at: Math.floor(Date.now() / 1000) + 600 }));
+    setOpenAi({ refresh_delay_ms: 2000 });
+    await say("Reply with exactly the word: ready");
+    const started = Date.now();
+    await browser.execute(() => 1);
+    const ms = Date.now() - started;
+    console.log(`window answered in ${ms} ms during the renewal`);
+    expect(ms).toBeLessThan(1000);
+    await (await $("#chat-new")).waitForExist({ timeout: 30_000 });
+    expect(JSON.parse(readFileSync(record, "utf8")).access_token).not.toBe(r.access_token);
+    setOpenAi({});
   });
 
   it("shows the usage-limit card with Manage usage first", async () => {
@@ -136,6 +154,8 @@ describe("Codex on the ChatGPT plan", () => {
 
     await (await $("[data-account] .sign-out")).click();
     await waitFor("not signed out", async () => (await text("#codex-pays")).includes("Signed out"));
+    // Signing out stops requests: the chat on that account ended.
+    await waitFor("the plan chat kept running", async () => (await text("#chat-log")).includes("The agent stopped"));
     await (await $("[data-account] .sign-in")).click();
     await waitFor("not signed in again", async () => (await text("#codex-pays")).includes("Signed in"));
     expect(await (await $("#plan-notice")).isExisting()).toBe(false);

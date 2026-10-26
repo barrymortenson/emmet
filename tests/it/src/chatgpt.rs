@@ -140,4 +140,13 @@ impl Plan {
             .map(String::from)
             .collect()
     }
+
+    /// The HTTP status of each callback the fake browser delivered.
+    pub fn callbacks(&self) -> Vec<String> {
+        std::fs::read_to_string(self.browser.join("callbacks.txt"))
+            .unwrap_or_default()
+            .lines()
+            .map(String::from)
+            .collect()
+    }
 }

@@ -900,3 +900,95 @@ fn plan_usage_limit() {
         "the API key isn't used"
     );
 }
+
+/// Gives the stored token `secs` left, as time passing would.
+fn expire_plan_in(plan: &emmet_it::chatgpt::Plan, secs: i64) {
+    plan.edit_record(PLAN_ID, |r| {
+        r["expires_at"] = json!(emmet_agent::time::now_ms() as i64 / 1000 + secs)
+    });
+}
+
+/// The API rejected the sign-in (a 401): the next turn renews the token even though it hasn't expired, and the
+/// app-server restarts on the new one.
+#[test]
+fn plan_rejected_sign_in_renews() {
+    let (plan, rig) = plan_rig("codex-plan-401", "auth-401");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    assert!(events.iter().any(
+        |e| matches!(e, AgentEvent::Error { code: AgentErrorCode::AuthFailed, message }
+        if message.contains("Send your message again"))
+    ));
+    let refused = plan.record(PLAN_ID).unwrap()["access_token"].clone();
+    rig.scenario("codex", "", "resume");
+    s.send(turn("Reply with exactly the word: again")).unwrap();
+    ev.turn();
+    s.close();
+    let renewed = plan.record(PLAN_ID).unwrap()["access_token"].clone();
+    assert_ne!(renewed, refused, "renewed with an hour still left");
+    assert_eq!(
+        started_env(&rig, 1)
+            .get(emmet_agent::codex::TOKEN_VAR)
+            .cloned()
+            .map(Value::from),
+        Some(renewed)
+    );
+}
+
+/// After a renewal the restarted app-server's session still reaches the chat through the hub (question cards,
+/// approvals, notes), and its ids carry its generation so they never repeat the first process's.
+#[test]
+fn plan_cards_work_after_a_renewal() {
+    let (plan, rig) = plan_rig("codex-plan-hub", "resume");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    ev.turn();
+    expire_plan_in(&plan, 600);
+    s.send(turn("Reply with exactly the word: again")).unwrap();
+    ev.turn();
+    assert!(rig.fake.join("codex-1.json").exists(), "renewed");
+    let (hub, session) = (emmet_it::agents::hub(), rig.cfg.id.clone());
+    let asked = std::thread::spawn(move || {
+        hub.ask(
+            &session,
+            json!({ "question": "Which roof?", "options": [{ "label": "Red" }, { "label": "Blue" }] }),
+        )
+    });
+    let got = ev.until("a question", |e| matches!(e, AgentEvent::Question { .. }));
+    let Some(AgentEvent::Question { id, .. }) = got.last() else {
+        panic!()
+    };
+    assert!(id.starts_with("g1-"), "{id}");
+    s.answer(
+        id,
+        Answer {
+            choices: vec!["Red".into()],
+            other: None,
+        },
+    )
+    .unwrap();
+    let answer = asked.join().unwrap().expect("the hub still has the session");
+    assert_eq!(answer["choices"], json!(["Red"]));
+    s.close();
+}
+
+/// A refresh that comes back without plan permission (the user turned it off in ChatGPT) ends the plan session's
+/// turns with the fix, rather than run on.
+#[test]
+fn plan_use_lost_at_refresh_stops_turns() {
+    let (plan, rig) = plan_rig("codex-plan-lost", "resume");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    ev.turn();
+    plan.openai.set(json!({ "refresh_without_plan": true }));
+    expire_plan_in(&plan, 600);
+    let e = s.send(turn("Reply with exactly the word: again")).unwrap_err();
+    assert_eq!(e.code, AgentErrorCode::NotSignedIn);
+    assert!(e.message.contains("isn't enabled"), "{e:?}");
+    assert!(
+        !rig.fake.join("codex-1.json").exists(),
+        "no restart on a plan that's off"
+    );
+    s.close();
+}

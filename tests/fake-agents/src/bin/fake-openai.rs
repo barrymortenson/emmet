@@ -6,8 +6,8 @@
 //!   fake-openai <dir>
 //!
 //! It prints its base URL, then serves until killed. Each request is recorded in `<dir>/openai.jsonl`, and each token
-//! it issues in `<dir>/issued.txt`, so a leak test knows what to look for. How it
-//! answers comes from `<dir>/openai.json`, read on every request so a test can change it mid-run:
+//! it issues in `<dir>/issued.txt`, so a leak test knows what to look for. How it answers comes from
+//! `<dir>/openai.json`, read on every request so a test can change it mid-run:
 //!
 //! - `account` `{sub, email}`: who signs in (default `user-1`, `builder@example.com`)
 //! - `client_id`: the id issued to a new registration (default `oaiapp_test1`)
@@ -19,13 +19,17 @@
 //! - `tamper`: an ID token that fails one check (`sig`, `alg`, `iss`, `aud`, `exp`, `nonce`)
 //! - `exchange_error`, `refresh_error`: the OAuth error code to answer with (a number is an HTTP status instead)
 //! - `revoke_status` (default 200), `expires_in` (default 3600), `refresh_delay_ms`
+//! - `earliest_refresh_in`: seconds from now for the token response's `earliest_refresh_at`
+//! - `refresh_without_plan`: a refresh grants the scopes without `chatgpt.tokens.use.direct` (plan use turned off)
+//!
+//! Its JWKS lists a decoy key (kid `old`) before the signing key (kid `test`), as a rotation would.
 //!
 //! The ID tokens are signed with tests/fixtures/chatgpt/test-signing-key.der, a test-only key.
 
 use std::collections::{HashMap, HashSet};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -192,6 +196,9 @@ impl Fake {
             "expires_in": expires_in,
             "scope": scope,
         });
+        if let Some(secs) = cfg["earliest_refresh_in"].as_i64() {
+            v["earliest_refresh_at"] = json!(now() as i64 + secs);
+        }
         if let Some(nonce) = nonce {
             let tamper = cfg["tamper"].as_str().unwrap_or("");
             let account = &cfg["account"];
@@ -227,9 +234,15 @@ impl Fake {
             ),
             ("GET", "/.well-known/jwks.json") => {
                 let c = RsaPublicKeyComponents::<Vec<u8>>::from(self.key.public());
+                // The decoy is the same key with its modulus changed: a verifier that ignores `kid` fails on it.
+                let mut decoy = c.n.clone();
+                decoy[100] ^= 0xff;
                 json_reply(
                     200,
-                    json!({ "keys": [{ "kty": "RSA", "alg": "RS256", "use": "sig", "kid": "test", "n": b64(&c.n), "e": b64(&c.e) }] }),
+                    json!({ "keys": [
+                        { "kty": "RSA", "alg": "RS256", "use": "sig", "kid": "old", "n": b64(&decoy), "e": b64(&c.e) },
+                        { "kty": "RSA", "alg": "RS256", "use": "sig", "kid": "test", "n": b64(&c.n), "e": b64(&c.e) },
+                    ] }),
                 )
             }
             ("GET", "/api/accounts/authorize") => self.authorize(&form(query), &cfg),
@@ -237,7 +250,9 @@ impl Fake {
             ("POST", "/api/accounts/oauth/revoke") => {
                 let p = form(body);
                 self.record("revoke", &p);
-                if p.get("token_type_hint").map(String::as_str) != Some("refresh_token") || !p.contains_key("client_id")
+                if p.get("token").is_none_or(|t| t.is_empty())
+                    || p.get("token_type_hint").map(String::as_str) != Some("refresh_token")
+                    || !p.contains_key("client_id")
                 {
                     return bad("revocation needs token, token_type_hint=refresh_token, and client_id");
                 }
@@ -405,6 +420,11 @@ impl Fake {
                 if get("client_id") != client {
                     return bad("a refresh must use the token's issued client_id");
                 }
+                let scope = if cfg["refresh_without_plan"] == true {
+                    "openid profile email offline_access".to_string()
+                } else {
+                    scope
+                };
                 json_reply(200, self.tokens(&client, &scope, None))
             }
             g => bad(format!("unknown grant_type {g}")),
@@ -461,7 +481,6 @@ fn main() {
         key: RsaKeyPair::from_pkcs8(KEY).expect("the test key"),
         state: Mutex::new(State::default()),
     });
-    let _ = std::fs::write(Path::new(&dir).join("openai.url"), &base);
     println!("{base}");
     let _ = std::io::stdout().flush();
     for s in listener.incoming().flatten() {
