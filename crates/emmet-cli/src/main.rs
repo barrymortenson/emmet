@@ -2,6 +2,7 @@
 //! The `emmet` CLI (plan section 09). Every command calls one `emmet_core` operation; this file parses arguments and
 //! prints the result, as the JSON envelope with `--json` or as text.
 
+mod host;
 mod mcp;
 mod render;
 
@@ -107,14 +108,24 @@ enum Command {
         #[command(subcommand)]
         action: LibraryAction,
     },
+    /// Print the doctrine: how an agent builds with Emmet (the same text as the MCP `rules` tool).
+    Rules,
+    /// Print the emmet_dsl vocabulary for model.py (the same text as the MCP `api` tool).
+    Api,
     /// Run the stdio MCP server.
     Mcp {
-        /// Set by the app only; it will turn on redirect notes once the bus exists (1C). Accepted and unused until then.
+        /// The app's chat session (set only by the app): every tool result carries the user's redirect notes.
         #[arg(long)]
         session: Option<String>,
         /// Write each tool's input and output schema to DIR and exit.
         #[arg(long, value_name = "DIR", hide = true)]
         write_schemas: Option<PathBuf>,
+    },
+    /// The app-internal `emmet_host` MCP server for a chat session: approve and ask_user, over the bus.
+    #[command(hide = true)]
+    McpHost {
+        #[arg(long)]
+        session: String,
     },
 }
 
@@ -395,6 +406,20 @@ fn main() -> ExitCode {
             })
         }
         Command::Library { action } => library_command(&cli, started, data, action),
+        Command::Rules => finish(&cli, started, Output::from(Ok(mcp::DOCTRINE)), |d| {
+            d.trim_end().to_string()
+        }),
+        Command::Api => finish(&cli, started, Output::from(Ok(mcp::API)), |d| d.trim_end().to_string()),
+        Command::McpHost { session } => {
+            let out = data.and_then(|d| {
+                let project = Project::find(cli.project.as_deref())?;
+                host::serve(d, project.root, session.clone())
+            });
+            match out {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(e) => finish::<()>(&cli, started, Err(e).into(), |_| String::new()),
+            }
+        }
         Command::Mcp { session, write_schemas } => {
             if let Some(dir) = write_schemas {
                 let out = mcp::write_schemas(dir);

@@ -117,6 +117,26 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **1A's Windows CI run.** ci.yml runs only on pull requests, so Barry approved opening 1A's PR as a draft for CI and
   marking it ready (with 1A set to review) once every Done when item holds.
 
+## 2026-10-25, session 1C
+
+- **The keychain store for the Codex API key.** Plan section 06 names no keychain crate, the workspace forbids unsafe
+  code, and Windows has no built-in command that reads a stored secret. Barry chose `keyring-core` with only the
+  apple-native and windows-native stores (MIT/Apache-2.0; on macOS it uses security-framework, already in the tree)
+  over shelling out to `/usr/bin/security` on macOS only, or Emmet's own FFI with an unsafe exception. ADR 0009 records
+  it.
+- **The Windows bus pipe's ACL.** Section 15 wants the pipe user-only. interprocess takes a security descriptor as
+  SDDL in a `widestring::U16CStr`, and doesn't re-export the type. Barry chose widestring as a direct Windows-only
+  dependency of emmet-bus (already in the tree through interprocess) over keeping Windows' default pipe ACL (owner,
+  SYSTEM, and administrators may write; others may read) or FFI with an unsafe exception. ADR 0009 records it.
+- **Barry's design and feature notes.** From the live check, Barry has notes on layout (where the agent's status shows,
+  nurb-style agent switching with Start fresh, a model and effort picker, how useful the sliders are, how steps show)
+  and features with no session yet (a default Emmet folder for new projects, changeable in Settings; a baseplate
+  toggle). He chose a notes file, `docs/design/notes.md`, added in a small PR after 1C and made required reading for 2A,
+  with a proposed session for each unhomed feature for him to approve, over folding them into 1C's PR or pasting them
+  into 2A's prompt. 1C itself pins the "agent is working" line above the composer with a spinner.
+- **1C's Windows CI run.** As for 1A and 1B, Barry approved opening 1C's PR (#13) as a draft so CI runs on Windows,
+  marked ready only when every Done when item holds, including his live checks and H-04.
+
 ## 2026-10-25, session 1B
 
 - **@types/three for the viewer.** three.js ships no TypeScript types, so Barry approved `@types/three` 0.186.0 (MIT,

@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The functional UI (plan section 14, before Phase 2 designs it): a project tree, the viewer with a params drawer,
-// a run panel with the error and its traceback, and a status line. The last good model stays on screen while a run
-// is going or after one fails.
+// a run panel with the error and its traceback, the chat pane, and a status line with plan usage. The last good model
+// stays on screen while a run is going or after one fails.
 import { createViewer, type View, type Viewer } from "@emmet/viewer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { type AppInfo, commands, events, type Problem, type Scene, type UiState } from "./bindings";
+import { type AgentKind, type AppInfo, commands, events, type Problem, type Scene, type UiState, type UsageSnapshot } from "./bindings";
+import { ChatPane } from "./Chat";
 import { base64, json, library, placements } from "./library";
 import { Params } from "./Params";
+import { Settings } from "./Settings";
+import { limitWarning, UsageBar } from "./Usage";
 
 type Theme = "light" | "dark";
 const VIEWS: View[] = ["iso", "front", "back", "left", "right", "top"];
@@ -38,6 +41,15 @@ export function App() {
   const drawnAt = useRef(0);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  // The chat: which agent, its live limits, the turns that ended (each fetches usage), and its status line.
+  const [chatKind, setChatKind] = useState<AgentKind | null>(null);
+  const [limits, setLimits] = useState<UsageSnapshot | null>(null);
+  const [usage, setUsage] = useState<UsageSnapshot | null>(null);
+  const [turns, setTurns] = useState(0);
+  const [chatStatus, setChatStatus] = useState<string | null>(null);
+  const [settings, setSettings] = useState(false);
+  const [agentsChanged, setAgentsChanged] = useState(0);
+  const onTurnEnd = useCallback(() => setTurns((n) => n + 1), []);
 
   // The viewer lives as long as the window.
   useEffect(() => {
@@ -45,7 +57,10 @@ export function App() {
     const v = createViewer(canvas.current, { partSource: library, theme });
     viewer.current = v;
     if (__EMMET_TEST_HOOKS__) {
-      (window as unknown as { __emmet: unknown }).__emmet = {
+      // Merged: the chat pane adds its own hooks, and a child's effects run first.
+      const w = window as unknown as { __emmet?: Record<string, unknown> };
+      w.__emmet = {
+        ...(w.__emmet ?? {}),
         viewer: () => viewer.current,
         shown: () => shown.current,
         project: () => root.current,
@@ -174,6 +189,9 @@ export function App() {
               Rebuild
             </button>
           )}
+          <button type="button" id="settings-button" onClick={() => setSettings(true)}>
+            Settings
+          </button>
         </div>
       </header>
       {problem && (
@@ -223,14 +241,25 @@ export function App() {
           </div>
           {ui.project && <Params key={ui.project.root} running={ui.running} lastGeneration={scene?.generation ?? -1} />}
         </main>
-        <aside className="side" aria-label="Run">
+        <aside className="side" aria-label="Run and chat">
           <RunPanel ui={ui} />
+          <ChatPane
+            project={ui.project ?? null}
+            agentsChanged={agentsChanged}
+            warning={limitWarning(limits ?? usage)}
+            onTurnEnd={onTurnEnd}
+            onLimits={setLimits}
+            onStatus={setChatStatus}
+            onAgent={setChatKind}
+          />
         </aside>
       </div>
+      {settings && <Settings onClose={() => setSettings(false)} onChanged={() => setAgentsChanged((n) => n + 1)} />}
       <footer className="status">
         <span role="status" id="status">
-          {statusText(ui)}
+          {chatStatus ?? statusText(ui)}
         </span>
+        <UsageBar kind={chatKind} live={limits} turns={turns} onSnapshot={setUsage} />
         <span className="versions">
           Emmet {__EMMET_VERSION__}
           {info && ` · LDraw library ${info.library ?? "not installed"}`}

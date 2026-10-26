@@ -1,0 +1,6 @@
+# The agent replay tests' project (tests/it/tests/agent_*.rs): 0B recorded its transcripts against a model.py with
+# WIDTH = 8 under "# A spike project.", so this one has the same lines. Tests trust it first.
+schema = 1
+name = "Agent"
+created_by = "m:0000000000000000"
+library = "ldraw-mini"

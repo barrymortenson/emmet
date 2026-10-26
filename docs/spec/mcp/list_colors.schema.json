@@ -201,6 +201,27 @@
         ],
         "type": "object"
       },
+      "UserNote": {
+        "description": "A message the user typed while the agent worked, attached to an MCP tool result (D-33, plan section 09). Only\n`emmet mcp --session` (the app's chat) ever sets these.",
+        "properties": {
+          "at": {
+            "description": "When the user sent it, as RFC 3339.",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "at"
+        ],
+        "type": "object"
+      },
       "Warning": {
         "description": "A non-fatal note attached to a success.",
         "properties": {
@@ -245,6 +266,13 @@
       },
       "ok": {
         "type": "boolean"
+      },
+      "user_notes": {
+        "description": "What the user just said, newest last. It overrides the current plan (the doctrine says how to handle it).",
+        "items": {
+          "$ref": "#/$defs/UserNote"
+        },
+        "type": "array"
       },
       "warnings": {
         "items": {

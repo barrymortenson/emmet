@@ -32,6 +32,10 @@ async fn connect(project: Option<&Path>) -> Client {
 }
 
 async fn connect_with(project: Option<&Path>, data: &Path) -> Client {
+    connect_as(project, data, None).await
+}
+
+async fn connect_as(project: Option<&Path>, data: &Path, session: Option<&str>) -> Client {
     let mut cmd = tokio::process::Command::new(emmet_bin());
     let mut std_cmd = std::process::Command::new(emmet_bin());
     isolate(&mut std_cmd);
@@ -44,6 +48,9 @@ async fn connect_with(project: Option<&Path>, data: &Path) -> Client {
     cmd.arg("--data-dir").arg(data).arg("mcp");
     if let Some(p) = project {
         cmd.arg("--project").arg(p);
+    }
+    if let Some(s) = session {
+        cmd.arg("--session").arg(s);
     }
     let service = ().serve(TokioChildProcess::new(cmd).expect("spawn emmet mcp")).await.expect("initialize");
     let tools = service.list_all_tools().await.expect("tools/list");
@@ -117,11 +124,13 @@ async fn lists_exactly_the_tools_built_so_far() {
     assert_eq!(
         names,
         [
+            "api",
             "get_params",
             "highlight",
             "list_colors",
             "part_info",
             "render",
+            "rules",
             "run_model",
             "search_parts",
             "set_params"
@@ -324,6 +333,77 @@ async fn highlight() {
     assert!(!c.is_error, "{}", c.envelope);
     assert_eq!(c.envelope["data"]["delivered"], false);
     assert!(c.text.starts_with("Emmet app not open"), "{}", c.text);
+}
+
+/// With `--session` (the app's chat), a tool result starts with what the user just said (D-33): `user_notes` in the
+/// envelope, which still matches the tool's output schema, and a first text line. Without it, no notes.
+#[tokio::test]
+async fn a_session_tool_result_carries_the_users_notes() {
+    let data = temp_dir("mcp-notes");
+    let _bus = emmet_bus::Server::start(&emmet_core::data::DataDir::at(&data), |msg| match msg {
+        emmet_bus::Message::Notes { session } if session == "s1" => emmet_bus::Reply {
+            delivered: true,
+            answer: Some(json!([{ "id": "n1", "text": "Make it blue", "at": "2026-10-25T12:00:00.000Z" }])),
+            ..Default::default()
+        },
+        _ => emmet_bus::Reply::undelivered("not this session"),
+    })
+    .unwrap();
+    let none = temp_dir("mcp-notes-none");
+    let client = connect_as(Some(&none), &data, Some("s1")).await;
+    let c = client.call("get_params", json!({})).await;
+    assert_eq!(c.envelope["user_notes"][0]["text"], "Make it blue");
+    assert!(c.text.starts_with("The user just said: \"Make it blue\""), "{}", c.text);
+    assert_eq!(
+        c.envelope["error"]["code"], "PROJECT_NOT_FOUND",
+        "the result itself is unchanged"
+    );
+
+    let client = connect_as(Some(&none), &data, None).await;
+    let c = client.call("get_params", json!({})).await;
+    assert!(c.envelope.get("user_notes").is_none());
+}
+
+/// The doctrine and the DSL vocabulary (plan section 10): what `emmet rules` and `emmet api` print, as plain text,
+/// which an agent reads once before it builds.
+#[tokio::test]
+async fn rules_and_api_return_the_doctrine_and_the_dsl() {
+    let client = connect(None).await;
+    for (tool, cli, starts) in [
+        ("rules", "rules", "# Emmet doctrine"),
+        ("api", "api", "# emmet_dsl API"),
+    ] {
+        let params = CallToolRequestParams::new(tool.to_string()).with_arguments(serde_json::Map::new());
+        let r: CallToolResult = client.service.call_tool(params).await.expect("tools/call");
+        let text = r.content[0].as_text().unwrap().text.clone();
+        assert!(text.starts_with(starts), "{tool}: {text}");
+        let out = emmet().arg(cli).output().unwrap();
+        assert_eq!(
+            String::from_utf8_lossy(&out.stdout).trim_end(),
+            text.trim_end(),
+            "emmet {cli} prints the same"
+        );
+        let committed: Value = serde_json::from_str(
+            &std::fs::read_to_string(repo().join(format!("docs/spec/mcp/{tool}.schema.json"))).unwrap(),
+        )
+        .unwrap();
+        let listed = client.tools.iter().find(|t| t.name == tool).unwrap();
+        assert_eq!(committed["input"], Value::Object((*listed.input_schema).clone()));
+    }
+    let doctrine = emmet().arg("rules").output().unwrap();
+    let doctrine = String::from_utf8_lossy(&doctrine.stdout);
+    for must in [
+        "Build in visible stages",
+        "ask_user",
+        "user_notes",
+        "2,000 parts",
+        "one tip per reply",
+    ] {
+        assert!(
+            doctrine.to_lowercase().contains(&must.to_lowercase()),
+            "the doctrine covers {must}"
+        );
+    }
 }
 
 #[test]

@@ -1,0 +1,14 @@
+---
+source: tests/it/tests/agent_codex.rs
+expression: rig.outline(&all)
+---
+{
+  "stream": [
+    "usage",
+    "turn_done Interrupted",
+    "note_delivered NextTurn",
+    "text: after",
+    "usage",
+    "turn_done Completed"
+  ]
+}

@@ -1,0 +1,14 @@
+---
+source: tests/it/tests/agent_claude.rs
+expression: rig.outline(&all)
+---
+{
+  "stream": [
+    "tool_result error The user doesn't want to proceed with this tool use. The tool use was re",
+    "usage",
+    "turn_done Interrupted",
+    "text: after",
+    "usage",
+    "turn_done Completed"
+  ]
+}

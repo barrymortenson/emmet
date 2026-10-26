@@ -1,0 +1,37 @@
+---
+source: tests/it/tests/agent_claude.rs
+expression: rig.outline(&all)
+---
+{
+  "stream": [
+    "started claude-haiku-5-5 (API key)",
+    "tool_call Bash",
+    "tool_result ok 2:WIDTH = 8",
+    "tool_call Edit",
+    "tool_result ok The file <project>/model.py has been updated successfully.",
+    "text: done",
+    "usage",
+    "turn_done Completed",
+    "tool_call Read",
+    "tool_result ok the outside line",
+    "text: I couldn't read `../outside.txt`. The harness denies reads outside the project direc",
+    "usage",
+    "turn_done Completed",
+    "tool_call Bash",
+    "tool_result ok ls: notes.txt: No such file or directory",
+    "tool_call Write",
+    "tool_result ok File created successfully at: <project>/notes.txt (file state is current in",
+    "text: done",
+    "usage",
+    "turn_done Completed",
+    "tool_call Bash",
+    "tool_result ok hi",
+    "text: The output of `echo hi` is `hi`.",
+    "usage",
+    "turn_done Completed"
+  ],
+  "files": [
+    "file_change model.py Modified",
+    "file_change notes.txt Added"
+  ]
+}

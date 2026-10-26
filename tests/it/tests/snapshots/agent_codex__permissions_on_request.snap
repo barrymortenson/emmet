@@ -1,0 +1,46 @@
+---
+source: tests/it/tests/agent_codex.rs
+expression: rig.outline(&all)
+---
+{
+  "stream": [
+    "started gpt-6-luna (API key)",
+    "text: I’ll update the constant in `model.py` and leave the rest untouched.",
+    "tool_call shell",
+    "tool_result ok 2:WIDTH = 8",
+    "tool_call shell",
+    "tool_result ok python3: warning: confstr() failed with code 5: couldn't get path of DARWIN",
+    "text: done",
+    "usage",
+    "turn_done Completed",
+    "text: I’ll check whether Emmet provides a file access tool for this path.",
+    "tool_call shell",
+    "tool_result ok This file is outside the project.",
+    "text: This file is outside the project.",
+    "usage",
+    "turn_done Completed",
+    "text: I’ll create `notes.txt` in the project directory with that content.",
+    "tool_call shell",
+    "tool_result ok python3: warning: confstr() failed with code 5: couldn't get path of DARWIN",
+    "tool_call shell",
+    "tool_result ok hi",
+    "text: done",
+    "usage",
+    "turn_done Completed",
+    "text: I’ll append `bye` as a new line to `../outside.txt`.",
+    "tool_call shell",
+    "tool_result error python3: warning: confstr() failed with code 5: couldn't get path of DAR",
+    "tool_call shell",
+    "approval Command commandExecution",
+    "tool_result error ",
+    "text: I couldn’t append `bye`: the write to `../outside.txt` was blocked, and the request ",
+    "usage",
+    "turn_done Completed",
+    "text: I’ll run `echo hi` and report what it prints.",
+    "tool_call shell",
+    "tool_result ok hi",
+    "text: hi",
+    "usage",
+    "turn_done Completed"
+  ]
+}

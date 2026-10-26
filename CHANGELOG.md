@@ -46,6 +46,25 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   E2E specs with visual baselines and a leak test. New dependencies, all named in plan section 06 but
   `@types/three` (approved): three, tauri-specta, notify, interprocess, tauri-plugin-dialog, pixelmatch.
 
+- The agent bridge (session 1C): from the app's chat pane, talk to your own Claude Code or Codex. `emmet-agent` runs
+  either CLI (Claude's stream-JSON, Codex's app-server, with its types checked against the committed schema) through one
+  shared engine: streaming text, tool-call and file-change cards, approval cards (Allow once, Allow for this session,
+  Deny), question cards (`emmet_host ask_user`), redirects while the agent works (delivered natively at its next step,
+  through `user_notes` on the next Emmet tool result, or as the next turn), Stop, resume, and crash recovery in one
+  click. The agent picker and chat header say who pays ("Claude · Max plan", "Codex · API key"); Claude runs with your
+  login shell's environment unchanged, and Codex on the OpenAI API key in your keychain (Settings → Agents). The status
+  bar shows Claude's plan usage, fetched only when you ask. Chats and transcripts stay in the project's `.emmet/`.
+- `emmet rules` and `emmet api` (the doctrine and the DSL vocabulary, also MCP tools for agents), the hidden
+  `emmet mcp-host`, and `emmet mcp --session` for redirect notes. New projects' AGENTS.md points agents at the rules.
+- The replay harness: `tests/fake-agents` (fake-claude, fake-codex) replays 0B's transcripts and derived failure cases
+  through the real MCP servers; replay, sentinel, and E2E chat tests for both agents. New dependencies (approved,
+  ADR 0009): keyring-core with the macOS and Windows stores, and widestring on Windows.
+
+### Security
+
+- emmet-bus authenticates both ways: the token never crosses the socket, each request and reply proves it bound to a
+  fresh nonce and the message, and a seen nonce is refused. The Windows pipe is user-only (ADR 0009).
+
 ### Changed
 
 - CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push

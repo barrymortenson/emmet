@@ -1,0 +1,23 @@
+---
+source: tests/it/tests/agent_claude.rs
+expression: rig.outline(&all)
+---
+{
+  "stream": [
+    "started claude-haiku-5-5 (API key)",
+    "tool_call Bash",
+    "tool_result error The user denied this in Emmet.",
+    "text: I couldn't run `ls`. The shell command was denied: the tool returned \"Shell commands",
+    "usage",
+    "turn_done Completed",
+    "tool_call Bash",
+    "tool_result ok ok",
+    "text: I couldn't run `echo hi`. The shell tool returned the same error as before: \"Shell c",
+    "usage",
+    "turn_done Completed"
+  ],
+  "cards": [
+    "approval Command Bash",
+    "approval Command Bash"
+  ]
+}

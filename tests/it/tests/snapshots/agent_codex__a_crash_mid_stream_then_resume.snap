@@ -1,0 +1,14 @@
+---
+source: tests/it/tests/agent_codex.rs
+expression: rig.outline(&events)
+---
+{
+  "stream": [
+    "started gpt-6-luna (API key)",
+    "text: I’ll call the Emmet server’s ping tool with the exact message `hello` and report its",
+    "tool_call mcp__emmet__ping",
+    "error Crashed",
+    "turn_done Crashed",
+    "exited 1"
+  ]
+}

@@ -8,6 +8,7 @@
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
 import { basename } from "node:path";
+import { prepareAgents } from "./lib/agents.mjs";
 import { webContentPids } from "./lib/memory.mjs";
 import { appBinary, bin, out } from "./lib/paths.mjs";
 import { prepareProject } from "./lib/projects.mjs";
@@ -16,7 +17,8 @@ const bench = process.env.EMMET_BENCH === "1";
 
 export const config = {
   runner: "local",
-  specs: [bench ? "./specs/bench.e2e.mjs" : "./specs/**/*.e2e.mjs"],
+  // hello checks the app's first window (no project open), so it runs first; the app is shared by every spec file.
+  specs: bench ? ["./specs/bench.e2e.mjs"] : ["./specs/hello.e2e.mjs", "./specs/**/*.e2e.mjs"],
   exclude: bench ? [] : ["./specs/bench.e2e.mjs"],
   maxInstances: 1,
   capabilities: [{ browserName: "tauri", "tauri:options": { application: appBinary } }],
@@ -30,6 +32,8 @@ export const config = {
   onPrepare() {
     process.env.EMMET_DATA_DIR = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
     process.env.EMMET_E2E_OUT = out;
+    // The chat specs' fake agents, and the test home with sentinel agent configs (lib/agents.mjs).
+    prepareAgents();
     // WKWebView has no JS heap API, so the leak test reads the app's WebContent processes: the ones that appear after
     // this hook, which runs before the service starts the app (docs/decisions.md, 2026-10-25).
     if (process.platform === "darwin") process.env.EMMET_E2E_WEBCONTENT_BEFORE = webContentPids().join(",");

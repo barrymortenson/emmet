@@ -175,6 +175,22 @@ jobs:
       - run: just test ${{ needs.scope.outputs.full != 'true' && '--changed' || '' }}
         env:
           EMMET_CI_BASE: ${{ needs.scope.outputs.base }}
+      # The app for the Windows VM check (H-04): the plain debug build `just test` made (the E2E build below adds the
+      # WebDriver server), its emmet sidecar, uv for Python, and ldraw-mini to install. Kept 7 days.
+      - name: Windows app for the VM
+        if: needs.scope.outputs.e2e_windows == 'true'
+        run: |
+          mkdir -p vm
+          cp target/debug/emmet-desktop.exe target/debug/emmet.exe "$(command -v uv)" vm/
+          data=$(cygpath -u "$(target/debug/prepare-data.exe)")
+          cp "$data/ldraw-mini.zip" vm/
+          (cd vm && sha256sum ldraw-mini.zip | cut -d' ' -f1 > ldraw-mini.sha256)
+      - if: needs.scope.outputs.e2e_windows == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: emmet-windows-vm
+          path: vm/
+          retention-days: 7
       # Windows E2E (about 5 minutes) only when the native side or the specs change, or with everything else.
       - if: needs.scope.outputs.e2e_windows == 'true'
         run: just e2e

@@ -7,6 +7,7 @@
 //! project's last build in a hidden window, writes the PNG (and the camera next to it as .json), and exits (ADR 0005).
 
 pub mod app;
+pub mod chat;
 pub mod library;
 pub mod paths;
 pub mod recent;
@@ -105,13 +106,27 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             render_job,
             render_done,
             render_failed,
+            crate::chat::agents,
+            crate::chat::chat_start,
+            crate::chat::chat_send,
+            crate::chat::chat_steer,
+            crate::chat::chat_note,
+            crate::chat::chat_stop,
+            crate::chat::chat_respond,
+            crate::chat::chat_answer,
+            crate::chat::chat_state,
+            crate::chat::chat_end,
+            crate::chat::usage,
+            crate::chat::openai_key_saved,
+            crate::chat::openai_key_set,
         ])
         .events(tauri_specta::collect_events![
             ProjectOpened,
             RunStarted,
             RunFinished,
             BusRender,
-            BusHighlight
+            BusHighlight,
+            crate::chat::ChatEvent
         ])
         .dangerously_cast_bigints_to_number()
         .disable_serde_phases()
@@ -234,6 +249,11 @@ pub fn run() {
                 .build()?;
             let state = tauri_app.state::<app::AppState>();
             state.start_runs(&handle);
+            // The login shell's environment and the agents' detection, ready before the user picks an agent.
+            let warm = handle.clone();
+            std::thread::spawn(move || {
+                let _ = crate::chat::agents_now(&warm);
+            });
             let bus_handle = handle.clone();
             match emmet_bus::Server::start(&state.data, move |msg| app::on_bus(&bus_handle, msg)) {
                 // The server lives as long as the app.
@@ -256,11 +276,13 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building Emmet")
         .run(|handle, event| {
-            // Tauri exits without dropping managed state, so the bus's token file is removed here.
-            if let tauri::RunEvent::Exit = event
-                && let Some(server) = handle.try_state::<emmet_bus::Server>()
-            {
-                server.close();
+            // Tauri exits without dropping managed state, so the bus's token file is removed, and the agent's CLI
+            // ended, here.
+            if let tauri::RunEvent::Exit = event {
+                if let Some(server) = handle.try_state::<emmet_bus::Server>() {
+                    server.close();
+                }
+                handle.state::<app::AppState>().chat.close();
             }
         });
 }

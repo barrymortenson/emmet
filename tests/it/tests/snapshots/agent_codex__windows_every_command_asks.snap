@@ -1,0 +1,30 @@
+---
+source: tests/it/tests/agent_codex.rs
+expression: rig.outline(&events)
+---
+{
+  "stream": [
+    "started gpt-6.1-sol (API key)",
+    "text: I’ll check the model’s height settings and adjust it to 10 bricks high.",
+    "tool_call mcp__emmet__rules",
+    "tool_result ok # Emmet doctrine",
+    "tool_call shell",
+    "approval Command commandExecution",
+    "tool_result ok # SPDX-License-Identifier: Apache-2.0",
+    "tool_call mcp__emmet__get_params",
+    "tool_result ok ",
+    "text: The walls are currently 6 bricks high. I’ll raise them to 10; the roof and chimney w",
+    "tool_call shell",
+    "approval Command commandExecution",
+    "tool_result ok ",
+    "tool_call mcp__emmet__set_params",
+    "tool_result error PARAM_INVALID in model.py: There's no parameter 'wall_rows' (from the ne",
+    "tool_call mcp__emmet__run_model",
+    "tool_result ok Built 8 parts in 1 steps (… s), generation 1.",
+    "tool_call mcp__emmet__render",
+    "tool_result ok The iso view at 768 px.",
+    "text: The walls are now 10 bricks high, with the roof and chimney raised accordingly. Rebu",
+    "usage",
+    "turn_done Completed"
+  ]
+}

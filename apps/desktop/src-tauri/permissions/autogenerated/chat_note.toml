@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-chat-note"
+description = "Enables the chat_note command without any pre-configured scope."
+commands.allow = ["chat_note"]
+
+[[permission]]
+identifier = "deny-chat-note"
+description = "Denies the chat_note command without any pre-configured scope."
+commands.deny = ["chat_note"]

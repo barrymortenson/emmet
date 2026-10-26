@@ -1,0 +1,13 @@
+---
+source: tests/it/tests/agent_claude.rs
+expression: rig.outline(&events)
+---
+{
+  "stream": [
+    "started claude-haiku-5-5 (plan)",
+    "text: ready",
+    "limits 5-hour 3%, Week 12%",
+    "usage",
+    "turn_done Completed"
+  ]
+}

@@ -29,7 +29,10 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
   [emmet-bus](docs/spec/bus.md), or the app's hidden render mode when it isn't open. `emmet mcp` has `render` (image
   content) and `highlight` too.
 - `just bench`: the viewer's load, update, and orbit timings in the real app (ADR 0008).
-- `emmet-agent` is still a one-function stub; it builds and has an integration test.
+- The chat pane (session 1C): pick Claude Code or Codex, then ask it to build. The agent edits `model.py` with Emmet's
+  tools and the viewer updates as it works; approvals and questions appear as cards, and you can redirect it mid-turn
+  or stop it. Claude Code uses your own sign-in; Codex runs on your OpenAI API key (Settings → Agents, kept in the
+  keychain). `emmet rules` and `emmet api` print what the agent reads.
 - CI on macOS and Windows, the license, SPDX, DCO, secret, and supply-chain checks, and the plan tracker check.
 - `just e2e`: end-to-end specs drive the real app through WebdriverIO (`tests/e2e/`): the live viewer, rendering with
   the app open, a killed run, a leak test, and visual baselines.

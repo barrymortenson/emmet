@@ -176,17 +176,53 @@ The files that changed belong to Barry's own live Claude Code and Codex sessions
 identical content). The content scan skips the transcript of the session that ran the spikes, which records their
 output by design; the path check still covers it. The hand checks ran afterwards, on Barry's real HOME, by design.
 
-## Windows (Q-05, from the current docs; 1C verifies)
+## 1C: the live check on this Mac (2026-10-25)
 
-- **Claude Code** (https://code.claude.com/docs/en/setup, read 2026-10-24): Windows 10 1809+ or Server 2019+, x64 or
-  ARM64, 4 GB+ RAM; install from PowerShell (`irm https://claude.ai/install.ps1 | iex`), CMD, or WinGet
-  (`winget install Anthropic.ClaudeCode`), no administrator needed. Git for Windows is optional: with it the Bash tool
-  uses Git Bash (`CLAUDE_CODE_GIT_BASH_PATH` if it isn't found); without it Claude Code uses its PowerShell tool. The
-  sandbox isn't supported on native Windows (https://code.claude.com/docs/en/sandboxing), only in WSL 2.
-- **Codex** (https://learn.chatgpt.com/docs/windows/windows-sandbox, read 2026-10-24): Windows 11 recommended, recent
-  Windows 10 best effort, 1809 or newer required; runs natively in PowerShell with its own Windows sandbox, no WSL
-  needed; `winget` should be available. The sandbox's `unelevated` mode needs no administrator setup but has weaker
-  network isolation and no denied read paths; `elevated` needs administrator-approved setup.
+Barry drove both real CLIs from the app by hand (Claude Code 2.1.310 on his Max plan, Codex 0.160.1 on an API key from
+the keychain), with no scripted runs; the scrubbed evidence is in `docs/spec/sessions/1C/`. The protocols matched 0B's
+recordings, so no new fixtures were needed. What 0B's isolated runs couldn't show, because they used an empty HOME:
+
+- **The user's own setup joins the session.** Claude Code runs the user's hooks (`system/hook_started`,
+  `system/hook_response`) and may use subagents (`system/task_started`, `system/task_notification`); Codex runs the
+  user's hooks (`hook/started`, `hook/completed`) and loads the user's own MCP servers from `~/.codex` beside Emmet's
+  (their tool-call approvals are declined until 8F). The adapters ignore these messages, and Emmet still writes nothing
+  in either config. Hooks and thinking can keep a turn silent for over a minute, so the chat now says the agent is still
+  working.
+- **Claude Code validates MCP schemas loudly.** It prints `unknown format "uint32" ignored in schema` to stderr for
+  schemars' integer formats. Harmless; it lands in the transcript's `err` lines.
+- **Claude may edit through its sandboxed Bash** (`sed -i`) instead of Edit; the engine's file scan reports those changes
+  the same way.
+- **Codex follows the pointer literally.** With "in a terminal: `emmet rules`" in the app's pointer, it ran that in its
+  shell, where `emmet` isn't on PATH. The app now passes its own pointer (ADR 0009) naming the `rules` and `ask_user`
+  tools; afterwards Codex used both.
+- **Both redirect paths and question cards behaved as recorded:** a note written during a tool call reached the model at
+  its next step (Claude's stdin message, Codex's `turn/steer`), and `ask_user` answers came back in the same turn.
+
+## Windows (Q-05; verified in 1C, H-04)
+
+From the docs (read 2026-10-24): Claude Code needs Windows 10 1809+ or Server 2019+ (x64 or ARM64) and installs from
+PowerShell (`irm https://claude.ai/install.ps1 | iex`), CMD, or WinGet, with no administrator; Git for Windows is
+optional (its Bash, else Claude Code's PowerShell tool), and the sandbox is WSL 2 only
+(https://code.claude.com/docs/en/setup, https://code.claude.com/docs/en/sandboxing). Codex runs natively with its own
+Windows sandbox (https://learn.chatgpt.com/docs/windows/windows-sandbox).
+
+**Verified 2026-10-25** (H-04, Barry, by hand): a Windows 11 ARM VM (x64 Emmet under emulation), Claude Code from the
+native installer on his Max plan, Codex 0.164.0 from npm on an API key, Emmet's debug build from CI
+(`emmet-windows-vm`). Screenshots in `docs/spec/sessions/1C/windows-*.png`; the Codex session is
+`tests/replay/codex/windows-approvals.jsonl` (scrubbed).
+
+- **Install.** The native installer adds `%USERPROFILE%\.local\bin` to PATH only for terminals opened afterwards, so
+  `claude` isn't found in the one that ran it. Emmet's detection also looks there, and the picker's Windows fix text says
+  to open a new terminal. npm leaves `codex.cmd`; Emmet runs the package's launcher with node instead, since a batch file
+  can't take Codex's `-c key="value"` arguments safely (ADR 0009).
+- **Claude Code** used its PowerShell tool even with Git for Windows installed, and the ask rule (`Bash`, `PowerShell`,
+  `WebFetch`, `WebSearch`) turned `cmd /c dir` into a card. A turn that only used Emmet's tools (read and set the
+  parameters, run, render) asked nothing. No Git Bash is required.
+- **Codex 0.164.0** under `on-request` asked for every PowerShell command, reads included (`Get-Content model.py`),
+  where on macOS its sandbox runs those without asking; after "Allow for this session" the rest ran. Emmet's tool calls
+  were accepted without a card, as on macOS. It also sends `skills/changed`, new since 0.160.1 and ignored. The adapter,
+  built against 0.160.1's schema, worked unchanged; the picker showed its "untested Codex 0.164.0" note as designed.
+- **Python** (`emmet doctor --fix` through uv) and the runs worked under emulation.
 
 ## Run count (D-38)
 

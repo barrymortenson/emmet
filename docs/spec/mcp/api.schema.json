@@ -1,0 +1,9 @@
+{
+  "name": "api",
+  "description": "The emmet_dsl vocabulary for model.py: @model, Model.add, Model.step, Handle, and the param types.",
+  "input": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object"
+  },
+  "output": null
+}

@@ -14,7 +14,7 @@ use emmet_core::data::DataDir;
 use emmet_core::envelope::{Error, Result};
 use emmet_core::fsx;
 use interprocess::local_socket::prelude::*;
-use interprocess::local_socket::{GenericNamespaced, ListenerOptions, Stream};
+use interprocess::local_socket::{ListenerOptions, Name, Stream};
 use serde::{Deserialize, Serialize};
 
 /// This crate's version, which tracks the workspace.
@@ -48,15 +48,76 @@ pub enum Message {
     },
     /// Highlight parts by Emmet id in the open viewer.
     Highlight { project: String, ids: Vec<String> },
+    /// `emmet_host approve`, Claude Code's permission prompt (plan section 10): the app shows an approval card for the
+    /// chat session and replies with the decision as `answer`. Held open until the user decides.
+    Approve {
+        session: String,
+        request: serde_json::Value,
+    },
+    /// `emmet_host ask_user` (D-32): the app shows a question card and replies with the answer as `answer`. Held open
+    /// until the user answers, Stop cancels it, or the sender's timeout nears.
+    Ask {
+        session: String,
+        question: serde_json::Value,
+    },
+    /// `emmet mcp --session` (D-33): takes the session's pending redirect notes, as `answer` (a list).
+    Notes { session: String },
 }
 
+/// One request. The token itself never crosses the socket: `auth` proves the client read it from bus.json, and the
+/// reply's `auth` proves the server did, so a process squatting on the socket's name can neither drive the app nor
+/// answer for it (plan section 15).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Request {
     pub v: u32,
-    pub token: String,
+    /// Random, new for each request.
+    pub nonce: String,
+    /// [`proof`]`("client", token, nonce, id:message)`.
+    pub auth: String,
     pub id: u64,
     #[serde(flatten)]
     pub message: Message,
+}
+
+/// sha256 of `side:token:nonce:body`, in hex: `body` is the request's id and message, or the reply without its
+/// `auth`, so a proof can't be moved to another message.
+pub fn proof(side: &str, token: &str, nonce: &str, body: &str) -> String {
+    fsx::sha256_hex(format!("{side}:{token}:{nonce}:{body}").as_bytes())
+}
+
+fn request_body(id: u64, message: &Message) -> String {
+    format!("{id}:{}", serde_json::to_string(message).expect("message serializes"))
+}
+
+fn reply_body(reply: &Reply) -> String {
+    serde_json::to_string(&Reply {
+        auth: None,
+        ..reply.clone()
+    })
+    .expect("reply serializes")
+}
+
+/// Nonces the server has seen, so a request can't be sent twice (the newest few thousand).
+#[derive(Default)]
+struct Seen {
+    order: std::collections::VecDeque<String>,
+    set: std::collections::HashSet<String>,
+}
+
+impl Seen {
+    /// True the first time `nonce` comes.
+    fn first(&mut self, nonce: &str) -> bool {
+        if !self.set.insert(nonce.to_string()) {
+            return false;
+        }
+        self.order.push_back(nonce.to_string());
+        if self.order.len() > 4096
+            && let Some(old) = self.order.pop_front()
+        {
+            self.set.remove(&old);
+        }
+        true
+    }
 }
 
 /// The app's answer. `delivered: false` carries `reason`; a delivered message that failed carries `error`.
@@ -76,6 +137,12 @@ pub struct Reply {
     pub camera: Option<serde_json::Value>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub highlighted: Vec<String>,
+    /// The answer to `approve`, `ask`, or `notes`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub answer: Option<serde_json::Value>,
+    /// [`proof`]`("server", token, nonce, the reply without auth)`, on the answer to an authenticated request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth: Option<String>,
 }
 
 impl Reply {
@@ -97,6 +164,23 @@ fn socket_name(data: &DataDir) -> String {
     format!("emmet-{}.sock", &hash[..16])
 }
 
+/// The socket for `name`: on macOS the file `/tmp/<name>`, named by its path so its mode can be set before it's bound;
+/// on Windows the named pipe `\\.\pipe\<name>`.
+fn socket(name: &str) -> std::io::Result<Name<'static>> {
+    #[cfg(unix)]
+    {
+        use interprocess::local_socket::GenericFilePath;
+        socket_path(name)
+            .to_fs_name::<GenericFilePath>()
+            .map(|n| n.into_owned())
+    }
+    #[cfg(windows)]
+    {
+        use interprocess::local_socket::GenericNamespaced;
+        name.to_string().to_ns_name::<GenericNamespaced>()
+    }
+}
+
 /// The app's listener. Dropping it stops answering and removes `bus.json` if it is still this server's.
 pub struct Server {
     info: PathBuf,
@@ -109,17 +193,12 @@ impl Server {
     /// hold up a highlight).
     pub fn start(data: &DataDir, handler: impl Fn(Message) -> Reply + Send + Sync + 'static) -> Result<Self> {
         let name = socket_name(data);
-        let ns = name
-            .clone()
-            .to_ns_name::<GenericNamespaced>()
-            .map_err(|e| Error::internal(format!("the bus socket name {name}: {e}")))?;
-        let listener = ListenerOptions::new()
-            .name(ns)
-            .try_overwrite(true)
+        let ns = socket(&name).map_err(|e| Error::internal(format!("the bus socket name {name}: {e}")))?;
+        let listener = user_only(ListenerOptions::new().name(ns).try_overwrite(true))?
             .create_sync()
             .map_err(|e| Error::internal(format!("starting the bus on {name}: {e}")))?;
         #[cfg(unix)]
-        restrict(&std::path::Path::new("/tmp").join(&name));
+        restrict(&name);
         // 64 hex digits, but every RandomState in a thread grows from one OS-seeded 128-bit key, so about 128 bits a
         // client must guess (fsx::random_hex).
         let token = fsx::random_hex(4);
@@ -133,14 +212,15 @@ impl Server {
         fsx::write_private(&path, serde_json::to_string_pretty(&info).expect("json").as_bytes())?;
         let stop = Arc::new(AtomicBool::new(false));
         let (handler, want, halt) = (Arc::new(handler), token.clone(), stop.clone());
+        let seen = Arc::new(std::sync::Mutex::new(Seen::default()));
         std::thread::spawn(move || {
             for conn in listener.incoming() {
                 if halt.load(Ordering::SeqCst) {
                     break;
                 }
                 let Ok(conn) = conn else { continue };
-                let (handler, want) = (handler.clone(), want.clone());
-                std::thread::spawn(move || serve(conn, &want, &*handler));
+                let (handler, want, seen) = (handler.clone(), want.clone(), seen.clone());
+                std::thread::spawn(move || serve(conn, &want, &seen, &*handler));
             }
         });
         Ok(Self {
@@ -172,12 +252,36 @@ impl Drop for Server {
     }
 }
 
-/// Only this user may open the socket (section 15). The token file is created private (fsx::write_private); a client
-/// that connects before this chmod still needs the token. 1C adds the Windows pipe ACL and the socket's tests.
+/// Only this user may open the socket (section 15): mode 0600 on macOS, set as soon as the socket is bound; on Windows
+/// a pipe ACL that grants only the pipe's owner (the user running the app) and SYSTEM. The token file is private too
+/// (fsx::write_private), so a client that connects in the moment before the chmod still can't send a message.
 #[cfg(unix)]
-fn restrict(path: &std::path::Path) {
+fn user_only(opts: ListenerOptions<'_>) -> Result<ListenerOptions<'_>> {
+    // macOS refuses fchmod on a socket before bind (EINVAL), so the mode is set just after it (`restrict`).
+    Ok(opts)
+}
+
+#[cfg(unix)]
+fn restrict(name: &str) {
     use std::os::unix::fs::PermissionsExt;
-    let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
+    let _ = std::fs::set_permissions(socket_path(name), std::fs::Permissions::from_mode(0o600));
+}
+
+/// Where the socket file is (macOS).
+#[cfg(unix)]
+pub fn socket_path(name: &str) -> PathBuf {
+    std::path::Path::new("/tmp").join(name)
+}
+
+#[cfg(windows)]
+fn user_only(opts: ListenerOptions<'_>) -> Result<ListenerOptions<'_>> {
+    use interprocess::os::windows::local_socket::ListenerOptionsExt;
+    use interprocess::os::windows::security_descriptor::SecurityDescriptor;
+    // Protected DACL: generic all for OWNER RIGHTS and LocalSystem, nothing for anyone else.
+    let sddl = widestring::U16CString::from_str("D:P(A;;GA;;;OW)(A;;GA;;;SY)").expect("no nul in the SDDL");
+    let sd = SecurityDescriptor::deserialize(&sddl)
+        .map_err(|e| Error::internal(format!("the bus pipe's access list: {e}")))?;
+    Ok(opts.security_descriptor(sd))
 }
 
 /// Compares tokens in time that doesn't depend on where they differ.
@@ -185,7 +289,7 @@ fn same(a: &str, b: &str) -> bool {
     a.len() == b.len() && a.bytes().zip(b.bytes()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
 }
 
-fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send + Sync)) {
+fn serve(conn: Stream, token: &str, seen: &std::sync::Mutex<Seen>, handler: &(dyn Fn(Message) -> Reply + Send + Sync)) {
     let mut reader = BufReader::new(conn);
     let mut line = String::new();
     while reader.read_line(&mut line).is_ok_and(|n| n > 0) {
@@ -195,17 +299,33 @@ fn serve(conn: Stream, token: &str, handler: &(dyn Fn(Message) -> Reply + Send +
                 id: req.id,
                 ..Reply::undelivered(format!("the app speaks bus v{VERSION}, not v{}", req.v))
             },
-            Ok(req) if !same(&req.token, token) => {
+            Ok(req)
+                if !same(
+                    &req.auth,
+                    &proof("client", token, &req.nonce, &request_body(req.id, &req.message)),
+                ) =>
+            {
                 refused = true;
                 Reply {
                     id: req.id,
                     ..Reply::undelivered("wrong token")
                 }
             }
-            Ok(req) => Reply {
-                id: req.id,
-                ..handler(req.message)
-            },
+            Ok(req) if !seen.lock().expect("seen").first(&req.nonce) => {
+                refused = true;
+                Reply {
+                    id: req.id,
+                    ..Reply::undelivered("that request was already sent")
+                }
+            }
+            Ok(req) => {
+                let mut reply = Reply {
+                    id: req.id,
+                    ..handler(req.message)
+                };
+                reply.auth = Some(proof("server", token, &req.nonce, &reply_body(&reply)));
+                reply
+            }
             Err(e) => Reply::undelivered(format!("not a bus request: {e}")),
         };
         let mut text = serde_json::to_string(&reply).expect("reply serializes");
@@ -230,15 +350,17 @@ pub fn send(data: &DataDir, message: Message, timeout: Duration) -> Reply {
     else {
         return Reply::undelivered("Emmet isn't running");
     };
-    let Ok(name) = info.name.clone().to_ns_name::<GenericNamespaced>() else {
+    let Ok(name) = socket(&info.name) else {
         return Reply::undelivered("bus.json names no socket");
     };
     let Ok(mut conn) = Stream::connect(name) else {
         return Reply::undelivered("Emmet isn't running");
     };
+    let nonce = fsx::random_hex(2);
     let req = Request {
         v: VERSION,
-        token: info.token,
+        auth: proof("client", &info.token, &nonce, &request_body(1, &message)),
+        nonce: nonce.clone(),
         id: 1,
         message,
     };
@@ -255,8 +377,16 @@ pub fn send(data: &DataDir, message: Message, timeout: Duration) -> Reply {
         let _ = tx.send(line);
     });
     match rx.recv_timeout(timeout) {
-        Ok(line) if !line.trim().is_empty() => serde_json::from_str(line.trim())
-            .unwrap_or_else(|e| Reply::undelivered(format!("Emmet's reply isn't a bus reply: {e}"))),
+        Ok(line) if !line.trim().is_empty() => match serde_json::from_str::<Reply>(line.trim()) {
+            // A delivered answer must prove it came from the app that wrote bus.json.
+            Ok(r)
+                if r.delivered && r.auth.as_deref() != Some(&proof("server", &info.token, &nonce, &reply_body(&r))) =>
+            {
+                Reply::undelivered("the answer on the bus didn't come from Emmet")
+            }
+            Ok(r) => r,
+            Err(e) => Reply::undelivered(format!("Emmet's reply isn't a bus reply: {e}")),
+        },
         Ok(_) => Reply::undelivered("Emmet closed the connection"),
         Err(_) => Reply::undelivered(format!("Emmet didn't answer in {} s", timeout.as_secs())),
     }

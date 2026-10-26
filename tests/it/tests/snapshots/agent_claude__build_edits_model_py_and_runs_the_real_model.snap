@@ -1,0 +1,21 @@
+---
+source: tests/it/tests/agent_claude.rs
+expression: rig.outline(&events)
+---
+{
+  "stream": [
+    "started claude-haiku-5-5 (API key)",
+    "tool_call Edit",
+    "tool_result ok The file <project>/model.py has been updated successfully.",
+    "tool_call ToolSearch",
+    "tool_result ok mcp__emmet__run_model",
+    "tool_call mcp__emmet__run_model",
+    "tool_result ok Built 10 parts in 1 steps (… s), generation 1.",
+    "text: Built it: the row is 10 bricks wide now.",
+    "usage",
+    "turn_done Completed"
+  ],
+  "files": [
+    "file_change model.py Modified"
+  ]
+}

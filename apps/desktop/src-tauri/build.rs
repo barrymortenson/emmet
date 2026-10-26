@@ -16,6 +16,19 @@ fn main() {
         "render_job",
         "render_done",
         "render_failed",
+        "agents",
+        "chat_start",
+        "chat_send",
+        "chat_steer",
+        "chat_note",
+        "chat_stop",
+        "chat_respond",
+        "chat_answer",
+        "chat_state",
+        "chat_end",
+        "usage",
+        "openai_key_saved",
+        "openai_key_set",
     ];
     // The tests in tests/ link Tauri too, and on Windows they need the Common Controls v6 manifest that tauri-build
     // embeds only in the app.

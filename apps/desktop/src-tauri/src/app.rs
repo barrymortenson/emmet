@@ -65,7 +65,7 @@ impl Problem {
         }
     }
 
-    fn internal(message: impl Into<String>) -> Box<Self> {
+    pub(crate) fn internal(message: impl Into<String>) -> Box<Self> {
         Box::new(Self {
             code: "INTERNAL".into(),
             message: message.into(),
@@ -239,7 +239,8 @@ struct BusAnswer {
 
 pub struct AppState {
     pub data: DataDir,
-    emmet: PathBuf,
+    pub(crate) emmet: PathBuf,
+    pub(crate) chat: crate::chat::Chat,
     inner: Mutex<Inner>,
     runs: OnceLock<RunQueue>,
     pending: Mutex<HashMap<u64, mpsc::Sender<BusAnswer>>>,
@@ -255,6 +256,7 @@ impl AppState {
         Self {
             data,
             emmet,
+            chat: crate::chat::Chat::default(),
             inner: Mutex::new(Inner::default()),
             runs: OnceLock::new(),
             pending: Mutex::new(HashMap::new()),
@@ -279,7 +281,7 @@ impl AppState {
         }
     }
 
-    fn open_root(&self) -> Option<PathBuf> {
+    pub(crate) fn open_root(&self) -> Option<PathBuf> {
         self.inner
             .lock()
             .expect("state")
@@ -409,6 +411,10 @@ pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
     let state = app.state::<AppState>();
     let project = Project::find(Some(dir))?;
     let root = project.root.clone();
+    // One chat per project: switching projects ends the old one (its history stays in its .emmet/).
+    if state.open_root().as_deref() != Some(root.as_path()) {
+        state.chat.close();
+    }
     let handle = app.clone();
     let watched = root.clone();
     let watcher = Watcher::start(&root, move || handle.state::<AppState>().request_run(&watched)).ok();
@@ -517,6 +523,7 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
                 Err(_) => Reply::undelivered("the window didn't render in time"),
             }
         }
+        msg => crate::chat::route(&state.chat.hub, msg),
     }
 }
 
