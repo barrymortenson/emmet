@@ -65,6 +65,10 @@ describe("checks", () => {
   it("logged no console errors", async () => {
     const all = await errors();
     for (const e of all) console.log(`console error:\n${e}`);
-    expect(all).toEqual([]);
+    // On Windows the embedded WebDriver plugin evaluates its own scripts in the page and logs "JSON error: invalid
+    // type: null, expected u32" from them (CI, 2026-10-26): their caller is an <anonymous> script, never the app's
+    // bundle. Every other error is the app's and fails the test.
+    const fromDriver = (e) => /\n\s*at console\.error \([^)]*\)\n\s*at <anonymous>:\d+:\d+\s*$/.test(e);
+    expect(all.filter((e) => !fromDriver(e))).toEqual([]);
   });
 });

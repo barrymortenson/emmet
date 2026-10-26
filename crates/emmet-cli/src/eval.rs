@@ -464,7 +464,14 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
     };
     std::fs::create_dir_all(&out_dir).map_err(|e| Error::io(&out_dir, e))?;
     let date = emmet_agent::time::rfc3339(emmet_agent::time::now_ms())[..10].to_string();
-    let png_name = format!("{date}-rung1-{}.png", name(opts.agent));
+    // A rerun gets its own picture (-2, -3, …): the earlier run's section still shows its own.
+    let png_name = (1..)
+        .map(|n| match n {
+            1 => format!("{date}-rung1-{}.png", name(opts.agent)),
+            n => format!("{date}-rung1-{}-{n}.png", name(opts.agent)),
+        })
+        .find(|f| !out_dir.join(f).exists())
+        .expect("a free name");
     let render = match crate::render::render(data, &project, "iso", 768, &[]) {
         Ok(png) => {
             crate::render::write_png(&out_dir.join(&png_name), &png)?;
