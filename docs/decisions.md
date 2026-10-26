@@ -16,6 +16,9 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   confirmation. Users see a notice that Emmet doesn't control what Anthropic, OpenAI, or Google do: it tries to follow
   their policies, but they can change them or act on accounts, so use is at the user's own risk. The reasoning for
   each such row goes in `docs/terms/`, and a feature is still switched off if its provider objects.
+- **H-20: no description to Anthropic.** For the same reason, Barry dropped sending Anthropic the description of how
+  Emmet runs Claude Code. H-20 is done (the Commercial Terms were accepted on 2026-10-24), 7B no longer waits on it,
+  and the draft (`docs/terms/anthropic-description.md`) is removed.
 - **D-42: Google's agent.** Gemini CLI was replaced by Antigravity CLI for free and Google One users on 2026-06-18.
   Google bans third-party software that harvests or piggybacks on its CLI's sign-in; Emmet never touches it. Barry
   noted that tools like nurb and Orca already use these CLIs this way. He chose terminal mode in 1F (checked by hand

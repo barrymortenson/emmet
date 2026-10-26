@@ -1658,7 +1658,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <li><span class="pill you">YOU</span> <b>H-02</b>: register the self-hosted runner on this Mac (<a href="#g-h02">guide</a>), about 10 minutes.</li>
 <li><span class="pill you">YOU</span> <b>H-03</b>: confirm Claude Code and Codex are signed in here (<code>claude</code> once, <code>codex login status</code>), for terminal mode and your hand checks.</li>
 <li><span class="pill you">YOU</span> <b>H-21</b>: an Anthropic Console API key and an OpenAI API key for scripted runs and evals, each with a monthly spend cap, stored in the macOS keychain (<a href="#g-h21">guide</a>), needed before 0B.</li>
-<li><span class="pill you">YOU</span> <b>H-20</b>: accept Anthropic's Commercial Terms (<a href="#g-h20">guide</a>), needed before 0B, because 0B's spikes already drive <code>claude -p</code>. Sending Anthropic the description of how Emmet runs Claude Code waits until Emmet has its website and a business email, and is needed before 7B merges (Barry 2026-10-24).</li>
+<li><span class="pill you">YOU</span> <b>H-20</b>: accept Anthropic's Commercial Terms (<a href="#g-h20">guide</a>), needed before 0B, because 0B's spikes already drive <code>claude -p</code>.</li>
 <li><span class="pill you">YOU</span> <b>H-11</b> (end of 0B): pick the rung 3 set from 0B's shortlist.</li>
 </ul></div>
 <div class="table-wrap"><table>
@@ -2547,8 +2547,8 @@ Write the copy from docs/design/content.md and the guide; no claim the app can't
 the Workers project or any DNS record (show exact commands), and ask Q-10 (analytics) with AskUserQuestion.</code></pre></details>
 </div>
 
-<div class="session" id="session-7b" data-session="7B" data-phase="7" data-title="Public launch" data-after="7A" data-waits="" data-waits-merge="H-20" data-read="03, 10, 15, 17, 22">
-<h4><span class="s-id">7B</span> Public launch<span class="s-meta">after 7A · size M · YOU: H-20 (the description to Anthropic) before merge, then H-19</span></h4>
+<div class="session" id="session-7b" data-session="7B" data-phase="7" data-title="Public launch" data-after="7A" data-waits="" data-waits-merge="" data-read="03, 10, 15, 17, 22">
+<h4><span class="s-id">7B</span> Public launch<span class="s-meta">after 7A · size M · YOU: H-19 after merge</span></h4>
 <p class="goal"><b>Goal:</b> 1.0.0 ships with the site, the posts, and the demo ready, and the terms, notices, and settings are current.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2656,7 +2656,7 @@ the terms don't allow it.</code></pre></details>
 <tr data-h="H-17"><td>H-17</td><td>Name and trademark check for "Emmet": done 2026-10-24 by best-judgment search, no attorney (D-30)</td><td>0A start</td><td><a href="#g-h17">findings</a></td></tr>
 <tr data-h="H-18"><td>H-18</td><td>Not needed: the repo is public from day one (D-12)</td><td>—</td><td>—</td></tr>
 <tr data-h="H-19"><td>H-19</td><td>Publish 1.0.0 and post the launch</td><td>—</td><td><code>docs/launch/</code></td></tr>
-<tr data-h="H-20"><td>H-20</td><td>Accept Anthropic's Commercial Terms for running Claude Code inside Emmet (before 0B), and send Anthropic the description once Emmet has its website and a business email (the reply isn't needed to start)</td><td>0B start (terms), 7B merge (description)</td><td><a href="#g-h20">guide</a></td></tr>
+<tr data-h="H-20"><td>H-20</td><td>Accept Anthropic's Commercial Terms for running Claude Code inside Emmet (before 0B). No description goes to Anthropic (Barry 2026-10-25, D-37)</td><td>0B start</td><td><a href="#g-h20">guide</a></td></tr>
 <tr data-h="H-21"><td>H-21</td><td>API keys (Anthropic Console, OpenAI) with spend caps for scripted runs and evals</td><td>0B start</td><td><a href="#g-h21">guide</a></td></tr>
 <tr data-h="H-22"><td>H-22</td><td>Accept or reject mined technique candidates, in batches of 20</td><td>3C merge</td><td>Review pages in <code>docs/techniques/candidates/</code></td></tr>
 <tr data-h="H-23"><td>H-23</td><td>Photograph three subjects for the photo rung, two angles each (six photos): two brick models and one real building, your own photos with no people in them</td><td>4D start</td><td>Any phone camera; Emmet strips EXIF</td></tr>
@@ -2755,8 +2755,7 @@ the terms don't allow it.</code></pre></details>
 <li>Why: Anthropic's Claude Code legal page says running Claude Code inside a product requires the product's maker to agree to the Commercial Terms, keep the binary unmodified, leave all its sign-in methods available, and let each user bill their own account. Users still run on their own Pro or Max plan; this step is about you as Emmet's maker, not about paying for their usage.</li>
 <li>Read <a href="https://code.claude.com/docs/en/legal-and-compliance">code.claude.com/docs/en/legal-and-compliance</a> ("Can customers offer Claude Code in their products?" and "Authentication and credential use") and the <a href="https://www.anthropic.com/legal/commercial-terms">Commercial Terms</a>.</li>
 <li>Sign in to (or create) a Claude Console account at <a href="https://platform.claude.com">platform.claude.com</a>, which puts you under the Commercial Terms. No API spend or key is needed for Emmet.</li>
-<li>Later, once Emmet has its website and a business email (Barry 2026-10-24): send Anthropic a short description of how Emmet runs Claude Code (section 10's terms matrix, Claude column) through the page's contact link ("contact sales", under "Authentication and credential use"), ask them to confirm it's within their terms, and keep the reply in <code>docs/terms/</code>. Per D-37, if they say any part isn't allowed, that part is removed before it's used again.</li>
-<li>The Commercial Terms must be accepted before 0B starts; until the description is sent, H-20 stays <code>waiting</code>, and it must be sent before 7B merges. No session waits for the reply, because the terms matrix rests on Anthropic's published text; the reply goes into <code>docs/terms/</code> when it comes.</li>
+<li>The Commercial Terms must be accepted before 0B starts. No description goes to Anthropic (Barry 2026-10-25): providers rarely answer, and the terms matrix rests on Anthropic's published text and Barry's best reading (D-37). If Anthropic ever objects to a part, that part is switched off before the next release.</li>
 <li>Tell the agent when it's done. It's recorded in the status file, with the date you read the page.</li>
 <li>This is my reading of Anthropic's published terms, not legal advice.</li>
 </ul>
