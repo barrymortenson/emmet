@@ -53,18 +53,20 @@ describe("viewer bench", () => {
       }
 
       // At most ORBIT_FRAMES frames or 10 s: WebView2 on CI's software renderer draws a 2,000-part frame slowly, and a
-      // WebDriver script has 30 s.
+      // WebDriver script has 30 s. A frame that doesn't come within 1 s (a window behind another, which pauses
+      // requestAnimationFrame) ends the measurement instead of the script.
       const orbit = await browser.execute(async (frames) => {
         const v = window.__emmet.viewer();
-        await v.nextFrame();
+        const frame = () => Promise.race([v.nextFrame().then(() => true), new Promise((r) => setTimeout(() => r(false), 1000))]);
+        await frame();
         const t0 = performance.now();
         let n = 0;
         while (n < frames && performance.now() - t0 < 10_000) {
           v.orbit(0.03);
-          await v.nextFrame();
+          if (!(await frame())) break;
           n++;
         }
-        return { ms: (performance.now() - t0) / n, frames: n };
+        return { ms: n ? (performance.now() - t0) / n : null, frames: n };
       }, ORBIT_FRAMES);
       const s = await stats();
       rows.push({
@@ -72,7 +74,7 @@ describe("viewer bench", () => {
         parts: s.instances,
         firstLoadMs: Math.round(load.ms),
         updateMs: Math.round(median(updates)),
-        orbitFrameMs: Number(orbit.ms.toFixed(1)),
+        orbitFrameMs: orbit.ms == null ? null : Number(orbit.ms.toFixed(1)),
         orbitFrames: orbit.frames,
         drawCalls: s.drawCalls,
         triangles: s.triangles,
