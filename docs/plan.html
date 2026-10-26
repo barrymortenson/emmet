@@ -1475,7 +1475,7 @@ Test real behavior through real seams: the real <code>emmet</code> binary, the r
 
 <h3>One session, start to finish</h3>
 <ol class="steps">
-<li><b>Pick.</b> The rail's <i>Up next</i> lists sessions whose "after" sessions are done and whose before-start human steps are done. Sessions marked "can run alongside" may run in parallel (one agent per git worktree, at most two at once) when Barry says so for that run.</li>
+<li><b>Pick.</b> The rail's <i>Up next</i> names one session: the first in plan order whose "after" sessions are done, with any before-start human steps it still needs. Sessions marked "can run alongside" may run in parallel (one agent per git worktree, at most two at once) when Barry says so for that run; copy those from the session itself.</li>
 <li><b>Copy and paste.</b> <b>Copy prompt with rules</b> → paste into Claude Code or Codex in <code>~/Sites/emmet</code> (or a worktree). The clipboard holds the agent rules, the session's goal, what gets built, Done when, What good looks like, the sections to read, and the prompt.</li>
 <li><b>Check, spec, build.</b> The agent verifies the prerequisites against <code>origin/main</code>, sets the session to <code>in-progress</code> in <code>docs/plan-status.js</code> as its first commit, writes a short spec (<code>docs/spec/sessions/&lt;id&gt;.md</code>: each acceptance item → the test that proves it), then builds with tests.</li>
 <li><b>Hand over.</b> <code>just check</code> and <code>just test --changed</code> green locally and the PR's <code>ci</code> check green; one PR whose description repeats the Done when list, each item ticked with evidence (test name, command plus result line, screenshot); the status set to <code>review</code> with the PR number. Then it stops. In Claude Code, <code>/create-pr</code> (<code>.claude/commands/create-pr.md</code>) does this step and then runs the PR review toolkit on the PR, fixing what holds up. The agent runs it only when the work is ready; Barry can run it at any point.</li>
@@ -1617,7 +1617,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <li><code>done</code> needs <code>pr</code> and at least one evidence line. A session's status changes only on that session's branch (or on the reconcile branch).</li>
 <li><code>scripts/plan-check.mjs</code> (Node, no dependencies, written in 0A) runs in CI and fails when: an id in the status file doesn't exist in this plan or the reverse; a status value is invalid; <code>done</code> lacks a PR or evidence; <code>blocked</code> lacks an open blocker; a session is <code>in-progress</code>/<code>review</code>/<code>done</code> while a session it comes after is not done (a warning, not a failure, when Barry allowed it); or a session's <code>data-after</code> names a session that doesn't exist.</li>
 </ul>
-<p class="small">The rail shows: overall progress (sessions done of the total, excluding Phase 8), <i>Working on</i>, <i>Up next</i> with a copy button, <i>Waiting on you</i> (human steps that block a session that's up next or underway), <i>Blocked</i>, the gates, and a bar per phase. If the file is missing or broken, the rail says so and nothing shows as done.</p>
+<p class="small">The rail shows: overall progress (sessions done of the total, excluding Phase 8), <i>Working on</i>, <i>Up next</i> (one session) with a copy button, <i>Waiting on you</i> (human steps that block a session that's up next or underway), <i>Blocked</i>, the gates, and a bar per phase. If the file is missing or broken, the rail says so and nothing shows as done.</p>
 </section>
 
 <!-- ============================================================ 21 -->
@@ -3034,9 +3034,10 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
   var doneN = counted.filter(function (id) { return DONE[sst(id)]; }).length;
   var pct = counted.length ? Math.round(doneN / counted.length * 100) : 0;
   var now = ids.filter(function (id) { var st = sst(id); return st === "in-progress" || st === "review"; });
+  // One session, the first in plan order whose "after" sessions are done (section 19, Pick).
   var next = counted.filter(function (id) {
     return sst(id) === "todo" && words(byId[id], "data-after").every(function (a) { return DONE[sst(a)]; });
-  });
+  }).slice(0, 1);
   var blocked = ids.filter(function (id) { return sst(id) === "blocked"; });
   var openBlk = ((S && S.blockers) || []).filter(function (b) { return !b.closed; });
   var waiting = {};
