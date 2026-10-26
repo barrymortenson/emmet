@@ -1181,7 +1181,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
   <li>Renders for the agent always show the final state, never a frame mid-animation.</li>
   <li>Only animating instances get per-frame matrix updates. Everything else stays static in its <code>InstancedMesh</code>.</li>
   </ul></li>
-<li><b>Steps</b> show earlier steps dimmed and the current step at full color, with a scrubber.</li>
+<li><b>Steps</b> show the build up to the chosen step: earlier steps dimmed, the current step at full color, and later steps hidden, from the scrubber or from the steps list.</li>
 <li><b>Render mode</b> (D-24): <code>Emmet --render &lt;project&gt; --view … --out …</code> opens a hidden window, renders through the same <code>viewer.render</code>, writes the PNG, and exits. When the app is already running, <code>render</code> goes over the bus to the open window instead. ADR 0005 proves this on both webviews and records the fallback (an off-screen visible window) if a hidden WebGL context is throttled.</li>
 </ul>
 <h3>Performance budgets (checked by <code>just bench</code> and E2E)</h3>
@@ -2008,6 +2008,7 @@ Never write ~/.claude, ~/.codex, or ~/.gemini from Emmet's code. Ask me to run t
 <p class="goal"><b>Goal:</b> Three distinct, clickable HTML directions for the whole app, grounded in a teardown of nurb and the brick-CAD tools, so Barry can pick with confidence.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
+<li><b>Barry's notes first:</b> <code>docs/design/notes.md</code> holds his notes from using the app. Every direction answers each layout note, and <code>review.html</code> shows how.</li>
 <li><code>docs/design/research.md</code>: a teardown of nurb (run <code>nurb dev</code> on a sample project and capture its viewer, sliders, cards, checks, and tips), Studio, Mecabricks, LDCad, LeoCAD, ClawdCAD, and BrickBuilder.ai: what each does well and badly for <i>this</i> loop. Screenshots of public UI only.</li>
 <li>Information architecture and the nine flows from section 14 as short annotated storyboards.</li>
 <li><code>docs/design/directions/{a,b,c}/</code>: three clickable static HTML prototypes (no build step), each covering every key screen and state from section 14, in light and dark, using real renders and real chat transcripts from the spike. The directions differ in layout (for example chat right vs. chat as an overlay vs. a command-first layout), density, and personality.</li>
@@ -2026,7 +2027,7 @@ Never write ~/.claude, ~/.codex, or ~/.gemini from Emmet's code. Ask me to run t
 <li>Each direction answers "what is the agent doing right now?" at a glance.</li>
 <li>Contrast meets AA in every mockup (checked by a script, with the results in the PR).</li>
 </ul>
-<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 2A. Research first (nurb hands-on, then the others), then storyboards, then three genuinely
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 2A. Read docs/design/notes.md first. Research next (nurb hands-on, then the others), then storyboards, then three genuinely
 different directions as static HTML in docs/design/directions/. Use real spike renders and transcripts, not lorem
 ipsum. Build review.html and recommend one. Ask me to pick (H-07) with AskUserQuestion: options are the three
 directions and "a mix" (with your proposed mix described).</code></pre></details>
@@ -2118,6 +2119,7 @@ public types; don't edit emmet_dsl.</code></pre></details>
 <ul class="build">
 <li>The DSL v1 API in section 08: wall, row, grid, stack, fill, repeat, mirror, submodel, use, allow, <code>import_ldraw</code>, and every param kind (int, float, bool, choice, <code>Color</code> limited to produced colors).</li>
 <li><code>emmet params --write-default</code>: a single-literal rewrite through Python <code>ast</code> positions, preserving formatting and comments, with tests on tricky signatures.</li>
+<li>Templates: every template gets a baseplate on/off parameter (on by default, the standard 32 × 32 plate); with it off, the model starts at the ground (Barry's notes).</li>
 <li>Steps v1: DSL steps, a layer-based auto-step fallback, submodel steps, <code>steps.json</code>, and <code>emmet steps</code>.</li>
 <li>The parts data pack (section 12): <code>scripts/build-parts-data</code> (archive → validated, derived SQLite with a manifest), the app-side loader with signature check (against a fixture key until 6A, section 12) and atomic swap, the pack bundled into builds, the elements and availability tables, the color mapping, and <code>part_unavailable</code>/<code>color_unavailable</code> data for 3A's rules. Rebrickable credit in Settings → Data, the Parts list footer, and BOM exports.</li>
 <li>BOM v1: Rebrickable ids and names, the user's preferred color naming, availability, and exports to CSV, Rebrickable CSV, and BrickLink XML wanted list. Exporters for LDraw <code>.ldr</code>/<code>.mpd</code> and an LPub3D-ready <code>.mpd</code>.</li>
@@ -2196,10 +2198,10 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>The layout, title bar, menus (native on macOS, title-bar menu on Windows), resizable panes, status bar, and command palette, all from tokens and components.</li>
-<li>The project tree (model, submodels, steps, parts summary, checks summary; click → highlight), open, new, and recent projects, import of an <code>.ldr</code>/<code>.mpd</code> file, and snapshots.</li>
+<li>The project tree (model, submodels, steps, parts summary, checks summary; click → highlight), open, new, and recent projects (New saves to a default Emmet folder, <code>Documents/Emmet</code>, without a save dialog; Barry's notes), import of an <code>.ldr</code>/<code>.mpd</code> file, and snapshots.</li>
 <li>The drawers to design: Parameters (every param kind and "make default"), Checks (v1 findings, allowed list, "Ask agent to fix"), Parts list (BOM v1, availability, exports), and Steps.</li>
 <li>First run: welcome, the library download with progress, the Python setup, agent setup from 1F (install and sign-in with no terminal, and which plans work) restyled, and the example or new-from-prompt choice. Every failure path has a clear retry.</li>
-<li>Settings: agent and model preference, color naming, quality, updates (stub until 6A), "Install command line tool", About (attributions, the disclaimer, the provider notice (D-37), "what Emmet connects to"), and "Copy diagnostics".</li>
+<li>Settings: agent and model preference, the projects folder, color naming, quality, updates (stub until 6A), "Install command line tool", About (attributions, the disclaimer, the provider notice (D-37), "what Emmet connects to"), and "Copy diagnostics".</li>
 <li>Workspace trust (D-27): the read-only banner and the Trust action.</li>
 <li>E2E specs for first run (fresh <code>--data-dir</code> against a local library fixture server), each drawer, trust, import, and every section 14 state reachable without an agent. Visual baselines for each frozen screen.</li>
 </ul>
@@ -2228,7 +2230,7 @@ Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace th
 <li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 issues"), file-change cards with diffs, approval cards with session-scoped allow, question cards and pending-redirect bubbles to the frozen design, stop, and retry.</li>
 <li>Context from the UI: "the agent sees what you selected" (selected ids and the view are sent as structured context with the next message), plus "Ask agent to fix" from findings and run errors.</li>
 <li>The doctrine in the UI: one tip at a time (first slider, first finding, first export), tracked per user.</li>
-<li>Sessions: per-project history, resume after an app restart, switching agents mid-project (a divider, with the state carried by files), and a usage display where the CLI reports it.</li>
+<li>Sessions: per-project history, resume after an app restart, switching agents mid-project like nurb (the picker in the chat header starts a fresh conversation and keeps the old one, with the state carried by files), Start fresh to clear the context without switching (Barry's notes), and a usage display where the CLI reports it.</li>
 <li>A model and effort picker per session (Barry's live-check notes, <code>docs/design/notes.md</code>), offering only what each CLI documents, with a plain note on which choices make a small plan last longer.</li>
 <li>Plan usage to the frozen design: the Claude meters, the Detailed and Compact popover, the detail panel (windows, usage credits, "Updated 8m ago"), the Codex billing state, the 90 % line, and the limit-reached card with "Continue with the other agent".</li>
 <li>emmet-bus complete: highlight, camera, and selection queries, used by both the app's own sessions and terminal agents.</li>
@@ -2259,7 +2261,7 @@ the replay corpus. No scripted eval runs in this session (D-38).</code></pre></d
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>Materials for every LDraw finish, the studio lighting rig, an optional ground shadow, edge and conditional lines tuned for both themes, stud LOD, and quality presets (auto by GPU).</li>
-<li>Interaction to the design: hover (the part, color, and source line), click to select, box select, frame, the views, the step scrubber with dimmed earlier steps, layer cut-away (hide above z), and screenshot to file or clipboard.</li>
+<li>Interaction to the design: hover (the part, color, and source line), click to select, box select, frame, the views, the step scrubber and the steps list (the build up to the chosen step: earlier steps dimmed, later steps hidden), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
 <li>Build animation to section 13: the drop, fade, and glide motion; Animated, Fast, and Off in Settings; Skip and Replay build in the toolbar; reduced motion; and an E2E spec that proves sliders never animate and the camera never moves.</li>
 <li>Highlight modes (issue, select, hover, agent) that are distinct and accessible (not color alone).</li>
 <li>Performance work to meet section 13 on both OSes, including instancing edge cases, transparent sorting, and geometry disposal. Bench and E2E checks enforce the budgets.</li>
