@@ -530,10 +530,7 @@ pub async fn usage(app: AppHandle, kind: AgentKind) -> Option<UsageSnapshot> {
 #[tauri::command]
 #[specta::specta]
 pub fn openai_key_saved(app: AppHandle) -> bool {
-    emmet_agent::keychain::get(app.state::<AppState>().chat.env())
-        .ok()
-        .flatten()
-        .is_some()
+    emmet_agent::keychain::has(app.state::<AppState>().chat.env()).unwrap_or(false)
 }
 
 /// Saves the OpenAI API key in the OS keychain (Settings → Agents), or removes it (`key` null).

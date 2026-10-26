@@ -110,7 +110,7 @@ impl AgentAdapter for Codex {
     }
 
     fn detect(&self) -> Detection {
-        let has_key = keychain::get(&self.env).ok().flatten().is_some();
+        let has_key = keychain::has(&self.env).unwrap_or(false);
         detect::detect(AgentKind::Codex, &self.env, has_key)
     }
 

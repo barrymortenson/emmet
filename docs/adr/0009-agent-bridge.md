@@ -34,6 +34,9 @@ with `EMMET_FAKE_DIR`. A fake replays one of 0B's transcripts, or one derived fr
   (Emmet sends it once the turn has ended), and, for Codex, independent lines in either order (a redirect typed as a
   tool-call approval goes out). A Codex `turn/start` mid-turn may be a `turn/steer`, which Codex folds the same way.
 - Tests never touch the real keychain: in a debug build, `EMMET_FAKE_KEYCHAIN` keeps the key in a file.
+- Detection and Settings only check that the key exists (`keychain::has`, an attribute lookup); the key is read when
+  a Codex session starts. On macOS, reading it asks for the login password whenever the app's signature changed since
+  the key was saved, which is every rebuild of a dev build.
 
 ### Session API beyond section 10's sketch
 
