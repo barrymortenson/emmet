@@ -450,14 +450,22 @@ export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits,
             onResume={() => live == null && shown && void start(shown, true)}
           />
         ))}
-        {/* An agent can think, or run its own hooks, for a minute without a word: say it's still at it. */}
-        {live && chat.running && !chat.question && (
-          <p className="status-line" id="chat-working" role="status">
-            {live.kind === "claude" ? "Claude Code" : "Codex"} is working
-            {now - heard >= 3000 ? ` · ${Math.round((now - heard) / 1000)} s since its last update` : "…"}
-          </p>
-        )}
       </div>
+      {/* Pinned above the composer, so it shows however the log is scrolled: an agent can think, or run its own hooks,
+          for a minute without a word (1C's live check). */}
+      {live && chat.running && (
+        <p className="working" id="chat-working" role="status">
+          {chat.question ? (
+            "Waiting for your answer"
+          ) : (
+            <>
+              <span className="spinner" aria-hidden="true" />
+              {live.kind === "claude" ? "Claude Code" : "Codex"} is working
+              {now - heard >= 3000 ? ` · ${Math.round((now - heard) / 1000)} s since its last update` : "…"}
+            </>
+          )}
+        </p>
+      )}
       {live && warning && !chat.running && <p className="muted warning">{warning}</p>}
       {live && (
         <div className="composer">
