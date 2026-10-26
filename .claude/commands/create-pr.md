@@ -42,6 +42,8 @@ Follow `.github/PULL_REQUEST_TEMPLATE.md`. For a session:
   and Windows.
 - Then, where they apply: a CSP or capabilities section (any loosening said plainly), things to know (decisions made,
   deviations from the plan, anything Barry should look at), and the YOU steps this PR needs from Barry.
+- Link a committed file (a screenshot, a recording) by commit SHA, `https://github.com/<repo>/blob/<sha>/<path>`, never
+  by branch: `/merge` deletes the branch, and a branch link breaks with it.
 - US English. No secrets, real names, emails, or personal paths.
 
 Write it to a temp file and run `gh pr create --base main --head <branch> --title <title> --body-file <file>`.

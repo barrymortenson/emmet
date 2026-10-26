@@ -1,12 +1,12 @@
 ---
-description: Evaluate the plan, set the session to done on the PR branch, then merge the PR once the required checks pass
+description: Evaluate the plan, set the session to done on the PR branch, merge the PR once the required checks pass, then delete its branch
 argument-hint: "[PR number; default: the current branch's PR]"
 disable-model-invocation: true
 ---
 
 Merge PR $ARGUMENTS (no number: the open PR for the current branch) into main the way plan section 19 says: the
 status file's `done` lands as the PR's last commit, then the merge. Barry running this command authorizes merging this
-one PR after its required checks pass. It never covers a release, a tag, a gate, a YOU step, making anything public,
+one PR after its required checks pass, then deleting its head branch on GitHub and locally. It never covers a release, a tag, a gate, a YOU step, making anything public,
 `--admin`, or any other PR.
 
 Stop and report (don't merge) at the first step that fails. Ask with AskUserQuestion only where a step says so.
@@ -65,14 +65,19 @@ branch protection.
 ## 5. Merge
 
 `gh pr merge <n> --merge --match-head-commit <the pushed head SHA>`. A merge commit keeps every signed-off commit as it
-is (the DCO check skips merge commits); a squash would put one unsigned commit on main. Don't pass `--delete-branch`:
-PR descriptions link screenshots on the branch. If the merge is refused (a new commit, a ruleset), stop and report.
+is (the DCO check skips merge commits); a squash would put one unsigned commit on main. Don't pass `--delete-branch`;
+step 6 deletes the branch once the merge is confirmed. If the merge is refused (a new commit, a ruleset), stop and report.
 
 ## 6. After the merge
 
-- `git switch main && git pull --ff-only` (in a worktree whose main is checked out elsewhere, `git fetch origin` only),
-  and confirm `origin/main` contains the merge commit and `node scripts/plan-check.mjs` passes there.
-- Report: the merge SHA; each status change; the plan's progress (sessions done of the total, excluding Phase 8);
-  which sessions can start now (their "after" sessions done, their before-start YOU steps done); and which YOU steps
-  or gates the next sessions wait on. If every session outside Phase 8 is done, say the plan is complete.
+- Confirm the PR's state is `MERGED`, then delete its branch on GitHub: `git push origin --delete <head branch>`.
+- In the main worktree (`git rev-parse --git-dir` equals `git rev-parse --git-common-dir`): `git switch main`,
+  `git pull --ff-only`, `git fetch --prune origin`, and `git branch -d <head branch>`. `-d` refuses a branch main doesn't
+  contain; if it does, stop and report rather than force it.
+- In a linked worktree, the branch stays checked out there, so `git fetch --prune origin` only; report that the local
+  branch and the worktree are left for Barry to remove.
+- Confirm `origin/main` contains the merge commit and `node scripts/plan-check.mjs` passes on it.
+- Report: the merge SHA; the branches deleted; each status change; the plan's progress (sessions done of the total,
+  excluding Phase 8); which sessions can start now (their "after" sessions done, their before-start YOU steps done); and
+  which YOU steps or gates the next sessions wait on. If every session outside Phase 8 is done, say the plan is complete.
 - Don't start the next session.
