@@ -915,30 +915,37 @@ mod tests {
 
     #[test]
     fn approvals_allow_emmet_tools_and_the_projects_model_files_only() {
-        let root = Path::new("/p/rung1");
-        let ok = |kind, tool, detail| allowed(root, kind, tool, detail);
+        // Absolute paths on this OS (`C:\…` on Windows).
+        let root = std::env::temp_dir().join("p").join("rung1");
+        let at = |rel: &str| root.join(rel).display().to_string();
+        let elsewhere = std::env::temp_dir()
+            .join("elsewhere")
+            .join("model.py")
+            .display()
+            .to_string();
+        let ok = |kind, tool, detail: &str| allowed(&root, kind, tool, detail);
         assert!(ok(ApprovalKind::Tool, "mcp__emmet__run_model", ""));
         assert!(ok(ApprovalKind::Edit, "Edit", "model.py"));
-        assert!(ok(ApprovalKind::Edit, "Edit", "/p/rung1/model.py"));
-        assert!(ok(ApprovalKind::Edit, "fileChange", "/p/rung1/models/walls.py"));
+        assert!(ok(ApprovalKind::Edit, "Edit", &at("model.py")));
+        assert!(ok(ApprovalKind::Edit, "fileChange", &at("models/walls.py")));
         assert!(ok(
             ApprovalKind::Edit,
             "fileChange",
-            "/p/rung1/model.py, /p/rung1/models/roof.py (a reason)"
+            &format!("{}, {} (a reason)", at("model.py"), at("models/roof.py"))
         ));
         assert!(!ok(
             ApprovalKind::Edit,
             "fileChange",
-            "/p/rung1/model.py, /p/rung1/CARD.md"
+            &format!("{}, {}", at("model.py"), at("CARD.md"))
         ));
         assert!(!ok(ApprovalKind::Edit, "Write", "CARD.md"));
         assert!(!ok(ApprovalKind::Edit, "Write", "../model.py"));
         assert!(
-            !ok(ApprovalKind::Edit, "Write", "/elsewhere/model.py"),
+            !ok(ApprovalKind::Edit, "Write", &elsewhere),
             "a model.py outside the project"
         );
-        assert!(!ok(ApprovalKind::Edit, "Write", "/p/rung1/models/deep/x.py"));
-        assert!(!ok(ApprovalKind::Edit, "Write", "/p/rung1/models/../../etc/model.py"));
+        assert!(!ok(ApprovalKind::Edit, "Write", &at("models/deep/x.py")));
+        assert!(!ok(ApprovalKind::Edit, "Write", &at("models/../../etc/model.py")));
         assert!(!ok(ApprovalKind::Command, "Bash", "rm -rf build"));
         assert!(!ok(ApprovalKind::Permission, "WebFetch", "https://example.com"));
     }

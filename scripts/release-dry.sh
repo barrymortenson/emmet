@@ -32,7 +32,10 @@ uv_for() {
   local target=$1 sha=$2 ext=$3
   local file="uv-$target.$ext"
   curl -fsSL -o "$tmp/$file" "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/$file"
-  echo "$sha  $tmp/$file" | shasum -a 256 -c - >/dev/null || { echo "release-dry: $file doesn't match its pinned sha256" >&2; exit 1; }
+  local got
+  # Git Bash on Windows has sha256sum, macOS has shasum.
+  if command -v sha256sum >/dev/null; then got=$(sha256sum "$tmp/$file"); else got=$(shasum -a 256 "$tmp/$file"); fi
+  [[ ${got%% *} == "$sha" ]] || { echo "release-dry: $file doesn't match its pinned sha256" >&2; exit 1; }
   mkdir -p "$tmp/$target"
   if [[ $ext == zip ]]; then unzip -q -o "$tmp/$file" -d "$tmp/$target"; else tar -xzf "$tmp/$file" -C "$tmp/$target"; fi
   find "$tmp/$target" -name "uv" -o -name "uv.exe" | grep -E '/uv(\.exe)?$' | head -1
@@ -80,7 +83,9 @@ case "$(uname -s)" in
     [[ $sign == false ]] || { echo "release-dry: Windows builds are unsigned until Trusted Signing (plan section 17)" >&2; exit 2; }
     cargo build --release --locked -p emmet-cli
     cp target/release/emmet.exe "$bins/emmet-x86_64-pc-windows-msvc.exe"
-    cp "$(uv_for x86_64-pc-windows-msvc ea1397797a0ca15f63516dd0f49c2dde9776db9be5861cab152ebe8ad199894d zip)" "$bins/uv-x86_64-pc-windows-msvc.exe"
+    # Assigned first: a failing $(...) inside cp's arguments wouldn't stop the script.
+    uv=$(uv_for x86_64-pc-windows-msvc ea1397797a0ca15f63516dd0f49c2dde9776db9be5861cab152ebe8ad199894d zip)
+    cp "$uv" "$bins/uv-x86_64-pc-windows-msvc.exe"
     (cd apps/desktop && pnpm tauri build --ci --config src-tauri/tauri.release.conf.json --bundles nsis)
     echo "release-dry: $(ls -t target/release/bundle/nsis/*.exe | head -1)"
     ;;
