@@ -76,5 +76,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   with no terminal) and Google's agent (D-42: Antigravity in terminal mode in 1F, and in the chat pane in 4F).
   The terms gate (D-37) now builds on Barry's best reading of each provider's published text, with a use-at-your-own-risk
   notice for users, instead of waiting for written confirmation.
+- `docs/design/notes.md` holds the design and feature notes from the 1C live check, required reading for 2A. 4A gets
+  a default Emmet folder for new projects, 3B a baseplate on/off parameter in every template, 4B nurb-style agent
+  switching with Start fresh, and choosing a step hides the later ones (section 13, 4C).
 - Checking for the Codex API key no longer reads it, so a rebuilt dev app doesn't ask for the login keychain password
   at launch; the key is read only when a Codex session starts.

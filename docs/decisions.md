@@ -3,6 +3,14 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-25, design notes from the 1C live check
+
+- **Homes for the two features with no session.** Barry's notes are in `docs/design/notes.md`, required reading for
+  2A. Of the two features with no session, Barry put the default Emmet folder for new projects (changeable in
+  Settings) in 4A, and the baseplate on/off parameter for every template in 3B, over doing both in 1F or leaving them
+  as notes. 4B's agent switching now follows nurb (a fresh conversation per switch, plus Start fresh), and section 13
+  and 4C hide later steps when a step is chosen.
+
 ## 2026-10-25, setup for non-technical users and Google's agent
 
 - **D-41: agent setup without a terminal.** Barry wants Emmet to be for people who aren't technical and want to use
