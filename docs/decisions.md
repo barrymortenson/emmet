@@ -3,6 +3,19 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-25, setup for non-technical users and Google's agent
+
+- **D-41: agent setup without a terminal.** Barry wants Emmet to be for people who aren't technical and want to use
+  their AI plans, even small ones, so the barrier has to be low. Today a user installs Claude Code or Codex from a
+  terminal and signs in to Claude there; nurb and Orca expect the same. Barry chose to add all of it to the plan: a
+  new session, 1F (after 1C, beside 1D, 1E, and 2A), installs either CLI with the provider's own official installer
+  after one click and runs each CLI's own sign-in with no terminal, with plain guidance on which plans work. 4A
+  restyles it, and 4B adds a model and effort picker so small plans last longer.
+- **D-42: Google's agent.** Gemini CLI was replaced by Antigravity CLI for free and Google One users on 2026-06-18,
+  and Google forbids third-party software from using its CLI's sign-in, enforced with account bans. Barry chose
+  terminal mode with Antigravity now (in 1F, checked by hand in H-26), and the chat pane on a Google sign-in only after
+  Google confirms in writing (H-25), as backlog session 8H.
+
 ## 2026-10-24, session 0B
 
 - **H-03.** Both CLIs are signed in on this Mac: Claude Code on Barry's plan, Codex with ChatGPT

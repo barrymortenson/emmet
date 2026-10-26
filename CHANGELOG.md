@@ -72,5 +72,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   with the `full-ci` label. `just test` builds only when a suite needs it, and the 0B spike crates left the workspace.
 - Agent permissions are sandbox first (D-40), section 10 quotes OpenAI's current wording, and the LDCad shadow
   library's connector data will ship as its own CC BY-SA 4.0 file (Q-01).
+- The plan adds setup without a terminal (D-41, session 1F: one-click install of Claude Code or Codex and sign-in
+  with no terminal) and Google's agent (D-42: Antigravity in terminal mode now, the chat pane in 8H once Google
+  confirms in writing).
 - Checking for the Codex API key no longer reads it, so a rebuilt dev app doesn't ask for the login keychain password
   at launch; the key is read only when a Codex session starts.

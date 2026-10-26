@@ -61,6 +61,7 @@ window.EMMET_STATUS = {
     },
     "1D": { status: "todo" },
     "1E": { status: "todo" },
+    "1F": { status: "todo" },
     "2A": { status: "todo" },
     "2B": { status: "todo" },
     "3A": { status: "todo" },
@@ -80,7 +81,8 @@ window.EMMET_STATUS = {
     "8D": { status: "backlog" },
     "8E": { status: "backlog" },
     "8F": { status: "backlog" },
-    "8G": { status: "backlog" }
+    "8G": { status: "backlog" },
+    "8H": { status: "backlog" }
   },
   human: {
     "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },
@@ -106,7 +108,9 @@ window.EMMET_STATUS = {
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
     "H-22": { status: "todo" },
     "H-23": { status: "todo" },
-    "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" }
+    "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
+    "H-25": { status: "todo" },
+    "H-26": { status: "todo" }
   },
   blockers: [],
   gates: {
