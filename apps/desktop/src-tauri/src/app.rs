@@ -52,7 +52,7 @@ impl From<Error> for Box<Problem> {
 }
 
 impl Problem {
-    fn from_envelope(e: &Value) -> Self {
+    pub(crate) fn from_envelope(e: &Value) -> Self {
         let s = |v: &Value| v.as_str().map(String::from);
         let d = &e["details"];
         Self {
@@ -175,6 +175,8 @@ pub struct AppInfo {
     pub recent: Vec<Recent>,
     /// The library release, or null when none is installed.
     pub library: Option<String>,
+    /// Whether Python and emmet_dsl are set up for models (`emmet doctor --fix` does it).
+    pub python: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -330,7 +332,7 @@ impl AppState {
         let _ = self.runs.set(queue);
     }
 
-    fn request_run(&self, root: &Path) {
+    pub(crate) fn request_run(&self, root: &Path) {
         if let Some(q) = self.runs.get() {
             q.request(root);
         }
@@ -691,6 +693,7 @@ pub fn app_info(state: State<'_, AppState>) -> AppInfo {
     AppInfo {
         recent: recent::list(&state.data),
         library: emmet_core::library::require(&state.data).ok().map(|i| i.release),
+        python: emmet_core::python::status(&state.data).ready,
     }
 }
 

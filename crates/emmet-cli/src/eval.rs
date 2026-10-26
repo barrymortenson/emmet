@@ -151,8 +151,10 @@ pub fn answer(script: &[(Vec<String>, String)], q: &Question) -> (Answer, String
     }
 }
 
-/// The eval's rule for approval cards (D-38): Emmet's own tools and edits to the model files, nothing else.
-pub fn allowed(kind: ApprovalKind, tool: &str, detail: &str) -> bool {
+/// The eval's rule for approval cards (D-38): Emmet's own tools, and edits to the project's own model files
+/// (`<root>/model.py`, `<root>/models/*.py`), nothing else. A relative path is taken from the project root; any `..`
+/// is refused.
+pub fn allowed(root: &Path, kind: ApprovalKind, tool: &str, detail: &str) -> bool {
     if tool.starts_with("mcp__emmet") || tool.starts_with("emmet") {
         return true;
     }
@@ -165,10 +167,30 @@ pub fn allowed(kind: ApprovalKind, tool: &str, detail: &str) -> bool {
         _ => detail.trim(),
     };
     files.split(", ").all(|f| {
-        let path = f.trim().replace('\\', "/");
-        let name = path.rsplit('/').next().unwrap_or(&path);
-        let in_models = path.split('/').rev().nth(1) == Some("models");
-        !path.is_empty() && !path.contains("..") && (name == "model.py" || in_models && name.ends_with(".py"))
+        let f = f.trim();
+        if f.is_empty() {
+            return false;
+        }
+        let path = Path::new(f);
+        if path.components().any(|c| matches!(c, std::path::Component::ParentDir)) {
+            return false;
+        }
+        let Ok(rel) = (if path.is_absolute() {
+            path.strip_prefix(root)
+        } else {
+            Ok(path)
+        }) else {
+            return false;
+        };
+        let parts: Vec<String> = rel
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy().into_owned())
+            .collect();
+        match parts.as_slice() {
+            [name] => name == "model.py",
+            [dir, name] => dir == "models" && name.ends_with(".py"),
+            _ => false,
+        }
     })
 }
 
@@ -393,7 +415,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
                 let _ = session.answer(&id, a);
             }
             AgentEvent::Approval { id, kind, tool, detail } => {
-                let ok = allowed(kind, &tool, &detail);
+                let ok = allowed(&project.root, kind, &tool, &detail);
                 run.approvals.push((format!("{tool}: {detail}"), ok));
                 let _ = session.respond(&id, if ok { Decision::AllowOnce } else { Decision::Deny });
             }
@@ -859,19 +881,32 @@ mod tests {
     }
 
     #[test]
-    fn approvals_allow_emmet_tools_and_model_files_only() {
-        assert!(allowed(ApprovalKind::Tool, "mcp__emmet__run_model", ""));
-        assert!(allowed(ApprovalKind::Edit, "Edit", "model.py"));
-        assert!(allowed(ApprovalKind::Edit, "fileChange", "/p/rung1/models/walls.py"));
-        assert!(allowed(
+    fn approvals_allow_emmet_tools_and_the_projects_model_files_only() {
+        let root = Path::new("/p/rung1");
+        let ok = |kind, tool, detail| allowed(root, kind, tool, detail);
+        assert!(ok(ApprovalKind::Tool, "mcp__emmet__run_model", ""));
+        assert!(ok(ApprovalKind::Edit, "Edit", "model.py"));
+        assert!(ok(ApprovalKind::Edit, "Edit", "/p/rung1/model.py"));
+        assert!(ok(ApprovalKind::Edit, "fileChange", "/p/rung1/models/walls.py"));
+        assert!(ok(
             ApprovalKind::Edit,
             "fileChange",
-            "/p/model.py, /p/models/roof.py (writes outside the sandbox)"
+            "/p/rung1/model.py, /p/rung1/models/roof.py (a reason)"
         ));
-        assert!(!allowed(ApprovalKind::Edit, "fileChange", "/p/model.py, /p/CARD.md"));
-        assert!(!allowed(ApprovalKind::Edit, "Write", "CARD.md"));
-        assert!(!allowed(ApprovalKind::Edit, "Write", "../model.py"));
-        assert!(!allowed(ApprovalKind::Command, "Bash", "rm -rf build"));
-        assert!(!allowed(ApprovalKind::Permission, "WebFetch", "https://example.com"));
+        assert!(!ok(
+            ApprovalKind::Edit,
+            "fileChange",
+            "/p/rung1/model.py, /p/rung1/CARD.md"
+        ));
+        assert!(!ok(ApprovalKind::Edit, "Write", "CARD.md"));
+        assert!(!ok(ApprovalKind::Edit, "Write", "../model.py"));
+        assert!(
+            !ok(ApprovalKind::Edit, "Write", "/elsewhere/model.py"),
+            "a model.py outside the project"
+        );
+        assert!(!ok(ApprovalKind::Edit, "Write", "/p/rung1/models/deep/x.py"));
+        assert!(!ok(ApprovalKind::Edit, "Write", "/p/rung1/models/../../etc/model.py"));
+        assert!(!ok(ApprovalKind::Command, "Bash", "rm -rf build"));
+        assert!(!ok(ApprovalKind::Permission, "WebFetch", "https://example.com"));
     }
 }

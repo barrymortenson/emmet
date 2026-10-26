@@ -63,6 +63,8 @@ export function App() {
   const [settings, setSettings] = useState(false);
   const [agentsChanged, setAgentsChanged] = useState(0);
   const [drawer, setDrawer] = useState<Drawer>("params");
+  /** First run: "idle", "running" (the library download and Python), or why it failed. */
+  const [setup, setSetup] = useState<"idle" | "running" | string>("idle");
   /** A finding to send to the chat ("Ask agent to fix"); `n` counts the asks, so the same finding can go twice. */
   const [ask, setAsk] = useState<{ text: string; n: number } | null>(null);
   /** A slider wrote params.json: the run it causes shows at once, without the build animation (plan section 13). */
@@ -234,6 +236,33 @@ export function App() {
         <p className="notice" role="alert">
           {problem.message} {problem.hint}
         </p>
+      )}
+      {info && (!info.library || !info.python) && (
+        <div className="setup" role="region" aria-label="Set up" id="setup">
+          {setup === "running" ? (
+            <p>Setting up: downloading the LDraw parts library (about 150 MB) and Python. This takes a minute or two.</p>
+          ) : (
+            <>
+              <p>
+                Emmet needs the LDraw parts library and Python before it can build a model. Setting them up downloads about
+                150 MB once.
+              </p>
+              <button
+                type="button"
+                id="setup-button"
+                onClick={async () => {
+                  setSetup("running");
+                  const r = await commands.setup();
+                  setSetup(r.status === "ok" ? "idle" : `${r.error.message} ${r.error.hint}`.trim());
+                  void commands.appInfo().then(setInfo);
+                }}
+              >
+                Set up
+              </button>
+              {setup !== "idle" && <p className="notice">{setup}</p>}
+            </>
+          )}
+        </div>
       )}
       {ui.notice && (
         <p className="notice" role="alert" id="app-notice">

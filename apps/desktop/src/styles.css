@@ -76,9 +76,10 @@ h2 {
   color: var(--muted);
   margin: 14px 0 6px;
 }
+/* A column: the title bar, any notices, the panes (which take the rest), the status bar. */
 .app {
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 .titlebar {
@@ -98,9 +99,21 @@ h2 {
   background: var(--error-bg);
   color: var(--error);
 }
+.setup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.setup p {
+  margin: 0;
+}
 .panes {
   display: grid;
   grid-template-columns: 220px 1fr 360px;
+  flex: 1;
   min-height: 0;
 }
 .tree,

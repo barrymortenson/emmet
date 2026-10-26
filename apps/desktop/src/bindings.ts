@@ -30,6 +30,8 @@ export const commands = {
 	renderDone: (png: string, camera: Value) => __TAURI_INVOKE<void>("render_done", { png, camera }),
 	/**  Render mode: why the render failed. Exits with an error. */
 	renderFailed: (message: string) => __TAURI_INVOKE<void>("render_failed", { message }),
+	/**  Installs the library (when it's missing) and sets Python up, then rebuilds the open project. */
+	setup: () => typedError<null, Problem>(__TAURI_INVOKE("setup")),
 	/**  The agents Emmet found: only a detected, signed-in agent can start a chat; the others carry the fix. */
 	agents: (refresh: boolean) => __TAURI_INVOKE<AgentView[]>("agents", { refresh }),
 	/**
@@ -131,6 +133,8 @@ export type AppInfo = {
 	recent: Recent[],
 	/**  The library release, or null when none is installed. */
 	library: string | null,
+	/**  Whether Python and emmet_dsl are set up for models (`emmet doctor --fix` does it). */
+	python: boolean,
 };
 
 export type ApprovalKind = 
