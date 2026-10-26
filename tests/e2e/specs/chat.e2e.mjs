@@ -125,6 +125,16 @@ for (const kind of ["claude", "codex"]) {
       await idle();
     });
 
+    if (kind === "claude") {
+      it("shows files in a command by their path in the project", async () => {
+        await start(kind, "permissions");
+        await say("Change WIDTH in model.py from 8 to 10. Reply done when finished.");
+        await waitFor("no grep card", async () => (await log()).includes('Run: grep -n "WIDTH" model.py'));
+        expect(await log()).not.toContain(projects.claude.replaceAll("\\", "/"));
+        await idle();
+      });
+    }
+
     it("asks a question and uses the answer in the same turn", async () => {
       await start(kind, "derived-ask-user");
       await say("Build a wall.");

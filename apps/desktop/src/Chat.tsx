@@ -188,6 +188,11 @@ function describe(name: string, input: unknown, root: string): string {
     const base = norm(root).replace(/\/$/, "") + "/";
     return norm(p).startsWith(base) ? norm(p).slice(base.length) : p;
   };
+  // A command names files by their full path; inside the project, the relative one says the same, shorter.
+  const cmd = (c: string) => {
+    const base = root.replaceAll("\\", "/").replace(/\/$/, "") + "/";
+    return c.replaceAll("\\", "/").split(base).join("").split(base.slice(0, -1)).join(".");
+  };
   const emmet = name.match(/^mcp__emmet(?:_host)?__(.+)$/);
   if (emmet) {
     const tool = emmet[1]!;
@@ -217,7 +222,7 @@ function describe(name: string, input: unknown, root: string): string {
     case "Bash":
     case "PowerShell":
     case "shell":
-      return `Run: ${s("command") || JSON.stringify(i["command"] ?? "")}`;
+      return `Run: ${cmd(s("command") || JSON.stringify(i["command"] ?? ""))}`;
     case "apply_patch":
       return `Edit ${Array.isArray(i["files"]) ? (i["files"] as string[]).map(file).join(", ") : "files"}`;
     default:

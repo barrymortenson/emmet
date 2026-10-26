@@ -176,6 +176,28 @@ The files that changed belong to Barry's own live Claude Code and Codex sessions
 identical content). The content scan skips the transcript of the session that ran the spikes, which records their
 output by design; the path check still covers it. The hand checks ran afterwards, on Barry's real HOME, by design.
 
+## 1C: the live check on this Mac (2026-10-25)
+
+Barry drove both real CLIs from the app by hand (Claude Code 2.1.310 on his Max plan, Codex 0.160.1 on an API key from
+the keychain), with no scripted runs; the scrubbed evidence is in `docs/spec/sessions/1C/`. The protocols matched 0B's
+recordings, so no new fixtures were needed. What 0B's isolated runs couldn't show, because they used an empty HOME:
+
+- **The user's own setup joins the session.** Claude Code runs the user's hooks (`system/hook_started`,
+  `system/hook_response`) and may use subagents (`system/task_started`, `system/task_notification`); Codex runs the
+  user's hooks (`hook/started`, `hook/completed`) and loads the user's own MCP servers from `~/.codex` beside Emmet's
+  (their tool-call approvals are declined until 8F). The adapters ignore these messages, and Emmet still writes nothing
+  in either config. Hooks and thinking can keep a turn silent for over a minute, so the chat now says the agent is still
+  working.
+- **Claude Code validates MCP schemas loudly.** It prints `unknown format "uint32" ignored in schema` to stderr for
+  schemars' integer formats. Harmless; it lands in the transcript's `err` lines.
+- **Claude may edit through its sandboxed Bash** (`sed -i`) instead of Edit; the engine's file scan reports those changes
+  the same way.
+- **Codex follows the pointer literally.** With "in a terminal: `emmet rules`" in the app's pointer, it ran that in its
+  shell, where `emmet` isn't on PATH. The app now passes its own pointer (ADR 0009) naming the `rules` and `ask_user`
+  tools; afterwards Codex used both.
+- **Both redirect paths and question cards behaved as recorded:** a note written during a tool call reached the model at
+  its next step (Claude's stdin message, Codex's `turn/steer`), and `ask_user` answers came back in the same turn.
+
 ## Windows (Q-05, from the current docs; 1C verifies)
 
 - **Claude Code** (https://code.claude.com/docs/en/setup, read 2026-10-24): Windows 10 1809+ or Server 2019+, x64 or
