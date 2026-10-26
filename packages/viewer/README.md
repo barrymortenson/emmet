@@ -31,14 +31,16 @@ import { createViewer } from "@emmet/viewer";
 
 const viewer = createViewer(canvas, { partSource, theme: "light", quality: "auto" });
 await viewer.load(placements);                         // first scene (same as update)
-const diff = await viewer.update(placements, { animate: "none" }); // { added, removed, moved, recolored, unchanged }
-viewer.highlight(["roof/1", "door"]);                  // others dim; [] clears
+const diff = await viewer.update(placements, { animate: "build" }); // { added, removed, moved, recolored, unchanged }
+viewer.skipAnimation();                                // jump a running build animation to its end
+viewer.highlight(["roof/1", "door"], { mode: "issue" }); // others dim; "issue" tints them; [] clears
+viewer.highlighted();                                  // the highlighted ids
 viewer.frame(ids?);                                    // fit the ids (or everything), keeping the view direction
 viewer.setView("iso" | "front" | "back" | "left" | "right" | "top");
 viewer.setTheme("light" | "dark");
 const { png, camera } = await viewer.render({ view: "iso", size: 768, highlight }); // offscreen; the window's camera stays
 viewer.stats();        // drawCalls, triangles, frameMs, heap (WebView2 only), instances, buckets, parts, geometries,
-                       // textures, programs, highlighted, failed, lastDiff
+                       // textures, programs, highlighted, animating, failed, lastDiff
 viewer.cameraMatrix(); // the camera's world matrix (tests check it doesn't move)
 viewer.orbit(radians); // turn around the target, as a drag would (bench)
 await viewer.nextFrame();
@@ -57,8 +59,14 @@ interface PartSource {
 The app's part source (`apps/desktop/src/library.ts`) asks the host's `emmet-lib://localhost/pack?parts=…` for all
 of a model's new parts in one request.
 
-Coming later (section 13): `replayBuild`, `skipAnimation`, and `animate: "build"` with the build animation (1D),
-`showSteps` (4E), and `on("pick")`.
+**Build animation v0** (D-34): `animate: "build"` drops the added parts in one at a time, in build order (step, then
+bottom-up a plate at a time, then nearest the part before), about 30 ms apart, each falling three plates over 160 ms
+with ease-out, and the whole batch within 6 s. Every instance is in the scene from the start (hidden until its turn),
+so `stats().instances` counts them at once and `stats().animating` counts what hasn't landed. A new update, a click in
+the viewer (not a drag), or `skipAnimation()` finishes it at once; a render always shows the final state; reduced
+motion turns it off. The order and timing live in `src/animate.ts`, tested in Node.
+
+Coming later (section 13): `replayBuild` and the pace setting (4C), `showSteps` (4E), and `on("pick")`.
 
 ## Coordinates
 

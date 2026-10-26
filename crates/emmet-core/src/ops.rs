@@ -366,6 +366,15 @@ pub fn built_placements(project: &Project) -> Result<(Vec<crate::ldraw::placemen
 /// writes build/validation.json. `rules` empty means every rule.
 pub fn check(data: &DataDir, project: &Project, rules: &[crate::check::Rule]) -> Result<crate::check::Validation> {
     ensure_built(data, project)?;
+    check_build(data, project, rules)
+}
+
+/// [`check`] on build/ as it is, without running the model: for the app, right after its own run.
+pub fn check_build(
+    data: &DataDir,
+    project: &Project,
+    rules: &[crate::check::Rule],
+) -> Result<crate::check::Validation> {
     let (placements, hash) = built_placements(project)?;
     let all = rules.is_empty();
     let rules = if all {
@@ -397,6 +406,11 @@ pub fn validate_placements(
 /// The parts list of the project's current build (running the model first if build/ is stale); writes build/bom.json.
 pub fn bom(data: &DataDir, project: &Project) -> Result<crate::bom::Bom> {
     ensure_built(data, project)?;
+    bom_build(data, project)
+}
+
+/// [`bom`] on build/ as it is, without running the model.
+pub fn bom_build(data: &DataDir, project: &Project) -> Result<crate::bom::Bom> {
     let (placements, _) = built_placements(project)?;
     let index = Index::ensure(data)?;
     let bom = crate::bom::bom(&index, &placements)?;

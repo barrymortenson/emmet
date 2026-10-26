@@ -100,6 +100,61 @@ pub struct Scene {
     pub steps: u32,
     /// How long the run took, or null for a scene read from an earlier build/.
     pub ms: Option<u64>,
+    /// The validator's findings for this build (the Checks drawer), or null when they couldn't be made.
+    #[serde(default)]
+    pub checks: Option<Checks>,
+    /// The parts list (the Parts drawer), or null when it couldn't be made.
+    #[serde(default)]
+    pub bom: Option<Bom>,
+}
+
+/// A line of the model's source that placed a finding's parts, with its text.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct SourceLine {
+    pub file: String,
+    pub line: u32,
+    /// The line as written, or null when the file can't be read (or isn't inside the project).
+    pub text: Option<String>,
+}
+
+/// One validator finding (plan section 11), for the Checks drawer.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Finding {
+    pub id: String,
+    pub rule: String,
+    /// error, warning, or info.
+    pub severity: String,
+    pub parts: Vec<String>,
+    pub source: Vec<SourceLine>,
+    pub message: String,
+    pub hint: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Checks {
+    pub findings: Vec<Finding>,
+    pub errors: u32,
+    /// No errors and no warnings.
+    pub clean: bool,
+    /// Why the validator couldn't run, when it couldn't.
+    pub problem: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct BomLine {
+    pub part: String,
+    pub name: String,
+    pub color: u32,
+    pub color_name: String,
+    pub qty: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Bom {
+    pub lines: Vec<BomLine>,
+    pub pieces: u32,
+    /// Different parts, in any color.
+    pub parts: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -323,7 +378,92 @@ fn scene_from(placements: &Value, manifest: &Value, ms: Option<u64>) -> Option<S
         steps: manifest["steps"].as_u64().unwrap_or(0) as u32,
         placements: list,
         ms,
+        checks: None,
+        bom: None,
     })
+}
+
+/// Adds the validator's findings and the parts list to a scene read from the project's build/: the same
+/// build/validation.json and build/bom.json `emmet check` and `emmet bom` write, made in-process.
+fn annotate(data: &DataDir, root: &Path, scene: &mut Scene) {
+    let project = match Project::find(Some(root)) {
+        Ok(p) => p,
+        Err(e) => {
+            scene.checks = Some(Checks {
+                findings: vec![],
+                errors: 0,
+                clean: false,
+                problem: Some(e.message),
+            });
+            return;
+        }
+    };
+    scene.checks = Some(match emmet_core::ops::check_build(data, &project, &[]) {
+        Ok(v) => Checks {
+            errors: v.errors() as u32,
+            clean: v.clean,
+            findings: v
+                .findings
+                .into_iter()
+                .map(|f| Finding {
+                    id: f.id,
+                    rule: f.rule.name().into(),
+                    severity: serde_json::to_value(f.severity)
+                        .ok()
+                        .and_then(|s| s.as_str().map(String::from))
+                        .unwrap_or_default(),
+                    parts: f.parts,
+                    source: f
+                        .source
+                        .into_iter()
+                        .map(|s| SourceLine {
+                            text: source_text(&project.root, &s.file, s.line),
+                            file: s.file,
+                            line: s.line,
+                        })
+                        .collect(),
+                    message: f.message,
+                    hint: f.hint,
+                })
+                .collect(),
+            problem: None,
+        },
+        Err(e) => Checks {
+            findings: vec![],
+            errors: 0,
+            clean: false,
+            problem: Some(format!("{} {}", e.message, e.hint)),
+        },
+    });
+    scene.bom = emmet_core::ops::bom_build(data, &project).ok().map(|b| Bom {
+        pieces: b.totals.pieces as u32,
+        parts: b.totals.parts as u32,
+        lines: b
+            .lines
+            .into_iter()
+            .map(|l| BomLine {
+                part: l.part,
+                name: l.name,
+                color: l.color,
+                color_name: l.color_name,
+                qty: l.qty as u32,
+            })
+            .collect(),
+    });
+}
+
+/// Line `line` of `file`, which must be a plain relative path inside the project: the validator names the model's own
+/// files, but a model could make its source lines name anything.
+fn source_text(root: &Path, file: &str, line: u32) -> Option<String> {
+    let rel = Path::new(file);
+    if !rel.components().all(|c| matches!(c, std::path::Component::Normal(_))) {
+        return None;
+    }
+    let path = crate::paths::inside(root, &root.join(rel))?;
+    let text = std::fs::read_to_string(path).ok()?;
+    text.lines()
+        .nth(line.checked_sub(1)? as usize)
+        .map(|l| l.trim_end().to_string())
 }
 
 fn on_run_event(app: &AppHandle, ev: RunEvent) {
@@ -348,6 +488,21 @@ fn on_run_event(app: &AppHandle, ev: RunEvent) {
 /// Applies a run's outcome to the state and says what the window should show. A run always ends with one, so the
 /// window never stays on "rebuilding".
 pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
+    // The scene, checks, and parts list are made before the state is locked: the validator takes a few tens of ms.
+    let built = match (&o.envelope, &o.placements) {
+        (Some(env), Some(Ok(placements))) if env["ok"] == true => {
+            let manifest = std::fs::read_to_string(o.project.join("build").join("manifest.json"))
+                .ok()
+                .and_then(|t| serde_json::from_str::<Value>(&t).ok())
+                .unwrap_or_default();
+            Some(scene_from(placements, &manifest, Some(o.ms)).map(|mut scene| {
+                scene.generation = o.generation.unwrap_or(scene.generation);
+                annotate(&state.data, &o.project, &mut scene);
+                scene
+            }))
+        }
+        _ => None,
+    };
     let mut inner = state.inner.lock().expect("state");
     inner.running = false;
     let failed = |inner: &mut Inner, error: Problem| {
@@ -359,18 +514,13 @@ pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
         }
     };
     let error = match (&o.envelope, &o.placements) {
-        (Some(env), Some(Ok(placements))) if env["ok"] == true => {
-            let manifest = std::fs::read_to_string(o.project.join("build").join("manifest.json"))
-                .ok()
-                .and_then(|t| serde_json::from_str::<Value>(&t).ok())
-                .unwrap_or_default();
-            let Some(mut scene) = scene_from(placements, &manifest, Some(o.ms)) else {
+        (Some(env), Some(Ok(_))) if env["ok"] == true => {
+            let Some(Some(scene)) = built else {
                 return failed(
                     &mut inner,
                     *Problem::internal("build/placements.json isn't a list of placements this app can read."),
                 );
             };
-            scene.generation = o.generation.unwrap_or(scene.generation);
             if !inner.accept(scene.clone()) {
                 return RunFinished {
                     scene: None,
@@ -424,7 +574,10 @@ pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
         trusted: project.is_trusted(&state.data),
         watching: watcher.is_some(),
     };
-    let scene = read_scene(&root);
+    let scene = read_scene(&root).map(|mut s| {
+        annotate(&state.data, &root, &mut s);
+        s
+    });
     let fresh = emmet_core::library::require(&state.data)
         .and_then(|lib| project.inputs_hash(&BTreeMap::new(), &lib.release))
         .ok()
@@ -497,7 +650,12 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
             state.pending.lock().expect("pending").insert(id, tx);
             // emmet render ran the model if it was out of date, so build/ may be newer than the window: show it
             // first, through the same generation check as a run.
-            let scene = read_scene(&root).filter(|s| state.inner.lock().expect("state").accept(s.clone()));
+            let scene = read_scene(&root)
+                .map(|mut s| {
+                    annotate(&state.data, &root, &mut s);
+                    s
+                })
+                .filter(|s| state.inner.lock().expect("state").accept(s.clone()));
             let event = BusRender {
                 id,
                 view,
