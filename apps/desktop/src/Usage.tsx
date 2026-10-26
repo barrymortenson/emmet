@@ -2,9 +2,11 @@
 // Plan usage in the status bar (D-36, plan section 10): Claude's meters from its own /usage report and live
 // rate_limit_events, fetched only when the user acts (opening the popover, ⟳, the end of a turn they started; the host
 // caps it at once a minute). An API key, unavailable, and unknown each have their own label, and a meter is never 0 %
-// for want of data. Codex shows its billing state only.
+// for want of data. Codex shows its billing state only: on the ChatGPT plan, OpenAI's "Using ChatGPT plan" with Manage
+// usage (1E).
 import { useCallback, useEffect, useState } from "react";
 import { type AgentKind, commands, type UsageSnapshot, type UsageWindow } from "./bindings";
+import { ManageUsage } from "./ChatGpt";
 
 function until(resetsAt: number | null, now: number): string {
   if (resetsAt == null) return "";
@@ -61,9 +63,17 @@ export function UsageBar({
   }, [turns, fetch]);
   useEffect(() => {
     setSnap(null);
-  }, [kind]);
+    // Codex's billing state is local (no meters, no request), so it's shown as soon as its chat starts.
+    if (kind === "codex") void fetch();
+  }, [kind, fetch]);
 
   if (!kind) return null;
+  if (kind === "codex" && snap?.billing.kind === "plan")
+    return (
+      <span className="usage" id="usage-plan">
+        Codex · Using ChatGPT plan <ManageUsage id="usage-manage" />
+      </span>
+    );
   // The newest of the fetched report and the live events.
   const shown = live && kind === "claude" && (!snap || live.updated_at > snap.updated_at) ? live : snap;
   const who = kind === "claude" ? "Claude" : "Codex";

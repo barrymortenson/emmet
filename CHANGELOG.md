@@ -77,10 +77,20 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - Validator fixtures: `broken-*` projects, an unknown-part `.mpd`, and the five smallest stud-built OMR models
   (`tests/fixtures/omr/`, CC BY 2.0, credited in its ATTRIBUTION.md).
 
+- Codex on your ChatGPT plan (session 1E): Settings → Agents offers Continue with ChatGPT, OpenAI's Sign in with
+  ChatGPT for open-source apps, in the system browser. An account picker shows the active account, with sign-out and
+  enabling plan use after a decline; Codex runs on the chosen account or on an API key. The chat shows "Using ChatGPT
+  plan · Manage usage" by the composer and OpenAI's card for a usage limit, and the status bar shows "Codex · Using
+  ChatGPT plan". The token renews between turns (the app-server restarts and resumes the thread). New dependency
+  (approved, ADR 0011): ring. OpenAI's ChatGPT logo ships unchanged inside the button (TRADEMARKS.md).
+- `fake-openai` (tests/fake-agents) stands in for OpenAI's sign-in endpoints in the tests.
+
 ### Security
 
 - emmet-bus authenticates both ways: the token never crosses the socket, each request and reply proves it bound to a
   fresh nonce and the message, and a seen nonce is refused. The Windows pipe is user-only (ADR 0009).
+- ChatGPT tokens live only in the OS keychain, and a session's API key or access token is replaced with `<redacted>`
+  in its transcript and chat wherever the CLI echoed it; leak tests grep every output for every token (ADR 0011).
 
 ### Changed
 

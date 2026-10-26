@@ -8,6 +8,7 @@
 
 pub mod app;
 pub mod chat;
+pub mod chatgpt;
 pub mod library;
 pub mod paths;
 pub mod recent;
@@ -121,6 +122,13 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             crate::chat::usage,
             crate::chat::openai_key_saved,
             crate::chat::openai_key_set,
+            crate::chatgpt::chatgpt_state,
+            crate::chatgpt::chatgpt_sign_in,
+            crate::chatgpt::chatgpt_cancel,
+            crate::chatgpt::chatgpt_sign_out,
+            crate::chatgpt::chatgpt_choose,
+            crate::chatgpt::chatgpt_notice_seen,
+            crate::chatgpt::open_chatgpt_usage,
         ])
         .events(tauri_specta::collect_events![
             ProjectOpened,

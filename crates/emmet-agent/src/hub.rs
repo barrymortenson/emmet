@@ -18,6 +18,8 @@ use crate::{AgentEvent, Answer, ApprovalKind, Decision, Question, SteerPath, Use
 pub struct Hub(Arc<Mutex<HashMap<String, Entry>>>);
 
 struct Entry {
+    /// Which registration this is: only its own engine may unregister it.
+    owner: u64,
     events: Sender<AgentEvent>,
     approvals: HashMap<String, Sender<Decision>>,
     /// What the user allowed for the rest of the session, by [`scope`]: never a whole shell or the whole web.
@@ -110,10 +112,14 @@ impl Hub {
 
     // The engine's side.
 
-    pub(crate) fn register(&self, session: &str, events: Sender<AgentEvent>) {
+    /// Registers the session's engine, and returns its owner token for [`Hub::unregister`].
+    pub(crate) fn register(&self, session: &str, events: Sender<AgentEvent>) -> u64 {
+        static OWNER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let owner = OWNER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         self.0.lock().expect("hub").insert(
             session.to_string(),
             Entry {
+                owner,
                 events,
                 approvals: HashMap::new(),
                 allowed: HashSet::new(),
@@ -122,11 +128,17 @@ impl Hub {
                 next: 0,
             },
         );
+        owner
     }
 
-    /// Forgets the session. Anything still waiting on it is answered as stopped (its senders drop).
-    pub(crate) fn unregister(&self, session: &str) {
-        self.0.lock().expect("hub").remove(session);
+    /// Forgets the session, if `owner` still registers it: a ChatGPT plan session restarted on a renewed token
+    /// (1E) registers the same id again, and the old engine's late exit mustn't remove the new one. Anything still
+    /// waiting on it is answered as stopped (its senders drop).
+    pub(crate) fn unregister(&self, session: &str, owner: u64) {
+        let mut all = self.0.lock().expect("hub");
+        if all.get(session).is_some_and(|e| e.owner == owner) {
+            all.remove(session);
+        }
     }
 
     /// True if the approval was one of the hub's (Claude's) and is now decided.

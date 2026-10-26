@@ -69,7 +69,16 @@ window.EMMET_STATUS = {
       ],
       note: "G1 (H-06) is Barry's decision from the eval report and his own testing"
     },
-    "1E": { status: "todo" },
+    "1E": {
+      status: "done", pr: 21, branch: "bmortenson/s1e-chatgpt-plan-signin", started: "2026-10-26",
+      evidence: [
+        "CI ci check green #21 (run 40416376710: mac, windows with E2E, nsis, plan)",
+        "tests/it/tests/{chatgpt,agent_codex}.rs (20 and 31 passed); tests/e2e/specs/chatgpt.e2e.mjs (6 tests)",
+        "docs/spec/sessions/1E.md: 39 OpenAI requirements, each mapped to a test or screenshot",
+        "Barry signed in on his ChatGPT plan and built rung 1 by hand: docs/spec/sessions/1E/plan-rung1.png"
+      ],
+      note: "6B's diagnostics bundle must join the no-token tests; a token split across two streamed deltas isn't caught by per-event redaction (ADR 0011)"
+    },
     "1F": { status: "todo" },
     "2A": { status: "todo" },
     "2B": { status: "todo" },

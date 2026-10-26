@@ -14,7 +14,7 @@ use std::time::{Duration, SystemTime};
 
 use serde_json::Value;
 
-use crate::transcript::Transcript;
+use crate::transcript::{Transcript, redact};
 use crate::{
     AgentError, AgentErrorCode, AgentEvent, AgentKind, Answer, ChangeKind, Decision, DoneReason, EventStream, Hub,
     Result, Session, SessionConfig, SteerPath, UserNote, UserTurn,
@@ -75,6 +75,8 @@ struct State {
     exited: bool,
     next_note: u64,
     stderr: VecDeque<String>,
+    /// Replaced wherever they'd reach the chat (events) or the transcript.
+    secrets: Vec<String>,
 }
 
 struct Shared {
@@ -82,6 +84,8 @@ struct Shared {
     child: Mutex<Option<Child>>,
     session: String,
     hub: Hub,
+    /// This engine's registration in the hub.
+    owner: u64,
     kind: AgentKind,
 }
 
@@ -92,12 +96,14 @@ pub(crate) struct Engine {
 
 impl Engine {
     /// Starts `cmd` (the adapter sets its program, arguments, environment, and folder) and the engine around it.
+    /// `secrets` (the credentials in `cmd`'s environment) never reach the transcript or an event.
     pub fn spawn(
         kind: AgentKind,
         cfg: &SessionConfig,
         mut cmd: Command,
         proto: Box<dyn Protocol>,
         meta: Value,
+        secrets: Vec<String>,
     ) -> Result<Self> {
         cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
         no_window(&mut cmd);
@@ -111,12 +117,12 @@ impl Engine {
         let stdout = child.stdout.take().expect("piped stdout");
         let stderr = child.stderr.take().expect("piped stderr");
         let (tx, rx) = channel();
-        cfg.hub.register(&cfg.id, tx.clone());
+        let owner = cfg.hub.register(&cfg.id, tx.clone());
         let shared = Arc::new(Shared {
             state: Mutex::new(State {
                 proto,
                 stdin,
-                transcript: Transcript::open(&cfg.project, &cfg.id, meta),
+                transcript: Transcript::open(&cfg.project, &cfg.id, meta, secrets.clone()),
                 tx,
                 running: false,
                 tools: 0,
@@ -129,10 +135,12 @@ impl Engine {
                 exited: false,
                 next_note: 0,
                 stderr: VecDeque::new(),
+                secrets,
             }),
             child: Mutex::new(Some(child)),
             session: cfg.id.clone(),
             hub: cfg.hub.clone(),
+            owner,
             kind,
         });
         let reader = shared.clone();
@@ -188,6 +196,7 @@ impl Shared {
 
     /// Sends one event, after the engine's own bookkeeping for it.
     fn event(&self, s: &mut State, ev: AgentEvent) {
+        let ev = s.clean(ev);
         match &ev {
             AgentEvent::ToolCall { .. } => {
                 s.tools += 1;
@@ -256,7 +265,8 @@ impl Shared {
     fn file_changes(&self, s: &mut State) {
         let now = Snapshot::scan(&s.project);
         for (path, kind) in s.files.diff(&now) {
-            let _ = s.tx.send(AgentEvent::FileChange { path, kind });
+            let ev = s.clean(AgentEvent::FileChange { path, kind });
+            let _ = s.tx.send(ev);
         }
         s.files = now;
     }
@@ -297,10 +307,11 @@ impl Shared {
             } else {
                 format!("{} {how}. It said:\n{said}", self.kind.label())
             };
-            let _ = s.tx.send(AgentEvent::Error {
+            let ev = s.clean(AgentEvent::Error {
                 code: AgentErrorCode::Crashed,
                 message,
             });
+            let _ = s.tx.send(ev);
             if s.running {
                 s.running = false;
                 let _ = s.tx.send(AgentEvent::TurnDone {
@@ -308,9 +319,9 @@ impl Shared {
                 });
             }
         }
+        // Only this engine's registration: a session restarted on the same id (a renewed ChatGPT token) keeps its own.
+        self.hub.unregister(&self.session, self.owner);
         let _ = s.tx.send(AgentEvent::Exited { code });
-        drop(s);
-        self.hub.unregister(&self.session);
     }
 
     fn closed(&self) -> AgentError {
@@ -318,6 +329,31 @@ impl Shared {
             AgentErrorCode::Closed,
             format!("{} isn't running; resume the chat to continue.", self.kind.label()),
         )
+    }
+}
+
+impl State {
+    /// `ev` without the session's secrets.
+    fn clean(&self, ev: AgentEvent) -> AgentEvent {
+        if self.secrets.is_empty() {
+            return ev;
+        }
+        let text = serde_json::to_string(&ev).expect("an event serializes");
+        match redact(&text, &self.secrets) {
+            // Fails closed: an event that won't read back once redacted is never passed on as it was.
+            Some(t) => serde_json::from_str(&t).unwrap_or(AgentEvent::Error {
+                code: AgentErrorCode::Agent,
+                message: "The agent said something Emmet hid because it held a credential.".into(),
+            }),
+            None => ev,
+        }
+    }
+}
+
+impl Engine {
+    /// A turn is in progress (or about to start, from pending notes).
+    pub fn running(&self) -> bool {
+        self.shared.state.lock().expect("state").running
     }
 }
 

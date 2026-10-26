@@ -8,8 +8,11 @@ repository.workspace = true
 publish.workspace = true
 
 # fake-claude and fake-codex: stand-ins for the agent CLIs at their protocol boundary (plan section 16, ADR 0009).
-# Tests select them with EMMET_CLAUDE_BIN and EMMET_CODEX_BIN; they're never shipped.
+# Tests select them with EMMET_CLAUDE_BIN and EMMET_CODEX_BIN; they're never shipped. fake-openai stands in for
+# OpenAI's Sign in with ChatGPT endpoints (EMMET_FAKE_OPENAI, ADR 0011); ring signs its test ID tokens.
 [dependencies]
+emmet-core.workspace = true
+ring.workspace = true
 rmcp.workspace = true
 serde_json.workspace = true
 tokio.workspace = true

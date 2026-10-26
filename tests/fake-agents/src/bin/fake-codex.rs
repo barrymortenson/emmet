@@ -116,7 +116,7 @@ fn main() {
                 write(&msg);
             }
             "raw" => write_raw(line.msg.as_str().unwrap_or("")),
-            "err" => eprintln!("{}", line.msg.as_str().unwrap_or("")),
+            "err" => eprintln!("{}", subst.apply(&line.msg).as_str().unwrap_or("")),
             "note" => {
                 if let Some((code, crash)) = line.exit() {
                     if crash {

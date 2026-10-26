@@ -1,41 +1,70 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The Codex adapter (plan section 10, ADR 0001): `codex app-server` over stdio JSON-RPC (no `jsonrpc` field), pinned
-//! to the user's API key from the keychain through Emmet's provider block and never on the CLI's own login (D-35).
-//! Approvals are the app-server's own server requests; Emmet accepts the MCP tool-call elicitations for its two
-//! servers. This module is the arguments, the encoding, and the mapping; the types it sends live in `types`.
+//! through Emmet's provider block to the user's ChatGPT plan (Sign in with ChatGPT, 1E, ADR 0011) or to their API key
+//! from the keychain, and never on the CLI's own login (D-35). Approvals are the app-server's own server requests;
+//! Emmet accepts the MCP tool-call elicitations for its two servers. This module is the arguments, the encoding, the
+//! mapping, and the plan session's token renewal; the types it sends live in `types`.
 
 pub mod types;
 
 use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::mpsc::{Receiver, Sender, channel};
+use std::time::Duration;
 
 use serde_json::{Value, json};
 
+use crate::chatgpt::{AGENT_NAME, ChatGpt, CodexUse};
 use crate::claude::shorten;
 use crate::session::{Engine, Io, Protocol, session_dir, set_env};
 use crate::{
-    AgentAdapter, AgentError, AgentErrorCode, AgentEvent, AgentKind, ApprovalKind, Billing, Decision, Detection,
-    DoneReason, Result, Session, SessionConfig, SteerPath, UsageSnapshot, UserNote, detect, keychain,
+    AgentAdapter, AgentError, AgentErrorCode, AgentEvent, AgentKind, Answer, ApprovalKind, Billing, Decision,
+    Detection, DoneReason, EventStream, Result, Session, SessionConfig, SteerPath, UsageSnapshot, UserNote, UserTurn,
+    detect, keychain,
 };
 use types::*;
 
 /// Emmet's two MCP servers, whose tool-call approvals Emmet accepts itself.
 const OURS: &[&str] = &["emmet", "emmet_host"];
-/// The variable the provider block reads the key from.
+/// The variable the API-key provider reads the key from.
 pub const KEY_VAR: &str = "OPENAI_API_KEY";
+/// The variable OpenAI's ChatGPT plan provider reads the access token from.
+pub const TOKEN_VAR: &str = "ACCESS_TOKEN";
+/// A plan session renews its token before a turn that would start with less than this left. OpenAI's
+/// `earliest_refresh_at`, or a refresh that can't reach OpenAI, can still start a turn with as little as a minute left.
+pub const RENEW_BEFORE: Duration = Duration::from_secs(30 * 60);
 
 pub struct Codex {
     env: Vec<(String, String)>,
+    data: PathBuf,
 }
 
 impl Codex {
-    pub fn new(env: Vec<(String, String)>) -> Self {
-        Self { env }
+    /// `data` is the app data dir, where the ChatGPT accounts are.
+    pub fn new(env: Vec<(String, String)>, data: &Path) -> Self {
+        Self {
+            env,
+            data: data.to_path_buf(),
+        }
+    }
+
+    fn chatgpt(&self) -> ChatGpt {
+        ChatGpt::new(&self.data, &self.env)
     }
 }
 
-fn billing() -> Billing {
+fn key_billing() -> Billing {
     Billing::ApiKey {
         source: Some("keychain".into()),
+    }
+}
+
+/// Codex on a ChatGPT plan: "Codex · ChatGPT plan".
+pub fn plan_billing() -> Billing {
+    Billing::Plan {
+        name: Some("ChatGPT".into()),
     }
 }
 
@@ -58,9 +87,10 @@ fn toml_list(items: &[String]) -> String {
     format!("[{}]", items.iter().map(|s| toml(s)).collect::<Vec<_>>().join(","))
 }
 
-/// The app-server's arguments (plan section 10): the API-key provider, Emmet's two MCP servers for this session,
-/// `emmet_host`'s raised tool timeout, and the sandbox. `--strict-config` rejects any key Codex doesn't know.
-pub fn args(cfg: &SessionConfig) -> Vec<String> {
+/// The app-server's arguments (plan section 10): the provider (OpenAI's ChatGPT plan block, word for word, or the API
+/// key's), Emmet's two MCP servers for this session, `emmet_host`'s raised tool timeout, and the sandbox.
+/// `--strict-config` rejects any key Codex doesn't know.
+pub fn args(cfg: &SessionConfig, plan: bool) -> Vec<String> {
     let (emmet, data, project) = (
         cfg.emmet.display().to_string(),
         cfg.data.display().to_string(),
@@ -77,13 +107,27 @@ pub fn args(cfg: &SessionConfig) -> Vec<String> {
             cfg.id.clone(),
         ])
     };
+    let provider: Vec<String> = if plan {
+        vec![
+            "model_provider=\"openai_chatgpt_plan\"".into(),
+            "model_providers.openai_chatgpt_plan.name=\"ChatGPT plan\"".into(),
+            "model_providers.openai_chatgpt_plan.base_url=\"https://api.openai.com/v1\"".into(),
+            format!("model_providers.openai_chatgpt_plan.env_key=\"{TOKEN_VAR}\""),
+            "model_providers.openai_chatgpt_plan.wire_api=\"responses\"".into(),
+            "model_providers.openai_chatgpt_plan.requires_openai_auth=false".into(),
+            "model_providers.openai_chatgpt_plan.supports_websockets=false".into(),
+        ]
+    } else {
+        vec![
+            "model_provider=\"emmet_api_key\"".into(),
+            "model_providers.emmet_api_key.name=\"OpenAI API key\"".into(),
+            "model_providers.emmet_api_key.base_url=\"https://api.openai.com/v1\"".into(),
+            format!("model_providers.emmet_api_key.env_key=\"{KEY_VAR}\""),
+            "model_providers.emmet_api_key.wire_api=\"responses\"".into(),
+            "model_providers.emmet_api_key.requires_openai_auth=false".into(),
+        ]
+    };
     let overrides = [
-        "model_provider=\"emmet_api_key\"".to_string(),
-        "model_providers.emmet_api_key.name=\"OpenAI API key\"".into(),
-        "model_providers.emmet_api_key.base_url=\"https://api.openai.com/v1\"".into(),
-        format!("model_providers.emmet_api_key.env_key=\"{KEY_VAR}\""),
-        "model_providers.emmet_api_key.wire_api=\"responses\"".into(),
-        "model_providers.emmet_api_key.requires_openai_auth=false".into(),
         format!("mcp_servers.emmet.command={}", toml(&emmet)),
         format!("mcp_servers.emmet.args={}", server("mcp")),
         format!("mcp_servers.emmet_host.command={}", toml(&emmet)),
@@ -93,15 +137,38 @@ pub fn args(cfg: &SessionConfig) -> Vec<String> {
         "approval_policy=\"on-request\"".into(),
         "sandbox_workspace_write.exclude_slash_tmp=true".into(),
         "sandbox_workspace_write.exclude_tmpdir_env_var=true".into(),
+        // Codex keeps variables named like *KEY* and *TOKEN* out of the agent's shell commands by default; pinned, so a
+        // user's own config can't hand the session's key or ChatGPT token to a command (1E, ADR 0011).
+        "shell_environment_policy.ignore_default_excludes=false".into(),
     ];
     let mut a: Vec<String> = ["app-server", "--listen", "stdio://", "--strict-config"]
         .map(String::from)
         .to_vec();
-    for o in overrides {
+    for o in provider.into_iter().chain(overrides) {
         a.push("-c".into());
         a.push(o);
     }
     a
+}
+
+/// Starts one app-server process on `secret` (the API key, or the plan's access token). `secrets` (it, and any token
+/// the session used before) never reach the transcript or an event.
+fn spawn(cfg: &SessionConfig, bin: &Path, plan: bool, secret: &str, secrets: Vec<String>) -> Result<Engine> {
+    session_dir(cfg)?;
+    let args = args(cfg, plan);
+    let mut cmd = detect::command(bin);
+    cmd.args(&args).current_dir(&cfg.project);
+    set_env(&mut cmd, &cfg.env);
+    cmd.env(if plan { TOKEN_VAR } else { KEY_VAR }, secret);
+    let meta = json!({ "cli": "codex", "args": args, "date": crate::time::rfc3339(crate::time::now_ms()) });
+    let proto = CodexProto {
+        cwd: cfg.project.display().to_string(),
+        resume: cfg.resume.clone(),
+        model: cfg.model.clone(),
+        plan,
+        ..Default::default()
+    };
+    Engine::spawn(AgentKind::Codex, cfg, cmd, Box::new(proto), meta, secrets)
 }
 
 impl AgentAdapter for Codex {
@@ -111,13 +178,43 @@ impl AgentAdapter for Codex {
 
     fn detect(&self) -> Detection {
         let has_key = keychain::has(&self.env).unwrap_or(false);
-        detect::detect(AgentKind::Codex, &self.env, has_key)
+        let mut d = detect::detect(AgentKind::Codex, &self.env, has_key);
+        if d.path.is_none() {
+            return d;
+        }
+        match self.chatgpt().codex_use() {
+            CodexUse::Plan { .. } => {
+                d.signed_in = true;
+                d.billing = plan_billing();
+                d.fix = None;
+            }
+            CodexUse::PlanOff { fix, .. } => {
+                d.signed_in = false;
+                d.billing = plan_billing();
+                d.fix = Some(fix);
+            }
+            CodexUse::ApiKey => {}
+        }
+        d
     }
 
     fn start(&self, cfg: SessionConfig) -> Result<Box<dyn Session>> {
         cfg.check()?;
         let bin = detect::find(AgentKind::Codex, &self.env)
             .ok_or_else(|| AgentError::new(AgentErrorCode::NotInstalled, "Codex isn't installed."))?;
+        let plan = match &cfg.openai_key {
+            Some(_) => None,
+            None => match self.chatgpt().codex_use() {
+                CodexUse::Plan { id, .. } => Some(id),
+                CodexUse::PlanOff { fix, .. } => return Err(AgentError::new(AgentErrorCode::NotSignedIn, fix)),
+                CodexUse::ApiKey => None,
+            },
+        };
+        if let Some(id) = plan {
+            let chatgpt = self.chatgpt();
+            let token = chatgpt.access_token(&id, None, RENEW_BEFORE)?;
+            return Ok(Box::new(PlanSession::start(cfg, bin, chatgpt, id, token)?));
+        }
         let key = match cfg.openai_key.clone() {
             Some(k) => Some(k),
             None => keychain::get(&self.env)?,
@@ -125,34 +222,227 @@ impl AgentAdapter for Codex {
         let key = key.ok_or_else(|| {
             AgentError::new(
                 AgentErrorCode::NotSignedIn,
-                "Add your OpenAI API key in Settings → Agents.",
+                "Continue with ChatGPT, or add your OpenAI API key, in Settings → Agents.",
             )
         })?;
-        session_dir(&cfg)?;
-        let args = args(&cfg);
-        let mut cmd = detect::command(&bin);
-        cmd.args(&args).current_dir(&cfg.project);
-        set_env(&mut cmd, &cfg.env);
-        cmd.env(KEY_VAR, key);
-        let meta = json!({ "cli": "codex", "args": args, "date": crate::time::rfc3339(crate::time::now_ms()) });
-        let proto = CodexProto {
-            cwd: cfg.project.display().to_string(),
-            resume: cfg.resume.clone(),
-            model: cfg.model.clone(),
-            ..Default::default()
-        };
-        Ok(Box::new(Engine::spawn(
-            AgentKind::Codex,
-            &cfg,
-            cmd,
-            Box::new(proto),
-            meta,
-        )?))
+        Ok(Box::new(spawn(&cfg, &bin, false, &key, vec![key.clone()])?))
     }
 
-    /// OpenAI documents no usage source for an API key, so Codex reports its billing state only (D-36).
+    /// OpenAI documents no usage source for an API key or a ChatGPT plan, so Codex reports its billing state only
+    /// (D-36): what a new chat would use. A running chat keeps what it started with; the app shows that one.
     fn usage(&self) -> Result<UsageSnapshot> {
-        Ok(UsageSnapshot::without_meters(AgentKind::Codex, billing(), None))
+        let billing = match self.chatgpt().codex_use() {
+            CodexUse::ApiKey => key_billing(),
+            CodexUse::Plan { .. } => plan_billing(),
+            CodexUse::PlanOff { .. } => Billing::Unknown,
+        };
+        Ok(UsageSnapshot::without_meters(AgentKind::Codex, billing, None))
+    }
+}
+
+/// A Codex session on the user's ChatGPT plan. OpenAI's rule for the app-server: when the token renews, restart it
+/// with the new `ACCESS_TOKEN`, initialize, and `thread/resume` the saved thread. Emmet renews only between turns:
+/// before one that would start with less than [`RENEW_BEFORE`] left, or after the API rejected the sign-in (an
+/// `AuthFailed` error). The chat sees one session throughout: the old process's exit is never passed on, and the ids of
+/// a restarted process's cards and notes carry its generation (`g1-a1`), so they never repeat an earlier one's.
+struct PlanSession {
+    cfg: SessionConfig,
+    bin: PathBuf,
+    chatgpt: ChatGpt,
+    id: String,
+    token: String,
+    /// Every token this session ran on: a retired one is still valid until it expires.
+    tokens: Vec<String>,
+    engine: Engine,
+    /// Which engine is current: a retired engine's events stop at its exit.
+    generation: Arc<AtomicU64>,
+    /// The API rejected the sign-in: renew before the next turn.
+    refused: Arc<AtomicBool>,
+    tx: Sender<crate::AgentEvent>,
+    events: Option<EventStream>,
+    /// Signaled when the current engine's events end.
+    ended: Option<Receiver<()>>,
+}
+
+/// An id from engine generation `g`, as the chat sees it.
+fn tag(g: u64, id: String) -> String {
+    if g == 0 { id } else { format!("g{g}-{id}") }
+}
+
+/// The current engine's ids carry their generation; anything else is an earlier engine's, gone with it.
+fn tagged(e: &mut AgentEvent, g: u64) {
+    if g == 0 {
+        return;
+    }
+    match e {
+        AgentEvent::Approval { id, .. }
+        | AgentEvent::ApprovalClosed { id }
+        | AgentEvent::Question { id, .. }
+        | AgentEvent::QuestionClosed { id, .. }
+        | AgentEvent::NoteDelivered { id, .. } => *id = tag(g, std::mem::take(id)),
+        _ => {}
+    }
+}
+
+impl PlanSession {
+    fn start(cfg: SessionConfig, bin: PathBuf, chatgpt: ChatGpt, id: String, token: String) -> Result<Self> {
+        let engine = spawn(&cfg, &bin, true, &token, vec![token.clone()])?;
+        let (tx, rx) = channel();
+        let mut s = Self {
+            cfg,
+            bin,
+            chatgpt,
+            id,
+            tokens: vec![token.clone()],
+            token,
+            engine,
+            generation: Arc::new(AtomicU64::new(0)),
+            refused: Arc::new(AtomicBool::new(false)),
+            tx,
+            events: Some(rx),
+            ended: None,
+        };
+        s.forward();
+        Ok(s)
+    }
+
+    /// Passes the current engine's events on until it exits, or until it's retired.
+    fn forward(&mut self) {
+        let rx = self.engine.events();
+        let (tx, generation, refused) = (self.tx.clone(), self.generation.clone(), self.refused.clone());
+        let mine = generation.load(Ordering::SeqCst);
+        let (done, ended) = channel();
+        self.ended = Some(ended);
+        std::thread::spawn(move || {
+            for mut ev in rx {
+                if generation.load(Ordering::SeqCst) != mine {
+                    if matches!(ev, AgentEvent::Exited { .. }) {
+                        break;
+                    }
+                    continue;
+                }
+                if matches!(
+                    ev,
+                    AgentEvent::Error {
+                        code: AgentErrorCode::AuthFailed,
+                        ..
+                    }
+                ) {
+                    refused.store(true, Ordering::SeqCst);
+                }
+                tagged(&mut ev, mine);
+                if tx.send(ev).is_err() {
+                    break;
+                }
+            }
+            let _ = done.send(());
+        });
+    }
+
+    /// An id the chat gave back, as the current engine knows it; None if it was an earlier engine's.
+    fn own<'a>(&self, id: &'a str) -> Option<&'a str> {
+        match self.generation.load(Ordering::SeqCst) {
+            0 => Some(id),
+            g => id.strip_prefix(&format!("g{g}-")),
+        }
+    }
+
+    /// Before a turn: a fresh enough token, and if it changed, a new app-server on it, resuming the thread. Plan use
+    /// lost with the renewal (the user turned it off in ChatGPT) ends the plan session's turns, rather than run on.
+    fn renew(&mut self) -> Result<()> {
+        let refused = self.refused.load(Ordering::SeqCst);
+        // Cleared only once renewed: after a failed renewal the next turn tries again rather than reuse the token.
+        let token = self
+            .chatgpt
+            .access_token(&self.id, refused.then_some(self.token.as_str()), RENEW_BEFORE)?;
+        self.refused.store(false, Ordering::SeqCst);
+        match self.chatgpt.codex_use() {
+            CodexUse::Plan { id, .. } if id == self.id => {}
+            CodexUse::PlanOff { fix, .. } => return Err(AgentError::new(AgentErrorCode::NotSignedIn, fix)),
+            _ => {
+                return Err(AgentError::new(
+                    AgentErrorCode::NotSignedIn,
+                    "Codex's ChatGPT account changed in Settings. Start a new chat to use it.",
+                ));
+            }
+        }
+        if token == self.token {
+            return Ok(());
+        }
+        let thread = self.engine.resume_token();
+        self.generation.fetch_add(1, Ordering::SeqCst);
+        self.engine.close();
+        if let Some(ended) = self.ended.take() {
+            let _ = ended.recv_timeout(Duration::from_secs(5));
+        }
+        let mut cfg = self.cfg.clone();
+        cfg.resume = thread.or(cfg.resume);
+        self.tokens.push(token.clone());
+        self.engine = spawn(&cfg, &self.bin, true, &token, self.tokens.clone())?;
+        self.cfg = cfg;
+        self.token = token;
+        self.forward();
+        Ok(())
+    }
+
+    fn gone(what: &str) -> AgentError {
+        AgentError::new(AgentErrorCode::Closed, format!("That {what} is no longer open."))
+    }
+}
+
+impl Session for PlanSession {
+    fn send(&mut self, turn: UserTurn) -> Result<()> {
+        if !self.engine.running() {
+            self.renew()?;
+        }
+        self.engine.send(turn)
+    }
+
+    fn respond(&mut self, approval: &str, decision: Decision) -> Result<()> {
+        let id = self.own(approval).ok_or_else(|| Self::gone("approval"))?;
+        self.engine.respond(id, decision)
+    }
+
+    fn answer(&mut self, question: &str, answer: Answer) -> Result<()> {
+        let id = self.own(question).ok_or_else(|| Self::gone("question"))?;
+        self.engine.answer(id, answer)
+    }
+
+    fn interrupt(&mut self) -> Result<()> {
+        self.engine.interrupt()
+    }
+
+    fn steer(&mut self, text: &str) -> Result<UserNote> {
+        // With no turn running, a redirect starts one.
+        if !self.engine.running() {
+            self.renew()?;
+        }
+        let mut note = self.engine.steer(text)?;
+        note.id = tag(self.generation.load(Ordering::SeqCst), note.id);
+        Ok(note)
+    }
+
+    fn cancel_note(&mut self, id: &str) -> bool {
+        self.own(id).is_some_and(|id| self.engine.cancel_note(id))
+    }
+
+    fn edit_note(&mut self, id: &str, text: &str) -> bool {
+        match self.own(id) {
+            Some(id) => self.engine.edit_note(id, text),
+            None => false,
+        }
+    }
+
+    fn events(&mut self) -> EventStream {
+        self.events.take().unwrap_or_else(|| channel().1)
+    }
+
+    fn resume_token(&self) -> Option<String> {
+        self.engine.resume_token()
+    }
+
+    fn close(&mut self) {
+        self.engine.close();
     }
 }
 
@@ -186,6 +476,8 @@ struct CodexProto {
     streamed: HashSet<String>,
     usage: (u64, u64),
     failed: bool,
+    /// On the ChatGPT plan provider: its errors get OpenAI's recovery, and its billing says so.
+    plan: bool,
 }
 
 impl CodexProto {
@@ -230,10 +522,7 @@ impl CodexProto {
                 path: SteerPath::Native,
             }),
             (Sent::Turn, Some(e)) => {
-                io.emit(agent_error(
-                    e["message"].as_str().unwrap_or("Codex refused the turn."),
-                    &Value::Null,
-                ));
+                io.emit(agent_error(e, "Codex refused the turn.", self.plan));
                 io.emit(AgentEvent::TurnDone {
                     reason: DoneReason::Failed,
                 });
@@ -286,7 +575,7 @@ impl CodexProto {
                 io.emit(AgentEvent::Started {
                     resume: thread,
                     model: r["model"].as_str().map(String::from),
-                    billing: Some(billing()),
+                    billing: Some(if self.plan { plan_billing() } else { key_billing() }),
                 });
                 for text in std::mem::take(&mut self.waiting) {
                     self.start_turn(&text, io);
@@ -477,11 +766,7 @@ impl CodexProto {
             }
             "error" if p["willRetry"] != true => {
                 self.failed = true;
-                let e = &p["error"];
-                io.emit(agent_error(
-                    e["message"].as_str().unwrap_or("Codex reported an error."),
-                    &e["codexErrorInfo"],
-                ));
+                io.emit(agent_error(&p["error"], "Codex reported an error.", self.plan));
             }
             "serverRequest/resolved" => {
                 let key = format!("r{}", p["requestId"]);
@@ -496,10 +781,11 @@ impl CodexProto {
                     Some("interrupted") => DoneReason::Interrupted,
                     _ => {
                         if !self.failed {
-                            let message = turn["error"]["message"]
-                                .as_str()
-                                .unwrap_or("Codex ended the turn with an error.");
-                            io.emit(agent_error(message, &Value::Null));
+                            io.emit(agent_error(
+                                &turn["error"],
+                                "Codex ended the turn with an error.",
+                                self.plan,
+                            ));
                         }
                         DoneReason::Failed
                     }
@@ -519,8 +805,103 @@ impl CodexProto {
     }
 }
 
-/// An error notification as an event, with its code: a refused key, no credit, or anything else.
-fn agent_error(message: &str, info: &Value) -> AgentEvent {
+/// OpenAI's ChatGPT plan errors (its errors-and-recovery page), with the recovery each one names. The codes reach
+/// Codex's error text from the Responses API; a direct-admission failure has only its HTTP status.
+const PLAN_ERRORS: &[(&str, AgentErrorCode, &str)] = &[
+    (
+        "subscription_sharing_usage_limit_exceeded",
+        AgentErrorCode::QuotaExceeded,
+        LIMIT,
+    ),
+    (
+        "subscription_sharing_user_not_eligible",
+        AgentErrorCode::Agent,
+        "ChatGPT plan use isn't available for this account, workspace, or policy. To keep going, use an OpenAI API \
+         key in Settings → Agents.",
+    ),
+    (
+        "subscription_sharing_usage_unavailable",
+        AgentErrorCode::Agent,
+        "OpenAI couldn't check your ChatGPT plan's usage just now. You're still signed in; try again in a few minutes.",
+    ),
+    (
+        "subscription_sharing_user_unavailable",
+        AgentErrorCode::Agent,
+        "OpenAI couldn't load your ChatGPT account just now. You're still signed in; try again in a few minutes.",
+    ),
+    (
+        "subscription_sharing_unsupported_capability",
+        AgentErrorCode::Agent,
+        "ChatGPT plan use doesn't support something this request used; OpenAI names it below.",
+    ),
+    (
+        "subscription_sharing_route_not_supported",
+        AgentErrorCode::Agent,
+        "ChatGPT plan use doesn't support the request Codex made.",
+    ),
+    (
+        "subscription_sharing_invalid_user",
+        AgentErrorCode::AuthFailed,
+        "OpenAI couldn't validate your ChatGPT account. Sign in again in Settings → Agents.",
+    ),
+    (
+        "chatpass_v2_scope_not_authorized",
+        AgentErrorCode::AuthFailed,
+        PERMISSION,
+    ),
+    (
+        "chatpass_v2_invalid_authorization_context",
+        AgentErrorCode::AuthFailed,
+        PERMISSION,
+    ),
+];
+
+/// The usage-limit card's text. It names no reset time: OpenAI's code doesn't say whose limit it is, or when it ends.
+pub const LIMIT: &str = "You've reached a ChatGPT usage limit: your plan's, or one set for Emmet. Review it in ChatGPT \
+                         settings.";
+const PERMISSION: &str = "This ChatGPT sign-in doesn't permit the request. Check the account in Settings → Agents.";
+
+/// The HTTP status in a `codexErrorInfo` variant (`{"httpConnectionFailed": {"httpStatusCode": 401}}`).
+fn http_status(info: &Value) -> Option<u64> {
+    info.as_object()?.values().find_map(|v| v["httpStatusCode"].as_u64())
+}
+
+/// An error as an event, with its code: on the ChatGPT plan, OpenAI's recovery first and Codex's own words (with the
+/// status, code, and request id) after. Any other error, on either provider, is a refused key, no credit, or anything
+/// else, with Codex's message as it is.
+fn agent_error(e: &Value, fallback: &str, plan: bool) -> AgentEvent {
+    let message = e["message"].as_str().unwrap_or(fallback);
+    let info = &e["codexErrorInfo"];
+    if plan {
+        let text = format!("{message} {}", e["additionalDetails"].as_str().unwrap_or(""));
+        let status = http_status(info);
+        let known = PLAN_ERRORS
+            .iter()
+            .find(|(code, ..)| text.contains(code))
+            .map(|(_, c, t)| (*c, *t))
+            .or(match (info.as_str(), status) {
+                (Some("usageLimitExceeded"), _) => Some((AgentErrorCode::QuotaExceeded, LIMIT)),
+                (_, Some(401)) => Some((
+                    AgentErrorCode::AuthFailed,
+                    "ChatGPT didn't accept the sign-in. Send your message again: Emmet renews the sign-in first.",
+                )),
+                (_, Some(403)) => Some((
+                    AgentErrorCode::Agent,
+                    "OpenAI didn't admit the request (for example, from outside a permitted region).",
+                )),
+                (_, Some(503)) => Some((
+                    AgentErrorCode::Agent,
+                    "ChatGPT plan use is unavailable just now. You're still signed in; try again later.",
+                )),
+                _ => None,
+            });
+        if let Some((code, why)) = known {
+            return AgentEvent::Error {
+                code,
+                message: format!("{why}\n\nOpenAI said: {}", text.trim()),
+            };
+        }
+    }
     let code = if info == "usageLimitExceeded" || message.contains("Quota exceeded") {
         AgentErrorCode::QuotaExceeded
     } else if info.to_string().contains("401") || message.contains("401 Unauthorized") {
@@ -541,8 +922,9 @@ fn to(v: &impl serde::Serialize) -> Value {
 impl Protocol for CodexProto {
     fn start(&mut self, io: &mut Io) {
         let p = InitializeParams {
+            // OpenAI: the name should match the registration's agent_name_hint.
             client_info: ClientInfo {
-                name: "emmet".into(),
+                name: AGENT_NAME.into(),
                 title: "Emmet".into(),
                 version: emmet_core::version().into(),
             },
@@ -626,5 +1008,76 @@ impl Protocol for CodexProto {
 
     fn resume_token(&self) -> Option<String> {
         self.thread.clone().or_else(|| self.resume.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn code_of(e: Value, plan: bool) -> (AgentErrorCode, String) {
+        match agent_error(&e, "fallback", plan) {
+            AgentEvent::Error { code, message } => (code, message),
+            other => panic!("{other:?}"),
+        }
+    }
+
+    /// OpenAI's errors-and-recovery table: each documented code, in the error text Codex passes on, gets its recovery
+    /// first and Codex's words after; admission failures go by their HTTP status; an API key's errors are unchanged.
+    #[test]
+    fn plan_errors_get_openai_recovery() {
+        let responses = |code: &str, status: u16| {
+            json!({
+                "message": format!("unexpected status {status}: {{\"error\":{{\"code\":\"{code}\"}}}}, request id: req_1"),
+                "codexErrorInfo": { "responseStreamConnectionFailed": { "httpStatusCode": status } },
+            })
+        };
+        for (code, status, want) in [
+            (
+                "subscription_sharing_usage_limit_exceeded",
+                429,
+                AgentErrorCode::QuotaExceeded,
+            ),
+            ("subscription_sharing_user_not_eligible", 403, AgentErrorCode::Agent),
+            ("subscription_sharing_usage_unavailable", 503, AgentErrorCode::Agent),
+            (
+                "subscription_sharing_unsupported_capability",
+                400,
+                AgentErrorCode::Agent,
+            ),
+            ("subscription_sharing_route_not_supported", 403, AgentErrorCode::Agent),
+            ("subscription_sharing_invalid_user", 401, AgentErrorCode::AuthFailed),
+            ("chatpass_v2_scope_not_authorized", 403, AgentErrorCode::AuthFailed),
+            (
+                "chatpass_v2_invalid_authorization_context",
+                403,
+                AgentErrorCode::AuthFailed,
+            ),
+            ("subscription_sharing_user_unavailable", 503, AgentErrorCode::Agent),
+        ] {
+            let (got, message) = code_of(responses(code, status), true);
+            let why = PLAN_ERRORS.iter().find(|(c, ..)| *c == code).unwrap().2;
+            assert_eq!(got, want, "{code}");
+            assert!(
+                message.starts_with(why) && message.contains("req_1"),
+                "{code}: {message}"
+            );
+        }
+        let admission = |status: u16| json!({ "message": "{\"detail\":\"denied\"}", "codexErrorInfo": { "httpConnectionFailed": { "httpStatusCode": status } } });
+        assert_eq!(code_of(admission(401), true).0, AgentErrorCode::AuthFailed);
+        assert!(code_of(admission(403), true).1.contains("permitted region"));
+        assert!(code_of(admission(503), true).1.contains("still signed in"));
+        assert_eq!(
+            code_of(json!({ "message": "x", "codexErrorInfo": "usageLimitExceeded" }), true).0,
+            AgentErrorCode::QuotaExceeded
+        );
+        // The API-key provider: the 1C mapping, Codex's message as it is.
+        let (got, message) = code_of(responses("subscription_sharing_invalid_user", 401), false);
+        assert_eq!(got, AgentErrorCode::AuthFailed);
+        assert!(message.starts_with("unexpected status"));
+        assert_eq!(
+            code_of(json!({ "message": "Something else" }), true).1,
+            "Something else"
+        );
     }
 }

@@ -8,7 +8,7 @@
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
 import { basename } from "node:path";
-import { prepareAgents } from "./lib/agents.mjs";
+import { prepareAgents, startOpenAi, stopOpenAi } from "./lib/agents.mjs";
 import { webContentPids } from "./lib/memory.mjs";
 import { appBinary, bin, out } from "./lib/paths.mjs";
 import { prepareProject } from "./lib/projects.mjs";
@@ -29,11 +29,12 @@ export const config = {
   // One retry is allowed in E2E only (plan section 16).
   specFileRetries: bench ? 0 : 1,
   mochaOpts: { timeout: bench ? 600_000 : 120_000 },
-  onPrepare() {
+  async onPrepare() {
     process.env.EMMET_DATA_DIR = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
     process.env.EMMET_E2E_OUT = out;
     // The chat specs' fake agents, and the test home with sentinel agent configs (lib/agents.mjs).
     prepareAgents();
+    await startOpenAi();
     // WKWebView has no JS heap API, so the leak test reads the app's WebContent processes: the ones that appear after
     // this hook, which runs before the service starts the app (docs/decisions.md, 2026-10-25).
     if (process.platform === "darwin") process.env.EMMET_E2E_WEBCONTENT_BEFORE = webContentPids().join(",");
@@ -41,6 +42,9 @@ export const config = {
     if (process.platform === "win32") {
       process.env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--enable-precise-memory-info --js-flags=--expose-gc";
     }
+  },
+  onComplete() {
+    stopOpenAi();
   },
   // Before each spec file: its fresh project, on the recents list.
   onWorkerStart(_cid, _caps, specs) {
