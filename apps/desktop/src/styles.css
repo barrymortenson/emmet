@@ -273,7 +273,9 @@ h2 {
 .messages {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  /* Long commands wrap (Windows' PowerShell paths are long); the log never scrolls sideways. */
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -316,6 +318,11 @@ h2 {
 }
 .card summary {
   cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.messages > * {
+  min-width: 0;
+  max-width: 100%;
 }
 .card pre {
   white-space: pre-wrap;
