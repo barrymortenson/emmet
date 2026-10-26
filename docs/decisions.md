@@ -11,6 +11,12 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   run built and tested, Barry chose a draft PR now, so CI runs on macOS and Windows while he runs `just eval` and does
   H-05, over waiting until every Done when item holds or running CI by hand without a PR. The PR lists Done when 3
   and 4 as pending him, and turns ready when they hold.
+- **The LDraw pin moves to 2026-10, and 6A mirrors each pinned library.** LDraw replaced `complete.zip` with 2026-10
+  today and serves no older complete archive, so fresh installs failed the sha256 check (found in H-05's
+  fresh-account check). Barry chose to bump the pin now and have 6A publish each pinned `complete.zip`, unmodified with
+  its attribution, as a GitHub Release asset that the library manager falls back to (plan section 12; CC BY allows it),
+  over accepting whatever release LDraw serves (installs would differ, and integrity would rest on HTTPS alone) or
+  bumping with no lasting fix (fresh installs break each month).
 
 ## 2026-10-25, design notes from the 1C live check
 

@@ -77,6 +77,15 @@ dependency was added.
 - `CI=true` keeps the dmg step from scripting Finder, which times out without a GUI session.
 - Windows: the unsigned NSIS installer, built by CI's `nsis` job when the release files change, weekly, and by hand.
 
+### The LDraw library pin moves to 2026-10
+
+LDraw replaced `complete.zip` with release 2026-10 on 2026-10-26 (`023083918da2…a803fa610f`, 147 MB, 37,448 files,
+the same CAreadme), and serves no older complete archive, so every fresh install failed the 2026-09 sha256 check. H-05's
+fresh-account check found it. The pin is now 2026-10. Installs already on 2026-09 keep working (only an install checks
+the pin), and projects record the release they ran against. ADRs 0003 and 0004 keep 2026-09: it's what they measured.
+`ldraw-mini` stays a 2026-09 subset; `scripts/make-ldraw-mini` still pins that zip, so adding parts to it needs a
+2026-09 copy until 6A's mirror (plan section 12) hosts one.
+
 ## Consequences
 
 - v0 reports clip-, pin-, and hinge-held parts as floating; 3A's connection model fixes that, and its corpus grows to

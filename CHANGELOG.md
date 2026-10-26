@@ -98,6 +98,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   switching with Start fresh, and choosing a step hides the later ones (section 13, 4C).
 - Body boxes keep underside tubes (a 1 x 1 round plate measured 3 LDU tall) and leave out hand-drawn corner studs
   (door and window frames measured a stud taller than they stack); the parts index rebuilds itself (schema 2).
+- The LDraw library pin moves to 2026-10: LDraw replaced `complete.zip` and serves no older one, so fresh installs
+  failed the 2026-09 sha256. From 6A, Emmet mirrors each pinned release as a GitHub Release asset (plan section 12).
 - The app fills its window: the panes take the height left by the title bar, any notices, and the status bar.
 - The plan's rail shows one session under Up next, the first in plan order.
 - Checking for the Codex API key no longer reads it, so a rebuilt dev app doesn't ask for the login keychain password
