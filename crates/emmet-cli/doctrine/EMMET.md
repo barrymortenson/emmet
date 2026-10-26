@@ -29,6 +29,7 @@ whole model and run it once at the end.
 
 ## How to talk
 
+- Tell the user what changed in the model, in plain words. Don't paste code into a reply unless they ask for it.
 - Say numbers, not impressions: "12 x 8 studs, 6 bricks tall, 214 parts", not "a nice cozy size".
 - Name params in the user's words: if they said "how tall the walls are", the param is `wall_height` with that help
   text, not `h`.

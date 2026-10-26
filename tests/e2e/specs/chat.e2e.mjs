@@ -125,6 +125,8 @@ for (const kind of ["claude", "codex"]) {
       await start(kind, kind === "claude" ? "mid-turn-message" : "mid-turn-steer");
       await say("Use the block tool with seconds=20. When it returns, reply with one short sentence.");
       await (await $('[data-tool="mcp__emmet__block"]')).waitForExist({ timeout: 30_000 });
+      // A long tool call is quiet: the chat says the agent is still working.
+      await (await $("#chat-working")).waitForExist({ timeout: 5_000 });
       await say("Also include the word banana in your reply.");
       await waitFor("the redirect wasn't delivered", () =>
         browser.execute(() => !!document.querySelector("[data-note] .delivered")),

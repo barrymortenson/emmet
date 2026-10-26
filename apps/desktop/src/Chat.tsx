@@ -258,6 +258,8 @@ export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits,
   const [text, setText] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const list = useRef<HTMLDivElement | null>(null);
+  /** When the agent last said anything (Date.now()), for the "still working" line. */
+  const [heard, setHeard] = useState(() => Date.now());
   const session = useRef<string | null>(null);
   /** Event `at` times waiting for their commit, and the measured event → DOM times (ms): the pixels follow at the next
    * frame. */
@@ -287,6 +289,7 @@ export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits,
     const off = events.chatEvent.listen(({ payload }) => {
       if (payload.session !== session.current) return;
       painting.current.push(payload.at ?? Date.now());
+      setHeard(Date.now());
       dispatch({ type: "event", event: payload.event });
       const e = payload.event;
       if (e.type === "limits") onLimits(e.snapshot);
@@ -318,13 +321,13 @@ export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits,
     onStatus(chat.question ? "Waiting for your answer" : chat.running ? "The agent is working" : null);
   }, [chat.question, chat.running, onStatus]);
 
-  // Pending redirects older than STUCK_MS offer "Stop and send now".
+  // Pending redirects older than STUCK_MS offer "Stop and send now", and the "still working" line counts seconds.
   const pending = chat.items.some((i) => i.kind === "user" && i.note && i.delivered == null);
   useEffect(() => {
-    if (!pending) return;
+    if (!pending && !chat.running) return;
     const t = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(t);
-  }, [pending]);
+  }, [pending, chat.running]);
 
   const run = async (f: () => Promise<{ status: "ok" } | { status: "error"; error: { message: string; hint: string } }>) => {
     const r = await f();
@@ -362,6 +365,7 @@ export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits,
       return;
     }
     dispatch({ type: "user", text: t, at: Date.now() });
+    setHeard(Date.now());
     await run(() => commands.chatSend(t));
   };
 
@@ -441,6 +445,13 @@ export function ChatPane({ project, agentsChanged, warning, onTurnEnd, onLimits,
             onResume={() => live == null && shown && void start(shown, true)}
           />
         ))}
+        {/* An agent can think, or run its own hooks, for a minute without a word: say it's still at it. */}
+        {live && chat.running && !chat.question && (
+          <p className="status-line" id="chat-working" role="status">
+            {live.kind === "claude" ? "Claude Code" : "Codex"} is working
+            {now - heard >= 3000 ? ` · ${Math.round((now - heard) / 1000)} s since its last update` : "…"}
+          </p>
+        )}
       </div>
       {live && warning && !chat.running && <p className="muted warning">{warning}</p>}
       {live && (
