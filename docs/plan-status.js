@@ -77,7 +77,7 @@ window.EMMET_STATUS = {
     "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },
     "H-02": { status: "done", date: "2026-10-24", note: "runner emmet-mac registered by the agent with approval; PR #1 mac job green on it" },
     "H-03": { status: "done", date: "2026-10-24", note: "Claude Code 2.1.310 on Barry's plan; Codex 0.160.1 logged in using ChatGPT" },
-    "H-04": { status: "todo" },
+    "H-04": { status: "done", date: "2026-10-25", note: "Windows 11 ARM VM (Parallels); Claude Code (native installer, Max plan) and Codex 0.164.0 (npm, API key) both edited the model from Emmet; ADR 0001's Windows section" },
     "H-05": { status: "todo", note: "Apple Developer Program: enrolled" },
     "H-06": { status: "todo" },
     "H-07": { status: "todo" },

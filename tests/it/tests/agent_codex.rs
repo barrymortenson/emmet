@@ -600,6 +600,26 @@ fn the_api_key_comes_from_the_keychain() {
     assert_eq!(usage.status, UsageStatus::ApiKey);
 }
 
+/// H-04, Codex 0.164 on Windows: under on-request every PowerShell command asks (even a read), while Emmet's own tool
+/// calls are accepted without a card. Replayed from Barry's VM session, scrubbed.
+#[test]
+fn windows_every_command_asks() {
+    let rig = rig("codex-windows", "windows-approvals");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("make it 10 bricks high")).unwrap();
+    let mut decisions = vec![Decision::AllowOnce, Decision::AllowSession];
+    let events = turn_answering(s.as_mut(), &mut ev, &mut decisions);
+    s.close();
+    assert_json_snapshot!(rig.outline(&events));
+    assert!(decisions.is_empty(), "two command cards");
+    let accepted = rig
+        .written()
+        .iter()
+        .filter(|m| m["result"]["action"] == "accept")
+        .count();
+    assert_eq!(accepted, 5, "Emmet's five tool calls, accepted without a card");
+}
+
 /// What Emmet sends validates against the committed app-server schema, what it reads is in it, and the methods it
 /// uses are the schema's: a Codex update that changes them fails here, not in a chat (plan section 10).
 #[test]

@@ -201,8 +201,10 @@ impl Servers {
         Self { rt, clients }
     }
 
+    /// Whether the fake runs `tool` for real. `render` keeps its recorded result: in a test it would open the app's
+    /// hidden render window for every call (tests/it/tests/{render,mcp}.rs cover the real one).
     pub fn has(&self, server: &str, tool: &str) -> bool {
-        self.clients.get(server).is_some_and(|(_, t)| t.contains(tool))
+        tool != "render" && self.clients.get(server).is_some_and(|(_, t)| t.contains(tool))
     }
 
     /// Calls a tool and returns the MCP result as JSON (`content`, `structuredContent`, `isError`).

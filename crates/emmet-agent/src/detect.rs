@@ -161,9 +161,16 @@ pub fn detect(kind: AgentKind, env: &[(String, String)], has_key: bool) -> Detec
         note: None,
     };
     let Some(bin) = d.path.clone() else {
-        d.fix = Some(match kind {
-            AgentKind::Claude => "Install Claude Code: https://code.claude.com/docs/en/setup".into(),
-            AgentKind::Codex => "Install Codex: npm install -g @openai/codex".into(),
+        // H-04 (ADR 0001): on Windows the installers add their folder to PATH only for terminals opened afterwards.
+        d.fix = Some(match (kind, cfg!(windows)) {
+            (AgentKind::Claude, false) => "Install Claude Code: https://code.claude.com/docs/en/setup".into(),
+            (AgentKind::Claude, true) => {
+                "Install Claude Code in PowerShell: irm https://claude.ai/install.ps1 | iex. Then \
+                                          open a new terminal, run claude, and sign in with /login."
+                    .into()
+            }
+            (AgentKind::Codex, false) => "Install Codex: npm install -g @openai/codex".into(),
+            (AgentKind::Codex, true) => "Install Node.js, then in a new terminal: npm install -g @openai/codex".into(),
         });
         return d;
     };
