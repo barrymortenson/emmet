@@ -1618,7 +1618,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <li><code>done</code> needs <code>pr</code> and at least one evidence line. A session's status changes only on that session's branch (or on the reconcile branch).</li>
 <li><code>scripts/plan-check.mjs</code> (Node, no dependencies, written in 0A) runs in CI and fails when: an id in the status file doesn't exist in this plan or the reverse; a status value is invalid; <code>done</code> lacks a PR or evidence; <code>blocked</code> lacks an open blocker; a session is <code>in-progress</code>/<code>review</code>/<code>done</code> while a session it comes after is not done (a warning, not a failure, when Barry allowed it); or a session's <code>data-after</code> names a session that doesn't exist.</li>
 </ul>
-<p class="small">The rail shows: overall progress (sessions done of the total, excluding Phase 8), <i>Working on</i>, <i>Up next</i> (one session) with a copy button, <i>Waiting on you</i> (human steps that block a session that's up next or underway), <i>Blocked</i>, the gates, and a bar per phase. If the file is missing or broken, the rail says so and nothing shows as done.</p>
+<p class="small">The rail shows: overall progress (sessions done of the total, excluding Phase 8), <i>Working on</i>, <i>Up next</i> (one session) with a copy button, <i>Waiting on you</i> (human steps that block a session that's up next or underway), <i>Blocked</i>, the gates (each links to its guide in section 22, and the next undecided one says what it is and what it blocks), and a bar per phase. A link to a guide opens it. If the file is missing or broken, the rail says so and nothing shows as done.</p>
 </section>
 
 <!-- ============================================================ 21 -->
@@ -3080,9 +3080,24 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
       blocked.map(link).join("<br>") + (blocked.length && openBlk.length ? "<br>" : "") +
       openBlk.map(function (b) { return esc(b.id) + " (" + esc(b.session) + "): " + esc(b.text); }).join("<br>") + "</div>";
   }
+  // Each gate links to its YOU step's guide (section 22); the first one not yet decided says what it is and what waits on it.
   var gates = (S && S.gates) || {};
-  html += '<div class="k">Gates</div><div class="v">G1: ' + esc((gates.G1 && gates.G1.status) || "todo") +
-    " · G2 POC: " + esc((gates.G2 && gates.G2.status) || "todo") + "</div>";
+  var gateRow = {};
+  hrows.forEach(function (tr) { var p = $(".pill.gate", tr); if (p) gateRow[one(p.textContent)] = tr; });
+  var gateIds = Object.keys(gateRow).sort();
+  function gst(g) { return (gates[g] && gates[g].status) || "todo"; }
+  function gateHref(g) { var a = gateRow[g] && $('a[href^="#g-"]', gateRow[g]); return a ? a.getAttribute("href") : "#s22"; }
+  function gateWhat(g) { return hTitle(gateRow[g].getAttribute("data-h")).replace(/^G\d\s*/, ""); }
+  html += '<div class="k">Gates</div><div class="v">' + gateIds.map(function (g) {
+    return '<a href="' + esc(gateHref(g)) + '" title="' + esc(gateWhat(g)) + '">' + esc(g) + "</a>: " + esc(gst(g));
+  }).join(" · ");
+  var upcoming = gateIds.filter(function (g) { return gst(g) === "todo"; })[0];
+  if (upcoming) {
+    var tr = gateRow[upcoming];
+    html += '<br><span style="color:#9aa1ad">Next, <a href="' + esc(gateHref(upcoming)) + '">' + esc(upcoming) + "</a> (" +
+      esc(tr.getAttribute("data-h")) + "): " + esc(gateWhat(upcoming)) + ". Blocks " + esc(one(tr.cells[2].textContent)) + ".</span>";
+  }
+  html += "</div>";
   html += '<div class="k">By phase</div>';
   $$(".phase[data-phase]").forEach(function (ph) {
     var n = ph.getAttribute("data-phase");
@@ -3097,6 +3112,14 @@ packages/viewer (three.js) · python/emmet_dsl · tests/it (integration) · test
   $$("button.cp", panel).forEach(function (b) {
     onCopy(b, function () { return sessionText(byId[b.getAttribute("data-copy")]); });
   });
+
+  // A link to a guide (a collapsed <details>, such as #g-h06) opens it.
+  function openTarget() {
+    var t = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (t && t.tagName === "DETAILS") { t.open = true; t.scrollIntoView(); }
+  }
+  window.addEventListener("hashchange", openTarget);
+  openTarget();
 })();
 </script>
 </body>
