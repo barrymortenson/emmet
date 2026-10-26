@@ -146,13 +146,13 @@ impl Rig {
                 self.fake.join("keychain").display().to_string(),
             ),
         ];
+        // Windows names are case-insensitive (SystemRoot is SYSTEMROOT), so each is listed once.
         for key in [
             "PATH",
             "TMPDIR",
             "TEMP",
             "TMP",
             "SystemRoot",
-            "SYSTEMROOT",
             "windir",
             "PATHEXT",
             "ComSpec",
