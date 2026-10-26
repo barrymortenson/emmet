@@ -72,3 +72,5 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   with the `full-ci` label. `just test` builds only when a suite needs it, and the 0B spike crates left the workspace.
 - Agent permissions are sandbox first (D-40), section 10 quotes OpenAI's current wording, and the LDCad shadow
   library's connector data will ship as its own CC BY-SA 4.0 file (Q-01).
+- Checking for the Codex API key no longer reads it, so a rebuilt dev app doesn't ask for the login keychain password
+  at launch; the key is read only when a Codex session starts.

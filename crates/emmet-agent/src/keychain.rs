@@ -6,6 +6,7 @@
 //! Tests never touch the real keychain: in a debug build, `EMMET_FAKE_KEYCHAIN=<file>` in the agents' environment
 //! keeps the secret in that file instead.
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Once;
 
@@ -39,6 +40,18 @@ fn store() -> Result<keyring_core::Entry> {
 
 fn failed(e: keyring_core::Error) -> AgentError {
     AgentError::new(AgentErrorCode::Io, format!("the keychain: {e}"))
+}
+
+/// Whether a key is stored, without reading it. On macOS, reading the secret asks for the login password whenever the
+/// app's signature differs from the one that saved it (every rebuild of a dev build), so detection only looks the
+/// item up by its attributes; the key itself is read when a Codex session starts.
+pub fn has(env: &[(String, String)]) -> Result<bool> {
+    if cfg!(target_os = "macos") && fake(env).is_none() {
+        store()?;
+        let spec = HashMap::from([("service", SERVICE), ("user", OPENAI)]);
+        return Ok(!keyring_core::Entry::search(&spec).map_err(failed)?.is_empty());
+    }
+    Ok(get(env)?.is_some())
 }
 
 /// The stored key, or None.
