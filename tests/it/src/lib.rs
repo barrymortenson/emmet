@@ -7,6 +7,7 @@
 //! the runner's temp dir; locally they default to `target/it-data` and `target/it-home`.
 
 pub mod agents;
+pub mod chatgpt;
 pub mod schema;
 
 use std::path::{Path, PathBuf};

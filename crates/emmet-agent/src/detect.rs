@@ -201,14 +201,14 @@ pub fn detect(kind: AgentKind, env: &[(String, String)], has_key: bool) -> Detec
             }
         }
         AgentKind::Codex => {
-            // Emmet runs Codex only on the user's API key, through its own provider block, never on the CLI's own
-            // login (D-35); Sign in with ChatGPT comes in 1E.
+            // Emmet runs Codex on the user's API key or ChatGPT plan (the adapter adds that), through its own
+            // provider block, never on the CLI's own login (D-35).
             d.signed_in = has_key;
             d.billing = Billing::ApiKey {
                 source: Some("keychain".into()),
             };
             if !has_key {
-                d.fix = Some("Add your OpenAI API key in Settings → Agents.".into());
+                d.fix = Some("Continue with ChatGPT, or add your OpenAI API key, in Settings → Agents.".into());
             }
         }
     }

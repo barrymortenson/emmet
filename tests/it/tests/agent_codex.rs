@@ -12,7 +12,7 @@ use emmet_it::agents::{Events, Rig};
 use emmet_it::repo;
 use emmet_it::schema::validate;
 use insta::assert_json_snapshot;
-use serde_json::Value;
+use serde_json::{Value, json};
 
 const CODEX: AgentKind = AgentKind::Codex;
 const KEY: &str = "sk-test-not-a-real-key";
@@ -561,7 +561,10 @@ fn the_api_key_comes_from_the_keychain() {
     let rig = Rig::new("codex-no-key", "codex", "plain-turn");
     let d = rig.adapter(CODEX).detect();
     assert!(!d.signed_in);
-    assert_eq!(d.fix.as_deref(), Some("Add your OpenAI API key in Settings → Agents."));
+    assert_eq!(
+        d.fix.as_deref(),
+        Some("Continue with ChatGPT, or add your OpenAI API key, in Settings → Agents.")
+    );
     let err = rig.adapter(CODEX).start(rig.cfg.clone()).err().unwrap();
     assert_eq!(err.code, AgentErrorCode::NotSignedIn);
 
@@ -743,4 +746,157 @@ fn a_collision_finding_is_fixed_at_its_line() {
     let (v, code) = emmet_it::emmet_json(&["check", "--strict", "--project", rig.project.to_str().unwrap()]);
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["findings"], serde_json::json!([]));
+}
+
+// ------------------------------------------------------------------------------------- Codex on a ChatGPT plan (1E)
+
+const PLAN_ID: &str = "oaiapp_test1";
+
+/// A rig signed in to fake-openai's account, with ChatGPT chosen for Codex, as Continue with ChatGPT leaves it.
+fn plan_rig(name: &str, scenario: &str) -> (emmet_it::chatgpt::Plan, Rig) {
+    let plan = emmet_it::chatgpt::Plan::new(name);
+    plan.signed_in(None);
+    let rig = Rig::new(name, "codex", scenario).with_plan(&plan);
+    (plan, rig)
+}
+
+fn started_env(rig: &Rig, n: usize) -> std::collections::BTreeMap<String, String> {
+    serde_json::from_value(rig.record("codex", n)["env"].clone()).unwrap()
+}
+
+/// OpenAI's Codex app-server page: its provider block word for word, the access token in ACCESS_TOKEN, and a
+/// clientInfo.name that matches the registration's agent_name_hint.
+#[test]
+fn plan_turn() {
+    let (plan, rig) = plan_rig("codex-plan-turn", "plain-turn");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    s.close();
+    assert!(
+        matches!(&events[0], AgentEvent::Started { billing: Some(b), .. } if *b == emmet_agent::codex::plan_billing())
+    );
+    assert!(matches!(
+        events.last(),
+        Some(AgentEvent::TurnDone {
+            reason: DoneReason::Completed
+        })
+    ));
+    let args: Vec<String> = serde_json::from_value(rig.record("codex", 0)["args"].clone()).unwrap();
+    let provider: Vec<&str> = args
+        .iter()
+        .filter(|a| a.starts_with("model_provider"))
+        .map(String::as_str)
+        .collect();
+    assert_eq!(
+        provider,
+        [
+            "model_provider=\"openai_chatgpt_plan\"",
+            "model_providers.openai_chatgpt_plan.name=\"ChatGPT plan\"",
+            "model_providers.openai_chatgpt_plan.base_url=\"https://api.openai.com/v1\"",
+            "model_providers.openai_chatgpt_plan.env_key=\"ACCESS_TOKEN\"",
+            "model_providers.openai_chatgpt_plan.wire_api=\"responses\"",
+            "model_providers.openai_chatgpt_plan.requires_openai_auth=false",
+            "model_providers.openai_chatgpt_plan.supports_websockets=false",
+        ]
+    );
+    let token = plan.record(PLAN_ID).unwrap()["access_token"].clone();
+    assert_eq!(
+        started_env(&rig, 0).get(emmet_agent::codex::TOKEN_VAR).cloned(),
+        token.as_str().map(String::from)
+    );
+    let init = rig.written().into_iter().find(|m| m["method"] == "initialize").unwrap();
+    assert_eq!(init["params"]["clientInfo"]["name"], "Emmet");
+    let d = rig.adapter(CODEX).detect();
+    assert!(d.signed_in && d.billing == emmet_agent::codex::plan_billing(), "{d:?}");
+}
+
+/// OpenAI's renewal rule: a renewed token restarts the app-server with the new ACCESS_TOKEN, which initializes and
+/// resumes the saved thread. The chat sees one session: the old process's exit isn't passed on.
+#[test]
+fn plan_token_renews_between_turns() {
+    let (plan, rig) = plan_rig("codex-plan-renew", "resume");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let mut events = ev.turn();
+    let thread = s.resume_token().expect("a thread");
+    let first = plan.record(PLAN_ID).unwrap()["access_token"].clone();
+    // Time passes: the token has 10 minutes left, less than a turn may need.
+    plan.edit_record(PLAN_ID, |r| {
+        r["expires_at"] = json!(emmet_agent::time::now_ms() as i64 / 1000 + 600)
+    });
+    s.send(turn("Reply with exactly the word: again")).unwrap();
+    events.extend(ev.turn());
+    s.close();
+    let renewed = plan.record(PLAN_ID).unwrap()["access_token"].clone();
+    assert_ne!(renewed, first);
+    let env = |n| {
+        started_env(&rig, n)
+            .get(emmet_agent::codex::TOKEN_VAR)
+            .cloned()
+            .map(Value::from)
+    };
+    assert_eq!(
+        (env(0), env(1)),
+        (Some(first), Some(renewed)),
+        "a new app-server on the new token"
+    );
+    let resumed = rig
+        .written()
+        .into_iter()
+        .find(|m| m["method"] == "thread/resume")
+        .expect("thread/resume");
+    assert_eq!(resumed["params"]["threadId"], thread.as_str());
+    assert!(
+        !events
+            .iter()
+            .any(|e| matches!(e, AgentEvent::Exited { .. } | AgentEvent::Error { .. })),
+        "the restart is invisible: {events:?}"
+    );
+    let done = events
+        .iter()
+        .filter(|e| {
+            matches!(
+                e,
+                AgentEvent::TurnDone {
+                    reason: DoneReason::Completed
+                }
+            )
+        })
+        .count();
+    assert_eq!(done, 2);
+}
+
+/// OpenAI's usage-limit error: one error with OpenAI's recovery and the response's own code and request id, the turn
+/// ends, and nothing restarts or switches to another way of paying.
+#[test]
+fn plan_usage_limit() {
+    let (_plan, rig) = plan_rig("codex-plan-limit", "derived-plan-usage-limit");
+    rig.key(KEY);
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let errors: Vec<&AgentEvent> = events
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::Error { .. }))
+        .collect();
+    let [AgentEvent::Error { code, message }] = errors.as_slice() else {
+        panic!("one error: {events:?}")
+    };
+    assert_eq!(*code, AgentErrorCode::QuotaExceeded);
+    assert!(message.starts_with(emmet_agent::codex::LIMIT), "{message}");
+    assert!(message.contains("subscription_sharing_usage_limit_exceeded") && message.contains("req_plan_limit_1"));
+    assert!(!message.contains("resets"), "no reset time is inferred");
+    assert!(matches!(
+        events.last(),
+        Some(AgentEvent::TurnDone {
+            reason: DoneReason::Failed
+        })
+    ));
+    assert!(!rig.fake.join("codex-1.json").exists(), "no restart");
+    assert!(
+        !started_env(&rig, 0).contains_key(emmet_agent::codex::KEY_VAR),
+        "the API key isn't used"
+    );
 }

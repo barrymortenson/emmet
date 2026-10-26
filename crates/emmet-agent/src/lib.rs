@@ -6,6 +6,7 @@
 //! `session` is the shared engine (the process, the transcript, turns, redirect notes, questions, approvals, file
 //! changes, and crashes); `claude` and `codex` are each one [`session::Protocol`]: arguments, encoding, and mapping.
 
+pub mod chatgpt;
 pub mod claude;
 pub mod codex;
 pub mod detect;
@@ -423,10 +424,11 @@ impl SessionConfig {
     }
 }
 
-/// An adapter for `kind`, running the CLI with `env`; `data` is the app data dir (Claude's usage probe runs there).
+/// An adapter for `kind`, running the CLI with `env`; `data` is the app data dir (Claude's usage probe runs there, and
+/// the ChatGPT accounts are there).
 pub fn adapter(kind: AgentKind, env: &[(String, String)], data: &std::path::Path) -> Box<dyn AgentAdapter> {
     match kind {
         AgentKind::Claude => Box::new(claude::Claude::new(env.to_vec()).with_data(data.to_path_buf())),
-        AgentKind::Codex => Box::new(codex::Codex::new(env.to_vec())),
+        AgentKind::Codex => Box::new(codex::Codex::new(env.to_vec(), data)),
     }
 }

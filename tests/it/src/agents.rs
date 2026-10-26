@@ -67,6 +67,9 @@ pub struct Rig {
     pub fake: PathBuf,
     pub home: PathBuf,
     pub cfg: SessionConfig,
+    /// The app data dir the adapter reads the ChatGPT accounts from (the shared one, or a [`crate::chatgpt::Plan`]'s);
+    /// the bus stays on the shared one.
+    pub data: PathBuf,
 }
 
 impl Rig {
@@ -107,6 +110,7 @@ impl Rig {
             project,
             fake,
             home,
+            data: shared_data().to_path_buf(),
         };
         rig.scenario(cli, "", scenario);
         let mut rig = rig;
@@ -166,7 +170,15 @@ impl Rig {
     }
 
     pub fn adapter(&self, kind: AgentKind) -> Box<dyn AgentAdapter> {
-        emmet_agent::adapter(kind, &self.cfg.env, &self.cfg.data)
+        emmet_agent::adapter(kind, &self.cfg.env, &self.data)
+    }
+
+    /// Runs on `plan`'s ChatGPT accounts, keychain, fake issuer, and fake browser.
+    pub fn with_plan(mut self, plan: &crate::chatgpt::Plan) -> Self {
+        self.cfg.env.retain(|(k, _)| !plan.env.iter().any(|(p, _)| p == k));
+        self.cfg.env.extend(plan.env.iter().cloned());
+        self.data = plan.data.clone();
+        self
     }
 
     /// Saves a Codex key in the rig's file keychain.

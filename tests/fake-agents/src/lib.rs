@@ -113,6 +113,10 @@ impl Subst {
         }
         pairs.push(("<WS>".into(), p(project.parent().unwrap_or(project))));
         pairs.push(("<TMP>".into(), p(&std::env::temp_dir())));
+        // A transcript can echo the ChatGPT plan's access token back, as a CLI's error might (1E's leak test).
+        if let Ok(t) = std::env::var("ACCESS_TOKEN") {
+            pairs.push(("<ACCESS_TOKEN>".into(), t));
+        }
         Self(pairs)
     }
 

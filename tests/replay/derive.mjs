@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Builds the derived replay fixtures (tests/replay/{claude,codex}/derived-*.jsonl) from 0B's recordings: the flows
 // that use Emmet's real tools (edit, run_model, ask_user) and the failure cases 1C's replay tests need (a crash
-// mid-stream, a malformed line, an unknown event, a question canceled by Stop, a redirect sent as the next turn).
+// mid-stream, a malformed line, an unknown event, a question canceled by Stop, a redirect sent as the next turn), and
+// 1E's ChatGPT plan usage limit and a CLI that echoes its access token.
 // Every line is one of 0B's, cloned and changed only where this script says; each file's meta line names its source.
 // The fakes call the real MCP servers, so a tool result here is a placeholder the fake replaces.
 //
@@ -378,6 +379,51 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     ...plain.slice(0, end),
     ...again,
     plain[end],
+  ]);
+
+  // 1E: the Responses API's ChatGPT plan usage-limit error (OpenAI's errors-and-recovery page: HTTP 429,
+  // subscription_sharing_usage_limit_exceeded), where 0B's key hit "Quota exceeded".
+  const limit =
+    'unexpected status 429 Too Many Requests: {"error":{"code":"subscription_sharing_usage_limit_exceeded",' +
+    '"message":"ChatGPT plan usage limit reached.","param":null,"type":"usage_limit"}}, url: ' +
+    "https://api.openai.com/v1/responses, request id: req_plan_limit_1";
+  const planError = (e) => ({ ...e, message: limit, codexErrorInfo: { responseStreamConnectionFailed: { httpStatusCode: 429 } } });
+  save(
+    "codex",
+    "plan-usage-limit",
+    "quota-exceeded.jsonl",
+    "the ChatGPT plan's usage-limit error (429, subscription_sharing_usage_limit_exceeded)",
+    load("codex", "quota-exceeded").map((l) => {
+      const c = clone(l);
+      if (c.msg.method === "error") c.msg.params.error = planError(c.msg.params.error);
+      if (c.msg.method === "turn/completed") c.msg.params.turn.error = planError(c.msg.params.turn.error);
+      return c;
+    }),
+  );
+
+  // 1E's leak test: the CLI echoes the access token it was given (the fake fills in <ACCESS_TOKEN>) on stderr, in an
+  // error, and in the agent's text, the three ways a token could reach the transcript or the chat.
+  const delta = pick(plain, (l) => l.msg.method === "item/agentMessage/delta");
+  const echoText = clone(delta);
+  echoText.msg.params.delta = " (your token is <ACCESS_TOKEN>)";
+  const turnId = delta.msg.params.turnId;
+  save("codex", "plan-echo-token", "plain-turn.jsonl", "the CLI echoes its ACCESS_TOKEN on stderr, in an error, and in text", [
+    ...plain.slice(0, turnStarted + 1),
+    { t: 0, dir: "err", msg: "request failed: Authorization: Bearer <ACCESS_TOKEN>" },
+    {
+      t: 0,
+      dir: "out",
+      msg: {
+        method: "error",
+        params: {
+          error: { message: "token <ACCESS_TOKEN> was slow", codexErrorInfo: "other", additionalDetails: null },
+          willRetry: false,
+          threadId: delta.msg.params.threadId,
+          turnId,
+        },
+      },
+    },
+    ...plain.slice(turnStarted + 1).flatMap((l) => (l === plain.find((x) => x.msg.method === "item/agentMessage/delta") ? [l, echoText] : [l])),
   ]);
 }
 console.log("derive: ok");

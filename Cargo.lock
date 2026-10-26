@@ -974,9 +974,11 @@ dependencies = [
  "apple-native-keyring-store",
  "emmet-core",
  "keyring-core",
+ "ring",
  "serde",
  "serde_json",
  "specta",
+ "ureq",
  "windows-native-keyring-store",
 ]
 
@@ -1046,6 +1048,8 @@ dependencies = [
 name = "emmet-fake-agents"
 version = "0.1.0"
 dependencies = [
+ "emmet-core",
+ "ring",
  "rmcp",
  "serde_json",
  "tokio",

@@ -148,6 +148,7 @@ impl AgentAdapter for Claude {
             cmd,
             Box::new(proto),
             meta,
+            vec![],
         )?))
     }
 

@@ -10,9 +10,11 @@ publish.workspace = true
 [dependencies]
 emmet-core.workspace = true
 keyring-core.workspace = true
+ring.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 specta = { workspace = true, optional = true }
+ureq.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 apple-native-keyring-store.workspace = true
