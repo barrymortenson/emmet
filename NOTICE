@@ -26,5 +26,11 @@ Rebrickable
 Part, color, and set data from Rebrickable (rebrickable.com), from its catalog
 downloads. The test fixture tests/fixtures/rebrickable-mini/ is a cut of them.
 
+OpenAI
+apps/desktop/src/assets/openai/chatgpt-logo-white.svg is OpenAI's ChatGPT logo,
+unchanged, used only in the "Continue with ChatGPT" button as OpenAI's Sign in
+with ChatGPT guidelines direct. It is OpenAI's trademark and is not covered by
+these licenses.
+
 LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize, or
 endorse this software.

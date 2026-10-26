@@ -25,3 +25,7 @@ LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize, or e
 trademark owned and licensed by the Estate of James Jessiman. Claude and Claude Code are trademarks of Anthropic;
 Codex and ChatGPT are trademarks of OpenAI. Emmet works with those tools and isn't affiliated with or endorsed by
 either company.
+
+The ChatGPT logo in `apps/desktop/src/assets/openai/` is OpenAI's, shipped unchanged and shown only inside the
+"Continue with ChatGPT" button, in the format OpenAI's Sign in with ChatGPT UI guidelines approve. It isn't covered by
+Emmet's licenses, and a fork may use it only as OpenAI's guidelines allow.
