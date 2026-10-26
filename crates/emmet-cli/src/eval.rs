@@ -248,11 +248,10 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
             "Quit the Emmet app (or `just dev`), then run the eval again.",
         ));
     }
-    let mut env: Vec<(String, String)> = if opts.dry_run {
-        std::env::vars().collect()
-    } else {
-        emmet_agent::env::login_env()
-    };
+    // The CLI gets emmet's own environment: run from a terminal, that's already the login shell's. (The app reads the
+    // login shell's with an interactive `$SHELL -ilc`, which here would take the terminal over and leave the eval
+    // suspended at its first question.)
+    let mut env: Vec<(String, String)> = std::env::vars().collect();
     let mut openai_key = None;
     if !opts.dry_run {
         let (service, var) = match opts.agent {
