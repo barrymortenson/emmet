@@ -69,7 +69,7 @@ window.EMMET_STATUS = {
       ],
       note: "G1 (H-06) is Barry's decision from the eval report and his own testing"
     },
-    "1E": { status: "in-progress", branch: "bmortenson/s1e-chatgpt-plan-signin", started: "2026-10-26" },
+    "1E": { status: "review", pr: 21, branch: "bmortenson/s1e-chatgpt-plan-signin", started: "2026-10-26" },
     "1F": { status: "todo" },
     "2A": { status: "todo" },
     "2B": { status: "todo" },
