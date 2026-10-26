@@ -5,7 +5,9 @@
 // under 50 ms between an agent event and its pixels, and the user's agent configs are untouched.
 import { $, expect } from "@wdio/globals";
 import { instances, open, screenshots } from "../lib/app.mjs";
-import { agentConfigHashes, scenario } from "../lib/agents.mjs";
+import { rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { agentConfigHashes, fakeDir, scenario } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const projects = { claude: projectDir("chat"), codex: projectDir("chat-codex") };
@@ -77,6 +79,19 @@ for (const kind of ["claude", "codex"]) {
       await pick.waitForEnabled({ timeout: 30_000 });
       const badge = await browser.execute((k) => document.getElementById(`agent-${k}`)?.nextElementSibling?.textContent, kind);
       expect(badge).toBe(kind === "claude" ? "Claude · Max plan" : "Codex · API key");
+      if (kind === "claude") {
+        // A key in the user's environment bills instead of the plan (ADR 0001): the picker says so before a chat.
+        writeFileSync(join(fakeDir, "claude-auth.json"), '{"loggedIn":true,"authMethod":"api_key","apiKeySource":"ANTHROPIC_API_KEY"}');
+        await press(".picker", "Look again");
+        await waitFor("the picker didn't show the key", async () =>
+          (await browser.execute(() => document.querySelector(".picker")?.innerText ?? "")).includes("will bill the API key in ANTHROPIC_API_KEY"),
+        );
+        rmSync(join(fakeDir, "claude-auth.json"));
+        await press(".picker", "Look again");
+        await waitFor("the picker didn't go back to the plan", async () =>
+          (await browser.execute(() => document.getElementById("agent-claude")?.nextElementSibling?.textContent)) === "Claude · Max plan",
+        );
+      }
     });
 
     it("edits model.py and the viewer updates", async () => {

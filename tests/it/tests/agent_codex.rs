@@ -103,10 +103,7 @@ fn plain_turn() {
         .into_iter()
         .find(|m| m["method"] == "thread/start")
         .unwrap();
-    assert_eq!(
-        start["params"]["developerInstructions"],
-        emmet_core::project::AGENT_POINTER
-    );
+    assert_eq!(start["params"]["developerInstructions"], emmet_agent::APP_POINTER);
     assert_eq!(start["params"]["cwd"], rig.project.display().to_string());
 }
 

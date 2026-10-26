@@ -87,7 +87,7 @@ pub fn args(mcp: &std::path::Path, resume: Option<&str>, model: Option<&str>) ->
             "--settings",
             settings(),
             "--append-system-prompt",
-            emmet_core::project::AGENT_POINTER,
+            crate::APP_POINTER,
         ]
         .map(String::from),
     );

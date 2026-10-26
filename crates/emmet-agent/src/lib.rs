@@ -26,6 +26,14 @@ use serde_json::Value;
 pub use hub::Hub;
 pub use usage::UsageSnapshot;
 
+/// The pointer the app gives the agent (plan section 10): through Claude Code's `--append-system-prompt` and Codex's
+/// `developerInstructions`. Unlike a project's AGENTS.md (`emmet_core::project::AGENT_POINTER`), it never mentions a
+/// terminal: in the app the `emmet` command isn't on the agent's PATH, and 1C's live check found Codex trying it.
+pub const APP_POINTER: &str = "You are operating Emmet, which builds brick models from real LDraw parts. Use its two MCP \
+servers: before anything else, call the `rules` tool on the `emmet` server and follow it; use the `emmet` tools to search \
+parts, run the model, and render it; and to ask the user a question, call `ask_user` on the `emmet_host` server, which \
+shows them a card. The `emmet` command isn't on your PATH here, so don't run it in a shell.";
+
 /// This crate's version, which tracks the workspace.
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")

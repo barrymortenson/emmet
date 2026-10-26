@@ -255,7 +255,7 @@ impl CodexProto {
                             .into(),
                     });
                 }
-                let instructions = emmet_core::project::AGENT_POINTER.to_string();
+                let instructions = crate::APP_POINTER.to_string();
                 match self.resume.clone() {
                     Some(thread_id) => {
                         let p = ThreadResumeParams {

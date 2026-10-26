@@ -502,6 +502,7 @@ function Picker({
               </button>
             )}
             {a.detection.fix && <p className="muted fix">{a.detection.fix}</p>}
+            {ok && a.warning && <p className="muted fix">{a.warning}</p>}
             {a.detection.note && <p className="muted">{a.detection.note}</p>}
           </div>
         );

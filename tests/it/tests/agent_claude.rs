@@ -573,10 +573,7 @@ fn the_claude_process_gets_the_login_environment_unchanged() {
     assert_eq!(after("--permission-prompt-tool"), Some("mcp__emmet_host__approve"));
     assert_eq!(after("--disallowedTools"), Some("AskUserQuestion"));
     assert_eq!(after("--settings"), Some(claude::settings()));
-    assert_eq!(
-        after("--append-system-prompt"),
-        Some(emmet_core::project::AGENT_POINTER)
-    );
+    assert_eq!(after("--append-system-prompt"), Some(emmet_agent::APP_POINTER));
     assert!(args.contains(&"--strict-mcp-config"));
 }
 
