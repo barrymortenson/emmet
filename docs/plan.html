@@ -467,11 +467,11 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-34</td><td>Build animation</td><td>Agent-driven runs animate in the viewer: added parts drop in brick by brick in build order (step, then bottom-up), capped in total time and skippable. Slider runs never animate. The doctrine has the agent build in visible stages so the user can judge direction early. Setting: Animated (default), Fast, or Off; reduced motion means Off.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-35</td><td>Plans and keys</td><td><b>Claude:</b> the chat pane runs the user's own unmodified Claude Code with whatever sign-in the user gave it in their own terminal (a Pro or Max plan, or an API key). Emmet passes the user's environment through unchanged: no <code>--bare</code>, no added, removed, or filtered credential variables, and no reading of Claude Code's credentials. <b>Codex:</b> the chat pane uses an OpenAI API key the user enters in Emmet (kept in the OS keychain) through the app-server's provider config. ChatGPT plan use in the chat pane comes only through OpenAI's Sign in with ChatGPT for open-source apps (1E), which Emmet qualifies for as public AGPL-3.0 code (D-14). An API key stays an option. Emmet never starts the app-server on the CLI's own <code>codex login</code>. <b>Both:</b> terminal mode (the user runs the CLI themselves) works with any sign-in. Emmet never pays for, resells, or proxies usage.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-36</td><td>Plan usage display</td><td><b>Claude:</b> status bar meters from Claude Code's documented <code>/usage</code> report and <code>rate_limit_event</code>, fetched only when the user opens the usage popover, presses refresh, or finishes a turn. <b>Codex:</b> no meters, because OpenAI documents no usage source for API-key or Sign in with ChatGPT sessions. With Sign in with ChatGPT (1E), Emmet shows OpenAI's required "Using ChatGPT plan" label with a "Manage usage" link. Emmet never reads a token or calls a private endpoint.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
-<tr><td class="id">D-37</td><td>Terms gate</td><td>A feature that touches an AI provider (accounts, sign-in, credentials, billing, usage data, model requests, or names and logos) is built only if the provider's current published text permits that exact use. The quote and its date go in section 10's terms matrix. Anything ambiguous needs the provider's written confirmation (kept in <code>docs/terms/</code>) or it isn't built. The matrix is re-checked in 0B, at G1 and G2, and in 7B. If a provider's terms change, the affected feature is switched off before the next release.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-37</td><td>Terms gate</td><td>A feature that touches an AI provider (accounts, sign-in, credentials, billing, usage data, model requests, or names and logos) is built only if the provider's current published text permits that exact use. The quote and its date go in section 10's terms matrix. Where the text doesn't settle a use, Barry decides from the best reading of the published text and what the provider allows elsewhere; the reasoning goes in <code>docs/terms/</code> beside the quotes. Emmet doesn't wait for answers providers rarely give. Users see a plain notice in first run and About: Emmet runs their own agent on their own account and follows each provider's policies as we read them, but Anthropic, OpenAI, and Google set and change their own terms and can act on accounts in ways Emmet doesn't control, so use is at the user's own risk. The matrix is re-checked in 0B, at G1 and G2, and in 7B. If a provider's terms change against a feature, or the provider objects, the feature is switched off before the next release.</td><td><span class="pill decided">Barry 2026-10-24, amended 2026-10-25</span></td></tr>
 <tr><td class="id">D-38</td><td>Scripted-run budget</td><td>Scripted runs (anything that drives a real agent CLI automatically, billed to Barry's API keys) are kept to a minimum. <b>Replay first:</b> every behavior that recorded transcripts can test is tested that way. <b>Recordings:</b> 0B records each protocol scenario once per CLI (one retry if a recording is unusable). Later fixtures come from Barry's own hand sessions in the app, which are saved and scrubbed anyway. <b>Live evals:</b> only at G1 (rung 1, one run per agent: 2 runs) and G2 (rungs 1–3 and the three-photo rung, one run each per agent: 12 runs). A failed run gets at most one rerun, after a fix. None at Phase 4's exit, before releases, in CI, or for iterating mid-session; iteration uses replays and hand sessions. <code>just eval</code> shows the run count and the expected cost from past reports and asks first. It refuses to go past the gate's budget in <code>docs/evals/budget.json</code> unless Barry passes <code>--over-budget</code>.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-39</td><td>Repo bootstrap and protection</td><td><code>main</code> gets exactly one direct push, ever: in 0A, with Barry's approval of the exact commands, the empty initial commit is pushed to create the remote, before the hooks and protection exist. After that, protection on <code>main</code> requires a PR and the green <code>ci</code> check with 0 required approvals (Barry is the only maintainer and can't approve his own PRs), blocks force-push and deletion, and has no bypass list.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-41</td><td>Agent setup without a terminal</td><td>Emmet is for people who have never opened a terminal. First run offers "Install Claude Code" and "Install Codex": one click runs the provider's own official installer (Claude Code's native installer; OpenAI's published Codex release), unmodified, with progress and no terminal, and only after the user clicks. The result is the user's normal install, so terminal mode and the CLI's own updates work as usual. Sign-in needs no terminal either: Claude Code's own unmodified login, run by Emmet in a sign-in window that opens the browser (1F proves it, with the one-command "Open Terminal" card as the fallback); Codex through Sign in with ChatGPT (1E). Onboarding says plainly which plans work, with each provider's link. Emmet's own code still writes no agent config (D-26); what the installer and the CLI's login write is theirs. Built in 1F, restyled in 4A.</td><td><span class="pill decided">Barry 2026-10-25</span></td></tr>
-<tr><td class="id">D-42</td><td>Google's agent</td><td>Gemini CLI was replaced by Antigravity CLI (<code>agy</code>) for free and Google One users on 2026-06-18, and Google forbids third-party software from using its CLI's sign-in, enforced with account bans. So: <b>terminal mode</b> with Antigravity is supported (the user runs <code>agy</code> and adds Emmet's MCP server with Antigravity's own command; 1F). The <b>chat pane on a Google sign-in</b> is built only after Google confirms in writing that Emmet may run the unmodified CLI under each user's own sign-in (H-25), as session 8H. Emmet never reads or reuses a Google token, and never writes <code>~/.gemini</code>.</td><td><span class="pill decided">Barry 2026-10-25</span></td></tr>
+<tr><td class="id">D-42</td><td>Google's agent</td><td>Gemini CLI was replaced by Antigravity CLI (<code>agy</code>) for free and Google One users on 2026-06-18. Google forbids third-party software from harvesting or piggybacking on its CLI's sign-in to reach Google's services, and bans accounts for it; Emmet never touches that sign-in. <b>Terminal mode</b> (1F) is ordinary use: the user runs <code>agy</code> with Emmet's MCP server added through Antigravity's own command. <b>The chat pane</b> (4F) runs the user's own unmodified <code>agy</code> in Google's documented headless mode, on the sign-in the user gave <code>agy</code> itself, for turns the user starts. That is Barry's best reading (D-37): Google documents headless mode for use from a program, and in 2025 it partnered with Zed to have an editor start Gemini CLI the same way. Emmet never reads or reuses a Google token and never writes <code>~/.gemini</code>.</td><td><span class="pill decided">Barry 2026-10-25</span></td></tr>
 <tr><td class="id">D-40</td><td>Agent permissions</td><td>Sandbox first, like nurb: each CLI's own sandbox (Claude Code's through <code>--settings</code>, Codex's <code>workspace-write</code> with <code>/tmp</code> excluded) is the guard, and Emmet approves what runs inside it. Approval cards appear only for what the sandbox can't contain, and for every shell command and web request under Claude Code on native Windows, which has no sandbox. Section 10 has the flags and the table; 1C proves them on both OSes.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 </table></div>
 </section>
@@ -985,7 +985,7 @@ server → client requests for command/file approvals → Approval events → re
 <li>Not installed: "Install Claude Code" or "Install Codex" runs the provider's official installer, unmodified, with progress (D-41, 1F). Claude not signed in: "Sign in to Claude" runs Claude Code's own login in a sign-in window that opens the browser (1F); if 1F finds no way to do that within Anthropic's terms, the card shows the one step to take in the user's terminal (<code>claude</code>, then <code>/login</code>), with an "Open Terminal" button. Codex in the chat pane: "Add your OpenAI API key" (Settings → Agents, stored in the OS keychain, never in files or logs). Codex on a ChatGPT plan: "Continue with ChatGPT" (1E), OpenAI's sign-in in the system browser. Terminal mode works with any Codex sign-in.</li>
 <li>Each adapter declares a tested version range. Outside it, the chat still works but shows a quiet "untested Codex 0.17x" note, and <code>emmet doctor</code> lists it.</li>
 <li>Windows: 1C verifies both CLIs natively in the VM (H-04) and records their requirements in ADR 0001. If one requires a shell such as Git Bash, onboarding says so.</li>
-<li>Antigravity CLI (<code>agy</code>, D-42): detected for terminal mode only. Onboarding shows how to add Emmet's MCP server with Antigravity's own command and run <code>agy</code> in the project folder. No chat pane until H-25 and 8H.</li>
+<li>Antigravity CLI (<code>agy</code>, D-42): detected like the others, through its own commands. Terminal mode from 1F (onboarding shows how to add Emmet's MCP server with Antigravity's own command and run <code>agy</code> in the project folder); the chat pane from 4F. Not signed in: the card runs <code>agy</code>'s own sign-in, as 1F does for Claude.</li>
 </ul>
 
 <h3>Provider terms (D-35, D-37)</h3>
@@ -1004,11 +1004,11 @@ server → client requests for command/file approvals → Approval events → re
 <tr><td>Installing the CLI for the user (D-41)</td><td><span class="pill decided">Build with conditions</span> The same text allows "preinstalling or running Claude Code in your products" under the Commercial Terms (H-20). Emmet runs Anthropic's official installer unmodified, only when the user clicks, and leaves sign-in to Claude Code's own flow. 1F re-reads the page first.</td><td><span class="pill decided">Build</span> Codex is open source (Apache-2.0). Emmet runs OpenAI's published install or release unmodified, only when the user clicks. 1F re-reads the license and install docs first.</td></tr>
 <tr><td>Reading a CLI's credentials, calling private endpoints, writing user-level agent config, presenting as another client</td><td><span class="pill gate">Never</span></td><td><span class="pill gate">Never</span></td></tr>
 </table></div>
-<p class="small"><b>Google (Antigravity CLI), checked 2026-10-25 (D-42).</b> Gemini CLI's docs say it "was replaced by Antigravity CLI on June 18th, 2026" for unpaid and Google One users, and that using "third-party software, tools, or services (for example, using OpenClaw with Gemini CLI OAuth) is a violation of applicable terms and policies", which "may be grounds for suspension or termination of your account". Google hasn't said whether an app running its unmodified CLI under the user's own sign-in counts; only an unofficial forum reply says it's supported. So: <b>terminal mode</b> is Build (ordinary use; the user adds Emmet's MCP server with Antigravity's own command, and Emmet never edits <code>~/.gemini</code>). The <b>chat pane on a Google sign-in</b> is Not built until Google confirms in writing (H-25, kept in <code>docs/terms/</code>), then 8H. The <b>chat pane on a Gemini API key</b> is allowed by the Gemini API terms but isn't built: a key isn't the plan users want to use, and 8H revisits it. Reading or reusing a Google token: Never.</p>
+<p class="small"><b>Google (Antigravity CLI), checked 2026-10-25 (D-42).</b> Gemini CLI's docs say it "was replaced by Antigravity CLI on June 18th, 2026" for unpaid and Google One users. Its FAQ says: "Using third-party software, tools, or services to harvest or piggyback on Gemini CLI's OAuth authentication to access our backend services is a direct violation of our applicable terms and policies", and its terms page gives "using OpenClaw with Gemini CLI OAuth" as the example. Antigravity's headless mode is documented to "script agent tasks, integrate with CI pipelines, and capture machine-readable output", "whenever you need the agent's output in a program", and "uses your cached credentials". Google hasn't said in so many words whether an app that starts its unmodified CLI counts as third-party software; in 2025 it partnered with Zed to have Zed start Gemini CLI as a subprocess. Barry's best reading (2026-10-25, D-37): <b>terminal mode</b> is Build (ordinary use; the user adds Emmet's MCP server with Antigravity's own command, and Emmet never edits <code>~/.gemini</code>). <b>The chat pane on the user's Google sign-in</b> is Build with conditions (4F): the user's own unmodified <code>agy</code>, its documented headless mode, the sign-in the user gave <code>agy</code> itself, turns the user starts, no token ever read, and the provider notice. <b>The chat pane on a Gemini API key</b> isn't built: a key isn't the plan users want to use. Reading or reusing a Google token: Never. If Google objects or users report account action, the chat pane is switched off and terminal mode stays.</p>
 <ul>
 <li><b>What the user sees.</b> The agent picker and chat header say which account pays: "Claude · Max plan" or "Claude · API key" (from Claude Code's <code>system/init</code>: 0B found <code>apiKeySource</code> is <code>"none"</code> on a plan and names the variable on a key, and a key in the environment wins over the plan), and "Codex · API key". If Claude Code will bill an API key from the user's environment and the user expected their plan, Emmet says so and explains how to change it in their own shell. Emmet never changes it for them.</li>
 <li><b>No Emmet-initiated model turns.</b> Every turn starts from something the user did: a message, an answer, "Ask agent to fix", or a redirect.</li>
-<li><b>Re-checks.</b> 0B writes <code>docs/terms/</code> (each quote, its URL, and its date). G1, G2, and 7B re-read the pages and diff them. A change that removes the basis for a row turns that feature off before the next release, and Barry decides what replaces it.</li>
+<li><b>Re-checks.</b> 0B writes <code>docs/terms/</code> (each quote, its URL, and its date). G1, G2, and 7B re-read the pages and diff them. A change that removes the basis for a row turns that feature off before the next release, and Barry decides what replaces it. Rows that rest on Barry's best reading say so, with the reasoning in <code>docs/terms/</code> (D-37).</li>
 <li><b>Terminal mode is the safe harbor.</b> Nothing else in Emmet depends on the chat pane, so users can always run their own CLI on their own sign-in.</li>
 <li><b>Before 1E lands,</b> Codex on a ChatGPT plan works in terminal mode: <code>codex mcp add emmet -- emmet mcp</code> once (Codex's own command, run by the user; <code>emmet mcp</code> finds the project from the working directory, so one entry serves every project), then <code>codex</code> in the project folder. The app shows the model live, animates the agent's runs, and highlights parts over the bus.</li>
 </ul>
@@ -1321,7 +1321,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 
 <h3>Key flows (each has an E2E spec)</h3>
 <ol>
-<li><b>First run</b>: welcome → parts library download (progress, about 1 minute) → Python runtime set up → agents set up (installed? signed in? "Install" and "Sign in" buttons, no terminal (D-41); which plans work, with each provider's link; for Codex, "Continue with ChatGPT" or an API key) → "Start with the Cottage example" or "New model from a prompt". Under 3 minutes on a normal connection.</li>
+<li><b>First run</b>: welcome → parts library download (progress, about 1 minute) → Python runtime set up → agents set up (installed? signed in? "Install" and "Sign in" buttons, no terminal (D-41); which plans work, with each provider's link; for Codex, "Continue with ChatGPT" or an API key; the provider notice, use at your own risk (D-37)) → "Start with the Cottage example" or "New model from a prompt". Under 3 minutes on a normal connection.</li>
 <li><b>New model from a prompt</b>: New → name → the first message → the agent's first visible model inside the first minute (the doctrine tells it to show a draft fast) → refinement while the user watches.</li>
 <li><b>Tweak with sliders</b>: drag → the viewer updates in place → "make default" writes it back.</li>
 <li><b>Fix a finding</b>: Checks → click → highlight + source line → "Ask agent to fix" → the agent's fix shows up live.</li>
@@ -1623,7 +1623,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <!-- ============================================================ 21 -->
 <section id="s21">
 <h2><span class="num">21</span>Phases and sessions</h2>
-<p class="lede">Nine phases and twenty-four sessions to the public launch, plus a post-launch backlog. Each session is large and coherent on purpose: one prompt carries a whole slice (the engine skeleton, the agent bridge, the validator), so you're running about twenty sessions, not hundreds of tasks. Sizes are rough agent effort: M is about a day, L two to three, XL up to a week.</p>
+<p class="lede">Nine phases and twenty-five sessions to the public launch, plus a post-launch backlog. Each session is large and coherent on purpose: one prompt carries a whole slice (the engine skeleton, the agent bridge, the validator), so you're running about twenty sessions, not hundreds of tasks. Sizes are rough agent effort: M is about a day, L two to three, XL up to a week.</p>
 
 <div class="callout ok"><span class="label">Fast start: this week</span>
 <ol>
@@ -1640,11 +1640,11 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <tr><td><a href="#phase-1">1 · Spike: prove the loop</a></td><td>From the app, a prompt to <b>either</b> agent builds rung 1 from real parts, live in the viewer, with sliders and a basic check that feeds back to the agent; a signed, notarized build; agents installed and signed in without a terminal; the <span class="pill gate">G1</span> go/no-go from the test results.</td><td><a href="#session-1a">1A</a> <a href="#session-1b">1B</a> <a href="#session-1c">1C</a> <a href="#session-1d">1D</a> <a href="#session-1e">1E</a> <a href="#session-1f">1F</a></td></tr>
 <tr><td><a href="#phase-2">2 · Design</a></td><td>Three clickable directions, Barry's pick (UX-1), then a frozen design system and every screen and state, signed (UX-2).</td><td><a href="#session-2a">2A</a> <a href="#session-2b">2B</a></td></tr>
 <tr><td><a href="#phase-3">3 · Engine MVP</a></td><td>Validator v1 that meets its precision, recall, and speed targets; DSL v1, steps, BOM, colors and availability, techniques; a hand-written rung 2 reference model that validates clean; a technique library mined from official models.</td><td><a href="#session-3a">3A</a> <a href="#session-3b">3B</a> <a href="#session-3c">3C</a></td></tr>
-<tr><td><a href="#phase-4">4 · App MVP</a></td><td>The full app to the frozen design: shell and first run, the full chat and agent UX, and a polished viewer within budget; photo to model; native PDF instructions. Rung 2 passes in replay and in Barry's hand session; its live run is part of G2.</td><td><a href="#session-4a">4A</a> <a href="#session-4b">4B</a> <a href="#session-4c">4C</a> <a href="#session-4d">4D</a> <a href="#session-4e">4E</a></td></tr>
+<tr><td><a href="#phase-4">4 · App MVP</a></td><td>The full app to the frozen design: shell and first run, the full chat and agent UX, Antigravity in the chat pane, and a polished viewer within budget; photo to model; native PDF instructions. Rung 2 passes in replay and in Barry's hand session; its live run is part of G2.</td><td><a href="#session-4a">4A</a> <a href="#session-4b">4B</a> <a href="#session-4c">4C</a> <a href="#session-4d">4D</a> <a href="#session-4e">4E</a> <a href="#session-4f">4F</a></td></tr>
 <tr><td><a href="#phase-5">5 · Quality gate: working proof of concept</a></td><td>The integration, E2E, and eval suites are complete; Windows, performance, and security are hardened; rung 3 and the photo rung pass; Barry's Windows pass; <span class="pill gate">G2</span>: the POC works, and the MVP exit criteria in section 02 hold.</td><td><a href="#session-5a">5A</a> <a href="#session-5b">5B</a></td></tr>
 <tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing GitHub Releases; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a></td></tr>
 <tr><td><a href="#phase-7">7 · Website and public launch</a></td><td>emmetbuilder.com live on Cloudflare; the provider terms re-checked; 1.0 released; launch posts.</td><td><a href="#session-7a">7A</a> <a href="#session-7b">7B</a></td></tr>
-<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files, Antigravity in the chat pane.</td><td>8D–8H</td></tr>
+<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files.</td><td>8D–8G</td></tr>
 </table></div>
 
 <!-- ======================= PHASE 0 -->
@@ -1771,7 +1771,7 @@ If a finding contradicts section 03 or 10, stop and ask before you change the pl
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> <b>H-04</b>: a Windows 11 ARM VM with both CLIs installed and signed in (<a href="#g-h04">guide</a>), needed by the end of 1C.</li>
 <li><span class="pill you">YOU</span> <b>H-05</b>: a Developer ID Application certificate in the keychain and an App Store Connect API key for notarization (<a href="#g-h05">guide</a>), needed by 1D.</li>
-<li><span class="pill you">YOU</span> <b>H-26</b>: install the Antigravity CLI on this Mac and sign in with your Google account (<a href="#g-h26">guide</a>), needed by the end of 1F.</li>
+<li><span class="pill you">YOU</span> <b>H-25</b>: install the Antigravity CLI on this Mac and sign in with your Google account (<a href="#g-h25">guide</a>), needed by the end of 1F.</li>
 <li><span class="pill you">YOU</span> <b>H-06 / G1</b>: run <code>just eval --rung 1</code>, test the app yourself, and decide go, no-go, or pivot from the results (<a href="#g-h06">guide</a>).</li>
 </ul></div>
 <div class="table-wrap"><table>
@@ -1954,15 +1954,15 @@ ChatGPT docs still offer plan usage to open-source apps; stop and tell me if eit
 what the docs specify, mapping each requirement to a test. When it works, ask me to sign in and build rung 1 by hand.</code></pre></details>
 </div>
 
-<div class="session" id="session-1f" data-session="1F" data-phase="1" data-title="Agent setup without a terminal, and Antigravity in terminal mode" data-after="1C" data-waits="" data-waits-merge="H-26" data-read="02, 03, 10, 14, 15">
-<h4><span class="s-id">1F</span> Agent setup without a terminal, and Antigravity in terminal mode<span class="s-meta">after 1C · alongside 1D, 1E, 2A · size L · YOU: H-26 before merge</span></h4>
+<div class="session" id="session-1f" data-session="1F" data-phase="1" data-title="Agent setup without a terminal, and Antigravity in terminal mode" data-after="1C" data-waits="" data-waits-merge="H-25" data-read="02, 03, 10, 14, 15">
+<h4><span class="s-id">1F</span> Agent setup without a terminal, and Antigravity in terminal mode<span class="s-meta">after 1C · alongside 1D, 1E, 2A · size L · YOU: H-25 before merge</span></h4>
 <p class="goal"><b>Goal:</b> Someone who has never opened a terminal installs Claude Code or Codex and signs in from Emmet's first run, knows which plan they need, and is building in minutes (D-41). Antigravity users can work in terminal mode (D-42).</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><b>Terms first:</b> re-read Anthropic's Claude Code legal page ("preinstalling or running Claude Code in your products"), Codex's license and install docs, and Google's Gemini CLI and Antigravity terms; update <code>docs/terms/</code> and the section 10 rows. Stop if a row loses its basis.</li>
 <li><b>Install:</b> "Install Claude Code" runs Anthropic's official native installer and "Install Codex" OpenAI's published install, each unmodified, from Rust, only after the user clicks, with progress, cancel, and a clear retry. Checksums or signatures are checked where the provider publishes them. No admin rights; the Windows prerequisites ADR 0001 found are explained in plain words. Detection runs again when it finishes.</li>
 <li><b>Sign-in:</b> find how Claude Code's own unmodified login can run without the user typing in a terminal (for example, Emmet hosting <code>claude</code> in a sign-in window that shows only its login and opens the browser), within Anthropic's terms. Record what works in an ADR; a new dependency (such as a pseudo-terminal crate) needs Barry's approval (rule 6). If nothing qualifies, keep the "Open Terminal" card with one command and pictures of each step. Codex sign-in is 1E's.</li>
-<li><b>Plan guidance:</b> onboarding says which plans work (Claude: a paid plan that includes Claude Code; Codex: a ChatGPT plan that includes Codex, or an API key), checked against each provider's current page, with links. No prices in the app.</li>
+<li><b>Plan guidance:</b> onboarding says which plans work (Claude: a paid plan that includes Claude Code; Codex: a ChatGPT plan that includes Codex, or an API key), checked against each provider's current page, with links. No prices in the app. The provider notice (D-37) shows once, before the first install or sign-in.</li>
 <li><b>Antigravity in terminal mode (D-42):</b> detect <code>agy</code>, and an onboarding card with the steps to add Emmet's MCP server using Antigravity's own command and run <code>agy</code> in the project folder. Emmet never writes <code>~/.gemini</code>. If Antigravity has no command for it, the card gives the exact steps instead.</li>
 <li><b>Tests:</b> fake installers and a fake login (in <code>tests/fake-agents</code>) for integration and E2E tests: success, already installed, no network, a checksum mismatch, cancel, and a failed sign-in. The sentinel test (1C) still passes around the whole flow, because Emmet's own code writes no agent config.</li>
 <li>A plain UI to 1C's level; 4A restyles it to the frozen design.</li>
@@ -1973,7 +1973,7 @@ what the docs specify, mapping each requirement to a test. When it works, ask me
 <li>The same in the Windows VM on a fresh user account (screenshots).</li>
 <li>The install and sign-in integration and E2E tests pass on both OSes, including every failure case above.</li>
 <li>Section 10's terms rows for installing cite the provider text with its date in <code>docs/terms/</code>.</li>
-<li>With Antigravity in terminal mode, a prompt builds rung 1 and the app shows it live (Barry's run, H-26; screenshots).</li>
+<li>With Antigravity in terminal mode, a prompt builds rung 1 and the app shows it live (Barry's run, H-25; screenshots).</li>
 </ul>
 <div class="s-dh">What good looks like</div>
 <ul class="good">
@@ -2174,7 +2174,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="phase" id="phase-4" data-phase="4">
 <div class="ph-top"><span class="pnum">Phase 4</span><h3>App MVP</h3></div>
 <div class="pbar"><i></i></div>
-<p>Build the app to the frozen design. 4A lays the shell and first run; then 4B (chat and agent UX) and 4C (viewer polish and performance) run in parallel. 4D (photo to model) follows 4B, and 4E (native PDF instructions) follows 4C. The phase ends with rung 2 passing in replay and in Barry's hand session on each agent; its live eval run waits for G2.</p>
+<p>Build the app to the frozen design. 4A lays the shell and first run; then 4B (chat and agent UX) and 4C (viewer polish and performance) run in parallel. 4D (photo to model) follows 4B, and 4E (native PDF instructions) follows 4C. 4F (Antigravity in the chat pane) needs only 1F, so it can run any time after it, and 4B waits for it so the full chat covers all three agents. The phase ends with rung 2 passing in replay and in Barry's hand session on each agent; its live eval run waits for G2.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> UX-2 must be signed (H-08) before 4A.</li>
 <li><span class="pill you">YOU</span> <b>H-23</b>: photograph the three photo-rung subjects, two angles each, before 4D starts.</li>
@@ -2183,10 +2183,11 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
 <tr data-session="4A"><td><a href="#session-4a">4A</a></td><td>App shell to the frozen design, plus first run</td><td>2B, 3A, 3B, 1F</td><td>&nbsp;</td><td>L</td></tr>
-<tr data-session="4B"><td><a href="#session-4b">4B</a></td><td>Chat and agent UX, complete</td><td>4A, 1E</td><td>4C</td><td>L</td></tr>
+<tr data-session="4B"><td><a href="#session-4b">4B</a></td><td>Chat and agent UX, complete</td><td>4A, 1E, 4F</td><td>4C</td><td>L</td></tr>
 <tr data-session="4C"><td><a href="#session-4c">4C</a></td><td>Viewer polish and performance</td><td>4A</td><td>4B</td><td>L</td></tr>
 <tr data-session="4D"><td><a href="#session-4d">4D</a></td><td>Photo to model</td><td>4B</td><td>4C, 4E</td><td>L</td></tr>
 <tr data-session="4E"><td><a href="#session-4e">4E</a></td><td>Native PDF instructions</td><td>4C</td><td>4D</td><td>L</td></tr>
+<tr data-session="4F"><td><a href="#session-4f">4F</a></td><td>Antigravity in the chat pane</td><td>1F</td><td>any</td><td>M</td></tr>
 </table></div>
 
 <div class="session" id="session-4a" data-session="4A" data-phase="4" data-title="App shell to the frozen design, plus first run" data-after="2B 3A 3B 1F" data-waits="H-08" data-waits-merge="" data-read="07, 12, 14, 15, 16">
@@ -2198,7 +2199,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <li>The project tree (model, submodels, steps, parts summary, checks summary; click → highlight), open, new, and recent projects, import of an <code>.ldr</code>/<code>.mpd</code> file, and snapshots.</li>
 <li>The drawers to design: Parameters (every param kind and "make default"), Checks (v1 findings, allowed list, "Ask agent to fix"), Parts list (BOM v1, availability, exports), and Steps.</li>
 <li>First run: welcome, the library download with progress, the Python setup, agent setup from 1F (install and sign-in with no terminal, and which plans work) restyled, and the example or new-from-prompt choice. Every failure path has a clear retry.</li>
-<li>Settings: agent and model preference, color naming, quality, updates (stub until 6A), "Install command line tool", About (attributions, the disclaimer, "what Emmet connects to"), and "Copy diagnostics".</li>
+<li>Settings: agent and model preference, color naming, quality, updates (stub until 6A), "Install command line tool", About (attributions, the disclaimer, the provider notice (D-37), "what Emmet connects to"), and "Copy diagnostics".</li>
 <li>Workspace trust (D-27): the read-only banner and the Trust action.</li>
 <li>E2E specs for first run (fresh <code>--data-dir</code> against a local library fixture server), each drawer, trust, import, and every section 14 state reachable without an agent. Visual baselines for each frozen screen.</li>
 </ul>
@@ -2219,8 +2220,8 @@ and ask before inventing. Build first run against a local fixture server so E2E 
 Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace them.</code></pre></details>
 </div>
 
-<div class="session" id="session-4b" data-session="4B" data-phase="4" data-title="Chat and agent UX, complete" data-after="4A 1E" data-waits="" data-waits-merge="" data-read="10, 14, 15, 16">
-<h4><span class="s-id">4B</span> Chat and agent UX, complete<span class="s-meta">after 4A, 1E · alongside 4C · size L</span></h4>
+<div class="session" id="session-4b" data-session="4B" data-phase="4" data-title="Chat and agent UX, complete" data-after="4A 1E 4F" data-waits="" data-waits-merge="" data-read="10, 14, 15, 16">
+<h4><span class="s-id">4B</span> Chat and agent UX, complete<span class="s-meta">after 4A, 1E, 4F · alongside 4C · size L</span></h4>
 <p class="goal"><b>Goal:</b> Working with the agent feels as good as nurb's terminal loop, or better: you always know what it's doing, you can steer and stop it, and it sees what you see.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2327,6 +2328,32 @@ fake agents and my hand sessions; the live photo rung runs at G2.</code></pre></
 </ul>
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 4E. Prototype the layout with rung 1 first, decide the PDF engine in an ADR, then build it out to
 rung 2 with visual baselines on both OSes. Ask me to check a printed copy before the PR is ready.</code></pre></details>
+</div>
+
+<div class="session" id="session-4f" data-session="4F" data-phase="4" data-title="Antigravity in the chat pane" data-after="1F" data-waits="" data-waits-merge="" data-read="03, 10, 15, 16">
+<h4><span class="s-id">4F</span> Antigravity in the chat pane<span class="s-meta">after 1F · alongside any · size M</span></h4>
+<p class="goal"><b>Goal:</b> Antigravity joins Claude Code and Codex in the chat pane: the user's own unmodified <code>agy</code> on their own Google sign-in (D-42).</p>
+<div class="s-dh">What gets built</div>
+<ul class="build">
+<li><b>Terms first:</b> re-read Google's Gemini CLI and Antigravity terms and the headless docs; update <code>docs/terms/</code> and add a Google column to section 10's terms matrix. Stop if Google's text now forbids this use.</li>
+<li>A third <code>Protocol</code> on 1C's shared session layer, over whatever Google documents for use from a program (headless stream-JSON, or an official ACP server if one ships): detection and the sign-in check through <code>agy</code>'s own commands, Emmet's MCP servers, approvals through Emmet's <code>approve</code>, <code>ask_user</code>, the redirect paths (ADR 0001 records which ones work), stop, resume, and the billing badge ("Antigravity · Google account"). Plan usage only if Google documents a source (D-36).</li>
+<li>Recordings from Barry's hand sessions on his own Google sign-in, scrubbed into <code>tests/replay/agy/</code> (no scripted runs on his Google account, D-38), a <code>fake-agy</code> in <code>tests/fake-agents</code>, and the sentinel test extended to <code>~/.gemini</code>.</li>
+<li>Its card in 1F's setup: install with Google's official installer and sign in with <code>agy</code>'s own flow, if Google publishes an installer that fits D-41.</li>
+</ul>
+<div class="s-dh">Done when</div>
+<ul class="done">
+<li>Replay tests cover every 1C scenario and failure case for Antigravity, on both OSes in CI.</li>
+<li>The E2E chat specs pass with <code>fake-agy</code> on both OSes.</li>
+<li>Barry builds rung 1 from the chat pane on his own Google sign-in on this Mac, and in the Windows VM if Antigravity runs there (ADR 0001 records it).</li>
+<li>The sentinel test proves <code>~/.gemini</code> is untouched, and a test proves no Google token reaches a log, a transcript, or diagnostics.</li>
+</ul>
+<div class="s-dh">What good looks like</div>
+<ul class="good">
+<li>The adapter is mostly mapping, like Claude's and Codex's.</li>
+</ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 4F. Re-read Google's terms and headless docs first, and stop if they now forbid running agy from
+Emmet. Build the adapter on 1C's shared layer. Never read or reuse a Google token, and never write ~/.gemini. Ask me
+for the hand sessions on my Google sign-in; they become the replay fixtures.</code></pre></details>
 </div>
 </div>
 
@@ -2557,7 +2584,6 @@ read every repo setting back. Prepare 1.0.0 through the release pipeline. I publ
 <tr data-session="8E"><td><a href="#session-8e">8E</a></td><td>BrickLink pricing</td><td>8D</td><td>any</td><td>M</td></tr>
 <tr data-session="8F"><td><a href="#session-8f">8F</a></td><td>Host third-party MCP servers</td><td>7B</td><td>any</td><td>M</td></tr>
 <tr data-session="8G"><td><a href="#session-8g">8G</a></td><td>Studio file import and export</td><td>7B</td><td>any</td><td>M</td></tr>
-<tr data-session="8H"><td><a href="#session-8h">8H</a></td><td>Antigravity in the chat pane</td><td>7B</td><td>any</td><td>M</td></tr>
 </table></div>
 
 
@@ -2602,16 +2628,6 @@ add the approval-on-first-use policy, and test with three real servers.</code></
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8G. Refresh scope with me first. Write the format and terms ADR before any code, and stop if
 the terms don't allow it.</code></pre></details>
 </div>
-
-<div class="session" id="session-8h" data-session="8H" data-phase="8" data-title="Antigravity in the chat pane" data-after="7B" data-waits="H-25" data-waits-merge="" data-read="03, 10, 15, 16">
-<h4><span class="s-id">8H</span> Antigravity in the chat pane<span class="s-meta">after 7B · size M · backlog · YOU: H-25 before start</span></h4>
-<p class="goal"><b>Goal:</b> The chat pane runs the user's own unmodified Antigravity CLI on their own Google sign-in, as Google confirmed in writing (H-25, D-42).</p>
-<ul class="build"><li>Terms first: Google's written reply in <code>docs/terms/</code>, and a Google column in section 10's terms matrix. Then a third <code>Protocol</code> on 1C's shared session layer (Antigravity's headless stream-JSON), detection and sign-in checks through the CLI's own commands, MCP and approvals, questions and redirects, recordings scrubbed into <code>tests/replay/agy/</code> (scripted runs per D-38), a fake agent, and the billing badge. Plan usage only if Google documents a source (D-36).</li></ul>
-<ul class="done"><li>Replay tests cover every 1C scenario and failure case for Antigravity on both OSes.</li><li>Barry builds rung 1 from the chat pane on his own Google sign-in.</li><li>The sentinel test covers <code>~/.gemini</code>.</li></ul>
-<ul class="good"><li>The adapter is mostly mapping, like Claude's and Codex's.</li></ul>
-<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8H. Refresh scope with me first, and confirm Google's written reply (H-25) allows exactly what you
-build; stop if it doesn't. Never read or reuse a Google token, and never write ~/.gemini.</code></pre></details>
-</div>
 </div>
 </section>
 
@@ -2644,8 +2660,7 @@ build; stop if it doesn't. Never read or reuse a Google token, and never write ~
 <tr data-h="H-21"><td>H-21</td><td>API keys (Anthropic Console, OpenAI) with spend caps for scripted runs and evals</td><td>0B start</td><td><a href="#g-h21">guide</a></td></tr>
 <tr data-h="H-22"><td>H-22</td><td>Accept or reject mined technique candidates, in batches of 20</td><td>3C merge</td><td>Review pages in <code>docs/techniques/candidates/</code></td></tr>
 <tr data-h="H-23"><td>H-23</td><td>Photograph three subjects for the photo rung, two angles each (six photos): two brick models and one real building, your own photos with no people in them</td><td>4D start</td><td>Any phone camera; Emmet strips EXIF</td></tr>
-<tr data-h="H-25"><td>H-25</td><td>Ask Google in writing whether Emmet may run the unmodified Antigravity CLI under each user's own Google sign-in from its chat pane</td><td>8H start</td><td><a href="#g-h25">guide</a></td></tr>
-<tr data-h="H-26"><td>H-26</td><td>Install the Antigravity CLI on this Mac and sign in with your Google account</td><td>1F merge</td><td><a href="#g-h26">guide</a></td></tr>
+<tr data-h="H-25"><td>H-25</td><td>Install the Antigravity CLI on this Mac and sign in with your Google account</td><td>1F merge</td><td><a href="#g-h25">guide</a></td></tr>
 <tr data-h="H-24"><td>H-24</td><td>Not needed: no note to Rebrickable. Its downloads terms allow the pack with credit, and Q-14 is settled by reading its Terms (Barry 2026-10-24)</td><td>—</td><td>—</td></tr>
 </table></div>
 
@@ -2729,18 +2744,10 @@ build; stop if it doesn't. Never read or reuse a Google token, and never write ~
 <li>Tell the agent when both exist. <code>just eval</code> reads them from the keychain at run time and never writes them anywhere.</li>
 </ul>
 </details>
-<details id="g-h25"><summary>H-25 Ask Google about Antigravity in the chat pane (about 15 minutes, then a wait)</summary>
-<ul class="small">
-<li>Why: Google forbids third-party software from using its CLI's sign-in and bans accounts for it (D-42). It hasn't said whether an app running its unmodified CLI under the user's own sign-in counts, so per D-37 Emmet needs Google's written answer before building it.</li>
-<li>Send Google a short description through the Antigravity or Gemini CLI support or feedback channel: Emmet is a free, open-source desktop app; it starts the user's own installed, unmodified Antigravity CLI in headless mode for turns the user starts; the user signs in through the CLI's own flow; Emmet never reads, stores, or forwards a Google token or calls Google's services itself. Ask whether that is allowed on free and Google AI Pro or Ultra accounts.</li>
-<li>Keep the reply in <code>docs/terms/</code> and tell the agent. A yes lets 8H start; a no or no answer keeps Antigravity in terminal mode only.</li>
-<li>This is my reading of Google's published terms, not legal advice.</li>
-</ul>
-</details>
-<details id="g-h26"><summary>H-26 Antigravity CLI on this Mac (about 10 minutes)</summary>
+<details id="g-h25"><summary>H-25 Antigravity CLI on this Mac (about 10 minutes)</summary>
 <ul class="small">
 <li>Install the Antigravity CLI from Google's Antigravity docs (<a href="https://antigravity.google/docs/cli/headless/">antigravity.google/docs</a>), run <code>agy</code> once, and sign in with your Google account.</li>
-<li>Tell the agent when it's done. 1F then asks you to add Emmet's MCP server with Antigravity's own command and build rung 1 in terminal mode, by hand (no scripted runs on your Google account).</li>
+<li>Tell the agent when it's done. 1F then asks you to add Emmet's MCP server with Antigravity's own command and build rung 1 in terminal mode, and 4F asks for hand sessions in the chat pane (no scripted runs on your Google account).</li>
 </ul>
 </details>
 <details id="g-h20"><summary>H-20 Anthropic's Commercial Terms (about 10 minutes)</summary>
@@ -2768,9 +2775,9 @@ build; stop if it doesn't. Never read or reuse a Google token, and never write ~
 <tr><td>Usage sources change: Claude's <code>usage_report</code> is marked experimental</td><td>Low</td><td>Render rows as reported, tolerate unknown fields, show "usage unavailable" instead of wrong numbers, and replay fixtures per CLI version.</td><td>1C, 4B</td></tr>
 <tr><td>Claude Code makes <code>--bare</code> the default for <code>-p</code>; bare mode never reads the subscription login (per its docs), which would silently move users to API billing or fail</td><td>High</td><td>0B and every version-range check verify plan sign-in works in Emmet's <code>-p</code> sessions, and the billing badge makes any change visible. Emmet never works around it by touching credentials: if plan sign-in stops working in <code>-p</code>, the Claude chat pane runs on API keys only and plan users use terminal mode.</td><td>0B, 1C, 5B</td></tr>
 <tr><td>The build animation slows the loop or hides problems</td><td>Low</td><td>Capped at 6 s and skipped by any new run, never used for sliders, never in agent renders; Fast and Off in Settings; a frame-time budget in section 13.</td><td>1D, 4C</td></tr>
-<tr><td>A provider changes its terms for apps that run its CLI or use its plans (both did in 2026)</td><td>High</td><td>The terms gate (D-37): every agent feature cites current provider text; <code>docs/terms/</code> is re-checked at G1, G2, and 7B; a feature that loses its basis is switched off before the next release; terminal mode always remains.</td><td>0B, 7B</td></tr>
+<tr><td>A provider changes its terms for apps that run its CLI or use its plans (both did in 2026)</td><td>High</td><td>The terms gate (D-37): every agent feature cites current provider text or Barry's recorded best reading, and users see the provider notice; <code>docs/terms/</code> is re-checked at G1, G2, and 7B; a feature that loses its basis is switched off before the next release; terminal mode always remains.</td><td>0B, 7B</td></tr>
 <tr><td>A provider's installer or sign-in flow changes, or a provider objects to apps installing its CLI</td><td>Medium</td><td>Only official installers, run unmodified; a terms row for installing (D-41); install and sign-in replay tests per CLI version; the Terminal card stays as the fallback.</td><td>1F, 4A</td></tr>
-<tr><td>Google's terms for third-party use of its CLI are strict and enforced with account bans, and its CLI changed in 2026</td><td>High</td><td>Terminal mode only until Google confirms in writing (H-25); Emmet never touches a Google token or <code>~/.gemini</code> (D-42).</td><td>1F, 8H</td></tr>
+<tr><td>Google's terms for third-party use of its CLI are strict and enforced with account bans, its CLI changed in 2026, and the chat pane rests on Barry's best reading</td><td>High</td><td>Only the user's unmodified <code>agy</code> in its documented headless mode; Emmet never touches a Google token or <code>~/.gemini</code> (D-42); the provider notice (D-37); the chat pane is switched off if Google objects or users report account action, and terminal mode stays.</td><td>1F, 4F</td></tr>
 <tr><td>WKWebView WebGL performance or hidden-window throttling</td><td>Medium</td><td>Bench in 1B, instancing, ADR 0005 with an off-screen-window fallback.</td><td>0B, 1B, 4C</td></tr>
 <tr><td>Windows differences (paths, CLIs, GPU), with only an ARM VM in hand</td><td>Medium</td><td>Hosted x64 CI from day one, the 5B hardening list, and a Windows x64 beta tester.</td><td>5B, 6B</td></tr>
 <tr><td>Trademark: other uses of the name "Emmet"</td><td>Medium</td><td>The 2026-10-24 search (H-17); the full name "Emmet Builder" where it matters; no reference to the film or character (D-30); "brick" language and a disclaimer everywhere; <code>scripts/name-check</code> at G1, G2, and 7B.</td><td>0A, 2A, 7B</td></tr>
@@ -2804,8 +2811,8 @@ build; stop if it doesn't. Never read or reuse a Google token, and never write ~
 <tr><td>Q-12</td><td>How long can an MCP tool call block in each CLI before it times out, and can a per-session setting raise it far enough for <code>ask_user</code>?</td><td>Claude Code: the default outlasts 10 minutes, and <code>MCP_TOOL_TIMEOUT</code> accepted 24 h and 2<sup>31</sup> ms; Emmet sets 1 h. Codex: the default is 300 s, and <code>tool_timeout_sec=3600</code> on <code>emmet_host</code> held a 10-minute call (ADR 0001).</td><td><span class="pill decided">Settled</span></td></tr>
 <tr><td>Q-13</td><td>When does Emmet go open source? Codex on a ChatGPT plan inside Emmet depends on it (OpenAI's Sign in with ChatGPT rule).</td><td>Decided 2026-10-24: from day one, AGPL-3.0, public repo (D-12, D-14). Codex on a ChatGPT plan is in the MVP (1E).</td><td><span class="pill decided">Decided</span></td></tr>
 <tr><td>Q-14</td><td>Rebrickable's Terms say its content may not be "used in the training of AI models". Emmet never trains, but small Rebrickable facts reach the user's AI provider in tool results. Confirm with Rebrickable that this is fine.</td><td>Settled by reading (Barry 2026-10-24): the clause is about training models on Rebrickable content. Emmet trains nothing, and its tools answer the user's own agent with small facts at run time; no note to Rebrickable (H-24 not needed). If Rebrickable ever objects, that use is switched off (D-37 style).</td><td><span class="pill decided">Settled</span></td></tr>
-<tr><td>Q-15</td><td>Can Claude Code's own unmodified login run from inside Emmet, so a user never types in a terminal, within Anthropic's terms?</td><td>1F (an ADR)</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-16</td><td>Will Google allow Emmet to run the unmodified Antigravity CLI under each user's own Google sign-in?</td><td>H-25</td><td><span class="pill open">Open</span></td></tr>
+<tr><td>Q-15</td><td>Can Claude Code's own unmodified login run from inside Emmet, so a user never types in a terminal, within Anthropic's terms?</td><td>1F (an ADR), on Barry's best reading of the terms (D-37)</td><td><span class="pill open">Open</span></td></tr>
+<tr><td>Q-16</td><td>Will Google allow Emmet to run the unmodified Antigravity CLI under each user's own Google sign-in?</td><td>Decided on Barry's best reading (2026-10-25): providers rarely answer such questions, so Emmet builds on the published text, Google's documented headless mode, and the Zed precedent, with the provider notice (D-37, D-42, 4F).</td><td><span class="pill decided">Decided</span></td></tr>
 </table></div>
 </section>
 

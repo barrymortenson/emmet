@@ -72,6 +72,7 @@ window.EMMET_STATUS = {
     "4C": { status: "todo" },
     "4D": { status: "todo" },
     "4E": { status: "todo" },
+    "4F": { status: "todo" },
     "5A": { status: "todo" },
     "5B": { status: "todo" },
     "6A": { status: "todo" },
@@ -81,8 +82,7 @@ window.EMMET_STATUS = {
     "8D": { status: "backlog" },
     "8E": { status: "backlog" },
     "8F": { status: "backlog" },
-    "8G": { status: "backlog" },
-    "8H": { status: "backlog" }
+    "8G": { status: "backlog" }
   },
   human: {
     "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },
@@ -109,8 +109,7 @@ window.EMMET_STATUS = {
     "H-22": { status: "todo" },
     "H-23": { status: "todo" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
-    "H-25": { status: "todo" },
-    "H-26": { status: "todo" }
+    "H-25": { status: "todo" }
   },
   blockers: [],
   gates: {
