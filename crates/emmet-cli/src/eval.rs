@@ -553,12 +553,8 @@ fn score(data: &DataDir, project: &Project, run: &Run) -> Vec<Score> {
             .map(|p| (p.category, p.name))
             .unwrap_or_default()
     };
-    let has = |want: &str| {
-        placements.iter().any(|p| {
-            let (cat, name) = category(&p.part);
-            cat == want || name.starts_with(want)
-        })
-    };
+    let kinds: Vec<(String, String)> = placements.iter().map(|p| category(&p.part)).collect();
+    let has = |want: &str| kinds.iter().any(|(cat, name)| is_a(cat, name, want));
     let (door, window, slope) = (has("Door"), has("Window") || has("Glass"), has("Slope"));
     let baseplate = placements.iter().any(|p| p.part == "3811" && p.color == 2);
     let parts = placements.len();
@@ -600,6 +596,12 @@ fn score(data: &DataDir, project: &Project, run: &Run) -> Vec<Score> {
         ),
     );
     out
+}
+
+/// Whether a part with this LDraw category and name is a `kind` ("Door", "Window", "Slope"): its category, or a word of
+/// its name. Categories alone miss parts: "Train Window 1 x 4 x 3 with Trans-Clear Glass" is filed under Train.
+fn is_a(category: &str, name: &str, kind: &str) -> bool {
+    category == kind || name.split(|c: char| !c.is_alphanumeric()).any(|w| w == kind)
 }
 
 fn yes(b: bool) -> &'static str {
@@ -880,6 +882,24 @@ mod tests {
                 .collect(),
             multi: false,
         }
+    }
+
+    #[test]
+    fn features_count_a_part_by_its_category_or_a_word_of_its_name() {
+        assert!(is_a("Window", "Window 1 x 2 x 2 without Sill", "Window"));
+        // Codex's rerun (2026-10-26): a real window, filed under Train.
+        assert!(is_a("Train", "Train Window 1 x 4 x 3 with Trans-Clear Glass", "Window"));
+        assert!(is_a(
+            "Door",
+            "Door 1 x 4 x 6 with 3 Panes with TransClear Glass",
+            "Door"
+        ));
+        assert!(is_a("Slope", "Slope Brick 45 2 x 2", "Slope"));
+        assert!(!is_a("Brick", "Brick 1 x 2", "Door"));
+        assert!(
+            !is_a("Brick", "Brick 1 x 2 with Doorway Print", "Door"),
+            "a word, not part of one"
+        );
     }
 
     #[test]
