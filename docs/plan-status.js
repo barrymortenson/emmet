@@ -49,7 +49,16 @@ window.EMMET_STATUS = {
       ],
       note: "Windows first load 7-8 s on CI's software WebGL misses section 13; check on real hardware (H-04, 1C)"
     },
-    "1C": { status: "review", pr: 13, branch: "bmortenson/s1c-agent-bridge", started: "2026-10-25" },
+    "1C": {
+      status: "done", pr: 13, branch: "bmortenson/s1c-agent-bridge", started: "2026-10-25",
+      evidence: [
+        "CI ci check green #13 (run 40259994869: mac, windows with E2E, plan)",
+        "tests/it/tests/{agent_claude,agent_codex,agent_sentinel}.rs; tests/e2e/specs/chat.e2e.mjs (15 tests, both fake agents)",
+        "docs/spec/sessions/1C/live-mac.mp4, badges-{plan,api-key}.png, windows-*.png (H-04)",
+        "chat event → DOM median 1 ms, p95 5 ms on macOS"
+      ],
+      note: "Barry's design and feature notes from the live check go to docs/design/notes.md in a small PR, for 2A"
+    },
     "1D": { status: "todo" },
     "1E": { status: "todo" },
     "2A": { status: "todo" },
