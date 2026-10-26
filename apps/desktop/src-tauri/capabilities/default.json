@@ -29,6 +29,13 @@
     "allow-chat-end",
     "allow-usage",
     "allow-openai-key-saved",
-    "allow-openai-key-set"
+    "allow-openai-key-set",
+    "allow-chatgpt-state",
+    "allow-chatgpt-sign-in",
+    "allow-chatgpt-cancel",
+    "allow-chatgpt-sign-out",
+    "allow-chatgpt-choose",
+    "allow-chatgpt-notice-seen",
+    "allow-open-chatgpt-usage"
   ]
 }

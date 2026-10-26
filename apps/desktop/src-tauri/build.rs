@@ -30,6 +30,13 @@ fn main() {
         "usage",
         "openai_key_saved",
         "openai_key_set",
+        "chatgpt_state",
+        "chatgpt_sign_in",
+        "chatgpt_cancel",
+        "chatgpt_sign_out",
+        "chatgpt_choose",
+        "chatgpt_notice_seen",
+        "open_chatgpt_usage",
     ];
     // The tests in tests/ link Tauri too, and on Windows they need the Common Controls v6 manifest that tauri-build
     // embeds only in the app.

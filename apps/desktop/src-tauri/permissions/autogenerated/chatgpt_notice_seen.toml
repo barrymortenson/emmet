@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-chatgpt-notice-seen"
+description = "Enables the chatgpt_notice_seen command without any pre-configured scope."
+commands.allow = ["chatgpt_notice_seen"]
+
+[[permission]]
+identifier = "deny-chatgpt-notice-seen"
+description = "Denies the chatgpt_notice_seen command without any pre-configured scope."
+commands.deny = ["chatgpt_notice_seen"]

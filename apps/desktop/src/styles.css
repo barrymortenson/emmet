@@ -531,3 +531,73 @@ input {
     animation: none;
   }
 }
+/* Sign in with ChatGPT (1E). The button is OpenAI's approved continue-black format, in both themes; the rest is plain
+   until 4B. */
+.continue-chatgpt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 242px;
+  max-width: 100%;
+  height: 45px;
+  padding: 0 20px;
+  border: 1px solid #000;
+  border-radius: 12px;
+  background: #000;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 18px;
+}
+.continue-chatgpt img {
+  flex: none;
+  display: block;
+}
+.continue-chatgpt:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+button.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+}
+.plan-label {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.limit-card .limit-who {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.limit-card p {
+  margin: 0 0 6px;
+}
+.codex-billing fieldset {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.codex-billing .account,
+.codex-billing .add-account,
+.codex-billing .invite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+}
+.codex-billing .use-plan p {
+  margin: 0 0 6px;
+}

@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The chat pane's host side (plan sections 04 and 10): one agent session per project at a time, its events to the
 //! window, approvals and questions from the bus to the hub, the chat history in the project's `.emmet/chat/`, the
-//! agents' detection, the plan usage fetch (D-36), and the Codex API key in the keychain (D-35).
+//! agents' detection, the plan usage fetch (D-36), and the Codex API key in the keychain (D-35). Sign in with ChatGPT's
+//! commands are in `chatgpt.rs`.
 //!
 //! Every turn starts from something the user did (plan section 10): a message, an answer, Resume, or a redirect.
 
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Mutex, OnceLock};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use emmet_agent::{
@@ -83,6 +84,8 @@ struct Live {
     project: PathBuf,
     id: String,
     kind: AgentKind,
+    /// Codex on the user's ChatGPT plan.
+    plan: bool,
     session: Box<dyn Session>,
 }
 
@@ -93,6 +96,8 @@ pub struct Chat {
     live: Mutex<Option<Live>>,
     usage: Mutex<Option<(Instant, UsageSnapshot)>>,
     seq: AtomicU64,
+    /// The Sign in with ChatGPT attempt waiting for the browser: set to cancel it.
+    pub sign_in: Mutex<Option<Arc<AtomicBool>>>,
 }
 
 impl Default for Chat {
@@ -104,6 +109,7 @@ impl Default for Chat {
             live: Mutex::new(None),
             usage: Mutex::new(None),
             seq: AtomicU64::new(0),
+            sign_in: Mutex::new(None),
         }
     }
 }
@@ -122,14 +128,14 @@ impl Chat {
         self.env.get_or_init(emmet_agent::env::login_env)
     }
 
-    fn detect(&self, refresh: bool) -> Vec<Detection> {
+    fn detect(&self, data: &Path, refresh: bool) -> Vec<Detection> {
         let mut cached = self.agents.lock().expect("agents");
         if refresh || cached.is_none() {
             let env = self.env().to_vec();
             let found = [AgentKind::Claude, AgentKind::Codex]
                 .map(|k| {
-                    let env = env.clone();
-                    std::thread::spawn(move || emmet_agent::adapter(k, &env, Path::new(".")).detect())
+                    let (env, data) = (env.clone(), data.to_path_buf());
+                    std::thread::spawn(move || emmet_agent::adapter(k, &env, &data).detect())
                 })
                 .map(|t| t.join().expect("detection"))
                 .to_vec();
@@ -149,6 +155,16 @@ impl Chat {
                 Billing::Plan { name } => name.clone(),
                 _ => None,
             })
+    }
+
+    /// An agent's sign-in changed: detect again next time.
+    pub fn forget_agents(&self) {
+        *self.agents.lock().expect("agents") = None;
+    }
+
+    /// The running chat is Codex on the ChatGPT plan.
+    pub fn live_on_plan(&self) -> bool {
+        self.live.lock().expect("live").as_ref().is_some_and(|l| l.plan)
     }
 
     /// Ends the running session, if any.
@@ -275,9 +291,10 @@ fn agent_problem(e: emmet_agent::AgentError) -> Box<Problem> {
 
 /// Detection now, on this thread (the app warms it at launch).
 pub fn agents_now(app: &AppHandle) -> Vec<AgentView> {
-    app.state::<AppState>()
+    let state = app.state::<AppState>();
+    state
         .chat
-        .detect(false)
+        .detect(state.data.root(), false)
         .into_iter()
         .map(view)
         .collect()
@@ -287,12 +304,15 @@ pub fn agents_now(app: &AppHandle) -> Vec<AgentView> {
 #[tauri::command]
 #[specta::specta]
 pub async fn agents(app: AppHandle, refresh: bool) -> Vec<AgentView> {
-    tauri::async_runtime::spawn_blocking(move || app.state::<AppState>().chat.detect(refresh))
-        .await
-        .unwrap_or_default()
-        .into_iter()
-        .map(view)
-        .collect()
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        state.chat.detect(state.data.root(), refresh)
+    })
+    .await
+    .unwrap_or_default()
+    .into_iter()
+    .map(view)
+    .collect()
 }
 
 /// Starts a chat with `kind` on the open project, ending any chat that's running. With `resume`, it continues the
@@ -332,6 +352,11 @@ fn start(app: &AppHandle, root: PathBuf, kind: AgentKind, resume: bool) -> Resul
         openai_key: None,
     };
     let adapter = emmet_agent::adapter(kind, &cfg.env, state.data.root());
+    let plan = kind == AgentKind::Codex
+        && matches!(
+            emmet_agent::chatgpt::ChatGpt::new(state.data.root(), &cfg.env).codex_use(),
+            emmet_agent::chatgpt::CodexUse::Plan { .. }
+        );
     let mut session = adapter.start(cfg).map_err(agent_problem)?;
     let events = session.events();
     save_last(
@@ -346,6 +371,7 @@ fn start(app: &AppHandle, root: PathBuf, kind: AgentKind, resume: bool) -> Resul
         project: root.clone(),
         id: id.clone(),
         kind,
+        plan,
         session,
     });
     let (handle, sid) = (app.clone(), id.clone());
@@ -545,6 +571,6 @@ pub fn openai_key_set(app: AppHandle, key: Option<String>) -> Result<bool, Box<P
         None => emmet_agent::keychain::clear(env).map_err(agent_problem)?,
     }
     // Codex's sign-in changed: detect it again.
-    *state.chat.agents.lock().expect("agents") = None;
+    state.chat.forget_agents();
     Ok(openai_key_saved(app.clone()))
 }

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-chatgpt-choose"
+description = "Enables the chatgpt_choose command without any pre-configured scope."
+commands.allow = ["chatgpt_choose"]
+
+[[permission]]
+identifier = "deny-chatgpt-choose"
+description = "Denies the chatgpt_choose command without any pre-configured scope."
+commands.deny = ["chatgpt_choose"]

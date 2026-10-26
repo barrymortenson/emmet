@@ -2,7 +2,8 @@
 // The chat pane v0 (plan section 10; Phase 2 designs it): the agent picker with who pays, a streaming message list,
 // tool-call, file-change, approval, and question cards, and an open composer: a message sent while the agent works is
 // a pending redirect (Edit, Cancel, Stop and send now) until it's delivered. Stop (or Esc) ends the turn at once. After
-// a crash, Resume continues the same session in one click.
+// a crash, Resume continues the same session in one click. Codex on the ChatGPT plan shows "Using ChatGPT plan" by the
+// composer and OpenAI's limit card for a usage-limit error (1E).
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import {
   type AgentEvent,
@@ -19,6 +20,7 @@ import {
   type SteerPath,
   type UsageSnapshot,
 } from "./bindings";
+import { LimitCard, PlanLabel } from "./ChatGpt";
 
 /** A redirect that nothing has delivered in this long offers "Stop and send now" (plan section 10). */
 const STUCK_MS = 20_000;
@@ -30,7 +32,7 @@ type Item =
   | { kind: "file"; key: string; path: string; change: string }
   | { kind: "approval"; key: string; id: string; approval: ApprovalKind; tool: string; detail: string; decided: string | null }
   | { kind: "question"; key: string; id: string; question: Question; closed: string | null }
-  | { kind: "error"; key: string; message: string }
+  | { kind: "error"; key: string; message: string; limit: boolean }
   | { kind: "status"; key: string; text: string; resume?: boolean };
 
 type Chat = {
@@ -39,6 +41,8 @@ type Chat = {
   /** The open question's id. */
   question: string | null;
   badge: string | null;
+  /** On the user's ChatGPT plan (Codex's only plan). */
+  plan: boolean;
   model: string | null;
   exited: boolean;
   /** Deliveries that came before the redirect's own bubble (the event can beat chat_steer's reply). */
@@ -53,7 +57,7 @@ type Action =
   | { type: "decided"; id: string; how: string }
   | { type: "note"; id: string; text: string | null };
 
-const empty: Chat = { items: [], running: false, question: null, badge: null, model: null, exited: false, early: {}, n: 0 };
+const empty: Chat = { items: [], running: false, question: null, badge: null, plan: false, model: null, exited: false, early: {}, n: 0 };
 
 const DECIDED: Record<Decision, string> = {
   allow_once: "Allowed once",
@@ -72,7 +76,8 @@ function apply(c: Chat, e: AgentEvent): Chat {
   switch (e.type) {
     case "started": {
       const who = e.billing?.kind === "api_key" ? "API key" : e.billing?.kind === "plan" ? `${e.billing.name ? cap(e.billing.name) + " " : ""}plan` : null;
-      return { ...next, model: e.model, badge: who, exited: false };
+      const plan = e.billing?.kind === "plan" && e.billing.name === "ChatGPT";
+      return { ...next, model: e.model, badge: who, plan, exited: false };
     }
     case "text":
     case "reasoning": {
@@ -126,7 +131,7 @@ function apply(c: Chat, e: AgentEvent): Chat {
       return s;
     }
     case "error":
-      return add({ kind: "error", key, message: e.message });
+      return add({ kind: "error", key, message: e.message, limit: c.plan && e.code === "quota_exceeded" });
     case "exited":
       return {
         ...add({ kind: "status", key, text: "The agent stopped. The project is as it left it.", resume: true }),
@@ -484,6 +489,7 @@ export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLi
         </p>
       )}
       {live && warning && !chat.running && <p className="muted warning">{warning}</p>}
+      {live?.kind === "codex" && chat.plan && <PlanLabel />}
       {live && (
         <div className="composer">
           <textarea
@@ -621,6 +627,16 @@ function Entry({
     case "question":
       return <QuestionCard item={item} open={open === item.id} onAnswer={onAnswer} />;
     case "error":
+      if (item.limit)
+        return (
+          <div>
+            <LimitCard />
+            <details className="muted">
+              <summary>What OpenAI said</summary>
+              <pre>{item.message}</pre>
+            </details>
+          </div>
+        );
       return (
         <p className="card error-card" role="alert">
           {item.message}

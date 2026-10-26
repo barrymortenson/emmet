@@ -62,6 +62,25 @@ export const commands = {
 	openaiKeySaved: () => __TAURI_INVOKE<boolean>("openai_key_saved"),
 	/**  Saves the OpenAI API key in the OS keychain (Settings → Agents), or removes it (`key` null). */
 	openaiKeySet: (key: string | null) => typedError<boolean, Problem>(__TAURI_INVOKE("openai_key_set", { key })),
+	chatgptState: () => __TAURI_INVOKE<CodexBilling>("chatgpt_state"),
+	/**
+	 *  Continue with ChatGPT: a new account (`account` null), or the saved one again; `consent` asks OpenAI for the
+	 *  permission screen again, to enable plan use after a decline. Waits for the browser; `chatgpt_cancel` stops it.
+	 */
+	chatgptSignIn: (account: string | null, consent: boolean) => typedError<SignInResult, Problem>(__TAURI_INVOKE("chatgpt_sign_in", { account, consent })),
+	/**  Stops a sign-in that's waiting for the browser. */
+	chatgptCancel: () => __TAURI_INVOKE<void>("chatgpt_cancel"),
+	/**  Signs the account out: its chat stops, OpenAI revokes the session, and its tokens are cleared. */
+	chatgptSignOut: (account: string) => typedError<SignOut, Problem>(__TAURI_INVOKE("chatgpt_sign_out", { account })),
+	/**
+	 *  Codex runs on the ChatGPT account `account`, or on the API key (null). A running Codex chat keeps what it started
+	 *  with; the next one uses the choice.
+	 */
+	chatgptChoose: (account: string | null) => typedError<null, Problem>(__TAURI_INVOKE("chatgpt_choose", { account })),
+	/**  "You're using your ChatGPT plan" was shown for `account`; it isn't shown again. */
+	chatgptNoticeSeen: (account: string) => typedError<null, Problem>(__TAURI_INVOKE("chatgpt_notice_seen", { account })),
+	/**  Manage usage: ChatGPT Settings → Usage in the system browser. */
+	openChatgptUsage: () => typedError<null, Problem>(__TAURI_INVOKE("open_chatgpt_usage")),
 };
 
 /** Events */
@@ -75,6 +94,18 @@ export const events = {
 };
 
 /* Types */
+/**  A saved ChatGPT account, for the picker. */
+export type AccountView = {
+	/**  The issued client id: the registration's stable identity in Emmet. */
+	id: string,
+	label: string,
+	email: string | null,
+	active: boolean,
+	signed_in: boolean,
+	/**  ChatGPT plan use was granted. */
+	plan: boolean,
+};
+
 export type AgentErrorCode = "not_installed" | "not_signed_in" | 
 /**  The CLI couldn't be started. */
 "spawn_failed" | 
@@ -219,6 +250,17 @@ export type Checks = {
 	clean: boolean,
 	/**  Why the validator couldn't run, when it couldn't. */
 	problem: string | null,
+};
+
+/**  Which way Codex pays, as the user chose it. */
+export type Choice = "chatgpt" | "api_key";
+
+/**  What Settings → Agents shows for Codex. */
+export type CodexBilling = {
+	accounts: AccountView[],
+	choice: Choice | null,
+	/**  An OpenAI API key is in the keychain. */
+	key_saved: boolean,
 };
 
 export type ColorView = {
@@ -391,6 +433,20 @@ export type Scene = {
 	checks?: Checks | null,
 	/**  The parts list (the Parts drawer), or null when it couldn't be made. */
 	bom?: Bom | null,
+};
+
+export type SignInResult = 
+/**  `notice`: show the one-time "You're using your ChatGPT plan" now. */
+{ kind: "signed_in"; account: AccountView; notice: boolean } | 
+/**  The user declined in the browser (`access_denied`). */
+{ kind: "declined" } | { kind: "canceled" };
+
+export type SignOut = {
+	/**
+	 *  OpenAI confirmed the revocation. If not, the tokens are cleared anyway, and the user can disconnect Emmet in
+	 *  ChatGPT Settings.
+	 */
+	confirmed: boolean,
 };
 
 /**  A line of the model's source that placed a finding's parts, with its text. */
