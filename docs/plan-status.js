@@ -99,7 +99,7 @@ window.EMMET_STATUS = {
     "H-03": { status: "done", date: "2026-10-24", note: "Claude Code 2.1.310 on Barry's plan; Codex 0.160.1 logged in using ChatGPT" },
     "H-04": { status: "done", date: "2026-10-25", note: "Windows 11 ARM VM (Parallels); Claude Code (native installer, Max plan) and Codex 0.164.0 (npm, API key) both edited the model from Emmet; ADR 0001's Windows section" },
     "H-05": { status: "done", date: "2026-10-26", note: "Developer ID Application certificate and the emmet-notary notarytool profile in the login keychain; just release-dry --sign: notarization Accepted, spctl accepted (Notarized Developer ID), stapler validate worked; the .dmg opened, set up, and built the cottage in a fresh Standard macOS account" },
-    "H-06": { status: "todo" },
+    "H-06": { status: "done", date: "2026-10-26", note: "Rung 1 passed on both agents, each after one rerun (docs/evals/2026-10-26-rung1.md); Barry called G1 a go. terms-check and name-check weren't run for this call" },
     "H-07": { status: "todo" },
     "H-08": { status: "todo" },
     "H-09": { status: "todo" },
@@ -122,7 +122,7 @@ window.EMMET_STATUS = {
   },
   blockers: [],
   gates: {
-    "G1": { status: "todo", note: "" },
+    "G1": { status: "go", note: "Barry 2026-10-26: \"mark g1 as a go.\"" },
     "G2": { status: "todo", note: "" }
   }
 };

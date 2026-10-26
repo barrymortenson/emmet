@@ -17,6 +17,9 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   its attribution, as a GitHub Release asset that the library manager falls back to (plan section 12; CC BY allows it),
   over accepting whatever release LDraw serves (installs would differ, and integrity would rest on HTTPS alone) or
   bumping with no lasting fix (fresh installs break each month).
+- **G1: go.** After 1D merged, Barry called G1 a go ("mark g1 as a go."), on rung 1 passing on both agents, each after
+  one rerun (`docs/evals/2026-10-26-rung1.md`). H-06's `scripts/terms-check` and `scripts/name-check` weren't run for
+  this call. 3A and 3B can start.
 
 ## 2026-10-25, design notes from the 1C live check
 
