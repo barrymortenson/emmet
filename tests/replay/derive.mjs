@@ -28,6 +28,13 @@ const style = {
     { label: "Modern: white walls and a black roof" },
   ],
 };
+// The fix-a-finding flow (1D): what "Ask agent to fix" sends for broken-collision's F-0001, and the fix.
+const askFix =
+  "Fix F-0001 (collision, parts wall/a, wall/b at model.py:10, model.py:11): wall/a (Brick 2 x 4) and wall/b (Brick 2 x 4) " +
+  "overlap by 1 stud. They share 1 stud side by side. Move wall/b by 1 stud, or use a shorter part. Then run validate again.";
+const before = '    m.add("3001", "Blue", at=(1, 0, 1), id="wall/b")';
+const after = '    m.add("3001", "Blue", at=(2, 0, 1), id="wall/b")';
+const fixed = "Fixed F-0001: wall/b now starts at x=2, beside wall/a. validate reports 0 findings.";
 const finished = "The cottage is up: 8 x 6 studs, 6 bricks tall, 93 parts, 0 errors. Sliders: width, depth, wall rows, wall color, roof color, chimney.";
 const load = (cli, name) =>
   readFileSync(join(here, cli, `${name}.jsonl`), "utf8")
@@ -122,6 +129,29 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     result("toolu_validate", placeholder),
     text("msg_0007", finished),
     done(finished),
+    exit(0),
+  ]);
+
+  save("claude", "fix-collision", "tool-call.jsonl", "a finding sent by Ask agent to fix: validate, an Edit at its line, run, validate", [
+    meta,
+    user(askFix),
+    init,
+    ...search("msg_0001", "toolu_search1", "mcp__emmet__validate"),
+    use("msg_0002", "toolu_validate1", "mcp__emmet__validate", {}),
+    result("toolu_validate1", placeholder),
+    use("msg_0003", "toolu_edit", "Edit", {
+      file_path: "<WS>/project/model.py",
+      old_string: before,
+      new_string: after,
+      replace_all: false,
+    }),
+    result("toolu_edit", "The file <WS>/project/model.py has been updated successfully."),
+    use("msg_0004", "toolu_run", "mcp__emmet__run_model", {}),
+    result("toolu_run", placeholder),
+    use("msg_0005", "toolu_validate2", "mcp__emmet__validate", {}),
+    result("toolu_validate2", placeholder),
+    text("msg_0006", fixed),
+    done(fixed),
     exit(0),
   ]);
 
@@ -271,6 +301,21 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     ...tool("emmet", "run_model", {}, 2),
     ...tool("emmet", "validate", {}, 3),
     ...finish(finished),
+  ]);
+  const edit = change.map((l) => {
+    const c = clone(l);
+    c.msg.params.item.changes = [
+      { path: "<WS>/project/model.py", kind: { type: "update", move_path: null }, diff: `@@ -11 +11 @@\n-${before}\n+${after}\n` },
+    ];
+    return c;
+  });
+  save("codex", "fix-collision", "tool-call.jsonl, permissions-untrusted.jsonl", "a finding sent by Ask agent to fix: validate, a fileChange at its line, run, validate", [
+    ...turnText(head, askFix),
+    ...tool("emmet", "validate", {}, 1),
+    ...edit,
+    ...tool("emmet", "run_model", {}, 2),
+    ...tool("emmet", "validate", {}, 3),
+    ...finish(fixed),
   ]);
   save("codex", "ask-user", "tool-call.jsonl", "a real ask_user question, answered in the same turn", [
     ...turnText(head, "Build a wall."),
