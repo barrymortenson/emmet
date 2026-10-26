@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-25",
+  updated: "2026-10-26",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -60,7 +60,7 @@ window.EMMET_STATUS = {
       note: "Barry's design and feature notes from the live check go to docs/design/notes.md in a small PR, for 2A"
     },
     "1D": {
-      status: "review", pr: 17, branch: "bmortenson/s1d-close-loop-signed-build", started: "2026-10-25",
+      status: "done", pr: 17, branch: "bmortenson/s1d-close-loop-signed-build", started: "2026-10-25",
       evidence: [
         "CI ci check green #17 (run 40393047071: mac with E2E and bench, windows with E2E, nsis, plan)",
         "tests/it/tests/{check,validator_corpus,eval}.rs; tests/e2e/specs/checks.e2e.mjs on both OSes",
