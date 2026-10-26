@@ -1,6 +1,6 @@
 {
   "about": "The provider text behind plan section 10's terms matrix and section 12's data terms (D-37). scripts/terms-check re-reads the 'fetch' pages and reports any phrase that's gone; 'manual' pages are checked by hand, because the site forbids automated traffic. Each phrase is short on purpose: enough to find the passage, not a copy of it.",
-  "checked": "2026-10-24",
+  "checked": "2026-10-26",
   "pages": [
     {
       "provider": "Anthropic",
@@ -8,14 +8,38 @@
       "url": "https://code.claude.com/docs/en/legal-and-compliance",
       "check": "fetch",
       "quotes": [
-        { "text": "preinstalling or running Claude Code in your products", "basis": "Chat pane on the user's subscription: allowed with conditions" },
-        { "text": "requires agreeing to our Commercial Terms of Service", "basis": "H-20" },
-        { "text": "The Claude Code binary must not be modified", "basis": "Emmet runs the user's installed CLI unchanged" },
-        { "text": "authentication method built into it", "basis": "never --bare, no credential variables" },
-        { "text": "pay for, resell, or intermediate Claude usage", "basis": "each user bills their own account" },
-        { "text": "prevent an end user from signing in to the unmodified Claude Code binary", "basis": "plan sign-in in the chat pane" },
-        { "text": "should use API key authentication", "basis": "Barry's scripted runs and evals use a Console key (H-21)" },
-        { "text": "accurately say, in plain text, that your product has Claude Code preinstalled", "basis": "names and logos row" }
+        {
+          "text": "preinstalling or running Claude Code in your products",
+          "basis": "Chat pane on the user's subscription: allowed with conditions"
+        },
+        {
+          "text": "requires agreeing to our Commercial Terms of Service",
+          "basis": "H-20"
+        },
+        {
+          "text": "The Claude Code binary must not be modified",
+          "basis": "Emmet runs the user's installed CLI unchanged"
+        },
+        {
+          "text": "authentication method built into it",
+          "basis": "never --bare, no credential variables"
+        },
+        {
+          "text": "pay for, resell, or intermediate Claude usage",
+          "basis": "each user bills their own account"
+        },
+        {
+          "text": "prevent an end user from signing in to the unmodified Claude Code binary",
+          "basis": "plan sign-in in the chat pane"
+        },
+        {
+          "text": "should use API key authentication",
+          "basis": "Barry's scripted runs and evals use a Console key (H-21)"
+        },
+        {
+          "text": "accurately say, in plain text, that your product has Claude Code preinstalled",
+          "basis": "names and logos row"
+        }
       ]
     },
     {
@@ -24,9 +48,18 @@
       "url": "https://developers.openai.com/siwc/token-sharing-open-source",
       "check": "fetch",
       "quotes": [
-        { "text": "your open-source app can request permission to use the user's ChatGPT plan", "basis": "Codex on a ChatGPT plan (1E)" },
-        { "text": "ChatGPT plan usage for open-source and locally hosted apps", "basis": "Emmet is open source and local" },
-        { "text": "offering it in a paid or remotely hosted app, complete the interest form", "basis": "the condition if Emmet ever charges or hosts" }
+        {
+          "text": "your open-source app can request permission to use the user's ChatGPT plan",
+          "basis": "Codex on a ChatGPT plan (1E)"
+        },
+        {
+          "text": "ChatGPT plan usage for open-source and locally hosted apps",
+          "basis": "Emmet is open source and local"
+        },
+        {
+          "text": "offering it in a paid or remotely hosted app, complete the interest form",
+          "basis": "the condition if Emmet ever charges or hosts"
+        }
       ]
     },
     {
@@ -35,7 +68,114 @@
       "url": "https://developers.openai.com/siwc/token-sharing-open-source/sign-in",
       "check": "fetch",
       "quotes": [
-        { "text": "needs neither a client secret nor a partner API key", "basis": "open-source clients register themselves" }
+        {
+          "text": "needs neither a client secret nor a partner API key",
+          "basis": "open-source clients register themselves"
+        },
+        {
+          "text": "set agent_name_hint to your app’s actual name",
+          "basis": "agent_name_hint=\"Emmet\" on first registration (1E)"
+        },
+        {
+          "text": "Do not substitute with localhost",
+          "basis": "the loopback callback is 127.0.0.1"
+        },
+        {
+          "text": "A valid ID token alone does not authorize ChatGPT plan usage",
+          "basis": "the chatgpt.tokens.use.direct check"
+        },
+        {
+          "text": "never commit or log them",
+          "basis": "tokens only in the OS keychain (ADR 0011)"
+        }
+      ]
+    },
+    {
+      "provider": "OpenAI",
+      "title": "ChatGPT plan usage: UI/UX guidelines",
+      "url": "https://developers.openai.com/siwc/ui-ux-guidelines",
+      "check": "fetch",
+      "quotes": [
+        {
+          "text": "Show a welcome modal only the first time a user signs in",
+          "basis": "the one-time \"You're using your ChatGPT plan\" notice"
+        },
+        {
+          "text": "display Using ChatGPT plan near the composer or model selector",
+          "basis": "\"Using ChatGPT plan · Manage usage\" near the composer"
+        },
+        {
+          "text": "Make Manage usage the primary action",
+          "basis": "the usage-limit card"
+        },
+        {
+          "text": "Use Continue with ChatGPT when the action starts the sign-in flow",
+          "basis": "the approved button; the ChatGPT logo only inside it"
+        }
+      ]
+    },
+    {
+      "provider": "OpenAI",
+      "title": "ChatGPT plan usage for open-source apps: Accounts and sessions",
+      "url": "https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions",
+      "check": "fetch",
+      "quotes": [
+        {
+          "text": "show the active ChatGPT account in the app’s account picker",
+          "basis": "the account picker (1E)"
+        },
+        {
+          "text": "serialize refreshes for the same session",
+          "basis": "one refresh at a time per registration"
+        },
+        {
+          "text": "revoke the renewable session using the revocation_endpoint",
+          "basis": "sign-out revokes, then clears the tokens"
+        },
+        {
+          "text": "Keep tokens out of browser storage, source control, logs, analytics, and support transcripts",
+          "basis": "the token leak test"
+        }
+      ]
+    },
+    {
+      "provider": "OpenAI",
+      "title": "ChatGPT plan usage for open-source apps: Codex app-server",
+      "url": "https://developers.openai.com/siwc/token-sharing-open-source/codex-app-server",
+      "check": "fetch",
+      "quotes": [
+        {
+          "text": "Set ACCESS_TOKEN in the app-server child process’s environment",
+          "basis": "the plan provider's env_key"
+        },
+        {
+          "text": "The name should match the agent_name_hint",
+          "basis": "clientInfo.name \"Emmet\""
+        },
+        {
+          "text": "resume the conversation using thread/resume with the saved thread ID",
+          "basis": "restart and resume when the token renews"
+        }
+      ]
+    },
+    {
+      "provider": "OpenAI",
+      "title": "ChatGPT plan usage for open-source apps: Errors and recovery",
+      "url": "https://developers.openai.com/siwc/token-sharing-open-source/errors-and-recovery",
+      "check": "fetch",
+      "quotes": [
+        {
+          "text": "OpenAI does not silently switch the request to another billing path",
+          "basis": "Emmet never falls back to the API key"
+        },
+        {
+          "text": "retain the sign-in but mark ChatGPT plan usage as disabled",
+          "basis": "a declined plan permission"
+        },
+        {
+          "text": "Do not erase credentials solely because of a temporary network or infrastructure failure",
+          "basis": "refresh and network errors keep the sign-in"
+        }
       ]
     },
     {
@@ -44,8 +184,14 @@
       "url": "https://learn.chatgpt.com/docs/app-server",
       "check": "fetch",
       "quotes": [
-        { "text": "we recommend migrating to Sign in with ChatGPT", "basis": "Emmet doesn't use the CLI's own login" },
-        { "text": "App-server authentication has never been permitted for commercial or hosted services", "basis": "not built: chat pane on the CLI's ChatGPT login" }
+        {
+          "text": "we recommend migrating to Sign in with ChatGPT",
+          "basis": "Emmet doesn't use the CLI's own login"
+        },
+        {
+          "text": "App-server authentication has never been permitted for commercial or hosted services",
+          "basis": "not built: chat pane on the CLI's ChatGPT login"
+        }
       ]
     },
     {
@@ -54,8 +200,14 @@
       "url": "https://rebrickable.com/downloads/",
       "check": "manual",
       "quotes": [
-        { "text": "Free for personal and commercial use, provided you acknowledge Rebrickable as your data source", "basis": "D-25, the parts data pack" },
-        { "text": "You may automate downloading these archives at most once a day", "basis": "one scheduled fetch a week from CI" }
+        {
+          "text": "Free for personal and commercial use, provided you acknowledge Rebrickable as your data source",
+          "basis": "D-25, the parts data pack"
+        },
+        {
+          "text": "You may automate downloading these archives at most once a day",
+          "basis": "one scheduled fetch a week from CI"
+        }
       ]
     },
     {
@@ -64,10 +216,22 @@
       "url": "https://rebrickable.com/terms/",
       "check": "manual",
       "quotes": [
-        { "text": "you can download the full catalog via the Downloads page", "basis": "section 5.1" },
-        { "text": "automate or manually scrape any MOC related data", "basis": "no MOC data" },
-        { "text": "use automation tools to download data or to automate traffic", "basis": "section 5.3: why these pages are checked by hand" },
-        { "text": "No Rebrickable content may be used in the training of AI models", "basis": "Q-14: Emmet trains nothing; settled by reading (Barry 2026-10-24)" }
+        {
+          "text": "you can download the full catalog via the Downloads page",
+          "basis": "section 5.1"
+        },
+        {
+          "text": "automate or manually scrape any MOC related data",
+          "basis": "no MOC data"
+        },
+        {
+          "text": "use automation tools to download data or to automate traffic",
+          "basis": "section 5.3: why these pages are checked by hand"
+        },
+        {
+          "text": "No Rebrickable content may be used in the training of AI models",
+          "basis": "Q-14: Emmet trains nothing; settled by reading (Barry 2026-10-24)"
+        }
       ]
     }
   ]

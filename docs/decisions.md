@@ -223,3 +223,16 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   workflow still runs everything.
 - **Tests sized to real risk.** Rule 5 now asks for tests where a bug is likely or costly, not for every line, and
   allows deleting a redundant test with the reason in the commit.
+
+## 2026-10-26, session 1E
+
+- **ring for Sign in with ChatGPT.** OpenAI's ID tokens are RS256 (its JWKS has only RSA keys), and OAuth's state,
+  nonce, PKCE verifier, and the host's `urn:uuid` need a secure random source. Barry approved `ring` 0.17.14 as a direct
+  dependency (default features off, `alloc` on), already in the tree through ureq and rustls, over RustCrypto's `rsa`
+  with `rand` (about 10 new crates) and `jsonwebtoken`. The fakes use it too, to sign test ID tokens with a committed
+  test-only key. ADR 0011 records it.
+- **OpenAI's logo in the approved button.** The "Continue with ChatGPT" button's approved format includes OpenAI's
+  white ChatGPT logo, and the CSP forbids remote content. Barry chose to ship OpenAI's SVG unchanged, with no SPDX
+  header, with TRADEMARKS.md and NOTICE saying it's OpenAI's mark, used only inside that button as OpenAI's UI
+  guidelines direct, and not covered by the AGPL, over a text-only button (not the approved format) or waiting on
+  OpenAI.

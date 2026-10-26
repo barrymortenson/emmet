@@ -45,6 +45,22 @@ goes to Google.
   (4F) are built on that. Two Google forum replies say the pattern is supported, from accounts with no Google role
   shown, so they aren't relied on. 4F adds these phrases to `quotes.json`.
 
+## 2026-10-26 (1E)
+
+- **OpenAI** (Sign in with ChatGPT, all ten pages under
+  [token-sharing-open-source](https://developers.openai.com/siwc/token-sharing-open-source) and the
+  [UI/UX guidelines](https://developers.openai.com/siwc/ui-ux-guidelines)): every phrase recorded in 0B is still
+  there, and the overview still says the docs explain "ChatGPT plan usage for open-source and locally hosted apps".
+  The repo is public under AGPL-3.0, so 1E goes ahead. New phrases for what 1E builds on (the first-use notice, the
+  composer label, the limit card, the account picker, serialized refresh, revocation, the app-server provider, and
+  the error rules) are in `quotes.json`.
+- One difference from the plan's wording: the sign-in page's example keeps the credential record in a local file
+  (0600) under an app-defined path. Its accounts page asks for "protected local or self-hosted runtime storage".
+  Emmet keeps the record in the OS keychain, as section 10 says, which is at least as protected and keeps the tokens
+  out of every file (ADR 0011).
+- The approved "Continue with ChatGPT" button is black (or white) with OpenAI's ChatGPT logo. Emmet ships that logo
+  unchanged, only inside the button (Barry 2026-10-26; TRADEMARKS.md).
+
 ## Files
 
 - `quotes.json`: the phrases, their URLs, and what each one supports.
