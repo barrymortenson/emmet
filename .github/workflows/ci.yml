@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: "0 9 * * 1"
   workflow_dispatch:
+    inputs:
+      windows:
+        description: "Run the Windows jobs too (paused while the Mac app comes first, D-43)"
+        type: boolean
+        default: false
   # ci-hosted-mac.yml calls this to run everything on hosted runners.
   workflow_call:
 
@@ -48,6 +53,7 @@ jobs:
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ' ') }}
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           BEFORE: ${{ github.event.before }}
+          EMMET_CI_WINDOWS: ${{ inputs.windows && '1' || '' }}
         run: |
           full=0; base=""
           if [[ "$EVENT" != pull_request || " $LABELS " == *" full-ci "* ]]; then

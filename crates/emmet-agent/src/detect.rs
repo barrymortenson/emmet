@@ -2,9 +2,9 @@
 //! Finding the CLIs (plan section 10): on PATH and in the usual install folders, their `--version`, the version range
 //! each adapter was tested with, and sign-in through the CLI's own status command. Emmet never opens token files.
 //!
-//! `EMMET_CLAUDE_BIN`, `EMMET_CODEX_BIN`, and `EMMET_AGY_BIN` (in the session's environment, or the app's) name the
-//! binary outright; the tests point them at the fake agents. One that names a missing file means "not installed", with
-//! no further search.
+//! `EMMET_CLAUDE_BIN` and `EMMET_CODEX_BIN` (in the session's environment, or the app's) name the binary outright;
+//! the tests point them at the fake agents. One that names a missing file means "not installed", with no further
+//! search.
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -28,7 +28,7 @@ fn names(kind: AgentKind) -> &'static [&'static str] {
 }
 
 /// The usual install folders, after PATH: the native and standalone installers, Homebrew, npm and bun globals, and on
-/// Windows npm, WinGet, Scoop, OpenAI's standalone Codex, and Antigravity's `%LOCALAPPDATA%\agy\bin`.
+/// Windows npm, WinGet, Scoop, and OpenAI's standalone Codex.
 fn usual_dirs(env: &[(String, String)]) -> Vec<PathBuf> {
     let home = env::get(env, "HOME")
         .or(env::get(env, "USERPROFILE"))
@@ -47,9 +47,8 @@ fn usual_dirs(env: &[(String, String)]) -> Vec<PathBuf> {
         if let Some(l) = env::get(env, "LOCALAPPDATA") {
             dirs.push(Path::new(l).join("Microsoft/WinGet/Links"));
             dirs.push(Path::new(l).join("Programs/claude"));
-            // OpenAI's standalone Codex installer, and Google's Antigravity CLI.
+            // OpenAI's standalone Codex installer.
             dirs.push(Path::new(l).join("Programs/OpenAI/Codex/bin"));
-            dirs.push(Path::new(l).join("agy/bin"));
         }
         if let Some(h) = &home {
             dirs.push(h.join("scoop/shims"));

@@ -3,8 +3,8 @@
 //! and `.codex/` files, and every file in it is hashed before and after both adapters run detection, a turn with tool
 //! calls and an edit, approval cards, a question, the usage probe, a crash, and resume. Nothing in the home may be
 //! added, changed, or removed: not by the adapters, the emmet MCP servers they start, or the runs those make. Setup
-//! (1F) gets the same check: installing both CLIs, signing in, and writing Antigravity's project file change nothing
-//! in the home but the CLIs the installers put there.
+//! (1F) gets the same check: installing both CLIs and signing in change nothing in the home but the CLIs the
+//! installers put there.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -208,8 +208,6 @@ fn setup_writes_no_agent_config() {
         setup::install(kind, &env, false, &Cancel::default(), &mut |_| {}).expect("installs");
     }
     setup::sign_in(&env, false, &Cancel::default()).expect("signs in");
-    let project = temp_dir("sentinel-setup-project");
-    setup::write_antigravity_config(&project, &emmet_it::emmet_bin()).expect("writes the project file");
 
     // Only what the installers installed: the two CLIs.
     let exe = std::env::consts::EXE_SUFFIX;

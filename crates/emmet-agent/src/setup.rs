@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! Agent setup without a terminal (D-41, plan section 10, ADR 0012): the providers' own installers and Claude Code's
-//! own sign-in, run from Rust only after the user clicks, each unmodified, plus Antigravity's terminal mode (D-42).
+//! own sign-in, run from Rust only after the user clicks, each unmodified.
 //!
 //! - **Install** runs the command the provider documents, word for word, in a shell Emmet starts: Anthropic's native
 //!   installer for Claude Code, OpenAI's standalone installer for Codex (with its documented `CODEX_NON_INTERACTIVE`,
@@ -11,11 +11,9 @@
 //!   callback. Its stdin is closed and its output is read only to tell how it ended: Emmet never sees, keeps, or
 //!   passes on a code or a token. If the browser shows a code to paste, the user signs in from Terminal instead
 //!   (Barry 2026-10-26).
-//! - **Antigravity** has no command that adds an MCP server, so Emmet writes the project's `.agents/mcp_config.json`
-//!   on a click (Barry 2026-10-26). It never writes `~/.gemini`.
 //!
-//! Whatever the installers and the CLIs write is theirs (D-41); Emmet's own code here writes only the Antigravity
-//! project file and `setup.json` in its own app data.
+//! Whatever the installers and the CLIs write is theirs (D-41); Emmet's own code here writes only `setup.json` in its
+//! own app data.
 //!
 //! Tests: in a debug build, `EMMET_FAKE_INSTALL=<bin>` runs `<bin> claude|codex` in place of the installer, and
 //! `EMMET_FAKE_SIGNATURE=ok` accepts an unsigned Claude Code (the fakes aren't signed).
@@ -29,7 +27,6 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
 
 use crate::{AgentKind, Detection, detect, env};
 
@@ -570,111 +567,6 @@ fn sign_in_detail(lines: &[String]) -> Option<String> {
         .map(String::from)
         .collect();
     last_line(&said).filter(|l| !l.starts_with("Opening browser"))
-}
-
-/// What Emmet found of the Antigravity CLI (D-42): it has no status command, so sign-in is agy's own first-run step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "specta", derive(specta::Type))]
-pub struct Antigravity {
-    pub path: Option<PathBuf>,
-    pub version: Option<String>,
-}
-
-/// Finds `agy`: `EMMET_AGY_BIN`, PATH, then where Google's installer puts it (`~/.local/bin`, and on Windows
-/// `%LOCALAPPDATA%\agy\bin`).
-pub fn antigravity(env: &[(String, String)]) -> Antigravity {
-    let path = detect::find_named(
-        "EMMET_AGY_BIN",
-        if cfg!(windows) { &["agy.exe"] } else { &["agy"] },
-        env,
-    );
-    let version = path
-        .as_ref()
-        .and_then(|p| detect::output(p, &["--version"], env))
-        .and_then(|v| detect::parse_version(&v))
-        .map(|(a, b, c)| format!("{a}.{b}.{c}"));
-    Antigravity { path, version }
-}
-
-/// The project file Antigravity reads its workspace MCP servers from (antigravity.google/docs/mcp).
-pub fn antigravity_config(project: &Path) -> PathBuf {
-    project.join(".agents").join("mcp_config.json")
-}
-
-/// Adds Emmet's MCP server to the project's `.agents/mcp_config.json` as `emmet`, keeping every other server and
-/// setting the file has. A file that isn't a JSON object is left alone, and so is a `.agents` or a file that's a link
-/// or leads outside the project: a project from elsewhere could point it at `~/.gemini`.
-pub fn write_antigravity_config(project: &Path, emmet: &Path) -> Result<PathBuf, SetupError> {
-    let path = antigravity_config(project);
-    if antigravity_linked(project) {
-        return Err(SetupError::new(
-            Failure::Failed,
-            "The project's .agents folder or its mcp_config.json is a link, so Emmet left it alone. Replace it with a \
-             plain folder, then try again.",
-            None,
-        ));
-    }
-    let mut doc = match std::fs::read(&path) {
-        Ok(bytes) => serde_json::from_slice::<Value>(&bytes)
-            .ok()
-            .filter(Value::is_object)
-            .ok_or_else(|| {
-                SetupError::new(
-                    Failure::Failed,
-                    "The project's .agents/mcp_config.json isn't a JSON object, so Emmet left it alone. Fix or remove \
-                     it, then try again.",
-                    None,
-                )
-            })?,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => json!({}),
-        Err(e) => {
-            return Err(SetupError::new(
-                Failure::Failed,
-                format!("Emmet couldn't read .agents/mcp_config.json: {e}."),
-                None,
-            ));
-        }
-    };
-    if !doc["mcpServers"].is_object() {
-        doc["mcpServers"] = json!({});
-    }
-    doc["mcpServers"]["emmet"] = antigravity_entry(project, emmet);
-    let mut bytes = serde_json::to_vec_pretty(&doc).expect("json");
-    bytes.push(b'\n');
-    emmet_core::fsx::write_atomic(&path, &bytes).map_err(|e| {
-        SetupError::new(
-            Failure::Failed,
-            format!("Emmet couldn't write {}: {}.", path.display(), e.message),
-            None,
-        )
-    })?;
-    Ok(path)
-}
-
-/// Emmet's entry in `mcpServers`: the sidecar, with the project named outright.
-fn antigravity_entry(project: &Path, emmet: &Path) -> Value {
-    json!({"command": emmet, "args": ["mcp", "--project", project]})
-}
-
-/// Whether `.agents` or its `mcp_config.json` is a link, or `.agents` leads outside the project.
-fn antigravity_linked(project: &Path) -> bool {
-    let dir = project.join(".agents");
-    let linked = |p: &Path| std::fs::symlink_metadata(p).is_ok_and(|m| m.file_type().is_symlink());
-    let outside = || {
-        let root = std::fs::canonicalize(project).ok();
-        dir.exists() && std::fs::canonicalize(&dir).ok() != root.map(|r| r.join(".agents"))
-    };
-    linked(&dir) || linked(&antigravity_config(project)) || outside()
-}
-
-/// Whether the project's file already has exactly the entry [`write_antigravity_config`] would write: a moved project
-/// or a moved Emmet needs it written again.
-pub fn antigravity_configured(project: &Path, emmet: &Path) -> bool {
-    !antigravity_linked(project)
-        && std::fs::read(antigravity_config(project))
-            .ok()
-            .and_then(|b| serde_json::from_slice::<Value>(&b).ok())
-            .is_some_and(|d| d["mcpServers"]["emmet"] == antigravity_entry(project, emmet))
 }
 
 /// Emmet's own setup record in app data: whether the user accepted the provider notice (D-37).

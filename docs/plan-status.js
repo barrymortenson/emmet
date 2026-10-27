@@ -79,7 +79,10 @@ window.EMMET_STATUS = {
       ],
       note: "6B's diagnostics bundle must join the no-token tests; a token split across two streamed deltas isn't caught by per-event redaction (ADR 0011)"
     },
-    "1F": { status: "review", pr: 22, branch: "bmortenson/s1f-agent-setup-no-terminal", started: "2026-10-26" },
+    "1F": {
+      status: "review", pr: 22, branch: "bmortenson/s1f-agent-setup-no-terminal", started: "2026-10-26",
+      note: "Barry 2026-10-26 (D-43): the Windows fresh-account run and the Antigravity items are dropped from 1F; the Mac app comes first"
+    },
     "2A": { status: "todo" },
     "2B": { status: "todo" },
     "3A": { status: "todo" },
@@ -90,7 +93,7 @@ window.EMMET_STATUS = {
     "4C": { status: "todo" },
     "4D": { status: "todo" },
     "4E": { status: "todo" },
-    "4F": { status: "todo" },
+    "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
     "5B": { status: "todo" },
     "6A": { status: "todo" },
@@ -127,7 +130,7 @@ window.EMMET_STATUS = {
     "H-22": { status: "todo" },
     "H-23": { status: "todo" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
-    "H-25": { status: "todo" }
+    "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
   },
   blockers: [],
   gates: {

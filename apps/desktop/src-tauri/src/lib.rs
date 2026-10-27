@@ -116,8 +116,6 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             crate::setup::provider_notice_seen,
             crate::setup::open_terminal,
             crate::setup::open_plans,
-            crate::setup::antigravity,
-            crate::setup::antigravity_set_up,
             crate::chat::agents,
             crate::chat::chat_start,
             crate::chat::chat_send,

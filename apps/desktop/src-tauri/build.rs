@@ -24,8 +24,6 @@ fn main() {
         "provider_notice_seen",
         "open_terminal",
         "open_plans",
-        "antigravity",
-        "antigravity_set_up",
         "agents",
         "chat_start",
         "chat_send",

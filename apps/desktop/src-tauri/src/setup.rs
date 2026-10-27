@@ -3,7 +3,7 @@
 //! one Set up button, which runs the emmet sidecar's `library install` and `doctor --fix`, so a fresh install works
 //! without a terminal. Then the agents (D-41, ADR 0012): Install runs the provider's own installer and Sign in runs
 //! Claude Code's own `claude auth login`; the window asks for the provider notice (D-37) first, until the user accepts
-//! it. Antigravity's terminal mode gets Emmet's MCP server in the project's `.agents/mcp_config.json` (D-42).
+//! it.
 
 use std::collections::HashMap;
 use std::process::{Command, Stdio};
@@ -132,23 +132,10 @@ pub fn provider_notice_seen(app: AppHandle) -> Result<(), Box<Problem>> {
 }
 
 /// A terminal: the fallback when Claude Code's sign-in can't finish in the browser (the user runs `claude`, then
-/// `/login`), and where Antigravity's terminal mode runs. With `in_project`, it opens in the open project's folder,
-/// never one the window names.
+/// `/login`). On Windows, cmd.exe and powershell.exe go by full path, so PATH can't put another one first.
 #[tauri::command]
 #[specta::specta]
-pub async fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<Problem>> {
-    let dir = if in_project {
-        Some(
-            app.state::<AppState>()
-                .open_root()
-                .ok_or_else(|| Problem::internal("Open a project first."))?,
-        )
-    } else {
-        None
-    };
-    // On Windows the folder is the working directory, never an argument: cmd.exe would parse a name with & or ^ in it.
-    // cmd.exe and powershell.exe go by full path, since `start` would look for powershell.exe in that folder first.
-    // On macOS, `open -a Terminal <folder>` takes it as an argument, which no shell parses.
+pub async fn open_terminal() -> Result<(), Box<Problem>> {
     let mut cmd = if cfg!(windows) {
         let system = std::path::Path::new(&std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()))
             .join("System32");
@@ -159,14 +146,8 @@ pub async fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<P
     } else {
         let mut c = Command::new("/usr/bin/open");
         c.args(["-a", "Terminal"]);
-        if let Some(d) = &dir {
-            c.arg(d);
-        }
         c
     };
-    if let Some(d) = &dir {
-        cmd.current_dir(d);
-    }
     cmd.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     crate::runs::no_window(&mut cmd);
     // Both launchers return as soon as the terminal opens, so their status says whether it did.
@@ -189,51 +170,6 @@ pub fn open_plans(app: AppHandle, kind: AgentKind) -> Result<(), Box<Problem>> {
         AgentKind::Codex => emmet_agent::setup::CODEX_PLANS,
     };
     emmet_agent::chatgpt::open_url(app.state::<AppState>().chat.env(), url).map_err(|e| Problem::internal(e.message))
-}
-
-/// What the Antigravity card shows (D-42): where agy is, and whether the open project has Emmet's MCP server as Emmet
-/// would write it now.
-#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
-pub struct AntigravityView {
-    pub found: emmet_agent::setup::Antigravity,
-    pub configured: bool,
-}
-
-#[tauri::command]
-#[specta::specta]
-pub async fn antigravity(app: AppHandle) -> AntigravityView {
-    tauri::async_runtime::spawn_blocking(move || {
-        let state = app.state::<AppState>();
-        let configured = state
-            .open_root()
-            .is_some_and(|root| emmet_agent::setup::antigravity_configured(&root, &state.emmet));
-        AntigravityView {
-            found: emmet_agent::setup::antigravity(state.chat.env()),
-            configured,
-        }
-    })
-    .await
-    .unwrap_or(AntigravityView {
-        found: emmet_agent::setup::Antigravity {
-            path: None,
-            version: None,
-        },
-        configured: false,
-    })
-}
-
-/// Adds Emmet's MCP server to the open project's `.agents/mcp_config.json`, for agy run in that folder. The project
-/// is the open one, never a path from the window.
-#[tauri::command]
-#[specta::specta]
-pub fn antigravity_set_up(app: AppHandle) -> Result<(), Box<Problem>> {
-    let state = app.state::<AppState>();
-    let root = state
-        .open_root()
-        .ok_or_else(|| Problem::internal("Open a project first."))?;
-    emmet_agent::setup::write_antigravity_config(&root, &state.emmet)
-        .map(|_| ())
-        .map_err(|e| Problem::internal(e.message))
 }
 
 /// Installs the library (when it's missing) and sets Python up, then rebuilds the open project.

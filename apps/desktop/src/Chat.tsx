@@ -20,7 +20,7 @@ import {
   type SteerPath,
   type UsageSnapshot,
 } from "./bindings";
-import { AgentSetup, AntigravityCard } from "./Agents";
+import { AgentSetup } from "./Agents";
 import { LimitCard, PlanLabel } from "./ChatGpt";
 
 /** A redirect that nothing has delivered in this long offers "Stop and send now" (plan section 10). */
@@ -296,6 +296,8 @@ export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLi
   }, [agentsChanged]);
 
   useEffect(() => {
+    // A message about the last project's chat doesn't carry over to this one.
+    setError(null);
     if (project) void load();
     else dispatch({ type: "reset", records: [], live: false });
   }, [project?.root, load]);
@@ -454,7 +456,6 @@ export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLi
           onStart={start}
           onRefresh={() => void commands.agents(true).then(setAgents)}
           onSettings={onSettings}
-          root={project.root}
         />
       )}
       {agent?.warning && <p className="muted warning">{agent.warning}</p>}
@@ -528,14 +529,12 @@ function Picker({
   onStart,
   onRefresh,
   onSettings,
-  root,
 }: {
   agents: AgentView[] | null;
   last: { kind: AgentKind } | null;
   onStart: (kind: AgentKind, resume: boolean) => void;
   onRefresh: () => void;
   onSettings: () => void;
-  root: string;
 }) {
   if (!agents) return <p className="muted">Looking for Claude Code and Codex…</p>;
   return (
@@ -559,7 +558,6 @@ function Picker({
         );
       })}
       <AgentSetup agents={agents} only="unready" onChanged={onRefresh} onSettings={onSettings} />
-      <AntigravityCard root={root} />
       <button type="button" onClick={onRefresh}>
         Look again
       </button>

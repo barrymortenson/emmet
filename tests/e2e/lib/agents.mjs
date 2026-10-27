@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The fake agents for the chat and setup specs (tests/fake-agents, plan section 16): the app finds them through
-// EMMET_CLAUDE_BIN, EMMET_CODEX_BIN, and EMMET_AGY_BIN, they read their transcript from EMMET_FAKE_DIR, and Codex's API
-// key comes from a file keychain.
+// EMMET_CLAUDE_BIN and EMMET_CODEX_BIN, they read their transcript from EMMET_FAKE_DIR, and Codex's API key comes from
+// a file keychain.
 // The app runs with HOME (USERPROFILE on Windows) in a test home holding sentinel agent configs, which the chat and
 // setup specs hash before and after (D-26): Emmet must never write a user's .claude, .codex, or .gemini.
 //
@@ -26,17 +26,16 @@ const SENTINELS = {
 };
 
 const exe = process.platform === "win32" ? ".exe" : "";
-/** Where the fake CLIs are "installed", and Antigravity's agy (a copy of fake-codex, which answers --version). */
+/** Where the fake CLIs are "installed". */
 export const installed = {
   claude: join(agentHome, ".local", "bin", `claude${exe}`),
   codex: join(agentHome, ".local", "bin", `codex${exe}`),
-  agy: join(agentHome, ".local", "bin", `agy${exe}`),
 };
 
 /** Puts the fake `cli` where the app looks for it. */
 export function install(cli) {
   mkdirSync(join(agentHome, ".local", "bin"), { recursive: true });
-  copyFileSync(bin(cli === "agy" ? "fake-codex" : `fake-${cli}`), installed[cli]);
+  copyFileSync(bin(`fake-${cli}`), installed[cli]);
 }
 
 /** Sets the app's environment for the fakes (wdio's onPrepare, before the service starts the app). */
@@ -49,13 +48,12 @@ export function prepareAgents() {
     mkdirSync(join(p, ".."), { recursive: true });
     writeFileSync(p, text);
   }
-  for (const cli of ["claude", "codex", "agy"]) install(cli);
+  for (const cli of ["claude", "codex"]) install(cli);
   const keychain = join(fakeDir, "keychain");
   writeFileSync(keychain, "sk-e2e-not-a-real-key");
   Object.assign(process.env, {
     EMMET_CLAUDE_BIN: installed.claude,
     EMMET_CODEX_BIN: installed.codex,
-    EMMET_AGY_BIN: installed.agy,
     EMMET_FAKE_INSTALL: bin("fake-install"),
     // The fakes aren't signed by Anthropic; the integration tests check a real refusal.
     EMMET_FAKE_SIGNATURE: "ok",

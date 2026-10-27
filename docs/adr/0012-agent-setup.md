@@ -6,9 +6,10 @@ Status: accepted, 2026-10-26 (session 1F)
 
 D-41: someone who has never opened a terminal installs Claude Code or Codex and signs in from Emmet's first run.
 Plan section 10 has Emmet run each provider's official installer, unmodified, only after a click, and Claude Code's
-own sign-in in a way that needs no terminal, within Anthropic's terms (`docs/terms/`, re-read 2026-10-26). D-42 adds
-Antigravity in terminal mode. Codex's sign-in is 1E's (ADR 0011): the Codex card's Sign in opens Settings → Agents,
-where Continue with ChatGPT and the API key live, so the window never has two copies of them.
+own sign-in in a way that needs no terminal, within Anthropic's terms (`docs/terms/`, re-read 2026-10-26). D-42 added
+Antigravity in terminal mode; D-43 took it out of the MVP before 1F merged. Codex's sign-in is 1E's (ADR 0011): the
+Codex card's Sign in opens Settings → Agents, where Continue with ChatGPT and the API key live, so the window never has
+two copies of them.
 
 ## Decisions
 
@@ -27,7 +28,7 @@ where Continue with ChatGPT and the API key live, so the window never has two co
   nobody can answer its "Start Codex now?" from Emmet's window.
 - OpenAI's standalone installer replaces 1C's npm advice: it needs no Node, checks each archive's SHA-256, and
   installs to `~/.local/bin` (macOS) or `%LOCALAPPDATA%\Programs\OpenAI\Codex\bin` (Windows), which detection now
-  searches, with Antigravity's `%LOCALAPPDATA%\agy\bin`.
+  searches.
 - Neither installer needs admin rights; both refuse or don't need sudo. What they write (the CLI, `~/.claude/downloads`,
   a PATH line in the shell profile) is theirs (D-41). Emmet's own code writes no agent config: the sentinel tests
   (`agent_sentinel.rs`, `setup.e2e.mjs`) hash `.claude`, `.claude.json`, `.codex`, and `.gemini` around install and
@@ -80,18 +81,13 @@ most), and detects again. No pseudo-terminal crate is needed.
 - "Use a Claude Console account instead" runs `claude auth login --console`: Emmet offers both of Claude Code's
   browser sign-ins and restricts none (an API key in the user's shell still wins, as before).
 
-### Antigravity: the project's `.agents/mcp_config.json`
+### Antigravity: built, then removed before merge (D-43)
 
 Antigravity has no `agy mcp add`; its docs name `~/.gemini/config/mcp_config.json` (global) and
-`<workspace>/.agents/mcp_config.json`. "Add Emmet's tools to this project" writes `mcpServers.emmet` =
-`{"command": <the emmet sidecar>, "args": ["mcp", "--project", <root>]}` into the open project's file, keeping every
-other key; a file that isn't a JSON object is left alone (Barry 2026-10-26). Emmet never writes `~/.gemini`: a
-`.agents` folder or file that's a link, or that resolves outside the project, is refused, since a project from
-elsewhere could point it there. The card shows it as set up only when the entry is exactly what Emmet would write
-now, so a moved project or a moved Emmet gets the button again. "Open Terminal here" opens PowerShell with the project
-as its working directory (never an argument, so `cmd.exe` never parses its name; `cmd.exe` and `powershell.exe` by
-full path), or Terminal on macOS through `open -a Terminal <folder>`; the user types `agy` there. agy has no status
-command, so its sign-in is its own first run. H-25 checks that agy loads the file.
+`<workspace>/.agents/mcp_config.json`. 1F built a card that wrote `mcpServers.emmet` into the open project's file
+(keeping every other key, refusing a `.agents` that's a link or leads outside the project, and showing it as set up
+only when the entry matched), then Barry took Antigravity, Cursor, and Grok out of the MVP and the code was removed
+from the PR. It's in the branch's history for when Antigravity comes back.
 
 ### The provider notice and the plans
 
@@ -106,15 +102,15 @@ In debug builds only: `EMMET_FAKE_INSTALL=<fake-install>` replaces the installer
 unsigned fakes; `EMMET_DETECT_HOME_ONLY=1` leaves `/opt/homebrew/bin` and `/usr/local/bin` out of detection, where the
 CI Mac's own CLIs live.
 
-In every build, as before: `EMMET_CLAUDE_BIN` and `EMMET_CODEX_BIN`, and now `EMMET_AGY_BIN`, name the CLI outright.
+In every build, as before: `EMMET_CLAUDE_BIN` and `EMMET_CODEX_BIN` name the CLI outright.
 They now count only when the file is there (with no further search), so the E2E app can start "not installed" and
 fake-install puts the CLI back at that path. fake-claude answers `auth
 login` per `claude-login.mode` and records its arguments and whether stdin was closed.
 
 ## Consequences
 
-- No new dependency. The window gains nine commands (install, sign-in, cancel, the notice, plans, terminal,
-  Antigravity), each in `build.rs` and `capabilities/default.json`.
+- No new dependency. The window gains seven commands (install, sign-in, cancel, the notice and its answer, plans, and
+  the terminal), each in `build.rs` and `capabilities/default.json`.
 - The real installers aren't run by tests (they'd download from the providers); the fresh-account runs on macOS and
   Windows (1F's Done when) are where they're proven.
 - Detection's fix text no longer names terminal commands; the cards carry the actions.

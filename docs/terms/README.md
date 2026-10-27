@@ -83,7 +83,8 @@ still there.
   Pro, Business, Edu, or Enterprise plan".
 - **Google** ([MCP](https://antigravity.google/docs/mcp/)): Antigravity adds MCP servers through its "Interactive MCP
   Manager" or two files, the global `~/.gemini/config/mcp_config.json` and a workspace's `.agents/mcp_config.json`.
-  Emmet writes only the project's file, on a click (Barry 2026-10-26), so terminal mode stays ordinary use (D-42).
+  Antigravity is out of the MVP (Barry 2026-10-26, D-43), so no phrase from this page is in `quotes.json`; when it
+  comes back, writing only the project's file keeps terminal mode ordinary use (D-42).
 
 ## Files
 

@@ -2,8 +2,7 @@
 //! Agent setup without a terminal (D-41, ADR 0012): installing Claude Code and Codex with their providers' installers
 //! and signing in with Claude Code's own `claude auth login`, against fake-install and fake-claude in a fresh home
 //! each: success, already installed, offline, a checksum mismatch, another error, cancel, an unsigned Claude Code,
-//! and a failed or canceled sign-in. Each failure is a plain sentence with one retry; the retry works. Plus the
-//! Antigravity project file, which must keep whatever else the user put in it.
+//! and a failed or canceled sign-in. Each failure is a plain sentence with one retry; the retry works.
 
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -312,88 +311,4 @@ fn a_failed_or_canceled_sign_in_says_so() {
             .expect("the retry signs in")
             .signed_in
     );
-}
-
-#[test]
-fn the_antigravity_file_keeps_the_users_servers() {
-    let dir = temp_dir("setup-agy");
-    let (project, emmet) = (dir.join("project"), dir.join("Emmet.app/emmet"));
-    std::fs::create_dir_all(project.join(".agents")).unwrap();
-    let file = setup::antigravity_config(&project);
-    std::fs::write(
-        &file,
-        r#"{"mcpServers":{"theirs":{"command":"node","args":["x.js"]},"emmet":{"command":"old"}},"other":1}"#,
-    )
-    .unwrap();
-    assert!(
-        !setup::antigravity_configured(&project, &emmet),
-        "an old entry isn't Emmet's"
-    );
-    setup::write_antigravity_config(&project, &emmet).expect("writes");
-    assert!(setup::antigravity_configured(&project, &emmet));
-    assert!(
-        !setup::antigravity_configured(&project, &dir.join("moved/emmet")),
-        "a moved Emmet needs the entry written again"
-    );
-    let doc: serde_json::Value = serde_json::from_slice(&std::fs::read(&file).unwrap()).unwrap();
-    assert_eq!(
-        doc["mcpServers"]["theirs"],
-        serde_json::json!({"command": "node", "args": ["x.js"]})
-    );
-    assert_eq!(doc["other"], 1);
-    assert_eq!(
-        doc["mcpServers"]["emmet"],
-        serde_json::json!({"command": emmet, "args": ["mcp", "--project", project]})
-    );
-
-    // A file Emmet can't read as JSON is never overwritten.
-    std::fs::write(&file, "{ not json").unwrap();
-    let e = setup::write_antigravity_config(&project, &emmet).expect_err("refused");
-    assert!(e.message.contains("left it alone"), "{}", e.message);
-    assert_eq!(std::fs::read_to_string(&file).unwrap(), "{ not json");
-
-    // A project without the folder gets it.
-    let fresh = dir.join("fresh");
-    std::fs::create_dir_all(&fresh).unwrap();
-    setup::write_antigravity_config(&fresh, &emmet).expect("writes");
-    assert!(setup::antigravity_config(&fresh).is_file());
-}
-
-/// A project from elsewhere can't use its .agents folder to have Emmet write user-level config (D-26).
-#[cfg(unix)]
-#[test]
-fn the_antigravity_file_never_follows_a_link() {
-    let dir = temp_dir("setup-agy-link");
-    let (project, gemini) = (dir.join("project"), dir.join("home/.gemini/config"));
-    std::fs::create_dir_all(&project).unwrap();
-    std::fs::create_dir_all(&gemini).unwrap();
-    std::fs::write(gemini.join("mcp_config.json"), "{}").unwrap();
-    std::os::unix::fs::symlink(&gemini, project.join(".agents")).unwrap();
-    let e = setup::write_antigravity_config(&project, Path::new("/emmet")).expect_err("refused");
-    assert!(e.message.contains("is a link"), "{}", e.message);
-    assert_eq!(std::fs::read_to_string(gemini.join("mcp_config.json")).unwrap(), "{}");
-
-    // The same for the file itself.
-    std::fs::remove_file(project.join(".agents")).unwrap();
-    std::fs::create_dir_all(project.join(".agents")).unwrap();
-    std::os::unix::fs::symlink(gemini.join("mcp_config.json"), setup::antigravity_config(&project)).unwrap();
-    setup::write_antigravity_config(&project, Path::new("/emmet")).expect_err("refused");
-    assert_eq!(std::fs::read_to_string(gemini.join("mcp_config.json")).unwrap(), "{}");
-}
-
-#[test]
-fn agy_is_found_where_googles_installer_puts_it() {
-    let h = home("agy");
-    assert!(setup::antigravity(&h.env).path.is_none());
-    let bin = h.home.join(format!(".local/bin/agy{}", std::env::consts::EXE_SUFFIX));
-    let bin = if cfg!(windows) {
-        h.home.join("AppData/Local/agy/bin/agy.exe")
-    } else {
-        bin
-    };
-    std::fs::create_dir_all(bin.parent().unwrap()).unwrap();
-    std::fs::copy(fake_bin("codex"), &bin).unwrap();
-    let a = setup::antigravity(&h.env);
-    assert!(same(a.path.as_deref().unwrap(), &bin));
-    assert!(a.version.is_some(), "its --version is read");
 }

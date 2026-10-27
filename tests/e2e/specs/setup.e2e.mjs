@@ -2,8 +2,8 @@
 // Agent setup without a terminal (session 1F, D-41): from the chat pane's picker, with neither fake CLI installed,
 // the provider notice comes before the first install (Not now runs and records nothing), and once accepted never
 // again; offline, a checksum mismatch, and a cancel each say what happened with one Try again; the install then works,
-// Claude Code's sign-in fails and is retried, and both agents end up ready, all by clicks. Antigravity's card adds
-// Emmet's tools to the project. No agent config in the home changes.
+// Claude Code's sign-in fails and is retried, and both agents end up ready, all by clicks. No agent config in the home
+// changes.
 import { $, expect } from "@wdio/globals";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -67,6 +67,8 @@ describe("agent setup without a terminal", () => {
     await expect($("#setup-claude")).toHaveText(expect.stringContaining("Claude Pro, Max, Team, or Enterprise plan"));
     await expect($("#setup-codex")).toHaveText(expect.stringContaining("every ChatGPT plan, Free included"));
     await expect($("#agent-claude")).toBeDisabled();
+    // The checks spec's project left a chat error behind; it belongs to that project, not this one.
+    expect(await (await $("#chat-error")).isExisting()).toBe(false);
     await screenshots("setup-picker");
     await click("#plans-claude");
     await browser.waitUntil(() => existsSync(join(fakeDir, "opened.txt")), { timeout: 10_000 });
@@ -146,16 +148,6 @@ describe("agent setup without a terminal", () => {
     // The file keychain holds an API key, so Codex is ready once it's installed.
     await (await $("#agent-codex")).waitForEnabled({ timeout: 30_000 });
     expect(await (await $("#setup-codex")).isExisting()).toBe(false);
-  });
-
-  it("adds Emmet's tools to the project for Antigravity", async () => {
-    // Opened outright: a retried spec finds the card as the last attempt left it.
-    await browser.execute(() => (document.getElementById("antigravity").open = true));
-    await click("#antigravity-set-up");
-    await (await $("#antigravity-ready")).waitForExist({ timeout: 10_000 });
-    await screenshots("setup-antigravity");
-    const config = JSON.parse(readFileSync(join(projectDir("setup"), ".agents", "mcp_config.json"), "utf8"));
-    expect(config.mcpServers.emmet.args.slice(0, 2)).toEqual(["mcp", "--project"]);
   });
 
   it("left the user's agent configs untouched", () => {

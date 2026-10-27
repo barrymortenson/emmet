@@ -3,10 +3,9 @@
 // provider's page; Install, which runs the provider's own installer in the host, with its progress, Cancel, and one
 // Try again; and Sign in: Claude Code's own sign-in in the browser, or Settings → Agents for Codex (1E's Continue with
 // ChatGPT and API key live there, so the window never has two copies of them). The provider notice (D-37) comes before
-// an install or sign-in until the user clicks Continue. Antigravity works in terminal mode (D-42): one click adds
-// Emmet's tools to the project, and the user runs agy there.
+// an install or sign-in until the user clicks Continue.
 import { useEffect, useRef, useState } from "react";
-import { type AgentKind, type AgentView, type AntigravityView, commands, events, type SetupError } from "./bindings";
+import { type AgentKind, type AgentView, commands, events, type SetupError } from "./bindings";
 
 const windows = navigator.userAgent.includes("Windows");
 const terminal = windows ? "PowerShell" : "Terminal";
@@ -268,93 +267,9 @@ function TerminalSignIn({ open }: { open: (call: () => ReturnType<typeof command
         Does your browser show a code to paste? Emmet can't take it. Cancel here, then sign in from {terminal}: type{" "}
         <code>claude</code> and press Enter, then type <code>/login</code> and follow the steps.
       </p>
-      <button type="button" id="open-terminal" onClick={() => open(() => commands.openTerminal(false))}>
+      <button type="button" id="open-terminal" onClick={() => open(() => commands.openTerminal())}>
         Open {terminal}
       </button>
     </div>
-  );
-}
-
-/** Antigravity in terminal mode (D-42): agy runs in the user's terminal, and Emmet shows the model live. `root` only
- * says when the open project changed: the host reads the open project itself. */
-export function AntigravityCard({ root }: { root: string }) {
-  const [view, setView] = useState<AntigravityView | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const load = () =>
-    void commands
-      .antigravity()
-      .then(setView)
-      .catch((e: unknown) => setError(`Emmet couldn't look for Antigravity: ${String(e)}`));
-  useEffect(() => {
-    setError(null);
-    load();
-  }, [root]);
-  if (!view) return error ? <p className="notice" role="alert">{error}</p> : null;
-  if (!view) return null;
-  const { path, version } = view.found;
-  return (
-    <details className="agent-card antigravity" id="antigravity">
-      <summary>Antigravity (terminal mode)</summary>
-      {!path ? (
-        <>
-          <p className="muted">
-            Emmet didn't find Antigravity's agy. To use it, install the Antigravity CLI from Google's Antigravity site,
-            run agy once to sign in with your Google account, then look again.
-          </p>
-          <button type="button" id="antigravity-look" onClick={load}>
-            Look again
-          </button>
-        </>
-      ) : (
-        <>
-          <p>
-            Antigravity{version ? ` ${version}` : ""} works in terminal mode: it runs in {terminal}, on your own Google
-            sign-in, and Emmet shows the model live as it builds.
-          </p>
-          {view.configured ? (
-            <p className="muted" id="antigravity-ready">
-              Emmet's tools are in this project's .agents/mcp_config.json, not in your Antigravity settings.
-            </p>
-          ) : (
-            <button
-              type="button"
-              className="primary"
-              id="antigravity-set-up"
-              onClick={async () => {
-                const r = await commands.antigravitySetUp();
-                if (r.status === "error") setError(r.error.message);
-                else {
-                  setError(null);
-                  load();
-                }
-              }}
-            >
-              Add Emmet's tools to this project
-            </button>
-          )}
-          {error && (
-            <p className="notice" role="alert">
-              {error}
-            </p>
-          )}
-          <p className="muted">
-            Then open {terminal} in this project and type <code>agy</code>. If agy asks whether to trust the folder, say
-            yes, so it loads Emmet's tools.
-          </p>
-          <button
-            type="button"
-            id="antigravity-terminal"
-            onClick={() =>
-              void commands
-                .openTerminal(true)
-                .then((r) => setError(r.status === "error" ? said(r.error) : null))
-                .catch((e: unknown) => setError(String(e)))
-            }
-          >
-            Open {terminal} here
-          </button>
-        </>
-      )}
-    </details>
   );
 }

@@ -317,22 +317,6 @@
           "basis": "plan guidance in onboarding (1F)"
         }
       ]
-    },
-    {
-      "provider": "Google",
-      "title": "Antigravity: MCP",
-      "url": "https://antigravity.google/docs/mcp/",
-      "check": "fetch",
-      "quotes": [
-        {
-          "text": ".agents/mcp_config.json",
-          "basis": "terminal mode (1F): Emmet writes the project's file, never ~/.gemini"
-        },
-        {
-          "text": "Interactive MCP Manager",
-          "basis": "Antigravity has no command that adds an MCP server (checked 2026-10-26)"
-        }
-      ]
     }
   ]
 }

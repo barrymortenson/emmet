@@ -91,8 +91,6 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   if the browser shows a code to paste, the card offers Open Terminal instead. "Sign in to Codex" opens Settings →
   Agents (1E's sign-in). Each card says which plans work, with the provider's page, and the provider notice comes
   before the first install or sign-in, until the user accepts it.
-- Antigravity in terminal mode: the chat picker finds `agy`, adds Emmet's tools to the project's
-  `.agents/mcp_config.json` with one click (never `~/.gemini`), and opens a terminal in the project folder.
 - `fake-install` (tests/fake-agents) stands in for the installers, and fake-claude answers `auth login`.
 
 ### Security
@@ -110,6 +108,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
+- The Mac app comes first (D-43): CI's Windows jobs are paused (a manual run's "windows" box runs them), and
+  Antigravity, Cursor, and Grok wait until after the MVP.
 - CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push
   after a green run tests only its own commits, and main doesn't rerun merged PRs. Everything runs weekly, by hand, or
   with the `full-ci` label. `just test` builds only when a suite needs it, and the 0B spike crates left the workspace.

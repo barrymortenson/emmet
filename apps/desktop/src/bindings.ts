@@ -46,18 +46,11 @@ export const commands = {
 	providerNoticeSeen: () => typedError<null, Problem>(__TAURI_INVOKE("provider_notice_seen")),
 	/**
 	 *  A terminal: the fallback when Claude Code's sign-in can't finish in the browser (the user runs `claude`, then
-	 *  `/login`), and where Antigravity's terminal mode runs. With `in_project`, it opens in the open project's folder,
-	 *  never one the window names.
+	 *  `/login`). On Windows, cmd.exe and powershell.exe go by full path, so PATH can't put another one first.
 	 */
-	openTerminal: (inProject: boolean) => typedError<null, Problem>(__TAURI_INVOKE("open_terminal", { inProject })),
+	openTerminal: () => typedError<null, Problem>(__TAURI_INVOKE("open_terminal")),
 	/**  The provider's own page saying which plans include its CLI (D-41), in the browser. */
 	openPlans: (kind: AgentKind) => typedError<null, Problem>(__TAURI_INVOKE("open_plans", { kind })),
-	antigravity: () => __TAURI_INVOKE<AntigravityView>("antigravity"),
-	/**
-	 *  Adds Emmet's MCP server to the open project's `.agents/mcp_config.json`, for agy run in that folder. The project
-	 *  is the open one, never a path from the window.
-	 */
-	antigravitySetUp: () => typedError<null, Problem>(__TAURI_INVOKE("antigravity_set_up")),
 	/**  The agents Emmet found: only a detected, signed-in agent can start a chat; the others carry the fix. */
 	agents: (refresh: boolean) => __TAURI_INVOKE<AgentView[]>("agents", { refresh }),
 	/**
@@ -185,21 +178,6 @@ export type Answer = {
 	choices: string[],
 	/**  What the user typed in Other. */
 	other?: string | null,
-};
-
-/**  What Emmet found of the Antigravity CLI (D-42): it has no status command, so sign-in is agy's own first-run step. */
-export type Antigravity = {
-	path: string | null,
-	version: string | null,
-};
-
-/**
- *  What the Antigravity card shows (D-42): where agy is, and whether the open project has Emmet's MCP server as Emmet
- *  would write it now.
- */
-export type AntigravityView = {
-	found: Antigravity,
-	configured: boolean,
 };
 
 export type AppInfo = {
