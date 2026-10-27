@@ -16,25 +16,30 @@ const mode = (cli, m) => writeFileSync(join(fakeDir, `install-${cli}.mode`), m);
 const login = (m) => writeFileSync(join(fakeDir, "claude-login.mode"), m);
 const signedOut = () => writeFileSync(join(fakeDir, "claude-auth.json"), '{"loggedIn":false,"authMethod":"none"}');
 
+/** Clicks `selector` once it's on screen: the picker can be taller than CI's window, and waitForClickable doesn't
+ * scroll. */
 async function click(selector) {
   const el = await $(selector);
+  await el.waitForExist({ timeout: 30_000 });
+  await el.scrollIntoView({ block: "center" });
   await el.waitForClickable({ timeout: 30_000 });
   await el.click();
 }
 
-/** The failure card's text, once it shows `words`, and its buttons. */
+/** The failure card's text, once it shows `words`, and its buttons. Read afresh on each poll: after Try again, the old
+ * card stays until the host has answered the notice check, then goes. */
 async function failure(kind, words) {
-  const card = await $(`#failed-${kind}`);
-  await card.waitForExist({ timeout: 30_000 });
-  await browser.waitUntil(async () => (await card.getText()).includes(words), {
+  const id = `failed-${kind}`;
+  const read = () => browser.execute((i) => document.getElementById(i)?.innerText ?? "", id);
+  await browser.waitUntil(async () => (await read()).includes(words), {
     timeout: 30_000,
-    timeoutMsg: `#failed-${kind} never said "${words}": ${await card.getText()}`,
+    timeoutMsg: `#${id} never said "${words}"`,
   });
   const buttons = await browser.execute(
-    (id) => [...document.querySelectorAll(`#${id} > button`)].map((b) => b.textContent.trim()),
-    `failed-${kind}`,
+    (i) => [...document.querySelectorAll(`#${i} > button`)].map((b) => b.textContent.trim()),
+    id,
   );
-  return { text: await card.getText(), buttons };
+  return { text: await read(), buttons };
 }
 
 describe("agent setup without a terminal", () => {
