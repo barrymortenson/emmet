@@ -90,7 +90,7 @@ window.EMMET_UI = (() => {
     switch (m.t) {
       case "user": return `<div class="e-msg e-user">${m.auto ? `<span class="e-meta">${icon(m.auto === "settings" ? "sliders" : "warn")} Sent from ${m.auto === "settings" ? "Build settings" : "Checks"}</span>` : ""}<p>${md(m.text)}</p>${m.delivered ? `<span class="e-meta">${icon("check")} Delivered at the agent's next step</span>` : ""}</div>`;
       case "agent": return `<div class="e-msg e-agent">${m.text.split("\n\n").map((p) => `<p>${md(p)}</p>`).join("")}</div>`;
-      case "thinking": return `<details class="e-think"><summary>${icon("spark")}<span>Thinking</span></summary><p>${esc(m.text)}</p></details>`;
+      case "thinking": return `<details class="e-think"><summary><span>Thinking</span>${icon("chev")}</summary><p>${esc(m.text)}</p></details>`;
       case "tool": return tool(m);
       case "file": return file(m);
       case "question": return question(m);

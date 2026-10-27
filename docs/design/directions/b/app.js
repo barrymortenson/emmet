@@ -77,7 +77,8 @@
     if (s.build.state === "findings" && s.agent.state === "idle") return `<div class="b-latest b-latest-warn">${U.icon("warn")}<span>The last build has 1 problem: 9 parts float.</span><span class="e-grow"></span>${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div>`;
     if (!last) return "";
     if (last.t === "tool" || last.t === "file" || last.t === "note") return U.message(last, s);
-    if (last.t === "thinking") return U.message(last, s).replace('<details class="e-think">', '<details class="e-think" open>');
+    // What it's thinking, as plain text: the status above already says it's working (one busy indicator, Barry).
+    if (last.t === "thinking") return `<p class="b-thought">${esc(last.text)}</p>`;
     if (last.t === "agent") return `<div class="b-latest"><span class="b-latest-who">${esc(U.agentOf(s).name)}</span>${U.message(last, s)}</div>`;
     return "";
   }

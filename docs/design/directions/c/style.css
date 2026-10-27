@@ -220,8 +220,10 @@
 .e-fold > summary { display: flex; align-items: center; gap: 8px; padding: 4px 9px; border-radius: 5px; color: var(--fg-muted); background: var(--bg-raised); }
 .e-fold > summary > span { flex: 1; }
 .e-fold[open] { display: grid; gap: 4px; }
-.e-think summary { display: inline-flex; gap: 6px; align-items: center; color: var(--fg-muted); }
-.e-think p { margin: 3px 0 0 21px; color: var(--fg-muted); }
+.e-think summary { display: inline-flex; gap: 6px; align-items: center; color: var(--fg-muted);  }
+.e-think summary .e-ic { width: 12px; height: 12px; }
+.e-think[open] summary .e-ic { transform: rotate(180deg); }
+.e-think p { margin: 3px 0 0 0; color: var(--fg-muted); }
 .e-q, .e-appr, .e-crash, .e-err { border: 1px solid var(--ui-accent); border-radius: 5px; padding: 8px 10px; background: var(--bg-selected); }
 .e-crash, .e-err { display: flex; gap: 8px; border-color: var(--ui-bad); background: var(--bg-bad-soft); }
 .e-err { display: block; }

@@ -117,8 +117,10 @@
 .e-fold > summary { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 12px; color: var(--fg-muted); background: var(--bg-raised); }
 .e-fold > summary > span { flex: 1; }
 .e-fold[open] { display: grid; gap: 6px; } .e-fold[open] > summary { margin-bottom: 2px; }
-.e-think summary { display: inline-flex; gap: 6px; align-items: center; color: var(--fg-muted); }
-.e-think p { margin: 4px 0 0 22px; color: var(--fg-muted); }
+.e-think summary { display: inline-flex; gap: 6px; align-items: center; color: var(--fg-muted);  }
+.e-think summary .e-ic { width: 12px; height: 12px; }
+.e-think[open] summary .e-ic { transform: rotate(180deg); }
+.e-think p { margin: 4px 0 0 0; color: var(--fg-muted); }
 .e-q, .e-appr { border: 2px solid var(--ui-accent); border-radius: 16px; padding: 12px 14px; background: var(--bg-card); }
 .e-q-top { display: flex; justify-content: space-between; align-items: center; }
 .e-q-wait { font-size: 12.5px; color: var(--fg-accent); font-weight: 650; }
@@ -367,3 +369,4 @@
 .b-off { margin: 0; color: var(--fg-muted); font-size: 13px; }
 .b-sec-tools { display: inline-flex; align-items: center; gap: 8px; }
 .e-rebuild + .e-brief-sum { margin-top: 8px; }
+.b-thought { margin: 0; padding: 2px 6px; color: var(--fg-muted); }
