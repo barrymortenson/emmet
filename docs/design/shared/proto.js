@@ -44,8 +44,7 @@ window.EMMET_PROTO = (() => {
     win.style.marginLeft = `${Math.max(0, (w - W * k) / 2)}px`;
   }
 
-  function render() {
-    const cur = state();
+  function render(cur = state()) {
     const screen = byId[cur.s];
     document.documentElement.dataset.theme = cur.t;
     document.documentElement.classList.toggle("p-bare", cur.bare);
@@ -112,9 +111,8 @@ window.EMMET_PROTO = (() => {
     const results = [];
     let checked = 0;
     for (const t of ["light", "dark"]) for (const s of screens) {
-      location.hash = `s=${s.id}&t=${t}&audit`;
       local = {};
-      render();
+      render({ s: s.id, t, bare: true });
       for (const el of document.querySelectorAll(".e-window *")) {
         const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
         if (!own || !el.getClientRects().length) continue;
@@ -142,9 +140,11 @@ window.EMMET_PROTO = (() => {
         if (hit || r < need) results.push({ theme: t, screen: s.id, text: el.textContent.trim().slice(0, 40), ratio: Math.round(r * 100) / 100, need, why: hit || "low contrast" });
       }
     }
-    location.hash = `s=${cur.s}&t=${cur.t}`;
     window.EMMET_AUDIT = { direction: dir.id, screens: screens.length, themes: 2, checked, failures: results };
     console.log(`[audit] ${dir.id}: ${checked} text elements, ${results.length} failures across ${screens.length} screens × 2 themes`, results);
+    // Opened with #audit (for example by headless Chrome with --dump-dom), the page ends on the result.
+    if (cur.audit) document.body.innerHTML = `<pre id="p-audit">${UI.esc(JSON.stringify(window.EMMET_AUDIT, null, 1))}</pre>`;
+    else render(cur);
     return window.EMMET_AUDIT;
   }
 
@@ -154,10 +154,10 @@ window.EMMET_PROTO = (() => {
     document.addEventListener("input", onInput);
     document.addEventListener("change", onChange);
     document.addEventListener("keydown", onKey);
-    window.addEventListener("hashchange", render);
+    window.addEventListener("hashchange", () => render());
     window.addEventListener("resize", fit);
-    render();
     if (state().audit) audit();
+    else render();
   }
   return { direction, go, audit, screens };
 })();

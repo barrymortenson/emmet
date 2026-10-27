@@ -194,7 +194,7 @@ window.EMMET_UI = (() => {
     return `<div class="e-finding" data-selected="${!!screen.selected}"><div class="e-err-top">${icon("warn", "e-bad")}<b>${f.parts} parts aren't held by anything</b><span class="e-chip">${esc(f.id)} · floating</span></div>
       <p>${esc(f.message)}</p><p class="e-small">${esc(f.hint)}</p>
       <pre class="e-src" title="model.py line ${f.line}">${src}</pre>
-      <div class="e-row">${btn("Ask agent to fix", "fix", "e-primary")}${btn("Show in model.py", "", "e-quiet", "file")}${btn("It's fine", "", "e-quiet")}</div></div>`;
+      <div class="e-row">${screen.agent?.state === "working" ? `<span class="e-fixing">${spinner()}${esc(agentOf(screen).name)} is fixing this</span>` : btn("Ask agent to fix", "fix", "e-primary")}${btn("Show in model.py", "", "e-quiet", "file")}${btn("It's fine", "", "e-quiet")}</div></div>`;
   }
 
   function bom(screen) {
@@ -219,7 +219,9 @@ window.EMMET_UI = (() => {
   // The step scrubber (section 14's viewer toolbar; note 6).
   function scrubber(screen) {
     const b = screen.build || {};
-    const cur = screen.step || (b.state === "building" && b.parts ? D.stepOf(b.parts) : D.steps.length);
+    // A partial model (building, or stopped part way) shows the step it reached, not the last one.
+    const partial = (b.state === "building" || b.state === "built") && b.parts && b.parts < D.run.parts;
+    const cur = screen.step || (partial ? D.stepOf(b.parts) : D.steps.length);
     return `<div class="e-scrub"><button type="button" class="e-icon-btn" title="Previous step ([)">◀</button><span>Step ${cur}/${D.steps.length}</span><button type="button" class="e-icon-btn" title="Next step (])">▶</button></div>`;
   }
   function views() {
@@ -256,8 +258,9 @@ window.EMMET_UI = (() => {
     const sel = (label, list, v) => `<label class="e-field"><span>${label}</span><select>${list.map((x) => `<option${x === v ? " selected" : ""}>${esc(x)}</option>`).join("")}</select></label>`;
     return `<div class="e-menu e-menu-wide" role="dialog" aria-label="Model and effort" data-for="model">${sel("Model", a.models, a.model)}${sel("Reasoning effort", D.efforts, "Medium")}<p class="e-small">Bigger models and higher effort use up your plan faster.</p></div>`;
   }
-  function usageMini() {
-    return `<button type="button" class="e-usage" data-act="usage" title="Plan usage">${esc("Claude")} ${D.usage.map((u) => `<span class="e-meter" title="${esc(u.label)}"><i style="width:${Math.max(u.pct, 2)}%"></i></span>`).join("")}<span>${D.usage[0].pct}% · ${D.usage[0].reset}</span></button>`;
+  function usageMini(screen = {}) {
+    if (screen.who === "codex") return `<button type="button" class="e-usage" data-act="usage" title="Plan usage">Codex · Using ChatGPT plan</button>`;
+    return `<button type="button" class="e-usage" data-act="usage" title="Plan usage">Claude ${D.usage.map((u) => `<span class="e-meter" title="${esc(u.label)}"><i style="width:${Math.max(u.pct, 2)}%"></i></span>`).join("")}<span>${D.usage[0].pct}% · ${D.usage[0].reset}</span></button>`;
   }
   function usagePanel() {
     const rows = D.usage.map((u) => `<div class="e-usage-row"><span>${esc(u.label)}</span><span class="e-meter e-meter-lg"><i style="width:${Math.max(u.pct, 1)}%"></i></span><span class="e-num">${u.pct}%</span><span class="e-small">resets in ${esc(u.reset)}</span></div>`).join("");

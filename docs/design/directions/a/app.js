@@ -31,7 +31,7 @@
     return `<nav class="a-rail" aria-label="Project">
       <p class="a-h">Model</p><ul class="a-tree"><li class="a-root"><span>${U.icon("chev")}${esc(s.imported ? D.imported.file : "cottage")}</span><span class="a-dim">${s.build.parts || 0}</span></li>${s.build.state === "empty" ? "" : rows}</ul>
       <p class="a-h">Checks</p><p class="a-check" data-tone="${f ? "warn" : "ok"}">${U.icon(f ? "warn" : "check")}${f ? "1 problem: 8 floating parts" : s.build.state === "empty" ? "Waiting for the first build" : "No problems"}</p>
-      <p class="a-h">Files</p><ul class="a-files"><li>${U.icon("file")}model.py</li><li>${U.icon("file")}params.json</li><li>${U.icon("file")}CARD.md</li></ul>
+      <p class="a-h">Files</p><ul class="a-files">${(s.imported ? [D.imported.file, "CARD.md"] : ["model.py", "params.json", "CARD.md"]).map((f) => `<li>${U.icon("file")}${esc(f)}</li>`).join("")}</ul>
     </nav>`;
   }
 
@@ -46,6 +46,7 @@
 
   function drawer(s) {
     const tab = s.drawer || "params";
+    if (s.build.state === "readonly" && tab === "params") return `<section class="a-drawer">${U.tabs(tab, s)}<p class="a-empty">${U.icon("lock")} Sliders run model.py, so they wait until you trust the project. Parts and Steps work now.</p></section>`;
     if (s.build.state === "empty") return `<section class="a-drawer a-drawer-empty">${U.tabs(null, s)}<p class="a-empty">Parameters, checks, parts, and steps appear after the first build.</p></section>`;
     return `<section class="a-drawer">${U.tabs(tab, s)}<div class="a-panel" data-tab="${tab}">${U.panel(tab, s)}</div></section>`;
   }
@@ -67,7 +68,7 @@
   function statusbar(s) {
     const a = s.agent;
     return `<footer class="a-status"><span class="a-st" data-tone="${a.state === "working" ? "busy" : a.state === "question" || a.state === "approval" ? "attn" : a.state === "crashed" ? "bad" : "idle"}">${a.state === "working" ? U.spinner() : U.icon(a.state === "idle" ? "check" : "info")}${esc(U.agentOf(s).name)}: ${esc(a.line || "Idle")}</span>
-      <span class="e-grow"></span><span>LDraw library ${D.versions.library} · Parts data ${D.versions.partsData}</span>${U.usageMini()}</footer>`;
+      <span class="e-grow"></span><span>LDraw library ${D.versions.library} · Parts data ${D.versions.partsData}</span>${U.usageMini(s)}</footer>`;
   }
 
   function workspace(s, ctx) {
@@ -80,7 +81,7 @@
   function firstRun(s) {
     const { rail, body } = U.firstRun(s.step);
     return `<div class="a-fr"><header class="a-title a-title-plain">${U.lights()}<span class="a-fr-name">Emmet Builder</span></header>
-      <div class="a-fr-body"><aside class="a-fr-rail"><div class="a-fr-mark" aria-hidden="true"></div>${rail}</aside><main class="a-fr-main">${body}</main></div></div>`;
+      <div class="a-fr-body"><aside class="a-fr-rail"><img class="a-fr-mark" src="../../brand/icon-macos-ant.svg" alt="">${rail}</aside><main class="a-fr-main">${body}</main></div></div>`;
   }
 
   window.EMMET_PROTO.direction({

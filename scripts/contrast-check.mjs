@@ -101,7 +101,7 @@ export function checkCss(css, name = "stylesheet") {
   }
   // Outside the token blocks: no color literals, and no fractional opacity (it would dim text past the check).
   const rest = css.replace(BLOCK, "").replace(/\/\*[\s\S]*?\*\//g, "");
-  rest.split("\n").forEach((line, i) => {
+  rest.split("\n").forEach((line) => {
     if (COLOR_LITERAL.test(line)) errors.push(`${name}: a color outside the tokens: ${line.trim().slice(0, 90)}`);
     const o = line.match(/(?:^|[;{\s])opacity\s*:\s*([\d.]+)/);
     if (o && Number(o[1]) > 0 && Number(o[1]) < 1) errors.push(`${name}: opacity ${o[1]} dims text past the check: ${line.trim().slice(0, 90)}`);
@@ -112,7 +112,8 @@ export function checkCss(css, name = "stylesheet") {
 /** A script or page may only take colors from tokens: no literals (data.js's part colors are content, not UI). */
 export function checkSource(text, name) {
   const errors = [];
-  text.replace(/\/\*[\s\S]*?\*\//g, "").split("\n").forEach((line) => {
+  // Prose that names a color in <code> (the brand page lists its hex values) isn't a color on screen.
+  text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/<code>[^<]*<\/code>/g, "").split("\n").forEach((line) => {
     if (/^\s*\/\//.test(line)) return;
     if (COLOR_LITERAL.test(line)) errors.push(`${name}: a color outside the tokens: ${line.trim().slice(0, 90)}`);
   });
@@ -121,7 +122,7 @@ export function checkSource(text, name) {
 
 function designFiles() {
   const css = [join(DESIGN, "shared/proto.css")];
-  const src = [join(DESIGN, "shared/ui.js"), join(DESIGN, "shared/proto.js"), join(DESIGN, "review.html")];
+  const src = [join(DESIGN, "shared/ui.js"), join(DESIGN, "shared/proto.js"), join(DESIGN, "review.html"), join(DESIGN, "review-data.js"), join(DESIGN, "brand/index.html")];
   const dirs = join(DESIGN, "directions");
   for (const d of existsSync(dirs) ? readdirSync(dirs).sort() : []) {
     css.push(join(dirs, d, "style.css"));

@@ -1,0 +1,27 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* Emmet's brand palette (2A draft): the brick orange from the plan's glyph, warm neutrals, and the status colors.
+   Role names follow scripts/contrast-check.mjs: every --fg-* passes 4.5:1 and every --ui-* and --fill-* 3:1 on every
+   --bg-*, and --on-accent passes 4.5:1 on --fill-accent. --swatch-* are the brand's raw colors, shown as swatches only
+   (never as text), so the check leaves them alone. Colors only in these two blocks. */
+[data-theme="light"] {
+  --bg-canvas: #f6f5f2; --bg-surface: #ffffff; --bg-raised: #efede8; --bg-accent-soft: #fdf0e8;
+  --fg-text: #1d1f24; --fg-muted: #565a61; --fg-accent: #a8380a;
+  --fg-ok: #146c3b; --fg-warn: #7f4c00; --fg-bad: #ad2318; --fg-info: #2f4fb3;
+  --ui-control: #74777f; --ui-accent: #c2410c;
+  --fill-accent: #c2410c; --on-accent: #ffffff;
+  --swatch-orange: #e8590c; --swatch-orange-light: #ff8a4c; --swatch-orange-deep: #c2410c; --swatch-stud: #ffb48a;
+  --swatch-ink: #1d1f24; --swatch-graphite: #2b2f3a; --swatch-paper: #f6f5f2; --swatch-cream: #fff4ec;
+  --swatch-ok: #1f8a4c; --swatch-warn: #d99a00; --swatch-bad: #d1362a; --swatch-info: #4c6ef5;
+  --line: #dedcd6; --shadow: #1d1f2429;
+}
+[data-theme="dark"] {
+  --bg-canvas: #141518; --bg-surface: #1c1d21; --bg-raised: #26282d; --bg-accent-soft: #33231a;
+  --fg-text: #eceef2; --fg-muted: #a6abb3; --fg-accent: #ffa572;
+  --fg-ok: #74d79e; --fg-warn: #f2c55a; --fg-bad: #ff958c; --fg-info: #a5b4fc;
+  --ui-control: #858a93; --ui-accent: #ff8a4c;
+  --fill-accent: #ff8a4c; --on-accent: #1d1208;
+  --swatch-orange: #e8590c; --swatch-orange-light: #ff8a4c; --swatch-orange-deep: #c2410c; --swatch-stud: #ffb48a;
+  --swatch-ink: #1d1f24; --swatch-graphite: #2b2f3a; --swatch-paper: #f6f5f2; --swatch-cream: #fff4ec;
+  --swatch-ok: #1f8a4c; --swatch-warn: #d99a00; --swatch-bad: #d1362a; --swatch-info: #4c6ef5;
+  --line: #2f3136; --shadow: #00000080;
+}

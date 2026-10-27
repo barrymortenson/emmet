@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// scripts/contrast-check.mjs: the WCAG math against known ratios, the token grammar (text, UI, fills, prefixes), and
+// what it refuses: a translucent surface, a theme missing a token, and a color or fractional opacity outside the tokens.
+// The last test runs it on docs/design as it stands, so a mockup that loses AA fails here.
+import assert from "node:assert/strict";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { test } from "node:test";
+import { checkCss, checkSource, contrast, parseColor } from "../../scripts/contrast-check.mjs";
+import { ROOT, run, tempDir } from "./helpers.mjs";
+
+const css = (light, dark = light, rest = "") => `[data-theme="light"] { ${light} }\n[data-theme="dark"] { ${dark} }\n${rest}`;
+
+test("contrast matches WCAG's reference values", () => {
+  assert.equal(contrast(parseColor("#000"), parseColor("#fff")).toFixed(2), "21.00");
+  assert.equal(contrast(parseColor("#767676"), parseColor("#ffffff")).toFixed(2), "4.54");
+  assert.equal(contrast(parseColor("#777777"), parseColor("#ffffff")).toFixed(2), "4.48");
+  // Half-transparent black over white is the gray it composites to.
+  assert.equal(contrast(parseColor("#00000080"), parseColor("#fff")).toFixed(2), contrast(parseColor("#7f7f7f"), parseColor("#fff")).toFixed(2));
+  assert.deepEqual(parseColor("rgb(10 20 30 / 50%)"), [10, 20, 30, 0.5]);
+  assert.equal(parseColor("blue"), null);
+});
+
+test("every text token is checked against every surface, and UI tokens at 3:1", () => {
+  const ok = checkCss(css("--bg-a: #fff; --bg-b: #f0f0f0; --fg-text: #222; --ui-edge: #888; --line: #eee;"), "t");
+  assert.deepEqual(ok.errors, []);
+  assert.equal(ok.themes.light, 4); // 2 surfaces × (1 text + 1 UI); --line is decorative.
+  const bad = checkCss(css("--bg-a: #fff; --bg-b: #ddd; --fg-muted: #777; --ui-edge: #aaa;"), "t");
+  assert.ok(bad.errors.some((e) => /--fg-muted on --bg-b is \d\.\d\d:1, needs 4\.5:1/.test(e)), bad.errors.join("\n"));
+  assert.ok(bad.errors.some((e) => /--ui-edge on --bg-a .* needs 3:1/.test(e)));
+});
+
+test("a fill pairs with its on-color, and prefixes keep sets apart", () => {
+  const r = checkCss(css("--bg-a: #fff; --fill-accent: #c2410c; --on-accent: #fff; --p-bg-bar: #000; --p-fg-text: #fff;"), "t");
+  assert.deepEqual(r.errors, []);
+  const lost = checkCss(css("--bg-a: #fff; --on-accent: #fff;"), "t");
+  assert.ok(lost.errors.some((e) => /--on-accent has no --fill-accent/.test(e)));
+  const dark = checkCss(css("--bg-a: #fff; --fill-accent: #ffb48a; --on-accent: #fff;"), "t");
+  assert.ok(dark.errors.some((e) => /--on-accent on --fill-accent/.test(e)));
+});
+
+test("it refuses a translucent surface, a token in one theme only, and colors outside the tokens", () => {
+  const r = checkCss(css("--bg-a: #ffffff80; --fg-t: #000;", "--bg-a: #000; --fg-t: #fff; --fg-extra: #fff;",
+    ".x { color: #123456; }\n.y { background: rgb(1, 2, 3); }\n.z { opacity: 0.6; }\n.w { opacity: 0; border-color: transparent; }"), "t");
+  const all = r.errors.join("\n");
+  assert.match(all, /--bg-a must be opaque/);
+  assert.match(all, /--fg-extra is in dark but not light/);
+  assert.match(all, /a color outside the tokens: \.x/);
+  assert.match(all, /a color outside the tokens: \.y/);
+  assert.match(all, /opacity 0\.6 dims text/);
+  assert.doesNotMatch(all, /\.w/);
+  assert.deepEqual(checkSource('const a = "#fff";\n// #000 in a comment\nel.style.width = "10%";\n<p>Orange is <code>#E8590C</code>.</p>', "s.js").length, 1);
+});
+
+test("the command fails on a bad stylesheet and passes docs/design as it stands", () => {
+  const file = join(tempDir(), "bad.css");
+  writeFileSync(file, css("--bg-a: #fff; --fg-t: #ccc;"));
+  const bad = run("node", [join(ROOT, "scripts/contrast-check.mjs"), file]);
+  assert.equal(bad.code, 1, bad.out);
+  assert.match(bad.out, /contrast-check: 2 problems/);
+  const real = run("node", [join(ROOT, "scripts/contrast-check.mjs")]);
+  assert.equal(real.code, 0, real.out);
+  assert.match(real.out, /contrast-check: ok$/m);
+});

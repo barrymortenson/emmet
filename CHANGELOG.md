@@ -92,6 +92,11 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   Agents (1E's sign-in). Each card says which plans work, with the provider's page, and the provider notice comes
   before the first install or sign-in, until the user accepts it.
 - `fake-install` (tests/fake-agents) stands in for the installers, and fake-claude answers `auth login`.
+- Design research and three clickable directions (session 2A, `docs/design/`): a teardown of nurb and six brick-CAD
+  tools, storyboards of the nine key flows, three static HTML prototypes of every screen and state in light and dark
+  (real renders, run and check output, and transcript text), `review.html` comparing them, and a brand starter.
+  `scripts/contrast-check.mjs` checks the mockups' colors for WCAG AA, and each prototype's `#audit` checks every
+  text element it renders.
 
 ### Security
 
