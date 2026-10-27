@@ -89,7 +89,7 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-10-26 (D-43): merged without the Windows fresh-account run and Windows CI, which come back in the Windows pass; Antigravity is out of the MVP"
     },
-    "2A": { status: "todo" },
+    "2A": { status: "in-progress", branch: "bmortenson/s2a-ux-research-directions", started: "2026-10-26" },
     "2B": { status: "todo" },
     "3A": { status: "todo" },
     "3B": { status: "todo" },
