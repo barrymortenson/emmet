@@ -61,6 +61,30 @@ goes to Google.
 - The approved "Continue with ChatGPT" button is black (or white) with OpenAI's ChatGPT logo. Emmet ships that logo
   unchanged, only inside the button (Barry 2026-10-26; TRADEMARKS.md).
 
+## 2026-10-26 (1F)
+
+Installing each CLI for the user and running Claude Code's sign-in from Emmet keep their basis; every earlier phrase is
+still there.
+
+- **Anthropic** ([legal and compliance](https://code.claude.com/docs/en/legal-and-compliance)): "preinstalling or
+  running Claude Code in your products" under the Commercial Terms (H-20), with the binary "installed and run as
+  published by Anthropic", and sign-in that "must complete through Anthropic's own flow". The
+  [setup page](https://code.claude.com/docs/en/setup) publishes the native installer Emmet runs word for word, says
+  "You do not need to run as Administrator", lists SHA-256 checksums per release (which the installer checks), and
+  says the macOS build is "signed by \"Anthropic PBC\" and notarized by Apple" and the Windows one by "Anthropic, PBC",
+  which Emmet checks after an install. The [authentication page](https://code.claude.com/docs/en/authentication)
+  documents `claude auth login` "in your shell before your first session": Emmet runs exactly that, with nothing on
+  its stdin. When the browser can't reach Claude Code's callback, the page shows a code to paste at "Paste code here
+  if prompted"; Emmet never takes that code and offers the Terminal instead (Barry 2026-10-26).
+- **OpenAI**: Codex "is licensed under the Apache-2.0 License" ([repo](https://github.com/openai/codex)), which
+  publishes the standalone installers Emmet runs word for word, with their documented `CODEX_NON_INTERACTIVE`. Each
+  checks its archives' SHA-256. OpenAI publishes no signing identity for Codex, so Emmet relies on the installer's
+  checksums. [Pricing](https://learn.chatgpt.com/docs/pricing): Codex is "included in your ChatGPT Free, Go, Plus,
+  Pro, Business, Edu, or Enterprise plan".
+- **Google** ([MCP](https://antigravity.google/docs/mcp/)): Antigravity adds MCP servers through its "Interactive MCP
+  Manager" or two files, the global `~/.gemini/config/mcp_config.json` and a workspace's `.agents/mcp_config.json`.
+  Emmet writes only the project's file, on a click (Barry 2026-10-26), so terminal mode stays ordinary use (D-42).
+
 ## Files
 
 - `quotes.json`: the phrases, their URLs, and what each one supports.

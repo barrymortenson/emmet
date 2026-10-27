@@ -84,6 +84,15 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   ChatGPT plan". The token renews between turns (the app-server restarts and resumes the thread). New dependency
   (approved, ADR 0011): ring. OpenAI's ChatGPT logo ships unchanged inside the button (TRADEMARKS.md).
 - `fake-openai` (tests/fake-agents) stands in for OpenAI's sign-in endpoints in the tests.
+- Agent setup without a terminal (session 1F, ADR 0012): the start screen and the chat picker install Claude Code or
+  Codex with one click, running Anthropic's native installer or OpenAI's standalone installer word for word, with the
+  elapsed time, Cancel, and one Try again for every failure, said in plain words. Claude Code's Anthropic signature is
+  checked after an install. "Sign in to Claude" runs Claude Code's own `claude auth login`, which opens the browser;
+  if the browser shows a code to paste, the card offers Open Terminal instead. Each card says which plans work, with
+  the provider's page, and the provider notice comes once, before the first install or sign-in.
+- Antigravity in terminal mode: the chat picker finds `agy`, adds Emmet's tools to the project's
+  `.agents/mcp_config.json` with one click (never `~/.gemini`), and opens a terminal in the project folder.
+- `fake-install` (tests/fake-agents) stands in for the installers, and fake-claude answers `auth login`.
 
 ### Security
 
