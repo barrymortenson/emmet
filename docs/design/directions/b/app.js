@@ -90,7 +90,8 @@
     if (last.t === "tool" || last.t === "file" || last.t === "note") return U.message(last, s);
     // What it's thinking, as plain text: the status above already says it's working (one busy indicator, Barry).
     if (last.t === "thinking") return `<p class="b-thought">${esc(last.text)}</p>`;
-    if (last.t === "agent") return `<div class="b-latest"><span class="b-latest-who">${esc(U.agentOf(s).name)}</span>${U.message(last, s)}</div>`;
+    // No name in front: the agent chip above already says who's talking (say each thing once, Barry).
+    if (last.t === "agent") return U.message(last, s);
     return "";
   }
 

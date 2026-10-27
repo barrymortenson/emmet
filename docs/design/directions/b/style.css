@@ -270,9 +270,6 @@
 .b-msgs { overflow: auto; padding: 4px 4px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .b-active { max-height: 300px; overflow: auto; display: grid; gap: 8px; }
 .b-line { padding: 0 2px; }
-.b-latest { display: flex; gap: 10px; align-items: baseline; padding: 2px 6px; }
-.b-latest-who { font-weight: 700; color: var(--fg-accent); }
-.b-latest-warn { align-items: center; } .b-latest-warn > .e-ic { color: var(--fg-warn); }
 .b-tip { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 2px 6px; color: var(--fg-text); }
 .b-tip .e-ic { color: var(--fg-accent); margin-top: 3px; }
 /* A question lays its answers side by side here, so the card stays short. */
