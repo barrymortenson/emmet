@@ -254,6 +254,15 @@ window.EMMET_DATA = (() => {
       presets: [{ id: "Small", min: 50, max: 150 }, { id: "Medium", min: 150, max: 500 }, { id: "Large", min: 500, max: 1500 }],
     },
     base: { label: "Base", value: "32 × 32", help: "What it stands on (note 8)", options: ["None", "16 × 16", "32 × 32", "48 × 48"] },
+    // LEGO's age bands (Barry 2026-10-27). No 1.5+: that's DUPLO, which the checks can't stack yet.
+    age: {
+      label: "Age", value: "9+", help: "Who builds it",
+      options: [
+        { id: "4+", sub: "Big pieces, few steps" }, { id: "6+", sub: "More pieces, simple techniques" },
+        { id: "9+", sub: "More complex techniques and steps" }, { id: "13+", sub: "Advanced techniques, fine detail" },
+        { id: "18+", sub: "Display models for experienced builders" },
+      ],
+    },
   };
 
   return {

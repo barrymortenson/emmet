@@ -198,14 +198,14 @@ window.EMMET_UI = (() => {
     const size = () => ("size" in dirty ? dirty.size : fresh ? null : B.size.value);
     if (opts.compact) {
       const sz = B.size.presets.find((p) => p.id === size());
-      const parts = [val("style"), val("scale"), val("detail") && `${val("detail")} detail`, sz && `${sz.min}–${sz.max} pieces`].filter(Boolean);
+      const parts = [val("scale"), val("detail") && `${val("detail")} detail`, sz && `${sz.min}–${sz.max} pieces`, val("style"), val("age") && `Ages ${val("age")}`].filter(Boolean);
       const n = Object.keys(dirty).length;
       const pending = n ? `<div class="e-keep e-rebuild"><span>${n} changed</span>${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild", "rebuild", "e-primary e-sm", "refresh")}</div>` : "";
       return `${pending}<div class="e-brief-sum"><span>${esc(parts.join(" · ") || "Any")}</span>${btn("Change", "", "e-sm").replace("<button", `<button data-local="${opts.open}"`)}</div>`;
     }
     const was = (k, v) => (k in dirty ? `<span class="e-chip e-chip-accent">was ${esc(v ?? "Any")}</span>` : "");
     const head = (k, v) => `<div class="e-set-head"><span class="e-set-name">${esc(B[k].label)}</span>${was(k, v)}</div>`;
-    const seg = (label, items, cur) => `<div class="e-seg" role="radiogroup" aria-label="${esc(label)}">${items.map((o) => `<button type="button" role="radio" aria-checked="${o === cur}">${esc(o)}</button>`).join("")}</div>`;
+    const seg = (label, items, cur, tips = {}) => `<div class="e-seg" role="radiogroup" aria-label="${esc(label)}">${items.map((o) => `<button type="button" role="radio" aria-checked="${o === cur}"${tips[o] ? ` title="${esc(tips[o])}"` : ""}>${esc(o)}</button>`).join("")}</div>`;
     // Style: the suggestions, the user's own words as chips of their own, and a field to add more.
     const cur = val("style");
     const own = cur && !B.style.options.some((o) => o.id === cur) ? [cur] : [];
@@ -217,9 +217,11 @@ window.EMMET_UI = (() => {
     const detail = `<div class="e-set" data-moved="${"detail" in dirty}">${head("detail", B.detail.value)}${seg("Detail", ["Any", ...B.detail.options.map((o) => o.id)], val("detail") ?? "Any")}</div>`;
     const pieces = `<div class="e-set">${head("size")}${seg("Size", ["Any", ...B.size.presets.map((p) => p.id)], size() ?? "Any")}</div>`;
     const base = `<div class="e-set">${head("base")}${seg("Base", B.base.options, val("base") ?? B.base.value)}</div>`;
+    const age = `<div class="e-set" data-moved="${"age" in dirty}">${head("age", B.age.value)}${seg("Age", ["Any", ...B.age.options.map((o) => o.id)], val("age") ?? "Any", Object.fromEntries(B.age.options.map((o) => [o.id, o.sub])))}</div>`;
     const n = Object.keys(dirty).length;
     const bar = n ? `<div class="e-keep e-rebuild"><span>${n} changed</span>${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild", "rebuild", "e-primary e-sm", "refresh")}</div>` : "";
-    return `<div class="e-brief">${bar}${style}${scale}${detail}${pieces}${base}</div>`;
+    // What it stands on and how big first, then how it looks, then who builds it (Barry 2026-10-27).
+    return `<div class="e-brief">${bar}${base}${scale}${detail}${pieces}${style}${age}</div>`;
   }
 
   // Checks (law 2: every finding one click from its part and its line).

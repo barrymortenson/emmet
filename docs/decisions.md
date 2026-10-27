@@ -46,7 +46,9 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   and knobs show a short name and their control; any help is a hover tooltip. A new build starts with every build setting on
   Any, so they don't box in the prompt, and style takes the user's own words (steampunk, zen garden) beside the
   suggestions. An on/off switch for build settings came and went the same day: with everything on Any, the prompt
-  already decides, so the switch said nothing new.
+  already decides, so the switch said nothing new. The settings run Base, Scale, Detail, Size, Style, then Age, which
+  takes LEGO's age bands (4+, 6+, 9+, 13+, 18+); 1.5+ is DUPLO, left out because the checks can't stack DUPLO parts
+  yet (their studs have no connectors, so a stacked DUPLO brick reads as floating).
 - **Say each thing once.** Barry asked for a pass over every screen for duplicated or redundant UI. In B: one Stop
   (in the status, with Esc); the status shows only when it adds something (not "Idle", not when a card below says it);
   the viewer carries only the finding's pin (a failed build and a read-only project are told by the chat card and the
