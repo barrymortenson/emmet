@@ -213,7 +213,10 @@ window.EMMET_UI = (() => {
       .concat(own.map((w) => `<button type="button" role="checkbox" class="e-style e-style-own" aria-checked="true" title="Your own style">${esc(w)}<span aria-label="Remove">×</span></button>`)).join("");
     const style = `<div class="e-set" data-moved="${"style" in dirty}">${head("style", B.style.value)}<div class="e-styles" role="group" aria-label="Style">${chips}</div>
       <input class="e-style-input" type="text" placeholder="Your own, like steampunk or zen garden" aria-label="Your own style"></div>`;
-    const scale = `<div class="e-set" data-moved="${"scale" in dirty}">${head("scale", B.scale.value)}<label class="e-select"><select aria-label="Scale"><option${val("scale") ? "" : " selected"}>Any</option>${B.scale.options.map((o) => `<option${o.id === val("scale") ? " selected" : ""} title="${esc(o.sub)}">${esc(o.id)}</option>`).join("")}</select></label></div>`;
+    // Scale's choices show as chips, like style's, instead of hiding in a dropdown (Barry: "I can't see the options").
+    const scaleCur = val("scale") ?? "Any";
+    const scaleChips = [{ id: "Any", sub: "The prompt decides" }, ...B.scale.options].map((o) => `<button type="button" role="radio" class="e-style" aria-checked="${o.id === scaleCur}" title="${esc(o.sub)}">${esc(o.id)}</button>`).join("");
+    const scale = `<div class="e-set" data-moved="${"scale" in dirty}">${head("scale", B.scale.value)}<div class="e-styles" role="radiogroup" aria-label="Scale">${scaleChips}</div></div>`;
     const detail = `<div class="e-set" data-moved="${"detail" in dirty}">${head("detail", B.detail.value)}${seg("Detail", ["Any", ...B.detail.options.map((o) => o.id)], val("detail") ?? "Any")}</div>`;
     const pieces = `<div class="e-set">${head("size")}${seg("Size", ["Any", ...B.size.presets.map((p) => p.id)], size() ?? "Any")}</div>`;
     const base = `<div class="e-set">${head("base")}${seg("Base", B.base.options, val("base") ?? B.base.value)}</div>`;

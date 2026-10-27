@@ -310,7 +310,6 @@
 .e-styles { display: flex; flex-wrap: wrap; gap: 6px; }
 .e-style { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--ui-control); background: var(--bg-card); font-size: 13px; }
 .e-style[aria-checked="true"] { background: var(--bg-selected); color: var(--fg-accent); border: 2px solid var(--ui-accent); padding: 3px 11px; font-weight: 650; }
-.e-select select { width: 100%; background: var(--bg-card); border: 1px solid var(--ui-control); border-radius: 10px; padding: 5px 8px; }
 .e-seg { display: flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--bg-sunken); }
 .e-seg button { flex: 1; border: 0; background: none; padding: 4px 6px; border-radius: 9px; color: var(--fg-muted); font-size: 13px; }
 .e-seg button[aria-checked="true"] { background: var(--bg-card); color: var(--fg-text); font-weight: 650; box-shadow: 0 1px 3px var(--shadow-soft); }
