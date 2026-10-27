@@ -78,14 +78,16 @@
 .e-ln { display: inline-block; width: 30px; color: var(--fg-muted); }
 .e-bom-top { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-bottom: 8px; }
 .e-bom-top .e-small { order: 3; width: 100%; }
-.e-bom table { font-size: 13px; }
+.e-bom table { font-size: 13px; width: 100%; table-layout: fixed; }
 .e-bom th { text-align: left; font-size: 12px; font-weight: 700; color: var(--fg-muted); padding: 4px 6px; border-bottom: 1px solid var(--line-strong); }
 .e-bom td { padding: 5px 6px; border-bottom: 1px solid var(--line); }
-.e-bom th:nth-child(2), .e-bom td:nth-child(2) { display: none; }
-.e-bom td:first-child { width: 40px; padding: 2px 4px 2px 0; }
+/* No part number, and the color goes under the name (no swatch: the picture shows it), so neither line wraps. */
+.e-bom th:nth-child(2), .e-bom td:nth-child(2), .e-bom th:nth-child(4), .e-bom td:nth-child(4) { display: none; }
+.e-bom th:first-child, .e-bom td:first-child { width: 42px; padding: 2px 4px 2px 0; }
+.e-bom th:last-child { width: 30px; }
 .e-bom-pic { display: block; }
-/* The part's picture shows its color, so the color needs no swatch. */
-.e-bom .e-swatch { display: none; }
+.e-bom-name, .e-bom-sub { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.e-bom-sub { font-size: 12px; color: var(--fg-muted); }
 .e-steps-top { display: flex; flex-direction: column; margin-bottom: 8px; }
 .e-steps ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .e-steps li { display: flex; gap: 10px; align-items: center; padding: 4px 8px; border-radius: 10px; }

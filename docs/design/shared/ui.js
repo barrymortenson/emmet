@@ -236,8 +236,9 @@ window.EMMET_UI = (() => {
 
   // Each line's part in its color, rendered by `emmet render` on a one-part model with the background keyed out.
   const partPic = (l) => `<img class="e-bom-pic" src="${window.EMMET_ROOT}shared/parts/${l.part}-${l.color.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.webp" alt="" width="40" height="40">`;
+  // The color is in its own column and again under the name, for a direction that folds the column away.
   function bom(screen) {
-    const rows = D.bom.map((l) => `<tr><td>${partPic(l)}</td><td class="e-mono">${esc(l.part)}</td><td>${esc(l.name)}</td><td>${swatch(l.color)}${esc(l.color)}</td><td class="e-num">${l.qty}</td></tr>`).join("");
+    const rows = D.bom.map((l) => `<tr><td>${partPic(l)}</td><td class="e-mono">${esc(l.part)}</td><td title="${esc(l.name)}, ${esc(l.color)}"><span class="e-bom-name">${esc(l.name)}</span><span class="e-bom-sub">${esc(l.color)}</span></td><td>${swatch(l.color)}${esc(l.color)}</td><td class="e-num">${l.qty}</td></tr>`).join("");
     return `<div class="e-bom"><div class="e-bom-top"><b>${(screen.build?.parts) || D.run.parts} parts · ${D.bom.length} kinds</b><span class="e-small">Availability arrives with the parts data pack</span><span class="e-grow"></span>${btn("Export", "export", "e-sm", "download")}</div>
       <table><thead><tr><th aria-label="Picture"></th><th>Part</th><th>Name</th><th>Color</th><th class="e-num">Qty</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
