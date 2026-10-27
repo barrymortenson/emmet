@@ -236,13 +236,14 @@
    whole model smaller rather than cropping it. 147cqh is the square that fills the viewer at its usual shape. */
 .b-viewer .e-shot { width: max(100cqw, 160cqh); left: calc(50% - max(50cqw, 80cqh)); }
 /* The title row: traffic lights and the project at the left, the agent's capsule centered over the viewer. */
-.b-title { position: relative; z-index: 2; display: flex; align-items: center; height: 56px; padding: 0 16px; }
+/* Equal side columns keep the views centered over the viewer whatever the project name's length. */
+.b-title { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; height: 56px; padding: 0 16px; }
 .b-top-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
 .b-vnotes { position: absolute; top: 8px; left: 16px; display: flex; gap: 8px; }
 .b-top-left .e-lights { padding: 0 2px; }
 .b-project { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; font-weight: 650; border-radius: 999px; }
 .b-tools { position: absolute; right: 16px; top: 4px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.b-tools-row { display: flex; gap: 8px; align-items: center; }
+.b-title-right { justify-self: end; }
 .e-views { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; }
 .e-view { background: none; border: 0; padding: 4px 11px; border-radius: 999px; color: var(--fg-text); }
 .e-view[aria-pressed="true"] { background: var(--bg-selected); color: var(--fg-accent); font-weight: 650; }

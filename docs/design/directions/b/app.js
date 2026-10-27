@@ -17,7 +17,7 @@
   const historyOpen = (s) => (s.history === "open" ? true : s.history === "closed" ? false : HISTORY.has(s.id));
   const tabOf = (s) => s.drawer || S.byId[s.id].drawer || "params";
 
-  // The viewer: the render, the project and the agent's capsule on top, views and the scrubber at the right.
+  // The viewer: the render, with the project at the left of its top row, the views centered, and the scrubber at the right.
   function viewer(s, ctx) {
     const b = s.build;
     // Say each thing once (Barry 2026-10-27): a failed build and a read-only project are told by the chat card and the
@@ -26,7 +26,7 @@
     const step = s.step || (b.parts ? D.stepOf(b.parts) : undefined);
     const scrub = b.state === "empty" ? "" : U.scrubber({ ...s, step });
     return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-local="menu=${s.menu === "open" ? "closed" : "open"}" aria-haspopup="menu">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button>${s.menu === "open" ? projectMenu() : ""}</div>
-      <span class="e-grow"></span><div class="b-tools-row">${scrub}${U.views()}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
+      ${U.views()}<div class="b-title-right">${scrub}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
       <section class="b-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}${pin}
       <div class="b-tools">${U.animating(s, { bare: true })}</div></section>`;
   }
