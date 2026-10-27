@@ -140,13 +140,15 @@ window.EMMET_DATA = (() => {
       { t: "tool", icon: "cube", title: "Built 68 parts", detail: "Walls and ceiling", status: "done", raw: 'run_model() → {"parts": 68, "steps": 8, "ms": 88}' },
       { t: "tool", icon: "check", title: "Checked: no problems", detail: "Nothing collides or floats", status: "done", raw: 'validate() → {"clean": true}' },
     ],
-    pending: [{ t: "pending", text: "put the chimney at the back, please" }],
-    delivered: [{ t: "user", text: "put the chimney at the back, please", delivered: true }],
-    ack: [{ t: "agent", text: "Got it: the chimney goes at the back, on the ridge line. Roof next." }],
+    // A redirect with a link the user pasted. Opening it is the agent's own web tool, outside its sandbox, so it asks
+    // (D-40). Part and color questions never need the web: Emmet's tools answer them (Barry 2026-10-27).
+    pending: [{ t: "pending", text: "put the chimney at the back, like the stone one on this house: example.com/stone-cottage.jpg" }],
+    delivered: [{ t: "user", text: "put the chimney at the back, like the stone one on this house: example.com/stone-cottage.jpg", delivered: true }],
+    ack: [{ t: "agent", text: "Got it: the chimney goes at the back. I'd like to look at your photo first." }],
     approval: [{
       t: "approval", title: "Open a web page?", tool: "Web request",
-      command: "rebrickable.com/parts/3037/slope-45-2-x-4",
-      why: "To check which colors Slope 45 2 x 4 comes in before the roof uses Dark Red.",
+      command: "example.com/stone-cottage.jpg",
+      why: "You pasted this link. Claude wants to see the chimney in it before it builds the roof.",
     }],
     approvalDenied: [{ t: "note", text: "You said no to the web request. Claude carries on without it." }],
     stage3: [

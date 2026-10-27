@@ -48,8 +48,8 @@ library, an imported file with no model.py.
 | 2 | `thinking` | The message is sent; a collapsed "Thinking" line | "Thinking about the cottage · 0:04" |
 | 3 | `question` | The agent asks "Which style should the cottage have?" (from the rung 1 transcript); work waits | "Waiting for your answer" |
 | 4 | `building` | Rules read, parts found, model.py written (folded); 36 parts drop in, Skip | "Building the walls, row 3 of 6 · 0:22" |
-| 5 | `redirect` | 68 parts; the user typed "put the chimney at the back, please": a pending bubble | "Building the walls and ceiling · 0:31" |
-| 6 | `approval` | The redirect is delivered and acknowledged; the agent asks to open a web page | "Waiting for you to allow a web request" |
+| 5 | `redirect` | 68 parts; the user typed "put the chimney at the back, like the stone one on this house:" and pasted a link: a pending bubble | "Building the walls and ceiling · 0:31" |
+| 6 | `approval` | The redirect is delivered and acknowledged; the agent asks to open the pasted link (its own web tool, outside its sandbox, D-40) | "Waiting for you to allow a web request" |
 | 7 | `built` | 93 parts, no problems; the finished run folds to one line; the agent's summary | "Done in 1:12" |
 
 ## 3. Tweak with sliders
@@ -101,7 +101,7 @@ library, an imported file with no model.py.
 |---|---|---|
 | 1 | `building` | Parts drop in by step; Skip shows the finished stage at once |
 | 2 | `redirect` | A pending bubble: Edit, Cancel, "Stop and send now"; it goes at the agent's next step |
-| 3 | `approval` → `built` | Delivered, acknowledged, carried out (the chimney at the back) |
+| 3 | `approval` → `built` | Delivered and acknowledged; the agent asks to open the pasted link, then builds the chimney at the back |
 | 4 | `stopped` | Or Esc: "You stopped the turn at 0:41. The model is as its last run left it: 68 parts." |
 
 ## The other states

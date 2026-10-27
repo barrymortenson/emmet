@@ -25,6 +25,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   settings only (dropping sliders, which would rewrite law 7, the sliders flow, the ladder, and the eval's Parameters
   score) and deciding after 3B. Build settings (style, scale, detail, target size, baseplate) steer the agent, and
   changing one is an agent turn. The plan's sections on sliders change with this PR.
+- **Web requests are for the user's links.** The approval-card mock had the agent open a parts page to check colors;
+  Barry asked why anything would need the web. Part, color, and availability questions go through Emmet's tools
+  (3B's parts data), never the web, and the doctrine says so (plan section 10). The mock now shows the real case:
+  the user pastes a link and the agent asks to open it.
 
 ## 2026-10-26, session 1D
 
