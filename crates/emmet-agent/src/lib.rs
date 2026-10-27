@@ -14,6 +14,7 @@ pub mod env;
 pub mod hub;
 pub mod keychain;
 mod session;
+pub mod setup;
 pub mod time;
 mod transcript;
 pub mod usage;

@@ -26,8 +26,8 @@ fn names(kind: AgentKind) -> &'static [&'static str] {
     }
 }
 
-/// The usual install folders, after PATH: the native installers, Homebrew, npm and bun globals, and on Windows npm,
-/// WinGet, and Scoop.
+/// The usual install folders, after PATH: the native and standalone installers, Homebrew, npm and bun globals, and on
+/// Windows npm, WinGet, and Scoop.
 fn usual_dirs(env: &[(String, String)]) -> Vec<PathBuf> {
     let home = env::get(env, "HOME")
         .or(env::get(env, "USERPROFILE"))
@@ -46,11 +46,15 @@ fn usual_dirs(env: &[(String, String)]) -> Vec<PathBuf> {
         if let Some(l) = env::get(env, "LOCALAPPDATA") {
             dirs.push(Path::new(l).join("Microsoft/WinGet/Links"));
             dirs.push(Path::new(l).join("Programs/claude"));
+            // OpenAI's standalone Codex installer, and Google's Antigravity CLI.
+            dirs.push(Path::new(l).join("Programs/OpenAI/Codex/bin"));
+            dirs.push(Path::new(l).join("agy/bin"));
         }
         if let Some(h) = &home {
             dirs.push(h.join("scoop/shims"));
         }
-    } else {
+    } else if !(cfg!(debug_assertions) && env::get(env, "EMMET_DETECT_HOME_ONLY") == Some("1")) {
+        // A debug build's setup tests leave these out: the machine's own CLIs live there.
         dirs.push("/opt/homebrew/bin".into());
         dirs.push("/usr/local/bin".into());
     }
@@ -63,16 +67,22 @@ pub fn find(kind: AgentKind, env: &[(String, String)]) -> Option<PathBuf> {
         AgentKind::Claude => "EMMET_CLAUDE_BIN",
         AgentKind::Codex => "EMMET_CODEX_BIN",
     };
+    find_named(var, names(kind), env)
+}
+
+/// The program named by `var` (if it's there: no further search), else the first of `names` on PATH, else in the
+/// usual folders.
+pub(crate) fn find_named(var: &str, names: &[&str], env: &[(String, String)]) -> Option<PathBuf> {
     if let Some(p) = env::get(env, var)
         .map(PathBuf::from)
         .or(std::env::var_os(var).map(PathBuf::from))
     {
-        return Some(p);
+        return p.is_file().then_some(p);
     }
     let path = env::get(env, "PATH").unwrap_or_default();
     std::env::split_paths(path)
         .chain(usual_dirs(env))
-        .flat_map(|d| names(kind).iter().map(move |n| d.join(n)))
+        .flat_map(|d| names.iter().map(move |n| d.join(n)))
         .find(|p| p.is_file())
 }
 
@@ -161,17 +171,8 @@ pub fn detect(kind: AgentKind, env: &[(String, String)], has_key: bool) -> Detec
         note: None,
     };
     let Some(bin) = d.path.clone() else {
-        // H-04 (ADR 0001): on Windows the installers add their folder to PATH only for terminals opened afterwards.
-        d.fix = Some(match (kind, cfg!(windows)) {
-            (AgentKind::Claude, false) => "Install Claude Code: https://code.claude.com/docs/en/setup".into(),
-            (AgentKind::Claude, true) => {
-                "Install Claude Code in PowerShell: irm https://claude.ai/install.ps1 | iex. Then \
-                                          open a new terminal, run claude, and sign in with /login."
-                    .into()
-            }
-            (AgentKind::Codex, false) => "Install Codex: npm install -g @openai/codex".into(),
-            (AgentKind::Codex, true) => "Install Node.js, then in a new terminal: npm install -g @openai/codex".into(),
-        });
+        // The picker's Install button runs the provider's installer (D-41, setup::install).
+        d.fix = Some(format!("{} isn't installed yet.", kind.label()));
         return d;
     };
     let version = output(&bin, &["--version"], env).and_then(|v| parse_version(&v));
@@ -197,7 +198,7 @@ pub fn detect(kind: AgentKind, env: &[(String, String)], has_key: bool) -> Detec
             d.signed_in = signed_in;
             d.billing = billing;
             if !signed_in {
-                d.fix = Some("In your terminal, run claude, then /login.".into());
+                d.fix = Some("Claude Code isn't signed in yet.".into());
             }
         }
         AgentKind::Codex => {

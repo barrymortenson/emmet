@@ -598,7 +598,7 @@ fn detection_reads_the_version_and_sign_in() {
     .unwrap();
     let d = rig.adapter(CLAUDE).detect();
     assert!(!d.signed_in && !d.usable());
-    assert_eq!(d.fix.as_deref(), Some("In your terminal, run claude, then /login."));
+    assert_eq!(d.fix.as_deref(), Some("Claude Code isn't signed in yet."));
     std::fs::write(
         rig.fake.join("claude-auth.json"),
         r#"{"loggedIn":true,"authMethod":"api_key","apiKeySource":"ANTHROPIC_API_KEY"}"#,

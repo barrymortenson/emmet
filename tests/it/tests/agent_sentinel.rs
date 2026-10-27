@@ -2,7 +2,9 @@
 //! No write to user-level agent config (D-26, plan section 10): a test home holds sentinel `.claude/`, `.claude.json`,
 //! and `.codex/` files, and every file in it is hashed before and after both adapters run detection, a turn with tool
 //! calls and an edit, approval cards, a question, the usage probe, a crash, and resume. Nothing in the home may be
-//! added, changed, or removed: not by the adapters, the emmet MCP servers they start, or the runs those make.
+//! added, changed, or removed: not by the adapters, the emmet MCP servers they start, or the runs those make. Setup
+//! (1F) gets the same check: installing both CLIs, signing in, and writing Antigravity's project file change nothing
+//! in the home but the CLIs the installers put there.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -21,6 +23,8 @@ const SENTINELS: &[(&str, &str)] = &[
     (".codex/config.toml", "model = \"sentinel\"\n"),
     (".codex/AGENTS.md", "# Sentinel\n"),
     (".codex/rules/sentinel.rules", "sentinel\n"),
+    (".gemini/config/mcp_config.json", r#"{"mcpServers":{}}"#),
+    (".gemini/settings.json", "{}"),
 ];
 
 fn hash_tree(root: &Path) -> BTreeMap<String, String> {
@@ -102,9 +106,8 @@ fn run(home: &Path, cli: &str, kind: AgentKind, scenario: &str, texts: &[&str]) 
     }
 }
 
-#[test]
-fn user_level_agent_configs_are_untouched() {
-    let home = temp_dir("sentinel-home");
+fn sentinel_home(name: &str) -> (PathBuf, BTreeMap<String, String>) {
+    let home = temp_dir(name);
     for (rel, text) in SENTINELS {
         let p = home.join(rel);
         std::fs::create_dir_all(p.parent().unwrap()).unwrap();
@@ -112,6 +115,23 @@ fn user_level_agent_configs_are_untouched() {
     }
     let before = hash_tree(&home);
     assert_eq!(before.len(), SENTINELS.len());
+    (home, before)
+}
+
+/// Every file in `home` added, changed, or removed since `before`.
+fn changes(home: &Path, before: &BTreeMap<String, String>) -> Vec<String> {
+    let after = hash_tree(home);
+    after
+        .iter()
+        .filter(|(k, v)| before.get(*k) != Some(*v))
+        .map(|(k, _)| k.clone())
+        .chain(before.keys().filter(|k| !after.contains_key(*k)).cloned())
+        .collect()
+}
+
+#[test]
+fn user_level_agent_configs_are_untouched() {
+    let (home, before) = sentinel_home("sentinel-home");
 
     let c = AgentKind::Claude;
     run(
@@ -149,12 +169,61 @@ fn user_level_agent_configs_are_untouched() {
     run(&home, "claude", c, "derived-crash-mid-stream", &["Ping."]);
     run(&home, "codex", x, "derived-crash-mid-stream", &["Ping."]);
 
-    let after = hash_tree(&home);
-    let changed: Vec<String> = after
-        .iter()
-        .filter(|(k, v)| before.get(*k) != Some(*v))
-        .map(|(k, _)| k.clone())
-        .chain(before.keys().filter(|k| !after.contains_key(*k)).cloned())
-        .collect();
+    let changed = changes(&home, &before);
     assert!(changed.is_empty(), "files in the home changed: {changed:?}");
+}
+
+#[test]
+fn setup_writes_no_agent_config() {
+    use emmet_agent::setup::{self, Cancel};
+    let (home, before) = sentinel_home("sentinel-setup-home");
+    let fake = temp_dir("sentinel-setup-fake");
+    std::fs::write(fake.join("claude-auth.json"), r#"{"loggedIn":false}"#).unwrap();
+    let h = home.display().to_string();
+    let path = if cfg!(windows) {
+        format!("{}\\System32", std::env::var("SystemRoot").unwrap_or_default())
+    } else {
+        "/usr/bin:/bin".into()
+    };
+    let env: Vec<(String, String)> = [
+        ("HOME", h.clone()),
+        ("USERPROFILE", h),
+        ("APPDATA", home.join("AppData/Roaming").display().to_string()),
+        ("LOCALAPPDATA", home.join("AppData/Local").display().to_string()),
+        ("EMMET_FAKE_DIR", fake.display().to_string()),
+        (
+            "EMMET_FAKE_INSTALL",
+            emmet_it::agents::fake_bin("install").display().to_string(),
+        ),
+        ("EMMET_FAKE_SIGNATURE", "ok".into()),
+        ("EMMET_DETECT_HOME_ONLY", "1".into()),
+        ("PATH", path),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .chain(std::env::var("SystemRoot").map(|v| ("SystemRoot".to_string(), v)))
+    .collect();
+
+    for kind in [AgentKind::Claude, AgentKind::Codex] {
+        setup::install(kind, &env, false, &Cancel::default(), &mut |_| {}).expect("installs");
+    }
+    setup::sign_in(&env, false, &Cancel::default()).expect("signs in");
+    let project = temp_dir("sentinel-setup-project");
+    setup::write_antigravity_config(&project, &emmet_it::emmet_bin()).expect("writes the project file");
+
+    // Only what the installers installed: the two CLIs.
+    let exe = std::env::consts::EXE_SUFFIX;
+    let codex = if cfg!(windows) {
+        "AppData/Local/Programs/OpenAI/Codex/bin/codex.exe".to_string()
+    } else {
+        format!(".local/bin/codex{exe}")
+    };
+    let mut changed = changes(&home, &before);
+    changed.sort();
+    let mut want = vec![format!(".local/bin/claude{exe}"), codex];
+    want.sort();
+    assert_eq!(
+        changed, want,
+        "setup changed files in the home besides the installed CLIs"
+    );
 }

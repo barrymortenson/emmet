@@ -2,7 +2,9 @@
 //! fake-claude: replays a Claude Code stream-JSON transcript (see the crate docs). Beyond the replay it does what
 //! Claude Code does around a tool call: asks the permission prompt tool (the real `emmet_host approve`) wherever the
 //! recording shows Claude Code asking 0B's stub, runs MCP tools on the real servers, and makes Edit and Write changes.
-//! It answers `--version` and `auth status --json` too, for detection.
+//! It answers `--version` and `auth status --json` too, for detection, and `auth login` as setup::sign_in runs it:
+//! `claude-login.mode` in `EMMET_FAKE_DIR` says how the browser sign-in goes (`ok`, `fail`, or `wait`), and
+//! `claude-login.json` records the arguments and whether stdin was closed.
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -18,9 +20,12 @@ fn main() {
         println!("2.1.310 (Claude Code)");
         return;
     }
-    // Detection's status check doesn't count as a start.
+    // Detection's status check and the sign-in don't count as starts.
     if args.first().map(String::as_str) == Some("auth") {
         let dir = PathBuf::from(std::env::var_os("EMMET_FAKE_DIR").unwrap_or_default());
+        if args.get(1).map(String::as_str) == Some("login") {
+            login(&dir, &args);
+        }
         let auth = std::fs::read_to_string(dir.join("claude-auth.json")).unwrap_or_else(|_| {
             r#"{"loggedIn":true,"authMethod":"claude.ai","apiKeySource":"none","subscriptionType":"max"}"#.into()
         });
@@ -185,5 +190,46 @@ fn run_tool(servers: &Servers, asked: &HashMap<String, Value>, id: &str, name: &
     }
     if block["is_error"] != true {
         edit_file(name, input);
+    }
+}
+
+/// `claude auth login`: Claude Code's own words, then the outcome the test chose. Signing in writes the status
+/// `auth status` reports, in the fake's folder.
+fn login(dir: &std::path::Path, args: &[String]) -> ! {
+    use std::io::Write;
+    // Emmet must never hand Claude Code anything at its paste prompt: its stdin is closed.
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut buf = [0u8; 1];
+        let _ = tx.send(matches!(std::io::Read::read(&mut std::io::stdin(), &mut buf), Ok(0)));
+    });
+    let closed = rx.recv_timeout(std::time::Duration::from_millis(500)).unwrap_or(false);
+    let _ = std::fs::write(
+        dir.join("claude-login.json"),
+        json!({"args": args, "stdin_closed": closed}).to_string(),
+    );
+    let mode = std::fs::read_to_string(dir.join("claude-login.mode")).unwrap_or_else(|_| "ok".into());
+    println!("Opening browser to sign in…");
+    println!("If the browser didn't open, visit: https://claude.example.invalid/oauth/authorize?state=fake-state");
+    print!("Paste code here if prompted > ");
+    let _ = std::io::stdout().flush();
+    match mode.trim() {
+        "ok" => {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            let _ = std::fs::write(
+                dir.join("claude-auth.json"),
+                r#"{"loggedIn":true,"authMethod":"claude.ai","apiKeySource":"none","subscriptionType":"pro"}"#,
+            );
+            println!("Login successful.");
+            std::process::exit(0);
+        }
+        "wait" => {
+            std::thread::sleep(std::time::Duration::from_secs(600));
+            std::process::exit(1);
+        }
+        _ => {
+            println!("Login failed: the authorization was denied");
+            std::process::exit(1);
+        }
     }
 }
