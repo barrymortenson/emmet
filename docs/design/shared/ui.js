@@ -301,7 +301,19 @@ window.EMMET_UI = (() => {
     return `<div class="e-menu e-menu-wide" role="menu" data-for="export"><p class="e-menu-group">Parts list</p>${item("list", "CSV", "Every part and color, with counts")}${item("list", "Rebrickable", "A parts list to import")}${item("list", "BrickLink XML", "A wanted list")}
       <p class="e-menu-group">Model</p>${item("cube", "LDraw .mpd", "Opens in Studio, LDCad, and LeoCAD")}<p class="e-menu-group">Instructions</p>${item("file", "PDF", "Step pages, A4 or Letter")}${item("file", "LPub3D-ready file", "For your own layout")}</div>`;
   }
-  const overlay = (screen) => ({ agents: agentMenu, model: modelMenu, usage: usagePanel, export: exportMenu })[screen.overlay]?.(screen) || "";
+  // About: the app icon, the version and license, what Emmet connects to (section 15), and the trademark line
+  // (TRADEMARKS.md, D-30). A dialog the harness centers over the window.
+  function about() {
+    const theme = document.documentElement.dataset.theme;
+    return `<div class="e-menu e-about" role="dialog" aria-label="About Emmet Builder"><img class="e-about-icon" src="${window.EMMET_ROOT}brand/icon-macos-ant.svg" alt="">
+      <img class="e-about-word" src="${window.EMMET_ROOT}brand/wordmark-emmet-builder-ant-${theme}.svg" alt="Emmet Builder">
+      <p>Version ${D.versions.emmet} · LDraw library ${D.versions.library} · Parts data ${D.versions.partsData}</p>
+      <p>Free and open source under the AGPL-3.0. Your models and chats stay on this computer; Emmet has no accounts and no tracking.</p>
+      <p class="e-small">Emmet connects only to: the LDraw library and parts data downloads, its own update check, and the agent you pick, which talks to Anthropic or OpenAI on your plan.</p>
+      <p class="e-small e-tm">${trademark()} LDraw is a trademark of the Estate of James Jessiman. Claude is a trademark of Anthropic, and Codex and ChatGPT of OpenAI; Emmet isn't affiliated with or endorsed by them.</p>
+      <div class="e-row">${btn("Licenses", "", "e-quiet e-sm")}${btn("Close", "close", "e-sm")}</div></div>`;
+  }
+  const overlay = (screen) => ({ agents: agentMenu, model: modelMenu, usage: usagePanel, export: exportMenu, about })[screen.overlay]?.(screen) || "";
 
   // First run (D-41: no terminal; which plans work; the provider notice once).
   function firstRun(step) {
@@ -310,8 +322,8 @@ window.EMMET_UI = (() => {
     const rail = `<ol class="e-fr-steps">${steps.map(([id, label], i) => `<li data-state="${i < at ? "done" : i === at ? "current" : "later"}">${i < at ? icon("check") : `<span>${i + 1}</span>`}${label}</li>`).join("")}</ol>`;
     let body;
     if (step === "welcome") {
-      body = `<h1>Build brick models by describing them</h1><p class="e-lede">Emmet Builder works with your own Claude Code or Codex. You say what to build; your agent writes a small Python model from real LDraw parts, and Emmet shows it, checks it, and gives you sliders, a parts list, and steps.</p>
-        <ul class="e-fr-list"><li>${icon("cube")}Real parts, in colors they're actually made in</li><li>${icon("check")}Checks for parts that collide or float</li><li>${icon("sliders")}Sliders instead of placing 400 bricks</li></ul>
+      body = `<h1>Build brick models by describing them</h1><p class="e-lede">Emmet Builder works with your own Claude Code or Codex. You say what to build; your agent writes a small Python model from real LDraw parts, and Emmet shows it, checks it, and gives you a parts list and building steps.</p>
+        <ul class="e-fr-list"><li>${icon("cube")}Real parts, in colors they're actually made in</li><li>${icon("check")}Checks for parts that collide or float</li><li>${icon("sliders")}Pick a style, scale, and size instead of placing 400 bricks</li></ul>
         <div class="e-row">${btn("Get started", "primary", "e-primary e-lg")}</div><p class="e-small">Your models and chats stay on this computer. Emmet has no accounts and no tracking.</p>`;
     } else if (step === "library") {
       body = `<h1>Getting the parts ready</h1><p class="e-lede">Downloading the LDraw parts library (about 150 MB) and setting up Python. This takes a minute or two, and only happens once.</p>

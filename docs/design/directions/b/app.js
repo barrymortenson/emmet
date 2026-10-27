@@ -9,6 +9,8 @@
   const U = window.EMMET_UI;
   const S = window.EMMET_STATES;
   const esc = U.esc;
+  // The brand's ant (brand/mark-ant.svg): in the project chip, which opens About, and beside tips.
+  const ANT = `<img class="b-ant" src="../../brand/mark-ant.svg" alt="">`;
 
   // History opens where the conversation itself is the point: picking an agent, and right after a switch. Elsewhere
   // "History" opens it (a local toggle).
@@ -24,7 +26,7 @@
     const pin = b.state === "findings" ? `<button type="button" class="b-pin" data-tab="checks"><span class="b-pin-dot">${U.icon("warn")}</span><span class="b-pin-text"><b>8 parts float</b><small>F-0001 · the chimney starts 9 plates up</small></span></button>` : "";
     const step = s.step || (b.parts ? D.stepOf(b.parts) : undefined);
     const scrub = b.state === "empty" ? "" : U.scrubber({ ...s, step });
-    return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project">${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button></div>
+    return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-act="about" title="Emmet Builder: About, Settings">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button></div>
       <span class="e-grow"></span><div class="b-tools-row">${scrub}${U.views()}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
       <section class="b-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}${pin}<div class="b-vnotes">${failed}${ro}</div>
       <div class="b-tools">${U.animating(s)}</div></section>`;
@@ -68,7 +70,7 @@
     if (s.dirty || s.briefDirty) return "";
     const last = s.chat[s.chat.length - 1];
     if (s.build.state === "findings" && s.agent.state === "idle") return `<div class="b-latest b-latest-warn">${U.icon("warn")}<span>The last build has 1 problem: 8 parts float.</span><span class="e-grow"></span>${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div>`;
-    if (!last) return s.imported || s.banner ? "" : s.build.state === "empty" ? `<p class="b-tip">${U.icon("spark")}Pick the build settings on the right, then describe it in your own words. ${esc(U.agentOf(s).name)} builds it from real parts, stage by stage.</p>` : "";
+    if (!last) return s.imported || s.banner ? "" : s.build.state === "empty" ? `<p class="b-tip">${ANT}Pick the build settings on the right, then describe it in your own words. ${esc(U.agentOf(s).name)} builds it from real parts, stage by stage.</p>` : "";
     if (last.t === "tool" || last.t === "file" || last.t === "note") return U.message(last, s);
     if (last.t === "thinking") return U.message(last, s).replace('<details class="e-think">', '<details class="e-think" open>');
     if (last.t === "agent") return `<div class="b-latest"><span class="b-latest-who">${esc(U.agentOf(s).name)}</span>${U.message(last, s)}</div>`;
@@ -102,7 +104,7 @@
   function firstRun(s, ctx) {
     const { rail, body } = U.firstRun(s.step);
     return `<div class="b-fr"><div class="b-frame-fr">${U.shot(BACKDROP[s.step], ctx.theme)}</div><div class="b-top-left">${U.lights()}</div>
-      <section class="b-fr-card"><div class="b-brand"><img class="b-mark" src="../../brand/mark-ant.svg" alt=""><b>Emmet Builder</b></div>${rail}<div class="b-fr-body">${body}</div></section></div>`;
+      <section class="b-fr-card"><img class="b-wordmark" src="../../brand/wordmark-emmet-builder-ant-${ctx.theme}.svg" alt="Emmet Builder">${rail}<div class="b-fr-body">${body}</div></section></div>`;
   }
 
   window.EMMET_PROTO.direction({

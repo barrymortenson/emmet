@@ -49,7 +49,9 @@ window.EMMET_PROTO = (() => {
     document.documentElement.dataset.theme = cur.t;
     document.documentElement.classList.toggle("p-bare", cur.bare);
     const view = { ...screen, ...local };
-    const app = `<div class="e-window" data-kind="${screen.kind}" style="width:${W}px;height:${H}px">${dir.render(view, { theme: cur.t, local })}</div>`;
+    // About is a dialog over any direction's window; every other overlay is the direction's to place.
+    const modal = view.overlay === "about" ? `<div class="e-modal">${UI.overlay(view)}</div>` : "";
+    const app = `<div class="e-window" data-kind="${screen.kind}" style="width:${W}px;height:${H}px">${dir.render(view, { theme: cur.t, local })}${modal}</div>`;
     document.body.innerHTML = (cur.bare ? "" : chrome(cur, screen)) + `<div class="p-stage">${app}</div>`;
     document.title = `${dir.name}: ${screen.title}`;
     // A chat opens at its newest message, as the app's does.
@@ -58,7 +60,7 @@ window.EMMET_PROTO = (() => {
   }
 
   // Clicks: a screen's `on` map first, then what the chrome around every screen does.
-  const GLOBAL = { agents: "switch-agent", model: "model-picker", usage: "usage", export: "export", pick: "switched" };
+  const GLOBAL = { agents: "switch-agent", model: "model-picker", usage: "usage", export: "export", pick: "switched", about: "about", close: "built" };
   function act(name, el) {
     const s = byId[state().s];
     // A trigger clicked again while its overlay is open closes it.

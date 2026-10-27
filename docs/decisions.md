@@ -29,6 +29,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   Barry asked why anything would need the web. Part, color, and availability questions go through Emmet's tools
   (3B's parts data), never the web, and the doctrine says so (plan section 10). The mock now shows the real case:
   the user pastes a link and the agent asks to open it.
+- **The ant is the mark, and B wears it.** Barry chose to brand B with the ant (`brand/mark-ant.svg`, three studs
+  for a body) over the brick: the project chip carries it and opens About, tips use it, first run shows the
+  "Emmet Builder" wordmark, the accent is the brand orange from `brand/palette.css`, and About shows the macOS icon
+  draft, what Emmet connects to, and the trademark line (D-30). The final typeface and the 16 px tuning are 2B's.
 
 ## 2026-10-26, session 1D
 

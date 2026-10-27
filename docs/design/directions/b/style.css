@@ -1,22 +1,22 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
-/* Direction B, Canvas. Warm paper cards on the viewer in light, warm charcoal in dark; a terracotta accent from the
-   brand orange family; 14 px type, 16 px corners, soft shadows, room to breathe.
+/* Direction B, Canvas. Warm paper cards on the viewer in light, warm charcoal in dark; the brand orange
+   (brand/palette.css) as the accent, and the ant mark; 14 px type, 16 px corners, soft shadows, room to breathe.
    Colors only in the token blocks: scripts/contrast-check.mjs checks every --fg-* against every --bg-* (4.5:1), every
    --ui-* and --fill-* against every --bg-* (3:1), and each --on-X against its --fill-X (4.5:1). */
 [data-theme="light"] {
   --bg-viewer: #f5f5f5; --bg-card: #fffcf7; --bg-raised: #f8f2e9; --bg-sunken: #f0e8dc;
   --bg-accent-soft: #fdeadd; --bg-selected: #fbdcc8; --bg-warn-soft: #fbefd3; --bg-bad-soft: #fbe5e1; --bg-code: #f6efe5;
-  --fg-text: #2a211b; --fg-muted: #66594e; --fg-accent: #9e3d0e; --fg-ok: #1b6a3c; --fg-warn: #774800; --fg-bad: #a3241a;
-  --ui-control: #877666; --ui-accent: #c2552a; --ui-ok: #2a8a52;
-  --fill-accent: #b5451c; --on-accent: #ffffff;
+  --fg-text: #2a211b; --fg-muted: #66594e; --fg-accent: #a8380a; --fg-ok: #1b6a3c; --fg-warn: #774800; --fg-bad: #a3241a;
+  --ui-control: #877666; --ui-accent: #c2410c; --ui-ok: #2a8a52;
+  --fill-accent: #c2410c; --on-accent: #ffffff;
   --line: #eadfd1; --line-strong: #dccdbb; --shadow: #5a3d2a2e; --shadow-soft: #5a3d2a14; --diff-add: #e5f3e7; --diff-del: #fbe4df;
 }
 [data-theme="dark"] {
   --bg-viewer: #1f2125; --bg-card: #2a2522; --bg-raised: #332d29; --bg-sunken: #211d1a;
   --bg-accent-soft: #3d2a1f; --bg-selected: #4b3022; --bg-warn-soft: #372d16; --bg-bad-soft: #412321; --bg-code: #1e1a18;
-  --fg-text: #f4ede5; --fg-muted: #bcaea0; --fg-accent: #ffae82; --fg-ok: #82d9a4; --fg-warn: #f1ca6a; --fg-bad: #ff9d93;
-  --ui-control: #958a7e; --ui-accent: #f08b5e; --ui-ok: #63c98d;
-  --fill-accent: #f08b5e; --on-accent: #22130b;
+  --fg-text: #f4ede5; --fg-muted: #bcaea0; --fg-accent: #ffa572; --fg-ok: #82d9a4; --fg-warn: #f1ca6a; --fg-bad: #ff9d93;
+  --ui-control: #958a7e; --ui-accent: #ff8a4c; --ui-ok: #63c98d;
+  --fill-accent: #ff8a4c; --on-accent: #1d1208;
   --line: #3b3430; --line-strong: #4a423c; --shadow: #00000099; --shadow-soft: #00000059; --diff-add: #1b3122; --diff-del: #3e211d;
 }
 
@@ -324,10 +324,8 @@
 /* First run: one big card over the model. */
 .b-fr { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--bg-viewer); }
 .b-frame-fr { position: absolute; inset: 0; transform: translate(230px, -20px); }
-.b-fr .b-top-left { z-index: 2; }
+.b-fr .b-top-left { position: absolute; top: 18px; left: 16px; z-index: 2; }
 .b-fr-card { position: absolute; top: 56px; left: 56px; max-height: calc(100% - 112px); width: 560px; padding: 32px 40px; border-radius: 24px; overflow: auto; box-sizing: border-box; }
-.b-brand { display: flex; align-items: center; gap: 10px; font-size: 15px; margin-bottom: 22px; }
-.b-mark { width: 30px; height: 30px; }
 .b-title { grid-row: 1; } .b-banner { grid-row: 2; } .b-viewer { grid-row: 3; } .b-chat { grid-row: 4; }
 .e-brief-sum { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg-raised); font-size: 13px; }
 .e-brief-sum span { flex: 1; }
@@ -337,3 +335,7 @@
 .b-now .e-now { box-shadow: none; flex: 1; min-width: 0; padding-top: 3px; padding-bottom: 3px; }
 .b-now .e-now[data-tone="idle"] { background: none; border-color: transparent; }
 .b-now .e-now-who { display: none; }
+/* The brand: the ant in the project chip, the tips, and the first-run wordmark. */
+.b-project .b-ant { width: 26px; height: 26px; margin: -6px 2px -6px -6px; }
+.b-tip .b-ant { width: 22px; height: 22px; flex: none; margin-top: -1px; }
+.b-wordmark { height: 40px; display: block; margin-bottom: 22px; }

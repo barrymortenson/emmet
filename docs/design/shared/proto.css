@@ -5,12 +5,12 @@
 [data-theme="light"] {
   --p-bg-page: #e7e8eb; --p-bg-bar: #ffffff; --p-bg-chip: #eef0f3;
   --p-fg-text: #1d1f24; --p-fg-muted: #555b66; --p-fg-accent: #9a3412;
-  --p-ui-line: #727884; --p-line: #d5d8de; --p-shadow: #00000033;
+  --p-ui-line: #727884; --p-line: #d5d8de; --p-shadow: #00000033; --p-scrim: #00000040;
 }
 [data-theme="dark"] {
   --p-bg-page: #0e0f12; --p-bg-bar: #1a1c21; --p-bg-chip: #262930;
   --p-fg-text: #eceef2; --p-fg-muted: #a6acb7; --p-fg-accent: #ffb48a;
-  --p-ui-line: #6c7380; --p-line: #30333b; --p-shadow: #00000099;
+  --p-ui-line: #6c7380; --p-line: #30333b; --p-shadow: #00000099; --p-scrim: #00000080;
 }
 
 html, body { margin: 0; height: 100%; }
@@ -52,3 +52,11 @@ body { background: var(--p-bg-page); color: var(--p-fg-text); font: 13px/1.4 -ap
 .e-window table { border-collapse: collapse; width: 100%; }
 .e-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; box-shadow: inset 0 0 0 1px var(--p-shadow); }
 .e-num { text-align: right; font-variant-numeric: tabular-nums; }
+/* A dialog centered over the window (About). The scrim is a token so the check sees it. */
+.e-modal { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: var(--p-scrim); }
+.e-about { width: 420px; text-align: center; justify-items: center; padding: 28px 30px 20px !important; gap: 6px !important; }
+.e-about-icon { width: 96px; height: 96px; }
+.e-about-word { height: 36px; margin-bottom: 6px; }
+.e-about p { margin: 0; }
+.e-about .e-tm { margin-top: 6px; }
+.e-about .e-row { justify-content: center; margin-top: 10px; }
