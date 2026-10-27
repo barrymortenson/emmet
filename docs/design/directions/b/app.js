@@ -47,10 +47,13 @@
         : `<div class="b-tweaks"><p class="b-sec">Tweaks</p>${U.params(s)}</div>`;
       // Build settings can be switched off: the prompt alone then decides. On, before the first build or with a change
       // waiting they're open; after it, one summary line.
-      const on = s.brief !== "off";
-      const full = b.state === "empty" || s.briefDirty || s.brief === "open";
-      const toggle = `<label class="b-switch" title="${on ? "Turn build settings off: the prompt alone decides" : "Turn build settings on"}"><input type="checkbox" role="switch" data-local="brief=${on ? "off" : "on"}"${on ? " checked" : ""} aria-label="Build settings"><span></span></label>`;
-      body = `<div class="b-sec b-sec-row"><span>Build settings</span>${toggle}</div>${on ? U.buildSettings(s, { compact: !full, open: "brief=open" }) : `<p class="b-off">Off: the prompt decides</p>`}${tweaks}`;
+      const on = s.briefOn !== "off";
+      // Before the first build the settings are open; after it they're one summary line, Change opens them, and Done
+      // folds them back (pending changes stay, with Undo and Rebuild on the summary).
+      const full = b.state === "empty" || (s.briefDirty && s.brief !== "closed") || s.brief === "open";
+      const toggle = `<label class="b-switch" title="${on ? "Turn build settings off: the prompt alone decides" : "Turn build settings on"}"><input type="checkbox" role="switch" data-local="briefOn=${on ? "off" : "on"}"${on ? " checked" : ""} aria-label="Build settings"><span></span></label>`;
+      const done = on && full && b.state !== "empty" ? `<button type="button" class="e-btn e-quiet e-sm" data-local="brief=closed">Done</button>` : "";
+      body = `<div class="b-sec b-sec-row"><span>Build settings</span><span class="b-sec-tools">${done}${toggle}</span></div>${on ? U.buildSettings(s, { compact: !full, open: "brief=open" }) : `<p class="b-off">Off: the prompt decides</p>`}${tweaks}`;
     } else body = U.panel(t, s);
     return `<aside class="b-panel" aria-label="Options"><div class="b-panel-head" data-tone="${tone}">${ic}<span class="b-build">${esc(U.buildText(b))}</span>
         <span class="b-tools-top"><button type="button" class="e-icon-btn" title="New (⌘N)">${U.icon("plus")}</button><button type="button" class="e-icon-btn" title="Open (⌘O)">${U.icon("folder")}</button><button type="button" class="e-icon-btn" data-act="export" title="Export">${U.icon("download")}</button></span></div>

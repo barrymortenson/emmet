@@ -44,7 +44,10 @@ window.EMMET_PROTO = (() => {
     win.style.marginLeft = `${Math.max(0, (w - W * k) / 2)}px`;
   }
 
+  let shownId = null;
   function render(cur = state()) {
+    // A direction's own toggles (local) belong to one screen: a new screen starts from its own defaults.
+    if (cur.s !== shownId) { local = {}; shownId = cur.s; }
     const screen = byId[cur.s];
     document.documentElement.dataset.theme = cur.t;
     document.documentElement.classList.toggle("p-bare", cur.bare);

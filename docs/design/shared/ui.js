@@ -199,7 +199,9 @@ window.EMMET_UI = (() => {
     if (opts.compact) {
       const sz = B.size.presets.find((p) => p.id === size());
       const parts = [val("style"), val("scale"), val("detail") && `${val("detail")} detail`, sz && `${sz.min}–${sz.max} pieces`].filter(Boolean);
-      return `<div class="e-brief-sum"><span>${esc(parts.join(" · ") || "Any")}</span>${btn("Change", "", "e-sm").replace("<button", `<button data-local="${opts.open}"`)}</div>`;
+      const n = Object.keys(dirty).length;
+      const pending = n ? `<div class="e-keep e-rebuild"><span>${n} changed</span>${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild", "rebuild", "e-primary e-sm", "refresh")}</div>` : "";
+      return `${pending}<div class="e-brief-sum"><span>${esc(parts.join(" · ") || "Any")}</span>${btn("Change", "", "e-sm").replace("<button", `<button data-local="${opts.open}"`)}</div>`;
     }
     const was = (k, v) => (k in dirty ? `<span class="e-chip e-chip-accent">was ${esc(v ?? "Any")}</span>` : "");
     const head = (k, v) => `<div class="e-set-head"><span class="e-set-name">${esc(B[k].label)}</span>${was(k, v)}</div>`;

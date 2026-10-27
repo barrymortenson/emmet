@@ -365,3 +365,5 @@
 .b-tweaks .e-keep { display: flex; align-items: center; gap: 6px; }
 .b-tweaks .e-keep > span:first-child { flex: 1; grid-column: auto; }
 .b-off { margin: 0; color: var(--fg-muted); font-size: 13px; }
+.b-sec-tools { display: inline-flex; align-items: center; gap: 8px; }
+.e-rebuild + .e-brief-sum { margin-top: 8px; }
