@@ -254,17 +254,21 @@ window.EMMET_DATA = (() => {
       ],
     },
     size: {
-      label: "Pieces", value: "Medium", help: "How many pieces the model has",
-      presets: [{ id: "Small", min: 50, max: 150 }, { id: "Medium", min: 150, max: 500 }, { id: "Large", min: 500, max: 1500 }],
+      // No cap: the top band is open-ended, for the 18+ sets that run 2,500 pieces and up (Barry 2026-10-27).
+      label: "Pieces", value: "Small", help: "How many pieces the model has",
+      presets: [{ id: "Small", min: 50, max: 250 }, { id: "Medium", min: 250, max: 1000 }, { id: "Large", min: 1000, max: 2500 }, { id: "Huge", min: 2500 }],
     },
     base: { label: "Base", value: "32 × 32", help: "What it stands on", options: ["None", "16 × 16", "32 × 32", "48 × 48"] },
     // LEGO's age bands (Barry 2026-10-27). No 1.5+: that's DUPLO, which the checks can't stack yet (plan session 8H).
+    // Age leads: picking one sets Detail and Pieces to what sets for that age usually have, and the user can change them.
     age: {
-      label: "Age", value: "9+", help: "Who builds it",
+      label: "Age", value: "6+", help: "Who builds it; sets the usual detail and pieces for that age",
       options: [
-        { id: "4+", sub: "Big pieces, few steps" }, { id: "6+", sub: "More pieces, simple techniques" },
-        { id: "9+", sub: "More complex techniques and steps" }, { id: "13+", sub: "Advanced techniques, fine detail" },
-        { id: "18+", sub: "Display models for experienced builders" },
+        { id: "4+", sub: "Big pieces, few steps", detail: "Low", pieces: "Small" },
+        { id: "6+", sub: "More pieces, simple techniques", detail: "Low", pieces: "Small" },
+        { id: "9+", sub: "More complex techniques and steps", detail: "Medium", pieces: "Medium" },
+        { id: "13+", sub: "Advanced techniques, fine detail", detail: "High", pieces: "Large" },
+        { id: "18+", sub: "Display models for experienced builders", detail: "High", pieces: "Huge" },
       ],
     },
   };

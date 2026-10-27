@@ -74,7 +74,7 @@ whole model and run it once at the end.
 - Name params in the user's words: if they said "how tall the walls are", the param is `wall_height` with that help
   text, not `h`.
 - Keep the Don't list in `CARD.md`, and add to it when the user rules something out.
-- Ask before a build over 2,000 parts.
+- Ask before a build over 2,000 parts, unless the user already asked for one that big.
 - At most one tip per reply.
 
 ## When to ask
