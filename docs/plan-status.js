@@ -110,7 +110,8 @@ window.EMMET_STATUS = {
     "8E": { status: "backlog" },
     "8F": { status: "backlog" },
     "8G": { status: "backlog" },
-    "8H": { status: "backlog" }
+    "8H": { status: "backlog" },
+    "8I": { status: "backlog" }
   },
   human: {
     "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },

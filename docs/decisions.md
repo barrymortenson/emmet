@@ -65,6 +65,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   longer asks before a build over 2,000 parts when the user asked for one that big. Emmet's side holds up there (a
   5,000-part model runs in 0.25 s and checks in 0.6 s on a debug build, and `validate` returns at most 50 findings);
   the agent's time and tokens grow with hand-placed detail, not the count.
+- **Big builds after launch (8I).** Barry: add a 5,000+ part budget and a build that pushes the limits. Section 13
+  gains a 5,000-part column (a target from 8I, not an MVP gate), the check gains 3.5 s for 5,000 parts, and the ladder
+  gains rung 4, a landmark of 5,000+ parts that Barry picks: a large castle on landscaped terrain, an airport
+  terminal, or a ballpark such as Fenway Park or Dodger Stadium. It measures limits and cost; it gates nothing.
 - **Say each thing once.** Barry asked for a pass over every screen for duplicated or redundant UI. In B: one Stop
   (in the status, with Esc); the status shows only when it adds something (not "Idle", not when a card below says it);
   the viewer carries only the finding's pin (a failed build and a read-only project are told by the chat card and the

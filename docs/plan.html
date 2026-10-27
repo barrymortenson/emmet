@@ -257,7 +257,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td><span class="pill rec">Proposed</span></td><td>Drafted to fill a gap. It stands unless a session's ADR or Barry changes it.</td></tr>
 <tr><td><span class="pill open">Open</span></td><td>Needs an answer. It's listed in section 24 with the session that settles it.</td></tr>
 <tr><td><span class="pill gate">Gate</span></td><td>A go/no-go point. Work past it waits on Barry's call.</td></tr>
-<tr><td>IDs</td><td><code>D-nn</code> decision · <code>H-nn</code> human step · <code>0A</code>…<code>8H</code> sessions · <code>BLK-nnn</code> blocker · <code>Q-nn</code> open question · <code>F-nnnn</code> validator finding · <code>G1</code>, <code>G2</code> gates.</td></tr>
+<tr><td>IDs</td><td><code>D-nn</code> decision · <code>H-nn</code> human step · <code>0A</code>…<code>8I</code> sessions · <code>BLK-nnn</code> blocker · <code>Q-nn</code> open question · <code>F-nnnn</code> validator finding · <code>G1</code>, <code>G2</code> gates.</td></tr>
 </table></div>
 
 <h3>Names</h3>
@@ -393,6 +393,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td><b>2</b></td><td><b>Train station with a track loop</b>: a platform of any length with a canopy, benches, a ticket booth, and a loop of official track (straight 53401, curve 53400 R40, one switch) running past it. Sliders: platform length, canopy style, loop size, colors, and switch on/off.</td><td>~300–500 parts</td><td>Repeats, submodels, technique use, real connectivity (tiles, plates, track on plates), steps and BOM at a realistic size, and viewer performance.</td><td>Phase 3 reference model; Phase 4 exit (replay and hand sessions; its live run is at G2)</td></tr>
 <tr><td><b>P</b></td><td><b>Photo to model</b>: three subjects Barry photographs himself (two brick models, one real building), two angles each (H-23). The agent gets the first angle and the prompt "build this", plus the second angle if it asks.</td><td>50–300 parts</td><td>Image input on both agents, proportion judgment in studs, and asking instead of guessing. Scored by Barry with a short rubric (section 16.1).</td><td>Phase 5 exit (G2)</td></tr>
 <tr><td><b>3</b></td><td><b>Official set rebuild</b>: one set from the LDraw Official Model Repository (OMR), 150–400 parts, chosen by Barry (H-11). The agent gets the set's name and a photo description, never the OMR file.</td><td>150–400 parts</td><td>Objective accuracy: the BOM and the placements are scored against the OMR model as ground truth.</td><td>Phase 5 exit (G2: the working proof of concept)</td></tr>
+<tr><td><b>4</b></td><td><b>Landmark</b>, after launch: one model that pushes the limits, chosen by Barry from a large castle on landscaped terrain, an airport terminal with aircraft, or a ballpark (Fenway Park or Dodger Stadium). Built at figure scale for 18+: high detail, figure-sized where a figure goes, compressed elsewhere.</td><td>5,000+ parts</td><td>How big and how detailed a build Emmet and each agent can make, and what it costs in time, tool calls, tokens, and plan usage.</td><td>None: it measures limits, after launch (8I)</td></tr>
 </table></div>
 
 <h3>MVP scope and exit criteria</h3>
@@ -1044,7 +1045,7 @@ server → client requests for command/file approvals → Approval events → re
 <div class="grid3">
 <div class="card"><h4>Precision</h4><p class="small"><b>Zero</b> error-severity findings on the official-model corpus (OMR models are buildable by definition). Every false positive found is a bug with a test.</p></div>
 <div class="card"><h4>Recall</h4><p class="small"><b>≥ 95 %</b> of injected faults detected: a part shifted by a plate, a support removed, a part rotated, a collision added.</p></div>
-<div class="card"><h4>Speed</h4><p class="small"><b>≤ 300 ms</b> for 500 parts and <b>≤ 1.5 s</b> for 2,000 on an M1, warm. Incremental re-checks of changed parts come later if needed.</p></div>
+<div class="card"><h4>Speed</h4><p class="small"><b>≤ 300 ms</b> for 500 parts and <b>≤ 1.5 s</b> for 2,000 on an M1, warm, and <b>≤ 3.5 s</b> for 5,000 from 8I on. Incremental re-checks of changed parts come later if needed.</p></div>
 </div>
 
 <h3>Connection data model</h3>
@@ -1189,13 +1190,14 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 </ul>
 <h3>Performance budgets (checked by <code>just bench</code> and E2E)</h3>
 <div class="table-wrap"><table>
-<tr><th>Measure</th><th>Rung 1 (~100)</th><th>Rung 2 (~500)</th><th>2,000 parts</th></tr>
-<tr><td>First load (cold library cache)</td><td>≤ 1.5 s</td><td>≤ 3 s</td><td>≤ 6 s</td></tr>
-<tr><td>Slider → updated viewer (run + check + diff), warm</td><td>≤ 0.8 s</td><td>≤ 1.5 s</td><td>≤ 3 s</td></tr>
-<tr><td>Orbit frame time, M1 / Intel Iris Xe class</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
-<tr><td>Frame time during a build animation (whole model added)</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
-<tr><td>Heap growth after 100 slider changes</td><td colspan="3">≤ 20 % over the first-load heap (leak test). WebView2 reads the JS heap. WKWebView has no heap API, so macOS reads the WebContent process's footprint, with the baseline after one warm-up cycle through every width (its first-load footprint varies too much to compare against).</td></tr>
+<tr><th>Measure</th><th>Rung 1 (~100)</th><th>Rung 2 (~500)</th><th>2,000 parts</th><th>5,000 parts (from 8I)</th></tr>
+<tr><td>First load (cold library cache)</td><td>≤ 1.5 s</td><td>≤ 3 s</td><td>≤ 6 s</td><td>≤ 12 s</td></tr>
+<tr><td>Slider → updated viewer (run + check + diff), warm</td><td>≤ 0.8 s</td><td>≤ 1.5 s</td><td>≤ 3 s</td><td>≤ 6 s</td></tr>
+<tr><td>Orbit frame time, M1 / Intel Iris Xe class</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td><td>≤ 33 ms</td></tr>
+<tr><td>Frame time during a build animation (whole model added)</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td><td>≤ 33 ms</td></tr>
+<tr><td>Heap growth after 100 slider changes</td><td colspan="4">≤ 20 % over the first-load heap (leak test). WebView2 reads the JS heap. WKWebView has no heap API, so macOS reads the WebContent process's footprint, with the baseline after one warm-up cycle through every width (its first-load footprint varies too much to compare against).</td></tr>
 </table></div>
+<p class="small">The Pieces build setting goes to 2,500+ and 18+ sets run 2,000 to 5,000 pieces, so the 5,000-part column is a target from session 8I on, not an MVP exit gate. A first measure (2026-10-27, debug build, a plain 5,000-brick block): run 0.25 s, check 0.6 s, render 0.6 s; the viewer isn't measured at that size yet.</p>
 <p class="small">WKWebView is tested first and WebView2 in CI. No WebGPU, no OffscreenCanvas dependency (OffscreenCanvas is used only where both webviews support it, behind feature detection), and no WASM requirement.</p>
 </section>
 
@@ -1649,7 +1651,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <tr><td><a href="#phase-5">5 · Quality gate: working proof of concept</a></td><td>The integration, E2E, and eval suites are complete; Windows, performance, and security are hardened; rung 3 and the photo rung pass; Barry's Windows pass; <span class="pill gate">G2</span>: the POC works, and the MVP exit criteria in section 02 hold.</td><td><a href="#session-5a">5A</a> <a href="#session-5b">5B</a></td></tr>
 <tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing GitHub Releases; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a></td></tr>
 <tr><td><a href="#phase-7">7 · Website and public launch</a></td><td>emmetbuilder.com live on Cloudflare; the provider terms re-checked; 1.0 released; launch posts.</td><td><a href="#session-7a">7A</a> <a href="#session-7b">7B</a></td></tr>
-<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files, DUPLO.</td><td>8D–8H</td></tr>
+<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files, DUPLO, big builds.</td><td>8D–8I</td></tr>
 </table></div>
 
 <!-- ======================= PHASE 0 -->
@@ -2593,6 +2595,7 @@ read every repo setting back. Prepare 1.0.0 through the release pipeline. I publ
 <tr data-session="8F"><td><a href="#session-8f">8F</a></td><td>Host third-party MCP servers</td><td>7B</td><td>any</td><td>M</td></tr>
 <tr data-session="8G"><td><a href="#session-8g">8G</a></td><td>Studio file import and export</td><td>7B</td><td>any</td><td>M</td></tr>
 <tr data-session="8H"><td><a href="#session-8h">8H</a></td><td>DUPLO for ages 1.5+</td><td>7B</td><td>any</td><td>M</td></tr>
+<tr data-session="8I"><td><a href="#session-8i">8I</a></td><td>Big builds: 5,000+ parts and a landmark</td><td>7B</td><td>any</td><td>L</td></tr>
 </table></div>
 
 
@@ -2647,6 +2650,17 @@ the terms don't allow it.</code></pre></details>
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8H. Refresh scope with me first. Start from the floating finding on two stacked DUPLO bricks, add
 DUPLO connectors with tests, then the DSL grid, doctrine, and the 1.5+ age option. Ask me before letting one model
 mix DUPLO and System parts.</code></pre></details>
+</div>
+
+<div class="session" id="session-8i" data-session="8I" data-phase="8" data-title="Big builds: 5,000+ parts and a landmark" data-after="7B" data-waits="" data-waits-merge="" data-read="10, 11, 13, 16">
+<h4><span class="s-id">8I</span> Big builds: 5,000+ parts and a landmark<span class="s-meta">after 7B · size L · backlog</span></h4>
+<p class="goal"><b>Goal:</b> Find how big and how detailed a build Emmet and the agents can make: hold section 13's 5,000-part budgets, then build ladder rung 4, a landmark of 5,000 parts or more.</p>
+<ul class="build"><li>Bench fixtures at 5,000 and 10,000 parts (a plain block and a dense, detailed one) for the viewer, the check, the diff, and render, and fixes for what misses its budget (instancing, chunked loads, incremental checks).</li><li>Rung 4 in <code>docs/spec/ladder.md</code> and <code>emmet eval</code>: Barry picks the subject (a large castle on landscaped terrain, an airport terminal with aircraft, or a ballpark such as Fenway Park or Dodger Stadium), built at figure scale for 18+, high detail, 2,500+ pieces.</li><li>Doctrine for big builds from what the runs teach: submodels in <code>models/*.py</code>, reused modules, and stages sized so each run and check stays quick.</li></ul>
+<ul class="done"><li>Section 13's 5,000-part column and the check's 3.5 s hold on the M-series runner (bench output in the PR).</li><li>Rung 4 runs once on each agent and validates with 0 errors; its report in <code>docs/evals/</code> gives the part count, time, tool calls, tokens, and plan usage, and where it struggled.</li></ul>
+<ul class="good"><li>The Pieces setting's bands and the age presets are checked against what the runs cost, and the app warns before a build likely to use a large share of the user's plan.</li></ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8I. Refresh scope with me first. Bench 5,000 and 10,000 parts before any agent run and fix what
+misses section 13's budgets. Ask me to pick the rung 4 subject, and ask before each live run: they bill my eval keys
+(D-38) and will be the most expensive runs yet.</code></pre></details>
 </div>
 </div>
 </section>
