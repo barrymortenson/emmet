@@ -88,7 +88,7 @@ window.EMMET_UI = (() => {
   }
   function message(m, screen) {
     switch (m.t) {
-      case "user": return `<div class="e-msg e-user">${m.auto ? `<span class="e-meta">${icon("warn")} Sent from Checks</span>` : ""}<p>${md(m.text)}</p>${m.delivered ? `<span class="e-meta">${icon("check")} Delivered at the agent's next step</span>` : ""}</div>`;
+      case "user": return `<div class="e-msg e-user">${m.auto ? `<span class="e-meta">${icon(m.auto === "settings" ? "sliders" : "warn")} Sent from ${m.auto === "settings" ? "Build settings" : "Checks"}</span>` : ""}<p>${md(m.text)}</p>${m.delivered ? `<span class="e-meta">${icon("check")} Delivered at the agent's next step</span>` : ""}</div>`;
       case "agent": return `<div class="e-msg e-agent">${m.text.split("\n\n").map((p) => `<p>${md(p)}</p>`).join("")}</div>`;
       case "thinking": return `<details class="e-think"><summary>${icon("spark")}<span>Thinking</span></summary><p>${esc(m.text)}</p></details>`;
       case "tool": return tool(m);
@@ -183,6 +183,33 @@ window.EMMET_UI = (() => {
     const n = Object.keys(dirty).length;
     const keep = n ? `<div class="e-keep"><span>${n} change${n > 1 ? "s" : ""} · rebuilt in 0.2 s, not saved to model.py yet</span>${btn("Reset", "reset", "e-quiet e-sm")}${btn("Keep as default", "keep", "e-primary e-sm")}</div>` : "";
     return `<div class="e-params">${keep}${body}</div>`;
+  }
+
+  // Build settings: what to build (style, scale, detail, size, base). They steer the agent, so a change waits for
+  // "Rebuild with these settings" instead of rerunning model.py. Before the first build they shape the first prompt.
+  function buildSettings(screen, opts = {}) {
+    const B = D.brief;
+    const dirty = screen.briefDirty || {};
+    const val = (k) => (k in dirty ? dirty[k] : B[k].value);
+    // Once a model exists the settings are mostly set: one line, and Change opens them.
+    if (opts.compact) return `<div class="e-brief-sum"><span>${["style", "scale", "detail"].map((k) => esc(val(k))).join(" · ")} detail · ${B.size.min}–${B.size.max} pieces · ${esc(val("base"))} base</span>${btn("Change", "", "e-sm", "sliders").replace("<button", `<button data-local="${opts.open}"`)}</div>`;
+    const was = (k) => (k in dirty ? `<span class="e-chip e-chip-accent">was ${esc(B[k].value)}</span>` : "");
+    const head = (k) => `<div class="e-set-head"><span class="e-set-name">${esc(B[k].label)}</span>${was(k)}<span class="e-small">${esc(B[k].help)}</span></div>`;
+    const styleOpt = B.style.options.find((o) => o.id === val("style"));
+    const style = `<div class="e-set" data-moved="${"style" in dirty}">${head("style")}<div class="e-styles" role="radiogroup" aria-label="Style">${B.style.options.map((o) => `<button type="button" role="radio" class="e-style" aria-checked="${o.id === val("style")}" title="${esc(o.sub)}">${esc(o.id)}</button>`).join("")}</div><p class="e-help">${esc(styleOpt.sub)}</p></div>`;
+    const scaleOpt = B.scale.options.find((o) => o.id === val("scale"));
+    const scale = `<div class="e-set">${head("scale")}<label class="e-select"><select aria-label="Scale">${B.scale.options.map((o) => `<option${o.id === val("scale") ? " selected" : ""}>${esc(o.id)}</option>`).join("")}</select></label><p class="e-help">${esc(scaleOpt.sub)}</p></div>`;
+    const detOpt = B.detail.options.find((o) => o.id === val("detail"));
+    const detail = `<div class="e-set" data-moved="${"detail" in dirty}">${head("detail")}<div class="e-seg" role="radiogroup" aria-label="Detail">${B.detail.options.map((o) => `<button type="button" role="radio" aria-checked="${o.id === val("detail")}">${esc(o.id)}</button>`).join("")}</div><p class="e-help">${esc(detOpt.sub)}</p></div>`;
+    const parts = screen.build?.parts || 0;
+    const pct = Math.min(100, Math.round((Math.min(parts, B.size.max) / B.size.max) * 100));
+    const size = `<div class="e-set">${head("size")}<div class="e-seg" role="radiogroup" aria-label="Target size">${B.size.presets.map((p) => `<button type="button" role="radio" aria-checked="${p.min === B.size.min}">${esc(p.id)}</button>`).join("")}<button type="button" role="radio" aria-checked="false">Custom</button></div>
+      <div class="e-range"><label>From <input type="number" value="${B.size.min}" aria-label="Fewest pieces"></label><label>to <input type="number" value="${B.size.max}" aria-label="Most pieces"></label><span>pieces</span></div>
+      ${parts ? `<div class="e-target"><span class="e-meter e-meter-lg"><i style="width:${pct}%"></i></span><span class="e-small">This build: ${parts} pieces, inside the target</span></div>` : `<p class="e-help">The agent aims for this; a check says when a build is outside it.</p>`}</div>`;
+    const base = `<div class="e-set">${head("base")}<div class="e-seg" role="radiogroup" aria-label="Baseplate">${B.base.options.map((o) => `<button type="button" role="radio" aria-checked="${o === val("base")}">${esc(o)}</button>`).join("")}</div></div>`;
+    const n = Object.keys(dirty).length;
+    const bar = n ? `<div class="e-keep e-rebuild"><div><b>${n} setting${n > 1 ? "s" : ""} changed</b><p class="e-small">${esc(agentOf(screen).name)} reworks the model for them: one turn on your plan, about a minute. The sliders below rerun at once.</p></div><div class="e-row">${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild with these settings", "rebuild", "e-primary e-sm", "refresh")}</div></div>` : "";
+    return `<div class="e-brief">${bar}${style}${scale}${detail}${size}${base}</div>`;
   }
 
   // Checks (law 2: every finding one click from its part and its line).
@@ -309,7 +336,7 @@ window.EMMET_UI = (() => {
 
   return {
     esc, md, icon, spinner, lights, btn, kbd, swatch, shot, buildText, buildTone, agentState, chat, message, pending,
-    composer, chatHeader, params, checks, bom, stepsList, tabs, panel, scrubber, views, animating, banner, signedOut,
+    composer, chatHeader, params, buildSettings, checks, bom, stepsList, tabs, panel, scrubber, views, animating, banner, signedOut,
     overlay, usageMini, firstRun, trademark, agentOf,
   };
 })();

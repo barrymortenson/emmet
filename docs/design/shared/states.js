@@ -17,6 +17,7 @@ window.EMMET_STATES = (() => {
     { id: "first-run", name: "First run", path: ["fr-welcome", "fr-library", "fr-agents", "fr-start"] },
     { id: "new", name: "New model from a prompt", path: ["fr-start", "new-empty", "thinking", "question", "building", "redirect", "approval", "built"] },
     { id: "sliders", name: "Tweak with sliders", path: ["built", "sliders"] },
+    { id: "settings", name: "Change the build settings", path: ["built", "settings", "restyle"] },
     { id: "fix", name: "Fix a finding", path: ["findings", "fixing", "built"] },
     { id: "export", name: "Export", path: ["built", "export"] },
     { id: "import", name: "Open an existing LDraw file", path: ["import"] },
@@ -44,6 +45,9 @@ window.EMMET_STATES = (() => {
 
     // Tweak, steps, fix, fail.
     { id: "sliders", title: "Tweak with sliders", kind: "workspace", render: "cottage-wide", covers: [], build: { state: "built", parts: 124, clean: true, ms: 180 }, agent: { state: "idle", line: "Idle" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.delivered, S.ack, S.stage3, S.finish), drawer: "params", dirty: { width: 12 }, on: { keep: "built", reset: "built" }, note: "Note 5: sliders grouped as Size, Colors, Options, labeled in words with the docstring's help; a drag is a draft until Keep." },
+    // Build settings (a proposal for direction B): change one, then ask the agent to rework the model for it.
+    { id: "settings", title: "Build settings: a change waiting to rebuild", kind: "workspace", render: "cottage", covers: [], build: { state: "built", parts: 93, clean: true }, agent: { state: "idle", line: "Idle" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.delivered, S.ack, S.stage3, S.finish), drawer: "params", briefDirty: { style: "Medieval", detail: "Medium" }, on: { rebuild: "restyle", undo: "built" }, note: "Barry 2026-10-27: build settings (style, scale, detail, target size) steer the agent; a change asks it to rework the model." },
+    { id: "restyle", title: "The agent reworks the model for new settings", kind: "workspace", render: "cottage", covers: ["Agent thinking"], build: { state: "built", parts: 93, clean: true }, agent: busy("Reworking the cottage: Medieval, medium detail", "0:06"), chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.delivered, S.ack, S.stage3, S.finish, S.restyleAsk, S.restyleThinking), drawer: "params", on: { stop: "stopped" } },
     { id: "steps", title: "Steps: the build up to step 8", kind: "workspace", render: "stage2", covers: [], build: { state: "built", parts: 93, clean: true }, agent: { state: "idle", line: "Idle" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.delivered, S.ack, S.stage3, S.finish), drawer: "steps", step: 8, note: "Note 6: a step shows the model built up to it; later steps are hidden." },
     { id: "findings", title: "Checks with findings", kind: "workspace", render: "finding", covers: ["Checks with findings"], build: { state: "findings", parts: 90, findings: 1 }, agent: { state: "idle", line: "Idle" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.stage3, S.finish), drawer: "checks", selected: true, on: { fix: "fixing" } },
     { id: "fixing", title: "The agent fixes a finding", kind: "workspace", render: "finding", covers: ["Building"], build: { state: "findings", parts: 90, findings: 1 }, agent: busy("Fixing F-0001: lowering the chimney", "0:07"), chat: story(S.fixAsk, S.fixing), drawer: "checks", on: { stop: "stopped", done: "built" } },

@@ -3,6 +3,19 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-27, session 2A
+
+- **B is the starting design (H-07 in progress).** After reviewing the three directions, Barry took B (Canvas) as the
+  starting point and asked to refine it until it is a fairly complete prototype: the viewer on the left majority of
+  the window, the options panel on the right, and the chat along the bottom. H-07 is recorded when the refined B is
+  done.
+- **Rethink the parameters.** Barry: width, height, and even color aren't the best things to configure. Better: the
+  target size (fewest and most pieces), the detail level (low, medium, high), the scale (figure scale, micro, mini
+  town, a 1:8 car, and so on), and the build style (blocky, town, medieval, dinosaur park, and so on), the things that
+  set a build's size, detail, complexity, and style. The prototype shows them as build settings that steer the agent,
+  with the model's own tweaks under them; how they work is the next question. The style and scale names in the app are
+  plain words, not brand or theme names (D-30).
+
 ## 2026-10-26, session 1D
 
 - **Up next shows one session.** Barry: the rail's Up next should name one session, not every unblocked one; fixed in

@@ -173,6 +173,9 @@ window.EMMET_DATA = (() => {
       { t: "file", path: "model.py", summary: "Edited line 78", diff: ['-                m.add("60592", "White", at=(x0, side_y, z), rot=2, id="window/left")', '+                m.add("60592", "White", at=(x0, side_y, z), rot=2, id="window/left", flip=True)'] },
       { t: "tool", icon: "cube", title: "The build failed", detail: "model.py line 78", status: "error", raw: 'run_model() → MODEL_EXEC_FAILED' },
     ],
+    // What "Rebuild with these settings" sends (composed for this state; no transcript has it yet).
+    restyleAsk: [{ t: "user", text: "Rework the cottage for the new build settings: style Medieval (was Town), detail Medium (was Low). Keep figure scale, 50–150 pieces, and the 32 × 32 baseplate, and keep its sliders.", auto: "settings" }],
+    restyleThinking: [{ t: "thinking", text: "Stone walls with timber framing above the first rows, window frames and tiles for medium detail, still about 120 pieces." }],
     stopped: [{ t: "note", text: "You stopped the turn at 0:41. The model is as its last run left it: 68 parts." }],
     crashed: [{ t: "crash", title: "Claude Code stopped unexpectedly", text: "It exited with code 1 in the middle of a turn. Your project is untouched: model.py and the last build are as they were." }],
     // Barry's request from his 1C session (docs/design/notes/emmet-1c-claude.png), sent to Codex after a switch.
@@ -183,8 +186,47 @@ window.EMMET_DATA = (() => {
     ],
   };
 
+  // Build settings (Barry 2026-10-27, a proposal for 2A's direction B): what to build, rather than the model's own
+  // dimensions. They steer the agent: they're kept with the project, sent with every message, and changing one asks
+  // the agent to rework the model (a turn on the user's plan), unlike a model tweak, which reruns model.py at once.
+  // Plain names, not brand or theme names (D-30). The values are the cottage's as built (93 parts, bricks and slopes).
+  const brief = {
+    style: {
+      label: "Style", value: "Town", help: "The look the agent builds in",
+      options: [
+        { id: "Town", sub: "Houses, shops, streets" }, { id: "Medieval", sub: "Stone, timber, castles" },
+        { id: "Blocky", sub: "Voxel art, one-stud cubes" }, { id: "Dinosaur park", sub: "Jungle, fences, big animals" },
+        { id: "Space", sub: "Bases, rovers, gray and blue" }, { id: "Pirate", sub: "Ships, docks, islands" },
+        { id: "Modern", sub: "Glass, clean lines" }, { id: "Fantasy", sub: "Towers, magic, color" },
+      ],
+    },
+    scale: {
+      label: "Scale", value: "Figure scale", help: "How big the world is",
+      options: [
+        { id: "Figure scale", sub: "Doors and rooms fit a 4-brick-tall figure, about 1:42" },
+        { id: "Micro", sub: "A whole building a few studs wide" },
+        { id: "Mini town", sub: "Half figure scale, about 1:80, for a big city on a table" },
+        { id: "Display", sub: "Large and detailed, no figures to fit" },
+        { id: "Car 1:8", sub: "A large car model with gears, panels, and a working steering" },
+      ],
+    },
+    detail: {
+      label: "Detail", value: "Low", help: "How much the agent adds beyond the shape",
+      options: [
+        { id: "Low", sub: "Bricks, plates, and slopes: quick to build" },
+        { id: "Medium", sub: "Plus tiles, trim, and window frames" },
+        { id: "High", sub: "Plus textures, sideways building, and small details" },
+      ],
+    },
+    size: {
+      label: "Target size", min: 50, max: 150, help: "How many pieces the model should have",
+      presets: [{ id: "Small", min: 50, max: 150 }, { id: "Medium", min: 150, max: 500 }, { id: "Large", min: 500, max: 1500 }],
+    },
+    base: { label: "Baseplate", value: "32 × 32", help: "What it stands on (note 8)", options: ["None", "16 × 16", "32 × 32", "48 × 48"] },
+  };
+
   return {
-    renders, params, colors, colorChoices, bom, steps, stepOf, stepRender, finding, buildError, untrusted, run, versions,
+    brief, renders, params, colors, colorChoices, bom, steps, stepOf, stepRender, finding, buildError, untrusted, run, versions,
     agents, efforts, plans, usage, seg, PROMPT,
     project: { name: "Cottage", folder: "Documents/Emmet/Cottage" },
     imported: { name: "Cottage (imported)", file: "cottage.mpd", parts: 93, steps: 12 },

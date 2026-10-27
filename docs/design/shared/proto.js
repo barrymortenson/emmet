@@ -76,6 +76,9 @@ window.EMMET_PROTO = (() => {
       else go(undefined, k);
       return;
     }
+    // A direction's own view toggles (data-local="key=value"), kept until the screen changes.
+    const loc = e.target.closest("[data-local]");
+    if (loc) { const [k, v] = loc.dataset.local.split("="); local[k] = v; render(); return; }
     const tab = e.target.closest("[data-tab]");
     if (tab) { local.drawer = tab.dataset.tab; local.overlay = null; render(); return; }
     const a = e.target.closest("[data-act]");
