@@ -65,6 +65,12 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   longer asks before a build over 2,000 parts when the user asked for one that big. Emmet's side holds up there (a
   5,000-part model runs in 0.25 s and checks in 0.6 s on a debug build, and `validate` returns at most 50 findings);
   the agent's time and tokens grow with hand-placed detail, not the count.
+- **Submodels and versions are MVP.** Barry: builds are made of submodels used many times, and a user needs to save a
+  version and keep iterating without fear. Submodels: `m.submodel` defines one and `m.place` puts it in as often as
+  needed, one `0 FILE` per submodel referenced by each placement, with the BOM, steps ("× 4"), the project tree, and
+  the PDF counting every copy (sections 08 and 14; sessions 3B, 4A, 4E). Versions: a copy of the sources, the build,
+  and a thumbnail in `history/`, saved by the user (⌘S) or automatically before every agent turn; restore saves the
+  current state first, and any version can open as a new project (sections 07, 09, 14; sessions 4A and 4B).
 - **Big builds after launch (8I).** Barry: add a 5,000+ part budget and a build that pushes the limits. Section 13
   gains a 5,000-part column (a target from 8I, not an MVP gate), the check gains 3.5 s for 5,000 parts, and the ladder
   gains rung 4, a landmark of 5,000+ parts that Barry picks: a large castle on landscaped terrain, an airport

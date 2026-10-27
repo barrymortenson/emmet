@@ -400,7 +400,8 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <p>The MVP is the end of Phase 5, the working proof of concept. Beta (Phase 6) and the website and launch (Phase 7) come after it.</p>
 <ul class="small">
 <li>A Tauri app on macOS and Windows: project tree, 3D viewer, chat pane wired to Claude Code <i>and</i> Codex (on the user's Claude or ChatGPT plan, or an API key), sliders, checks, BOM, and steps.</li>
-<li>The Python DSL, <code>.mpd</code> output, and a three.js render that updates live from the project folder.</li>
+<li>The Python DSL, with submodels built once and placed many times, <code>.mpd</code> output, and a three.js render that updates live from the project folder.</li>
+<li>Versions: save one any time, an automatic one before every agent turn, and restore or open any of them as a new project, so iterating is never risky.</li>
 <li>Parts search, and a BOM with Rebrickable colors and availability.</li>
 <li>Validator v1 (collision, connectivity, floating parts, step order, availability), with findings fed to the agent as tool output and linked to the viewer and to source lines.</li>
 <li>Sliders from the params declared in <code>model.py</code>, plus a "make this the default" action.</li>
@@ -698,17 +699,18 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 │  ├─ bom.json · steps.json
 │  ├─ run.log            stdout/stderr of the last run, capped
 │  └─ renders/*.png
-├─ history/          optional snapshots (emmet snapshot), e.g. before a big agent rewrite
+├─ history/          saved versions: one folder each, named by the user or made before each agent turn
 └─ .emmet/           local only: trust marker, session ids, transcripts (never shared)</code></pre>
 
 <h3>Rules</h3>
 <ol>
 <li><b>Sources:</b> <code>model.py</code>, <code>models/*.py</code>, <code>params.json</code>, <code>emmet.toml</code>, and <code>CARD.md</code>. <b>Derived:</b> everything in <code>build/</code>. <code>emmet run &amp;&amp; emmet check</code> on a clean checkout reproduces <code>build/</code> byte for byte, given the same Emmet, library, and parts data versions, except the run-only fields that describe a run rather than the model: the timings and generation counter (kept in <code>manifest.json</code>'s <code>run</code> block), <code>run.log</code>, and <code>renders/</code>. The comparison leaves those out, and an integration test proves the rest.</li>
-<li><b>Who writes what.</b> The agent edits <code>model.py</code>, <code>models/</code>, and <code>CARD.md</code>. The UI writes <code>params.json</code> and <code>emmet.toml</code>, plus <code>model.py</code> only through <code>emmet params --write-default</code>, a single-literal AST rewrite. Only <code>emmet</code> writes <code>build/</code>.</li>
+<li><b>Who writes what.</b> The agent edits <code>model.py</code>, <code>models/</code>, and <code>CARD.md</code>. The UI writes <code>params.json</code> and <code>emmet.toml</code>, plus <code>model.py</code> only through <code>emmet params --write-default</code>, a single-literal AST rewrite. Only <code>emmet</code> writes <code>build/</code> and <code>history/</code>.</li>
 <li><b>Atomic writes everywhere:</b> write to <code>*.tmp</code> in the same directory, fsync, rename. Readers never see half a file.</li>
 <li><b>Staleness is visible.</b> <code>manifest.json</code> carries <code>inputs_hash</code> = sha256 of the sources, the params, the Emmet version, the library version, and the parts data pack version (availability findings depend on it). If the hash doesn't match the current inputs, the UI shows "out of date: rebuilding" and keeps the last good model on screen.</li>
 <li><b>Generation counter.</b> Each run increments <code>generation</code>. The viewer ignores events older than what it shows, and the run queue cancels superseded runs.</li>
 <li><b>Watcher.</b> It watches sources only (not <code>build/</code>), debounced 150 ms, and ignores editor temp files.</li>
+<li><b>Versions (Barry 2026-10-27).</b> A version is a copy of the sources (<code>model.py</code>, <code>models/</code>, <code>params.json</code>, <code>emmet.toml</code>, <code>CARD.md</code>) plus that build's <code>model.mpd</code> and a thumbnail render, in <code>history/&lt;n&gt;-&lt;slug&gt;/</code> with a <code>version.json</code> (name, note, time, who made it, part count, <code>inputs_hash</code>). The user saves one any time ("Save version", <kbd>⌘S</kbd>) and keeps iterating without fear. Emmet saves one automatically before every agent turn that changes the sources, so any turn can be undone; the last 20 automatic versions are kept, and named versions until the user deletes them. Restoring first saves the current state as a version, then writes the sources back atomically, so a restore is never a loss. "Open as a new project" copies a version out to try a different direction side by side.</li>
 <li><b>Imports.</b> Opening a bare <code>.ldr</code> or <code>.mpd</code> creates a project whose <code>model.py</code> is <code>import_ldraw("source.mpd")</code>. The agent can then refactor it into a parametric model.</li>
 <li><b>Schema version.</b> <code>emmet.toml</code> has <code>schema = 1</code>. A newer app migrates forward explicitly and never silently.</li>
 </ol>
@@ -777,7 +779,7 @@ def cottage(
 <tr><td><code>m.step(title)</code></td><td>Context manager: everything added inside is one build step (LDraw <code>0 STEP</code>).</td></tr>
 <tr><td><code>m.wall / m.row / m.grid / m.stack / m.fill</code></td><td>Helpers that place many parts with sensible bonds (running, stacked), openings, and corner interlock. Each emitted part still gets its own id and the helper call's line.</td></tr>
 <tr><td><code>m.repeat(fn, n, dx=0, dy=0, dz=0)</code> · <code>m.mirror(axis)</code></td><td>Repetition and symmetry without copy-paste.</td></tr>
-<tr><td><code>m.submodel(name, fn, at, rot)</code></td><td>A named submodel (<code>0 FILE</code> in the <code>.mpd</code>) with its own steps. Becomes a node in the project tree.</td></tr>
+<tr><td><code>sub = m.submodel(name, fn, **params)</code> · <code>m.place(sub, at, rot=0, id=None)</code></td><td>Builds are made of submodels used many times (Barry 2026-10-27): a window bay, a tower, a seating section. <code>submodel</code> defines one, built once by <code>fn</code> with its own steps; <code>place</code> puts it in the model, as often as needed. The <code>.mpd</code> holds one <code>0 FILE</code> per submodel and parameter set, referenced by each placement, so a change to the submodel changes every copy. Ids are the placement's id plus the part's (<code>towers/2/wall/3</code>). The BOM counts every placement; the steps build the submodel once and then place it "× 4"; the project tree shows "Tower × 4", and clicking it highlights every copy.</td></tr>
 <tr><td><code>m.use(technique, **kw)</code></td><td>Applies a technique from <code>data/techniques</code> (gable roof, SNOT panel, jumper offset, hinge roof, window frame, stair, …).</td></tr>
 <tr><td><code>m.allow(rule, ids, reason)</code></td><td>Records a deliberate exception (for example a floating minifig accessory). It shows in the Checks drawer as "allowed", never hidden.</td></tr>
 <tr><td><code>import_ldraw(path)</code></td><td>Brings an existing model in as fixed geometry, with ids taken from its line numbers.</td></tr>
@@ -842,7 +844,8 @@ def cottage(
 <tr><td><code>emmet search &lt;query&gt; [--category c] [--limit 10]</code> · <code>emmet part &lt;id&gt;</code> · <code>emmet colors [--part id]</code></td><td>Parts search, part details (size in studs and plates, connectors, produced colors), colors</td></tr>
 <tr><td><code>emmet params [--set k=v] [--write-default k]</code></td><td>The param schema and values, set overrides, write a value back as the default</td></tr>
 <tr><td><code>emmet technique [name]</code> · <code>emmet rules</code> · <code>emmet api</code></td><td>Technique list and snippet, the doctrine, the DSL vocabulary</td></tr>
-<tr><td><code>emmet export --format ldr|mpd|lpub3d|pdf [--paper a4|letter] [--out]</code> · <code>emmet snapshot</code></td><td>Exports, and a history snapshot</td></tr>
+<tr><td><code>emmet export --format ldr|mpd|lpub3d|pdf [--paper a4|letter] [--out]</code></td><td>Exports</td></tr>
+<tr><td><code>emmet version save [name] [--note]</code> · <code>emmet version list</code> · <code>emmet version restore &lt;n&gt;</code></td><td>Save, list, and restore versions (section 07); restore saves the current state first</td></tr>
 <tr><td><code>emmet library status|install|update|verify</code></td><td>LDraw library management</td></tr>
 <tr><td><code>emmet doctor [--fix]</code> · <code>emmet trust</code></td><td>Environment check (Python, library, index, agents and their versions, render); trust the current project</td></tr>
 <tr><td><code>emmet mcp [--project dir] [--session id]</code></td><td>The stdio MCP server. <code>--session</code> is set only by the app, and turns on redirect notes (below)</td></tr>
@@ -861,6 +864,7 @@ def cottage(
 <tr><td><code>render</code></td><td><code>view?</code>, <code>step?</code> (with steps, 4E), <code>highlight?</code>, <code>size?=768</code></td><td>MCP image content (PNG) plus <code>{view, size, via, camera, highlighted}</code>; <code>via</code> is <code>app</code> (the open window, over the bus) or <code>render-mode</code></td><td>The view name and what's highlighted</td></tr>
 <tr><td><code>bom</code></td><td><code>format?</code></td><td><code>{lines:[{part, color, qty, rebrickable_id, availability}], totals}</code></td><td>Totals plus any unavailable lines</td></tr>
 <tr><td><code>steps</code></td><td>none</td><td><code>[{n, title, part_ids, submodel}]</code></td><td>The step count and titles</td></tr>
+<tr><td><code>save_version</code></td><td><code>name</code>, <code>note?</code></td><td><code>{n, name, parts}</code></td><td>"Saved version 7: Before the roof rewrite". The agent may save a version before a risky change; only the user restores one.</td></tr>
 <tr><td><code>get_params</code> / <code>set_params</code></td><td><code>values?</code></td><td>Schema plus values / the new values</td><td>Changed values</td></tr>
 <tr><td><code>technique</code></td><td><code>name?</code></td><td>The list, or <code>{name, doc, snippet, parts}</code></td><td>The doc's first lines</td></tr>
 <tr><td><code>list_colors</code></td><td><code>part?</code></td><td><code>[{code, name, rgb, produced_for_part?}]</code></td><td>Compact list</td></tr>
@@ -1317,7 +1321,8 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 </svg>
 </div>
 <ul>
-<li><b>Left: project tree</b> with the model, submodels, and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
+<li><b>Left: project tree</b> with the model, submodels (with how many times each is used), and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
+<li><b>Versions</b> (section 07): "Save version" (<kbd>⌘S</kbd>) and a versions list with each one's thumbnail, name, time, part count, and who made it ("Before Claude's turn, 14:02"). A version opens read-only in the viewer to compare; Restore and "Open as a new project" sit beside it. "Undo the agent's last turn" restores the automatic version from before it.</li>
 <li><b>Center: viewer</b> with a toolbar for views, the step scrubber, frame, screenshot, and quality. Hovering shows the part name and color and the line in <code>model.py</code>.</li>
 <li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (expand for the diff), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
 <li><b>Bottom drawer</b> with tabs: Parameters (sliders, toggles, color pickers limited to colors the parts come in, and "make default"), Checks (findings, click to highlight, "Ask agent to fix"), Parts list (BOM with availability and export), and Steps.</li>
@@ -1341,7 +1346,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <p class="small">Empty · first run · loading library · building · build failed (traceback with the user's line, plus "Ask agent to fix") · checks with findings · agent thinking · waiting for approval · question waiting for an answer · redirect pending · stopped by the user · build animating (with Skip) · agent not installed or not signed in · agent crashed (one-click restart; project untouched) · offline (everything except the agent and downloads works) · untrusted project (read-only banner + Trust) · an old library version.</p>
 
 <h3>Keyboard (draft; frozen in 2B)</h3>
-<p class="small"><kbd>⌘K</kbd> command palette · <kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘↩</kbd> send · <kbd>Esc</kbd> stop agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> drawer tabs · <kbd>⌘L</kbd> focus chat. Windows uses <kbd>Ctrl</kbd>. Native menus on macOS, and a menu bar in the title bar on Windows.</p>
+<p class="small"><kbd>⌘K</kbd> command palette · <kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘S</kbd> save version · <kbd>⌘↩</kbd> send · <kbd>Esc</kbd> stop agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> drawer tabs · <kbd>⌘L</kbd> focus chat. Windows uses <kbd>Ctrl</kbd>. Native menus on macOS, and a menu bar in the title bar on Windows.</p>
 
 <h3>Content, tone, accessibility</h3>
 <ul class="small">
@@ -2127,7 +2132,8 @@ public types; don't edit emmet_dsl.</code></pre></details>
 <li>The DSL v1 API in section 08: wall, row, grid, stack, fill, repeat, mirror, submodel, use, allow, <code>import_ldraw</code>, and every param kind (int, float, bool, choice, <code>Color</code> limited to produced colors).</li>
 <li><code>emmet params --write-default</code>: a single-literal rewrite through Python <code>ast</code> positions, preserving formatting and comments, with tests on tricky signatures.</li>
 <li>Templates: every template gets a baseplate on/off parameter (on by default, the standard 32 × 32 plate); with it off, the model starts at the ground (Barry's notes).</li>
-<li>Steps v1: DSL steps, a layer-based auto-step fallback, submodel steps, <code>steps.json</code>, and <code>emmet steps</code>.</li>
+<li>Submodels used many times (section 08): <code>submodel</code> and <code>place</code>, one <code>0 FILE</code> per submodel and parameter set with a reference per placement, placement-prefixed ids, a BOM that counts every placement, and doctrine that builds a repeated unit as a submodel.</li>
+<li>Steps v1: DSL steps, a layer-based auto-step fallback, submodel steps (built once, then placed "× N"), <code>steps.json</code>, and <code>emmet steps</code>.</li>
 <li>The parts data pack (section 12): <code>scripts/build-parts-data</code> (archive → validated, derived SQLite with a manifest), the app-side loader with signature check (against a fixture key until 6A, section 12) and atomic swap, the pack bundled into builds, the elements and availability tables, the color mapping, and <code>part_unavailable</code>/<code>color_unavailable</code> data for 3A's rules. Rebrickable credit in Settings → Data, the Parts list footer, and BOM exports.</li>
 <li>BOM v1: Rebrickable ids and names, the user's preferred color naming, availability, and exports to CSV, Rebrickable CSV, and BrickLink XML wanted list. Exporters for LDraw <code>.ldr</code>/<code>.mpd</code> and an LPub3D-ready <code>.mpd</code>.</li>
 <li>Technique library v0: 20 techniques in <code>data/techniques/</code> (gable roof, hip roof, SNOT panel, jumper offset, hinge roof, window frame, door frame, stairs, fence, tree, bench, lamp post, platform edge, canopy, track straight run, track curve, track switch, baseplate road, brick-built arch, tiled floor), each with docs, a render, and a validate-clean test. MCP <code>technique</code>.</li>
@@ -2137,6 +2143,7 @@ public types; don't edit emmet_dsl.</code></pre></details>
 <div class="s-dh">Done when</div>
 <ul class="done">
 <li>Every API call in section 08 exists, is documented in <code>emmet api</code>, and is used in at least one golden project.</li>
+<li>A golden project places one submodel four times: the <code>.mpd</code> has one <code>0 FILE</code> and four references, the BOM counts four, the steps build it once with "× 4", every id is unique, and editing the submodel changes all four.</li>
 <li><code>--write-default</code> passes its signature-rewrite tests and leaves the rest of the file byte-identical.</li>
 <li>BOM exports import cleanly into Rebrickable (CSV) and BrickLink (XML), with an evidence screenshot or the validator response in the PR.</li>
 <li>All 20 techniques render and validate clean, with a test each.</li>
@@ -2205,7 +2212,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>The layout, title bar, menus (native on macOS, title-bar menu on Windows), resizable panes, status bar, and command palette, all from tokens and components.</li>
-<li>The project tree (model, submodels, steps, parts summary, checks summary; click → highlight), open, new, and recent projects (New saves to a default Emmet folder, <code>Documents/Emmet</code>, without a save dialog; Barry's notes), import of an <code>.ldr</code>/<code>.mpd</code> file, and snapshots.</li>
+<li>The project tree (model, submodels, steps, parts summary, checks summary; click → highlight), open, new, and recent projects (New saves to a default Emmet folder, <code>Documents/Emmet</code>, without a save dialog; Barry's notes), import of an <code>.ldr</code>/<code>.mpd</code> file, and versions: <code>emmet version</code>, Save version (<kbd>⌘S</kbd>), the versions list, compare, Restore, and Open as a new project (sections 07 and 14).</li>
 <li>The drawers to design: Parameters (every param kind and "make default"), Checks (v1 findings, allowed list, "Ask agent to fix"), Parts list (BOM v1, availability, exports), and Steps.</li>
 <li>First run: welcome, the library download with progress, the Python setup, agent setup from 1F (install and sign-in with no terminal, and which plans work) restyled, and the example or new-from-prompt choice. Every failure path has a clear retry.</li>
 <li>Settings: agent and model preference, the projects folder, color naming, quality, updates (stub until 6A), "Install command line tool", About (attributions, the disclaimer, the provider notice (D-37), "what Emmet connects to"), and "Copy diagnostics".</li>
@@ -2217,6 +2224,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <li>Every frozen screen and state except chat internals and viewer polish matches the design (side-by-side screenshots in the PR, both OSes, both themes).</li>
 <li>The first-run E2E passes on both OSes, and the full first run takes ≤ 3 minutes on a real connection (timed on this Mac).</li>
 <li>The trust, import, and drawer E2E specs pass on both OSes.</li>
+<li>Versions round-trip: save, change, and restore gives byte-identical sources, a restore first saves the current state, and an E2E spec covers save, compare, restore, and open as a new project.</li>
 <li>Keyboard reach: every action in the keyboard map works, and focus is visible (an E2E spec).</li>
 </ul>
 <div class="s-dh">What good looks like</div>
@@ -2240,6 +2248,7 @@ Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace th
 <li>Sessions: per-project history, resume after an app restart, switching agents mid-project like nurb (the picker in the chat header starts a fresh conversation and keeps the old one, with the state carried by files), Start fresh to clear the context without switching (Barry's notes), and a usage display where the CLI reports it.</li>
 <li>A model and effort picker per session (Barry's live-check notes, <code>docs/design/notes.md</code>), offering only what each CLI documents, with a plain note on which choices make a small plan last longer.</li>
 <li>Plan usage to the frozen design: the Claude meters, the Detailed and Compact popover, the detail panel (windows, usage credits, "Updated 8m ago"), the Codex billing state, the 90 % line, and the limit-reached card with "Continue with the other agent".</li>
+<li>Versions and the agent: an automatic version before every agent turn that changes the sources, "Undo the agent's last turn" in the chat, the <code>save_version</code> MCP tool, and doctrine to save a version before a risky change.</li>
 <li>emmet-bus complete: highlight, camera, and selection queries, used by both the app's own sessions and terminal agents.</li>
 <li>Agent health: a crashed agent → a one-click restart that resumes the session; not installed or not signed in → the fix card; an untested version → a quiet note.</li>
 <li>Replay E2E: a full rung 1 build replayed from a live transcript on both OSes; an interrupt; an approval denied; a question answered with Other; a redirect mid-build; a crash and restart.</li>
@@ -2248,6 +2257,7 @@ Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace th
 <ul class="done">
 <li>Every chat state in the frozen design is implemented (screenshots, both OSes).</li>
 <li>The replay E2E specs above pass on both OSes.</li>
+<li>After a replayed agent turn, "Undo the agent's last turn" restores the sources from before it, byte for byte (E2E).</li>
 <li>A terminal agent in a project folder can highlight parts in the open app (an integration test plus a manual recording).</li>
 <li>Rung 2 builds clean in Barry's hand session in the app with each agent, and its scrubbed transcripts pass in replay.</li>
 </ul>
@@ -2321,7 +2331,7 @@ fake agents and my hand sessions; the live photo rung runs at G2.</code></pre></
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><b>ADR:</b> the PDF engine (webview print-to-PDF or a Rust PDF crate), proven on both OSes, with font embedding and file size measured.</li>
-<li><b>Step pages:</b> step renders through <code>viewer.render</code> with a fixed camera per page group, new parts highlighted, and earlier parts at full color; parts-per-step callouts with part renders and counts; submodel callouts; a cover; a BOM page; page numbers; A4 and Letter.</li>
+<li><b>Step pages:</b> step renders through <code>viewer.render</code> with a fixed camera per page group, new parts highlighted, and earlier parts at full color; parts-per-step callouts with part renders and counts; submodel callouts (a submodel is built once, then placed "× N"); a cover; a BOM page; page numbers; A4 and Letter.</li>
 <li><code>emmet export --format pdf</code>, and Parts list → "Instructions (PDF)". The LPub3D-ready export stays for power users.</li>
 <li>Visual baselines per page for rung 1 and rung 2, on both OSes.</li>
 </ul>
