@@ -3,12 +3,12 @@
 // group of states with each direction's handling and the trade-off, the recommendation, and the contrast results.
 window.REVIEW_DIRS = [
   { id: "a", name: "A · Workbench", summary: "Plan section 14's layout brief, done well: the project tree on the left, the viewer with a tabbed drawer under it, the chat at full height on the right with what the agent is doing pinned at its top, and a status bar. Calm, fairly dense, native.", best: "Best for: long sessions by people who like every panel in view. Risk: the model gets about a third of the window." },
-  { id: "b", name: "B · Canvas", summary: "Revised with Barry (2026-10-27): the viewer takes the left of the window, the Options panel the right, and the chat docks along the bottom of the viewer, its history opening upward. A capsule at the top center says what the agent is doing. Options leads with build settings (style, scale, detail, target size) that steer the agent, then the model's own tweaks. Warm, roomy, friendly.", best: "Best for: people new to agents and to CAD, the users D-41 is about. Risk: floating panels need care at small window sizes." },
+  { id: "b", name: "B · Canvas", summary: "Revised with Barry (2026-10-27): the viewer takes the left of the window, the Options panel the right, and the chat docks along the bottom of the viewer, its history opening upward. The agent's status leads the chat's top row, beside the agent picker; the step scrubber and views share the title row. Options leads with build settings (style, scale, detail, target size) that steer the agent, then the model's own tweaks. Warm, roomy, friendly.", best: "Best for: people new to agents and to CAD, the users D-41 is about. Risk: floating panels need care at small window sizes." },
   { id: "c", name: "C · Command", summary: "A command bar across the top is the composer and the palette, with the live status at its right end; questions and approvals dock under it. The viewer in the center, an inspector on the right, and the turn as a timeline of chips along the bottom. Dense, keyboard-first, precise.", best: "Best for: power users and long agent turns. Risk: the most to learn, and a one-line bar is a cramped place for a long first prompt." },
 ];
 
 window.REVIEW_NOTES = [
-  { note: "1 · What the agent is doing, in context", a: "A pinned strip at the top of the chat (spinner, line, time, Stop · Esc), repeated in the status bar and the title's build pill.", b: "A capsule at the top center, the first thing the eye hits; it turns to an attention color when the agent waits on you.", c: "The right end of the command bar, plus the last chip of the timeline." },
+  { note: "1 · What the agent is doing, in context", a: "A pinned strip at the top of the chat (spinner, line, time, Stop · Esc), repeated in the status bar and the title's build pill.", b: "Revised: it leads the chat's top row, beside the agent picker, with Stop; it turns attention-colored when the agent waits on you.", c: "The right end of the command bar, plus the last chip of the timeline." },
   { note: "2 · Less code in the chat", a: "Plain-language tool cards, raw output folded; a finished run of cards folds to one line (\"11 steps · built in 4 stages\").", b: "One line above the composer by default; the history sheet folds finished runs the same way.", c: "Chips instead of cards; code only in the transcript drawer, folded." },
   { note: "3 · Agent picker and Start fresh, like nurb", a: "In the chat header, exactly nurb's place; switching shows a divider.", b: "In the composer's top row and in the history sheet's header.", c: "In the command bar, beside the model chip." },
   { note: "4 · Model and effort picker", a: "The chip beside Send; a popover with the plan note.", b: "The chip beside Send; a card at the bottom right, so it never covers the house.", c: "A chip in the command bar; a popover under it." },
@@ -36,22 +36,22 @@ window.REVIEW_ROWS = [
     "B and A give a long first prompt room; C's one-line bar is cramped for it.", ["thinking"]),
   ROW("building", "Agent status while it builds (and the build animation)",
     "The now strip at the top of the chat, the status bar, and the title pill; parts drop in with \"Placing parts in build order · Skip\" over the viewer.",
-    "The capsule at the top center, the running tool in the chat line, and the scrubber and views at the viewer's top right, Skip under them (\"Step 4/12\").",
+    "The status leads the chat's top row with Stop, the running tool is the chat line under it, and the scrubber reads Step 4/12 on the title row, with Skip at the viewer's top right (\"Step 4/12\").",
     "The bar's right end (spinner, line, time, Stop · Esc), the outlined running chip, and Skip with \"step 4/12 Walls, row 3\".",
     "B answers \"what is it doing?\" first; A puts it where the conversation is; C keeps it in one fixed spot that depends on the user glancing up."),
   ROW("question", "Question waiting for an answer",
     "The question card in the chat: numbered answers and Other; the strip and status bar say it's waiting on you.",
-    "The card docks in the chat above the composer, answers side by side; the viewer shrinks above it, and the capsule turns attention-colored.",
+    "The card docks in the chat above the composer, answers side by side; the viewer shrinks above it, and the status in the chat's top row turns attention-colored.",
     "Docked under the command bar, keyboard-first (1-3, Other inline); the viewer moves down about 70 px.",
     "A reads like Claude Code; B keeps the model clear but separates the card from the composer; C is the fastest by keyboard."),
   ROW("redirect", "Redirect pending",
     "A pending bubble at the end of the conversation: Edit, Cancel, Stop and send now.",
-    "The pending bubble sits in the chat above the composer, the running tool beside the capsule's line.",
+    "The pending bubble sits in the chat above the composer, the running tool and the status just above it.",
     "A \"Queued\" dock under the bar; the bar's placeholder becomes \"Redirect Claude: it reads this at its next step\".",
     "A keeps it in the conversation's flow but it can scroll; B and C keep it in view."),
   ROW("approval", "Waiting for approval",
     "The approval card in the chat (the page, why, Allow once, for this session, Don't allow); the strip turns to attention.",
-    "The same place as a question: in the chat, above the composer; the capsule says what it's waiting for.",
+    "The same place as a question: in the chat, above the composer; the status above it says what it's waiting for.",
     "The same dock as a question, with numbered choices.",
     "C has the least room for a long command; A the most."),
   ROW("sliders", "Tweak with a knob (weathering, then Shuffle)",
@@ -66,7 +66,7 @@ window.REVIEW_ROWS = [
     "Settings are about what to build, so they cost an agent turn; tweaks are about this model, so they're instant. Keeping both honest is the point.", ["restyle"]),
   ROW("steps", "Steps: the build up to step 8",
     "The Steps tab lists all 12 with part counts; later steps are grayed in the list and the tree; the viewer shows only what's built.",
-    "The Steps tab in Options, and the scrubber with the views at the viewer's top right.",
+    "The Steps tab in Options, and the scrubber with the views on the title row.",
     "A single-column list in the inspector; the scrubber names the step.",
     "All three show the model up to the step (note 6); A says it in the most places."),
   ROW("findings", "Checks with findings, and the fix",
@@ -81,12 +81,12 @@ window.REVIEW_ROWS = [
     "All keep the last good model (law 1). C's dock takes viewer height until it's fixed."),
   ROW("crashed", "Stopped by the user, and agent crashed",
     "A crash card in the chat with Restart Claude Code; the strip and status bar turn red. Stopped is a quiet note in the chat.",
-    "The crash card in the chat with Restart; the capsule turns red. Stopped is a quiet line in the chat.",
+    "The crash card in the chat with Restart; the status turns red. Stopped is a quiet line in the chat.",
     "A red dock with Restart; the interrupted chip reads \"cut off\". Stopped is a quiet status and a note chip.",
     "All say the project is untouched. B and C put the action away from the conversation.", ["stopped"]),
   ROW("signed-out", "Agent not signed in",
     "The chat becomes the sign-in card: Sign in to Claude, or Use Codex instead; the viewer keeps working.",
-    "The sign-in card takes the chat's place above the composer; the capsule is warn-colored.",
+    "The sign-in card takes the chat's place above the composer; the status is warn-colored.",
     "An amber dock under the bar with the same two buttons and the plan text.",
     "A can't be missed; C is the least warm."),
   ROW("switch-agent", "Switch agent mid-project",
@@ -121,7 +121,7 @@ window.REVIEW_ROWS = [
     "A's top strip is the most prominent; B keeps the model cleanest; C's docks can stack.", ["offline", "old-library"]),
 ];
 
-window.REVIEW_RECOMMENDATION = `<p><b>Update, 2026-10-27:</b> Barry took B as the starting design and asked for the viewer on the left, the options on the right, and the chat along the bottom, with build settings (style, scale, detail, target size) in place of width and color. B now shows that; the rows below describe the revised B.</p><h2>Recommendation: B · Canvas, with two things from A and C</h2>
+window.REVIEW_RECOMMENDATION = `<p><b>Update, 2026-10-27:</b> Barry took B as the starting design and asked for the status in the chat panel, the scrubber and views on the title row, and the viewer on the left, the options on the right, and the chat along the bottom, with build settings (style, scale, detail, target size) in place of width and color. B now shows that; the rows below describe the revised B.</p><h2>Recommendation: B · Canvas, with two things from A and C</h2>
 <p><b>Why B.</b> It's the only direction where the model is plainly the hero on every screen, and its top-center capsule answers "what is the agent doing right now?" faster than either alternative: the eye lands there first, and it can't scroll away. Its warmth suits the people Emmet is for: brick builders who have never opened a terminal (D-41). The chat stays one line until you want it, which is the strongest answer to "less code in the chat" (note 2), and nothing covers the house in any of the 28 screens.</p>
 <p><b>The mix I'd propose</b> (the fourth option in the question):</p>
 <ul>

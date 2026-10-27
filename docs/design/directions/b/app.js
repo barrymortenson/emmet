@@ -24,12 +24,10 @@
     const pin = b.state === "findings" ? `<button type="button" class="b-pin" data-tab="checks"><span class="b-pin-dot">${U.icon("warn")}</span><span class="b-pin-text"><b>8 parts float</b><small>F-0001 · the chimney starts 9 plates up</small></span></button>` : "";
     const step = s.step || (b.parts ? D.stepOf(b.parts) : undefined);
     const scrub = b.state === "empty" ? "" : U.scrubber({ ...s, step });
-    // An untrusted project is a warning for the agent too: it can't run the model until the user trusts it.
-    const now = U.agentState(s.banner === "untrusted" ? { ...s, agent: { ...s.agent, state: "offline" } } : s);
     return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project">${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button></div>
-      <div class="b-now-wrap">${now}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
+      <span class="e-grow"></span><div class="b-tools-row">${scrub}${U.views()}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
       <section class="b-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}${pin}<div class="b-vnotes">${failed}${ro}</div>
-      <div class="b-tools"><div class="b-tools-row">${scrub}${U.views()}</div>${U.animating(s)}</div></section>`;
+      <div class="b-tools">${U.animating(s)}</div></section>`;
   }
 
   // The options panel: the build in words and the project's tools, then Options, Checks, Parts, Steps.
@@ -81,7 +79,10 @@
     const a = U.agentOf(s);
     const open = historyOpen(s);
     const n = s.chat.length;
-    const top = `<div class="b-chat-top"><button type="button" class="b-agent" data-act="agents" aria-haspopup="menu">${esc(a.name)} ${U.icon("chev")}</button><span class="e-badge">${esc(a.plan)}</span><span class="e-grow"></span>
+    // What the agent is doing (note 1) leads the chat, beside the agent it's about. An untrusted project is a warning
+    // for the agent too: it can't run the model until the user trusts it.
+    const now = U.agentState(s.banner === "untrusted" ? { ...s, agent: { ...s.agent, state: "offline" } } : s);
+    const top = `<div class="b-chat-top"><button type="button" class="b-agent" data-act="agents" aria-haspopup="menu">${esc(a.name)} ${U.icon("chev")}</button><span class="e-badge">${esc(a.plan)}</span><div class="b-now">${now}</div>
       ${n ? `<button type="button" class="e-btn e-quiet e-sm" data-local="history=${open ? "closed" : "open"}" aria-expanded="${open}">${U.icon("chat")}<span>${open ? "Hide history" : `History · ${n}`}</span></button>` : ""}
       <button type="button" class="e-btn e-quiet e-sm" title="Start fresh: clear the context, keep the agent">${U.icon("fresh")}<span>Start fresh</span></button></div>`;
     const card = active(s);

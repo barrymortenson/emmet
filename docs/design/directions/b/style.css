@@ -4,7 +4,7 @@
    Colors only in the token blocks: scripts/contrast-check.mjs checks every --fg-* against every --bg-* (4.5:1), every
    --ui-* and --fill-* against every --bg-* (3:1), and each --on-X against its --fill-X (4.5:1). */
 [data-theme="light"] {
-  --bg-viewer: #f3f4f6; --bg-card: #fffcf7; --bg-raised: #f8f2e9; --bg-sunken: #f0e8dc;
+  --bg-viewer: #f5f5f5; --bg-card: #fffcf7; --bg-raised: #f8f2e9; --bg-sunken: #f0e8dc;
   --bg-accent-soft: #fdeadd; --bg-selected: #fbdcc8; --bg-warn-soft: #fbefd3; --bg-bad-soft: #fbe5e1; --bg-code: #f6efe5;
   --fg-text: #2a211b; --fg-muted: #66594e; --fg-accent: #9e3d0e; --fg-ok: #1b6a3c; --fg-warn: #774800; --fg-bad: #a3241a;
   --ui-control: #877666; --ui-accent: #c2552a; --ui-ok: #2a8a52;
@@ -232,15 +232,14 @@
 .b-viewer { position: relative; overflow: hidden; container-type: size; min-height: 0; }
 /* The render keeps the camera's vertical field of view, as three.js does: a shorter viewer (history open) shows the
    whole model smaller rather than cropping it. 147cqh is the square that fills the viewer at its usual shape. */
-.b-viewer .e-shot { width: 160cqh; left: calc(50% - 80cqh); }
+.b-viewer .e-shot { width: max(100cqw, 160cqh); left: calc(50% - max(50cqw, 80cqh)); }
 /* The title row: traffic lights and the project at the left, the agent's capsule centered over the viewer. */
-.b-title { position: relative; display: flex; align-items: center; height: 56px; padding: 0 16px; }
+.b-title { position: relative; z-index: 2; display: flex; align-items: center; height: 56px; padding: 0 16px; }
 .b-top-left { display: flex; align-items: center; gap: 12px; z-index: 1; }
 .b-vnotes { position: absolute; top: 8px; left: 16px; display: flex; gap: 8px; }
 .b-top-left .e-lights { padding: 0 2px; }
 .b-project { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; font-weight: 650; border-radius: 999px; }
-.b-now-wrap { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 470px; z-index: 1; }
-.b-tools { position: absolute; right: 16px; top: 8px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.b-tools { position: absolute; right: 16px; top: 4px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .b-tools-row { display: flex; gap: 8px; align-items: center; }
 .e-views { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; }
 .e-view { background: none; border: 0; padding: 4px 11px; border-radius: 999px; color: var(--fg-text); }
@@ -333,3 +332,8 @@
 .e-brief-sum { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg-raised); font-size: 13px; }
 .e-brief-sum span { flex: 1; }
 .e-shuffle { display: inline-flex; align-items: center; gap: 10px; }
+/* The agent's status in the chat's top row: flat, filling the space between the agent and History. */
+.b-now { flex: 1; min-width: 0; display: flex; }
+.b-now .e-now { box-shadow: none; flex: 1; min-width: 0; padding-top: 3px; padding-bottom: 3px; }
+.b-now .e-now[data-tone="idle"] { background: none; border-color: transparent; }
+.b-now .e-now-who { display: none; }
