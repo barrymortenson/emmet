@@ -33,6 +33,15 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   for a body) over the brick: the project chip carries it and opens About, tips use it, first run shows the
   "Emmet Builder" wordmark, the accent is the brand orange from `brand/palette.css`, and About shows the macOS icon
   draft, what Emmet connects to, and the trademark line (D-30). The final typeface and the 16 px tuning are 2B's.
+- **A better starter cottage.** Barry asked for a more interesting example with a real door, window glass, and some
+  interior. The template (`crates/emmet-core/templates/cottage/model.py`) is now 10 x 8 studs and 163 parts: a
+  stone base course, a Reddish Brown door in its frame, Trans-Clear glass in five windows (two in front when it's 10
+  wide), a stone path with two flowers, a chimney over the stove, and a room inside (a bed, a table and stool, a
+  stove), all in colors Rebrickable lists for those parts. It gains the knobs from the design (`roof`, `weathering`,
+  `seed`), keeps width, depth, wall height, and colors for rung 1 and the tests, and validates clean at all 110
+  width and depth combinations. Building it found an older bug: an odd width left a stud of ceiling unplated, so the
+  roof above it floated; a Plate 1 x 2 now fills it, and the check test covers width 9. The Windows visual baseline
+  for the cottage is stale until the Windows pass regenerates it (D-43).
 
 ## 2026-10-26, session 1D
 

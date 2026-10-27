@@ -116,6 +116,9 @@ fn the_cottage_validates_clean_at_every_corner() {
         &["width=6", "depth=12", "wall_rows=9"],
         &["width=16", "depth=4", "wall_rows=6"],
         &["width=11", "depth=10", "wall_rows=7", "chimney=false"],
+        // An odd width once left a stud of ceiling unplated, and the roof above it floated.
+        &["width=9", "depth=8", "wall_rows=6", "chimney=true"],
+        &["width=7", "depth=6", "roof=false", "weathering=30", "seed=7"],
     ];
     for set in corners {
         if !set.is_empty() {

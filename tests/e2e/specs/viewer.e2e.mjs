@@ -60,7 +60,7 @@ describe("the live viewer", () => {
     expect((await stats()).instances).toBeGreaterThan(count);
     expect(await camera()).toEqual(before);
     const width = Number(await slider.getValue());
-    expect(width).toBeGreaterThan(8);
+    expect(width).toBeGreaterThan(10);
     expect(JSON.parse(readFileSync(join(project, "params.json"), "utf8")).width).toBe(width);
     // 1B's budget (What good looks like: ≤ 1.0 s on M-series); slower hosted runners only report it.
     if (process.platform === "darwin" && process.env.RUNNER_ENVIRONMENT !== "github-hosted") expect(ms).toBeLessThan(1000);
@@ -156,13 +156,13 @@ describe("the live viewer", () => {
     const gen = await shown();
     await browser.execute(() =>
       Promise.all([
-        window.__TAURI_INTERNALS__.invoke("set_params", { values: { depth: 8 } }),
+        window.__TAURI_INTERNALS__.invoke("set_params", { values: { depth: 10 } }),
         window.__TAURI_INTERNALS__.invoke("set_params", { values: { wall_rows: 7 } }),
       ]),
     );
     await nextScene(gen);
     const saved = JSON.parse(readFileSync(join(project, "params.json"), "utf8"));
-    expect([saved.depth, saved.wall_rows]).toEqual([8, 7]);
+    expect([saved.depth, saved.wall_rows]).toEqual([10, 7]);
   });
 
   it("reopening a project whose build lost its placements builds it again", async () => {

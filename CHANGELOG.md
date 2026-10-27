@@ -92,6 +92,9 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   Agents (1E's sign-in). Each card says which plans work, with the provider's page, and the provider notice comes
   before the first install or sign-in, until the user accepts it.
 - `fake-install` (tests/fake-agents) stands in for the installers, and fake-claude answers `auth login`.
+- A better starter cottage (`emmet new`, "Start with the Cottage example"): a real door, glass in the windows, a
+  stone base, a path and flowers, and a room inside with a bed, a table, and a stove, 163 parts at its new 10 x 8
+  default; knobs for the roof (off shows the room), weathering, and Shuffle.
 - Design research and three clickable directions (session 2A, `docs/design/`): a teardown of nurb and six brick-CAD
   tools, storyboards of the nine key flows, three static HTML prototypes of every screen and state in light and dark
   (real renders, run and check output, and transcript text), `review.html` comparing them, and a brand starter.
@@ -107,6 +110,7 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Fixed
 
+- The cottage template at an odd width (7, 9, …): the ceiling left one stud unplated, and the roof above it floated.
 - Sign in with ChatGPT on Windows: the credential record (three tokens) is longer than the 2,560 bytes a Windows
   credential holds, so the sign-in failed after OpenAI's page. Long secrets are now split across credentials on
   Windows (1F, found in its Windows hand check).

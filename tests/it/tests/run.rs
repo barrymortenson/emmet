@@ -68,11 +68,11 @@ fn new_then_run_matches_the_golden() {
 
     let (v, code) = emmet_in(&demo, &["run"]);
     assert_eq!(code, 0, "{v}");
-    assert_eq!(v["data"]["parts"], 93);
-    assert_eq!(v["data"]["steps"], 12);
+    assert_eq!(v["data"]["parts"], 163);
+    assert_eq!(v["data"]["steps"], 15);
     assert_eq!(
         v["data"]["bbox"],
-        serde_json::json!({ "min": [0.0, 0.0, 0.0], "max": [32.0, 32.0, 33.5] })
+        serde_json::json!({ "min": [0.0, 0.0, 0.0], "max": [32.0, 32.0, 36.5] })
     );
     assert_eq!(v["meta"]["generation"], 1);
     assert_eq!(v["meta"]["inputs_hash"].as_str().unwrap().len(), 64);
@@ -174,7 +174,17 @@ fn params_get_set_and_run_overrides() {
         .collect();
     assert_eq!(
         names,
-        ["width", "depth", "wall_rows", "wall_color", "roof_color", "chimney"]
+        [
+            "width",
+            "depth",
+            "wall_rows",
+            "wall_color",
+            "roof_color",
+            "chimney",
+            "roof",
+            "weathering",
+            "seed"
+        ]
     );
     let width = &v["data"]["params"][0];
     assert_eq!(
@@ -185,20 +195,20 @@ fn params_get_set_and_run_overrides() {
     assert_eq!(v["data"]["params"][1]["step"], 2.0);
     assert_eq!(v["data"]["values"]["wall_color"], "Tan");
 
-    let (v, code) = emmet_in(&demo, &["params", "--set", "width=10", "chimney=false"]);
+    let (v, code) = emmet_in(&demo, &["params", "--set", "width=12", "chimney=false"]);
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["changed"], serde_json::json!(["chimney", "width"]));
     let file: Value = serde_json::from_str(&std::fs::read_to_string(demo.join("params.json")).unwrap()).unwrap();
-    assert_eq!(file, serde_json::json!({ "chimney": false, "width": 10 }));
+    assert_eq!(file, serde_json::json!({ "chimney": false, "width": 12 }));
 
     // Setting a value back to its default drops it from params.json.
-    emmet_in(&demo, &["params", "--set", "width=8"]);
+    emmet_in(&demo, &["params", "--set", "width=10"]);
     let file: Value = serde_json::from_str(&std::fs::read_to_string(demo.join("params.json")).unwrap()).unwrap();
     assert_eq!(file, serde_json::json!({ "chimney": false }));
 
     // --params applies to one run and doesn't touch params.json; the inputs hash changes with it.
     let (a, _) = emmet_in(&demo, &["run"]);
-    let (b, code) = emmet_in(&demo, &["run", "--params", "width=12", "wall_color=\"Dark Tan\""]);
+    let (b, code) = emmet_in(&demo, &["run", "--params", "width=14", "wall_color=\"Dark Tan\""]);
     assert_eq!(code, 0, "{b}");
     assert_ne!(a["meta"]["inputs_hash"], b["meta"]["inputs_hash"]);
     assert!(b["data"]["parts"].as_u64() > a["data"]["parts"].as_u64());
