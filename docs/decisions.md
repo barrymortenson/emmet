@@ -60,7 +60,7 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   figure-scale starship has figure-sized doors and seats but is far shorter than true scale, so the agent sizes what a
   figure touches for the figure and compresses the rest (the doctrine's "Sized for the figure, not to the ratio"). Age
   leads Detail and Pieces: picking an age sets them to what sets for that age usually have (4+ and 6+ Low and 50–250,
-  9+ Medium and 250–1,000, 13+ High and 1,000–2,500, 18+ High and 2,500+), marked "from age", and the user can change
+  9+ Medium and 250–1,000, 13+ High and 1,000–2,500, 18+ High and 2,500+), with no badge, and the user can change
   either. Pieces has no cap: its top band is 2,500+, since 18+ sets run 2,000 to 5,000 pieces, and the doctrine no
   longer asks before a build over 2,000 parts when the user asked for one that big. Emmet's side holds up there (a
   5,000-part model runs in 0.25 s and checks in 0.6 s on a debug build, and `validate` returns at most 50 findings);

@@ -220,19 +220,18 @@ window.EMMET_UI = (() => {
     const scaleCur = val("scale") ?? "Any";
     const scaleChips = [{ id: "Any", sub: "The prompt decides" }, ...B.scale.options].map((o) => `<button type="button" role="radio" class="e-style" aria-checked="${o.id === scaleCur}" title="${esc(o.sub)}">${esc(o.id)}</button>`).join("");
     const scale = `<div class="e-set" data-moved="${"scale" in dirty}">${head("scale", B.scale.value)}<div class="e-styles" role="radiogroup" aria-label="Scale">${scaleChips}</div></div>`;
-    // Age leads (Barry 2026-10-27): a picked age sets Detail and Pieces to its usual values, marked "from age". A pick
-    // of the user's own is kept, tagged with the age it was made under, until they choose another age.
+    // Age leads (Barry 2026-10-27): a picked age sets Detail and Pieces to its usual values. A pick of the user's own
+    // is kept, tagged with the age it was made under, until they choose another age.
     const ageNow = screen.pickAge ?? val("age") ?? "Any";
     const preset = screen.pickAge && B.age.options.find((o) => o.id === ageNow);
     const mine = (k) => { const [v, a] = (screen[k] || "").split("@"); return v && a === ageNow ? v : null; };
     const pick = (k, presetV, stored) => mine(k) ?? (preset ? presetV : screen.pickAge === "Any" ? "Any" : stored) ?? "Any";
     const detailNow = pick("pickDetail", preset?.detail, val("detail"));
     const piecesNow = pick("pickPieces", preset?.pieces, size());
-    const fromAge = (k) => (preset && !mine(k) ? `<span class="e-chip" title="Set by Age ${esc(ageNow)}; pick another to change it">from age</span>` : "");
-    const detail = `<div class="e-set" data-moved="${"detail" in dirty}"><div class="e-set-head"><span class="e-set-name" title="${esc(B.detail.help)}">${esc(B.detail.label)}</span>${was("detail", B.detail.value)}${fromAge("pickDetail")}</div>${seg("Detail", ["Any", ...B.detail.options.map((o) => o.id)], detailNow, { local: (o) => `pickDetail=${o}@${ageNow}` })}</div>`;
+    const detail = `<div class="e-set" data-moved="${"detail" in dirty}"><div class="e-set-head"><span class="e-set-name" title="${esc(B.detail.help)}">${esc(B.detail.label)}</span>${was("detail", B.detail.value)}</div>${seg("Detail", ["Any", ...B.detail.options.map((o) => o.id)], detailNow, { local: (o) => `pickDetail=${o}@${ageNow}` })}</div>`;
     // Pieces shows the counts themselves, so it can't be read as how big the model looks (that's Scale), as chips so
     // no range breaks across two lines.
-    const pieces = `<div class="e-set"><div class="e-set-head"><span class="e-set-name" title="${esc(B.size.help)}">${esc(B.size.label)}</span>${fromAge("pickPieces")}</div><div class="e-styles" role="radiogroup" aria-label="Pieces">${["Any", ...B.size.presets.map((p) => p.id)].map((o) => `<button type="button" role="radio" class="e-style" aria-checked="${o === piecesNow}" data-local="${esc(`pickPieces=${o}@${ageNow}`)}">${esc(o === "Any" ? o : range(B.size.presets.find((p) => p.id === o)))}</button>`).join("")}</div></div>`;
+    const pieces = `<div class="e-set"><div class="e-set-head"><span class="e-set-name" title="${esc(B.size.help)}">${esc(B.size.label)}</span></div><div class="e-styles" role="radiogroup" aria-label="Pieces">${["Any", ...B.size.presets.map((p) => p.id)].map((o) => `<button type="button" role="radio" class="e-style" aria-checked="${o === piecesNow}" data-local="${esc(`pickPieces=${o}@${ageNow}`)}">${esc(o === "Any" ? o : range(B.size.presets.find((p) => p.id === o)))}</button>`).join("")}</div></div>`;
     const base = `<div class="e-set">${head("base")}${seg("Base", B.base.options, val("base") ?? B.base.value)}</div>`;
     const age = `<div class="e-set" data-moved="${"age" in dirty}">${head("age", B.age.value)}${seg("Age", ["Any", ...B.age.options.map((o) => o.id)], ageNow, { tips: Object.fromEntries(B.age.options.map((o) => [o.id, `${o.sub}: ${o.detail} detail, ${range(B.size.presets.find((p) => p.id === o.pieces))} pieces`])), local: (o) => `pickAge=${o}` })}</div>`;
     const n = Object.keys(dirty).length;
