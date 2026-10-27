@@ -70,7 +70,7 @@
   function failed() {
     const e = D.buildError;
     return `<div class="c-dock" data-tone="bad" role="alert"><div class="c-dock-head">${U.icon("warn")}<span class="c-tag">model.py:${e.line}</span><b>The model didn't build</b><span class="c-hint">The last good model is still shown</span><span class="c-grow"></span>${U.btn("Open model.py", "", "e-quiet e-sm", "file")}${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div>
-      <pre class="c-src"><span class="c-err">${esc(e.message)}</span>\n<span class="e-ln">${e.line}</span>${esc(e.excerpt.trim())}</pre></div>`;
+      <pre class="c-src"><span class="c-err">${esc(e.message)}</span>\n${[].concat(e.excerpt).map((l, i) => `<span class="e-ln">${e.line + i}</span>${esc(l)}`).join("\n")}</pre></div>`;
   }
   function crashed(s, m) {
     return `<div class="c-dock" data-tone="bad" role="alert"><div class="c-dock-head">${U.icon("warn")}<b>${esc(m.title)}</b><span class="c-hint">${esc(m.text)}</span><span class="c-grow"></span>${U.btn("Copy the details", "", "e-quiet e-sm")}${U.btn(`Restart ${U.agentOf(s).cli}`, "restart", "e-primary e-sm", "refresh")}</div></div>`;
