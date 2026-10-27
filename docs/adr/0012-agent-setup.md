@@ -74,7 +74,10 @@ most), and detects again. No pseudo-terminal crate is needed.
 Antigravity has no `agy mcp add`; its docs name `~/.gemini/config/mcp_config.json` (global) and
 `<workspace>/.agents/mcp_config.json`. "Add Emmet's tools to this project" writes `mcpServers.emmet` =
 `{"command": <the emmet sidecar>, "args": ["mcp", "--project", <root>]}` into the open project's file, keeping every
-other key; a file that isn't a JSON object is left alone (Barry 2026-10-26). Emmet never writes `~/.gemini`. The card
+other key; a file that isn't a JSON object is left alone (Barry 2026-10-26). Emmet never writes `~/.gemini`: a
+`.agents` folder or file that's a link, or that resolves outside the project, is refused, since a project from
+elsewhere could point it there. "Open Terminal here" passes the folder as the working directory, never as an
+argument, so `cmd.exe` never parses its name. The card
 opens Terminal (or PowerShell) in the project folder, where the user types `agy`. agy has no status command, so its
 sign-in is its own first run. H-25 checks that agy loads the file.
 

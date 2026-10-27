@@ -546,9 +546,24 @@ pub fn antigravity_config(project: &Path) -> PathBuf {
 }
 
 /// Adds Emmet's MCP server to the project's `.agents/mcp_config.json` as `emmet`, keeping every other server and
-/// setting the file has. A file that isn't a JSON object is left alone.
+/// setting the file has. A file that isn't a JSON object is left alone, and so is a `.agents` or a file that's a link
+/// or leads outside the project: a project from elsewhere could point it at `~/.gemini`.
 pub fn write_antigravity_config(project: &Path, emmet: &Path) -> Result<PathBuf, SetupError> {
     let path = antigravity_config(project);
+    let dir = project.join(".agents");
+    let linked = |p: &Path| std::fs::symlink_metadata(p).is_ok_and(|m| m.file_type().is_symlink());
+    let outside = || {
+        let root = std::fs::canonicalize(project).ok();
+        dir.exists() && std::fs::canonicalize(&dir).ok() != root.map(|r| r.join(".agents"))
+    };
+    if linked(&dir) || linked(&path) || outside() {
+        return Err(SetupError::new(
+            Failure::Failed,
+            "The project's .agents folder or its mcp_config.json is a link, so Emmet left it alone. Replace it with a \
+             plain folder, then try again.",
+            None,
+        ));
+    }
     let mut doc = match std::fs::read(&path) {
         Ok(bytes) => serde_json::from_slice::<Value>(&bytes)
             .ok()

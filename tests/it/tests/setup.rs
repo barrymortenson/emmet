@@ -310,6 +310,28 @@ fn the_antigravity_file_keeps_the_users_servers() {
     assert!(setup::antigravity_config(&fresh).is_file());
 }
 
+/// A project from elsewhere can't use its .agents folder to have Emmet write user-level config (D-26).
+#[cfg(unix)]
+#[test]
+fn the_antigravity_file_never_follows_a_link() {
+    let dir = temp_dir("setup-agy-link");
+    let (project, gemini) = (dir.join("project"), dir.join("home/.gemini/config"));
+    std::fs::create_dir_all(&project).unwrap();
+    std::fs::create_dir_all(&gemini).unwrap();
+    std::fs::write(gemini.join("mcp_config.json"), "{}").unwrap();
+    std::os::unix::fs::symlink(&gemini, project.join(".agents")).unwrap();
+    let e = setup::write_antigravity_config(&project, Path::new("/emmet")).expect_err("refused");
+    assert!(e.message.contains("is a link"), "{}", e.message);
+    assert_eq!(std::fs::read_to_string(gemini.join("mcp_config.json")).unwrap(), "{}");
+
+    // The same for the file itself.
+    std::fs::remove_file(project.join(".agents")).unwrap();
+    std::fs::create_dir_all(project.join(".agents")).unwrap();
+    std::os::unix::fs::symlink(gemini.join("mcp_config.json"), setup::antigravity_config(&project)).unwrap();
+    setup::write_antigravity_config(&project, Path::new("/emmet")).expect_err("refused");
+    assert_eq!(std::fs::read_to_string(gemini.join("mcp_config.json")).unwrap(), "{}");
+}
+
 #[test]
 fn agy_is_found_where_googles_installer_puts_it() {
     let h = home("agy");

@@ -135,13 +135,10 @@ pub fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<Problem
     } else {
         None
     };
+    // The folder is the working directory, never an argument: cmd.exe would parse a name with & or ^ in it.
     let mut cmd = if cfg!(windows) {
         let mut c = Command::new("cmd.exe");
-        c.args(["/c", "start", ""]);
-        if let Some(d) = &dir {
-            c.arg("/D").arg(d);
-        }
-        c.arg("powershell.exe");
+        c.args(["/c", "start", "", "powershell.exe"]);
         c
     } else {
         let mut c = Command::new("/usr/bin/open");
@@ -151,6 +148,9 @@ pub fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<Problem
         }
         c
     };
+    if let Some(d) = &dir {
+        cmd.current_dir(d);
+    }
     cmd.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     crate::runs::no_window(&mut cmd);
     cmd.spawn()
