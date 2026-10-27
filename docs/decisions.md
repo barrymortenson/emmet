@@ -42,6 +42,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   width and depth combinations. Building it found an older bug: an odd width left a stud of ceiling unplated, so the
   roof above it floated; a Plate 1 x 2 now fills it, and the check test covers width 9. The Windows visual baseline
   for the cottage is stale until the Windows pass regenerates it (D-43).
+- **Names, not subtext.** Barry: too much explanatory text under every option; naming should be intuitive. Options
+  and knobs show a short name and their control; any help is a hover tooltip. Build settings switch on and off (off:
+  the prompt alone decides). A new build starts with every setting on Any, so they don't box in the prompt, and
+  style takes the user's own words (steampunk, zen garden) beside the suggestions.
 
 ## 2026-10-26, session 1D
 

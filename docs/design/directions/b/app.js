@@ -9,7 +9,7 @@
   const U = window.EMMET_UI;
   const S = window.EMMET_STATES;
   const esc = U.esc;
-  // The brand's ant (brand/mark-ant.svg): in the project chip, which opens About, and beside tips.
+  // The brand's ant (brand/mark-ant.svg): in the project chip, which opens About.
   const ANT = `<img class="b-ant" src="../../brand/mark-ant.svg" alt="">`;
 
   // History opens where the conversation itself is the point: picking an agent, and right after a switch. Elsewhere
@@ -41,14 +41,16 @@
     const tabs = U.tabs(t, s).replace(">Parameters<", ">Options<");
     let body;
     if (t === "params") {
-      const tweaks = b.state === "empty"
-        ? `<p class="e-help">The model's own knobs (like weathering, features, and Shuffle) appear after the first build.</p>`
-        : b.state === "readonly" ? `<p class="e-help">${U.icon("lock")} The model's knobs run model.py, so they wait until you trust the project.</p>`
-        : U.params(s);
-      // Before the first build, or with a change waiting, the settings are open; after it, a summary line.
+      // The model's knobs need a model, and a trusted one; until then the section is left out.
+      const tweaks = b.state === "empty" ? "" : b.state === "readonly"
+        ? `<div class="b-tweaks"><p class="b-sec">Tweaks</p><p class="b-locked">${U.icon("lock")} Trust the project to use these</p></div>`
+        : `<div class="b-tweaks"><p class="b-sec">Tweaks</p>${U.params(s)}</div>`;
+      // Build settings can be switched off: the prompt alone then decides. On, before the first build or with a change
+      // waiting they're open; after it, one summary line.
+      const on = s.brief !== "off";
       const full = b.state === "empty" || s.briefDirty || s.brief === "open";
-      body = `<p class="b-sec">Build settings <span class="e-small">steer the agent</span></p>${U.buildSettings(s, { compact: !full, open: "brief=open" })}
-        <div class="b-tweaks"><p class="b-sec">This model's knobs <span class="e-small">instant, no agent turn</span></p>${tweaks}</div>`;
+      const toggle = `<label class="b-switch" title="${on ? "Turn build settings off: the prompt alone decides" : "Turn build settings on"}"><input type="checkbox" role="switch" data-local="brief=${on ? "off" : "on"}"${on ? " checked" : ""} aria-label="Build settings"><span></span></label>`;
+      body = `<div class="b-sec b-sec-row"><span>Build settings</span>${toggle}</div>${on ? U.buildSettings(s, { compact: !full, open: "brief=open" }) : `<p class="b-off">Off: the prompt decides</p>`}${tweaks}`;
     } else body = U.panel(t, s);
     return `<aside class="b-panel" aria-label="Options"><div class="b-panel-head" data-tone="${tone}">${ic}<span class="b-build">${esc(U.buildText(b))}</span>
         <span class="b-tools-top"><button type="button" class="e-icon-btn" title="New (⌘N)">${U.icon("plus")}</button><button type="button" class="e-icon-btn" title="Open (⌘O)">${U.icon("folder")}</button><button type="button" class="e-icon-btn" data-act="export" title="Export">${U.icon("download")}</button></span></div>
@@ -70,7 +72,7 @@
     if (s.dirty || s.briefDirty) return "";
     const last = s.chat[s.chat.length - 1];
     if (s.build.state === "findings" && s.agent.state === "idle") return `<div class="b-latest b-latest-warn">${U.icon("warn")}<span>The last build has 1 problem: 9 parts float.</span><span class="e-grow"></span>${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div>`;
-    if (!last) return s.imported || s.banner ? "" : s.build.state === "empty" ? `<p class="b-tip">${ANT}Pick the build settings on the right, then describe it in your own words. ${esc(U.agentOf(s).name)} builds it from real parts, stage by stage.</p>` : "";
+    if (!last) return "";
     if (last.t === "tool" || last.t === "file" || last.t === "note") return U.message(last, s);
     if (last.t === "thinking") return U.message(last, s).replace('<details class="e-think">', '<details class="e-think" open>');
     if (last.t === "agent") return `<div class="b-latest"><span class="b-latest-who">${esc(U.agentOf(s).name)}</span>${U.message(last, s)}</div>`;

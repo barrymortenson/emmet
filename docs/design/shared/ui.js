@@ -163,8 +163,7 @@ window.EMMET_UI = (() => {
   // Parameters (note 5): grouped, labeled in words, help from the docstring, colors limited to what the parts come in.
   function params(screen) {
     const dirty = screen.dirty || {};
-    const groups = {};
-    for (const p of D.params) (groups[p.group] ||= []).push(p);
+    // Names that explain themselves, and the docstring's help on hover only (Barry 2026-10-27: no subtext).
     const row = (p) => {
       const v = p.name in dirty ? dirty[p.name] : p.value;
       const moved = p.name in dirty;
@@ -172,47 +171,53 @@ window.EMMET_UI = (() => {
       if (p.type === "int") {
         ctl = `<input type="range" min="${p.min}" max="${p.max}" step="${p.step || 1}" value="${v}" data-param="${p.name}" aria-label="${esc(p.label)}"><output>${v} ${esc(p.unit)}</output>`;
       } else if (p.type === "seed") {
-        ctl = `<span class="e-shuffle">${btn("Shuffle", "shuffle", "e-sm", "refresh")}<span class="e-small">Arrangement ${v}</span></span>`;
+        ctl = `<span class="e-shuffle">${btn("Shuffle", "shuffle", "e-sm", "refresh")}</span>`;
       } else if (p.type === "color") {
         const opts = D.colorChoices[p.name].map((c) => `<option${c === v ? " selected" : ""}>${esc(c)}</option>`).join("");
         ctl = `<span class="e-color">${swatch(v)}<select aria-label="${esc(p.label)}">${opts}</select></span>`;
       } else {
         ctl = `<label class="e-toggle"><input type="checkbox"${v ? " checked" : ""} aria-label="${esc(p.label)}"><span></span></label>`;
       }
-      const wasText = p.type === "seed" ? `was ${p.value}` : `was ${p.value}${p.unit === "%" ? " %" : ""}`;
-      return `<div class="e-param" data-moved="${moved}" title="model.py line ${p.line}"><div class="e-param-top"><span class="e-param-name">${esc(p.label)}</span>${moved ? `<span class="e-chip e-chip-accent">${esc(wasText)}</span>` : ""}</div>${ctl}<p class="e-help">${esc(p.help[0].toUpperCase() + p.help.slice(1))}</p></div>`;
+      const was = p.type === "seed" ? "" : `was ${p.value}${p.unit === "%" ? " %" : ""}`;
+      const tip = `${p.help[0].toUpperCase()}${p.help.slice(1)} (model.py line ${p.line})`;
+      return `<div class="e-param" data-type="${p.type}" data-moved="${moved}" title="${esc(tip)}"><div class="e-param-top"><span class="e-param-name">${esc(p.label)}</span>${moved && was ? `<span class="e-chip e-chip-accent">${esc(was)}</span>` : ""}</div>${ctl}</div>`;
     };
-    const body = Object.entries(groups).map(([g, ps]) => `<fieldset class="e-group"><legend>${esc(g)}</legend>${ps.map(row).join("")}</fieldset>`).join("");
     const n = Object.keys(dirty).length;
-    const keep = n ? `<div class="e-keep"><span>${n} change${n > 1 ? "s" : ""} · rebuilt in 0.1 s, not saved to model.py yet</span>${btn("Reset", "reset", "e-quiet e-sm")}${btn("Keep as default", "keep", "e-primary e-sm")}</div>` : "";
-    return `<div class="e-params">${keep}${body}</div>`;
+    const keep = n ? `<div class="e-keep"><span>${n} change${n > 1 ? "s" : ""}</span>${btn("Reset", "reset", "e-quiet e-sm")}${btn("Keep", "keep", "e-primary e-sm")}</div>` : "";
+    return `<div class="e-params">${keep}${D.params.map(row).join("")}</div>`;
   }
 
-  // Build settings: what to build (style, scale, detail, size, base). They steer the agent, so a change waits for
-  // "Rebuild with these settings" instead of rerunning model.py. Before the first build they shape the first prompt.
+  // Build settings: style, scale, detail, size, base. They steer the agent, so a change waits for Rebuild instead of
+  // rerunning model.py. A new build starts with each one on Any, so they don't box in the prompt; style takes the
+  // user's own words as well as the suggestions (Barry 2026-10-27).
   function buildSettings(screen, opts = {}) {
     const B = D.brief;
     const dirty = screen.briefDirty || {};
-    const val = (k) => (k in dirty ? dirty[k] : B[k].value);
-    // Once a model exists the settings are mostly set: one line, and Change opens them.
-    if (opts.compact) return `<div class="e-brief-sum"><span>${["style", "scale", "detail"].map((k) => esc(val(k))).join(" · ")} detail · ${B.size.min}–${B.size.max} pieces · ${esc(val("base"))} base</span>${btn("Change", "", "e-sm", "sliders").replace("<button", `<button data-local="${opts.open}"`)}</div>`;
-    const was = (k) => (k in dirty ? `<span class="e-chip e-chip-accent">was ${esc(B[k].value)}</span>` : "");
-    const head = (k) => `<div class="e-set-head"><span class="e-set-name">${esc(B[k].label)}</span>${was(k)}<span class="e-small">${esc(B[k].help)}</span></div>`;
-    const styleOpt = B.style.options.find((o) => o.id === val("style"));
-    const style = `<div class="e-set" data-moved="${"style" in dirty}">${head("style")}<div class="e-styles" role="radiogroup" aria-label="Style">${B.style.options.map((o) => `<button type="button" role="radio" class="e-style" aria-checked="${o.id === val("style")}" title="${esc(o.sub)}">${esc(o.id)}</button>`).join("")}</div><p class="e-help">${esc(styleOpt.sub)}</p></div>`;
-    const scaleOpt = B.scale.options.find((o) => o.id === val("scale"));
-    const scale = `<div class="e-set">${head("scale")}<label class="e-select"><select aria-label="Scale">${B.scale.options.map((o) => `<option${o.id === val("scale") ? " selected" : ""}>${esc(o.id)}</option>`).join("")}</select></label><p class="e-help">${esc(scaleOpt.sub)}</p></div>`;
-    const detOpt = B.detail.options.find((o) => o.id === val("detail"));
-    const detail = `<div class="e-set" data-moved="${"detail" in dirty}">${head("detail")}<div class="e-seg" role="radiogroup" aria-label="Detail">${B.detail.options.map((o) => `<button type="button" role="radio" aria-checked="${o.id === val("detail")}">${esc(o.id)}</button>`).join("")}</div><p class="e-help">${esc(detOpt.sub)}</p></div>`;
-    const parts = screen.build?.parts || 0;
-    const pct = Math.min(100, Math.round((Math.min(parts, B.size.max) / B.size.max) * 100));
-    const size = `<div class="e-set">${head("size")}<div class="e-seg" role="radiogroup" aria-label="Target size">${B.size.presets.map((p) => `<button type="button" role="radio" aria-checked="${p.min === B.size.min}">${esc(p.id)}</button>`).join("")}<button type="button" role="radio" aria-checked="false">Custom</button></div>
-      <div class="e-range"><label>From <input type="number" value="${B.size.min}" aria-label="Fewest pieces"></label><label>to <input type="number" value="${B.size.max}" aria-label="Most pieces"></label><span>pieces</span></div>
-      ${parts ? `<div class="e-target"><span class="e-meter e-meter-lg"><i style="width:${pct}%"></i></span><span class="e-small">This build: ${parts} pieces, inside the target</span></div>` : `<p class="e-help">The agent aims for this; a check says when a build is outside it.</p>`}</div>`;
-    const base = `<div class="e-set">${head("base")}<div class="e-seg" role="radiogroup" aria-label="Baseplate">${B.base.options.map((o) => `<button type="button" role="radio" aria-checked="${o === val("base")}">${esc(o)}</button>`).join("")}</div></div>`;
+    const fresh = screen.build?.state === "empty";
+    const val = (k) => (k in dirty ? dirty[k] : fresh ? null : B[k].value);
+    const size = () => ("size" in dirty ? dirty.size : fresh ? null : B.size.value);
+    if (opts.compact) {
+      const sz = B.size.presets.find((p) => p.id === size());
+      const parts = [val("style"), val("scale"), val("detail") && `${val("detail")} detail`, sz && `${sz.min}–${sz.max} pieces`].filter(Boolean);
+      return `<div class="e-brief-sum"><span>${esc(parts.join(" · ") || "Any")}</span>${btn("Change", "", "e-sm").replace("<button", `<button data-local="${opts.open}"`)}</div>`;
+    }
+    const was = (k, v) => (k in dirty ? `<span class="e-chip e-chip-accent">was ${esc(v ?? "Any")}</span>` : "");
+    const head = (k, v) => `<div class="e-set-head"><span class="e-set-name">${esc(B[k].label)}</span>${was(k, v)}</div>`;
+    const seg = (label, items, cur) => `<div class="e-seg" role="radiogroup" aria-label="${esc(label)}">${items.map((o) => `<button type="button" role="radio" aria-checked="${o === cur}">${esc(o)}</button>`).join("")}</div>`;
+    // Style: the suggestions, the user's own words as chips of their own, and a field to add more.
+    const cur = val("style");
+    const own = cur && !B.style.options.some((o) => o.id === cur) ? [cur] : [];
+    const chips = B.style.options.map((o) => `<button type="button" role="checkbox" class="e-style" aria-checked="${o.id === cur}" title="${esc(o.sub)}">${esc(o.id)}</button>`)
+      .concat(own.map((w) => `<button type="button" role="checkbox" class="e-style e-style-own" aria-checked="true" title="Your own style">${esc(w)}<span aria-label="Remove">×</span></button>`)).join("");
+    const style = `<div class="e-set" data-moved="${"style" in dirty}">${head("style", B.style.value)}<div class="e-styles" role="group" aria-label="Style">${chips}</div>
+      <input class="e-style-input" type="text" placeholder="Your own, like steampunk or zen garden" aria-label="Your own style"></div>`;
+    const scale = `<div class="e-set" data-moved="${"scale" in dirty}">${head("scale", B.scale.value)}<label class="e-select"><select aria-label="Scale"><option${val("scale") ? "" : " selected"}>Any</option>${B.scale.options.map((o) => `<option${o.id === val("scale") ? " selected" : ""} title="${esc(o.sub)}">${esc(o.id)}</option>`).join("")}</select></label></div>`;
+    const detail = `<div class="e-set" data-moved="${"detail" in dirty}">${head("detail", B.detail.value)}${seg("Detail", ["Any", ...B.detail.options.map((o) => o.id)], val("detail") ?? "Any")}</div>`;
+    const pieces = `<div class="e-set">${head("size")}${seg("Size", ["Any", ...B.size.presets.map((p) => p.id)], size() ?? "Any")}</div>`;
+    const base = `<div class="e-set">${head("base")}${seg("Base", B.base.options, val("base") ?? B.base.value)}</div>`;
     const n = Object.keys(dirty).length;
-    const bar = n ? `<div class="e-keep e-rebuild"><div><b>${n} setting${n > 1 ? "s" : ""} changed</b><p class="e-small">${esc(agentOf(screen).name)} reworks the model for them: one turn on your plan, about a minute. The knobs below are instant.</p></div><div class="e-row">${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild with these settings", "rebuild", "e-primary e-sm", "refresh")}</div></div>` : "";
-    return `<div class="e-brief">${bar}${style}${scale}${detail}${size}${base}</div>`;
+    const bar = n ? `<div class="e-keep e-rebuild"><span>${n} changed</span>${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild", "rebuild", "e-primary e-sm", "refresh")}</div>` : "";
+    return `<div class="e-brief">${bar}${style}${scale}${detail}${pieces}${base}</div>`;
   }
 
   // Checks (law 2: every finding one click from its part and its line).

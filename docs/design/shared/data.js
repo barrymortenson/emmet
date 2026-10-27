@@ -203,8 +203,8 @@ window.EMMET_DATA = (() => {
       { t: "tool", icon: "cube", title: "The build failed", detail: "model.py line 121", status: "error", raw: 'run_model() → MODEL_EXEC_FAILED' },
     ],
     // What "Rebuild with these settings" sends (composed for this state; no transcript has it yet).
-    restyleAsk: [{ t: "user", text: "Rework the cottage for the new build settings: style Medieval (was Town), detail Medium (was Low). Keep figure scale, 150–500 pieces, and the 32 × 32 baseplate, and keep its sliders.", auto: "settings" }],
-    restyleThinking: [{ t: "thinking", text: "Stone walls with timber framing above the first rows, window frames and tiles for medium detail, still about 170 pieces." }],
+    restyleAsk: [{ t: "user", text: "Rework the cottage for the new build settings: style Steampunk (was Town), detail Medium (was Low). Keep figure scale, 150–500 pieces, and the 32 × 32 baseplate, and keep its knobs.", auto: "settings" }],
+    restyleThinking: [{ t: "thinking", text: "Brass and copper trim, pipes up the walls, a gear on the chimney, and tiles and frames for medium detail, still about 170 pieces." }],
     stopped: [{ t: "note", text: "You stopped the turn at 0:41. The model is as its last run left it: 108 parts." }],
     crashed: [{ t: "crash", title: "Claude Code stopped unexpectedly", text: "It exited with code 1 in the middle of a turn. Your project is untouched: model.py and the last build are as they were." }],
     // Barry's request from his 1C session (docs/design/notes/emmet-1c-claude.png), sent to Codex after a switch.
@@ -248,10 +248,10 @@ window.EMMET_DATA = (() => {
       ],
     },
     size: {
-      label: "Target size", min: 150, max: 500, help: "How many pieces the model should have",
+      label: "Size", value: "Medium", help: "How many pieces the model should have",
       presets: [{ id: "Small", min: 50, max: 150 }, { id: "Medium", min: 150, max: 500 }, { id: "Large", min: 500, max: 1500 }],
     },
-    base: { label: "Baseplate", value: "32 × 32", help: "What it stands on (note 8)", options: ["None", "16 × 16", "32 × 32", "48 × 48"] },
+    base: { label: "Base", value: "32 × 32", help: "What it stands on (note 8)", options: ["None", "16 × 16", "32 × 32", "48 × 48"] },
   };
 
   return {
