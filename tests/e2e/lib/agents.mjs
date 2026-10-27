@@ -76,6 +76,20 @@ export function scenario(cli, name) {
   writeFileSync(join(fakeDir, `${cli}.count`), "0");
 }
 
+/** The fake keychain's Sign in with ChatGPT record for `id`, put back together when it's split into parts (ADR 0011). */
+export function chatgptRecord(id) {
+  const head = readFileSync(join(fakeDir, `keychain.chatgpt-${id}`), "utf8");
+  const n = Number(head.match(/^emmet-parts:(\d+)$/)?.[1] ?? 0);
+  const text = n ? Array.from({ length: n }, (_, i) => readFileSync(join(fakeDir, `keychain.chatgpt-${id}-${i + 1}`), "utf8")).join("") : head;
+  return JSON.parse(text);
+}
+
+/** Saves `record` for `id` whole in the entry (the fake reads any length; only saving checks the limit). */
+export function setChatgptRecord(id, record) {
+  for (const f of readdirSync(fakeDir)) if (f.startsWith(`keychain.chatgpt-${id}-`)) rmSync(join(fakeDir, f));
+  writeFileSync(join(fakeDir, `keychain.chatgpt-${id}`), JSON.stringify(record));
+}
+
 /** sha256 of every file in the test home's agent configs (.claude, .claude.json, .codex, .gemini). */
 export function agentConfigHashes() {
   const out = {};

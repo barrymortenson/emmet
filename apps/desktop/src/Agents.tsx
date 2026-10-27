@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Agent setup without a terminal (D-41, session 1F; 4A restyles it): for each agent, which plans work, with the
 // provider's page; Install, which runs the provider's own installer in the host, with its progress, Cancel, and one
-// Try again; and Sign in: Claude Code's own sign-in in the browser, or Continue with ChatGPT for Codex (1E). The
+// Try again; and Sign in: Claude Code's own sign-in in the browser, or Settings → Agents for Codex (1E's Continue with
+// ChatGPT and API key live there, once, so the window never has two copies of them). The
 // provider notice (D-37) comes once, before the first install or sign-in. Antigravity works in terminal mode (D-42):
 // one click adds Emmet's tools to the project, and the user runs agy there.
 import { useEffect, useRef, useState } from "react";
 import { type AgentKind, type AgentView, type AntigravityView, commands, events, type SetupError } from "./bindings";
-import { CodexAccounts } from "./ChatGpt";
 
 const windows = navigator.userAgent.includes("Windows");
 const terminal = windows ? "PowerShell" : "Terminal";
@@ -25,10 +25,12 @@ type Gate = (action: () => void) => void;
 export function AgentSetup({
   agents,
   onChanged,
+  onSettings,
   only,
 }: {
   agents: AgentView[] | null;
   onChanged: () => void;
+  onSettings: () => void;
   only?: "unready";
 }) {
   const [seen, setSeen] = useState<boolean | null>(null);
@@ -46,7 +48,7 @@ export function AgentSetup({
   return (
     <div className="agent-setup" role="group" aria-label="Agent setup">
       {shown.map((a) => (
-        <AgentCard key={a.kind} view={a} gate={gate} noticeSeen={seen === true} onChanged={onChanged} />
+        <AgentCard key={a.kind} view={a} gate={gate} onChanged={onChanged} onSettings={onSettings} />
       ))}
       {pending && (
         <ProviderNotice
@@ -95,18 +97,17 @@ type Job = { what: "install" | "sign-in"; console: boolean; started: number; lin
 function AgentCard({
   view,
   gate,
-  noticeSeen,
   onChanged,
+  onSettings,
 }: {
   view: AgentView;
   gate: Gate;
-  noticeSeen: boolean;
   onChanged: () => void;
+  onSettings: () => void;
 }) {
   const { kind, name, detection } = view;
   const [job, setJob] = useState<Job | null>(null);
   const [failed, setFailed] = useState<{ job: Job; error: SetupError } | null>(null);
-  const [codexOpen, setCodexOpen] = useState(false);
   const [, tick] = useState(0);
 
   useEffect(() => {
@@ -206,16 +207,12 @@ function AgentCard({
           </button>
         </>
       )}
-      {installed && !ready && kind === "codex" && (
+      {installed && !ready && !job && !failed && kind === "codex" && (
         <>
-          {noticeSeen || codexOpen ? (
-            <CodexAccounts onChanged={onChanged} />
-          ) : (
-            <button type="button" className="primary" id="sign-in-codex" onClick={() => gate(() => setCodexOpen(true))}>
-              Sign in to Codex
-            </button>
-          )}
-          <p className="muted">Or add an OpenAI API key in Settings → Agents.</p>
+          <button type="button" className="primary" id="sign-in-codex" onClick={() => gate(onSettings)}>
+            Sign in to Codex
+          </button>
+          <p className="muted">Settings opens with Continue with ChatGPT, or a place for an OpenAI API key.</p>
         </>
       )}
       {detection.note && <p className="muted">{detection.note}</p>}

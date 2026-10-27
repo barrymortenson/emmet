@@ -276,7 +276,7 @@ export function App() {
         <section className="setup" aria-labelledby="agents-title" id="agents">
           <h2 id="agents-title">Your agent</h2>
           <p className="muted">Emmet builds with your own Claude Code or Codex. Set up either one here, no terminal needed.</p>
-          <AgentSetup agents={agents} onChanged={() => setAgentsChanged((n) => n + 1)} />
+          <AgentSetup agents={agents} onChanged={() => setAgentsChanged((n) => n + 1)} onSettings={() => setSettings(true)} />
         </section>
       )}
       {ui.notice && (
@@ -379,6 +379,7 @@ export function App() {
             onLimits={setLimits}
             onStatus={setChatStatus}
             onAgent={setChatKind}
+            onSettings={() => setSettings(true)}
           />
         </aside>
       </div>

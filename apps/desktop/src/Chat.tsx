@@ -258,9 +258,11 @@ type Props = {
   onStatus: (text: string | null) => void;
   /** The agent the chat is with. */
   onAgent: (kind: AgentKind | null) => void;
+  /** Opens Settings → Agents, where Codex's sign-in lives (1E). */
+  onSettings: () => void;
 };
 
-export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLimits, onStatus, onAgent }: Props) {
+export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLimits, onStatus, onAgent, onSettings }: Props) {
   const [chat, dispatch] = useReducer(reduce, empty);
   const [agents, setAgents] = useState<AgentView[] | null>(null);
   const [state, setState] = useState<ChatState | null>(null);
@@ -445,7 +447,15 @@ export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLi
           </button>
         )}
       </div>
-      {!live && <Picker agents={agents} last={state?.last ?? null} onStart={start} onRefresh={() => void commands.agents(true).then(setAgents)} />}
+      {!live && (
+        <Picker
+          agents={agents}
+          last={state?.last ?? null}
+          onStart={start}
+          onRefresh={() => void commands.agents(true).then(setAgents)}
+          onSettings={onSettings}
+        />
+      )}
       {agent?.warning && <p className="muted warning">{agent.warning}</p>}
       {error && (
         <p className="notice" role="alert" id="chat-error">
@@ -516,11 +526,13 @@ function Picker({
   last,
   onStart,
   onRefresh,
+  onSettings,
 }: {
   agents: AgentView[] | null;
   last: { kind: AgentKind } | null;
   onStart: (kind: AgentKind, resume: boolean) => void;
   onRefresh: () => void;
+  onSettings: () => void;
 }) {
   if (!agents) return <p className="muted">Looking for Claude Code and Codex…</p>;
   return (
@@ -543,7 +555,7 @@ function Picker({
           </div>
         );
       })}
-      <AgentSetup agents={agents} only="unready" onChanged={onRefresh} />
+      <AgentSetup agents={agents} only="unready" onChanged={onRefresh} onSettings={onSettings} />
       <AntigravityCard />
       <button type="button" onClick={onRefresh}>
         Look again
