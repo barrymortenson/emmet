@@ -80,8 +80,14 @@ window.EMMET_STATUS = {
       note: "6B's diagnostics bundle must join the no-token tests; a token split across two streamed deltas isn't caught by per-event redaction (ADR 0011)"
     },
     "1F": {
-      status: "review", pr: 22, branch: "bmortenson/s1f-agent-setup-no-terminal", started: "2026-10-26",
-      note: "Barry 2026-10-26 (D-43): the Windows fresh-account run and the Antigravity items are dropped from 1F; the Mac app comes first"
+      status: "done", pr: 22, branch: "bmortenson/s1f-agent-setup-no-terminal", started: "2026-10-26",
+      evidence: [
+        "CI ci check green #22 (run 40448695024: mac with the full E2E suite, 63 tests, and the bench; windows paused, D-43)",
+        "tests/it/tests/{setup,agent_sentinel}.rs; tests/e2e/specs/setup.e2e.mjs",
+        "Barry's macOS fresh-account run on the notarized build: docs/spec/sessions/1F/mac-1..7-*.png",
+        "docs/adr/0012-agent-setup.md; docs/terms/quotes.json (terms-check: fetched pages ok)"
+      ],
+      note: "Barry 2026-10-26 (D-43): merged without the Windows fresh-account run and Windows CI, which come back in the Windows pass; Antigravity is out of the MVP"
     },
     "2A": { status: "todo" },
     "2B": { status: "todo" },
