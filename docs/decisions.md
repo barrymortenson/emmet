@@ -49,7 +49,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   already decides, so the switch said nothing new. The settings run Base, Scale, Detail, Size, Style, then Age, which
   takes LEGO's age bands (4+, 6+, 9+, 13+, 18+); 1.5+ is DUPLO, left out because the checks can't stack DUPLO parts
   yet (their studs have no connectors, so a stacked DUPLO brick reads as floating). DUPLO and 1.5+ are backlog session
-  8H.
+  8H. Scale uses the hobby's words, small to large: Micro, Micropolis (the community micro city standard, built on
+  16 x 16 modules), Midi, Figure scale (what the hobby calls minifig scale; LEGO lists the Minifigure among its marks,
+  so D-30 keeps the plain name), Large (Miniland is LEGOLAND's name), and Car 1:8. "Mini town" and "Display" weren't
+  terms anyone uses.
 - **Say each thing once.** Barry asked for a pass over every screen for duplicated or redundant UI. In B: one Stop
   (in the status, with Esc); the status shows only when it adds something (not "Idle", not when a card below says it);
   the viewer carries only the finding's pin (a failed build and a read-only project are told by the chat card and the

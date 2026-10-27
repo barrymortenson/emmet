@@ -233,12 +233,14 @@ window.EMMET_DATA = (() => {
     },
     scale: {
       label: "Scale", value: "Figure scale", help: "How big the world is",
+      // Small to large, in the hobby's own words where they aren't LEGO's names (D-30: "minifig" and Miniland are).
       options: [
-        { id: "Figure scale", sub: "Doors and rooms fit a 4-brick-tall figure, about 1:42" },
         { id: "Micro", sub: "A whole building a few studs wide" },
-        { id: "Mini town", sub: "Half figure scale, about 1:80, for a big city on a table" },
-        { id: "Display", sub: "Large and detailed, no figures to fit" },
-        { id: "Car 1:8", sub: "A large car model with gears, panels, and a working steering" },
+        { id: "Micropolis", sub: "The community micro city standard: 16 × 16 modules, two-stud roads, a brick about 9 feet tall" },
+        { id: "Midi", sub: "Between micro and figure scale: the shape and the main details" },
+        { id: "Figure scale", sub: "Doors and rooms fit a 4-brick-tall figure, about 1:42" },
+        { id: "Large", sub: "About twice figure scale, about 1:20, for display" },
+        { id: "Car 1:8", sub: "A large car with gears, panels, and working steering" },
       ],
     },
     detail: {
