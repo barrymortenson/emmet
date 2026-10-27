@@ -236,3 +236,26 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   header, with TRADEMARKS.md and NOTICE saying it's OpenAI's mark, used only inside that button as OpenAI's UI
   guidelines direct, and not covered by the AGPL, over a text-only button (not the approved format) or waiting on
   OpenAI.
+
+## 2026-10-26, session 1F
+
+- **Claude's sign-in without a terminal, and its fallback.** Emmet runs Claude Code's own `claude auth login`,
+  unmodified, from Rust: with stdin closed and no TTY it opens the browser itself and finishes on a `localhost`
+  callback, so no pseudo-terminal dependency is needed. When the browser can't reach that callback, Claude's page shows
+  a code to paste into Claude Code. Barry chose that Emmet never touches the code: its sign-in card explains what
+  happened and offers the one-command Open Terminal card, over a field in Emmet that passes the code to Claude Code's
+  stdin, which would have Emmet handle a sign-in credential.
+- **Antigravity's MCP server goes in the project.** Antigravity has no command to add an MCP server; its docs name a
+  global `~/.gemini/config/mcp_config.json` and a per-workspace `.agents/mcp_config.json`. Barry chose that a click in
+  Emmet writes the project's `.agents/mcp_config.json` (a project file, like the AGENTS.md Emmet already writes;
+  never `~/.gemini`), so no step asks the user to edit a file, over a card that shows the JSON to paste.
+- **The Mac app comes first (D-43).** Barry, after the Windows run found 1E's credential bug: skip the Windows steps
+  for now, focus on getting the Mac app working (function, design, features), and go back through for Windows once it
+  works. Windows code is still written where a feature needs it. For the next few phases the Windows CI jobs are
+  paused too, for quicker progress: `scripts/ci-scope.sh` turns `windows`, `e2e_windows`, and `nsis` off unless
+  `EMMET_CI_WINDOWS=1`, which a manual run sets with its "windows" box. 1F's Windows fresh-account run and H-10 wait
+  for that pass.
+- **Antigravity, Cursor, and Grok are out of the MVP (D-43).** They come after it (Phase 8). Barry chose to remove 1F's
+  Antigravity terminal mode from the PR (the card, `agy` detection, the project-file writer, and their tests), over
+  keeping it hidden or shipping it unverified; it's in git history for later. This replaces the project-file decision
+  above for the MVP. 4F is skipped and H-25 isn't needed.

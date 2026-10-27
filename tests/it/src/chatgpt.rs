@@ -115,8 +115,7 @@ impl Plan {
 
     /// The keychain record for registration `id`, as JSON.
     pub fn record(&self, id: &str) -> Option<Value> {
-        let file = format!("{}.chatgpt-{id}", self.keychain.display());
-        let text = std::fs::read_to_string(file).ok()?;
+        let text = emmet_agent::keychain::get_entry(&self.env, &format!("chatgpt:{id}")).ok()??;
         serde_json::from_str(&text).ok()
     }
 
@@ -124,7 +123,7 @@ impl Plan {
     pub fn edit_record(&self, id: &str, f: impl FnOnce(&mut Value)) {
         let mut r = self.record(id).expect("a keychain record");
         f(&mut r);
-        std::fs::write(format!("{}.chatgpt-{id}", self.keychain.display()), r.to_string()).expect("record");
+        emmet_agent::keychain::set_entry(&self.env, &format!("chatgpt:{id}"), &r.to_string()).expect("record");
     }
 
     pub fn accounts(&self) -> Value {

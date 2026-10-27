@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-provider-notice-seen"
+description = "Enables the provider_notice_seen command without any pre-configured scope."
+commands.allow = ["provider_notice_seen"]
+
+[[permission]]
+identifier = "deny-provider-notice-seen"
+description = "Denies the provider_notice_seen command without any pre-configured scope."
+commands.deny = ["provider_notice_seen"]

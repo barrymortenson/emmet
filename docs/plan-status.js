@@ -79,7 +79,16 @@ window.EMMET_STATUS = {
       ],
       note: "6B's diagnostics bundle must join the no-token tests; a token split across two streamed deltas isn't caught by per-event redaction (ADR 0011)"
     },
-    "1F": { status: "todo" },
+    "1F": {
+      status: "done", pr: 22, branch: "bmortenson/s1f-agent-setup-no-terminal", started: "2026-10-26",
+      evidence: [
+        "CI ci check green #22 (run 40448695024: mac with the full E2E suite, 63 tests, and the bench; windows paused, D-43)",
+        "tests/it/tests/{setup,agent_sentinel}.rs; tests/e2e/specs/setup.e2e.mjs",
+        "Barry's macOS fresh-account run on the notarized build: docs/spec/sessions/1F/mac-1..7-*.png",
+        "docs/adr/0012-agent-setup.md; docs/terms/quotes.json (terms-check: fetched pages ok)"
+      ],
+      note: "Barry 2026-10-26 (D-43): merged without the Windows fresh-account run and Windows CI, which come back in the Windows pass; Antigravity is out of the MVP"
+    },
     "2A": { status: "todo" },
     "2B": { status: "todo" },
     "3A": { status: "todo" },
@@ -90,7 +99,7 @@ window.EMMET_STATUS = {
     "4C": { status: "todo" },
     "4D": { status: "todo" },
     "4E": { status: "todo" },
-    "4F": { status: "todo" },
+    "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
     "5B": { status: "todo" },
     "6A": { status: "todo" },
@@ -127,7 +136,7 @@ window.EMMET_STATUS = {
     "H-22": { status: "todo" },
     "H-23": { status: "todo" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
-    "H-25": { status: "todo" }
+    "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
   },
   blockers: [],
   gates: {

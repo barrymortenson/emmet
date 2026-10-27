@@ -20,6 +20,7 @@ import {
   type SteerPath,
   type UsageSnapshot,
 } from "./bindings";
+import { AgentSetup } from "./Agents";
 import { LimitCard, PlanLabel } from "./ChatGpt";
 
 /** A redirect that nothing has delivered in this long offers "Stop and send now" (plan section 10). */
@@ -257,9 +258,11 @@ type Props = {
   onStatus: (text: string | null) => void;
   /** The agent the chat is with. */
   onAgent: (kind: AgentKind | null) => void;
+  /** Opens Settings → Agents, where Codex's sign-in lives (1E). */
+  onSettings: () => void;
 };
 
-export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLimits, onStatus, onAgent }: Props) {
+export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLimits, onStatus, onAgent, onSettings }: Props) {
   const [chat, dispatch] = useReducer(reduce, empty);
   const [agents, setAgents] = useState<AgentView[] | null>(null);
   const [state, setState] = useState<ChatState | null>(null);
@@ -293,6 +296,8 @@ export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLi
   }, [agentsChanged]);
 
   useEffect(() => {
+    // A message about the last project's chat doesn't carry over to this one.
+    setError(null);
     if (project) void load();
     else dispatch({ type: "reset", records: [], live: false });
   }, [project?.root, load]);
@@ -444,7 +449,15 @@ export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLi
           </button>
         )}
       </div>
-      {!live && <Picker agents={agents} last={state?.last ?? null} onStart={start} onRefresh={() => void commands.agents(true).then(setAgents)} />}
+      {!live && (
+        <Picker
+          agents={agents}
+          last={state?.last ?? null}
+          onStart={start}
+          onRefresh={() => void commands.agents(true).then(setAgents)}
+          onSettings={onSettings}
+        />
+      )}
       {agent?.warning && <p className="muted warning">{agent.warning}</p>}
       {error && (
         <p className="notice" role="alert" id="chat-error">
@@ -515,11 +528,13 @@ function Picker({
   last,
   onStart,
   onRefresh,
+  onSettings,
 }: {
   agents: AgentView[] | null;
   last: { kind: AgentKind } | null;
   onStart: (kind: AgentKind, resume: boolean) => void;
   onRefresh: () => void;
+  onSettings: () => void;
 }) {
   if (!agents) return <p className="muted">Looking for Claude Code and Codex…</p>;
   return (
@@ -537,12 +552,12 @@ function Picker({
                 Resume last chat
               </button>
             )}
-            {a.detection.fix && <p className="muted fix">{a.detection.fix}</p>}
             {ok && a.warning && <p className="muted fix">{a.warning}</p>}
-            {a.detection.note && <p className="muted">{a.detection.note}</p>}
+            {ok && a.detection.note && <p className="muted">{a.detection.note}</p>}
           </div>
         );
       })}
+      <AgentSetup agents={agents} only="unready" onChanged={onRefresh} onSettings={onSettings} />
       <button type="button" onClick={onRefresh}>
         Look again
       </button>

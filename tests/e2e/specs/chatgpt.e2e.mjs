@@ -5,10 +5,10 @@
 // composer and in the status bar; the usage-limit card with Manage usage first; a decline; and the notice never again.
 // Then no token fake-openai issued is anywhere in the app's data, the project, or the run's logs.
 import { $, expect } from "@wdio/globals";
-import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { instances, invoke, open, screenshots } from "../lib/app.mjs";
-import { fakeDir, issuedTokens, opened, scenario, setOpenAi } from "../lib/agents.mjs";
+import { chatgptRecord, fakeDir, issuedTokens, opened, scenario, setChatgptRecord, setOpenAi } from "../lib/agents.mjs";
 import { out } from "../lib/paths.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
@@ -113,9 +113,8 @@ describe("Codex on the ChatGPT plan", () => {
 
   it("stays responsive while a turn renews the token", async () => {
     // Ten minutes left, and a refresh that takes 2 s: the turn renews first, off the window's thread.
-    const record = join(fakeDir, "keychain.chatgpt-oaiapp_test1");
-    const r = JSON.parse(readFileSync(record, "utf8"));
-    writeFileSync(record, JSON.stringify({ ...r, expires_at: Math.floor(Date.now() / 1000) + 600 }));
+    const r = chatgptRecord("oaiapp_test1");
+    setChatgptRecord("oaiapp_test1", { ...r, expires_at: Math.floor(Date.now() / 1000) + 600 });
     setOpenAi({ refresh_delay_ms: 2000 });
     // Timed from the send: a command on the window's thread blocks the click itself until the renewal is done.
     const started = Date.now();
@@ -125,7 +124,7 @@ describe("Codex on the ChatGPT plan", () => {
     console.log(`window answered in ${ms} ms during the renewal`);
     expect(ms).toBeLessThan(1500);
     await (await $("#chat-new")).waitForExist({ timeout: 30_000 });
-    expect(JSON.parse(readFileSync(record, "utf8")).access_token).not.toBe(r.access_token);
+    expect(chatgptRecord("oaiapp_test1").access_token).not.toBe(r.access_token);
     setOpenAi({});
   });
 

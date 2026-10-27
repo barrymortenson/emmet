@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The functional UI (plan section 14, before Phase 2 designs it): a project tree, the viewer with the Parameters,
 // Checks, and Parts drawers, a run panel with the error and its traceback, the chat pane, and a status line with plan
-// usage. The last good model stays on screen while a run is going or after one fails.
+// usage. The last good model stays on screen while a run is going or after one fails. With no project open, the start
+// screen sets up the agents (1F).
 import { createViewer, type View, type Viewer } from "@emmet/viewer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type AgentKind,
+  type AgentView,
   type AppInfo,
   commands,
   events,
@@ -15,6 +17,7 @@ import {
   type UiState,
   type UsageSnapshot,
 } from "./bindings";
+import { AgentSetup } from "./Agents";
 import { ChatPane } from "./Chat";
 import { Checks, checksLabel, fixRequest } from "./Checks";
 import { base64, json, library, placements } from "./library";
@@ -62,6 +65,11 @@ export function App() {
   const [chatStatus, setChatStatus] = useState<string | null>(null);
   const [settings, setSettings] = useState(false);
   const [agentsChanged, setAgentsChanged] = useState(0);
+  // The start screen's agent setup (D-41): the chat pane has its own list once a project is open.
+  const [agents, setAgents] = useState<AgentView[] | null>(null);
+  useEffect(() => {
+    if (!ui.project) void commands.agents(agentsChanged > 0).then(setAgents);
+  }, [agentsChanged, ui.project]);
   const [drawer, setDrawer] = useState<Drawer>("params");
   /** First run: "idle", "running" (the library download and Python), or why it failed. */
   const [setup, setSetup] = useState<"idle" | "running" | string>("idle");
@@ -264,6 +272,13 @@ export function App() {
           )}
         </div>
       )}
+      {!ui.project && (
+        <section className="setup" aria-labelledby="agents-title" id="agents">
+          <h2 id="agents-title">Your agent</h2>
+          <p className="muted">Emmet builds with your own Claude Code or Codex. Set up either one here, no terminal needed.</p>
+          <AgentSetup agents={agents} onChanged={() => setAgentsChanged((n) => n + 1)} onSettings={() => setSettings(true)} />
+        </section>
+      )}
       {ui.notice && (
         <p className="notice" role="alert" id="app-notice">
           {ui.notice}
@@ -364,6 +379,7 @@ export function App() {
             onLimits={setLimits}
             onStatus={setChatStatus}
             onAgent={setChatKind}
+            onSettings={() => setSettings(true)}
           />
         </aside>
       </div>

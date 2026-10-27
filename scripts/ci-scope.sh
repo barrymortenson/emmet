@@ -4,7 +4,8 @@
 # a bug in it. Prints key=true|false lines for $GITHUB_OUTPUT or eval: full, mac, windows, deps, e2e_mac, e2e_windows,
 # build_app, bench. The changes are those since EMMET_CI_BASE (CI sets it to the last green commit of the PR, or the
 # PR's base), else since the merge-base with origin/main, plus uncommitted and untracked files. EMMET_CI_FULL=1, or a
-# change to the toolchain, the lockfiles, the justfile, or a workflow, runs everything. Written for bash 3.2.
+# change to the toolchain, the lockfiles, the justfile, or a workflow, runs everything (Windows only with
+# EMMET_CI_WINDOWS=1, while it's paused). Written for bash 3.2.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
@@ -14,6 +15,9 @@ diff=$(git diff --name-only "$base")
 changed=$( { echo "$diff"; git ls-files --others --exclude-standard; } | sed '/^$/d' | sort -u)
 any() { grep -qE "$1" <<<"$changed"; }
 flag() { if [[ $full == true ]] || any "$2"; then echo "$1=true"; else echo "$1=false"; fi; }
+# Windows CI is paused while the Mac app comes first (D-43, Barry 2026-10-26): its jobs run only with
+# EMMET_CI_WINDOWS=1 (the manual run's "windows" box). The rules below stay, for when it comes back.
+winflag() { if [[ "${EMMET_CI_WINDOWS:-}" == 1 ]]; then flag "$@"; else echo "$1=false"; fi; }
 
 full=false
 if [[ "${EMMET_CI_FULL:-}" == 1 ]] ||
@@ -29,13 +33,13 @@ else
 fi
 # Windows: what behaves differently there (paths, processes, the sidecars, Python under uv, line endings in fixtures).
 # The UI and the viewer run the same JS in WebView2, so the Mac covers them.
-flag windows '^(crates/|apps/desktop/src-tauri/|tests/(it|fixtures|replay|e2e|fake-agents)/|python/emmet_dsl/src/|data/)'
+winflag windows '^(crates/|apps/desktop/src-tauri/|tests/(it|fixtures|replay|e2e|fake-agents)/|python/emmet_dsl/src/|data/)'
 flag deps '^deny\.toml$'
 flag e2e_mac '^(apps/|crates/|packages/|tests/(e2e|fixtures|replay|fake-agents)/|python/emmet_dsl/src/|data/)'
 # The agent bridge spawns the CLIs and talks to them over pipes: the chat specs run on Windows when it changes.
-flag e2e_windows '^(apps/desktop/src-tauri/|tests/e2e/|crates/emmet-agent/|tests/fake-agents/)'
+winflag e2e_windows '^(apps/desktop/src-tauri/|tests/e2e/|crates/emmet-agent/|tests/fake-agents/)'
 flag build_app '^apps/desktop/src-tauri/'
 # The unsigned NSIS installer (release-dry on Windows): a release build, so only when the release files change.
-flag nsis '^(scripts/release-dry\.sh|apps/desktop/src-tauri/tauri\.release\.conf\.json)$'
+winflag nsis '^(scripts/release-dry\.sh|apps/desktop/src-tauri/tauri\.release\.conf\.json)$'
 # The bench asserts nothing (its numbers are a summary table), so it runs only with everything else.
 echo "bench=$full"

@@ -109,6 +109,13 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             render_done,
             render_failed,
             crate::setup::setup,
+            crate::setup::agent_install,
+            crate::setup::claude_sign_in,
+            crate::setup::agent_cancel,
+            crate::setup::provider_notice,
+            crate::setup::provider_notice_seen,
+            crate::setup::open_terminal,
+            crate::setup::open_plans,
             crate::chat::agents,
             crate::chat::chat_start,
             crate::chat::chat_send,
@@ -136,7 +143,8 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             RunFinished,
             BusRender,
             BusHighlight,
-            crate::chat::ChatEvent
+            crate::chat::ChatEvent,
+            crate::setup::SetupEvent
         ])
         .dangerously_cast_bigints_to_number()
         .disable_serde_phases()

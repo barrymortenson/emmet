@@ -32,6 +32,25 @@ export const commands = {
 	renderFailed: (message: string) => __TAURI_INVOKE<void>("render_failed", { message }),
 	/**  Installs the library (when it's missing) and sets Python up, then rebuilds the open project. */
 	setup: () => typedError<null, Problem>(__TAURI_INVOKE("setup")),
+	/**  Installs Claude Code or Codex with the provider's official installer (D-41), streaming its lines as SetupEvents. */
+	agentInstall: (kind: AgentKind) => typedError<null, SetupError>(__TAURI_INVOKE("agent_install", { kind })),
+	/**
+	 *  Signs in to Claude Code with its own `claude auth login`: with a Claude plan, or `console` for a Claude Console
+	 *  account. Waits for the browser; `agent_cancel` stops it.
+	 */
+	claudeSignIn: (console: boolean) => typedError<null, SetupError>(__TAURI_INVOKE("claude_sign_in", { console })),
+	/**  Stops `kind`'s install or sign-in. */
+	agentCancel: (kind: AgentKind) => __TAURI_INVOKE<void>("agent_cancel", { kind }),
+	/**  Whether the user has accepted the provider notice (D-37) with Continue. */
+	providerNotice: () => __TAURI_INVOKE<boolean>("provider_notice"),
+	providerNoticeSeen: () => typedError<null, Problem>(__TAURI_INVOKE("provider_notice_seen")),
+	/**
+	 *  A terminal: the fallback when Claude Code's sign-in can't finish in the browser (the user runs `claude`, then
+	 *  `/login`). On Windows, cmd.exe and powershell.exe go by full path, so PATH can't put another one first.
+	 */
+	openTerminal: () => typedError<null, Problem>(__TAURI_INVOKE("open_terminal")),
+	/**  The provider's own page saying which plans include its CLI (D-41), in the browser. */
+	openPlans: (kind: AgentKind) => typedError<null, Problem>(__TAURI_INVOKE("open_plans", { kind })),
 	/**  The agents Emmet found: only a detected, signed-in agent can start a chat; the others carry the fix. */
 	agents: (refresh: boolean) => __TAURI_INVOKE<AgentView[]>("agents", { refresh }),
 	/**
@@ -91,6 +110,7 @@ export const events = {
 	projectOpened: makeEvent<ProjectOpened, ProjectOpened>("project-opened"),
 	runFinished: makeEvent<RunFinished, RunFinished>("run-finished"),
 	runStarted: makeEvent<RunStarted, RunStarted>("run-started"),
+	setupEvent: makeEvent<SetupEvent, SetupEvent>("setup-event"),
 };
 
 /* Types */
@@ -287,7 +307,10 @@ export type Detection = {
 	supported: boolean,
 	signed_in: boolean,
 	billing: Billing,
-	/**  The one step that makes the agent usable, when it isn't: a command for the user's terminal, or a setting. */
+	/**
+	 *  What's missing, in a plain sentence, when the agent isn't usable (the setup cards carry the actions); for Codex,
+	 *  the setting to change.
+	 */
 	fix: string | null,
 	/**  A quiet note: an untested version. */
 	note: string | null,
@@ -300,6 +323,17 @@ export type DoneReason = "completed" |
 "failed" | 
 /**  The CLI exited mid-turn. */
 "crashed";
+
+/**  What went wrong, for the UI's one retry and its words. */
+export type Failure = 
+/**  The provider's servers couldn't be reached. */
+"offline" | 
+/**  The installer's own checksum check failed. */
+"checksum" | 
+/**  The installed binary isn't signed by its publisher. */
+"signature" | "canceled" | "timed_out" | 
+/**  An install or sign-in for this agent is already running. */
+"busy" | "failed";
 
 /**  One validator finding (plan section 11), for the Checks drawer. */
 export type Finding = {
@@ -433,6 +467,19 @@ export type Scene = {
 	checks?: Checks | null,
 	/**  The parts list (the Parts drawer), or null when it couldn't be made. */
 	bom?: Bom | null,
+};
+
+/**  A failed install or sign-in, in plain words; `detail` is the tool's own last line, when it said something useful. */
+export type SetupError = {
+	failure: Failure,
+	message: string,
+	detail: string | null,
+};
+
+/**  A line an installer printed, for the window's progress. */
+export type SetupEvent = {
+	kind: AgentKind,
+	line: string,
 };
 
 export type SignInResult = 

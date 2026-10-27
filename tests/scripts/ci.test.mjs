@@ -122,7 +122,10 @@ function scope(change, env = {}) {
   git("add", "-A");
   git("commit", "-q", "-m", "base");
   if (change) writeFiles(dir, { [change]: "changed\n" });
-  const r = run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: "", EMMET_CI_FULL: "", ...env } });
+  const r = run("bash", [join(ROOT, "scripts/ci-scope.sh")], {
+    cwd: dir,
+    env: { EMMET_CI_BASE: "", EMMET_CI_FULL: "", EMMET_CI_WINDOWS: "", ...env },
+  });
   assert.equal(r.code, 0, r.out);
   const out = Object.fromEntries(r.out.trim().split("\n").map((l) => l.split("=")));
   return Object.keys(out).filter((k) => out[k] === "true").join(" ") || "nothing";
@@ -136,26 +139,41 @@ for (const [change, runs] of [
   ["scripts/plan-check.mjs", "mac"],
   ["apps/desktop/src/App.tsx", "mac e2e_mac"],
   ["packages/viewer/src/index.ts", "mac e2e_mac"],
-  ["crates/emmet-core/src/lib.rs", "mac windows e2e_mac"],
-  ["python/emmet_dsl/src/emmet_dsl/model.py", "mac windows e2e_mac"],
-  ["apps/desktop/src-tauri/src/main.rs", "mac windows e2e_mac e2e_windows build_app"],
-  ["tests/e2e/specs/viewer.e2e.mjs", "mac windows e2e_mac e2e_windows"],
-  ["crates/emmet-agent/src/session.rs", "mac windows e2e_mac e2e_windows"],
-  ["tests/fake-agents/src/lib.rs", "mac windows e2e_mac e2e_windows"],
-  ["tests/replay/claude/plain-turn.jsonl", "mac windows e2e_mac"],
+  ["crates/emmet-core/src/lib.rs", "mac e2e_mac"],
+  ["python/emmet_dsl/src/emmet_dsl/model.py", "mac e2e_mac"],
+  ["apps/desktop/src-tauri/src/main.rs", "mac e2e_mac build_app"],
+  ["tests/e2e/specs/viewer.e2e.mjs", "mac e2e_mac"],
+  ["crates/emmet-agent/src/session.rs", "mac e2e_mac"],
+  ["tests/fake-agents/src/lib.rs", "mac e2e_mac"],
+  ["tests/replay/claude/plain-turn.jsonl", "mac e2e_mac"],
   ["deny.toml", "mac deps"],
-  ["scripts/release-dry.sh", "mac nsis"],
-  ["apps/desktop/src-tauri/tauri.release.conf.json", "mac windows e2e_mac e2e_windows build_app nsis"],
-  ["Cargo.lock", "full mac windows deps e2e_mac e2e_windows build_app nsis bench"],
-  [".github/workflows/ci.yml", "full mac windows deps e2e_mac e2e_windows build_app nsis bench"],
+  ["scripts/release-dry.sh", "mac"],
+  ["apps/desktop/src-tauri/tauri.release.conf.json", "mac e2e_mac build_app"],
+  ["Cargo.lock", "full mac deps e2e_mac build_app bench"],
+  [".github/workflows/ci.yml", "full mac deps e2e_mac build_app bench"],
 ]) {
   test(`ci scope: ${change ?? "no change"} runs ${runs}`, { skip: process.platform === "win32" }, () => {
     assert.equal(scope(change), runs);
   });
 }
 
+// Windows is paused (D-43): the same rules, only with EMMET_CI_WINDOWS=1.
+for (const [change, runs] of [
+  ["crates/emmet-core/src/lib.rs", "mac windows e2e_mac"],
+  ["crates/emmet-agent/src/session.rs", "mac windows e2e_mac e2e_windows"],
+  ["scripts/release-dry.sh", "mac nsis"],
+]) {
+  test(`ci scope with Windows on: ${change} runs ${runs}`, { skip: process.platform === "win32" }, () => {
+    assert.equal(scope(change, { EMMET_CI_WINDOWS: "1" }), runs);
+  });
+}
+
 test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the changes to those after it", { skip: process.platform === "win32" }, () => {
-  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac windows deps e2e_mac e2e_windows build_app nsis bench");
+  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac deps e2e_mac build_app bench");
+  assert.equal(
+    scope(null, { EMMET_CI_FULL: "1", EMMET_CI_WINDOWS: "1" }),
+    "full mac windows deps e2e_mac e2e_windows build_app nsis bench",
+  );
   const { dir, git } = tempRepo();
   writeFiles(dir, { "crates/a.rs": "" });
   git("add", "-A");
@@ -167,8 +185,9 @@ test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the ch
   writeFiles(dir, { "docs/plan-status.js": "" });
   git("add", "-A");
   git("commit", "-q", "-m", "status");
-  const at = (b) => run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: b, EMMET_CI_FULL: "" } }).out;
-  assert.match(at(base), /^windows=true$/m);
+  const at = (b) =>
+    run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: b, EMMET_CI_FULL: "" } }).out;
+  assert.match(at(base), /^mac=true$/m);
   assert.match(at(green), /^mac=false$/m);
   const bad = run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: "0".repeat(40), EMMET_CI_FULL: "" } });
   assert.notEqual(bad.code, 0, "a base that isn't a commit must fail, not scope to nothing");

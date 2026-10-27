@@ -84,6 +84,14 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   ChatGPT plan". The token renews between turns (the app-server restarts and resumes the thread). New dependency
   (approved, ADR 0011): ring. OpenAI's ChatGPT logo ships unchanged inside the button (TRADEMARKS.md).
 - `fake-openai` (tests/fake-agents) stands in for OpenAI's sign-in endpoints in the tests.
+- Agent setup without a terminal (session 1F, ADR 0012): the start screen and the chat picker install Claude Code or
+  Codex with one click, running Anthropic's native installer or OpenAI's standalone installer word for word, with the
+  elapsed time, Cancel, and one Try again for every failure, said in plain words. Claude Code's Anthropic signature is
+  checked after an install. "Sign in to Claude" runs Claude Code's own `claude auth login`, which opens the browser;
+  if the browser shows a code to paste, the card offers Open Terminal instead. "Sign in to Codex" opens Settings →
+  Agents (1E's sign-in). Each card says which plans work, with the provider's page, and the provider notice comes
+  before the first install or sign-in, until the user accepts it.
+- `fake-install` (tests/fake-agents) stands in for the installers, and fake-claude answers `auth login`.
 
 ### Security
 
@@ -92,8 +100,16 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - ChatGPT tokens live only in the OS keychain, and a session's API key or access token is replaced with `<redacted>`
   in its transcript and chat wherever the CLI echoed it; leak tests grep every output for every token (ADR 0011).
 
+### Fixed
+
+- Sign in with ChatGPT on Windows: the credential record (three tokens) is longer than the 2,560 bytes a Windows
+  credential holds, so the sign-in failed after OpenAI's page. Long secrets are now split across credentials on
+  Windows (1F, found in its Windows hand check).
+
 ### Changed
 
+- The Mac app comes first (D-43): CI's Windows jobs are paused (a manual run's "windows" box runs them), and
+  Antigravity, Cursor, and Grok wait until after the MVP.
 - CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push
   after a green run tests only its own commits, and main doesn't rerun merged PRs. Everything runs weekly, by hand, or
   with the `full-ci` label. `just test` builds only when a suite needs it, and the 0B spike crates left the workspace.
