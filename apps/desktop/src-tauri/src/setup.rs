@@ -135,10 +135,14 @@ pub fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<Problem
     } else {
         None
     };
-    // The folder is the working directory, never an argument: cmd.exe would parse a name with & or ^ in it.
+    // The folder is the working directory, never an argument: cmd.exe would parse a name with & or ^ in it. Both
+    // programs go by full path, since `start` would look for powershell.exe in that folder first.
     let mut cmd = if cfg!(windows) {
-        let mut c = Command::new("cmd.exe");
-        c.args(["/c", "start", "", "powershell.exe"]);
+        let system = std::path::Path::new(&std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()))
+            .join("System32");
+        let mut c = Command::new(system.join("cmd.exe"));
+        c.args(["/c", "start", ""])
+            .arg(system.join("WindowsPowerShell\\v1.0\\powershell.exe"));
         c
     } else {
         let mut c = Command::new("/usr/bin/open");
