@@ -346,13 +346,6 @@
 .b-wordmark { height: 40px; display: block; margin-bottom: 22px; }
 /* Less text (Barry 2026-10-27): section rows, the build settings switch, and the user's own style words. */
 .b-sec-row { display: flex; align-items: center; justify-content: space-between; }
-.b-switch { position: relative; display: inline-flex; cursor: pointer; }
-.b-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-.b-switch span { width: 36px; height: 20px; border-radius: 999px; background: var(--bg-sunken); border: 1px solid var(--ui-control); box-sizing: border-box; position: relative; }
-.b-switch span::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--ui-control); }
-.b-switch input:checked + span { background: var(--fill-accent); border-color: var(--fill-accent); }
-.b-switch input:checked + span::after { left: 18px; background: var(--on-accent); }
-.b-switch input:focus-visible + span { outline: 2px solid var(--ui-accent); outline-offset: 2px; }
 .e-style-own { display: inline-flex; align-items: center; gap: 6px; }
 .e-style-own span { font-weight: 400; }
 .e-style-input { width: 100%; box-sizing: border-box; border: 1px solid var(--ui-control); border-radius: 10px; padding: 5px 10px; background: var(--bg-card); font: inherit; font-size: 13px; }
@@ -369,7 +362,6 @@
 .e-keep > span:first-child { font-weight: 650; }
 .b-tweaks .e-keep { display: flex; align-items: center; gap: 6px; }
 .b-tweaks .e-keep > span:first-child { flex: 1; grid-column: auto; }
-.b-off { margin: 0; color: var(--fg-muted); font-size: 13px; }
 .b-sec-tools { display: inline-flex; align-items: center; gap: 8px; }
 .e-rebuild + .e-brief-sum { margin-top: 8px; }
 .b-thought { margin: 0; padding: 2px 6px; color: var(--fg-muted); }

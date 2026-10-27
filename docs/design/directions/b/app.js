@@ -56,15 +56,12 @@
       const tweaks = b.state === "empty" || s.imported ? "" : b.state === "readonly"
         ? `<div class="b-tweaks"><p class="b-sec">Tweaks</p><p class="b-locked">${U.icon("lock")} Trust the project to use these</p></div>`
         : `<div class="b-tweaks"><p class="b-sec">Tweaks</p>${U.params(s)}</div>`;
-      // Build settings can be switched off: the prompt alone then decides. On, before the first build or with a change
-      // waiting they're open; after it, one summary line.
-      const on = s.briefOn !== "off";
       // Before the first build the settings are open; after it they're one summary line, Change opens them, and Done
       // folds them back (pending changes stay, with Undo and Rebuild on the summary).
       const full = b.state === "empty" || (s.briefDirty && s.brief !== "closed") || s.brief === "open";
-      const toggle = `<label class="b-switch" title="${on ? "Turn build settings off: the prompt alone decides" : "Turn build settings on"}"><input type="checkbox" role="switch" data-local="briefOn=${on ? "off" : "on"}"${on ? " checked" : ""} aria-label="Build settings"><span></span></label>`;
-      const done = on && full && b.state !== "empty" ? `<button type="button" class="e-btn e-quiet e-sm" data-local="brief=closed">Done</button>` : "";
-      body = `<div class="b-sec b-sec-row"><span>Build settings</span><span class="b-sec-tools">${done}${toggle}</span></div>${on ? U.buildSettings(s, { compact: !full, open: "brief=open" }) : `<p class="b-off">Off: the prompt decides</p>`}${tweaks}`;
+      // No on/off switch (Barry): every setting starts on Any, which already leaves the prompt to decide.
+      const done = full && b.state !== "empty" ? `<button type="button" class="e-btn e-quiet e-sm" data-local="brief=closed">Done</button>` : "";
+      body = `<div class="b-sec b-sec-row"><span>Build settings</span><span class="b-sec-tools">${done}</span></div>${U.buildSettings(s, { compact: !full, open: "brief=open" })}${tweaks}`;
     } else body = U.panel(t, s);
     return `<aside class="b-panel" aria-label="Options"><div class="b-panel-head" data-tone="${tone}">${ic}<span class="b-build">${esc(modelState(b))}</span>
         ${b.parts ? `<button type="button" class="e-btn e-sm" data-act="export">${U.icon("download")}<span>Export</span></button>` : ""}</div>${tabs}<div class="b-panel-body" data-tab="${t}">${body}</div>
