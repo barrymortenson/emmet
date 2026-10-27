@@ -101,6 +101,12 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - ChatGPT tokens live only in the OS keychain, and a session's API key or access token is replaced with `<redacted>`
   in its transcript and chat wherever the CLI echoed it; leak tests grep every output for every token (ADR 0011).
 
+### Fixed
+
+- Sign in with ChatGPT on Windows: the credential record (three tokens) is longer than the 2,560 bytes a Windows
+  credential holds, so the sign-in failed after OpenAI's page. Long secrets are now split across entries (1F, found
+  in its Windows hand check).
+
 ### Changed
 
 - CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push

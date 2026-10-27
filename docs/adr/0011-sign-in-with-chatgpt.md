@@ -29,6 +29,10 @@ with `rand` (about 10 new crates) and `jsonwebtoken`.
 - Credentials: one keychain entry per issued client id (`Emmet` / `chatgpt:<client id>`), holding OpenAI's example
   record as JSON. OpenAI's sign-in page shows a 0600 file; its accounts page asks for "protected local or self-hosted
   runtime storage". The keychain is that, keeps tokens out of every file, and matches how 1C keeps the API key.
+  Amended in 1F (2026-10-26): Windows' Credential Manager holds at most 2,560 bytes a credential, and the record with
+  OpenAI's real tokens is longer, so sign-in failed on Windows ("longer than the platform limit"). A secret that
+  doesn't fit is now split into `chatgpt:<client id>#1`, `#2`, … with `emmet-parts:<n>` in the entry, on Windows
+  only; the fake keychain enforces the limit on every OS, and fake-openai's access tokens are as long as OpenAI's.
   Detection and the picker read only `accounts.json`, never a secret (reading one prompts for the login password on
   macOS whenever a dev build's signature changed).
 

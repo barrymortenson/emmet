@@ -182,7 +182,9 @@ impl Fake {
         st.n += 1;
         let n = st.n;
         let salt = format!("{:x}", now() ^ (n << 20) ^ u64::from(std::process::id()));
-        let access = format!("fake-access-{n}-{salt}");
+        // As long as OpenAI's own (a JWT of about 2,000 characters), so the keychain record is too (1F found a
+        // record over Windows' 2,560-byte credential limit).
+        let access = format!("fake-access-{n}-{salt}-{}", "j".repeat(1900));
         let refresh = format!("fake-refresh-{n}-{salt}");
         st.refresh.insert(refresh.clone(), (client_id.into(), scope.into()));
         drop(st);
