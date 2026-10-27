@@ -20,6 +20,7 @@ window.EMMET_STATES = (() => {
     { id: "settings", name: "Change the build settings", path: ["built", "settings", "restyle"] },
     { id: "fix", name: "Fix a finding", path: ["findings", "fixing", "built"] },
     { id: "export", name: "Export", path: ["built", "export"] },
+    { id: "versions", name: "Save and restore a version", path: ["built", "version-save", "versions", "version-view"] },
     { id: "import", name: "Open an existing LDraw file", path: ["import"] },
     { id: "switch", name: "Switch agent mid-project", path: ["switch-agent", "switched"] },
     { id: "answer", name: "Answer a question", path: ["question", "building"] },
@@ -64,6 +65,10 @@ window.EMMET_STATES = (() => {
     { id: "usage", title: "Plan usage", kind: "workspace", render: "cottage", covers: [], build: { state: "built", parts: 163, clean: true }, agent: { state: "idle", line: "Idle" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.stage3, S.finish), overlay: "usage" },
     { id: "about", title: "About Emmet Builder", kind: "workspace", render: "cottage", covers: [], build: { state: "built", parts: 163, clean: true }, agent: { state: "idle", line: "Idle" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.stage3, S.finish), overlay: "about", on: { close: "built" }, note: "The brand: the ant icon and wordmark, the version, what Emmet connects to, and the trademark line (D-30)." },
     { id: "export", title: "Export", kind: "workspace", render: "cottage", covers: [], build: { state: "built", parts: 163, clean: true }, agent: { state: "idle", line: "Idle" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.stage3, S.finish), drawer: "parts", overlay: "export" },
+    // Versions (plan section 07, Barry 2026-10-27; drawn in B): save one, the list, and an earlier one opened to compare.
+    { id: "version-save", title: "Save a version", kind: "workspace", render: "cottage", covers: [], build: { state: "built", parts: 163, clean: true }, agent: { state: "idle", line: "Done in 1:12" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.stage3, S.finish), menu: "save" },
+    { id: "versions", title: "Versions", kind: "workspace", render: "cottage", covers: [], build: { state: "built", parts: 163, clean: true }, agent: { state: "idle", line: "Done in 1:12" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.stage3, S.finish), menu: "versions" },
+    { id: "version-view", title: "An earlier version, opened to compare", kind: "workspace", render: "cottage", covers: [], build: { state: "built", parts: 163, clean: true }, agent: { state: "idle", line: "Done in 1:12" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.stage3, S.finish), menu: "versions", view: "5" },
     { id: "import", title: "Open an existing LDraw file", kind: "workspace", render: "cottage", covers: [], imported: true, build: { state: "built", parts: 163 }, agent: { state: "idle", line: "Idle" }, chat: [], banner: "imported", drawer: "steps", on: { parametric: "thinking" } },
     { id: "untrusted", title: "Untrusted project", kind: "workspace", render: "cottage", covers: ["Untrusted project"], build: { state: "readonly", parts: 163 }, agent: { state: "idle", line: "Read-only until you trust it" }, chat: [], banner: "untrusted", on: { trust: "built" } },
     { id: "offline", title: "Offline", kind: "workspace", render: "cottage", covers: ["Offline"], build: { state: "built", parts: 163, clean: true }, agent: { state: "offline", line: "Offline: the agent needs a connection" }, chat: story(S.prompt, S.answered, S.start, S.stage1, S.stage2, S.stage3, S.finish), banner: "offline", drawer: "params" },

@@ -25,16 +25,41 @@
     const pin = b.state === "findings" ? `<button type="button" class="b-pin" data-tab="checks"><span class="b-pin-dot">${U.icon("warn")}</span><b>9 parts float</b></button>` : "";
     const step = s.step || (b.parts ? D.stepOf(b.parts) : undefined);
     const scrub = b.state === "empty" ? "" : U.scrubber({ ...s, step });
-    return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-local="menu=${s.menu === "open" ? "closed" : "open"}" aria-haspopup="menu">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button>${s.menu === "open" ? projectMenu() : ""}</div>
+    // Versions (plan section 07): the project menu opens Save version and the list; a version opened from the list
+    // takes the viewer, read-only, with a bar to restore it, copy it out, or go back.
+    const seen = s.view && D.history.find((v) => String(v.n) === s.view);
+    const pop = s.menu === "open" ? projectMenu() : s.menu === "save" ? saveVersion() : s.menu === "versions" && !seen ? versionsList() : "";
+    const bar = seen ? `<div class="b-vbar" role="status">${U.icon("clock")}<span title="Version ${seen.n}: ${esc(seen.name)} · ${esc(seen.when)} · ${seen.parts} parts"><b>Version ${seen.n}: ${esc(seen.name)}</b> · ${esc(seen.when)}</span>
+        <button type="button" class="e-btn e-primary e-sm" data-act="restore" title="Saves the current model as a version first">${U.icon("undo")}<span>Restore</span></button>
+        <button type="button" class="e-btn e-sm" data-act="copy-out" title="Copies this version to a new project, to try another direction">Open as new</button>
+        <button type="button" class="e-btn e-quiet e-sm" data-local="view=">Back</button></div>` : "";
+    return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-local="menu=${s.menu === "open" ? "closed" : "open"}" aria-haspopup="menu">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button>${pop}</div>
       ${U.views()}<div class="b-title-right">${scrub}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
-      <section class="b-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}${pin}
+      <section class="b-viewer" aria-label="3D viewer" data-version="${!!seen}">${U.shot(seen ? seen.render : s.render, ctx.theme)}${seen ? "" : pin}${bar}
       <div class="b-tools">${U.animating(s, { bare: true })}</div></section>`;
   }
 
   // The project menu, from the project chip: what used to be the panel's New and Open icons, and About.
   function projectMenu() {
-    const item = (ic, label, act, key) => `<button type="button" class="e-menu-item" role="menuitem"${act ? ` data-act="${act}"` : ""}>${U.icon(ic)}<span>${esc(label)}</span>${key ? `<span class="e-small">${esc(key)}</span>` : ""}</button>`;
-    return `<div class="b-pop b-pop-project"><div class="e-menu" role="menu">${item("plus", "New", "", "⌘N")}${item("folder", "Open…", "", "⌘O")}${item("download", "Export…", "export", "⌘E")}<hr class="b-hr">${item("info", "About Emmet Builder", "about")}</div></div>`;
+    const item = (ic, label, act, key, local) => `<button type="button" class="e-menu-item" role="menuitem"${act ? ` data-act="${act}"` : ""}${local ? ` data-local="${local}"` : ""}>${U.icon(ic)}<span>${esc(label)}</span>${key ? `<span class="e-small">${esc(key)}</span>` : ""}</button>`;
+    return `<div class="b-pop b-pop-project"><div class="e-menu" role="menu">${item("plus", "New", "", "⌘N")}${item("folder", "Open…", "", "⌘O")}<hr class="b-hr">${item("save", "Save version", "", "⌘S", "menu=save")}${item("clock", "Versions…", "", "", "menu=versions")}<hr class="b-hr">${item("download", "Export…", "export", "⌘E")}<hr class="b-hr">${item("info", "About Emmet Builder", "about")}</div></div>`;
+  }
+
+  // Save version: a name (the next number until the user types one), and Save. Nothing else to decide.
+  function saveVersion() {
+    return `<div class="b-pop b-pop-project"><div class="e-menu e-menu-wide b-save" role="dialog" aria-label="Save version"><b>Save version</b>
+      <input class="e-style-input" type="text" value="Steeper roof" aria-label="Version name">
+      <div class="b-save-row"><button type="button" class="e-btn e-quiet e-sm" data-local="menu=closed">Cancel</button><button type="button" class="e-btn e-primary e-sm" data-local="menu=versions">${U.icon("save")}<span>Save</span></button></div></div></div>`;
+  }
+
+  // The versions list, newest first: the user's named versions and Emmet's own from before each agent turn, each with
+  // its render. Clicking one opens it in the viewer to compare.
+  function versionsList() {
+    const rows = D.history.map((v) => `<button type="button" class="b-ver" data-local="view=${v.n}" data-auto="${!!v.auto}">
+        <img src="${window.EMMET_ROOT}shared/renders/${document.documentElement.dataset.theme || "light"}/${v.render}.webp" alt="">
+        <span><b>${esc(v.name)}</b><span class="e-small">${esc(v.when)} · ${v.parts} parts${v.auto ? " · automatic" : ""}</span></span></button>`).join("");
+    return `<div class="b-pop b-pop-project"><div class="e-menu e-menu-wide b-vers" role="dialog" aria-label="Versions"><div class="b-vers-head"><b>Versions</b>
+      <button type="button" class="e-btn e-sm" data-local="menu=save">${U.icon("save")}<span>Save version</span></button></div>${rows}</div></div>`;
   }
 
   // The model's state in a few words; the tab counts already give the parts and steps.
@@ -103,7 +128,9 @@
     const card = active(s);
     const says = card && !s.pending;  // a pending redirect doesn't say the agent is still working
     const quiet = s.agent.line === "Idle" || (s.agent.state === "idle" && !s.agent.line) || says || s.banner;
-    const now = quiet ? "" : U.agentState(s, { kbd: false });
+    // After a turn that changed the model, the status offers to undo it: Emmet saved a version just before (section 07).
+    const undo = !quiet && s.agent.state === "idle" && /^Done/.test(s.agent.line || "") ? `<button type="button" class="e-btn e-quiet e-sm" data-act="undo-turn" title="Restore the model from before this turn (version 6)">${U.icon("undo")}<span>Undo turn</span></button>` : "";
+    const now = quiet ? "" : U.agentState(s, { kbd: false }) + undo;
     // The plan badge carries the usage meter and opens the usage popover; the panel no longer has a usage row.
     const plan = `<button type="button" class="e-badge b-plan" data-act="usage" title="Plan usage">${esc(a.plan)}${a === D.agents.claude ? ` · ${D.usage[0].pct}%` : ""}</button>`;
     const top = `<div class="b-chat-top"><button type="button" class="b-agent" data-act="agents" aria-haspopup="menu">${esc(a.name)} ${U.icon("chev")}</button>${plan}<div class="b-now">${now}</div>

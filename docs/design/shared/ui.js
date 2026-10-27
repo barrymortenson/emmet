@@ -15,7 +15,7 @@ window.EMMET_UI = (() => {
     file: "M6 3h8l4 4v14H6zM14 3v4h4", sliders: "M4 7h10M18 7h2M4 17h4M12 17h8M14 5v4M8 15v4", list: "M8 6h12M8 12h12M8 18h12M4 6h.5M4 12h.5M4 18h.5",
     layers: "M12 3l9 5-9 5-9-5zM3 13l9 5 9-5", steps: "M4 18h5v-4h5v-4h5V6", download: "M12 4v11M7 10l5 5 5-5M5 20h14",
     upload: "M12 20V9M7 14l5-5 5 5M5 4h14", folder: "M3 6h6l2 2h10v11H3z", refresh: "M20 11a8 8 0 10-2.3 5.7M20 5v6h-6",
-    clock: "M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2", spark: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6",
+    clock: "M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2", save: "M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6", undo: "M9 14L4 9l5-5M4 9h11a5 5 0 010 10h-4", spark: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6",
     frame: "M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5", camera: "M4 8h4l2-3h4l2 3h4v11H4zM12 10a3.5 3.5 0 100 7 3.5 3.5 0 000-7z",
     lock: "M6 11h12v9H6zM9 11V8a3 3 0 016 0v3", wifi: "M3 9a13 13 0 0118 0M6.5 12.5a8 8 0 0111 0M10 16a3 3 0 014 0M3 3l18 18",
     plus: "M12 5v14M5 12h14", play: "M8 5l11 7-11 7z", pin: "M12 21s-6-6.5-6-11a6 6 0 0112 0c0 4.5-6 11-6 11zM12 8a2 2 0 100 4 2 2 0 000-4z",

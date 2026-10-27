@@ -114,6 +114,17 @@ window.EMMET_DATA = (() => {
   };
 
   const run = { parts: 163, steps: 15, ms: 99 };
+  // The project's saved versions (plan section 07), newest first: the user's, named, and Emmet's own before each agent
+  // turn that changed the model. Each shows its build's render as the thumbnail.
+  const history = [
+    { n: 6, name: "Before Claude's turn", auto: true, when: "Today 14:31", parts: 163, render: "cottage" },
+    { n: 5, name: "Weathered, chimney at the back", when: "Today 14:20", parts: 163, render: "weathered-2" },
+    { n: 4, name: "Before Claude's turn", auto: true, when: "Today 14:02", parts: 163, render: "weathered-1" },
+    { n: 3, name: "Roof and chimney", when: "Today 13:51", parts: 163, render: "cottage" },
+    { n: 2, name: "Before Claude's turn", auto: true, when: "Today 13:40", parts: 108, render: "stage2" },
+    { n: 1, name: "First walls", when: "Today 13:32", parts: 52, render: "stage1" },
+  ];
+
   const versions = { emmet: "0.1.0", library: "2026-09", partsData: "2026-10-23", oldLibrary: "2026-06" };
 
   const agents = {
@@ -274,7 +285,7 @@ window.EMMET_DATA = (() => {
   };
 
   return {
-    brief, renders, params, colors, colorChoices, bom, steps, stepOf, stepRender, finding, buildError, untrusted, run, versions,
+    brief, renders, params, colors, colorChoices, bom, steps, stepOf, stepRender, finding, buildError, untrusted, run, versions, history,
     agents, efforts, plans, usage, seg, PROMPT,
     project: { name: "Cottage", folder: "Documents/Emmet/Cottage" },
     imported: { name: "Cottage (imported)", file: "cottage.mpd", parts: 163, steps: 15 },

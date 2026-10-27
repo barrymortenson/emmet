@@ -232,7 +232,7 @@
    the options panel on the right. Panels are warm cards with room around them; the viewer runs to the edges. */
 .b-app { display: grid; grid-template-columns: minmax(0, 1fr) 384px; height: 100%; background: var(--bg-viewer); }
 .b-left { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; min-height: 0; }
-.b-chip, .e-now, .e-views, .e-scrub, .e-anim, .b-vnote, .b-chat, .b-panel, .b-fr-card, .b-banner {
+.b-chip, .e-now, .e-views, .e-scrub, .e-anim, .b-vnote, .b-vbar, .b-chat, .b-panel, .b-fr-card, .b-banner {
   background: var(--bg-card); border: 1px solid var(--line); box-shadow: 0 8px 28px var(--shadow), 0 1px 3px var(--shadow-soft);
 }
 
@@ -256,6 +256,21 @@
 .e-scrub { display: inline-flex; align-items: center; gap: 6px; padding: 2px 6px; border-radius: 999px; font-variant-numeric: tabular-nums; font-weight: 600; }
 .e-anim { display: inline-flex; align-items: center; gap: 8px; padding: 5px 6px 5px 14px; border-radius: 999px; white-space: nowrap; }
 .e-anim .e-spin { color: var(--fg-accent); }
+/* An earlier version open in the viewer: one bar over the render says which, and offers Restore or the way back. */
+.b-vbar { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; align-items: center; gap: 8px; max-width: calc(100% - 32px); box-sizing: border-box; padding: 6px 6px 6px 14px; border-radius: 999px; font-size: 13px; white-space: nowrap; }
+.b-vbar > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.b-vbar > .e-btn { flex: none; }
+.b-vbar > .e-ic { color: var(--fg-accent); }
+/* Save version and the versions list hang from the project chip, like its menu. */
+.b-save { display: grid; gap: 10px; min-width: 300px; }
+.b-save-row { display: flex; justify-content: flex-end; gap: 8px; }
+.b-vers { min-width: 360px; max-height: 440px; overflow: auto; gap: 2px; }
+.b-vers-head { display: flex; align-items: center; justify-content: space-between; padding: 0 2px 6px; }
+.b-ver { display: flex; align-items: center; gap: 12px; background: none; border: 0; text-align: left; padding: 6px 8px; border-radius: 12px; }
+.b-ver:hover { background: var(--bg-selected); }
+.b-ver img { width: 64px; height: 48px; object-fit: cover; border-radius: 8px; background: var(--bg-viewer); flex: none; }
+.b-ver > span { display: grid; gap: 2px; }
+.b-ver[data-auto="true"] b { font-weight: 500; color: var(--fg-muted); }
 .b-vnote { display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px; border-radius: 999px; font-size: 13px; }
 .b-vnote[data-tone="bad"] { background: var(--bg-bad-soft); } .b-vnote[data-tone="bad"] .e-ic { color: var(--fg-bad); }
 .b-vnote[data-tone="warn"] { background: var(--bg-warn-soft); } .b-vnote[data-tone="warn"] .e-ic { color: var(--fg-warn); }
