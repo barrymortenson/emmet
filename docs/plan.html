@@ -257,7 +257,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td><span class="pill rec">Proposed</span></td><td>Drafted to fill a gap. It stands unless a session's ADR or Barry changes it.</td></tr>
 <tr><td><span class="pill open">Open</span></td><td>Needs an answer. It's listed in section 24 with the session that settles it.</td></tr>
 <tr><td><span class="pill gate">Gate</span></td><td>A go/no-go point. Work past it waits on Barry's call.</td></tr>
-<tr><td>IDs</td><td><code>D-nn</code> decision · <code>H-nn</code> human step · <code>0A</code>…<code>8G</code> sessions · <code>BLK-nnn</code> blocker · <code>Q-nn</code> open question · <code>F-nnnn</code> validator finding · <code>G1</code>, <code>G2</code> gates.</td></tr>
+<tr><td>IDs</td><td><code>D-nn</code> decision · <code>H-nn</code> human step · <code>0A</code>…<code>8H</code> sessions · <code>BLK-nnn</code> blocker · <code>Q-nn</code> open question · <code>F-nnnn</code> validator finding · <code>G1</code>, <code>G2</code> gates.</td></tr>
 </table></div>
 
 <h3>Names</h3>
@@ -1649,7 +1649,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <tr><td><a href="#phase-5">5 · Quality gate: working proof of concept</a></td><td>The integration, E2E, and eval suites are complete; Windows, performance, and security are hardened; rung 3 and the photo rung pass; Barry's Windows pass; <span class="pill gate">G2</span>: the POC works, and the MVP exit criteria in section 02 hold.</td><td><a href="#session-5a">5A</a> <a href="#session-5b">5B</a></td></tr>
 <tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing GitHub Releases; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a></td></tr>
 <tr><td><a href="#phase-7">7 · Website and public launch</a></td><td>emmetbuilder.com live on Cloudflare; the provider terms re-checked; 1.0 released; launch posts.</td><td><a href="#session-7a">7A</a> <a href="#session-7b">7B</a></td></tr>
-<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files.</td><td>8D–8G</td></tr>
+<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files, DUPLO.</td><td>8D–8H</td></tr>
 </table></div>
 
 <!-- ======================= PHASE 0 -->
@@ -2592,6 +2592,7 @@ read every repo setting back. Prepare 1.0.0 through the release pipeline. I publ
 <tr data-session="8E"><td><a href="#session-8e">8E</a></td><td>BrickLink pricing</td><td>8D</td><td>any</td><td>M</td></tr>
 <tr data-session="8F"><td><a href="#session-8f">8F</a></td><td>Host third-party MCP servers</td><td>7B</td><td>any</td><td>M</td></tr>
 <tr data-session="8G"><td><a href="#session-8g">8G</a></td><td>Studio file import and export</td><td>7B</td><td>any</td><td>M</td></tr>
+<tr data-session="8H"><td><a href="#session-8h">8H</a></td><td>DUPLO for ages 1.5+</td><td>7B</td><td>any</td><td>M</td></tr>
 </table></div>
 
 
@@ -2635,6 +2636,17 @@ add the approval-on-first-use policy, and test with three real servers.</code></
 <ul class="good"><li>Nothing proprietary is reverse-engineered against its terms.</li></ul>
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8G. Refresh scope with me first. Write the format and terms ADR before any code, and stop if
 the terms don't allow it.</code></pre></details>
+</div>
+
+<div class="session" id="session-8h" data-session="8H" data-phase="8" data-title="DUPLO for ages 1.5+" data-after="7B" data-waits="" data-waits-merge="" data-read="08, 11, 12, 14">
+<h4><span class="s-id">8H</span> DUPLO for ages 1.5+<span class="s-meta">after 7B · size M · backlog</span></h4>
+<p class="goal"><b>Goal:</b> The build settings' Age gains 1.5+, and the agent builds DUPLO models that check as cleanly as System ones.</p>
+<ul class="build"><li>DUPLO connectors in the validator: today DUPLO top studs are left out of body boxes but get no connectors, so two stacked DUPLO bricks (3011 at z=0 and z=6) read as floating. Then DUPLO's grid in the DSL and <code>api</code> text (a DUPLO stud is two System studs, a DUPLO brick two System bricks tall), doctrine for DUPLO building, search that keeps DUPLO and System parts apart unless asked, and the 1.5+ option, which tells the agent to build in DUPLO.</li></ul>
+<ul class="done"><li>A stacked DUPLO pair checks clean, and one shifted off the studs is floating (test).</li><li>A 1.5+ prompt gives a DUPLO-only model with 0 findings (replay).</li></ul>
+<ul class="good"><li>DUPLO parts have availability and colors from the parts data pack (ADR 0004 lists the DUPLO-style parts it doesn't map yet).</li></ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8H. Refresh scope with me first. Start from the floating finding on two stacked DUPLO bricks, add
+DUPLO connectors with tests, then the DSL grid, doctrine, and the 1.5+ age option. Ask me before letting one model
+mix DUPLO and System parts.</code></pre></details>
 </div>
 </div>
 </section>

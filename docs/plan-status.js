@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-26",
+  updated: "2026-10-27",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -109,7 +109,8 @@ window.EMMET_STATUS = {
     "8D": { status: "backlog" },
     "8E": { status: "backlog" },
     "8F": { status: "backlog" },
-    "8G": { status: "backlog" }
+    "8G": { status: "backlog" },
+    "8H": { status: "backlog" }
   },
   human: {
     "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },
