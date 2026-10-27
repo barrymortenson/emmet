@@ -1586,8 +1586,9 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 12. Open the PR only when every Done when item holds. The description repeats the Done when list, each item ticked
     with its evidence (test name, command + result line, screenshot, file), and says how the work meets What good
     looks like. An item you couldn't finish stays unticked with the reason, and you ask Barry before opening the PR.
-    UI work includes light and dark screenshots on macOS and Windows (from CI artifacts). Set the session to review
-    with the PR number, run `node scripts/plan-check.mjs`, then stop. Don't start the next session unless told to.
+    UI work includes light and dark screenshots on macOS and Windows (from CI artifacts; macOS only while D-43
+    pauses the Windows jobs). Set the session to review with the PR number, run `node scripts/plan-check.mjs`, then
+    stop. Don't start the next session unless told to.
 13. When a decision changes the spec, update the matching section of docs/plan.html (and section 03 if it's a
     decision) in the same PR, plus docs/spec, the CHANGELOG, and the README when commands change. Progress is
     recorded only in docs/plan-status.js, never by editing the plan.
@@ -1627,7 +1628,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <!-- ============================================================ 21 -->
 <section id="s21">
 <h2><span class="num">21</span>Phases and sessions</h2>
-<p class="lede">Nine phases and twenty-five sessions to the public launch, plus a post-launch backlog. Each session is large and coherent on purpose: one prompt carries a whole slice (the engine skeleton, the agent bridge, the validator), so you're running about twenty sessions, not hundreds of tasks. Sizes are rough agent effort: M is about a day, L two to three, XL up to a week.</p>
+<p class="lede">Nine phases and twenty-five sessions to the public launch (twenty-four while 4F is skipped, D-43), plus a post-launch backlog. Each session is large and coherent on purpose: one prompt carries a whole slice (the engine skeleton, the agent bridge, the validator), so you're running about twenty sessions, not hundreds of tasks. Sizes are rough agent effort: M is about a day, L two to three, XL up to a week. While D-43 holds (the Mac app first), a Done when item that says "both OSes" or "macOS and Windows" is met on macOS, and its Windows half waits for the one Windows pass that comes back once the Mac app works, with the Windows CI jobs and H-10.</p>
 
 <div class="callout ok"><span class="label">Fast start: this week</span>
 <ol>
@@ -1960,10 +1961,10 @@ what the docs specify, mapping each requirement to a test. When it works, ask me
 
 <div class="session" id="session-1f" data-session="1F" data-phase="1" data-title="Agent setup without a terminal, and Antigravity in terminal mode" data-after="1C" data-waits="" data-waits-merge="" data-read="02, 03, 10, 14, 15">
 <h4><span class="s-id">1F</span> Agent setup without a terminal, and Antigravity in terminal mode<span class="s-meta">after 1C · alongside 1D, 1E, 2A · size L</span></h4>
-<p class="goal"><b>Goal:</b> Someone who has never opened a terminal installs Claude Code or Codex and signs in from Emmet's first run, knows which plan they need, and is building in minutes (D-41). Antigravity users can work in terminal mode (D-42).</p>
+<p class="goal"><b>Goal:</b> Someone who has never opened a terminal installs Claude Code or Codex and signs in from Emmet's first run, knows which plan they need, and is building in minutes (D-41). Antigravity users can work in terminal mode (D-42); that part was built and then removed before merge, because Antigravity is out of the MVP (D-43).</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><b>Terms first:</b> re-read Anthropic's Claude Code legal page ("preinstalling or running Claude Code in your products"), Codex's license and install docs, and Google's Gemini CLI and Antigravity terms; update <code>docs/terms/</code> and the section 10 rows. Stop if a row loses its basis.</li>
+<li><b>Terms first:</b> re-read Anthropic's Claude Code legal page ("preinstalling or running Claude Code in your products"), Codex's license and install docs, and Google's Gemini CLI and Antigravity terms (kept in <code>docs/terms/</code> for when Antigravity comes back, D-43); update <code>docs/terms/</code> and the section 10 rows. Stop if a row loses its basis.</li>
 <li><b>Install:</b> "Install Claude Code" runs Anthropic's official native installer and "Install Codex" OpenAI's published install, each unmodified, from Rust, only after the user clicks, with progress, cancel, and a clear retry. Checksums or signatures are checked where the provider publishes them. No admin rights; the Windows prerequisites ADR 0001 found are explained in plain words. Detection runs again when it finishes.</li>
 <li><b>Sign-in:</b> find how Claude Code's own unmodified login can run without the user typing in a terminal (for example, Emmet hosting <code>claude</code> in a sign-in window that shows only its login and opens the browser), within Anthropic's terms. Record what works in an ADR; a new dependency (such as a pseudo-terminal crate) needs Barry's approval (rule 6). If nothing qualifies, keep the "Open Terminal" card with one command and pictures of each step. Codex sign-in is 1E's.</li>
 <li><b>Plan guidance:</b> onboarding says which plans work (Claude: a paid plan that includes Claude Code; Codex: a ChatGPT plan that includes Codex, or an API key), checked against each provider's current page, with links. No prices in the app. The provider notice (D-37) shows once, before the first install or sign-in.</li>
@@ -2180,7 +2181,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="phase" id="phase-4" data-phase="4">
 <div class="ph-top"><span class="pnum">Phase 4</span><h3>App MVP</h3></div>
 <div class="pbar"><i></i></div>
-<p>Build the app to the frozen design. 4A lays the shell and first run; then 4B (chat and agent UX) and 4C (viewer polish and performance) run in parallel. 4D (photo to model) follows 4B, and 4E (native PDF instructions) follows 4C. 4F (Antigravity in the chat pane) needs only 1F, so it can run any time after it, and 4B waits for it so the full chat covers all three agents. The phase ends with rung 2 passing in replay and in Barry's hand session on each agent; its live eval run waits for G2.</p>
+<p>Build the app to the frozen design. 4A lays the shell and first run; then 4B (chat and agent UX) and 4C (viewer polish and performance) run in parallel. 4D (photo to model) follows 4B, and 4E (native PDF instructions) follows 4C. 4F (Antigravity in the chat pane) is skipped for the MVP (D-43), so the full chat covers Claude Code and Codex, and Antigravity comes after the MVP (Phase 8). The phase ends with rung 2 passing in replay and in Barry's hand session on each agent; its live eval run waits for G2.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> UX-2 must be signed (H-08) before 4A.</li>
 <li><span class="pill you">YOU</span> <b>H-23</b>: photograph the three photo-rung subjects, two angles each, before 4D starts.</li>
@@ -2189,7 +2190,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
 <tr data-session="4A"><td><a href="#session-4a">4A</a></td><td>App shell to the frozen design, plus first run</td><td>2B, 3A, 3B, 1F</td><td>&nbsp;</td><td>L</td></tr>
-<tr data-session="4B"><td><a href="#session-4b">4B</a></td><td>Chat and agent UX, complete</td><td>4A, 1E, 4F</td><td>4C</td><td>L</td></tr>
+<tr data-session="4B"><td><a href="#session-4b">4B</a></td><td>Chat and agent UX, complete</td><td>4A, 1E</td><td>4C</td><td>L</td></tr>
 <tr data-session="4C"><td><a href="#session-4c">4C</a></td><td>Viewer polish and performance</td><td>4A</td><td>4B</td><td>L</td></tr>
 <tr data-session="4D"><td><a href="#session-4d">4D</a></td><td>Photo to model</td><td>4B</td><td>4C, 4E</td><td>L</td></tr>
 <tr data-session="4E"><td><a href="#session-4e">4E</a></td><td>Native PDF instructions</td><td>4C</td><td>4D</td><td>L</td></tr>
@@ -2226,8 +2227,8 @@ and ask before inventing. Build first run against a local fixture server so E2E 
 Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace them.</code></pre></details>
 </div>
 
-<div class="session" id="session-4b" data-session="4B" data-phase="4" data-title="Chat and agent UX, complete" data-after="4A 1E 4F" data-waits="" data-waits-merge="" data-read="10, 14, 15, 16">
-<h4><span class="s-id">4B</span> Chat and agent UX, complete<span class="s-meta">after 4A, 1E, 4F · alongside 4C · size L</span></h4>
+<div class="session" id="session-4b" data-session="4B" data-phase="4" data-title="Chat and agent UX, complete" data-after="4A 1E" data-waits="" data-waits-merge="" data-read="10, 14, 15, 16">
+<h4><span class="s-id">4B</span> Chat and agent UX, complete<span class="s-meta">after 4A, 1E · alongside 4C · size L</span></h4>
 <p class="goal"><b>Goal:</b> Working with the agent feels as good as nurb's terminal loop, or better: you always know what it's doing, you can steer and stop it, and it sees what you see.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2653,7 +2654,7 @@ the terms don't allow it.</code></pre></details>
 <tr data-h="H-07"><td>H-07</td><td>UX-1: pick a design direction</td><td>2A merge, 2B start</td><td>Asked in 2A</td></tr>
 <tr data-h="H-08"><td>H-08</td><td>UX-2: sign the frozen design (<code>docs/design/SIGNOFF.md</code>)</td><td>2B merge, 4A start</td><td>Asked in 2B</td></tr>
 <tr data-h="H-09"><td>H-09</td><td><span class="pill gate">G2</span> Run the live eval once for rungs 1–3 and the photo rung on both agents, and confirm the POC works</td><td>5A merge; 6A, 6B start</td><td><a href="#g-h09">guide</a></td></tr>
-<tr data-h="H-10"><td>H-10</td><td>Hands-on pass on the Windows VM with 5B's checklist</td><td>5B merge</td><td><code>docs/security/windows-pass.md</code></td></tr>
+<tr data-h="H-10"><td>H-10</td><td>Hands-on pass on the Windows VM with 5B's checklist (paused with the Windows work until the Mac app works, D-43)</td><td>5B merge</td><td><code>docs/security/windows-pass.md</code></td></tr>
 <tr data-h="H-11"><td>H-11</td><td>Pick the rung 3 set from 0B's shortlist</td><td>0B merge, 5A start</td><td>Asked in 0B</td></tr>
 <tr data-h="H-12"><td>H-12</td><td>Recruit 3–5 beta testers (at least 1 on Windows x64) and send them the beta</td><td>6B merge</td><td>Welcome draft from 6B</td></tr>
 <tr data-h="H-13"><td>H-13</td><td>Back up the updater signing key and password</td><td>6A merge</td><td><a href="#g-h13">guide</a></td></tr>
@@ -2755,7 +2756,7 @@ the terms don't allow it.</code></pre></details>
 <details id="g-h25"><summary>H-25 Antigravity CLI on this Mac (about 10 minutes)</summary>
 <ul class="small">
 <li>Install the Antigravity CLI from Google's Antigravity docs (<a href="https://antigravity.google/docs/cli/headless/">antigravity.google/docs</a>), run <code>agy</code> once, and sign in with your Google account.</li>
-<li>Tell the agent when it's done. 1F then asks you to add Emmet's tools to a project with the Antigravity card (Antigravity has no command for it) and build rung 1 in terminal mode, and 4F asks for hand sessions in the chat pane (no scripted runs on your Google account).</li>
+<li>Not needed for the MVP (D-43). When Antigravity comes back after it, tell the agent when it's done: the session asks you to add Emmet's tools to a project (Antigravity has no command for it) and build rung 1 in terminal mode, then for hand sessions in the chat pane (no scripted runs on your Google account).</li>
 </ul>
 </details>
 <details id="g-h20"><summary>H-20 Anthropic's Commercial Terms (about 10 minutes)</summary>
@@ -2784,7 +2785,7 @@ the terms don't allow it.</code></pre></details>
 <tr><td>The build animation slows the loop or hides problems</td><td>Low</td><td>Capped at 6 s and skipped by any new run, never used for sliders, never in agent renders; Fast and Off in Settings; a frame-time budget in section 13.</td><td>1D, 4C</td></tr>
 <tr><td>A provider changes its terms for apps that run its CLI or use its plans (both did in 2026)</td><td>High</td><td>The terms gate (D-37): every agent feature cites current provider text or Barry's recorded best reading, and users see the provider notice; <code>docs/terms/</code> is re-checked at G1, G2, and 7B; a feature that loses its basis is switched off before the next release; terminal mode always remains.</td><td>0B, 7B</td></tr>
 <tr><td>A provider's installer or sign-in flow changes, or a provider objects to apps installing its CLI</td><td>Medium</td><td>Only official installers, run unmodified; a terms row for installing (D-41); install and sign-in replay tests per CLI version; the Terminal card stays as the fallback.</td><td>1F, 4A</td></tr>
-<tr><td>Google's terms for third-party use of its CLI are strict and enforced with account bans, its CLI changed in 2026, and the chat pane rests on Barry's best reading</td><td>High</td><td>Only the user's unmodified <code>agy</code> in its documented headless mode; Emmet never touches a Google token or <code>~/.gemini</code> (D-42); the provider notice (D-37); the chat pane is switched off if Google objects or users report account action, and terminal mode stays.</td><td>1F, 4F</td></tr>
+<tr><td>Google's terms for third-party use of its CLI are strict and enforced with account bans, its CLI changed in 2026, and the chat pane rests on Barry's best reading</td><td>High</td><td>Only the user's unmodified <code>agy</code> in its documented headless mode; Emmet never touches a Google token or <code>~/.gemini</code> (D-42); the provider notice (D-37); the chat pane is switched off if Google objects or users report account action, and terminal mode stays. Out of the MVP (D-43), so this risk returns only when Antigravity does.</td><td>Phase 8</td></tr>
 <tr><td>WKWebView WebGL performance or hidden-window throttling</td><td>Medium</td><td>Bench in 1B, instancing, ADR 0005 with an off-screen-window fallback.</td><td>0B, 1B, 4C</td></tr>
 <tr><td>Windows differences (paths, CLIs, GPU), with only an ARM VM in hand</td><td>Medium</td><td>Hosted x64 CI from day one, the 5B hardening list, and a Windows x64 beta tester.</td><td>5B, 6B</td></tr>
 <tr><td>Trademark: other uses of the name "Emmet"</td><td>Medium</td><td>The 2026-10-24 search (H-17); the full name "Emmet Builder" where it matters; no reference to the film or character (D-30); "brick" language and a disclaimer everywhere; <code>scripts/name-check</code> at G1, G2, and 7B.</td><td>0A, 2A, 7B</td></tr>
@@ -2819,7 +2820,7 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Q-13</td><td>When does Emmet go open source? Codex on a ChatGPT plan inside Emmet depends on it (OpenAI's Sign in with ChatGPT rule).</td><td>Decided 2026-10-24: from day one, AGPL-3.0, public repo (D-12, D-14). Codex on a ChatGPT plan is in the MVP (1E).</td><td><span class="pill decided">Decided</span></td></tr>
 <tr><td>Q-14</td><td>Rebrickable's Terms say its content may not be "used in the training of AI models". Emmet never trains, but small Rebrickable facts reach the user's AI provider in tool results. Confirm with Rebrickable that this is fine.</td><td>Settled by reading (Barry 2026-10-24): the clause is about training models on Rebrickable content. Emmet trains nothing, and its tools answer the user's own agent with small facts at run time; no note to Rebrickable (H-24 not needed). If Rebrickable ever objects, that use is switched off (D-37 style).</td><td><span class="pill decided">Settled</span></td></tr>
 <tr><td>Q-15</td><td>Can Claude Code's own unmodified login run from inside Emmet, so a user never types in a terminal, within Anthropic's terms?</td><td>1F (an ADR), on Barry's best reading of the terms (D-37)</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-16</td><td>Will Google allow Emmet to run the unmodified Antigravity CLI under each user's own Google sign-in?</td><td>Decided on Barry's best reading (2026-10-25): providers rarely answer such questions, so Emmet builds on the published text, Google's documented headless mode, and the Zed precedent, with the provider notice (D-37, D-42, 4F).</td><td><span class="pill decided">Decided</span></td></tr>
+<tr><td>Q-16</td><td>Will Google allow Emmet to run the unmodified Antigravity CLI under each user's own Google sign-in?</td><td>Decided on Barry's best reading (2026-10-25): providers rarely answer such questions, so Emmet builds on the published text, Google's documented headless mode, and the Zed precedent, with the provider notice (D-37, D-42, 4F). Antigravity is out of the MVP (D-43), so this applies when it comes back.</td><td><span class="pill decided">Decided</span></td></tr>
 </table></div>
 </section>
 
