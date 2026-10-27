@@ -1,0 +1,54 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* The prototype harness around each direction (the review bar and the window frame), plus the few basics every
+   direction shares. Colors only in the token blocks: scripts/contrast-check.mjs checks every --p-fg-* against every
+   --p-bg-*, and fails on a color written anywhere else. */
+[data-theme="light"] {
+  --p-bg-page: #e7e8eb; --p-bg-bar: #ffffff; --p-bg-chip: #eef0f3;
+  --p-fg-text: #1d1f24; --p-fg-muted: #555b66; --p-fg-accent: #9a3412;
+  --p-ui-line: #727884; --p-line: #d5d8de; --p-shadow: #00000033;
+}
+[data-theme="dark"] {
+  --p-bg-page: #0e0f12; --p-bg-bar: #1a1c21; --p-bg-chip: #262930;
+  --p-fg-text: #eceef2; --p-fg-muted: #a6acb7; --p-fg-accent: #ffb48a;
+  --p-ui-line: #6c7380; --p-line: #30333b; --p-shadow: #00000099;
+}
+
+html, body { margin: 0; height: 100%; }
+body { background: var(--p-bg-page); color: var(--p-fg-text); font: 13px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+.p-bar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--p-bg-bar); border-bottom: 1px solid var(--p-line); flex: none; }
+.p-bar b { font-size: 14px; }
+.p-home { color: var(--p-fg-accent); text-decoration: none; font-weight: 600; }
+.p-tag { color: var(--p-fg-muted); }
+.p-grow { flex: 1; }
+.p-btn, .p-select { font: inherit; color: var(--p-fg-text); background: var(--p-bg-chip); border: 1px solid var(--p-ui-line); border-radius: 6px; padding: 3px 9px; cursor: pointer; }
+.p-select { max-width: 320px; }
+.p-seg { display: inline-flex; gap: 2px; }
+.p-btn[aria-pressed="true"] { border-color: var(--p-fg-accent); color: var(--p-fg-accent); font-weight: 600; }
+.p-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 14px; color: var(--p-fg-muted); background: var(--p-bg-bar); border-bottom: 1px solid var(--p-line); flex: none; }
+.p-chip { background: var(--p-bg-chip); color: var(--p-fg-text); border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+.p-stage { flex: 1; position: relative; padding: 14px; overflow: hidden; }
+.p-bare .p-stage { padding: 0; }
+.p-flash { outline: 3px dashed var(--p-fg-accent) !important; }
+
+/* The app window: a fixed 1280 × 800 design size, scaled to fit. */
+.e-window { position: relative; overflow: hidden; transform-origin: top left; box-shadow: 0 12px 40px var(--p-shadow); border-radius: 12px; }
+.p-bare .e-window { border-radius: 0; box-shadow: none; }
+
+/* Shared basics. */
+.e-ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.e-shot { position: absolute; left: 0; top: 50%; width: 100%; aspect-ratio: 1; object-fit: cover; transform-origin: 50% 50%; pointer-events: none; user-select: none; }
+.e-spin { width: 14px; height: 14px; flex: none; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: e-spin 0.8s linear infinite; }
+@keyframes e-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .e-spin { animation: none; border-right-color: currentColor; border-style: dotted; } }
+.e-lights { display: inline-flex; gap: 8px; }
+.e-lights i { width: 12px; height: 12px; border-radius: 50%; background: var(--p-ui-line); }
+.e-grow { flex: 1; }
+.e-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.e-window details > summary { list-style: none; cursor: pointer; }
+.e-window details > summary::-webkit-details-marker { display: none; }
+/* :where() keeps these at zero specificity, so a direction's own button colors always win. */
+:where(.e-window) :where(button, select, input, textarea) { font: inherit; color: inherit; }
+:where(.e-window) :where(button) { cursor: pointer; }
+.e-window table { border-collapse: collapse; width: 100%; }
+.e-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; box-shadow: inset 0 0 0 1px var(--p-shadow); }
+.e-num { text-align: right; font-variant-numeric: tabular-nums; }
