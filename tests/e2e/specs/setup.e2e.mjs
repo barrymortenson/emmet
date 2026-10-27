@@ -130,7 +130,8 @@ describe("agent setup without a terminal", () => {
   });
 
   it("adds Emmet's tools to the project for Antigravity", async () => {
-    await click("#antigravity summary");
+    // Opened outright: a retried spec finds the card as the last attempt left it.
+    await browser.execute(() => (document.getElementById("antigravity").open = true));
     await click("#antigravity-set-up");
     await (await $("#antigravity-ready")).waitForExist({ timeout: 10_000 });
     await screenshots("setup-antigravity");

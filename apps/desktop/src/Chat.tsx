@@ -454,6 +454,7 @@ export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLi
           onStart={start}
           onRefresh={() => void commands.agents(true).then(setAgents)}
           onSettings={onSettings}
+          root={project.root}
         />
       )}
       {agent?.warning && <p className="muted warning">{agent.warning}</p>}
@@ -527,12 +528,14 @@ function Picker({
   onStart,
   onRefresh,
   onSettings,
+  root,
 }: {
   agents: AgentView[] | null;
   last: { kind: AgentKind } | null;
   onStart: (kind: AgentKind, resume: boolean) => void;
   onRefresh: () => void;
   onSettings: () => void;
+  root: string;
 }) {
   if (!agents) return <p className="muted">Looking for Claude Code and Codex…</p>;
   return (
@@ -556,7 +559,7 @@ function Picker({
         );
       })}
       <AgentSetup agents={agents} only="unready" onChanged={onRefresh} onSettings={onSettings} />
-      <AntigravityCard />
+      <AntigravityCard root={root} />
       <button type="button" onClick={onRefresh}>
         Look again
       </button>

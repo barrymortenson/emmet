@@ -33,15 +33,11 @@ export function AgentSetup({
   onSettings: () => void;
   only?: "unready";
 }) {
-  const [seen, setSeen] = useState<boolean | null>(null);
   const [pending, setPending] = useState<(() => void) | null>(null);
-  useEffect(() => {
-    void commands.providerNotice().then(setSeen);
-  }, []);
 
+  // Asked at each click, not remembered: the start screen and the picker each have these cards.
   const gate: Gate = (action) => {
-    if (seen) action();
-    else setPending(() => action);
+    void commands.providerNotice().then((seen) => (seen ? action() : setPending(() => action)));
   };
   const shown = (agents ?? []).filter((a) => only !== "unready" || !(a.detection.path != null && a.detection.signed_in));
   if (!agents) return <p className="muted">Looking for Claude Code and Codex…</p>;
@@ -54,7 +50,6 @@ export function AgentSetup({
         <ProviderNotice
           onContinue={async () => {
             await commands.providerNoticeSeen();
-            setSeen(true);
             const go = pending;
             setPending(null);
             go();
@@ -235,12 +230,13 @@ function TerminalSignIn() {
   );
 }
 
-/** Antigravity in terminal mode (D-42): agy runs in the user's terminal, and Emmet shows the model live. */
-export function AntigravityCard() {
+/** Antigravity in terminal mode (D-42): agy runs in the user's terminal, and Emmet shows the model live. `root` is the
+ * open project, whose `.agents/mcp_config.json` the card reports on. */
+export function AntigravityCard({ root }: { root: string }) {
   const [view, setView] = useState<AntigravityView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const load = () => void commands.antigravity().then(setView);
-  useEffect(load, []);
+  useEffect(load, [root]);
   if (!view) return null;
   const { path, version } = view.found;
   return (
