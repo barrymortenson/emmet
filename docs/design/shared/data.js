@@ -232,14 +232,15 @@ window.EMMET_DATA = (() => {
       ],
     },
     scale: {
-      label: "Scale", value: "Figure scale", help: "How big things are compared with real life",
+      label: "Scale", value: "Figure scale", help: "What the details are sized for; the whole can be shortened to stay buildable",
       // Small to large, in the hobby's own words where they aren't LEGO's names (D-30: "minifig" and Miniland are).
-      // Scale is only the ratio: a 9,090-piece Titanic is Micro at 1:200; how many pieces is the Pieces setting.
+      // Scale sets what the details are sized for, not a strict ratio for the whole: like official sets, a figure-scale
+      // starship has figure-sized doors and seats but is far shorter than true scale (Barry). Pieces is the count.
       options: [
         { id: "Micro", sub: "1:100 and smaller, like the Titanic at 1:200" },
         { id: "Micropolis", sub: "The community micro city standard: 16 × 16 modules, two-stud roads, a brick about 9 feet tall" },
         { id: "Midi", sub: "Between micro and figure scale, like the Endurance" },
-        { id: "Figure scale", sub: "About 1:42: doors and rooms fit a 4-brick-tall figure" },
+        { id: "Figure scale", sub: "Doors, seats, and rooms fit a 4-brick-tall figure; the whole is shortened, like most official sets" },
         { id: "Large", sub: "Bigger than figure scale, like the large display cars" },
         { id: "Car 1:8", sub: "A large car with gears, panels, and working steering" },
       ],

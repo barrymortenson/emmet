@@ -47,6 +47,14 @@ A door is a door part (a door frame, with a door in it); a window is a window pa
 for one with plain bricks in its color: the parts list has to be what the model shows. If you can't find the part,
 search again with other words before you settle.
 
+## Sized for the figure, not to the ratio
+
+Build the way official sets are built: what a figure touches (doors, seats, cockpits, rooms, railings) is sized for a
+4-brick-tall figure, and the whole is shortened to stay buildable. A starship, a ship, or a castle comes out much
+shorter than its true ratio, with fewer windows, decks, and floors, and still reads as itself. Do the same unless the
+user asks for an exact ratio: keep the figure-facing details at figure size, keep the outline recognizable, and
+compress the rest to fit. Say how much you compressed it ("about a third of its true length").
+
 ## Show a draft in the first minute
 
 The user should see something within a minute: the base and the outline of the walls, run and validated, before
