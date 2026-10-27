@@ -114,9 +114,10 @@
     const mid = open
       ? `<div class="b-msgs" data-scroll="end">${n ? U.chat(s) : ""}${card}</div>`
       : card ? `<div class="b-active">${card}</div>` : (() => { const l = latest(s); return l ? `<div class="b-line">${l}</div>` : ""; })();
-    const pops = ["agents", "model", "usage"].includes(s.overlay) ? `<div class="b-pop b-pop-${s.overlay}">${U.overlay(s)}</div>` : "";
+    // The model and effort popover opens from its chip, in the composer (like nurb's); the others from the chat's top row.
+    const pops = ["agents", "usage"].includes(s.overlay) ? `<div class="b-pop b-pop-${s.overlay}">${U.overlay(s)}</div>` : "";
     // One Stop: the status has it (and Esc), so the composer doesn't.
-    return `<section class="b-chat" data-open="${open}" aria-label="Chat">${top}${mid}${U.composer(s, { rows: s.composer ? 3 : 1, stop: false })}${pops}</section>`;
+    return `<section class="b-chat" data-open="${open}" aria-label="Chat">${top}${mid}${U.composer(s, { rows: s.composer ? 3 : 1, stop: false, modelMenu: true })}${pops}</section>`;
   }
 
   function workspace(s, ctx) {

@@ -145,7 +145,7 @@ window.EMMET_UI = (() => {
       <textarea rows="${opts.rows || 2}" placeholder="${esc(ph)}" aria-label="Message">${esc(screen.composer || "")}</textarea>
       <div class="e-composer-bar">
         <button type="button" class="e-icon-btn" title="Attach a photo">${icon("paperclip")}</button>
-        <button type="button" class="e-model-chip" data-act="model" title="Model and effort">${esc(a.model)} · Medium ${icon("chev")}</button>
+        <span class="e-model-anchor"><button type="button" class="e-model-chip" data-act="model" title="Model and effort" aria-haspopup="dialog" aria-expanded="${screen.overlay === "model"}">${esc(a.model)} · Medium ${icon("chev")}</button>${opts.modelMenu && screen.overlay === "model" ? modelMenu(screen) : ""}</span>
         <span class="e-grow"></span>
         ${working && opts.stop !== false ? `<button type="button" class="e-btn e-stop" data-act="stop">${icon("stop")}<span>Stop</span></button>` : ""}
         <button type="button" class="e-btn e-primary e-send" data-act="send"${screen.agent?.state === "offline" ? " disabled" : ""}>${icon("send")}<span>Send</span></button>
@@ -296,7 +296,7 @@ window.EMMET_UI = (() => {
   function modelMenu(screen) {
     const a = agentOf(screen);
     const sel = (label, list, v) => `<label class="e-field"><span>${label}</span><select>${list.map((x) => `<option${x === v ? " selected" : ""}>${esc(x)}</option>`).join("")}</select></label>`;
-    return `<div class="e-menu e-menu-wide" role="dialog" aria-label="Model and effort" data-for="model">${sel("Model", a.models, a.model)}${sel("Reasoning effort", D.efforts, "Medium")}<p class="e-small">Bigger models and higher effort use up your plan faster.</p></div>`;
+    return `<div class="e-menu e-menu-wide" role="dialog" aria-label="Model and effort" data-for="model">${sel("Model", a.models, a.model)}${sel("Effort", D.efforts, "Medium")}<p class="e-small">Bigger models and higher effort use up your plan faster.</p></div>`;
   }
   function usageMini(screen = {}) {
     if (screen.who === "codex") return `<button type="button" class="e-usage" data-act="usage" title="Plan usage">Codex · Using ChatGPT plan</button>`;

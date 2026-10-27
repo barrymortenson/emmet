@@ -320,7 +320,6 @@
 .b-pop { position: absolute; z-index: 5; }
 .b-pop-export { top: 52px; right: 12px; }
 .b-pop-agents { bottom: calc(100% + 8px); left: 0; }
-.b-pop-model { bottom: calc(100% + 8px); left: 140px; }
 .b-msgs .e-tool, .b-active .e-tool { background: var(--bg-card); }
 
 /* First run: one big card over the model. */
@@ -386,3 +385,7 @@
 .e-anim-skip { box-shadow: 0 2px 10px var(--shadow); }
 .e-banner[data-kind="offline"] p, .e-banner[data-kind="imported"] p { display: none; }
 .e-send[disabled] { background: var(--bg-sunken); border-color: var(--line-strong); color: var(--fg-muted); cursor: default; }
+/* The model and effort popover, anchored to its chip: it opens just above where you clicked. */
+.e-model-anchor { position: relative; display: inline-flex; }
+.e-model-anchor > .e-menu { position: absolute; bottom: calc(100% + 6px); left: -8px; z-index: 6; min-width: 260px; }
+.e-model-chip[aria-expanded="true"] { background: var(--bg-selected); color: var(--fg-text); }
