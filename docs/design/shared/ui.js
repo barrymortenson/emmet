@@ -147,8 +147,8 @@ window.EMMET_UI = (() => {
         <button type="button" class="e-icon-btn" title="Attach a photo">${icon("paperclip")}</button>
         <button type="button" class="e-model-chip" data-act="model" title="Model and effort">${esc(a.model)} · Medium ${icon("chev")}</button>
         <span class="e-grow"></span>
-        ${working ? `<button type="button" class="e-btn e-stop" data-act="stop">${icon("stop")}<span>Stop</span></button>` : ""}
-        <button type="button" class="e-btn e-primary e-send" data-act="send">${icon("send")}<span>Send</span></button>
+        ${working && opts.stop !== false ? `<button type="button" class="e-btn e-stop" data-act="stop">${icon("stop")}<span>Stop</span></button>` : ""}
+        <button type="button" class="e-btn e-primary e-send" data-act="send"${screen.agent?.state === "offline" ? " disabled" : ""}>${icon("send")}<span>Send</span></button>
       </div></div>`;
   }
 
@@ -243,12 +243,13 @@ window.EMMET_UI = (() => {
   function stepsList(screen) {
     const cur = screen.step || D.steps.length;
     const rows = D.steps.map((s) => `<li data-state="${s.n < cur ? "past" : s.n === cur ? "current" : "later"}"><span class="e-step-n">${s.n}</span><span>${esc(s.name)}</span><span class="e-small">${s.parts} part${s.parts > 1 ? "s" : ""}</span></li>`).join("");
-    return `<div class="e-steps"><div class="e-steps-top"><b>Step ${cur} of ${D.steps.length}</b><span class="e-small">Later steps are hidden</span></div><ol>${rows}</ol></div>`;
+    return `<div class="e-steps"><div class="e-steps-top"><b>Step ${cur} of ${D.steps.length}</b>${cur < D.steps.length ? `<span class="e-small">Later steps are hidden</span>` : ""}</div><ol>${rows}</ol></div>`;
   }
 
   const TABS = [["params", "Parameters", "sliders"], ["checks", "Checks", "check"], ["parts", "Parts", "list"], ["steps", "Steps", "steps"]];
   function tabs(active, screen, opts = {}) {
-    const count = { checks: screen.build?.findings || "", parts: screen.build?.parts || "", steps: D.steps.length };
+    const built = !!screen.build?.parts;
+    const count = { checks: screen.build?.findings || "", parts: screen.build?.parts || "", steps: built ? D.steps.length : "" };
     return `<div class="e-tabs" role="tablist">${TABS.map(([id, label, ic]) => `<button type="button" role="tab" class="e-tab" data-tab="${id}" aria-selected="${id === active}">${opts.icons ? icon(ic) : ""}<span>${label}</span>${count[id] ? `<span class="e-count" data-tone="${id === "checks" ? "warn" : ""}">${count[id]}</span>` : ""}</button>`).join("")}</div>`;
   }
   const panel = (tab, screen) => ({ params, checks, parts: bom, steps: stepsList })[tab]?.(screen) || "";
@@ -264,8 +265,10 @@ window.EMMET_UI = (() => {
   function views() {
     return `<div class="e-views" role="group" aria-label="Views">${["Iso", "Front", "Top"].map((v, i) => `<button type="button" class="e-view" aria-pressed="${i === 0}">${v}</button>`).join("")}<button type="button" class="e-icon-btn" title="Frame (F)">${icon("frame")}</button><button type="button" class="e-icon-btn" title="Screenshot">${icon("camera")}</button></div>`;
   }
-  function animating(screen) {
-    return screen.animating ? `<div class="e-anim">${spinner()}<span>Placing parts in build order · ${screen.build.parts} so far</span>${btn("Skip", "skip", "e-sm")}</div>` : "";
+  function animating(screen, opts = {}) {
+    if (!screen.animating) return "";
+    if (opts.bare) return btn("Skip animation", "skip", "e-sm e-anim-skip");
+    return `<div class="e-anim">${spinner()}<span>Placing parts in build order · ${screen.build.parts} so far</span>${btn("Skip", "skip", "e-sm")}</div>`;
   }
 
   function banner(kind) {

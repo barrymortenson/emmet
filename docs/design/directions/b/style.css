@@ -318,7 +318,7 @@
 
 /* Popovers */
 .b-pop { position: absolute; z-index: 5; }
-.b-pop-usage, .b-pop-export { top: 76px; right: 12px; }
+.b-pop-export { top: 52px; right: 12px; }
 .b-pop-agents { bottom: calc(100% + 8px); left: 0; }
 .b-pop-model { bottom: calc(100% + 8px); left: 140px; }
 .b-msgs .e-tool, .b-active .e-tool { background: var(--bg-card); }
@@ -370,3 +370,19 @@
 .b-sec-tools { display: inline-flex; align-items: center; gap: 8px; }
 .e-rebuild + .e-brief-sum { margin-top: 8px; }
 .b-thought { margin: 0; padding: 2px 6px; color: var(--fg-muted); }
+/* Say it once (Barry 2026-10-27). */
+.b-chat .e-q-wait { display: none; }
+.b-panel .e-bom-top .e-btn { display: none; }
+.e-banner[data-kind="untrusted"] p { display: none; }
+.b-panel-head .e-btn { flex: none; }
+.b-plan { border: 0; cursor: pointer; font: inherit; font-size: 12px; }
+.b-plan:hover { background: var(--bg-selected); }
+.b-pop-usage { bottom: calc(100% + 8px); left: 90px; }
+.b-pop-project { top: calc(100% + 6px); left: 60px; }
+.b-top-left { position: relative; }
+.b-hr { border: 0; border-top: 1px solid var(--line-strong); margin: 4px 6px; }
+.b-pin { padding: 4px 12px 4px 4px; }
+.b-pin b { color: var(--fg-bad); font-size: 13px; }
+.e-anim-skip { box-shadow: 0 2px 10px var(--shadow); }
+.e-banner[data-kind="offline"] p, .e-banner[data-kind="imported"] p { display: none; }
+.e-send[disabled] { background: var(--bg-sunken); border-color: var(--line-strong); color: var(--fg-muted); cursor: default; }

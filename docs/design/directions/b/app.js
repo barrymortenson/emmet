@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Direction B, Canvas (Barry's revision, 2026-10-27): the viewer takes the left of the window, the options panel the
-// right, and the chat docks along the bottom of the viewer. What the agent is doing is a capsule at the top center of
-// the viewer. The chat is light by default (the latest line, or the card that needs you, then the composer); its
+// right, and the chat docks along the bottom of the viewer, led by what the agent is doing. The chat is light by default (the latest line, or the card that needs you, then the composer); its
 // history opens upward and pushes the viewer up, never over the model. Options leads with the build settings (style,
 // scale, detail, size), which steer the agent, then the model's own tweaks. Warm, roomy, friendly.
 (() => {
@@ -21,28 +20,40 @@
   // The viewer: the render, the project and the agent's capsule on top, views and the scrubber at the right.
   function viewer(s, ctx) {
     const b = s.build;
-    const failed = b.state === "failed" ? `<div class="b-vnote" data-tone="bad">${U.icon("warn")}Build failed · the last good model is still shown</div>` : "";
-    const ro = b.state === "readonly" ? `<div class="b-vnote" data-tone="warn">${U.icon("lock")}Read-only · model.py hasn't run</div>` : "";
-    const pin = b.state === "findings" ? `<button type="button" class="b-pin" data-tab="checks"><span class="b-pin-dot">${U.icon("warn")}</span><span class="b-pin-text"><b>9 parts float</b><small>F-0001 · the chimney starts 9 plates up</small></span></button>` : "";
+    // Say each thing once (Barry 2026-10-27): a failed build and a read-only project are told by the chat card and the
+    // banner, so the viewer only carries the finding's pin, which points at the parts.
+    const pin = b.state === "findings" ? `<button type="button" class="b-pin" data-tab="checks"><span class="b-pin-dot">${U.icon("warn")}</span><b>9 parts float</b></button>` : "";
     const step = s.step || (b.parts ? D.stepOf(b.parts) : undefined);
     const scrub = b.state === "empty" ? "" : U.scrubber({ ...s, step });
-    return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-act="about" title="Emmet Builder: About, Settings">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button></div>
+    return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-local="menu=${s.menu === "open" ? "closed" : "open"}" aria-haspopup="menu">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button>${s.menu === "open" ? projectMenu() : ""}</div>
       <span class="e-grow"></span><div class="b-tools-row">${scrub}${U.views()}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
-      <section class="b-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}${pin}<div class="b-vnotes">${failed}${ro}</div>
-      <div class="b-tools">${U.animating(s)}</div></section>`;
+      <section class="b-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}${pin}
+      <div class="b-tools">${U.animating(s, { bare: true })}</div></section>`;
+  }
+
+  // The project menu, from the project chip: what used to be the panel's New and Open icons, and About.
+  function projectMenu() {
+    const item = (ic, label, act, key) => `<button type="button" class="e-menu-item" role="menuitem"${act ? ` data-act="${act}"` : ""}>${U.icon(ic)}<span>${esc(label)}</span>${key ? `<span class="e-small">${esc(key)}</span>` : ""}</button>`;
+    return `<div class="b-pop b-pop-project"><div class="e-menu" role="menu">${item("plus", "New", "", "⌘N")}${item("folder", "Open…", "", "⌘O")}${item("download", "Export…", "export", "⌘E")}<hr class="b-hr">${item("info", "About Emmet Builder", "about")}</div></div>`;
+  }
+
+  // The model's state in a few words; the tab counts already give the parts and steps.
+  function modelState(b) {
+    return { empty: "Empty", building: "Building", failed: "Build failed", readonly: "Read-only", findings: `${b.findings} problem${b.findings > 1 ? "s" : ""}` }[b.state] || "No problems";
   }
 
   // The options panel: the build in words and the project's tools, then Options, Checks, Parts, Steps.
   function panel(s) {
     const b = s.build;
     const tone = U.buildTone(b);
-    const ic = b.state === "building" ? U.spinner() : U.icon(tone === "bad" || tone === "warn" ? (b.state === "readonly" ? "lock" : "warn") : tone === "muted" ? "info" : "check");
+    const ic = U.icon(tone === "bad" || tone === "warn" ? (b.state === "readonly" ? "lock" : "warn") : tone === "busy" ? "cube" : tone === "muted" ? "info" : "check");
     const t = tabOf(s);
     const tabs = U.tabs(t, s).replace(">Parameters<", ">Options<");
     let body;
     if (t === "params") {
       // The model's knobs need a model, and a trusted one; until then the section is left out.
-      const tweaks = b.state === "empty" ? "" : b.state === "readonly"
+      // No model.py, no tweaks: an imported file has none until the agent makes it parametric.
+      const tweaks = b.state === "empty" || s.imported ? "" : b.state === "readonly"
         ? `<div class="b-tweaks"><p class="b-sec">Tweaks</p><p class="b-locked">${U.icon("lock")} Trust the project to use these</p></div>`
         : `<div class="b-tweaks"><p class="b-sec">Tweaks</p>${U.params(s)}</div>`;
       // Build settings can be switched off: the prompt alone then decides. On, before the first build or with a change
@@ -55,10 +66,9 @@
       const done = on && full && b.state !== "empty" ? `<button type="button" class="e-btn e-quiet e-sm" data-local="brief=closed">Done</button>` : "";
       body = `<div class="b-sec b-sec-row"><span>Build settings</span><span class="b-sec-tools">${done}${toggle}</span></div>${on ? U.buildSettings(s, { compact: !full, open: "brief=open" }) : `<p class="b-off">Off: the prompt decides</p>`}${tweaks}`;
     } else body = U.panel(t, s);
-    return `<aside class="b-panel" aria-label="Options"><div class="b-panel-head" data-tone="${tone}">${ic}<span class="b-build">${esc(U.buildText(b))}</span>
-        <span class="b-tools-top"><button type="button" class="e-icon-btn" title="New (⌘N)">${U.icon("plus")}</button><button type="button" class="e-icon-btn" title="Open (⌘O)">${U.icon("folder")}</button><button type="button" class="e-icon-btn" data-act="export" title="Export">${U.icon("download")}</button></span></div>
-      <div class="b-usage-row">${U.usageMini(s)}</div>${tabs}<div class="b-panel-body" data-tab="${t}">${body}</div>
-      ${s.overlay === "usage" || s.overlay === "export" ? `<div class="b-pop b-pop-${s.overlay}">${U.overlay(s)}</div>` : ""}</aside>`;
+    return `<aside class="b-panel" aria-label="Options"><div class="b-panel-head" data-tone="${tone}">${ic}<span class="b-build">${esc(modelState(b))}</span>
+        ${b.parts ? `<button type="button" class="e-btn e-sm" data-act="export">${U.icon("download")}<span>Export</span></button>` : ""}</div>${tabs}<div class="b-panel-body" data-tab="${t}">${body}</div>
+      ${s.overlay === "export" ? `<div class="b-pop b-pop-export">${U.overlay(s)}</div>` : ""}</aside>`;
   }
 
   // Above the composer: the card that needs you (a question, an approval, a redirect waiting, an error, a crash, a
@@ -74,8 +84,9 @@
   function latest(s) {
     if (s.dirty || s.briefDirty) return "";
     const last = s.chat[s.chat.length - 1];
-    if (s.build.state === "findings" && s.agent.state === "idle") return `<div class="b-latest b-latest-warn">${U.icon("warn")}<span>The last build has 1 problem: 9 parts float.</span><span class="e-grow"></span>${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div>`;
     if (!last) return "";
+    // A running tool is what the status already says; a finished one or a note is worth its line.
+    if (last.t === "tool" && last.status === "running") return "";
     if (last.t === "tool" || last.t === "file" || last.t === "note") return U.message(last, s);
     // What it's thinking, as plain text: the status above already says it's working (one busy indicator, Barry).
     if (last.t === "thinking") return `<p class="b-thought">${esc(last.text)}</p>`;
@@ -89,16 +100,23 @@
     const n = s.chat.length;
     // What the agent is doing (note 1) leads the chat, beside the agent it's about. An untrusted project is a warning
     // for the agent too: it can't run the model until the user trusts it.
-    const now = U.agentState(s.banner === "untrusted" ? { ...s, agent: { ...s.agent, state: "offline" } } : s);
-    const top = `<div class="b-chat-top"><button type="button" class="b-agent" data-act="agents" aria-haspopup="menu">${esc(a.name)} ${U.icon("chev")}</button><span class="e-badge">${esc(a.plan)}</span><div class="b-now">${now}</div>
+    // The status shows only when it says something the screen doesn't: not "Idle", and not when the card under it
+    // (a question, an approval, a crash, a sign-in, an error) says it bigger.
+    const card = active(s);
+    const says = card && !s.pending;  // a pending redirect doesn't say the agent is still working
+    const quiet = s.agent.line === "Idle" || (s.agent.state === "idle" && !s.agent.line) || says || s.banner;
+    const now = quiet ? "" : U.agentState(s, { kbd: false });
+    // The plan badge carries the usage meter and opens the usage popover; the panel no longer has a usage row.
+    const plan = `<button type="button" class="e-badge b-plan" data-act="usage" title="Plan usage">${esc(a.plan)}${a === D.agents.claude ? ` · ${D.usage[0].pct}%` : ""}</button>`;
+    const top = `<div class="b-chat-top"><button type="button" class="b-agent" data-act="agents" aria-haspopup="menu">${esc(a.name)} ${U.icon("chev")}</button>${plan}<div class="b-now">${now}</div>
       ${n ? `<button type="button" class="e-btn e-quiet e-sm" data-local="history=${open ? "closed" : "open"}" aria-expanded="${open}">${U.icon("chat")}<span>${open ? "Hide history" : `History · ${n}`}</span></button>` : ""}
       <button type="button" class="e-btn e-quiet e-sm" title="Start fresh: clear the context, keep the agent">${U.icon("fresh")}<span>Start fresh</span></button></div>`;
-    const card = active(s);
     const mid = open
       ? `<div class="b-msgs" data-scroll="end">${n ? U.chat(s) : ""}${card}</div>`
       : card ? `<div class="b-active">${card}</div>` : (() => { const l = latest(s); return l ? `<div class="b-line">${l}</div>` : ""; })();
-    const pops = s.overlay === "agents" || s.overlay === "model" ? `<div class="b-pop b-pop-${s.overlay}">${U.overlay(s)}</div>` : "";
-    return `<section class="b-chat" data-open="${open}" aria-label="Chat">${top}${mid}${U.composer(s, { rows: s.composer ? 3 : 1 })}${pops}</section>`;
+    const pops = ["agents", "model", "usage"].includes(s.overlay) ? `<div class="b-pop b-pop-${s.overlay}">${U.overlay(s)}</div>` : "";
+    // One Stop: the status has it (and Esc), so the composer doesn't.
+    return `<section class="b-chat" data-open="${open}" aria-label="Chat">${top}${mid}${U.composer(s, { rows: s.composer ? 3 : 1, stop: false })}${pops}</section>`;
   }
 
   function workspace(s, ctx) {
