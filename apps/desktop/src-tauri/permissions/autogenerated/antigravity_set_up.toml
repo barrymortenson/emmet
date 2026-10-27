@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-antigravity-set-up"
+description = "Enables the antigravity_set_up command without any pre-configured scope."
+commands.allow = ["antigravity_set_up"]
+
+[[permission]]
+identifier = "deny-antigravity-set-up"
+description = "Denies the antigravity_set_up command without any pre-configured scope."
+commands.deny = ["antigravity_set_up"]

@@ -19,6 +19,7 @@ const PROJECTS = {
   chat: [["", "agent"], ["codex", "agent"]],
   chatgpt: [["", "agent"]],
   checks: [["", "broken-collision"]],
+  setup: [["", "agent"]],
 };
 
 export function emmet(args, options = {}) {

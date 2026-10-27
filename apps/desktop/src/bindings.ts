@@ -32,6 +32,32 @@ export const commands = {
 	renderFailed: (message: string) => __TAURI_INVOKE<void>("render_failed", { message }),
 	/**  Installs the library (when it's missing) and sets Python up, then rebuilds the open project. */
 	setup: () => typedError<null, Problem>(__TAURI_INVOKE("setup")),
+	/**  Installs Claude Code or Codex with the provider's official installer (D-41), streaming its lines as SetupEvents. */
+	agentInstall: (kind: AgentKind) => typedError<null, SetupError>(__TAURI_INVOKE("agent_install", { kind })),
+	/**
+	 *  Signs in to Claude Code with its own `claude auth login`: with a Claude plan, or `console` for a Claude Console
+	 *  account. Waits for the browser; `agent_cancel` stops it.
+	 */
+	claudeSignIn: (console: boolean) => typedError<null, SetupError>(__TAURI_INVOKE("claude_sign_in", { console })),
+	/**  Stops `kind`'s install or sign-in. */
+	agentCancel: (kind: AgentKind) => __TAURI_INVOKE<void>("agent_cancel", { kind }),
+	/**  The provider notice (D-37) was shown: true once the user has seen it. */
+	providerNotice: () => __TAURI_INVOKE<boolean>("provider_notice"),
+	providerNoticeSeen: () => typedError<null, Problem>(__TAURI_INVOKE("provider_notice_seen")),
+	/**
+	 *  A terminal: the fallback when Claude Code's sign-in can't finish in the browser (the user runs `claude`, then
+	 *  `/login`), and where Antigravity's terminal mode runs. With `in_project`, it opens in the open project's folder,
+	 *  never one the window names.
+	 */
+	openTerminal: (inProject: boolean) => typedError<null, Problem>(__TAURI_INVOKE("open_terminal", { inProject })),
+	/**  The provider's own page saying which plans include its CLI (D-41), in the browser. */
+	openPlans: (kind: AgentKind) => typedError<null, Problem>(__TAURI_INVOKE("open_plans", { kind })),
+	antigravity: () => __TAURI_INVOKE<AntigravityView>("antigravity"),
+	/**
+	 *  Adds Emmet's MCP server to the open project's `.agents/mcp_config.json`, for agy run in that folder. The project
+	 *  is the open one, never a path from the window.
+	 */
+	antigravitySetUp: () => typedError<null, Problem>(__TAURI_INVOKE("antigravity_set_up")),
 	/**  The agents Emmet found: only a detected, signed-in agent can start a chat; the others carry the fix. */
 	agents: (refresh: boolean) => __TAURI_INVOKE<AgentView[]>("agents", { refresh }),
 	/**
@@ -91,6 +117,7 @@ export const events = {
 	projectOpened: makeEvent<ProjectOpened, ProjectOpened>("project-opened"),
 	runFinished: makeEvent<RunFinished, RunFinished>("run-finished"),
 	runStarted: makeEvent<RunStarted, RunStarted>("run-started"),
+	setupEvent: makeEvent<SetupEvent, SetupEvent>("setup-event"),
 };
 
 /* Types */
@@ -158,6 +185,18 @@ export type Answer = {
 	choices: string[],
 	/**  What the user typed in Other. */
 	other?: string | null,
+};
+
+/**  What Emmet found of the Antigravity CLI (D-42): it has no status command, so sign-in is agy's own first-run step. */
+export type Antigravity = {
+	path: string | null,
+	version: string | null,
+};
+
+/**  What the Antigravity card shows (D-42): where agy is, and whether the open project has Emmet's MCP server. */
+export type AntigravityView = {
+	found: Antigravity,
+	configured: boolean,
 };
 
 export type AppInfo = {
@@ -301,6 +340,15 @@ export type DoneReason = "completed" |
 /**  The CLI exited mid-turn. */
 "crashed";
 
+/**  What went wrong, for the UI's one retry and its words. */
+export type Failure = 
+/**  The provider's servers couldn't be reached. */
+"offline" | 
+/**  The installer's own checksum check failed. */
+"checksum" | 
+/**  The installed binary isn't signed by its publisher. */
+"signature" | "canceled" | "timed_out" | "failed";
+
 /**  One validator finding (plan section 11), for the Checks drawer. */
 export type Finding = {
 	id: string,
@@ -433,6 +481,19 @@ export type Scene = {
 	checks?: Checks | null,
 	/**  The parts list (the Parts drawer), or null when it couldn't be made. */
 	bom?: Bom | null,
+};
+
+/**  A failed install or sign-in, in plain words; `detail` is the tool's own last line, when it said something useful. */
+export type SetupError = {
+	failure: Failure,
+	message: string,
+	detail: string | null,
+};
+
+/**  A line an installer printed, for the window's progress. */
+export type SetupEvent = {
+	kind: AgentKind,
+	line: string,
 };
 
 export type SignInResult = 

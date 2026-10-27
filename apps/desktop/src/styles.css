@@ -349,6 +349,43 @@ h2 {
   flex-basis: 100%;
   margin: 0;
 }
+/* Agent setup (1F; 4A restyles it): one card per agent, on the start screen and under the picker. */
+#agents {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+#agents h2 {
+  margin: 0;
+  font-size: 1em;
+}
+.agent-setup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+  flex-basis: 100%;
+}
+.agent-card {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.agent-card h3 {
+  margin: 0 0 4px;
+  font-size: 1em;
+}
+.agent-card p {
+  margin: 0 0 6px;
+}
+.agent-card pre {
+  white-space: pre-wrap;
+  margin: 4px 0;
+}
+.agent-card .job-line {
+  overflow-wrap: anywhere;
+}
+.terminal-sign-in {
+  margin-top: 8px;
+}
 .warning {
   margin: 4px 0;
 }

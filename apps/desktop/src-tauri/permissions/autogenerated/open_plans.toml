@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-open-plans"
+description = "Enables the open_plans command without any pre-configured scope."
+commands.allow = ["open_plans"]
+
+[[permission]]
+identifier = "deny-open-plans"
+description = "Denies the open_plans command without any pre-configured scope."
+commands.deny = ["open_plans"]

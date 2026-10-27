@@ -20,6 +20,7 @@ import {
   type SteerPath,
   type UsageSnapshot,
 } from "./bindings";
+import { AgentSetup, AntigravityCard } from "./Agents";
 import { LimitCard, PlanLabel } from "./ChatGpt";
 
 /** A redirect that nothing has delivered in this long offers "Stop and send now" (plan section 10). */
@@ -537,12 +538,13 @@ function Picker({
                 Resume last chat
               </button>
             )}
-            {a.detection.fix && <p className="muted fix">{a.detection.fix}</p>}
             {ok && a.warning && <p className="muted fix">{a.warning}</p>}
-            {a.detection.note && <p className="muted">{a.detection.note}</p>}
+            {ok && a.detection.note && <p className="muted">{a.detection.note}</p>}
           </div>
         );
       })}
+      <AgentSetup agents={agents} only="unready" onChanged={onRefresh} />
+      <AntigravityCard />
       <button type="button" onClick={onRefresh}>
         Look again
       </button>
