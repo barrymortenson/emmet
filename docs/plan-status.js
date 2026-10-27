@@ -79,7 +79,7 @@ window.EMMET_STATUS = {
       ],
       note: "6B's diagnostics bundle must join the no-token tests; a token split across two streamed deltas isn't caught by per-event redaction (ADR 0011)"
     },
-    "1F": { status: "todo" },
+    "1F": { status: "in-progress", branch: "bmortenson/s1f-agent-setup-no-terminal", started: "2026-10-26" },
     "2A": { status: "todo" },
     "2B": { status: "todo" },
     "3A": { status: "todo" },
