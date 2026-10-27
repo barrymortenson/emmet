@@ -61,7 +61,7 @@
       const full = b.state === "empty" || (s.briefDirty && s.brief !== "closed") || s.brief === "open";
       // No on/off switch (Barry): every setting starts on Any, which already leaves the prompt to decide.
       const done = full && b.state !== "empty" ? `<button type="button" class="e-btn e-quiet e-sm" data-local="brief=closed">Done</button>` : "";
-      body = `<div class="b-sec b-sec-row"><span>Build settings</span><span class="b-sec-tools">${done}</span></div>${U.buildSettings(s, { compact: !full, open: "brief=open" })}${tweaks}`;
+      body = `<div class="b-sec b-sec-row"><span title="Together they set how the agent designs the model">Build settings</span><span class="b-sec-tools">${done}</span></div>${U.buildSettings(s, { compact: !full, open: "brief=open" })}${tweaks}`;
     } else body = U.panel(t, s);
     return `<aside class="b-panel" aria-label="Options"><div class="b-panel-head" data-tone="${tone}">${ic}<span class="b-build">${esc(modelState(b))}</span>
         ${b.parts ? `<button type="button" class="e-btn e-sm" data-act="export">${U.icon("download")}<span>Export</span></button>` : ""}</div>${tabs}<div class="b-panel-body" data-tab="${t}">${body}</div>

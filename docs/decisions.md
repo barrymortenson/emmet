@@ -53,7 +53,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   16 x 16 modules), Midi, Figure scale (what the hobby calls minifig scale; LEGO lists the Minifigure among its marks,
   so D-30 keeps the plain name), Large (Miniland is LEGOLAND's name, and no official sets come at its 1:20, so Large
   names no ratio; the large display cars, like the Ford Mustang at about 1:13, fit it), and Car 1:8. "Mini town" and
-  "Display" weren't terms anyone uses.
+  "Display" weren't terms anyone uses. Each setting decides one thing, and together they set how the agent designs the
+  model: Base what it stands on, Scale only the ratio to real life (the 9,090-piece Titanic is Micro at 1:200), Detail
+  the techniques, Pieces how many (shown as counts, 50–150, 150–500, 500–1,500, so it can't be read as how big it
+  looks), Style the look, and Age who builds it.
 - **Say each thing once.** Barry asked for a pass over every screen for duplicated or redundant UI. In B: one Stop
   (in the status, with Esc); the status shows only when it adds something (not "Idle", not when a card below says it);
   the viewer carries only the finding's pin (a failed build and a read-only project are told by the chat card and the

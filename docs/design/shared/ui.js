@@ -190,6 +190,7 @@ window.EMMET_UI = (() => {
   // Build settings: style, scale, detail, size, base. They steer the agent, so a change waits for Rebuild instead of
   // rerunning model.py. A new build starts with each one on Any, so they don't box in the prompt; style takes the
   // user's own words as well as the suggestions (Barry 2026-10-27).
+  const range = (p) => `${p.min.toLocaleString("en-US")}–${p.max.toLocaleString("en-US")}`;
   function buildSettings(screen, opts = {}) {
     const B = D.brief;
     const dirty = screen.briefDirty || {};
@@ -198,14 +199,15 @@ window.EMMET_UI = (() => {
     const size = () => ("size" in dirty ? dirty.size : fresh ? null : B.size.value);
     if (opts.compact) {
       const sz = B.size.presets.find((p) => p.id === size());
-      const parts = [val("scale"), val("detail") && `${val("detail")} detail`, sz && `${sz.min}–${sz.max} pieces`, val("style"), val("age") && `Ages ${val("age")}`].filter(Boolean);
+      const parts = [val("scale"), val("detail") && `${val("detail")} detail`, sz && `${range(sz)} pieces`, val("style"), val("age") && `Ages ${val("age")}`].filter(Boolean);
       const n = Object.keys(dirty).length;
       const pending = n ? `<div class="e-keep e-rebuild"><span>${n} changed</span>${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild", "rebuild", "e-primary e-sm", "refresh")}</div>` : "";
       return `${pending}<div class="e-brief-sum"><span>${esc(parts.join(" · ") || "Any")}</span>${btn("Change", "", "e-sm").replace("<button", `<button data-local="${opts.open}"`)}</div>`;
     }
     const was = (k, v) => (k in dirty ? `<span class="e-chip e-chip-accent">was ${esc(v ?? "Any")}</span>` : "");
-    const head = (k, v) => `<div class="e-set-head"><span class="e-set-name">${esc(B[k].label)}</span>${was(k, v)}</div>`;
-    const seg = (label, items, cur, tips = {}) => `<div class="e-seg" role="radiogroup" aria-label="${esc(label)}">${items.map((o) => `<button type="button" role="radio" aria-checked="${o === cur}"${tips[o] ? ` title="${esc(tips[o])}"` : ""}>${esc(o)}</button>`).join("")}</div>`;
+    // What each setting decides is its name's hover text (names, not subtext).
+    const head = (k, v) => `<div class="e-set-head"><span class="e-set-name" title="${esc(B[k].help)}">${esc(B[k].label)}</span>${was(k, v)}</div>`;
+    const seg = (label, items, cur, tips = {}, names = {}) => `<div class="e-seg" role="radiogroup" aria-label="${esc(label)}">${items.map((o) => `<button type="button" role="radio" aria-checked="${o === cur}"${tips[o] ? ` title="${esc(tips[o])}"` : ""}>${esc(names[o] ?? o)}</button>`).join("")}</div>`;
     // Style: the suggestions, the user's own words as chips of their own, and a field to add more.
     const cur = val("style");
     const own = cur && !B.style.options.some((o) => o.id === cur) ? [cur] : [];
@@ -218,7 +220,8 @@ window.EMMET_UI = (() => {
     const scaleChips = [{ id: "Any", sub: "The prompt decides" }, ...B.scale.options].map((o) => `<button type="button" role="radio" class="e-style" aria-checked="${o.id === scaleCur}" title="${esc(o.sub)}">${esc(o.id)}</button>`).join("");
     const scale = `<div class="e-set" data-moved="${"scale" in dirty}">${head("scale", B.scale.value)}<div class="e-styles" role="radiogroup" aria-label="Scale">${scaleChips}</div></div>`;
     const detail = `<div class="e-set" data-moved="${"detail" in dirty}">${head("detail", B.detail.value)}${seg("Detail", ["Any", ...B.detail.options.map((o) => o.id)], val("detail") ?? "Any")}</div>`;
-    const pieces = `<div class="e-set">${head("size")}${seg("Size", ["Any", ...B.size.presets.map((p) => p.id)], size() ?? "Any")}</div>`;
+    // Pieces shows the counts themselves, so it can't be read as how big the model looks (that's Scale).
+    const pieces = `<div class="e-set">${head("size")}${seg("Pieces", ["Any", ...B.size.presets.map((p) => p.id)], size() ?? "Any", {}, Object.fromEntries(B.size.presets.map((p) => [p.id, range(p)])))}</div>`;
     const base = `<div class="e-set">${head("base")}${seg("Base", B.base.options, val("base") ?? B.base.value)}</div>`;
     const age = `<div class="e-set" data-moved="${"age" in dirty}">${head("age", B.age.value)}${seg("Age", ["Any", ...B.age.options.map((o) => o.id)], val("age") ?? "Any", Object.fromEntries(B.age.options.map((o) => [o.id, o.sub])))}</div>`;
     const n = Object.keys(dirty).length;

@@ -59,7 +59,7 @@ window.REVIEW_ROWS = [
     "Options: the build settings collapse to one line after the first build, so the knobs are in view: Weathering at 20 % shows old brick through the walls, Shuffle gives another arrangement, both instant and free, with Keep as default.",
     "Compact inspector rows with a \"was 0 %\" chip and a Keep / Reset box at the top.",
     "Barry 2026-10-27: knobs change the model's character (weathering, features, another variation), never raw width or color; the renders are a real model.py with those knobs.", ["shuffled"]),
-  ROW("settings", "Build settings: base, scale, detail, target size, style, age (B only, new 2026-10-27)",
+  ROW("settings", "Build settings: base, scale, detail, pieces, style, age (B only, new 2026-10-27)",
     "Not drawn in A: this came after the pick.",
     "Changing a setting marks it (\"was Town\") and offers Undo or Rebuild with these settings, which says it's an agent turn on your plan; the model's tweaks still rerun at once.",
     "Not drawn in C: this came after the pick.",

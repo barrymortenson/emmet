@@ -232,14 +232,15 @@ window.EMMET_DATA = (() => {
       ],
     },
     scale: {
-      label: "Scale", value: "Figure scale", help: "How big the world is",
+      label: "Scale", value: "Figure scale", help: "How big things are compared with real life",
       // Small to large, in the hobby's own words where they aren't LEGO's names (D-30: "minifig" and Miniland are).
+      // Scale is only the ratio: a 9,090-piece Titanic is Micro at 1:200; how many pieces is the Pieces setting.
       options: [
-        { id: "Micro", sub: "A whole building a few studs wide" },
+        { id: "Micro", sub: "1:100 and smaller, like the Titanic at 1:200" },
         { id: "Micropolis", sub: "The community micro city standard: 16 × 16 modules, two-stud roads, a brick about 9 feet tall" },
-        { id: "Midi", sub: "Between micro and figure scale: the shape and the main details" },
-        { id: "Figure scale", sub: "Doors and rooms fit a 4-brick-tall figure, about 1:42" },
-        { id: "Large", sub: "Bigger than figure scale, for display, like the large display cars" },
+        { id: "Midi", sub: "Between micro and figure scale, like the Endurance" },
+        { id: "Figure scale", sub: "About 1:42: doors and rooms fit a 4-brick-tall figure" },
+        { id: "Large", sub: "Bigger than figure scale, like the large display cars" },
         { id: "Car 1:8", sub: "A large car with gears, panels, and working steering" },
       ],
     },
@@ -252,10 +253,10 @@ window.EMMET_DATA = (() => {
       ],
     },
     size: {
-      label: "Size", value: "Medium", help: "How many pieces the model should have",
+      label: "Pieces", value: "Medium", help: "How many pieces the model has",
       presets: [{ id: "Small", min: 50, max: 150 }, { id: "Medium", min: 150, max: 500 }, { id: "Large", min: 500, max: 1500 }],
     },
-    base: { label: "Base", value: "32 × 32", help: "What it stands on (note 8)", options: ["None", "16 × 16", "32 × 32", "48 × 48"] },
+    base: { label: "Base", value: "32 × 32", help: "What it stands on", options: ["None", "16 × 16", "32 × 32", "48 × 48"] },
     // LEGO's age bands (Barry 2026-10-27). No 1.5+: that's DUPLO, which the checks can't stack yet (plan session 8H).
     age: {
       label: "Age", value: "9+", help: "Who builds it",
