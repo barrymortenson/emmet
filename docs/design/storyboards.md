@@ -56,8 +56,9 @@ library, an imported file with no model.py.
 
 | # | Screen | What happens |
 |---|---|---|
-| 1 | `built` | Parameters: Size (Width 8, Depth 6, Wall height 6), Colors (Tan, Dark Red), Options (Chimney) |
-| 2 | `sliders` | Width dragged to 12: 124 parts in 0.2 s, the camera still; the row shows "was 8"; "1 change · not saved to model.py yet", Reset, Keep as default |
+| 1 | `built` | The model's knobs (Barry 2026-10-27: character, not raw dimensions): Weathering 0 %, Chimney, Variation 1 with Shuffle |
+| 2 | `sliders` | Weathering dragged to 20 %: old Reddish Brown brick shows through the Tan walls in 0.1 s, the camera still; "was 0 %"; "1 change · not saved to model.py yet", Reset, Keep as default |
+| 3 | `shuffled` | Shuffle: another random arrangement of the same weathering, at once and free |
 
 ## 4. Fix a finding
 

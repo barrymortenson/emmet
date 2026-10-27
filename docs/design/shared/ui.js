@@ -171,17 +171,20 @@ window.EMMET_UI = (() => {
       let ctl;
       if (p.type === "int") {
         ctl = `<input type="range" min="${p.min}" max="${p.max}" step="${p.step || 1}" value="${v}" data-param="${p.name}" aria-label="${esc(p.label)}"><output>${v} ${esc(p.unit)}</output>`;
+      } else if (p.type === "seed") {
+        ctl = `<span class="e-shuffle">${btn("Shuffle", "shuffle", "e-sm", "refresh")}<span class="e-small">Arrangement ${v}</span></span>`;
       } else if (p.type === "color") {
         const opts = D.colorChoices[p.name].map((c) => `<option${c === v ? " selected" : ""}>${esc(c)}</option>`).join("");
         ctl = `<span class="e-color">${swatch(v)}<select aria-label="${esc(p.label)}">${opts}</select></span>`;
       } else {
         ctl = `<label class="e-toggle"><input type="checkbox"${v ? " checked" : ""} aria-label="${esc(p.label)}"><span></span></label>`;
       }
-      return `<div class="e-param" data-moved="${moved}" title="model.py line ${p.line}"><div class="e-param-top"><span class="e-param-name">${esc(p.label)}</span>${moved ? `<span class="e-chip e-chip-accent">was ${p.value}</span>` : ""}</div>${ctl}<p class="e-help">${esc(p.help[0].toUpperCase() + p.help.slice(1))}</p></div>`;
+      const wasText = p.type === "seed" ? `was ${p.value}` : `was ${p.value}${p.unit === "%" ? " %" : ""}`;
+      return `<div class="e-param" data-moved="${moved}" title="model.py line ${p.line}"><div class="e-param-top"><span class="e-param-name">${esc(p.label)}</span>${moved ? `<span class="e-chip e-chip-accent">${esc(wasText)}</span>` : ""}</div>${ctl}<p class="e-help">${esc(p.help[0].toUpperCase() + p.help.slice(1))}</p></div>`;
     };
     const body = Object.entries(groups).map(([g, ps]) => `<fieldset class="e-group"><legend>${esc(g)}</legend>${ps.map(row).join("")}</fieldset>`).join("");
     const n = Object.keys(dirty).length;
-    const keep = n ? `<div class="e-keep"><span>${n} change${n > 1 ? "s" : ""} · rebuilt in 0.2 s, not saved to model.py yet</span>${btn("Reset", "reset", "e-quiet e-sm")}${btn("Keep as default", "keep", "e-primary e-sm")}</div>` : "";
+    const keep = n ? `<div class="e-keep"><span>${n} change${n > 1 ? "s" : ""} · rebuilt in 0.1 s, not saved to model.py yet</span>${btn("Reset", "reset", "e-quiet e-sm")}${btn("Keep as default", "keep", "e-primary e-sm")}</div>` : "";
     return `<div class="e-params">${keep}${body}</div>`;
   }
 
@@ -208,7 +211,7 @@ window.EMMET_UI = (() => {
       ${parts ? `<div class="e-target"><span class="e-meter e-meter-lg"><i style="width:${pct}%"></i></span><span class="e-small">This build: ${parts} pieces, inside the target</span></div>` : `<p class="e-help">The agent aims for this; a check says when a build is outside it.</p>`}</div>`;
     const base = `<div class="e-set">${head("base")}<div class="e-seg" role="radiogroup" aria-label="Baseplate">${B.base.options.map((o) => `<button type="button" role="radio" aria-checked="${o === val("base")}">${esc(o)}</button>`).join("")}</div></div>`;
     const n = Object.keys(dirty).length;
-    const bar = n ? `<div class="e-keep e-rebuild"><div><b>${n} setting${n > 1 ? "s" : ""} changed</b><p class="e-small">${esc(agentOf(screen).name)} reworks the model for them: one turn on your plan, about a minute. The sliders below rerun at once.</p></div><div class="e-row">${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild with these settings", "rebuild", "e-primary e-sm", "refresh")}</div></div>` : "";
+    const bar = n ? `<div class="e-keep e-rebuild"><div><b>${n} setting${n > 1 ? "s" : ""} changed</b><p class="e-small">${esc(agentOf(screen).name)} reworks the model for them: one turn on your plan, about a minute. The knobs below are instant.</p></div><div class="e-row">${btn("Undo", "undo", "e-quiet e-sm")}${btn("Rebuild with these settings", "rebuild", "e-primary e-sm", "refresh")}</div></div>` : "";
     return `<div class="e-brief">${bar}${style}${scale}${detail}${size}${base}</div>`;
   }
 

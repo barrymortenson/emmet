@@ -42,13 +42,13 @@
     let body;
     if (t === "params") {
       const tweaks = b.state === "empty"
-        ? `<p class="e-help">The model's own tweaks (the sliders model.py offers, like the cottage's chimney) appear after the first build.</p>`
-        : b.state === "readonly" ? `<p class="e-help">${U.icon("lock")} The model's tweaks run model.py, so they wait until you trust the project.</p>`
+        ? `<p class="e-help">The model's own knobs (like weathering, features, and Shuffle) appear after the first build.</p>`
+        : b.state === "readonly" ? `<p class="e-help">${U.icon("lock")} The model's knobs run model.py, so they wait until you trust the project.</p>`
         : U.params(s);
       // Before the first build, or with a change waiting, the settings are open; after it, a summary line.
       const full = b.state === "empty" || s.briefDirty || s.brief === "open";
       body = `<p class="b-sec">Build settings <span class="e-small">steer the agent</span></p>${U.buildSettings(s, { compact: !full, open: "brief=open" })}
-        <div class="b-tweaks"><p class="b-sec">This model's tweaks <span class="e-small">rerun at once</span></p>${tweaks}</div>`;
+        <div class="b-tweaks"><p class="b-sec">This model's knobs <span class="e-small">instant, no agent turn</span></p>${tweaks}</div>`;
     } else body = U.panel(t, s);
     return `<aside class="b-panel" aria-label="Options"><div class="b-panel-head" data-tone="${tone}">${ic}<span class="b-build">${esc(U.buildText(b))}</span>
         <span class="b-tools-top"><button type="button" class="e-icon-btn" title="New (⌘N)">${U.icon("plus")}</button><button type="button" class="e-icon-btn" title="Open (⌘O)">${U.icon("folder")}</button><button type="button" class="e-icon-btn" data-act="export" title="Export">${U.icon("download")}</button></span></div>

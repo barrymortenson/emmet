@@ -16,6 +16,16 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   with the model's own tweaks under them; how they work is the next question. The style and scale names in the app are
   plain words, not brand or theme names (D-30).
 
+- **Build settings plus character knobs.** Asked how build settings should work beside the model's sliders, Barry
+  leaned to settings only, since width and length aren't worth a slider and a look like "a beige wall with random
+  exposed brick" is a prompt. Shown that such a look makes a good knob once the agent writes it into model.py
+  (weathering 0-30 %, Shuffle for another random arrangement), he chose character knobs: the model keeps instant
+  sliders, but only two to five the agent picks because they change the model's character (weathering, features on
+  or off, counts like floors or windows, Shuffle), never raw dimensions; colors and looks go through the prompt. Over
+  settings only (dropping sliders, which would rewrite law 7, the sliders flow, the ladder, and the eval's Parameters
+  score) and deciding after 3B. Build settings (style, scale, detail, target size, baseplate) steer the agent, and
+  changing one is an agent turn. The plan's sections on sliders change with this PR.
+
 ## 2026-10-26, session 1D
 
 - **Up next shows one session.** Barry: the rail's Up next should name one session, not every unblocked one; fixed in

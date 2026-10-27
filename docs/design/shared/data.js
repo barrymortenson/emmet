@@ -8,7 +8,8 @@ window.EMMET_DATA = (() => {
   // (percent of the image) line its baseplate up with the finished model's: the camera never appears to move.
   const renders = {
     cottage: { k: 1, ty: 0 },
-    "cottage-wide": { k: 1, ty: 0 },
+    "weathered-1": { k: 1, ty: 0 },
+    "weathered-2": { k: 1, ty: 0 },
     finding: { k: 1, ty: 0 },
     stage1: { k: 0.9626, ty: 5.77 },
     stage2: { k: 0.9641, ty: 5.44 },
@@ -17,13 +18,15 @@ window.EMMET_DATA = (() => {
     "cottage-front": { k: 1, ty: 0 },
   };
 
+  // The model's own knobs: character, not raw dimensions (Barry 2026-10-27). The agent picks two to five that change
+  // what the model is like (how weathered, which features, another random arrangement); size, look, and color are
+  // build settings or the prompt. These are real: a copy of the cottage whose model.py adds `weathering` (that share
+  // of wall bricks laid in Reddish Brown, by `random.Random(seed)`) and `seed`, run and rendered at 20 % with seeds 1
+  // and 2 (93 parts either way, 126 ms).
   const params = [
-    { name: "width", label: "Width", type: "int", value: 8, min: 6, max: 16, unit: "studs", help: "how many studs wide the house is", group: "Size", line: 41 },
-    { name: "depth", label: "Depth", type: "int", value: 6, min: 4, max: 12, step: 2, unit: "studs", help: "how many studs deep the house is", group: "Size", line: 42 },
-    { name: "wall_rows", label: "Wall height", type: "int", value: 6, min: 6, max: 9, unit: "bricks", help: "how many bricks tall the walls are", group: "Size", line: 43 },
-    { name: "wall_color", label: "Wall color", type: "color", value: "Tan", help: "the color of the walls", group: "Colors", line: 44 },
-    { name: "roof_color", label: "Roof color", type: "color", value: "Dark Red", help: "the color of the roof", group: "Colors", line: 45 },
-    { name: "chimney", label: "Chimney", type: "bool", value: true, help: "add a brick chimney at the back", group: "Options", line: 46 },
+    { name: "weathering", label: "Weathering", type: "int", value: 0, min: 0, max: 30, unit: "%", help: "how much old brick shows through the walls", group: "Look", line: 48 },
+    { name: "chimney", label: "Chimney", type: "bool", value: true, help: "add a brick chimney at the back", group: "Features", line: 47 },
+    { name: "seed", label: "Arrangement", type: "seed", value: 1, help: "another random arrangement of the same design", group: "Variation", line: 49 },
   ];
 
   // LDraw colors (LDConfig.ldr values) for the swatches. Part colors, not UI colors: the contrast check ignores them.
@@ -85,7 +88,7 @@ window.EMMET_DATA = (() => {
     hint: "Read model.py first; it's code. Then trust the project in the app, or run emmet trust.",
   };
 
-  const run = { parts: 93, steps: 12, ms: 92, wide: 124 };
+  const run = { parts: 93, steps: 12, ms: 92 };
   const versions = { emmet: "0.1.0", library: "2026-09", partsData: "2026-10-23", oldLibrary: "2026-06" };
 
   const agents = {

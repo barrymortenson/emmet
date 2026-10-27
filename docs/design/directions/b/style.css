@@ -61,7 +61,7 @@
 .e-param-name { font-weight: 650; }
 .e-param input[type="range"] { width: 100%; margin: 0; }
 .e-param output { font-variant-numeric: tabular-nums; min-width: 64px; text-align: right; font-weight: 600; }
-.e-param > .e-color, .e-param > .e-toggle { grid-column: 1 / -1; }
+.e-param > .e-color, .e-param > .e-toggle, .e-param > .e-shuffle { grid-column: 1 / -1; }
 .e-help { grid-column: 1 / -1; margin: 0; font-size: 12.5px; color: var(--fg-muted); }
 .e-color { display: inline-flex; align-items: center; }
 .e-color select, .e-field select { background: var(--bg-card); border: 1px solid var(--ui-control); border-radius: 10px; padding: 4px 8px; }
@@ -332,3 +332,4 @@
 .b-title { grid-row: 1; } .b-banner { grid-row: 2; } .b-viewer { grid-row: 3; } .b-chat { grid-row: 4; }
 .e-brief-sum { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg-raised); font-size: 13px; }
 .e-brief-sum span { flex: 1; }
+.e-shuffle { display: inline-flex; align-items: center; gap: 10px; }

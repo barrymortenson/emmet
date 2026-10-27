@@ -146,7 +146,7 @@
 .e-param .e-chip { align-self: flex-start; }
 .e-param input[type="range"] { width: 100%; margin: 0; }
 .e-param output { font: 12px ui-monospace, Menlo, monospace; text-align: right; }
-.e-param > .e-color, .e-param > .e-toggle { grid-column: 2 / -1; }
+.e-param > .e-color, .e-param > .e-toggle, .e-param > .e-shuffle { grid-column: 2 / -1; }
 .e-help { grid-column: 1 / -1; margin: 1px 0 0; font-size: 11.5px; color: var(--fg-muted); }
 .e-color { display: inline-flex; align-items: center; }
 .e-color select, .e-field select { width: 100%; background: var(--bg-input); border: 1px solid var(--ui-control); border-radius: 4px; padding: 2px 4px; }
@@ -328,3 +328,4 @@
 .e-start-card b, .e-start-card .e-small { padding: 0 12px; }
 .e-thumbbox { position: relative; display: block; height: 150px; overflow: hidden; background: var(--bg-viewer); margin-bottom: 8px; }
 .e-setup-card > .e-ic { color: var(--fg-accent); }
+.e-shuffle { display: inline-flex; align-items: center; gap: 10px; }
