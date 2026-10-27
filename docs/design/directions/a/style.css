@@ -114,6 +114,8 @@
 .e-bom-top { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
 .e-bom th { text-align: left; font-size: 11px; font-weight: 650; color: var(--fg-muted); padding: 4px 8px; border-bottom: 1px solid var(--line); }
 .e-bom td { padding: 4px 8px; border-bottom: 1px solid var(--line); }
+/* The part's picture shows its color, so the color needs no swatch. */
+.e-bom .e-swatch { display: none; }
 .e-steps-top { display: flex; gap: 10px; align-items: baseline; margin-bottom: 6px; }
 .e-steps ol { list-style: none; margin: 0; padding: 0; columns: 3; column-gap: 18px; }
 .e-steps li { display: flex; gap: 8px; align-items: center; padding: 3px 6px; border-radius: 6px; break-inside: avoid; }
