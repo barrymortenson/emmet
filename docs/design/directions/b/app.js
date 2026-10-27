@@ -29,7 +29,7 @@
     return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project">${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button></div>
       <div class="b-now-wrap">${now}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
       <section class="b-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}${pin}<div class="b-vnotes">${failed}${ro}</div>
-      <div class="b-tools">${U.animating(s)}<div class="b-tools-row">${scrub}${U.views()}</div></div></section>`;
+      <div class="b-tools"><div class="b-tools-row">${scrub}${U.views()}</div>${U.animating(s)}</div></section>`;
   }
 
   // The options panel: the build in words and the project's tools, then Options, Checks, Parts, Steps.
