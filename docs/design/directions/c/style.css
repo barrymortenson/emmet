@@ -166,7 +166,9 @@
 .e-bom table { font-size: 11.5px; }
 .e-bom th { text-align: left; font: 650 10.5px ui-monospace, Menlo, monospace; text-transform: uppercase; color: var(--fg-muted); padding: 3px 4px; border-bottom: 1px solid var(--line); }
 .e-bom td { padding: 3px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.e-bom td:nth-child(3) { white-space: nowrap; }
+/* The panel is too narrow for the part pictures; the part number names each line here. */
+.e-bom th:first-child, .e-bom td:first-child { display: none; }
+.e-bom td:nth-child(4) { white-space: nowrap; }
 .e-steps-top { display: flex; flex-direction: column; gap: 1px; margin-bottom: 6px; }
 .e-steps ol { list-style: none; margin: 0; padding: 0; }
 .e-steps li { display: flex; gap: 8px; align-items: center; padding: 2px 6px; border-radius: 4px; }

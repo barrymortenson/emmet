@@ -35,6 +35,8 @@ window.EMMET_DATA = (() => {
   const colors = {
     Tan: "#E4CD9E", "Dark Red": "#720E0F", White: "#FFFFFF", "Reddish Brown": "#582A12", Green: "#237841",
     "Light Bluish Gray": "#A0A5A9", "Dark Tan": "#958A73", Black: "#1B2A34", "Sand Blue": "#6074A1",
+    "Dark Bluish Gray": "#646464", "Dark Blue": "#19325A", Red: "#B40000", Yellow: "#FAC80A",
+    "Trans-Clear": "rgba(252, 252, 252, 0.35)",  // #FCFCFC, see-through
   };
   // What the color pickers offer: only colors the parts come in (section 14). Real availability arrives with 3B's
   // parts data pack; these are the colors the cottage's bricks and slopes are made in today.
