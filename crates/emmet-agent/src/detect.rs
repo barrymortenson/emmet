@@ -2,8 +2,9 @@
 //! Finding the CLIs (plan section 10): on PATH and in the usual install folders, their `--version`, the version range
 //! each adapter was tested with, and sign-in through the CLI's own status command. Emmet never opens token files.
 //!
-//! `EMMET_CLAUDE_BIN` and `EMMET_CODEX_BIN` (in the session's environment, or the app's) name the binary outright;
-//! the tests point them at the fake agents.
+//! `EMMET_CLAUDE_BIN`, `EMMET_CODEX_BIN`, and `EMMET_AGY_BIN` (in the session's environment, or the app's) name the
+//! binary outright; the tests point them at the fake agents. One that names a missing file means "not installed", with
+//! no further search.
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -27,7 +28,7 @@ fn names(kind: AgentKind) -> &'static [&'static str] {
 }
 
 /// The usual install folders, after PATH: the native and standalone installers, Homebrew, npm and bun globals, and on
-/// Windows npm, WinGet, and Scoop.
+/// Windows npm, WinGet, Scoop, OpenAI's standalone Codex, and Antigravity's `%LOCALAPPDATA%\agy\bin`.
 fn usual_dirs(env: &[(String, String)]) -> Vec<PathBuf> {
     let home = env::get(env, "HOME")
         .or(env::get(env, "USERPROFILE"))

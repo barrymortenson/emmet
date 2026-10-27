@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The fake agents for the chat specs (tests/fake-agents, plan section 16): the app finds them through EMMET_CLAUDE_BIN
-// and EMMET_CODEX_BIN, they read their transcript from EMMET_FAKE_DIR, and Codex's API key comes from a file keychain.
+// The fake agents for the chat and setup specs (tests/fake-agents, plan section 16): the app finds them through
+// EMMET_CLAUDE_BIN, EMMET_CODEX_BIN, and EMMET_AGY_BIN, they read their transcript from EMMET_FAKE_DIR, and Codex's API
+// key comes from a file keychain.
 // The app runs with HOME (USERPROFILE on Windows) in a test home holding sentinel agent configs, which the chat and
 // setup specs hash before and after (D-26): Emmet must never write a user's .claude, .codex, or .gemini.
 //

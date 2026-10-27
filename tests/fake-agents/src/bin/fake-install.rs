@@ -8,7 +8,11 @@
 //! - `offline`: the download fails as curl or PowerShell reports it.
 //! - `checksum`: the installer's own SHA-256 check fails.
 //! - `fail`: some other error.
-//! - `slow`: a child process does the install three seconds later, so canceling must end the whole tree.
+//! - `slow`: a child process does the install three seconds later, so canceling must end the whole tree. The child
+//!   writes `install-<cli>.started` first, so a test can cancel once it's running.
+//! - `elsewhere`: succeeds, but leaves the CLI in a folder detection doesn't search.
+//! - `linger`: installs and exits, leaving a helper of its own (in another process group) holding its output open for
+//!   20 s, so a caller must go by the installer's exit, not by its output closing.
 
 use std::io::Write;
 use std::path::PathBuf;
@@ -21,12 +25,20 @@ fn main() {
         eprintln!("fake-install: usage: fake-install claude|codex");
         std::process::exit(2);
     }
-    if args.get(1).map(String::as_str) == Some("--late") {
-        std::thread::sleep(Duration::from_secs(3));
-        install(cli);
-        return;
-    }
     let dir = PathBuf::from(std::env::var_os("EMMET_FAKE_DIR").unwrap_or_default());
+    match args.get(1).map(String::as_str) {
+        Some("--late") => {
+            let _ = std::fs::write(dir.join(format!("install-{cli}.started")), "");
+            std::thread::sleep(Duration::from_secs(3));
+            install(cli);
+            return;
+        }
+        Some("--hold") => {
+            std::thread::sleep(Duration::from_secs(20));
+            return;
+        }
+        _ => {}
+    }
     let mode = std::fs::read_to_string(dir.join(format!("install-{cli}.mode")))
         .map(|m| m.trim().to_string())
         .unwrap_or_else(|_| "ok".into());
@@ -58,6 +70,34 @@ fn main() {
         "checksum" => {
             eprintln!("Downloaded Codex archive checksum did not match expected digest.");
             std::process::exit(1);
+        }
+        "elsewhere" => {
+            println!("Setting up {cli}...");
+            let home = std::env::var_os("HOME")
+                .or(std::env::var_os("USERPROFILE"))
+                .expect("HOME");
+            let to = PathBuf::from(home).join("somewhere-else");
+            std::fs::create_dir_all(&to).expect("folder");
+            let exe = std::env::consts::EXE_SUFFIX;
+            let me = std::env::current_exe().expect("own path");
+            std::fs::copy(
+                me.with_file_name(format!("fake-{cli}{exe}")),
+                to.join(format!("{cli}{exe}")),
+            )
+            .expect("copy");
+            println!("Installation complete!");
+        }
+        "linger" => {
+            println!("Setting up {cli}...");
+            install(cli);
+            let mut helper = std::process::Command::new(std::env::current_exe().expect("own path"));
+            helper.args([cli, "--hold"]);
+            #[cfg(unix)]
+            std::os::unix::process::CommandExt::process_group(&mut helper, 0);
+            // Never waited on: the helper is meant to outlive the installer, holding its output.
+            #[allow(clippy::zombie_processes)]
+            helper.spawn().expect("start the helper");
+            println!("Installation complete!");
         }
         "slow" => {
             println!("Downloading {cli}...");

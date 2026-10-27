@@ -3,7 +3,7 @@
 //! Claude Code does around a tool call: asks the permission prompt tool (the real `emmet_host approve`) wherever the
 //! recording shows Claude Code asking 0B's stub, runs MCP tools on the real servers, and makes Edit and Write changes.
 //! It answers `--version` and `auth status --json` too, for detection, and `auth login` as setup::sign_in runs it:
-//! `claude-login.mode` in `EMMET_FAKE_DIR` says how the browser sign-in goes (`ok`, `fail`, or `wait`), and
+//! `claude-login.mode` in `EMMET_FAKE_DIR` says how the browser sign-in goes (`ok`, `fail`, `unconfirmed`, or `wait`), and
 //! `claude-login.json` records the arguments and whether stdin was closed.
 
 use std::collections::HashMap;
@@ -220,6 +220,11 @@ fn login(dir: &std::path::Path, args: &[String]) -> ! {
                 dir.join("claude-auth.json"),
                 r#"{"loggedIn":true,"authMethod":"claude.ai","apiKeySource":"none","subscriptionType":"pro"}"#,
             );
+            println!("Login successful.");
+            std::process::exit(0);
+        }
+        // Claude Code says it's done, but `auth status` still says signed out.
+        "unconfirmed" => {
             println!("Login successful.");
             std::process::exit(0);
         }

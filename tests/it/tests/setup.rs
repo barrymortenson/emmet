@@ -199,15 +199,19 @@ fn another_installer_error_shows_its_own_words() {
     );
 }
 
-/// Cancel ends the installer and the downloader it started, so nothing lands afterwards.
+/// Cancel ends the installer and the downloader it started, so nothing lands afterward.
 #[test]
 fn cancel_stops_the_whole_install() {
     let h = home("cancel");
     h.mode("codex", "slow");
     let cancel = Cancel::default();
     let c = cancel.clone();
+    let started = h.fake.join("install-codex.started");
     let t = std::thread::spawn(move || {
-        std::thread::sleep(Duration::from_millis(800));
+        // Once the downloader the installer started is running, so the cancel has a tree to end.
+        while !started.exists() {
+            std::thread::sleep(Duration::from_millis(50));
+        }
         c.cancel();
     });
     let e = setup::install(AgentKind::Codex, &h.env, false, &cancel, &mut |_| {}).expect_err("canceled");
@@ -233,6 +237,37 @@ fn an_unsigned_claude_code_is_refused() {
     let e = h.install(AgentKind::Claude).expect_err("unsigned");
     assert_eq!(e.failure, Failure::Signature, "{e:?}");
     assert!(e.message.contains("isn't signed by Anthropic"), "{}", e.message);
+    // Try again finds the refused copy still there, and refuses it again.
+    let e = h.install(AgentKind::Claude).expect_err("still unsigned");
+    assert_eq!(e.failure, Failure::Signature, "{e:?}");
+}
+
+#[test]
+fn an_install_emmet_cant_find_says_so_and_the_retry_works() {
+    let h = home("elsewhere");
+    h.mode("claude", "elsewhere");
+    let e = h.install(AgentKind::Claude).expect_err("not where Emmet looks");
+    assert_eq!(e.failure, Failure::Failed);
+    assert_eq!(
+        e.message,
+        "The installer finished, but Emmet can't find Claude Code where it installs. Try again."
+    );
+    h.mode("claude", "ok");
+    assert!(h.install(AgentKind::Claude).expect("the retry installs").path.is_some());
+}
+
+/// An installer that exits while a helper of its own still holds its output: Emmet goes by the exit.
+#[test]
+fn an_install_ends_when_the_installer_does() {
+    let h = home("linger");
+    h.mode("codex", "linger");
+    let started = std::time::Instant::now();
+    h.install(AgentKind::Codex).expect("installs");
+    assert!(
+        started.elapsed() < Duration::from_secs(10),
+        "waited {:?} for a helper that holds the output for 20 s",
+        started.elapsed()
+    );
 }
 
 #[test]
@@ -266,6 +301,11 @@ fn a_failed_or_canceled_sign_in_says_so() {
         "cancel ends the wait at once"
     );
 
+    // Claude Code exits 0, but its own status still says signed out.
+    h.login("unconfirmed");
+    let e = setup::sign_in(&h.env, false, &Cancel::default()).expect_err("unconfirmed");
+    assert!(e.message.contains("doesn't show you signed in"), "{}", e.message);
+
     h.login("ok");
     assert!(
         setup::sign_in(&h.env, false, &Cancel::default())
@@ -285,7 +325,16 @@ fn the_antigravity_file_keeps_the_users_servers() {
         r#"{"mcpServers":{"theirs":{"command":"node","args":["x.js"]},"emmet":{"command":"old"}},"other":1}"#,
     )
     .unwrap();
+    assert!(
+        !setup::antigravity_configured(&project, &emmet),
+        "an old entry isn't Emmet's"
+    );
     setup::write_antigravity_config(&project, &emmet).expect("writes");
+    assert!(setup::antigravity_configured(&project, &emmet));
+    assert!(
+        !setup::antigravity_configured(&project, &dir.join("moved/emmet")),
+        "a moved Emmet needs the entry written again"
+    );
     let doc: serde_json::Value = serde_json::from_slice(&std::fs::read(&file).unwrap()).unwrap();
     assert_eq!(
         doc["mcpServers"]["theirs"],

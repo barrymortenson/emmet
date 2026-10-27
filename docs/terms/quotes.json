@@ -261,6 +261,10 @@
           "basis": "Emmet checks Claude Code's signature after an install (ADR 0012)"
         },
         {
+          "text": "signed by \"Anthropic, PBC\"",
+          "basis": "the Windows signer Emmet checks after an install (ADR 0012)"
+        },
+        {
           "text": "The free claude.ai plan does not include Claude Code access",
           "basis": "plan guidance in onboarding (1F)"
         }

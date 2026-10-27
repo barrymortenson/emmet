@@ -88,8 +88,9 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   Codex with one click, running Anthropic's native installer or OpenAI's standalone installer word for word, with the
   elapsed time, Cancel, and one Try again for every failure, said in plain words. Claude Code's Anthropic signature is
   checked after an install. "Sign in to Claude" runs Claude Code's own `claude auth login`, which opens the browser;
-  if the browser shows a code to paste, the card offers Open Terminal instead. Each card says which plans work, with
-  the provider's page, and the provider notice comes once, before the first install or sign-in.
+  if the browser shows a code to paste, the card offers Open Terminal instead. "Sign in to Codex" opens Settings →
+  Agents (1E's sign-in). Each card says which plans work, with the provider's page, and the provider notice comes
+  before the first install or sign-in, until the user accepts it.
 - Antigravity in terminal mode: the chat picker finds `agy`, adds Emmet's tools to the project's
   `.agents/mcp_config.json` with one click (never `~/.gemini`), and opens a terminal in the project folder.
 - `fake-install` (tests/fake-agents) stands in for the installers, and fake-claude answers `auth login`.
@@ -104,8 +105,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 ### Fixed
 
 - Sign in with ChatGPT on Windows: the credential record (three tokens) is longer than the 2,560 bytes a Windows
-  credential holds, so the sign-in failed after OpenAI's page. Long secrets are now split across entries (1F, found
-  in its Windows hand check).
+  credential holds, so the sign-in failed after OpenAI's page. Long secrets are now split across credentials on
+  Windows (1F, found in its Windows hand check).
 
 ### Changed
 

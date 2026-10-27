@@ -105,7 +105,8 @@ pub struct Detection {
     pub supported: bool,
     pub signed_in: bool,
     pub billing: Billing,
-    /// The one step that makes the agent usable, when it isn't: a command for the user's terminal, or a setting.
+    /// What's missing, in a plain sentence, when the agent isn't usable (the setup cards carry the actions); for Codex,
+    /// the setting to change.
     pub fix: Option<String>,
     /// A quiet note: an untested version.
     pub note: Option<String>,

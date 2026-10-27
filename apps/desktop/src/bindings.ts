@@ -41,7 +41,7 @@ export const commands = {
 	claudeSignIn: (console: boolean) => typedError<null, SetupError>(__TAURI_INVOKE("claude_sign_in", { console })),
 	/**  Stops `kind`'s install or sign-in. */
 	agentCancel: (kind: AgentKind) => __TAURI_INVOKE<void>("agent_cancel", { kind }),
-	/**  The provider notice (D-37) was shown: true once the user has seen it. */
+	/**  Whether the user has accepted the provider notice (D-37) with Continue. */
 	providerNotice: () => __TAURI_INVOKE<boolean>("provider_notice"),
 	providerNoticeSeen: () => typedError<null, Problem>(__TAURI_INVOKE("provider_notice_seen")),
 	/**
@@ -193,7 +193,10 @@ export type Antigravity = {
 	version: string | null,
 };
 
-/**  What the Antigravity card shows (D-42): where agy is, and whether the open project has Emmet's MCP server. */
+/**
+ *  What the Antigravity card shows (D-42): where agy is, and whether the open project has Emmet's MCP server as Emmet
+ *  would write it now.
+ */
 export type AntigravityView = {
 	found: Antigravity,
 	configured: boolean,
@@ -326,7 +329,10 @@ export type Detection = {
 	supported: boolean,
 	signed_in: boolean,
 	billing: Billing,
-	/**  The one step that makes the agent usable, when it isn't: a command for the user's terminal, or a setting. */
+	/**
+	 *  What's missing, in a plain sentence, when the agent isn't usable (the setup cards carry the actions); for Codex,
+	 *  the setting to change.
+	 */
 	fix: string | null,
 	/**  A quiet note: an untested version. */
 	note: string | null,
@@ -347,7 +353,9 @@ export type Failure =
 /**  The installer's own checksum check failed. */
 "checksum" | 
 /**  The installed binary isn't signed by its publisher. */
-"signature" | "canceled" | "timed_out" | "failed";
+"signature" | "canceled" | "timed_out" | 
+/**  An install or sign-in for this agent is already running. */
+"busy" | "failed";
 
 /**  One validator finding (plan section 11), for the Checks drawer. */
 export type Finding = {

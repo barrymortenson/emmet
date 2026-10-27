@@ -5,13 +5,14 @@
 //! per Sign in with ChatGPT registration (`chatgpt:<client id>`, 1E).
 //!
 //! The Windows Credential Manager holds at most 2,560 bytes a credential, which the store writes as UTF-16 (1,280
-//! units), and a Sign in with ChatGPT record (three tokens) is longer: a secret that doesn't fit is split into
-//! `<entry>#1`, `<entry>#2`, …, with `emmet-parts:<n>` in the entry itself. One that fits is stored as it is.
+//! units), and a Sign in with ChatGPT record (three tokens) is longer. On Windows (and in the fake keychain), a secret
+//! that doesn't fit is split into `<entry>#1`, `<entry>#2`, …, with `emmet-parts:<n>` in the entry itself; one that
+//! fits is stored as it is. The macOS Keychain has no such limit and stores every secret whole.
 //!
 //! Tests never touch the real keychain: in a debug build, `EMMET_FAKE_KEYCHAIN=<file>` in the agents' environment
 //! keeps the API key in that file instead, and each other entry in `<file>.<entry>`, with any character but ASCII
-//! letters, digits, `_`, and `-` made `-` (so `chatgpt:<id>` is `<file>.chatgpt-<id>`). The fake refuses a secret over
-//! Windows' limit on every OS, as the Credential Manager does.
+//! letters, digits, `_`, and `-` made `-` (so `chatgpt:<id>` is `<file>.chatgpt-<id>`). The fake splits as Windows
+//! does, and refuses any one file over Windows' limit on every OS, as the Credential Manager does.
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -126,10 +127,16 @@ fn splits(env: &[(String, String)], account: &str) -> bool {
 }
 
 /// How many parts the entry's secret is split into (0 when it isn't, or there's none).
-fn parts(head: Option<&str>) -> usize {
-    head.and_then(|h| h.strip_prefix(PARTS))
-        .and_then(|n| n.parse().ok())
-        .unwrap_or(0)
+fn parts(account: &str, head: Option<&str>) -> Result<usize> {
+    match head.and_then(|h| h.strip_prefix(PARTS)) {
+        None => Ok(0),
+        Some(n) => n.parse().map_err(|_| {
+            AgentError::new(
+                AgentErrorCode::Io,
+                format!("the keychain: {account} names no part count ({n})"),
+            )
+        }),
+    }
 }
 
 /// `secret` in pieces of at most [`PART`] UTF-16 units each.
@@ -152,7 +159,7 @@ pub fn get_entry(env: &[(String, String)], account: &str) -> Result<Option<Strin
     let Some(head) = raw_get(env, account)? else {
         return Ok(None);
     };
-    let n = parts(Some(&head));
+    let n = parts(account, Some(&head))?;
     if n == 0 {
         return Ok(Some(head));
     }
@@ -172,12 +179,14 @@ pub fn set_entry(env: &[(String, String)], account: &str, secret: &str) -> Resul
     if !splits(env, account) {
         return raw_set(env, account, secret);
     }
-    let old = parts(raw_get(env, account)?.as_deref());
+    let old = parts(account, raw_get(env, account)?.as_deref()).unwrap_or(0);
     let new = if secret.encode_utf16().count() <= LIMIT {
         raw_set(env, account, secret)?;
         0
     } else {
-        // The parts first, so the entry never names a part that isn't there yet.
+        // The entry goes first and comes back last, so a write that fails partway leaves no record, never one that
+        // mixes new parts with old.
+        raw_clear(env, account)?;
         let pieces = split(secret);
         for (i, p) in pieces.iter().enumerate() {
             raw_set(env, &part(account, i + 1), p)?;
@@ -195,7 +204,7 @@ pub fn clear_entry(env: &[(String, String)], account: &str) -> Result<()> {
     if !splits(env, account) {
         return raw_clear(env, account);
     }
-    let n = parts(raw_get(env, account)?.as_deref());
+    let n = parts(account, raw_get(env, account)?.as_deref()).unwrap_or(0);
     raw_clear(env, account)?;
     for i in 1..=n {
         raw_clear(env, &part(account, i))?;

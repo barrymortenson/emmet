@@ -242,7 +242,7 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **Claude's sign-in without a terminal, and its fallback.** Emmet runs Claude Code's own `claude auth login`,
   unmodified, from Rust: with stdin closed and no TTY it opens the browser itself and finishes on a `localhost`
   callback, so no pseudo-terminal dependency is needed. When the browser can't reach that callback, Claude's page shows
-  a code to paste into Claude Code. Barry chose that Emmet never touches the code: its sign-in window explains what
+  a code to paste into Claude Code. Barry chose that Emmet never touches the code: its sign-in card explains what
   happened and offers the one-command Open Terminal card, over a field in Emmet that passes the code to Claude Code's
   stdin, which would have Emmet handle a sign-in credential.
 - **Antigravity's MCP server goes in the project.** Antigravity has no command to add an MCP server; its docs name a

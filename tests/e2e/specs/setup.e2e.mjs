@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Agent setup without a terminal (session 1F, D-41): from the chat pane's picker, with neither fake CLI installed,
-// the provider notice comes once, before the first install; offline, a checksum mismatch, and a cancel each say what
-// happened with one Try again; the install then works, Claude Code's sign-in fails and is retried, and both agents end
-// up ready, all by clicks. Antigravity's card adds Emmet's tools to the project. No agent config in the home changes.
+// the provider notice comes before the first install (Not now runs and records nothing), and once accepted never
+// again; offline, a checksum mismatch, and a cancel each say what happened with one Try again; the install then works,
+// Claude Code's sign-in fails and is retried, and both agents end up ready, all by clicks. Antigravity's card adds
+// Emmet's tools to the project. No agent config in the home changes.
 import { $, expect } from "@wdio/globals";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -67,6 +68,19 @@ describe("agent setup without a terminal", () => {
     expect(readFileSync(join(fakeDir, "opened.txt"), "utf8")).toContain("https://code.claude.com/docs/en/setup#authenticate");
   });
 
+  it("runs nothing and records nothing when the notice is put off", async () => {
+    mode("claude", "offline");
+    await click("#install-claude");
+    await (await $("#provider-notice")).waitForDisplayed({ timeout: 10_000 });
+    await browser.execute(() =>
+      [...document.querySelectorAll("#provider-notice button")].find((b) => b.textContent.trim() === "Not now").click(),
+    );
+    await browser.waitUntil(async () => !(await (await $("#provider-notice")).isExisting()), { timeout: 10_000 });
+    await browser.pause(500);
+    expect(existsSync(join(fakeDir, "install-claude.log"))).toBe(false);
+    expect(existsSync(join(process.env.EMMET_DATA_DIR, "setup.json"))).toBe(false);
+  });
+
   it("shows the provider notice once, then says the install couldn't reach Anthropic", async () => {
     mode("claude", "offline");
     await click("#install-claude");
@@ -88,7 +102,7 @@ describe("agent setup without a terminal", () => {
     expect(await (await $("#provider-notice")).isExisting()).toBe(false);
   });
 
-  it("cancels an install, and nothing lands afterwards", async () => {
+  it("cancels an install, and nothing lands afterward", async () => {
     mode("claude", "slow");
     await click("#retry-claude");
     await (await $("#job-claude")).waitForExist({ timeout: 10_000 });

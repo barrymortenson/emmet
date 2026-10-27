@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! First run (plan section 14, until 4A designs it): when the LDraw library or Python isn't set up, the window offers
 //! one Set up button, which runs the emmet sidecar's `library install` and `doctor --fix`, so a fresh install works
-//! without a terminal. Then the agents (D-41, ADR 0012): Install runs the provider's own installer, Sign in runs
-//! Claude Code's own `claude auth login`, both after the provider notice (D-37) has been shown once; and Antigravity's
-//! terminal mode gets Emmet's MCP server in the project's `.agents/mcp_config.json` (D-42).
+//! without a terminal. Then the agents (D-41, ADR 0012): Install runs the provider's own installer and Sign in runs
+//! Claude Code's own `claude auth login`; the window asks for the provider notice (D-37) first, until the user accepts
+//! it. Antigravity's terminal mode gets Emmet's MCP server in the project's `.agents/mcp_config.json` (D-42).
 
 use std::collections::HashMap;
 use std::process::{Command, Stdio};
 use std::sync::Mutex;
 
 use emmet_agent::AgentKind;
-use emmet_agent::setup::{Cancel, SetupError};
+use emmet_agent::setup::{Cancel, Failure, SetupError};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Manager};
@@ -18,21 +18,35 @@ use tauri_specta::Event;
 
 use crate::app::{AppState, Problem};
 
-/// The install or sign-in running for each agent, to cancel it.
+/// The install or sign-in running for each agent, to cancel it. One at a time per agent: the start screen and the
+/// picker each have a card, and a second click mustn't end the first job or take its Cancel.
 #[derive(Default)]
 pub struct Jobs(Mutex<HashMap<AgentKind, Cancel>>);
 
 impl Jobs {
-    fn start(&self, kind: AgentKind) -> Cancel {
-        let cancel = Cancel::default();
-        if let Some(old) = self.0.lock().expect("jobs").insert(kind, cancel.clone()) {
-            old.cancel();
+    fn start(&self, kind: AgentKind) -> Result<Cancel, SetupError> {
+        let mut jobs = self.0.lock().expect("jobs");
+        if jobs.contains_key(&kind) {
+            return Err(SetupError {
+                failure: Failure::Busy,
+                message: format!(
+                    "Emmet is already installing or signing in to {}. Wait for it to finish, or cancel it.",
+                    kind.label()
+                ),
+                detail: None,
+            });
         }
-        cancel
+        let cancel = Cancel::default();
+        jobs.insert(kind, cancel.clone());
+        Ok(cancel)
     }
 
-    fn end(&self, kind: AgentKind) {
-        self.0.lock().expect("jobs").remove(&kind);
+    /// Forgets `cancel`'s job, and only that one.
+    fn end(&self, kind: AgentKind, cancel: &Cancel) {
+        let mut jobs = self.0.lock().expect("jobs");
+        if jobs.get(&kind).is_some_and(|c| c.same(cancel)) {
+            jobs.remove(&kind);
+        }
     }
 }
 
@@ -43,27 +57,24 @@ pub struct SetupEvent {
     pub line: String,
 }
 
-/// Runs `job` for `kind` on a blocking thread, cancelable with `agent_cancel`; detection runs again after it.
+/// Runs `job` for `kind` on a blocking thread, cancelable with `agent_cancel`. Afterwards, even if it crashed, the
+/// cached agent list is dropped so the window's next `agents` call detects again.
 async fn job<T: Send + 'static>(
     app: &AppHandle,
     kind: AgentKind,
     job: impl FnOnce(&AppState, &Cancel) -> Result<T, SetupError> + Send + 'static,
 ) -> Result<(), SetupError> {
-    let handle = app.clone();
-    let result = tauri::async_runtime::spawn_blocking(move || {
-        let state = handle.state::<AppState>();
-        let cancel = state.jobs.start(kind);
-        let r = job(&state, &cancel);
-        state.jobs.end(kind);
-        state.chat.forget_agents();
-        r.map(|_| ())
-    })
-    .await;
+    let cancel = app.state::<AppState>().jobs.start(kind)?;
+    let (handle, c) = (app.clone(), cancel.clone());
+    let result = tauri::async_runtime::spawn_blocking(move || job(&handle.state::<AppState>(), &c).map(|_| ())).await;
+    let state = app.state::<AppState>();
+    state.jobs.end(kind, &cancel);
+    state.chat.forget_agents();
     result.unwrap_or_else(|e| {
         Err(SetupError {
-            failure: emmet_agent::setup::Failure::Failed,
-            message: e.to_string(),
-            detail: None,
+            failure: Failure::Failed,
+            message: "Something went wrong inside Emmet while setting up the agent. Try again.".into(),
+            detail: Some(e.to_string()),
         })
     })
 }
@@ -107,7 +118,7 @@ pub fn agent_cancel(app: AppHandle, kind: AgentKind) {
     }
 }
 
-/// The provider notice (D-37) was shown: true once the user has seen it.
+/// Whether the user has accepted the provider notice (D-37) with Continue.
 #[tauri::command]
 #[specta::specta]
 pub fn provider_notice(app: AppHandle) -> bool {
@@ -125,7 +136,7 @@ pub fn provider_notice_seen(app: AppHandle) -> Result<(), Box<Problem>> {
 /// never one the window names.
 #[tauri::command]
 #[specta::specta]
-pub fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<Problem>> {
+pub async fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<Problem>> {
     let dir = if in_project {
         Some(
             app.state::<AppState>()
@@ -135,8 +146,9 @@ pub fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<Problem
     } else {
         None
     };
-    // The folder is the working directory, never an argument: cmd.exe would parse a name with & or ^ in it. Both
-    // programs go by full path, since `start` would look for powershell.exe in that folder first.
+    // On Windows the folder is the working directory, never an argument: cmd.exe would parse a name with & or ^ in it.
+    // cmd.exe and powershell.exe go by full path, since `start` would look for powershell.exe in that folder first.
+    // On macOS, `open -a Terminal <folder>` takes it as an argument, which no shell parses.
     let mut cmd = if cfg!(windows) {
         let system = std::path::Path::new(&std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into()))
             .join("System32");
@@ -157,9 +169,15 @@ pub fn open_terminal(app: AppHandle, in_project: bool) -> Result<(), Box<Problem
     }
     cmd.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     crate::runs::no_window(&mut cmd);
-    cmd.spawn()
-        .map(|_| ())
-        .map_err(|e| Problem::internal(format!("Emmet couldn't open a terminal: {e}")))
+    // Both launchers return as soon as the terminal opens, so their status says whether it did.
+    let status = tauri::async_runtime::spawn_blocking(move || cmd.status())
+        .await
+        .map_err(|e| Problem::internal(e.to_string()))?;
+    match status {
+        Ok(s) if s.success() => Ok(()),
+        Ok(s) => Err(Problem::internal(format!("Emmet couldn't open a terminal ({s})."))),
+        Err(e) => Err(Problem::internal(format!("Emmet couldn't open a terminal: {e}"))),
+    }
 }
 
 /// The provider's own page saying which plans include its CLI (D-41), in the browser.
@@ -173,7 +191,8 @@ pub fn open_plans(app: AppHandle, kind: AgentKind) -> Result<(), Box<Problem>> {
     emmet_agent::chatgpt::open_url(app.state::<AppState>().chat.env(), url).map_err(|e| Problem::internal(e.message))
 }
 
-/// What the Antigravity card shows (D-42): where agy is, and whether the open project has Emmet's MCP server.
+/// What the Antigravity card shows (D-42): where agy is, and whether the open project has Emmet's MCP server as Emmet
+/// would write it now.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct AntigravityView {
     pub found: emmet_agent::setup::Antigravity,
@@ -185,12 +204,9 @@ pub struct AntigravityView {
 pub async fn antigravity(app: AppHandle) -> AntigravityView {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<AppState>();
-        let configured = state.open_root().is_some_and(|root| {
-            std::fs::read(emmet_agent::setup::antigravity_config(&root))
-                .ok()
-                .and_then(|b| serde_json::from_slice::<Value>(&b).ok())
-                .is_some_and(|d| d["mcpServers"]["emmet"].is_object())
-        });
+        let configured = state
+            .open_root()
+            .is_some_and(|root| emmet_agent::setup::antigravity_configured(&root, &state.emmet));
         AntigravityView {
             found: emmet_agent::setup::antigravity(state.chat.env()),
             configured,
@@ -285,4 +301,36 @@ fn sidecar(state: &AppState, args: &[&str]) -> Result<(), Box<Problem>> {
         "Setup didn't finish: {}.",
         failed.join("; ")
     )))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The start screen and the picker each have a card: a second start while one runs is refused, and only the job
+    /// that's ending can take its own entry away.
+    #[test]
+    fn one_job_per_agent_and_each_ends_only_itself() {
+        let jobs = Jobs::default();
+        let first = jobs.start(AgentKind::Claude).expect("starts");
+        let Err(busy) = jobs.start(AgentKind::Claude) else {
+            panic!("a second start while one runs")
+        };
+        assert_eq!(busy.failure, Failure::Busy);
+        assert!(!first.canceled(), "a second click doesn't end the first job");
+        assert!(jobs.start(AgentKind::Codex).is_ok(), "the other agent is its own");
+
+        jobs.end(AgentKind::Claude, &Cancel::default());
+        assert!(
+            jobs.start(AgentKind::Claude).is_err(),
+            "another job's end left this one alone"
+        );
+        jobs.end(AgentKind::Claude, &first);
+        let next = jobs.start(AgentKind::Claude).expect("free again");
+        jobs.end(AgentKind::Claude, &first);
+        assert!(
+            jobs.0.lock().unwrap()[&AgentKind::Claude].same(&next),
+            "a late end of the old job keeps the new"
+        );
+    }
 }
