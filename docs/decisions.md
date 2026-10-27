@@ -51,7 +51,8 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   yet (their studs have no connectors, so a stacked DUPLO brick reads as floating). DUPLO and 1.5+ are backlog session
   8H. Scale uses the hobby's words, small to large: Micro, Micropolis (the community micro city standard, built on
   16 x 16 modules), Midi, Figure scale (what the hobby calls minifig scale; LEGO lists the Minifigure among its marks,
-  so D-30 keeps the plain name), Large (Miniland is LEGOLAND's name), and Car 1:8. "Mini town" and "Display" weren't
+  so D-30 keeps the plain name), Large (Miniland is LEGOLAND's name, and no official sets come at its 1:20, so Large names no ratio; the large display
+  cars, like the Ford Mustang at about 1:13, fit it), and Car 1:8. "Mini town" and "Display" weren't
   terms anyone uses.
 - **Say each thing once.** Barry asked for a pass over every screen for duplicated or redundant UI. In B: one Stop
   (in the status, with Esc); the status shows only when it adds something (not "Idle", not when a card below says it);

@@ -239,7 +239,7 @@ window.EMMET_DATA = (() => {
         { id: "Micropolis", sub: "The community micro city standard: 16 × 16 modules, two-stud roads, a brick about 9 feet tall" },
         { id: "Midi", sub: "Between micro and figure scale: the shape and the main details" },
         { id: "Figure scale", sub: "Doors and rooms fit a 4-brick-tall figure, about 1:42" },
-        { id: "Large", sub: "About twice figure scale, about 1:20, for display" },
+        { id: "Large", sub: "Bigger than figure scale, for display, like the large display cars" },
         { id: "Car 1:8", sub: "A large car with gears, panels, and working steering" },
       ],
     },
