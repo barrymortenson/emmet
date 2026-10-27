@@ -104,7 +104,7 @@ window.EMMET_UI = (() => {
   function errorCard() {
     const e = D.buildError;
     return `<div class="e-err" role="alert"><div class="e-err-top">${icon("warn", "e-bad")}<b>The model didn't build</b><span class="e-chip">model.py:${e.line}</span></div>
-      <p>${esc(e.message)}</p><pre class="e-src"><span class="e-ln">${e.line}</span>${esc(e.excerpt.trim())}</pre>
+      <p>${esc(e.message)}</p><pre class="e-src">${[].concat(e.excerpt).map((l, i) => `<span class="e-ln">${e.line + i}</span>${esc(l)}`).join("\n")}</pre>
       <div class="e-row">${btn("Ask agent to fix", "fix", "e-primary")}${btn("Open model.py", "", "e-quiet", "file")}</div><p class="e-small">The last good model is still shown.</p></div>`;
   }
   // A finished run of three or more tool cards folds into one line (note 2: less in the chat); a run still going, or
@@ -339,7 +339,7 @@ window.EMMET_UI = (() => {
         <div class="e-row">${btn("Check agents again", "", "e-quiet", "refresh")}${btn("Continue", "primary", "e-primary e-lg")}</div>`;
     } else {
       body = `<h1>What do you want to build?</h1><p class="e-lede">New projects go in Documents/Emmet. You can change that in Settings.</p>
-        <div class="e-start"><button type="button" class="e-start-card" data-act="example"><span class="e-thumbbox">${shot("cottage", document.documentElement.dataset.theme)}</span><b>Start with the Cottage example</b><span class="e-small">93 parts, six sliders, ready to tweak</span></button>
+        <div class="e-start"><button type="button" class="e-start-card" data-act="example"><span class="e-thumbbox">${shot("cottage", document.documentElement.dataset.theme)}</span><b>Start with the Cottage example</b><span class="e-small">163 parts: a real door, glass windows, and a room inside</span></button>
         <button type="button" class="e-start-card" data-act="prompt"><span class="e-thumbbox">${shot("empty", document.documentElement.dataset.theme)}</span><b>New model from a prompt</b><span class="e-small">An empty baseplate and your agent</span></button></div>
         <p class="e-small">Or open a folder, or an LDraw file from Studio, LDCad, or LeoCAD.</p>`;
     }

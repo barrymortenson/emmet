@@ -44,7 +44,7 @@ monospace, quiet; the model is lit gray on a near-black grid and takes about 80 
 
 - **The agent's state is easy to miss.** "running a command" rows scroll away inside the chat; nothing outside the
   chat says the agent is busy. Barry saw the same in Emmet's 1C pane (note 1).
-- **Tool rows say what kind of thing ran, not what it did.** "running a command" doesn't say "Built 93 parts, 0
+- **Tool rows say what kind of thing ran, not what it did.** "running a command" doesn't say "Built 163 parts, 0
   issues"; law 3 asks for the plain-language result.
 - **Dense monospace everywhere.** It suits 3D-printing people; Emmet's users include people who have never opened a
   terminal (D-41).
@@ -178,7 +178,7 @@ Public pages only: nothing was downloaded, run, or signed up for. Where a source
 3. **Checks on the model, with a reason and a click.** Studio paints problems on parts but says nothing about why;
    nurb pins them with numbers. Every finding gets a pin or a highlight, one plain sentence, the model.py line, and
    "Ask agent to fix".
-4. **Plain-language tool cards, code folded away** (note 2): "Built 93 parts · ✓ clean", never the raw JSON by default.
+4. **Plain-language tool cards, code folded away** (note 2): "Built 163 parts · ✓ clean", never the raw JSON by default.
 5. **Sliders are drafts until kept**, with docstring help in words, grouped by what they change (size, colors,
    options), and color pickers that only offer colors the part comes in (LeoCAD's gap).
 6. **Steps as a list of parts per step**, and clicking a step shows the model only up to it (note 6).

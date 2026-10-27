@@ -20,7 +20,7 @@
   function tree(s) {
     // Only the steps built so far (a build in progress, or the step the scrubber shows).
     const cur = s.step || (s.build.parts ? D.stepOf(s.build.parts) : D.steps.length);
-    const groups = [["Baseplate", [1]], ["Walls", [2, 3, 4, 5, 6, 7]], ["Ceiling", [8]], ["Roof", [9, 10, 11]], ["Chimney", [12]]];
+    const groups = [["Baseplate", [1]], ["Walls", [2, 3, 4, 5, 6, 7]], ["Inside", [8]], ["Path and flowers", [9]], ["Ceiling", [10]], ["Roof", [11, 12, 13, 14]], ["Chimney", [15]]];
     const rows = groups.map(([g, ns]) => {
       const parts = ns.filter((i) => s.step || i <= cur).reduce((n, i) => n + D.steps[i - 1].parts, 0);
       const later = ns[0] > cur;
@@ -30,13 +30,13 @@
     const f = s.build.state === "findings";
     return `<nav class="a-rail" aria-label="Project">
       <p class="a-h">Model</p><ul class="a-tree"><li class="a-root"><span>${U.icon("chev")}${esc(s.imported ? D.imported.file : "cottage")}</span><span class="a-dim">${s.build.parts || 0}</span></li>${s.build.state === "empty" ? "" : rows}</ul>
-      <p class="a-h">Checks</p><p class="a-check" data-tone="${f ? "warn" : "ok"}">${U.icon(f ? "warn" : "check")}${f ? "1 problem: 8 floating parts" : s.build.state === "empty" ? "Waiting for the first build" : "No problems"}</p>
+      <p class="a-h">Checks</p><p class="a-check" data-tone="${f ? "warn" : "ok"}">${U.icon(f ? "warn" : "check")}${f ? "1 problem: 9 floating parts" : s.build.state === "empty" ? "Waiting for the first build" : "No problems"}</p>
       <p class="a-h">Files</p><ul class="a-files">${(s.imported ? [D.imported.file, "CARD.md"] : ["model.py", "params.json", "CARD.md"]).map((f) => `<li>${U.icon("file")}${esc(f)}</li>`).join("")}</ul>
     </nav>`;
   }
 
   function viewer(s, ctx) {
-    const pin = s.build.state === "findings" ? `<button type="button" class="a-pin" data-tab="checks" title="F-0001: 8 floating parts">${U.icon("warn")}<span>8 floating</span></button>` : "";
+    const pin = s.build.state === "findings" ? `<button type="button" class="a-pin" data-tab="checks" title="F-0001: 9 floating parts">${U.icon("warn")}<span>9 floating</span></button>` : "";
     const failed = s.build.state === "failed" ? `<div class="a-vnote" data-tone="bad">${U.icon("warn")}Build failed · the last good model is still shown</div>` : "";
     const ro = s.build.state === "readonly" ? `<div class="a-vnote" data-tone="warn">${U.icon("lock")}Read-only · model.py hasn't run</div>` : "";
     return `<section class="a-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}

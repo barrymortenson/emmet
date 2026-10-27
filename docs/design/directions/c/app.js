@@ -103,7 +103,7 @@
     const b = s.build;
     const step = s.step || (b.parts && b.state !== "failed" ? D.stepOf(b.parts) : D.steps.length);
     const tone = U.buildTone(b);
-    const pin = b.state === "findings" ? `<button type="button" class="c-pin" data-tab="checks" title="F-0001: 8 floating parts">${U.icon("warn")}<span>F-0001 · 8 floating</span></button>` : "";
+    const pin = b.state === "findings" ? `<button type="button" class="c-pin" data-tab="checks" title="F-0001: 9 floating parts">${U.icon("warn")}<span>F-0001 · 9 floating</span></button>` : "";
     return `<section class="c-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}
       <div class="c-hud"><span class="c-readout" data-tone="${tone}">${b.state === "building" ? U.spinner() : U.icon(tone === "bad" || tone === "warn" ? "warn" : b.state === "readonly" ? "lock" : "check")}<span>${esc(U.buildText(b))}</span></span>
         <span class="c-grow"></span>${U.views()}</div>

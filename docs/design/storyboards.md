@@ -3,13 +3,13 @@
 The nine key flows from plan section 14 as short annotated storyboards. Each frame names its screen in
 `shared/states.js`; open it in any direction with `directions/<a|b|c>/index.html#s=<screen>&t=light` (or `t=dark`),
 from the folder, no server needed. The words are the app's real ones (from 1C-1F and the transcripts); the numbers are
-the cottage's (93 parts, 12 steps, 6 sliders).
+the cottage template's (163 parts, 15 steps; knobs for weathering, the roof, the chimney, and Shuffle).
 
 ## Information architecture
 
 ```
 Emmet window (one project per window)
-├── Title: project name and menu · build state ("Built 93 parts in 0.1 s · no problems")
+├── Title: project name and menu · build state ("Built 163 parts in 0.1 s · no problems")
 ├── Viewer (the hero, law 1): the model · views (Iso, Front, Top) · frame · screenshot · step scrubber
 │   └── on the model: a finding's pin and highlight · the build animation and Skip
 ├── The agent
@@ -47,10 +47,10 @@ library, an imported file with no model.py.
 | 1 | `new-empty` | An empty baseplate (note 8); the composer holds the rung 1 prompt | (idle) |
 | 2 | `thinking` | The message is sent; a collapsed "Thinking" line | "Thinking about the cottage · 0:04" |
 | 3 | `question` | The agent asks "Which style should the cottage have?" (from the rung 1 transcript); work waits | "Waiting for your answer" |
-| 4 | `building` | Rules read, parts found, model.py written (folded); 36 parts drop in, Skip | "Building the walls, row 3 of 6 · 0:22" |
-| 5 | `redirect` | 68 parts; the user typed "put the chimney at the back, like the stone one on this house:" and pasted a link: a pending bubble | "Building the walls and ceiling · 0:31" |
+| 4 | `building` | Rules read, parts found, model.py written (folded); 52 parts drop in, Skip | "Building the walls, row 3 of 6 · 0:22" |
+| 5 | `redirect` | 108 parts; the user typed "put the chimney at the back, like the stone one on this house:" and pasted a link: a pending bubble | "Building the walls and ceiling · 0:31" |
 | 6 | `approval` | The redirect is delivered and acknowledged; the agent asks to open the pasted link (its own web tool, outside its sandbox, D-40) | "Waiting for you to allow a web request" |
-| 7 | `built` | 93 parts, no problems; the finished run folds to one line; the agent's summary | "Done in 1:12" |
+| 7 | `built` | 163 parts, no problems: a real door, glass windows, a room inside; the finished run folds to one line; the agent's summary | "Done in 1:12" |
 
 ## 3. Tweak with sliders
 
@@ -64,22 +64,22 @@ library, an imported file with no model.py.
 
 | # | Screen | What happens |
 |---|---|---|
-| 1 | `findings` | "8 parts aren't held by anything": the chimney is highlighted, the rest dimmed; the finding shows model.py lines 142-143 and the hint from `emmet check` |
-| 2 | `fixing` | "Ask agent to fix" sent the finding (the form the fix-collision transcript records); the agent edits line 142 and rebuilds |
-| 3 | `built` | 93 parts, 0 findings |
+| 1 | `findings` | "9 parts aren't held by anything": the chimney is highlighted, the rest dimmed; the finding shows model.py lines 253-254 and the hint from `emmet check` |
+| 2 | `fixing` | "Ask agent to fix" sent the finding (the form the fix-collision transcript records); the agent edits line 253 and rebuilds |
+| 3 | `built` | 163 parts, 0 findings |
 
 ## 5. Export
 
 | # | Screen | What happens |
 |---|---|---|
-| 1 | `built` | Parts: 93 parts in 10 kinds |
+| 1 | `built` | Parts: 163 parts in 29 kinds |
 | 2 | `export` | Parts list: CSV, Rebrickable, BrickLink XML · Model: LDraw .mpd · Instructions: PDF, LPub3D-ready |
 
 ## 6. Open an existing LDraw file
 
 | # | Screen | What happens |
 |---|---|---|
-| 1 | `import` | `cottage.mpd` opens as an imported project: 93 parts in 12 steps, the steps list, no sliders yet; "Make it parametric" asks the agent |
+| 1 | `import` | `cottage.mpd` opens as an imported project: 163 parts in 15 steps, the steps list, no sliders yet; "Make it parametric" asks the agent |
 
 ## 7. Switch agent mid-project
 
@@ -102,16 +102,16 @@ library, an imported file with no model.py.
 | 1 | `building` | Parts drop in by step; Skip shows the finished stage at once |
 | 2 | `redirect` | A pending bubble: Edit, Cancel, "Stop and send now"; it goes at the agent's next step |
 | 3 | `approval` → `built` | Delivered and acknowledged; the agent asks to open the pasted link, then builds the chimney at the back |
-| 4 | `stopped` | Or Esc: "You stopped the turn at 0:41. The model is as its last run left it: 68 parts." |
+| 4 | `stopped` | Or Esc: "You stopped the turn at 0:41. The model is as its last run left it: 108 parts." |
 
 ## The other states
 
 | Screen | Section 14 state | What the user sees |
 |---|---|---|
-| `failed` | Build failed | "The model didn't build": the real TypeError, model.py line 78, Ask agent to fix; the last good model stays |
+| `failed` | Build failed | "The model didn't build": the real TypeError, model.py line 121, Ask agent to fix; the last good model stays |
 | `crashed` | Agent crashed | "Claude Code stopped unexpectedly"; the project is untouched; Restart |
 | `signed-out` | Agent not installed or not signed in | "Claude isn't signed in": Sign in to Claude, or Use Codex instead |
 | `untrusted` | Untrusted project | Read-only, with the real message from `emmet run`; Read model.py, Trust this project |
 | `offline` | Offline | Building, checks, sliders, and exports work; the agent and downloads wait |
 | `old-library` | An old library version | 2026-06 against the expected 2026-09; Update the library |
-| `model-picker`, `usage`, `steps` | (notes 4, 6; section 10's usage) | Model and effort; plan usage; step 8 shows only what's built by then |
+| `model-picker`, `usage`, `steps` | (notes 4, 6; section 10's usage) | Model and effort; plan usage; step 9 shows only what's built by then |

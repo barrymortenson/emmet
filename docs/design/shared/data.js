@@ -11,23 +11,25 @@ window.EMMET_DATA = (() => {
     "weathered-1": { k: 1, ty: 0 },
     "weathered-2": { k: 1, ty: 0 },
     finding: { k: 1, ty: 0 },
-    stage1: { k: 0.9626, ty: 5.77 },
-    stage2: { k: 0.9641, ty: 5.44 },
-    stage3: { k: 0.9801, ty: 3.08 },
-    empty: { k: 0.9164, ty: 12.9 },
-    "cottage-front": { k: 1, ty: 0 },
+    stage1: { k: 0.9544, ty: 6.94 },
+    stage2: { k: 0.9544, ty: 6.94 },
+    stage3: { k: 0.9718, ty: 4.27 },
+    empty: { k: 0.9086, ty: 14 },
   };
 
-  // The model's own knobs: character, not raw dimensions (Barry 2026-10-27). The agent picks two to five that change
-  // what the model is like (how weathered, which features, another random arrangement); size, look, and color are
-  // build settings or the prompt. These are real: a copy of the cottage whose model.py adds `weathering` (that share
-  // of wall bricks laid in Reddish Brown, by `random.Random(seed)`) and `seed`, run and rendered at 20 % with seeds 1
-  // and 2 (93 parts either way, 126 ms).
+  // The model's own knobs: character, not raw dimensions (Barry 2026-10-27). The agent picks a few that change what
+  // the model is like (how weathered, which features, another random arrangement); size, look, and color are build
+  // settings or the prompt. These are the cottage template's own (crates/emmet-core/templates/cottage/model.py):
+  // `weathering` lays that share of wall bricks in Reddish Brown by `random.Random(seed)`, and `roof` off shows the
+  // room inside. Rendered at 20 % with seeds 1 and 2 (163 parts either way). Its width, depth, and wall height stay in
+  // model.py for the rung 1 ladder and the tests, but the knobs panel leads with these.
   const params = [
-    { name: "weathering", label: "Weathering", type: "int", value: 0, min: 0, max: 30, unit: "%", help: "how much old brick shows through the walls", group: "Look", line: 48 },
-    { name: "chimney", label: "Chimney", type: "bool", value: true, help: "add a brick chimney at the back", group: "Features", line: 47 },
-    { name: "seed", label: "Arrangement", type: "seed", value: 1, help: "another random arrangement of the same design", group: "Variation", line: 49 },
+    { name: "weathering", label: "Weathering", type: "int", value: 0, min: 0, max: 30, unit: "%", help: "how much old brick shows through the walls", group: "Look", line: 69 },
+    { name: "chimney", label: "Chimney", type: "bool", value: true, help: "add a brick chimney at the back", group: "Features", line: 67 },
+    { name: "roof", label: "Roof", type: "bool", value: true, help: "put the roof on (off shows the room inside)", group: "Features", line: 68 },
+    { name: "seed", label: "Arrangement", type: "seed", value: 1, help: "another random arrangement of the same design", group: "Variation", line: 70 },
   ];
+
 
   // LDraw colors (LDConfig.ldr values) for the swatches. Part colors, not UI colors: the contrast check ignores them.
   const colors = {
@@ -41,45 +43,66 @@ window.EMMET_DATA = (() => {
     roof_color: ["Dark Red", "Black", "Reddish Brown", "Light Bluish Gray"],
   };
 
-  // `emmet bom --json` on the cottage (93 parts).
+  // `emmet bom --json` on the cottage (163 parts in 29 kinds).
   const bom = [
-    { part: "3004", name: "Brick 1 x 2", color: "Tan", qty: 48 },
-    { part: "3005", name: "Brick 1 x 1", color: "Tan", qty: 12 },
-    { part: "3004", name: "Brick 1 x 2", color: "Reddish Brown", qty: 11 },
-    { part: "3037", name: "Slope Brick 45 2 x 4", color: "Dark Red", qty: 8 },
-    { part: "3010", name: "Brick 1 x 4", color: "Dark Red", qty: 4 },
-    { part: "3034", name: "Plate 2 x 8", color: "Tan", qty: 3 },
-    { part: "60592", name: "Window 1 x 2 x 2 without Sill", color: "White", qty: 3 },
+    { part: "3004", name: "Brick 1 x 2", color: "Tan", qty: 55 },
+    { part: "3004", name: "Brick 1 x 2", color: "Dark Bluish Gray", qty: 13 },
+    { part: "3004", name: "Brick 1 x 2", color: "Reddish Brown", qty: 12 },
+    { part: "3010", name: "Brick 1 x 4", color: "Dark Red", qty: 12 },
+    { part: "3037", name: "Slope Brick 45 2 x 4", color: "Dark Red", qty: 12 },
+    { part: "3005", name: "Brick 1 x 1", color: "Tan", qty: 10 },
+    { part: "3004", name: "Brick 1 x 2", color: "Dark Red", qty: 6 },
+    { part: "3039", name: "Slope Brick 45 2 x 2", color: "Dark Red", qty: 6 },
+    { part: "60592", name: "Window 1 x 2 x 2 without Sill", color: "White", qty: 5 },
+    { part: "60601", name: "Glass for Window 1 x 2 x 2 without Sill", color: "Trans-Clear", qty: 5 },
+    { part: "3832", name: "Plate 2 x 10", color: "Tan", qty: 4 },
+    { part: "2412b", name: "Tile 1 x 2 Grille with Groove", color: "Black", qty: 2 },
+    { part: "3005", name: "Brick 1 x 1", color: "Dark Bluish Gray", qty: 2 },
     { part: "3041", name: "Slope Brick 45 2 x 4 Double", color: "Dark Red", qty: 2 },
+    { part: "3062b", name: "Brick 1 x 1 Round with Hollow Stud", color: "Green", qty: 2 },
+    { part: "3068b", name: "Tile 2 x 2 with Groove", color: "Light Bluish Gray", qty: 2 },
+    { part: "3001", name: "Brick 2 x 4", color: "White", qty: 1 },
+    { part: "3003", name: "Brick 2 x 2", color: "Dark Bluish Gray", qty: 1 },
+    { part: "3043", name: "Slope Brick 45 2 x 2 Double", color: "Dark Red", qty: 1 },
+    { part: "3062b", name: "Brick 1 x 1 Round with Hollow Stud", color: "Tan", qty: 1 },
+    { part: "3062b", name: "Brick 1 x 1 Round with Hollow Stud", color: "Reddish Brown", qty: 1 },
+    { part: "3068b", name: "Tile 2 x 2 with Groove", color: "White", qty: 1 },
+    { part: "3068b", name: "Tile 2 x 2 with Groove", color: "Dark Blue", qty: 1 },
     { part: "3811", name: "Baseplate 32 x 32", color: "Green", qty: 1 },
+    { part: "4032a", name: "Plate 2 x 2 Round with Axlehole", color: "Reddish Brown", qty: 1 },
     { part: "60596", name: "Door 1 x 4 x 6 Frame", color: "White", qty: 1 },
+    { part: "60623", name: "Door 1 x 4 x 6 with 4 Panes and Stud Handle", color: "Reddish Brown", qty: 1 },
+    { part: "6141", name: "Plate 1 x 1 Round", color: "Red", qty: 1 },
+    { part: "6141", name: "Plate 1 x 1 Round", color: "Yellow", qty: 1 },
   ];
 
-  // The cottage's 12 steps (`m.step(...)` names in model.py) and their part counts from placements.json.
+
+  // The cottage's 15 steps (`m.step(...)` names in model.py) and their part counts from placements.json.
   const steps = [
-    ["Baseplate", 1], ["Walls, row 1", 11], ["Walls, row 2", 11], ["Walls, row 3", 13], ["Walls, row 4", 8],
-    ["Walls, row 5", 10], ["Walls, row 6", 11], ["Ceiling", 3], ["Roof, course 1", 8], ["Roof, course 2", 4],
-    ["Roof, course 3", 2], ["Chimney", 11],
+    ["Baseplate", 1], ["Walls, row 1", 17], ["Walls, row 2", 14], ["Walls, row 3", 20], ["Walls, row 4", 12],
+    ["Walls, row 5", 15], ["Walls, row 6", 14], ["Inside", 9], ["Path and flowers", 6], ["Ceiling", 4],
+    ["Roof, course 1", 18], ["Roof, course 2", 12], ["Roof, course 3", 6], ["Roof, course 4", 3], ["Chimney", 12],
   ].map(([name, parts], i) => ({ n: i + 1, name, parts }));
   // Which render shows the model built up to a step (note 6): the stage variants stop where these steps end.
   // The last step a partial build has reached, from its part count (36 parts is step 4).
   const stepOf = (parts) => { let sum = 0; for (const s of steps) { sum += s.parts; if (sum >= parts) return s.n; } return steps.length; };
-  const stepRender = (n) => (n <= 4 ? "stage1" : n <= 8 ? "stage2" : n <= 10 ? "stage3" : "cottage");
+  const stepRender = (n) => (n <= 4 ? "stage1" : n <= 9 ? "stage2" : n <= 12 ? "stage3" : "cottage");
 
   // `emmet check --json` on the cottage with its chimney started 9 plates up.
   const finding = {
-    id: "F-0001", rule: "floating", severity: "error", parts: 8, partIds: "chimney/1–8", line: 142,
-    message: "8 parts at z=9.5 aren't held by any stud: they touch nothing below them.",
+    id: "F-0001", rule: "floating", severity: "error", parts: 9, partIds: "chimney/1–9", line: 253,
+    message: "9 parts at z=9.5 aren't held by any stud: they touch nothing below them.",
     hint: "They start 9 plates above base (Baseplate 32 x 32), which ends at z=0.5: lower them by 9 plates, or put a part under them.",
     excerpt: ["            z = GROUND + 9", "            while z < ridge_top + 3:"],
   };
 
   // `emmet run --json` after an edit that passed an argument Model.add() doesn't take.
   const buildError = {
-    code: "MODEL_EXEC_FAILED", line: 78,
+    code: "MODEL_EXEC_FAILED", line: 121,
     message: "TypeError: Model.add() got an unexpected keyword argument 'flip'",
-    hint: "Fix model.py line 78 and run again.",
-    excerpt: '                m.add("60592", "White", at=(x0, side_y, z), rot=2, id="window/left", flip=True)',
+    hint: "Fix model.py line 121 and run again.",
+    // Emmet's excerpt is the call's first line; the mock shows the whole statement, lines 121–123.
+    excerpt: ['frame = m.add(', '    "60592", "White", at=(*at, z), rot=turn, id=f"window/{name}", flip=True', ')'],
   };
 
   // `emmet run --json` on a copy of the project moved to another folder.
@@ -88,7 +111,7 @@ window.EMMET_DATA = (() => {
     hint: "Read model.py first; it's code. Then trust the project in the app, or run emmet trust.",
   };
 
-  const run = { parts: 93, steps: 12, ms: 92 };
+  const run = { parts: 163, steps: 15, ms: 99 };
   const versions = { emmet: "0.1.0", library: "2026-09", partsData: "2026-10-23", oldLibrary: "2026-06" };
 
   const agents = {
@@ -132,12 +155,12 @@ window.EMMET_DATA = (() => {
     ],
     stage1Running: [{ t: "tool", icon: "cube", title: "Building", detail: "Baseplate and walls, rows 1–3", status: "running", raw: "run_model()" }],
     stage1: [
-      { t: "tool", icon: "cube", title: "Built 36 parts", detail: "Baseplate and walls, rows 1–3", status: "done", raw: 'run_model() → {"parts": 36, "steps": 4, "ms": 89}' },
+      { t: "tool", icon: "cube", title: "Built 52 parts", detail: "Baseplate and walls, rows 1–3", status: "done", raw: 'run_model() → {"parts": 52, "steps": 4, "ms": 96}' },
       { t: "tool", icon: "check", title: "Checked: no problems", detail: "Nothing collides or floats", status: "done", raw: 'validate() → {"clean": true, "findings": []}' },
     ],
-    stage2Running: [{ t: "tool", icon: "cube", title: "Building", detail: "Walls, rows 4–6, and the ceiling", status: "running", raw: "run_model()" }],
+    stage2Running: [{ t: "tool", icon: "cube", title: "Building", detail: "Walls, rows 4–6, the room inside, and the path", status: "running", raw: "run_model()" }],
     stage2: [
-      { t: "tool", icon: "cube", title: "Built 68 parts", detail: "Walls and ceiling", status: "done", raw: 'run_model() → {"parts": 68, "steps": 8, "ms": 88}' },
+      { t: "tool", icon: "cube", title: "Built 108 parts", detail: "Walls, the room inside, and the path", status: "done", raw: 'run_model() → {"parts": 108, "steps": 9, "ms": 97}' },
       { t: "tool", icon: "check", title: "Checked: no problems", detail: "Nothing collides or floats", status: "done", raw: 'validate() → {"clean": true}' },
     ],
     // A redirect with a link the user pasted. Opening it is the agent's own web tool, outside its sandbox, so it asks
@@ -152,36 +175,37 @@ window.EMMET_DATA = (() => {
     }],
     approvalDenied: [{ t: "note", text: "You said no to the web request. Claude carries on without it." }],
     stage3: [
-      { t: "tool", icon: "cube", title: "Built 80 parts", detail: "Roof, courses 1–2", status: "done", raw: 'run_model() → {"parts": 80, "steps": 10}' },
+      { t: "tool", icon: "cube", title: "Built 142 parts", detail: "Ceiling and roof, courses 1–2", status: "done", raw: 'run_model() → {"parts": 142, "steps": 12}' },
     ],
     finish: [
-      { t: "tool", icon: "cube", title: "Built 93 parts", detail: "Roof ridge and chimney", status: "done", raw: 'run_model() → {"parts": 93, "steps": 12, "ms": 92}' },
-      { t: "tool", icon: "check", title: "Checked: no problems", detail: "93 parts · 0 findings", status: "done", raw: 'validate() → {"clean": true, "findings": []}' },
+      { t: "tool", icon: "cube", title: "Built 163 parts", detail: "Roof ridge and chimney", status: "done", raw: 'run_model() → {"parts": 163, "steps": 15, "ms": 99}' },
+      { t: "tool", icon: "check", title: "Checked: no problems", detail: "163 parts · 0 findings", status: "done", raw: 'validate() → {"clean": true, "findings": []}' },
       { t: "tool", icon: "eye", title: "Looked at the model", detail: "Iso render", status: "done", raw: 'render(view="iso")' },
-      { t: "agent", text: "The cottage is up: 8 x 6 studs, 6 bricks tall, 93 parts, 0 errors. Sliders: width, depth, wall rows, wall color, roof color, chimney." },
+      // The rung 1 transcript's closing line, with the template's numbers (163 parts) and knobs.
+      { t: "agent", text: "The cottage is up: 10 x 8 studs, 6 bricks tall, 163 parts, 0 errors: a real door, glass in the windows, and a room inside with a bed, a table, and a stove. Knobs: weathering, roof on or off, and Shuffle." },
     ],
     // "Ask agent to fix" sends the finding in the form tests/replay/claude/derived-fix-collision.jsonl records.
     fixAsk: [{ t: "user", text: "Fix F-0001 (floating, parts chimney/1–8 at model.py:142): 8 parts at z=9.5 aren't held by any stud: they touch nothing below them. They start 9 plates above base (Baseplate 32 x 32), which ends at z=0.5: lower them by 9 plates, or put a part under them. Then run validate again.", auto: true }],
     fixing: [
-      { t: "tool", icon: "check", title: "Found 1 problem", detail: "8 floating parts: the chimney", status: "done", raw: 'validate() → {"counts": {"floating": 1}}' },
-      { t: "file", path: "model.py", summary: "Edited line 142", diff: ["-            z = GROUND + 9", "+            z = GROUND"] },
+      { t: "tool", icon: "check", title: "Found 1 problem", detail: "9 floating parts: the chimney", status: "done", raw: 'validate() → {"counts": {"floating": 1}}' },
+      { t: "file", path: "model.py", summary: "Edited line 253", diff: ["-            z = GROUND + 9", "+            z = GROUND"] },
       { t: "tool", icon: "cube", title: "Building", detail: "Chimney from the baseplate up", status: "running", raw: "run_model()" },
     ],
     fixed: [
-      { t: "tool", icon: "cube", title: "Built 93 parts", detail: "Chimney from the baseplate up", status: "done", raw: 'run_model() → {"parts": 93}' },
-      { t: "tool", icon: "check", title: "Checked: no problems", detail: "93 parts · 0 findings", status: "done", raw: 'validate() → {"clean": true}' },
+      { t: "tool", icon: "cube", title: "Built 163 parts", detail: "Chimney from the baseplate up", status: "done", raw: 'run_model() → {"parts": 163}' },
+      { t: "tool", icon: "check", title: "Checked: no problems", detail: "163 parts · 0 findings", status: "done", raw: 'validate() → {"clean": true}' },
       { t: "agent", text: "Fixed F-0001: the chimney now starts on the baseplate at z=0.5. validate reports 0 findings." },
     ],
     // A request that led to the build error above (composed for this state).
     flipAsk: [{ t: "user", text: "flip the left window so its frame faces out" }],
     flipEdit: [
-      { t: "file", path: "model.py", summary: "Edited line 78", diff: ['-                m.add("60592", "White", at=(x0, side_y, z), rot=2, id="window/left")', '+                m.add("60592", "White", at=(x0, side_y, z), rot=2, id="window/left", flip=True)'] },
-      { t: "tool", icon: "cube", title: "The build failed", detail: "model.py line 78", status: "error", raw: 'run_model() → MODEL_EXEC_FAILED' },
+      { t: "file", path: "model.py", summary: "Edited line 122", diff: ['-                        "60592", "White", at=(*at, z), rot=turn, id=f"window/{name}"', '+                        "60592", "White", at=(*at, z), rot=turn, id=f"window/{name}", flip=True'] },
+      { t: "tool", icon: "cube", title: "The build failed", detail: "model.py line 121", status: "error", raw: 'run_model() → MODEL_EXEC_FAILED' },
     ],
     // What "Rebuild with these settings" sends (composed for this state; no transcript has it yet).
-    restyleAsk: [{ t: "user", text: "Rework the cottage for the new build settings: style Medieval (was Town), detail Medium (was Low). Keep figure scale, 50–150 pieces, and the 32 × 32 baseplate, and keep its sliders.", auto: "settings" }],
-    restyleThinking: [{ t: "thinking", text: "Stone walls with timber framing above the first rows, window frames and tiles for medium detail, still about 120 pieces." }],
-    stopped: [{ t: "note", text: "You stopped the turn at 0:41. The model is as its last run left it: 68 parts." }],
+    restyleAsk: [{ t: "user", text: "Rework the cottage for the new build settings: style Medieval (was Town), detail Medium (was Low). Keep figure scale, 150–500 pieces, and the 32 × 32 baseplate, and keep its sliders.", auto: "settings" }],
+    restyleThinking: [{ t: "thinking", text: "Stone walls with timber framing above the first rows, window frames and tiles for medium detail, still about 170 pieces." }],
+    stopped: [{ t: "note", text: "You stopped the turn at 0:41. The model is as its last run left it: 108 parts." }],
     crashed: [{ t: "crash", title: "Claude Code stopped unexpectedly", text: "It exited with code 1 in the middle of a turn. Your project is untouched: model.py and the last build are as they were." }],
     // Barry's request from his 1C session (docs/design/notes/emmet-1c-claude.png), sent to Codex after a switch.
     garage: [{ t: "user", text: "make the garage and cottage one building, make it larger and make a door from the cottage to the garage, make the garage fit two cars." }],
@@ -194,7 +218,7 @@ window.EMMET_DATA = (() => {
   // Build settings (Barry 2026-10-27, a proposal for 2A's direction B): what to build, rather than the model's own
   // dimensions. They steer the agent: they're kept with the project, sent with every message, and changing one asks
   // the agent to rework the model (a turn on the user's plan), unlike a model tweak, which reruns model.py at once.
-  // Plain names, not brand or theme names (D-30). The values are the cottage's as built (93 parts, bricks and slopes).
+  // Plain names, not brand or theme names (D-30). The values are the cottage's as built (163 parts, bricks, slopes, and a door and windows).
   const brief = {
     style: {
       label: "Style", value: "Town", help: "The look the agent builds in",
@@ -224,7 +248,7 @@ window.EMMET_DATA = (() => {
       ],
     },
     size: {
-      label: "Target size", min: 50, max: 150, help: "How many pieces the model should have",
+      label: "Target size", min: 150, max: 500, help: "How many pieces the model should have",
       presets: [{ id: "Small", min: 50, max: 150 }, { id: "Medium", min: 150, max: 500 }, { id: "Large", min: 500, max: 1500 }],
     },
     base: { label: "Baseplate", value: "32 × 32", help: "What it stands on (note 8)", options: ["None", "16 × 16", "32 × 32", "48 × 48"] },
@@ -234,7 +258,7 @@ window.EMMET_DATA = (() => {
     brief, renders, params, colors, colorChoices, bom, steps, stepOf, stepRender, finding, buildError, untrusted, run, versions,
     agents, efforts, plans, usage, seg, PROMPT,
     project: { name: "Cottage", folder: "Documents/Emmet/Cottage" },
-    imported: { name: "Cottage (imported)", file: "cottage.mpd", parts: 93, steps: 12 },
+    imported: { name: "Cottage (imported)", file: "cottage.mpd", parts: 163, steps: 15 },
     recent: [
       { name: "Cottage", when: "today" },
       { name: "Station test", when: "yesterday" },

@@ -23,7 +23,7 @@
     const b = s.build;
     const failed = b.state === "failed" ? `<div class="b-vnote" data-tone="bad">${U.icon("warn")}Build failed · the last good model is still shown</div>` : "";
     const ro = b.state === "readonly" ? `<div class="b-vnote" data-tone="warn">${U.icon("lock")}Read-only · model.py hasn't run</div>` : "";
-    const pin = b.state === "findings" ? `<button type="button" class="b-pin" data-tab="checks"><span class="b-pin-dot">${U.icon("warn")}</span><span class="b-pin-text"><b>8 parts float</b><small>F-0001 · the chimney starts 9 plates up</small></span></button>` : "";
+    const pin = b.state === "findings" ? `<button type="button" class="b-pin" data-tab="checks"><span class="b-pin-dot">${U.icon("warn")}</span><span class="b-pin-text"><b>9 parts float</b><small>F-0001 · the chimney starts 9 plates up</small></span></button>` : "";
     const step = s.step || (b.parts ? D.stepOf(b.parts) : undefined);
     const scrub = b.state === "empty" ? "" : U.scrubber({ ...s, step });
     return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-act="about" title="Emmet Builder: About, Settings">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button></div>
@@ -69,7 +69,7 @@
   function latest(s) {
     if (s.dirty || s.briefDirty) return "";
     const last = s.chat[s.chat.length - 1];
-    if (s.build.state === "findings" && s.agent.state === "idle") return `<div class="b-latest b-latest-warn">${U.icon("warn")}<span>The last build has 1 problem: 8 parts float.</span><span class="e-grow"></span>${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div>`;
+    if (s.build.state === "findings" && s.agent.state === "idle") return `<div class="b-latest b-latest-warn">${U.icon("warn")}<span>The last build has 1 problem: 9 parts float.</span><span class="e-grow"></span>${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div>`;
     if (!last) return s.imported || s.banner ? "" : s.build.state === "empty" ? `<p class="b-tip">${ANT}Pick the build settings on the right, then describe it in your own words. ${esc(U.agentOf(s).name)} builds it from real parts, stage by stage.</p>` : "";
     if (last.t === "tool" || last.t === "file" || last.t === "note") return U.message(last, s);
     if (last.t === "thinking") return U.message(last, s).replace('<details class="e-think">', '<details class="e-think" open>');
