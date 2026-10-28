@@ -25,8 +25,10 @@ if [[ "${EMMET_CI_FULL:-}" == 1 ]] ||
   full=true
 fi
 echo "full=$full"
-# The Mac job: anything but prose. The plan job checks docs/ on its own; docs/spec/mcp/ is read by the Rust tests.
-if [[ $full == true ]] || grep -vE '^(docs/|\.claude/)|\.md$' <<<"$changed" | grep -q . || any '^docs/spec/mcp/'; then
+# The Mac job: anything but prose. The plan job checks docs/ on its own; docs/spec/mcp/ is read by the Rust tests, and
+# docs/design/ by tests/scripts/design.test.mjs (the frozen design, its inventory, and its icons; 2B), which needs the
+# installed packages the plan job doesn't have.
+if [[ $full == true ]] || grep -vE '^(docs/|\.claude/)|\.md$' <<<"$changed" | grep -q . || any '^docs/(spec/mcp|design)/'; then
   echo "mac=true"
 else
   echo "mac=false"

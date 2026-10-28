@@ -1,0 +1,11 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* What the frozen design doesn't restyle because a provider sets its look (session 1E, OpenAI's UI/UX guidelines):
+   the "Continue with ChatGPT" button in OpenAI's approved black format, with the white ChatGPT logo, the only place
+   that logo appears. 4A and 4B keep 1E's button as it is (apps/desktop/src/styles.css, .continue-chatgpt); this copy
+   only draws it on the frozen screens. Its colors are OpenAI's, not Emmet's, so they're tokens of their own here
+   rather than in tokens.css's 15. */
+[data-theme="light"] { --openai-bg-button: #000000; --openai-fg-button: #ffffff; }
+[data-theme="dark"] { --openai-bg-button: #000000; --openai-fg-button: #ffffff; }
+
+.continue-chatgpt { display: inline-flex; align-items: center; justify-content: center; gap: 12px; width: 242px; max-width: 100%; height: 45px; padding: 0 20px; border: 1px solid var(--openai-bg-button); border-radius: 12px; background: var(--openai-bg-button); color: var(--openai-fg-button); font-size: 15px; font-weight: 500; letter-spacing: 0; line-height: 18px; flex: none; }
+.continue-chatgpt img { flex: none; display: block; width: 21px; height: 21px; }

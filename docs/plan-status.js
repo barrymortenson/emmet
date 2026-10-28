@@ -99,7 +99,16 @@ window.EMMET_STATUS = {
       ],
       note: "The Windows cottage visual baseline is stale until the Windows pass regenerates it (D-43); 2B can raise A's Chat focus layout and C's ⌘K palette again"
     },
-    "2B": { status: "todo" },
+    "2B": {
+      status: "done", pr: 24, branch: "bmortenson/s2b-design-system-frozen", started: "2026-10-27",
+      evidence: [
+        "CI ci check green #24 (run 40626685728: mac, plan; windows and nsis paused, D-43)",
+        "apps/desktop/src/styles/tokens.css, docs/design/{components,keyboard,content,icons}.md, frozen/ (47 screens), SIGNOFF.md",
+        "tests/scripts/design.test.mjs (7 pass); frozen audit 376 renders, 0 failures; contrast-check: ok",
+        "H-08: signed as is; docs/decisions.md"
+      ],
+      note: "The Steps tab is the model's tree and there's no command palette (docs/decisions.md); the Steps tree's every-copy highlight isn't drawn, since emmet render --highlight drew none for window ids (4C)"
+    },
     "3A": { status: "todo" },
     "3B": { status: "todo" },
     "3C": { status: "todo" },
@@ -130,7 +139,7 @@ window.EMMET_STATUS = {
     "H-05": { status: "done", date: "2026-10-26", note: "Developer ID Application certificate and the emmet-notary notarytool profile in the login keychain; just release-dry --sign: notarization Accepted, spctl accepted (Notarized Developer ID), stapler validate worked; the .dmg opened, set up, and built the cottage in a fresh Standard macOS account" },
     "H-06": { status: "done", date: "2026-10-26", note: "Rung 1 passed on both agents, each after one rerun (docs/evals/2026-10-26-rung1.md); Barry called G1 a go. terms-check and name-check weren't run for this call" },
     "H-07": { status: "done", date: "2026-10-27", note: "B (Canvas), as revised with Barry in 2A; asked through AskUserQuestion; docs/decisions.md" },
-    "H-08": { status: "todo" },
+    "H-08": { status: "done", date: "2026-10-27", note: "Barry signed docs/design/SIGNOFF.md as is (47 screens, 49 components, the keyboard map, the content guide, the icons); asked through AskUserQuestion" },
     "H-09": { status: "todo" },
     "H-10": { status: "todo" },
     "H-11": { status: "done", date: "2026-10-24", note: "6743-1 Street Speeder, from the 0B shortlist (docs/spec/ladder.md)" },

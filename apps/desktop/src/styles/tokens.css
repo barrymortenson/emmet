@@ -1,0 +1,162 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* Emmet's design tokens (plan session 2B): direction B, Canvas, frozen. Every color, size, and duration the app and
+   the site use comes from here; docs/design/components.md says which component uses which, and docs/design/frozen/
+   shows them on every screen. The site imports this file as it is (no build step).
+
+   Color: 15 tokens per theme, named by role for scripts/contrast-check.mjs. Every --fg-* passes 4.5:1 on every
+   --bg-*, --ui-control and --fill-accent pass 3:1 on every --bg-*, and --on-accent passes 4.5:1 on --fill-accent. The
+   hairline, the scrim, and the shadows are mixed from those 15, so they add no color of their own. --bg-canvas is
+   the viewer's background, which the renders are made on, so a render and the canvas meet without a seam.
+
+   The theme follows the system: the app sets data-theme="light" or "dark" on <html> from prefers-color-scheme (and
+   Settings can pin it), and data-platform="macos" or "windows" for the few platform differences at the end. */
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-canvas: #f5f5f5; --bg-surface: #fffcf7; --bg-raised: #f7f0e6; --bg-sunken: #efe6da;
+  --bg-accent: #fbe3d3; --bg-bad: #fbe5e1;
+  --fg-text: #2a211b; --fg-muted: #64574c; --fg-accent: #a33609;
+  --fg-ok: #1b6a3c; --fg-warn: #744600; --fg-bad: #a3241a;
+  --ui-control: #857464; --fill-accent: #c2410c; --on-accent: #ffffff;
+  --line: color-mix(in srgb, var(--fg-text) 13%, transparent);
+  --scrim: color-mix(in srgb, var(--fg-text) 22%, transparent);
+  --elevation-1: 0 1px 3px color-mix(in srgb, var(--fg-text) 9%, transparent);
+  --elevation-2: 0 8px 28px color-mix(in srgb, var(--fg-text) 16%, transparent), var(--elevation-1);
+  --elevation-3: 0 14px 40px color-mix(in srgb, var(--fg-text) 22%, transparent), var(--elevation-1);
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-canvas: #1f2125; --bg-surface: #2a2522; --bg-raised: #342d29; --bg-sunken: #211d1a;
+  --bg-accent: #462d20; --bg-bad: #412321;
+  --fg-text: #f4ede5; --fg-muted: #bfb1a3; --fg-accent: #ffa572;
+  --fg-ok: #82d9a4; --fg-warn: #f1ca6a; --fg-bad: #ff9d93;
+  --ui-control: #978b7f; --fill-accent: #ff8a4c; --on-accent: #1d1208;
+  --line: color-mix(in srgb, var(--fg-text) 12%, transparent);
+  --scrim: color-mix(in srgb, var(--bg-sunken) 62%, transparent);
+  --elevation-1: 0 1px 3px color-mix(in srgb, var(--bg-sunken) 45%, transparent);
+  --elevation-2: 0 8px 28px color-mix(in srgb, var(--bg-sunken) 75%, transparent), var(--elevation-1);
+  --elevation-3: 0 14px 40px color-mix(in srgb, var(--bg-sunken) 85%, transparent), var(--elevation-1);
+}
+
+:root {
+  /* Type: the system's own fonts (section 14), 14 px body. */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, Menlo, monospace;
+  --text-2xs: 11px;   /* counts, key caps */
+  --text-xs: 12px;    /* meta lines, help, table heads */
+  --text-sm: 13px;    /* controls: tabs, chips, menus, segmented */
+  --text-md: 14px;    /* body: chat, panel text */
+  --text-lg: 16px;    /* section heads, the first-run lede */
+  --text-xl: 20px;    /* dialog titles */
+  --text-2xl: 28px;   /* first-run headings */
+  --text-step: 44px;  /* the step number over the viewer, as instruction books print it */
+  --leading-tight: 1.25;
+  --leading: 1.5;
+  --weight-regular: 400;
+  --weight-light: 300;
+  --weight-strong: 600;
+  --weight-bold: 700;
+
+  /* Space: a 4 px rhythm, with 2 and 6 for tight rows. */
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 6px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+
+  /* Corners: soft and roomy (B), pills for anything that floats on the viewer. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* Lines, focus, and control sizes. */
+  --line-width: 1px;
+  --line-width-strong: 2px;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+  --focus-color: var(--fill-accent);
+  --control-sm: 26px;
+  --control-md: 30px;
+  --control-lg: 40px;
+  --icon-sm: 13px;
+  --icon-md: 16px;
+  --icon-lg: 20px;
+  --icon-xl: 24px;
+  --swatch: 12px;
+  --meter-height: 7px;
+  --bar-height: 10px;
+
+  /* Layout: the window's regions and the few fixed sizes inside them. */
+  --titlebar-height: 56px;
+  --titlebar-inset-start: 84px;   /* room for the traffic lights */
+  --caption-button-width: 0px;    /* Windows' caption buttons; none on macOS */
+  --panel-width: 384px;
+  --panel-min: 320px;
+  --panel-max: 520px;
+  --dock-history: 0.58;           /* the chat history's share of the viewer column's height */
+  --dock-active-max: 300px;       /* a card that needs you, before it scrolls */
+  --menu-min: 240px;
+  --menu-wide: 320px;
+  --dialog-width: 420px;
+  --toast-width: 440px;
+  --tooltip-max: 280px;
+  --first-run-width: 560px;
+  --thumb-width: 64px;
+  --thumb-height: 48px;
+  --start-thumb-height: 140px;
+  --part-pic: 40px;
+  --parts-box-pic: 44px;
+  --substep-pic: 108px;
+  --about-icon: 96px;
+  --wordmark-height: 40px;
+
+  /* Motion: subtle and quick. Nothing moves farther than it needs to, and reduced motion turns it all off. */
+  --duration-fast: 120ms;   /* hover, press, a toggle's knob */
+  --duration-base: 180ms;   /* popovers, tooltips, tabs */
+  --duration-slow: 260ms;   /* the chat history opening, a toast arriving */
+  --duration-spin: 800ms;   /* one turn of the spinner */
+  --duration-part: 60ms;    /* each part dropping in during the build animation (4C) */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+  --rise: 4px;              /* how far a popover or toast travels as it appears */
+}
+
+/* Reduced motion (section 14): no movement at all. The spinner stops (components.css draws it still), and the viewer
+   reads the same media query to skip the build animation. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-spin: 0ms;
+    --duration-part: 0ms;
+    --rise: 0px;
+  }
+}
+
+/* macOS: SF Pro. The title row's height and the room for the traffic lights (Tauri's overlay title bar) and the
+   accent focus ring are the :root defaults above. */
+[data-platform="macos"] {
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+}
+
+/* Windows: Segoe UI Variable; a shorter title row with the menu bar in it and the caption buttons at the right; and
+   the system's focus rectangle in the text color, close to the control. */
+[data-platform="windows"] {
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --titlebar-height: 48px;
+  --titlebar-inset-start: 12px;
+  --caption-button-width: 46px;
+  --focus-color: var(--fg-text);
+  --focus-offset: 1px;
+}

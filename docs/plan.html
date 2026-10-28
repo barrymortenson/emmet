@@ -399,7 +399,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <h3>MVP scope and exit criteria</h3>
 <p>The MVP is the end of Phase 5, the working proof of concept. Beta (Phase 6) and the website and launch (Phase 7) come after it.</p>
 <ul class="small">
-<li>A Tauri app on macOS and Windows: project tree, 3D viewer, chat pane wired to Claude Code <i>and</i> Codex (on the user's Claude or ChatGPT plan, or an API key), sliders, checks, BOM, and steps.</li>
+<li>A Tauri app on macOS and Windows: 3D viewer, chat wired to Claude Code <i>and</i> Codex (on the user's Claude or ChatGPT plan, or an API key), sliders, checks, BOM, and steps.</li>
 <li>The Python DSL, with submodels built once and placed many times, <code>.mpd</code> output, and a three.js render that updates live from the project folder.</li>
 <li>Versions: save one any time, an automatic one before every agent turn, and restore or open any of them as a new project, so iterating is never risky.</li>
 <li>Parts search, and a BOM with Rebrickable colors and availability.</li>
@@ -468,7 +468,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-33</td><td>Redirect and stop</td><td>The composer stays open while the agent works. A message sent mid-turn is queued and delivered at the agent's next step: through the CLI's native mid-turn input where it exists, otherwise attached to the next Emmet tool result, otherwise sent as the next turn. Stop interrupts at once and sends any queued message as the next turn.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-34</td><td>Build animation</td><td>Agent-driven runs animate in the viewer: added parts drop in brick by brick in build order (step, then bottom-up), capped in total time and skippable. Slider runs never animate. The doctrine has the agent build in visible stages so the user can judge direction early. Setting: Animated (default), Fast, or Off; reduced motion means Off.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-35</td><td>Plans and keys</td><td><b>Claude:</b> the chat pane runs the user's own unmodified Claude Code with whatever sign-in the user gave it in their own terminal (a Pro or Max plan, or an API key). Emmet passes the user's environment through unchanged: no <code>--bare</code>, no added, removed, or filtered credential variables, and no reading of Claude Code's credentials. <b>Codex:</b> the chat pane uses an OpenAI API key the user enters in Emmet (kept in the OS keychain) through the app-server's provider config. ChatGPT plan use in the chat pane comes only through OpenAI's Sign in with ChatGPT for open-source apps (1E), which Emmet qualifies for as public AGPL-3.0 code (D-14). An API key stays an option. Emmet never starts the app-server on the CLI's own <code>codex login</code>. <b>Both:</b> terminal mode (the user runs the CLI themselves) works with any sign-in. Emmet never pays for, resells, or proxies usage.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
-<tr><td class="id">D-36</td><td>Plan usage display</td><td><b>Claude:</b> status bar meters from Claude Code's documented <code>/usage</code> report and <code>rate_limit_event</code>, fetched only when the user opens the usage popover, presses refresh, or finishes a turn. <b>Codex:</b> no meters, because OpenAI documents no usage source for API-key or Sign in with ChatGPT sessions. With Sign in with ChatGPT (1E), Emmet shows OpenAI's required "Using ChatGPT plan" label with a "Manage usage" link. Emmet never reads a token or calls a private endpoint.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
+<tr><td class="id">D-36</td><td>Plan usage display</td><td><b>Claude:</b> plan meters (on the chat's plan badge, 2B) from Claude Code's documented <code>/usage</code> report and <code>rate_limit_event</code>, fetched only when the user opens the usage popover, presses refresh, or finishes a turn. <b>Codex:</b> no meters, because OpenAI documents no usage source for API-key or Sign in with ChatGPT sessions. With Sign in with ChatGPT (1E), Emmet shows OpenAI's required "Using ChatGPT plan" label with a "Manage usage" link. Emmet never reads a token or calls a private endpoint.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-37</td><td>Terms gate</td><td>A feature that touches an AI provider (accounts, sign-in, credentials, billing, usage data, model requests, or names and logos) is built only if the provider's current published text permits that exact use. The quote and its date go in section 10's terms matrix. Where the text doesn't settle a use, Barry decides from the best reading of the published text and what the provider allows elsewhere; the reasoning goes in <code>docs/terms/</code> beside the quotes. Emmet doesn't wait for answers providers rarely give. Users see a plain notice in first run and About: Emmet runs their own agent on their own account and follows each provider's policies as we read them, but Anthropic, OpenAI, and Google set and change their own terms and can act on accounts in ways Emmet doesn't control, so use is at the user's own risk. The matrix is re-checked in 0B, at G1 and G2, and in 7B. If a provider's terms change against a feature, or the provider objects, the feature is switched off before the next release.</td><td><span class="pill decided">Barry 2026-10-24, amended 2026-10-25</span></td></tr>
 <tr><td class="id">D-38</td><td>Scripted-run budget</td><td>Scripted runs (anything that drives a real agent CLI automatically, billed to Barry's API keys) are kept to a minimum. <b>Replay first:</b> every behavior that recorded transcripts can test is tested that way. <b>Recordings:</b> 0B records each protocol scenario once per CLI (one retry if a recording is unusable). Later fixtures come from Barry's own hand sessions in the app, which are saved and scrubbed anyway. <b>Live evals:</b> only at G1 (rung 1, one run per agent: 2 runs) and G2 (rungs 1–3 and the three-photo rung, one run each per agent: 12 runs). A failed run gets at most one rerun, after a fix. None at Phase 4's exit, before releases, in CI, or for iterating mid-session; iteration uses replays and hand sessions. <code>just eval</code> shows the run count and the expected cost from past reports and asks first. It refuses to go past the gate's budget in <code>docs/evals/budget.json</code> unless Barry passes <code>--over-budget</code>.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
 <tr><td class="id">D-39</td><td>Repo bootstrap and protection</td><td><code>main</code> gets exactly one direct push, ever: in 0A, with Barry's approval of the exact commands, the empty initial commit is pushed to create the remote, before the hooks and protection exist. After that, protection on <code>main</code> requires a PR and the green <code>ci</code> check with 0 required approvals (Barry is the only maintainer and can't approve his own PRs), blocks force-push and deletion, and has no bypass list.</td><td><span class="pill decided">Barry 2026-10-24</span></td></tr>
@@ -485,7 +485,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <div class="flow">
 <svg viewBox="0 0 1140 800" role="img" aria-labelledby="arch-title arch-desc">
   <title id="arch-title">Emmet system architecture</title>
-  <desc id="arch-desc">The Tauri app holds the React UI (project tree, viewer, chat pane, drawers) and the Rust host, linked by typed commands and events. The host spawns the emmet CLI sidecar and one agent session per chat. The CLI runs model.py in uv-managed Python. The agent spawns emmet mcp, which talks back to the host over a local socket. The CLI and emmet mcp share emmet-core, which reads and writes the project folder and app data.</desc>
+  <desc id="arch-desc">The Tauri app holds the React UI (viewer, chat dock, options panel) and the Rust host, linked by typed commands and events. The host spawns the emmet CLI sidecar and one agent session per chat. The CLI runs model.py in uv-managed Python. The agent spawns emmet mcp, which talks back to the host over a local socket. The CLI and emmet mcp share emmet-core, which reads and writes the project folder and app data.</desc>
 
   <!-- The app -->
   <rect class="bx app" x="20" y="10" width="1100" height="296" rx="14"/>
@@ -495,9 +495,9 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
   <text class="k mut" x="56" y="72">REACT UI IN THE SYSTEM WEBVIEW</text>
 
   <rect class="bx" x="56" y="82" width="200" height="80" rx="8"/>
-  <text class="t" x="70" y="106">Project tree</text>
-  <text class="s" x="70" y="126">Model, submodels,</text>
-  <text class="s" x="70" y="144">parts, checks</text>
+  <text class="t" x="70" y="106">Options panel</text>
+  <text class="s" x="70" y="126">Settings, knobs, checks,</text>
+  <text class="s" x="70" y="144">parts, the Steps tree</text>
 
   <rect class="bx" x="272" y="82" width="580" height="80" rx="8"/>
   <text class="t" x="286" y="106">Viewer<tspan class="m" dx="10">packages/viewer · three.js</tspan></text>
@@ -505,13 +505,13 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
   <text class="s" x="286" y="144">The camera never moves on its own</text>
 
   <rect class="bx" x="868" y="82" width="216" height="80" rx="8"/>
-  <text class="t" x="882" y="106">Chat pane</text>
+  <text class="t" x="882" y="106">Chat dock</text>
   <text class="s" x="882" y="126">Agent events, tool cards,</text>
   <text class="s" x="882" y="144">approvals</text>
 
   <rect class="bx" x="56" y="170" width="1028" height="26" rx="6"/>
-  <text class="s" x="70" y="188">Drawers: Parameters · Checks · Parts list · Steps</text>
-  <text class="s" x="1070" y="188" style="text-anchor: end">Status bar</text>
+  <text class="s" x="70" y="188">Title row: the project menu · the view switch · on Windows, the menu bar</text>
+  <text class="s" x="1070" y="188" style="text-anchor: end">Tokens and components (2B)</text>
 
   <line class="ln" x1="570" y1="207" x2="570" y2="235" marker-start="url(#flow-ah)" marker-end="url(#flow-ah)"/>
   <text class="lbl" x="584" y="226" style="text-anchor: start">typed commands + events (tauri-specta generated TS)</text>
@@ -581,9 +581,9 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <div class="grid2">
 <div class="card"><h4>Prompt</h4><p class="small">The user types in the chat pane. The host sends the turn to the agent session. The agent calls <code>search_parts</code>, edits <code>model.py</code>, and calls <code>run_model</code> and then <code>validate</code>, getting findings back as tool output. It calls <code>render</code> to look at the result, fixes what it sees, and replies. The agent builds in stages and runs after each one, so the viewer grows live throughout, with new parts dropping in brick by brick.</p></div>
 <div class="card"><h4>Slider</h4><p class="small">The UI writes <code>params.json</code> atomically. The watcher triggers <code>emmet run</code> and then <code>emmet check</code> (latest wins, and a stale run is canceled). The viewer diffs the placement list by Emmet id and updates only what moved. No agent is involved and no tokens are spent.</p></div>
-<div class="card"><h4>Finding click</h4><p class="small">The Checks drawer lists findings from <code>build/validation.json</code>. Clicking one highlights its parts and shows <code>model.py:42</code>. "Ask the agent to fix" sends the finding as a structured message to the current session.</p></div>
+<div class="card"><h4>Finding click</h4><p class="small">The Checks tab lists findings from <code>build/validation.json</code>. Clicking one highlights its parts and shows <code>model.py:42</code>. "Ask the agent to fix" sends the finding as a structured message to the current session.</p></div>
 <div class="card"><h4>Terminal power user</h4><p class="small">The user runs their own agent in a terminal inside a project folder. The project's <code>AGENTS.md</code> and <code>CLAUDE.md</code> point it at <code>emmet</code> and <code>emmet mcp</code>. The app, if open, watches the folder and renders, and <code>highlight</code> reaches it over the socket. Without the app, <code>render</code> falls back to the headless render mode.</p></div>
-<div class="card"><h4>Question</h4><p class="small">The agent calls <code>emmet_host.ask_user</code>. <code>emmet_host</code> forwards the question over the bus, the chat shows a question card, and the status bar says "Waiting for your answer". The user clicks an option or types Other, and the answer goes back as the tool result, so the agent carries on in the same turn.</p></div>
+<div class="card"><h4>Question</h4><p class="small">The agent calls <code>emmet_host.ask_user</code>. <code>emmet_host</code> forwards the question over the bus, the chat shows a question card, which says it waits on you. The user clicks an option or types Other, and the answer goes back as the tool result, so the agent carries on in the same turn.</p></div>
 <div class="card"><h4>Redirect and stop</h4><p class="small">The user types while the agent works. The message waits as a pending bubble and is delivered at the agent's next step: native mid-turn input if the CLI has it, otherwise attached to the next <code>emmet</code> tool result through the bus. Stop interrupts the turn at once, and a still-pending message goes out as the next turn.</p></div>
 </div>
 
@@ -783,7 +783,7 @@ def cottage(
 <tr><td><code>m.step(title)</code></td><td>Context manager: everything added inside is one build step (LDraw <code>0 STEP</code>). Steps follow the rules below.</td></tr>
 <tr><td><code>m.wall / m.row / m.grid / m.stack / m.fill</code></td><td>Helpers that place many parts with sensible bonds (running, stacked), openings, and corner interlock. Each emitted part still gets its own id and the helper call's line.</td></tr>
 <tr><td><code>m.repeat(fn, n, dx=0, dy=0, dz=0)</code> · <code>m.mirror(axis)</code></td><td>Repetition and symmetry without copy-paste.</td></tr>
-<tr><td><code>sub = m.submodel(name, fn, **params)</code> · <code>m.place(sub, at, rot=0, id=None)</code></td><td>Builds are made of submodels used many times (Barry 2026-10-27): a window bay, a tower, a seating section. <code>submodel</code> defines one, built once by <code>fn</code> with its own steps; <code>place</code> puts it in the model, as often as needed. The <code>.mpd</code> holds one <code>0 FILE</code> per submodel and parameter set, referenced by each placement, so a change to the submodel changes every copy. Ids are the placement's id plus the part's (<code>towers/2/wall/3</code>). The BOM counts every placement; the steps build the submodel once and then place it "× 4"; the project tree shows "Tower × 4", and clicking it highlights every copy.</td></tr>
+<tr><td><code>sub = m.submodel(name, fn, **params)</code> · <code>m.place(sub, at, rot=0, id=None)</code></td><td>Builds are made of submodels used many times (Barry 2026-10-27): a window bay, a tower, a seating section. <code>submodel</code> defines one, built once by <code>fn</code> with its own steps; <code>place</code> puts it in the model, as often as needed. The <code>.mpd</code> holds one <code>0 FILE</code> per submodel and parameter set, referenced by each placement, so a change to the submodel changes every copy. Ids are the placement's id plus the part's (<code>towers/2/wall/3</code>). The BOM counts every placement; the steps build the submodel once and then place it "× 4"; the Steps tree shows "Tower × 4", and clicking it highlights every copy.</td></tr>
 <tr><td><code>m.use(technique, **kw)</code></td><td>Applies a technique from <code>data/techniques</code> (gable roof, SNOT panel, jumper offset, hinge roof, window frame, stair, …).</td></tr>
 <tr><td><code>m.allow(rule, ids, reason)</code></td><td>Records a deliberate exception (for example a floating minifig accessory). It shows in the Checks drawer as "allowed", never hidden.</td></tr>
 <tr><td><code>import_ldraw(path)</code></td><td>Brings an existing model in as fixed geometry, with ids taken from its line numbers.</td></tr>
@@ -811,7 +811,7 @@ def cottage(
 <p>Each placed part is written to the <code>.mpd</code> with a meta line before it, which other LDraw tools ignore:</p>
 <pre><code>0 !EMMET ID walls-row-3/12 SRC model.py:27
 1 19 40 -72 60 1 0 0 0 1 0 0 0 1 3001.dat</code></pre>
-<p>Ids are stable across runs for the same inputs, which is what lets the viewer diff, the Checks drawer link, and the agent say "move <code>roof/4</code>". The DSL raises <code>EmmetError</code> with a code (section 09) and the user's file and line, never a stack trace into <code>emmet_dsl</code> internals.</p>
+<p>Ids are stable across runs for the same inputs, which is what lets the viewer diff, the Checks tab link, and the agent say "move <code>roof/4</code>". The DSL raises <code>EmmetError</code> with a code (section 09) and the user's file and line, never a stack trace into <code>emmet_dsl</code> internals.</p>
 
 <h3>What the DSL is not</h3>
 <p class="small">It's not a sandbox. <code>model.py</code> is ordinary Python, and the protection is workspace trust plus the subprocess limits in section 15. By convention, models do no file I/O outside the project and no network, and <code>emmet rules</code> says so.</p>
@@ -1043,7 +1043,7 @@ server → client requests for command/file approvals → Approval events → re
 </ul>
 
 <h3>Plan usage (D-36)</h3>
-<p>The status bar shows how much of the Claude plan is used, like Orca: <i>Used · Claude ▬ 16% 14m · 4% 6d 9h · 0% Fable ⟳</i>. A click opens a popover with Detailed and Compact views and a detail panel. Codex shows its billing state: OpenAI's required "Using ChatGPT plan · Manage usage" (1E), or "Codex · API key".</p>
+<p>The plan badge at the head of the chat shows how much of the Claude plan is used ("Max plan · 16%", warn from 90%), as the frozen design draws it (2B). A click opens a popover with each window's meter, its percent, and when it resets, Codex's billing state, and when it was updated. Codex shows its billing state: OpenAI's required "Using ChatGPT plan · Manage usage" (1E), or "Codex · API key".</p>
 <ul>
 <li><b>Source.</b> Sending <code>/usage</code> to a short-lived <code>claude -p --input-format stream-json</code> process returns <code>usage_report.rate_limits.limits[]</code>: each meter's <code>kind</code>, <code>group</code>, <code>percent</code>, <code>resets_at</code>, and <code>scope</code> (such as the Fable model), plus <code>extra_usage</code> for usage credits. During turns, <code>rate_limit_event</code> carries <code>status</code>, <code>utilization</code>, and <code>resetsAt</code>, and <code>credits_required</code> when included usage is exhausted. Both types are in Anthropic's Agent SDK reference; the report is marked experimental.</li>
 <li><b>When.</b> Only on user actions: opening the popover, pressing ⟳, and the end of a turn the user started. At most once a minute, with no background polling. Between fetches, live events update the bar, and it shows "Updated 8m ago".</li>
@@ -1055,7 +1055,7 @@ server → client requests for command/file approvals → Approval events → re
 <h4>What we take from Orca, and what we don't</h4>
 <p class="small">Orca (<a href="https://github.com/stablyai/orca">stablyai/orca</a>, MIT; read at commit f2446b9 on 2026-10-24) has the usage UI to beat. Its main-process code also shows which data sources to avoid.</p>
 <ul class="small">
-<li><b>Take:</b> the provider-neutral types (windows, credits, status, failure kind, source); rows rendered in the server's order; dedupe and backoff in a single usage service; its use of <code>rate_limit_event</code>; the status bar and popover layout.</li>
+<li><b>Take:</b> the provider-neutral types (windows, credits, status, failure kind, source); rows rendered in the server's order; dedupe and backoff in a single usage service; its use of <code>rate_limit_event</code>; the meters and popover layout.</li>
 <li><b>Leave:</b> its Claude fetcher reads the user's OAuth token from the Keychain or <code>.credentials.json</code> and calls the undocumented <code>api.anthropic.com/api/oauth/usage</code> while identifying itself as <code>claude-code/2.1.0</code>. Its Codex fetcher reads <code>~/.codex/auth.json</code> and calls <code>chatgpt.com/backend-api/wham/usage</code>. Its live Claude feed installs a <code>statusLine</code> into the user's <code>~/.claude/settings.json</code>. Emmet does none of these: they conflict with Anthropic's rule against handling Claude.ai tokens, and with D-26 and D-35.</li>
 <li><b>Not built:</b> Orca's multi-account switching and its Codex "Reset now". Neither has a basis in the terms matrix (D-37).</li>
 </ul>
@@ -1231,151 +1231,120 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <!-- ============================================================ 14 -->
 <section id="s14">
 <h2><span class="num">14</span>UI and UX</h2>
-<p class="lede">The bar is nurb: calm, fast, obvious, and the 3D model is always the hero. The detailed design comes out of Phase 2 (three directions, Barry picks, then frozen). This section is the brief those directions answer.</p>
+<p class="lede">The bar is nurb: calm, fast, obvious, and the 3D model is always the hero. Phase 2 answered this section's brief with three directions; Barry picked B, Canvas (H-07), and 2B froze it: the tokens (<code>apps/desktop/src/styles/tokens.css</code>), the components (<code>docs/design/components.md</code>), every screen and state below at 1440 × 900 and 1280 × 800 in both themes and on both platforms (<code>docs/design/frozen/</code>), the keyboard map, and the content guide, signed by Barry (H-08, <code>docs/design/SIGNOFF.md</code>). This section describes that design; the frozen screens are exact.</p>
 
-<h3>Layout brief</h3>
+<h3>Layout</h3>
 <div class="flow">
 <svg viewBox="0 0 1140 632" role="img" aria-labelledby="layout-title layout-desc">
-  <title id="layout-title">Emmet window layout</title>
-  <desc id="layout-desc">A title bar with the project name, build status, and agent picker. Below it, a project tree on the left, the 3D viewer in the center with a view toolbar, and the chat pane on the right at full height, showing tool cards and a question card with four answers. A drawer under the tree and viewer holds the Parameters, Checks, Parts list, and Steps tabs. A status bar along the bottom shows the agent state, data versions, and Claude plan usage meters, with Codex's billing state.</desc>
+  <title id="layout-title">Emmet window layout (direction B, Canvas)</title>
+  <desc id="layout-desc">The 3D viewer fills the left of the window. Over its top edge sit the project chip with its menu and the view switch. Along its bottom edge the chat docks: the agent picker, the plan badge with its usage, the agent's status with Stop, then the card that needs you (here a question with two answers and Other), then the composer with the model and effort and Send. The options panel on the right has the model's state and Export, then the Options, Checks, Parts, and Steps tabs; Options shows the build settings folded to one line and the model's knobs (a slider, two switches, Shuffle).</desc>
 
   <rect class="bx" x="20" y="10" width="1100" height="612" rx="12"/>
+  <rect class="viewport" x="21" y="11" width="752" height="610" rx="11"/>
 
-  <!-- Title bar -->
-  <circle cx="40" cy="30" r="6" fill="#ff5f57"/><circle cx="58" cy="30" r="6" fill="#febc2e"/><circle cx="76" cy="30" r="6" fill="#28c840"/>
-  <text class="t" x="100" y="35">Cottage ▾</text>
-  <text class="s" x="570" y="35" style="text-anchor: middle">Built in 0.3 s · 118 parts · <tspan class="ok">✓ clean</tspan></text>
-  <text class="t" x="1100" y="35" style="text-anchor: end">Claude ▾</text>
-  <line class="sep" x1="20" y1="50" x2="1120" y2="50"/>
-
-  <!-- Project tree -->
-  <line class="sep" x1="220" y1="50" x2="220" y2="440"/>
-  <text class="k mut" x="36" y="78">PROJECT</text>
-  <text class="q" x="36" y="100">▾ Cottage</text>
-  <text class="q" x="52" y="120">▸ Walls</text>
-  <text class="q" x="52" y="140">▸ Roof</text>
-  <text class="q" x="66" y="160">Chimney</text>
-  <text class="k mut" x="36" y="196">PARTS · 118</text>
-  <text class="m" x="36" y="216">3001 × 24</text>
-  <text class="m" x="36" y="232">3004 × 40</text>
-  <text class="m" x="36" y="248">…</text>
-  <text class="k mut" x="36" y="284">CHECKS</text>
-  <text class="s ok" x="36" y="304">✓ No issues</text>
+  <!-- Title row over the viewer -->
+  <circle cx="40" cy="32" r="6" fill="#ff5f57"/><circle cx="58" cy="32" r="6" fill="#febc2e"/><circle cx="76" cy="32" r="6" fill="#28c840"/>
+  <rect class="bx" x="96" y="18" width="118" height="28" rx="14"/>
+  <text class="t" x="112" y="37" style="font-size: 13px">Cottage ▾</text>
+  <rect class="bx" x="300" y="18" width="140" height="28" rx="14"/>
+  <rect class="bx agent" x="304" y="21" width="40" height="22" rx="11"/>
+  <text class="tab on" x="313" y="37">Iso</text>
+  <text class="tab" x="354" y="37">Front</text>
+  <text class="tab" x="402" y="37">Top</text>
 
   <!-- Viewer -->
-  <rect class="viewport" x="221" y="51" width="628" height="388"/>
-  <text class="t" x="535" y="210" style="text-anchor: middle; font-size: 20px">3D viewer</text>
-  <text class="s" x="535" y="234" style="text-anchor: middle">Iso view by default · orbit · pick</text>
-  <rect class="bx" x="336" y="392" width="402" height="32" rx="16"/>
-  <text class="tab on" x="350" y="413">Iso</text>
-  <text class="tab" x="384" y="413">Front</text>
-  <text class="tab" x="431" y="413">Top</text>
-  <line class="sep" x1="470" y1="400" x2="470" y2="416"/>
-  <text class="tab" x="484" y="413">◀ Step 7/12 ▶</text>
-  <line class="sep" x1="588" y1="400" x2="588" y2="416"/>
-  <text class="tab" x="602" y="413">Frame</text>
-  <text class="tab" x="654" y="413">Screenshot</text>
+  <text class="t" x="396" y="210" style="text-anchor: middle; font-size: 20px">3D viewer</text>
+  <text class="s" x="396" y="234" style="text-anchor: middle">The model, always the hero · iso by default · orbit · pick</text>
+  <text class="s" x="396" y="254" style="text-anchor: middle">Pins on findings, a step's parts box, an open version's bar</text>
 
-  <!-- Chat pane -->
-  <line class="sep" x1="850" y1="50" x2="850" y2="590"/>
-  <text class="t" x="866" y="78">Chat</text>
-  <rect class="bx agent" x="972" y="94" width="132" height="30" rx="10"/>
-  <text class="q" x="986" y="114">add a chimney</text>
-  <rect class="bx" x="866" y="138" width="238" height="48" rx="8"/>
-  <text class="lbl" x="880" y="158" style="text-anchor: start">search_parts</text>
-  <text class="s" x="880" y="176">“1x2 brick” · 5 results</text>
-  <rect class="bx" x="866" y="196" width="238" height="48" rx="8"/>
-  <text class="lbl" x="880" y="216" style="text-anchor: start">run_model</text>
-  <text class="s" x="880" y="234">118 parts · <tspan class="ok">✓ clean</tspan></text>
-  <rect class="bx" x="866" y="258" width="238" height="186" rx="10" style="stroke: var(--accent)"/>
-  <text class="k" x="880" y="280">QUESTION</text>
-  <text class="q" x="880" y="299" style="font-weight: 600">Where should the chimney go?</text>
-  <rect class="bx agent" x="878" y="310" width="214" height="26" rx="6"/>
-  <text class="q" x="890" y="328">1  Back slope (recommended)</text>
-  <rect class="bx" x="878" y="342" width="214" height="26" rx="6"/>
-  <text class="q" x="890" y="360">2  Side wall</text>
-  <rect class="bx" x="878" y="374" width="214" height="26" rx="6"/>
-  <text class="q" x="890" y="392">3  On the ridge</text>
-  <rect class="bx" x="878" y="406" width="214" height="26" rx="6"/>
-  <text class="s" x="890" y="424">4  Other…</text>
-  <rect class="bx" x="866" y="544" width="238" height="32" rx="8"/>
-  <text class="s" x="880" y="565">Message…</text>
-  <text class="s" x="1090" y="565" style="text-anchor: end">⏎</text>
+  <!-- Chat dock along the bottom of the viewer -->
+  <rect class="bx" x="32" y="436" width="730" height="176" rx="18"/>
+  <rect class="bx" x="44" y="448" width="74" height="24" rx="12"/>
+  <text class="q" x="56" y="465" style="font-weight: 700">Claude ▾</text>
+  <text class="s" x="130" y="465">Max plan · 16%</text>
+  <rect class="bx agent" x="236" y="448" width="318" height="24" rx="12"/>
+  <text class="q" x="250" y="465">◌ Building the walls, row 3 of 6 · 0:22   Stop Esc</text>
+  <text class="s" x="610" y="465">History · 6</text>
+  <text class="s" x="686" y="465">Start fresh</text>
+  <rect class="bx" x="44" y="482" width="706" height="80" rx="12" style="stroke: var(--accent)"/>
+  <text class="k" x="58" y="500">QUESTION</text>
+  <text class="q" x="58" y="518" style="font-weight: 600">Which style should the cottage have?</text>
+  <rect class="bx agent" x="58" y="526" width="332" height="26" rx="8"/>
+  <text class="q" x="70" y="544">1  Classic: tan walls, dark red roof (recommended)</text>
+  <rect class="bx" x="402" y="526" width="336" height="26" rx="8"/>
+  <text class="q" x="414" y="544">2  Modern: white walls, black roof</text>
+  <rect class="bx" x="44" y="570" width="706" height="32" rx="10"/>
+  <text class="s" x="58" y="591">Redirect Claude…</text>
+  <text class="s" x="540" y="591">Opus 5.5 · Medium ▾</text>
+  <rect class="knob" x="686" y="576" width="56" height="20" rx="10"/>
 
-  <!-- Bottom drawer -->
-  <line class="sep" x1="20" y1="440" x2="850" y2="440"/>
-  <text class="tab on" x="40" y="468">Parameters</text>
-  <text class="tab" x="138" y="468">Checks</text>
-  <text class="tab" x="206" y="468">Parts list</text>
-  <text class="tab" x="290" y="468">Steps</text>
-  <text class="tab" x="830" y="468" style="text-anchor: end">▾</text>
-  <line class="hl" x1="40" y1="480" x2="112" y2="480"/>
-  <line class="sep" x1="20" y1="484" x2="850" y2="484"/>
-
-  <text class="s" x="40" y="534">Width</text>
-  <line class="track" x1="120" y1="530" x2="230" y2="530"/><circle class="knob" cx="205" cy="530" r="7"/>
-  <text class="q" x="244" y="534">8</text>
-  <text class="s" x="290" y="534">Depth</text>
-  <line class="track" x1="370" y1="530" x2="470" y2="530"/><circle class="knob" cx="410" cy="530" r="7"/>
-  <text class="q" x="484" y="534">6</text>
-  <text class="s" x="530" y="534">Wall color</text>
-  <rect x="600" y="521" width="16" height="16" rx="3" fill="#d6c08f"/>
-  <text class="q" x="622" y="534">Tan ▾</text>
-  <rect class="knob" x="700" y="522" width="14" height="14" rx="3"/>
-  <path d="M703 529 l3 3 l5 -6" fill="none" stroke="#fff" stroke-width="2"/>
-  <text class="q" x="722" y="534">Chimney</text>
-
-  <text class="s" x="40" y="572">Wall height</text>
-  <line class="track" x1="120" y1="568" x2="230" y2="568"/><circle class="knob" cx="152" cy="568" r="7"/>
-  <text class="q" x="244" y="572">5</text>
-  <text class="s" x="290" y="572">Roof color</text>
-  <rect x="370" y="559" width="16" height="16" rx="3" fill="#c91a09"/>
-  <text class="q" x="392" y="572">Red ▾</text>
-
-  <!-- Status bar -->
-  <line class="sep" x1="20" y1="590" x2="1120" y2="590"/>
-  <text class="s" x="36" y="611">Agent idle · LDraw library 2026-09-01 · Parts data 2026-10-23</text>
-  <text class="s" x="578" y="611" style="text-anchor: end">Used</text>
-  <text class="q" x="628" y="611" style="text-anchor: end">Claude</text>
-  <rect class="meter" x="636" y="604" width="48" height="6" rx="3"/><rect class="meter on" x="636" y="604" width="8" height="6" rx="3"/>
-  <text class="q" x="692" y="611">16% 14m · 4% 6d 9h · 0% Fable</text>
-  <text class="q" x="1080" y="611" style="text-anchor: end">Codex · Using ChatGPT plan</text>
-  <text class="s" x="1100" y="611" style="text-anchor: end">⟳</text>
+  <!-- Options panel -->
+  <rect class="bx" x="786" y="22" width="322" height="590" rx="18"/>
+  <text class="q" x="802" y="48" style="font-weight: 600"><tspan class="ok">✓</tspan> No problems</text>
+  <rect class="bx" x="1034" y="32" width="62" height="24" rx="12"/>
+  <text class="s" x="1046" y="49">Export</text>
+  <rect class="pad" x="798" y="66" width="298" height="28" rx="9"/>
+  <rect class="bx" x="802" y="69" width="68" height="22" rx="7"/>
+  <text class="tab on" x="811" y="85">Options</text>
+  <text class="tab" x="882" y="85">Checks</text>
+  <text class="tab" x="944" y="85">Parts 163</text>
+  <text class="tab" x="1022" y="85">Steps 31</text>
+  <text class="t" x="802" y="124" style="font-size: 14px">Build settings</text>
+  <rect class="pad" x="798" y="134" width="298" height="44" rx="10"/>
+  <text class="s" x="810" y="152">Figure scale · Ages 6+ · Low detail ·</text>
+  <text class="s" x="810" y="168">50–250 pieces · Town</text>
+  <text class="s" x="1046" y="161">Change</text>
+  <line class="sep" x1="798" y1="196" x2="1096" y2="196"/>
+  <text class="t" x="802" y="222" style="font-size: 14px">Tweaks</text>
+  <text class="q" x="812" y="250">Weathering</text>
+  <line class="track" x1="812" y1="268" x2="1050" y2="268"/><circle class="knob" cx="880" cy="268" r="8"/>
+  <text class="q" x="1094" y="272" style="text-anchor: end">20%</text>
+  <text class="q" x="812" y="304">Chimney</text>
+  <rect class="knob" x="1062" y="292" width="32" height="16" rx="8"/>
+  <text class="q" x="812" y="334">Roof</text>
+  <rect class="knob" x="1062" y="322" width="32" height="16" rx="8"/>
+  <text class="q" x="812" y="364">Arrangement</text>
+  <rect class="bx" x="1024" y="350" width="72" height="22" rx="11"/>
+  <text class="s" x="1036" y="366">Shuffle</text>
+  <text class="s" x="802" y="420">Checks: findings in plain words, Ask agent to fix</text>
+  <text class="s" x="802" y="440">Parts: the parts list, with pictures and counts</text>
+  <text class="s" x="802" y="460">Steps: the model's tree (sub-assemblies × uses,</text>
+  <text class="s" x="802" y="476">then the steps); a step shows the build up to it</text>
 </svg>
 </div>
 <ul>
-<li><b>Left: project tree</b> with the model, submodels (with how many times each is used), and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
-<li><b>Versions</b> (section 07): "Save version" (<kbd>⌘S</kbd>) and a versions list with each one's thumbnail, name, time, part count, and who made it ("Before Claude's turn, 14:02"). A version opens read-only in the viewer to compare; Restore and "Open as a new project" sit beside it. "Undo the agent's last turn" restores the automatic version from before it.</li>
-<li><b>Center: viewer</b> with a toolbar for views, frame, screenshot, and quality. Hovering shows the part name and color. No step scrubber: the steps list picks a step.</li>
-<li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (what changed, in words: no diff and no code), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
-<li><b>Bottom drawer</b> with tabs: Parameters (sliders, toggles, color pickers limited to colors the parts come in, and "make default"), Checks (findings, click to highlight, "Ask agent to fix"), Parts list (BOM with availability and export), and Steps.</li>
-<li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), Claude plan usage meters with a popover and each agent's billing state (D-36, section 10), and the library and parts data versions.</li>
+<li><b>Title row</b> over the viewer: the project chip (the ant and the project's name), whose menu holds New, Open, Save version, Versions, Export, and About; and the view switch (Iso, Front, Top, Frame, Screenshot), centered. On Windows the row runs across the window with the menu bar (File, Edit, View, Agent, Help) and the caption buttons.</li>
+<li><b>Viewer</b>, the left of the window and the hero: it carries only what points at the model (a finding's pin, a step's parts box and sub-assembly, an open version's bar with Restore and Open as new project, Skip animation, toasts). Hovering shows the part's name and color. No step scrubber: the Steps tab picks a step.</li>
+<li><b>Versions</b> (section 07): Save version (<kbd>⌘S</kbd>) names one; the versions list shows each one's render, name, time, part count, and whether Emmet saved it before an agent's turn. A version opens read-only in the viewer to compare, with Restore (which saves the current state first) and Open as new project. Undo turn, in the chat after a turn that changed the model, restores the automatic version from before it.</li>
+<li><b>Chat</b>, docked along the bottom of the viewer: the agent picker (switching starts a fresh conversation), the plan badge (Claude's usage, which opens the meters; "Using ChatGPT plan · Manage usage" for Codex on a ChatGPT plan, 1E), the agent's status with Stop (what it's doing right now, shown only when it says something new), History, and Start fresh. Under them, the card that needs you (a question card with 2–4 answers, recommended first, and Other, keys <kbd>1</kbd>–<kbd>5</kbd>; an approval card; a failed build, a crash, a sign-in, a plan limit) or the latest line; then the composer, which stays open while the agent works: what you send waits as a pending redirect (Edit, Cancel, Stop and send now). The model and effort sit beside Send. History opens upward and pushes the viewer up; it never covers the model. Tool cards are plain-language summaries (open for the raw call), and file-change cards say what changed in words, with no diff and no code.</li>
+<li><b>Options panel</b> on the right: the model's state in a word (No problems, 1 problem, Building, Build failed, Read-only, Empty) with Export, then four tabs. <b>Options</b>: the build settings (Base, Scale, Age, Detail, Pieces, Style; each Any until set; a change waits for Rebuild, an agent turn) and the model's knobs (two to five that change its character; a change is a draft until Keep). <b>Checks</b>: findings in plain words, click to highlight, Ask agent to fix, It's fine. <b>Parts</b>: the parts list with pictures, colors, and counts, and export. <b>Steps</b>: the model's tree (Barry 2026-10-27): sub-assemblies with how many times each is used and their sub-steps, then the steps; clicking a step shows the build up to it, and clicking a sub-assembly highlights every copy. The Steps tree and the Parts list are the viewer's text alternative.</li>
+<li><b>No status bar</b>: each thing is said once. The agent's state heads the chat, the model's state heads the panel, plan usage is on the plan badge (D-36), and the library and parts data versions are in About and the old-library banner.</li>
 </ul>
 
 <h3>Key flows (each has an E2E spec)</h3>
 <ol>
-<li><b>First run</b>: welcome → parts library download (progress, about 1 minute) → Python runtime set up → agents set up (installed? signed in? "Install" and "Sign in" buttons, no terminal (D-41); which plans work, with each provider's link; for Codex, "Continue with ChatGPT" or an API key; the provider notice, use at your own risk (D-37)) → "Start with the Cottage example" or "New model from a prompt". Under 3 minutes on a normal connection.</li>
+<li><b>First run</b>: welcome → parts library download (progress, about 1 minute; a failure picks up where it stopped, with Try again) → Python runtime set up → agents set up (installed? signed in? "Install" and "Sign in" buttons, no terminal (D-41); which plans work, with each provider's link; for Codex, "Continue with ChatGPT" or an API key; the provider notice, use at your own risk (D-37)) → "Start with the Cottage example" or "New model from a prompt". Under 3 minutes on a normal connection.</li>
 <li><b>New model from a prompt</b>: New → name → the first message → the agent's first visible model inside the first minute (the doctrine tells it to show a draft fast) → refinement while the user watches.</li>
-<li><b>Tweak with sliders</b>: drag → the viewer updates in place → "make default" writes it back.</li>
+<li><b>Tweak with knobs</b>: drag a knob or press Shuffle → the viewer updates in place → Keep writes it to the model (Reset drops it). Changing a build setting instead waits for Rebuild, which asks the agent to rework the model.</li>
 <li><b>Fix a finding</b>: Checks → click → highlight + a plain sentence → "Ask agent to fix" (the finding goes with its source line) → the agent's fix shows up live.</li>
-<li><b>Export</b>: Parts list → CSV, Rebrickable, BrickLink XML · Model → LDraw <code>.mpd</code> (opens in Studio, LDCad, LeoCAD) · Instructions → PDF (native), or an LPub3D-ready file.</li>
+<li><b>Export</b>: Parts list → CSV, Rebrickable, BrickLink XML · Model → LDraw <code>.mpd</code> (opens in Studio, LDCad, LeoCAD) · Instructions → PDF (native), or an LPub3D-ready file. A toast says what was written and where.</li>
 <li><b>Open an existing LDraw file</b>: it becomes an imported project (section 07), and the agent can be asked to make it parametric.</li>
 <li><b>Switch agent</b> mid-project: a new session with the other CLI. The project files carry the state, and the chat shows a divider.</li>
-<li><b>Answer a question</b>: the agent asks → a question card, with the status bar saying it's waiting on you → click an option, press its number, or type Other → the card collapses to the answer, and the agent carries on in the same turn.</li>
+<li><b>Answer a question</b>: the agent asks → a question card, the status quiet since the card says it → click an option, press its number, or type Other → the card collapses to the answer, and the agent carries on in the same turn.</li>
 <li><b>Watch, redirect, stop</b>: the model grows brick by brick, stage by stage → the user types "make the walls taller" mid-turn → a pending bubble → delivered at the agent's next step, and the agent acknowledges and changes course. Or Stop → the turn ends at once and the pending message goes out as the next turn.</li>
 </ol>
 
 <h3>States every screen designs for</h3>
-<p class="small">Empty · first run · loading library · building · build failed (traceback with the user's line, plus "Ask agent to fix") · checks with findings · agent thinking · waiting for approval · question waiting for an answer · redirect pending · stopped by the user · build animating (with Skip) · agent not installed or not signed in · agent crashed (one-click restart; project untouched) · offline (everything except the agent and downloads works) · untrusted project (read-only banner + Trust) · an old library version.</p>
+<p class="small">Empty · first run · loading library · building · build failed (in plain words, plus "Ask agent to fix"; the error and its line go to the agent) · checks with findings · agent thinking · waiting for approval · question waiting for an answer · redirect pending · stopped by the user · build animating (with Skip) · agent not installed or not signed in · agent crashed (one-click restart; project untouched) · offline (everything except the agent and downloads works) · untrusted project (read-only banner + Trust) · an old library version.</p>
 
-<h3>Keyboard (draft; frozen in 2B)</h3>
-<p class="small"><kbd>⌘K</kbd> command palette · <kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘S</kbd> save version · <kbd>⌘↩</kbd> send · <kbd>Esc</kbd> stop agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> drawer tabs · <kbd>⌘L</kbd> focus chat. Windows uses <kbd>Ctrl</kbd>. Native menus on macOS, and a menu bar in the title bar on Windows.</p>
+<h3>Keyboard (final: <code>docs/design/keyboard.md</code>)</h3>
+<p class="small"><kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘S</kbd> save version · <kbd>⌘E</kbd> export · <kbd>⌘,</kbd> settings · <kbd>↩</kbd> send (<kbd>⇧↩</kbd> a new line, <kbd>⌘↩</kbd> also sends) · <kbd>Esc</kbd> close what's open, else stop the agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views (Iso, Front, Top, Back, Left, Right) · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> panel tabs · <kbd>⌘L</kbd> the message box · <kbd>⌥⌘Z</kbd> undo the agent's last turn · <kbd>F6</kbd> next region · <kbd>⌘/</kbd> shortcuts. No command palette (Barry 2026-10-27). Windows uses <kbd>Ctrl</kbd> and <kbd>Alt</kbd>. Native menus on macOS, and a menu bar in the title row on Windows.</p>
 
 <h3>Content, tone, accessibility</h3>
 <ul class="small">
-<li>Plain words: "3 parts aren't connected to anything", not "floating component count 3". Numbers over impressions.</li>
-<li>Teach one affordance at a time, at the moment it's useful (the nurb pattern): the first slider, the first finding, the first export.</li>
-<li>WCAG 2.2 AA contrast in both themes, full keyboard reach, visible focus, reduced motion respected (no build animation), screen reader labels on every control. The viewer has a text alternative: the parts tree and the BOM.</li>
+<li>The content and tone guide is <code>docs/design/content.md</code>. Plain words: "3 parts aren't connected to anything", not "floating component count 3". Numbers over impressions. No code, file names, or error codes on screen (law 2).</li>
+<li>Teach one affordance at a time, at the moment it's useful (the nurb pattern): the first knob, the first finding, the first export.</li>
+<li>WCAG 2.2 AA contrast in both themes, full keyboard reach, visible focus, reduced motion respected (no build animation), screen reader labels on every control. The viewer has a text alternative: the Steps tree and the Parts list.</li>
 <li>System fonts (SF Pro / Segoe UI Variable), follow the system appearance, and native-feeling title bars on both platforms.</li>
 </ul>
 </section>
@@ -2234,25 +2203,25 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <p class="goal"><b>Goal:</b> The app looks and behaves like the frozen design everywhere except the chat internals and viewer polish, and a brand-new user gets from install to a working cottage in under three minutes.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li>The layout, title bar, menus (native on macOS, title-bar menu on Windows), resizable panes, status bar, and command palette, all from tokens and components.</li>
-<li>The project tree (model, submodels, steps, parts summary, checks summary; click → highlight), open, new, and recent projects (New saves to a default Emmet folder, <code>Documents/Emmet</code>, without a save dialog; Barry's notes), import of an <code>.ldr</code>/<code>.mpd</code> file, and versions: <code>emmet version</code>, Save version (<kbd>⌘S</kbd>), the versions list, compare, Restore, and Open as a new project (sections 07 and 14).</li>
-<li>The drawers to design: Parameters (every param kind and "make default"), Checks (v1 findings, allowed list, "Ask agent to fix"), Parts list (BOM v1, availability, exports), and Steps.</li>
+<li>The layout (the viewer, the chat dock, the options panel), the title row, menus (native on macOS, title-bar menu on Windows), and resizable panes, all from tokens and components (<code>docs/design/components.md</code>). No status bar and no command palette (2B).</li>
+<li>The Steps tab's tree (sub-assemblies with their uses and sub-steps, then the steps; click a step to show the build up to it, a sub-assembly to highlight every copy), open, new, and recent projects (New saves to a default Emmet folder, <code>Documents/Emmet</code>, without a save dialog; Barry's notes), import of an <code>.ldr</code>/<code>.mpd</code> file, and versions: <code>emmet version</code>, Save version (<kbd>⌘S</kbd>), the versions list, compare, Restore, and Open as a new project (sections 07 and 14).</li>
+<li>The options panel's tabs to design: Options (the build settings with Rebuild, and every knob kind with Keep and Reset), Checks (v1 findings, allowed list, "Ask agent to fix"), Parts (BOM v1, availability, exports), and Steps.</li>
 <li>First run: welcome, the library download with progress, the Python setup, agent setup from 1F (install and sign-in with no terminal, and which plans work) restyled, and the example or new-from-prompt choice. Every failure path has a clear retry.</li>
 <li>Settings: agent and model preference, the projects folder, color naming, quality, updates (stub until 6A), "Install command line tool", About (attributions, the disclaimer, the provider notice (D-37), "what Emmet connects to"), and "Copy diagnostics".</li>
 <li>Workspace trust (D-27): the read-only banner and the Trust action.</li>
-<li>E2E specs for first run (fresh <code>--data-dir</code> against a local library fixture server), each drawer, trust, import, and every section 14 state reachable without an agent. Visual baselines for each frozen screen.</li>
+<li>E2E specs for first run (fresh <code>--data-dir</code> against a local library fixture server), each panel tab, trust, import, and every section 14 state reachable without an agent. Visual baselines for each frozen screen.</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
 <li>Every frozen screen and state except chat internals and viewer polish matches the design (side-by-side screenshots in the PR, both OSes, both themes).</li>
 <li>The first-run E2E passes on both OSes, and the full first run takes ≤ 3 minutes on a real connection (timed on this Mac).</li>
-<li>The trust, import, and drawer E2E specs pass on both OSes.</li>
+<li>The trust, import, and panel E2E specs pass on both OSes.</li>
 <li>Versions round-trip: save, change, and restore gives byte-identical sources, a restore first saves the current state, and an E2E spec covers save, compare, restore, and open as a new project.</li>
 <li>Keyboard reach: every action in the keyboard map works, and focus is visible (an E2E spec).</li>
 </ul>
 <div class="s-dh">What good looks like</div>
 <ul class="good">
-<li>No one-off styles: a lint script finds no raw colors or pixel sizes outside <code>tokens.css</code>.</li>
+<li>No one-off styles: a lint script finds no raw colors or pixel sizes outside <code>tokens.css</code> (1E's Continue with ChatGPT button keeps OpenAI's own colors and sizes, as <code>docs/design/frozen/approved.css</code> draws it).</li>
 <li>The app opens to an interactive window in ≤ 1.5 s warm.</li>
 </ul>
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 4A. Build to docs/design/frozen exactly; where the design is silent, follow the component inventory
@@ -2265,12 +2234,12 @@ Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace th
 <p class="goal"><b>Goal:</b> Working with the agent feels as good as nurb's terminal loop, or better: you always know what it's doing, you can steer and stop it, and it sees what you see.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 issues"), file-change cards in words (no diffs or code), approval cards with session-scoped allow, question cards and pending-redirect bubbles to the frozen design, stop, and retry.</li>
+<li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 problems"), file-change cards in words (no diffs or code), approval cards with session-scoped allow, question cards and pending-redirect bubbles to the frozen design, stop, and retry.</li>
 <li>Context from the UI: "the agent sees what you selected" (selected ids and the view are sent as structured context with the next message), plus "Ask agent to fix" from findings and run errors. Both show in plain words, never as code (law 2): the Checks drawer and the run panel drop 1D's file:line labels, source excerpts, and tracebacks, which go to the agent instead.</li>
 <li>The doctrine in the UI: one tip at a time (first slider, first finding, first export), tracked per user.</li>
 <li>Sessions: per-project history, resume after an app restart, switching agents mid-project like nurb (the picker in the chat header starts a fresh conversation and keeps the old one, with the state carried by files), Start fresh to clear the context without switching (Barry's notes), and a usage display where the CLI reports it.</li>
 <li>A model and effort picker per session (Barry's live-check notes, <code>docs/design/notes.md</code>), offering only what each CLI documents, with a plain note on which choices make a small plan last longer.</li>
-<li>Plan usage to the frozen design: the Claude meters, the Detailed and Compact popover, the detail panel (windows, usage credits, "Updated 8m ago"), the Codex billing state, the 90 % line, and the limit-reached card with "Continue with the other agent".</li>
+<li>Plan usage to the frozen design: the plan badge with Claude's usage, its popover (each window's meter and reset, usage credits when the report has them, "Updated 8m ago", and Codex's billing state with Manage usage), the badge's warn from 90%, Claude's limit-reached card with "Continue with the other agent", and OpenAI's own usage-limit card for Codex (1E).</li>
 <li>Versions and the agent: an automatic version before every agent turn that changes the sources, "Undo the agent's last turn" in the chat, the <code>save_version</code> MCP tool, and doctrine to save a version before a risky change.</li>
 <li>emmet-bus complete: highlight, camera, and selection queries, used by both the app's own sessions and terminal agents.</li>
 <li>Agent health: a crashed agent → a one-click restart that resumes the session; not installed or not signed in → the fix card; an untested version → a quiet note.</li>
@@ -2523,7 +2492,7 @@ the rc drafts afterwards with my approval.</code></pre></details>
 <p class="goal"><b>Goal:</b> A stranger can install Emmet, connect their agent, and build their first model without help, and the beta shows where they still get stuck.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><code>docs/guide/</code>: getting started per OS, connecting Claude Code or Codex (per OS), prompts that work, sliders and "make default", checks explained (one page per rule), parts list and exports, LPub3D instructions, troubleshooting, and privacy. In-app Help links to it, and the site reuses it.</li>
+<li><code>docs/guide/</code>: getting started per OS, connecting Claude Code or Codex (per OS), prompts that work, knobs, build settings, and Keep, checks explained (one page per rule), parts list and exports, LPub3D instructions, troubleshooting, and privacy. In-app Help links to it, and the site reuses it.</li>
 <li>Export polish: the LPub3D hand-off (detect the install, open the exported file), plus Studio and LDCad compatibility notes, tested with real files.</li>
 <li>Diagnostics: a panic hook writes a local crash log, and the next launch offers "Copy diagnostics" (versions, OS, GPU, doctor output, the last logs, all scrubbed). A test proves the scrubbing.</li>
 <li>Beta feedback through issue templates in the repo (bug, idea, "got stuck"), a tester welcome message draft, and a triage label set.</li>

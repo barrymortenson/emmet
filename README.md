@@ -43,7 +43,9 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
   fixtures (`tests/fixtures/ldraw-mini/`, `tests/fixtures/rebrickable-mini/`, `tests/replay/`), and the model ladder
   the evals measure against (`docs/spec/ladder.md`). Spike code lives in `tests/spikes/`.
 
-The app icon is a placeholder until the design phase.
+The design is frozen in `docs/design/frozen/` (open `index.html` from the folder): every screen and state, built from
+the tokens in `apps/desktop/src/styles/tokens.css` and the components in `docs/design/components.md`.
+`node scripts/app-icon.mjs` makes the app icons from `docs/design/icon/`.
 
 ## Setup
 

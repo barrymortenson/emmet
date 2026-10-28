@@ -3,6 +3,23 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-27, session 2B
+
+- **The Steps tab is the model's tree.** B has no project tree, and section 14 and 4A still listed one. Asked where
+  the model's structure lives, Barry chose the Steps tab: submodels show there as sub-assembly groups with how many
+  times each is used and their own sub-steps; clicking a step shows the build up to it, and clicking a submodel
+  highlights every copy. Over a fifth tab, Model (tight in the 384 px panel, and it repeats Steps), or no structure
+  view in the MVP. Section 14 and 4A drop the separate tree.
+- **No command palette.** Asked whether B gets C's ⌘K palette (commands only), Barry said no: the native menus on
+  macOS, the title-bar menu on Windows, and the shortcuts are enough. The keyboard map has no ⌘K, and 4A doesn't
+  build a palette.
+- **H-08 (UX-2): signed as is.** Asked through AskUserQuestion whether he signs the frozen design, with a summary of
+  all 47 screens and states and what 2B settled beyond 2A's B (15 colors a theme; Enter sends, ⇧↩ adds a line, ⌘↩
+  still sends, Esc closes what's open before it stops the agent; Windows' full-width title row with its menu bar;
+  1E's required ChatGPT UI on the frozen screens; plan usage on the plan badge, so D-36 and section 10 say so; no
+  Chat focus layout), Barry signed it as is. From now on, a change to the frozen design needs a design change note
+  (`docs/design/changes/`) and his yes.
+
 ## 2026-10-27, session 2A
 
 - **H-07 (UX-1): B, as revised.** Asked through AskUserQuestion whether the refined B was done, Barry said yes

@@ -100,6 +100,13 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   (real renders, run and check output, and transcript text), `review.html` comparing them, and a brand starter.
   `scripts/contrast-check.mjs` checks the mockups' colors for WCAG AA, and each prototype's `#audit` checks every
   text element it renders.
+- The design system and the frozen screens (session 2B): `apps/desktop/src/styles/tokens.css` (15 colors a theme,
+  type, space, radius, elevation, motion with reduced motion, and the macOS and Windows adjustments; the site imports
+  it as is), 41 components and 8 regions, on Radix primitives where one exists (`docs/design/components.md`, every state in
+  `docs/design/frozen/components.html`), 47 frozen screens and states at 1440 × 900 and 1280 × 800, light and dark,
+  macOS and Windows, each listing the components and tokens it uses (`docs/design/frozen/`), the final keyboard map
+  and menus, the content and tone guide, the icon set (lucide-react plus Emmet's brick glyphs), and the final app
+  icon, which `scripts/app-icon.mjs` turns into every platform size. `docs/design/SIGNOFF.md` freezes it (H-08).
 
 ### Security
 
