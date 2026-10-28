@@ -385,3 +385,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   About credit it. Barry chose this over shipping it as a separate file read at run time (ADR 0003's wording, with a
   lookup now and a packaging step in 6A) and over not using it (overrides only). CC lists GPLv3 as compatible with
   BY-SA 4.0, and GPLv3 combines with the AGPL. ADR 0003 records it.
+- **Connector match tolerance: 1 LDU for round joints, 0.5 LDU for studs.** Official OMR files place parts by hand,
+  and round joints (wheels on holder pins, hands on clips, hinge fingers, posed arms) are often 1 LDU (0.4 mm) off
+  their mates; plan section 11's 0.5 LDU reported those as floating. Barry chose 1 LDU across the axis for pins,
+  axles, bars, clips, fingers, and generic plugs, keeping 0.5 LDU for studs so stud-built work keeps a tight grid, over
+  1 LDU everywhere and over 0.5 LDU with those models left out of the corpus. Faults agents make are 4 LDU or more, so
+  recall doesn't change; LDCad data found wrong for a part gets an exact override, never a looser rule.

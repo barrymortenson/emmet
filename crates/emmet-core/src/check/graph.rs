@@ -13,8 +13,11 @@ use glam::{DMat3, DMat4, DVec3};
 
 use super::connectors::{Connector, Gender, Kind, Shape};
 
-/// How far apart two mating axes may be, and how far a cylinder may fall short of its seat.
+/// How far apart a stud and its anti-stud's axes may be, and how far a cylinder may fall short of its seat.
 pub const TOLERANCE: f64 = 0.5;
+/// How far apart a round joint's axes may be (a pin, axle, bar, clip, hinge finger, or plug): models place them by
+/// hand and they have play, so official files are often 1 LDU off (Barry, 2026-10-28).
+pub const JOINT: f64 = 1.0;
 /// How parallel two mating axes must be (cos 8°).
 const PARALLEL: f64 = 0.99;
 /// How close a male section's radius must be to its hole's to grip, and how much wider it may be (a pin's ridge).
@@ -84,7 +87,7 @@ pub fn connections(conns: &[Placed]) -> Vec<Connection> {
             continue;
         }
         let (a, b) = (p.c.pos, end(&p.c));
-        let pad = DVec3::splat(TOLERANCE + 1.0);
+        let pad = DVec3::splat(JOINT + 1.0);
         let (lo, hi) = (cell(a.min(b) - pad), cell(a.max(b) + pad));
         for x in lo.0..=hi.0 {
             for y in lo.1..=hi.1 {
@@ -194,7 +197,7 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
             if a.gender == b.gender {
                 return fail("same gender");
             }
-            if a.pos.distance(b.pos) > 2.0 * TOLERANCE {
+            if a.pos.distance(b.pos) > JOINT {
                 return fail("apart");
             }
             Ok(seat(a.pos, a.axis, 0.0, 0.0, Kind::Gen))
@@ -236,8 +239,7 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
             }
             // A stud enters an anti-stud from its open side: a stud (closed at its base) into an anti-stud (closed at its
             // far end) runs the same way. Short centered pins (a minifig's shoulder, a wheel's) seat either way round.
-            let stud = a.secs.len() == 1 && (a.secs[0].radius - 6.0).abs() <= GRIP && a.len() <= 6.0;
-            if stud && !a.open.0 && !b.open.1 && dot < 0.0 {
+            if stud(a) && !a.open.0 && !b.open.1 && dot < 0.0 {
                 return fail("closed ends face each other");
             }
             let (lo, hi) = along(a, b, dot).ok_or("off the line")?;
@@ -289,12 +291,22 @@ fn seat(at: DVec3, axis: DVec3, radius: f64, len: f64, kind: Kind) -> Connection
     }
 }
 
+/// A stud: one round section a stud's width, no longer than a stud is tall.
+fn stud(c: &Connector) -> bool {
+    c.kind == Kind::Cyl && c.secs.len() == 1 && (c.secs[0].radius - 6.0).abs() <= GRIP && c.len() <= 6.0
+}
+
+/// How far apart two connectors' axes may be: [`TOLERANCE`] for a stud, [`JOINT`] for any round joint.
+fn reach(a: &Connector, b: &Connector) -> f64 {
+    if stud(a) || stud(b) { TOLERANCE } else { JOINT }
+}
+
 /// Where `a` lies along `b`'s axis, as the overlap of the two segments in `b`'s parameter (0 at `b`'s start), when
-/// `a`'s axis is within the tolerance of `b`'s line.
+/// `a`'s axis is within [`reach`] of `b`'s line.
 fn along(a: &Connector, b: &Connector, dot: f64) -> Option<(f64, f64)> {
     let d = a.pos - b.pos;
     let t = d.dot(b.axis);
-    if (d - b.axis * t).length() > TOLERANCE {
+    if (d - b.axis * t).length() > reach(a, b) {
         return None;
     }
     let (a0, a1) = {
@@ -413,6 +425,18 @@ mod tests {
             DVec3::ZERO,
         );
         assert!(mate(&bar, &axle_hole).is_some());
+    }
+
+    #[test]
+    fn a_round_joint_takes_1_ldu_of_hand_placement() {
+        // A wheel 1 LDU off its holder's pin (6375-1) still seats; 2 LDU off doesn't.
+        let hole = "!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 4 10 R 5 2] [pos=0 0 8] [ori=1 0 0 0 0 -1 0 1 0]";
+        let pin = at(
+            "!LDCAD SNAP_CYL [gender=M] [caps=one] [secs=R 4 11 R 4.25 1] [ori=1 0 0 0 0 -1 0 1 0]",
+            DVec3::new(0.0, 0.0, 8.0),
+        );
+        assert!(mate(&pin, &at(hole, DVec3::new(1.0, 0.0, 0.0))).is_some());
+        assert!(mate(&pin, &at(hole, DVec3::new(2.0, 0.0, 0.0))).is_none());
     }
 
     #[test]
