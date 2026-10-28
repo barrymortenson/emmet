@@ -1,0 +1,67 @@
+---
+source: tests/it/tests/check.rs
+expression: "snapshot(&dir, v)"
+---
+{
+  "data": {
+    "allowed": [],
+    "clean": false,
+    "counts": {
+      "step_order": 2
+    },
+    "findings": [
+      {
+        "at": [
+          5.0,
+          5.0,
+          4.0
+        ],
+        "hint": "It's held only by post (Brick 1 x 1) from step 3: move it to step 3 or later, or move post (Brick 1 x 1) earlier.",
+        "id": "F-0001",
+        "message": "lamp (Plate 1 x 1) in step 2 connects to nothing from earlier steps.",
+        "parts": [
+          "lamp"
+        ],
+        "rule": "step_order",
+        "severity": "error",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 13
+          }
+        ]
+      },
+      {
+        "at": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "hint": "Move it to a step before 5, before roof (Plate 4 x 4) goes on.",
+        "id": "F-0002",
+        "message": "crate (Brick 1 x 1) goes in at step 6 between earlier parts on both sides of it: roof (Plate 4 x 4) from step 5 is already on the other side.",
+        "parts": [
+          "crate"
+        ],
+        "rule": "step_order",
+        "severity": "warning",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 22
+          }
+        ]
+      }
+    ],
+    "inputs_hash": "[inputs_hash]",
+    "schema": 1
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "<project>"
+  },
+  "ok": true,
+  "warnings": []
+}

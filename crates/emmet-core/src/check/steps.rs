@@ -127,6 +127,7 @@ pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &H
         }
         let mut sets = UnionFind::new(es.len());
         let mut earliest: Vec<u32> = es.iter().map(|e| e.step).collect();
+        let (mut misplaced, mut later): (HashSet<usize>, Vec<usize>) = (HashSet::new(), Vec::new());
         let mut steps: Vec<u32> = es.iter().map(|e| e.step).collect();
         steps.sort();
         steps.dedup();
@@ -174,11 +175,16 @@ pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &H
                     if !rests_on_later(m, &scope, ei) {
                         continue;
                     }
+                    misplaced.extend(e.parts.iter().copied());
                     out.push(unconnected(m, &scope, ei, &edges));
                 } else if connected && !e.copy {
-                    out.extend(no_way_in(m, &scope, ei));
+                    later.push(ei);
                 }
             }
+        }
+        // The way-in check, once every misplaced part is known: a part out of order isn't in anyone's way.
+        for ei in later {
+            out.extend(no_way_in(m, &scope, ei, &misplaced));
         }
     }
     out
@@ -256,13 +262,13 @@ fn bounds(m: &Model, parts: &[usize]) -> Aabb {
 
 /// The insertion-path check (a warning in v1): a part that seats on earlier parts from one side, with an earlier part
 /// in the way on that side, can't be put in (furniture added after the ceiling closed the room in).
-fn no_way_in(m: &Model, scope: &Scope, ei: usize) -> Option<Raw> {
+fn no_way_in(m: &Model, scope: &Scope, ei: usize, misplaced: &HashSet<usize>) -> Option<Raw> {
     let es = &scope.elements;
     let e = &es[ei];
     let i = e.parts[0];
-    let earlier = |j: usize| scope.of.get(&j).is_some_and(|&o| es[o].step < e.step);
+    let earlier = |j: usize| !misplaced.contains(&j) && scope.of.get(&j).is_some_and(|&o| es[o].step < e.step);
     // The way it comes in, from each connection to an earlier part: from the side its mate isn't on.
-    let mut ways: Vec<DVec3> = Vec::new();
+    let mut ways: Vec<(DVec3, usize)> = Vec::new();
     let mut mates = HashSet::new();
     for c in m.links.iter().filter(|c| c.kind == Kind::Cyl && (c.a == i || c.b == i)) {
         let other = if c.a == i { c.b } else { c.a };
@@ -271,12 +277,19 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize) -> Option<Raw> {
         }
         mates.insert(other);
         if let Some(w) = if c.a == i { c.toward_a } else { c.toward_b } {
-            ways.push(w);
+            ways.push((w, other));
         }
     }
-    let way = *ways.first()?;
-    let squeezed = ways.iter().any(|w| w.dot(way) < -0.5);
-    let blocker = if squeezed {
+    let (way, _) = *ways.first()?;
+    // Between earlier parts on opposite sides: the later of them closed it in.
+    let squeezed = ways
+        .iter()
+        .filter(|(w, _)| w.dot(way) < -0.5)
+        .chain(ways.iter().filter(|(w, _)| w.dot(way) > 0.5))
+        .map(|&(_, o)| o)
+        .max_by_key(|o| scope.of.get(o).map_or(0, |&x| es[x].step))
+        .filter(|_| ways.iter().any(|(w, _)| w.dot(way) < -0.5));
+    let blocker = if squeezed.is_some() {
         None
     } else {
         if way.abs().max_element() < 0.99 {
@@ -306,7 +319,7 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize) -> Option<Raw> {
                 d(&a.1).total_cmp(&d(&b.1))
             })
     };
-    if !squeezed && blocker.is_none() {
+    if squeezed.is_none() && blocker.is_none() {
         return None;
     }
     let what = label(m, e);
@@ -332,13 +345,19 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize) -> Option<Raw> {
                 ),
             )
         }
-        None => (
-            format!(
-                "{what} goes in at step {} between earlier parts above and below it.",
-                e.step
-            ),
-            "Move it to a step before the parts on one side of it.".to_string(),
-        ),
+        None => {
+            let o = squeezed.expect("squeezed or blocked");
+            let t = scope.of.get(&o).map_or(0, |&x| es[x].step);
+            let other = label(m, &es[scope.of[&o]]);
+            (
+                format!(
+                    "{what} goes in at step {} between earlier parts on both sides of it: {other} from step {t} is \
+                     already on the other side.",
+                    e.step
+                ),
+                format!("Move it to a step before {t}, before {other} goes on."),
+            )
+        }
     };
     let mut raw = Raw::new(Rule::StepOrder, vec![i], dsl_box(&m.boxes[i]?).min, message, hint);
     raw.severity = Some(Severity::Warning);

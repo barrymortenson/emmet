@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! `emmet check` (validate v0, plan section 11) and `emmet bom` against the project fixtures: each broken-* project
-//! gets exactly its findings, the cottage gets none at any slider setting, and build/validation.json is reproducible.
+//! `emmet check` (plan section 11) and `emmet bom` against the project fixtures: each broken-* project gets exactly its
+//! findings, the cottage gets none at any slider setting, the model's allow and ground entries count, and
+//! build/validation.json is reproducible. disconnected_submodel and unknown_part, which today's DSL can't produce, have
+//! their goldens in validator_corpus.rs.
 
 use std::path::Path;
 
@@ -27,6 +29,10 @@ fn each_broken_project_gets_exactly_its_findings() {
     for name in [
         "broken-collision",
         "broken-floating",
+        "broken-step-order",
+        "broken-step-size",
+        "broken-weak-connection",
+        "broken-off-grid",
         "broken-obsolete-part",
         "broken-alias-part",
     ] {
@@ -89,6 +95,30 @@ fn an_allowed_finding_moves_to_allowed() {
     assert_eq!(v["data"]["findings"], json!([]), "{v}");
     assert_eq!(v["data"]["allowed"][0]["reason"], "held by hand");
     assert_eq!(v["data"]["clean"], true);
+}
+
+/// `m.allow` and `m.ground` (DSL v1, 3B) reach the validator through build/placements.json: an allowed finding moves to
+/// `allowed`, and a part named as ground stands.
+#[test]
+fn the_models_allow_and_ground_count() {
+    let dir = project("broken-floating");
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["counts"], json!({ "floating": 1 }), "{v}");
+    // What 3B's DSL writes for m.allow("floating", ["tower/2", "tower/cap"], "…").
+    let path = dir.join("build/placements.json");
+    let mut doc: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    doc["allow"] =
+        json!([{ "rule": "floating", "parts": ["tower/2", "tower/cap"], "reason": "a sign held up by hand" }]);
+    std::fs::write(&path, serde_json::to_string(&doc).unwrap()).unwrap();
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["findings"], json!([]), "{v}");
+    assert_eq!(v["data"]["allowed"][0]["reason"], "a sign held up by hand");
+    // And m.ground("tower/2"): the group stands.
+    doc.as_object_mut().unwrap().remove("allow");
+    doc["ground"] = json!(["tower/2"]);
+    std::fs::write(&path, serde_json::to_string(&doc).unwrap()).unwrap();
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["findings"], json!([]), "{v}");
 }
 
 /// The rung 1 reference: the cottage template validates clean at its defaults and at the corners of its sliders, with

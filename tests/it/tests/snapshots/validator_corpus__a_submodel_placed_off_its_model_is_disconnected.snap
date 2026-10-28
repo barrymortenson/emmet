@@ -1,0 +1,32 @@
+---
+source: tests/it/tests/validator_corpus.rs
+expression: v
+---
+{
+  "schema": 1,
+  "inputs_hash": null,
+  "clean": false,
+  "counts": {
+    "disconnected_submodel": 1
+  },
+  "findings": [
+    {
+      "id": "F-0001",
+      "rule": "disconnected_submodel",
+      "severity": "error",
+      "parts": [
+        "part/2",
+        "part/3"
+      ],
+      "source": [],
+      "at": [
+        -1.0,
+        -1.0,
+        1.0
+      ],
+      "message": "Submodel 'tower.ldr' (copy tower) in step 2 isn't connected to the model around it: none of its 2 parts touches a part outside it.",
+      "hint": "The copy sits 1 plate above base (Plate 6 x 6): move where it's placed down by 1 plate."
+    }
+  ],
+  "allowed": []
+}

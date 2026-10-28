@@ -1,0 +1,46 @@
+---
+source: tests/it/tests/check.rs
+expression: "snapshot(&dir, v)"
+---
+{
+  "data": {
+    "allowed": [],
+    "clean": false,
+    "counts": {
+      "weak_connection": 1
+    },
+    "findings": [
+      {
+        "at": [
+          0.0,
+          0.0,
+          4.0
+        ],
+        "hint": "Add a part under its far end, or hold it with more studs along its length.",
+        "id": "F-0001",
+        "message": "arm (Plate 1 x 8) is held by 1 stud and reaches 7 studs past it.",
+        "parts": [
+          "arm"
+        ],
+        "rule": "weak_connection",
+        "severity": "warning",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 14
+          }
+        ]
+      }
+    ],
+    "inputs_hash": "[inputs_hash]",
+    "schema": 1
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "<project>"
+  },
+  "ok": true,
+  "warnings": []
+}

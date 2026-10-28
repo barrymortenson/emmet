@@ -1,0 +1,59 @@
+---
+source: tests/it/tests/check.rs
+expression: "snapshot(&dir, v)"
+---
+{
+  "data": {
+    "allowed": [],
+    "clean": false,
+    "counts": {
+      "step_size": 1
+    },
+    "findings": [
+      {
+        "at": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "hint": "Split it into steps of about 8: by wall, side, or row, the far side first.",
+        "id": "F-0001",
+        "message": "Step 2 adds 10 parts: the build's target is 8 a step.",
+        "parts": [
+          "wall/1",
+          "wall/2",
+          "wall/3",
+          "wall/4",
+          "wall/5",
+          "wall/10",
+          "wall/6",
+          "wall/7",
+          "wall/8",
+          "wall/9"
+        ],
+        "rule": "step_size",
+        "severity": "warning",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 13
+          },
+          {
+            "file": "model.py",
+            "line": 14
+          }
+        ]
+      }
+    ],
+    "inputs_hash": "[inputs_hash]",
+    "schema": 1
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "<project>"
+  },
+  "ok": true,
+  "warnings": []
+}

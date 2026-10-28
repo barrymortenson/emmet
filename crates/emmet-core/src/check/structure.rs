@@ -142,11 +142,17 @@ pub(super) fn floating(m: &Model, groups: &[Vec<usize>], skip: &HashSet<usize>) 
                     parts.len()
                 )
             };
+            let (they, them, start, rest) = if parts.len() == 1 {
+                ("It", "it", "starts", "rests")
+            } else {
+                ("They", "them", "start", "rest")
+            };
             let hint = match below(m, parts, &all) {
                 Some((i, gap)) if gap > 0.0 => {
                     let q = &m.placed[i];
                     format!(
-                        "They start {} above {} ({}), which ends at z={}: lower them by {}, or put a part under them.",
+                        "{they} {start} {} above {} ({}), which ends at z={}: lower {them} by {}, or put a part under \
+                         {them}.",
                         plural(gap, "plate"),
                         q.p.id,
                         name(q),
@@ -157,13 +163,15 @@ pub(super) fn floating(m: &Model, groups: &[Vec<usize>], skip: &HashSet<usize>) 
                 Some((i, _)) => {
                     let q = &m.placed[i];
                     format!(
-                        "They rest on {} ({}) without a stud between them: put them on whole-stud positions, or on a \
+                        "{they} {rest} on {} ({}) without a stud between: put {them} on whole-stud positions, or on a \
                          part with studs.",
                         q.p.id,
                         name(q)
                     )
                 }
-                None => "Nothing is under them: give them a part to stand on, or move them down onto the model.".into(),
+                None => format!(
+                    "Nothing is under {them}: give {them} a part to stand on, or move {them} down onto the model."
+                ),
             };
             Raw::new(Rule::Floating, parts.clone(), here.min, message, hint)
         })
@@ -319,10 +327,10 @@ pub(super) fn weak_connections(m: &Model, ground: &[bool]) -> Vec<Raw> {
 /// How far off its seat a part can be for off_grid to say where it goes: half a stud.
 const NEAR: f64 = STUD / 2.0;
 
-/// off_grid: a part connected to nothing whose connector is a little off a mate (a typo in a position): the hint
-/// says how far to move it, in the DSL frame. Parts held some other way (figures, stickers, flexible parts) are left
-/// out.
-pub(super) fn off_grid(m: &Model) -> Vec<Raw> {
+/// off_grid: a part connected to nothing whose connector is a little off a mate (a typo in a position): sideways off the
+/// stud grid, or up or down by part of a plate. The hint says how far to move it, in the DSL frame. Parts held some
+/// other way (figures, stickers, flexible parts) and the ground are left out.
+pub(super) fn off_grid(m: &Model, ground: &[bool]) -> Vec<Raw> {
     let mut linked = vec![false; m.placed.len()];
     for &(a, b) in &m.pairs() {
         linked[a] = true;
@@ -334,7 +342,7 @@ pub(super) fn off_grid(m: &Model) -> Vec<Raw> {
     }
     let mut out = Vec::new();
     for (i, q) in m.placed.iter().enumerate() {
-        if linked[i] || q.info.is_none() || m.boxes[i].is_none() {
+        if linked[i] || ground[i] || q.info.is_none() || m.boxes[i].is_none() {
             continue;
         }
         // The smallest move that seats one of its connectors on a mate of another part's.
@@ -346,7 +354,13 @@ pub(super) fn off_grid(m: &Model) -> Vec<Raw> {
                     continue;
                 }
                 let d = seat_move(c, &o.c);
-                if d.length() > 0.5 && d.length() <= NEAR && best.is_none_or(|(b, _)| d.length() < b.length()) {
+                // Off the grid: sideways off the stud's line, or along it by part of a plate (a whole plate's gap is
+                // floating's to report).
+                let along = d.dot(o.c.axis);
+                let across = (d - o.c.axis * along).length();
+                let plates = along.abs() / (PLATE / 2.0);
+                let off = across > 0.5 || (plates - plates.round()).abs() * (PLATE / 2.0) > 0.5;
+                if off && d.length() <= NEAR && best.is_none_or(|(b, _)| d.length() < b.length()) {
                     best = Some((d, j));
                 }
             }

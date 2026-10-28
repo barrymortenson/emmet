@@ -165,9 +165,20 @@ fn the_omr_fixtures_are_unmodified_and_credited() {
     }
 }
 
+/// The goldens for the rules today's DSL can't produce (it has no submodels yet, and raises on an unknown part): .mpd
+/// files with exactly their findings.
 #[test]
 fn a_part_the_library_lacks_is_unknown() {
     let v = validate(shared_library(), &placements_of(&fixture("validator/unknown-part.mpd")));
+    insta::assert_json_snapshot!(v);
+}
+
+#[test]
+fn a_submodel_placed_off_its_model_is_disconnected() {
+    let v = validate(
+        shared_library(),
+        &placements_of(&fixture("validator/disconnected-submodel.mpd")),
+    );
     insta::assert_json_snapshot!(v);
 }
 

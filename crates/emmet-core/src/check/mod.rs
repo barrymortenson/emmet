@@ -365,7 +365,7 @@ pub fn validate(
         raw.extend(structure::weak_connections(&model, &ground));
     }
     if on(Rule::OffGrid) {
-        raw.extend(structure::off_grid(&model));
+        raw.extend(structure::off_grid(&model, &ground));
     }
     Ok(finish(placed, raw, &options.allow, inputs_hash))
 }
