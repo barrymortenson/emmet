@@ -2094,7 +2094,7 @@ and record what I change. After sign-off, changes to these screens need a short 
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>The connector model (section 11) with all three sources: the complete primitive table, the LDCad shadow library import (its own CC BY-SA 4.0 data file with attribution, per ADR 0003 and Q-01), and <code>data/connections/*.toml</code> overrides, each with a test model.</li>
-<li>Connector matching (position within 0.5 LDU, compatible kind and gender, aligned direction), the connection graph, and connected components.</li>
+<li>Connector matching (position within 0.5 LDU, 1 LDU for round joints per D-45, compatible kind and gender, aligned direction), the connection graph, and connected components.</li>
 <li>Collision proxies (the body mesh minus stud and anti-stud geometry, cached per part in the index) with a broad phase (AABB tree) and a narrow phase (parry3d), with the seating exemption for connected pairs. The proxy approach is recorded in an ADR with its alternatives.</li>
 <li>Every v1 rule in section 11, <code>m.allow</code> suppressions, <code>validation.json</code> schema v1, stable finding ids, and the improved MCP summary.</li>
 <li>The corpus: <code>tests/fixtures/omr/</code> (10 committed if allowed) plus a nightly list of 20–40 cached on the runner; the seeded mutation generator; recall per rule; precision gates.</li>
