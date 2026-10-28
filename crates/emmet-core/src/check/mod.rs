@@ -6,8 +6,9 @@
 
 mod boxes;
 pub mod connectors;
+pub mod graph;
 
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::rc::Rc;
 
 use glam::{DMat4, DVec3};
@@ -19,7 +20,7 @@ use crate::index::{Index, Part};
 use crate::ldraw::geometry::{Aabb, LibFiles, Measurer};
 use crate::ldraw::placements::Placement;
 use boxes::Obb;
-use connectors::{Scanner, Stud};
+use connectors::{Connector, Scanner};
 
 /// What a finding means for the build.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
@@ -165,10 +166,6 @@ const OVERLAP: f64 = 0.5;
 const OVERLAP_SIDE: f64 = 5.0;
 /// A stud enters a part through its underside when its base is at most this far inside it…
 const SEAT: f64 = 1.5;
-/// …and its tip reaches at least this far into it.
-const ENTER: f64 = 2.0;
-/// How far inside the receiving part's sides a stud's center must be.
-const INSET: f64 = 4.0;
 /// Parts whose bottom is this close to the model's lowest point stand on the ground.
 const GROUND: f64 = 1.0;
 const STUD: f64 = 20.0;
@@ -181,11 +178,11 @@ struct Placed<'p> {
     info: Option<Rc<Info>>,
 }
 
-/// A part's index row and its studs.
+/// A part's index row and its connectors.
 struct Info {
     part: Part,
     body: Option<Aabb>,
-    studs: Rc<Vec<Stud>>,
+    connectors: Rc<Vec<Connector>>,
 }
 
 /// Checks `placements` (the rows of build/placements.json) with the rules in `rules`, against the parts index and the
@@ -207,8 +204,8 @@ pub fn validate(
             None => {
                 let info = index.part(&p.part)?.map(|part| {
                     let body = part.body_box.map(Aabb::from_array);
-                    let studs = scanner.studs(&format!("{}.dat", part.id));
-                    Rc::new(Info { part, body, studs })
+                    let connectors = scanner.connectors(&format!("{}.dat", part.id));
+                    Rc::new(Info { part, body, connectors })
                 });
                 infos.insert(p.part.clone(), info.clone());
                 info
@@ -230,13 +227,89 @@ pub fn validate(
         .iter()
         .map(|q| Some(Obb::new(q.info.as_ref()?.body.as_ref()?, &q.m, 0.0)))
         .collect();
+    let held = held_pairs(&placed, &world);
     if on(Rule::Collision) {
-        raw.extend(collisions(&placed, &world));
+        raw.extend(collisions(&placed, &world, &held));
     }
+    let conns = graph::world(
+        &placed
+            .iter()
+            .map(|q| {
+                (
+                    q.m,
+                    q.info.as_ref().map_or_else(Default::default, |i| i.connectors.clone()),
+                )
+            })
+            .collect::<Vec<_>>(),
+    );
+    let mut links = graph::connections(&conns);
+    links.extend(underside_links(&placed, &world, &conns));
     if on(Rule::Floating) {
-        raw.extend(floating(&placed, &world));
+        raw.extend(floating(&placed, &world, &links, &held));
     }
     Ok(finish(&placed, raw, allow, inputs_hash))
+}
+
+/// For debugging the connection model: each named placement's connectors in the world, and every connection that
+/// touches it.
+#[doc(hidden)]
+pub fn explain(index: &Index, lib: &LibFiles, placements: &[Placement], ids: &[String]) -> Result<String> {
+    let mut scanner = Scanner::new(Measurer::new(lib));
+    let mut parts = Vec::new();
+    for p in placements {
+        let cs = match index.part(&p.part)? {
+            Some(part) => scanner.connectors(&format!("{}.dat", part.id)),
+            None => Default::default(),
+        };
+        parts.push((DMat4::from_cols_array(&p.matrix), cs));
+    }
+    let world = graph::world(&parts);
+    let links = graph::connections(&world);
+    let mut out = String::new();
+    for (i, p) in placements.iter().enumerate() {
+        if !ids.iter().any(|id| id == &p.id) {
+            continue;
+        }
+        out += &format!("{} {} at {:?}\n", p.id, p.part, &p.matrix[12..15]);
+        for (k, w) in world.iter().enumerate().filter(|(_, w)| w.part == i) {
+            let c = &w.c;
+            out += &format!(
+                "  {:?} {:?} {:?} pos {:.2?} axis {:.2?} secs {:?} slide {} group {:?}\n",
+                c.source,
+                c.kind,
+                c.gender,
+                c.pos.to_array(),
+                c.axis.to_array(),
+                c.secs.iter().map(|s| (s.radius, s.len)).collect::<Vec<_>>(),
+                c.slide,
+                c.group
+            );
+            for (j, mates, off) in graph::near(&world, k, 4.0) {
+                let q = &world[j];
+                out += &format!(
+                    "      near {} ({}) {:?} {:?} pos {:.2?} axis {:.2?} secs {:?} off {off:.2} mates {mates}\n",
+                    placements[q.part].id,
+                    placements[q.part].part,
+                    q.c.kind,
+                    q.c.gender,
+                    q.c.pos.to_array(),
+                    q.c.axis.to_array(),
+                    q.c.secs.iter().map(|s| (s.radius, s.len)).collect::<Vec<_>>(),
+                );
+            }
+        }
+        for l in links.iter().filter(|l| l.a == i || l.b == i) {
+            let other = if l.a == i { l.b } else { l.a };
+            out += &format!(
+                "  linked to {} ({}) by {:?} at {:.1?}\n",
+                placements[other].id,
+                placements[other].part,
+                l.kind,
+                l.at.to_array()
+            );
+        }
+    }
+    Ok(out)
 }
 
 /// A finding before it's numbered.
@@ -316,6 +389,83 @@ fn part_rules(placed: &[Placed], rules: &[Rule]) -> Vec<Raw> {
     out
 }
 
+/// The connector data's fallback: a part with no female connector at all (one the LDCad data doesn't cover, whose
+/// underside isn't drawn with tube primitives) takes any stud that enters its underside, at least 4 LDU inside its
+/// sides (validate v0's rule).
+fn underside_links(placed: &[Placed], world: &[Option<Obb>], conns: &[graph::Placed]) -> Vec<graph::Connection> {
+    use connectors::{Gender, Kind};
+    const CELL: f64 = 40.0;
+    let cell = |v: f64| (v / CELL).floor() as i64;
+    let open: Vec<bool> = placed
+        .iter()
+        .map(|q| {
+            q.info
+                .as_ref()
+                .is_some_and(|i| i.body.is_some() && !i.connectors.iter().any(|c| c.gender == Gender::Female))
+        })
+        .collect();
+    let mut grid: HashMap<(i64, i64), Vec<usize>> = HashMap::new();
+    for (i, w) in world.iter().enumerate() {
+        let (true, Some(w)) = (open[i], w) else { continue };
+        let b = w.aabb();
+        for x in cell(b.min.x)..=cell(b.max.x) {
+            for z in cell(b.min.z)..=cell(b.max.z) {
+                grid.entry((x, z)).or_default().push(i);
+            }
+        }
+    }
+    let mut out = Vec::new();
+    if grid.is_empty() {
+        return out;
+    }
+    let inverse: HashMap<usize, DMat4> = grid.values().flatten().map(|&j| (j, placed[j].m.inverse())).collect();
+    for w in conns {
+        let c = &w.c;
+        if c.kind != Kind::Cyl || c.gender != Gender::Male || (c.secs[0].radius - 6.0).abs() > 0.6 || c.len() > 6.0 {
+            continue;
+        }
+        let probe = c.pos + c.axis * (c.len() - 2.0).max(0.0);
+        for &j in grid.get(&(cell(probe.x), cell(probe.z))).into_iter().flatten() {
+            if j == w.part {
+                continue;
+            }
+            let body = placed[j].info.as_ref().and_then(|i| i.body.as_ref());
+            if receives(body, &inverse[&j], c.pos, c.axis, c.len()) {
+                out.push(graph::Connection {
+                    a: w.part,
+                    b: j,
+                    kind: Kind::Cyl,
+                    at: c.pos + c.axis * c.len() / 2.0,
+                    axis: c.axis,
+                    radius: 6.0,
+                    len: c.len(),
+                });
+            }
+        }
+    }
+    out
+}
+
+/// Whether part `j` (its body box, and its inverse placement) takes a stud whose base is at `base` pointing along
+/// `dir` and reaching `len`, in world space: the stud enters it through its underside, inside its sides.
+fn receives(body: Option<&Aabb>, inv: &DMat4, base: DVec3, dir: DVec3, len: f64) -> bool {
+    const ENTER: f64 = 2.0;
+    const INSET: f64 = 4.0;
+    let Some(body) = body else { return false };
+    let local = inv.transform_point3(base);
+    let local_dir = inv.transform_vector3(dir).normalize_or_zero();
+    // Into the underside: the stud points up the part's own frame (−Y, so y shrinks along it), its base is at or
+    // below the part's bottom, and its tip reaches into the part.
+    let bottom = body.max.y;
+    if local_dir.y > -0.9 || local.y < bottom - SEAT || local.y - len > bottom - ENTER {
+        return false;
+    }
+    local.x >= body.min.x + INSET
+        && local.x <= body.max.x - INSET
+        && local.z >= body.min.z + INSET
+        && local.z <= body.max.z - INSET
+}
+
 /// Window and door frames, and what fills them (glass, panes, shutters, doors): a filler inside its frame isn't a
 /// collision.
 fn frame(p: &Part) -> bool {
@@ -334,20 +484,82 @@ fn inside(inner: &Aabb, outer: &Aabb, slack: f64) -> bool {
 
 /// True when one of placements `a` and `b` is a frame and the other fills it (glass in a window, a door in its frame):
 /// they don't collide, and the frame holds the filler, which has no studs to hold it.
-fn fills(placed: &[Placed], world: &[Option<Obb>], a: usize, b: usize) -> bool {
-    let (Some(ia), Some(ib)) = (&placed[a].info, &placed[b].info) else {
-        return false;
-    };
-    let (Some(wa), Some(wb)) = (world[a], world[b]) else {
-        return false;
-    };
-    let (pa, pb) = (&ia.part, &ib.part);
-    let (wa, wb) = (wa.aabb(), wb.aabb());
-    pa.id != pb.id
-        && (frame(pa) && filler(pb) && inside(&wb, &wa, 2.0) || frame(pb) && filler(pa) && inside(&wa, &wb, 2.0))
+fn fills(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
+    pa.id != pb.id && (frame(pa) && filler(pb) && inside(wb, wa, 2.0) || frame(pb) && filler(pa) && inside(wa, wb, 2.0))
 }
 
-fn collisions(placed: &[Placed], world: &[Option<Obb>]) -> Vec<Raw> {
+fn tyre(p: &Part) -> bool {
+    p.category == "Tyre" || p.name.trim_start_matches('~').starts_with("Tyre")
+}
+
+/// Parts that follow a path instead of snapping: hose and cable segments, chain links, strings.
+pub(crate) fn flexible(p: &Part) -> bool {
+    let n = p.name.trim_start_matches('~');
+    matches!(p.category.as_str(), "Hose" | "String")
+        || [
+            "Hose Flexible",
+            "Chain Link",
+            "Chain Tread",
+            "Minifig Chain",
+            "Cable",
+            "String",
+        ]
+        .iter()
+        .any(|w| n.contains(w))
+}
+
+pub(crate) fn sticker(p: &Part) -> bool {
+    p.category.starts_with("Sticker")
+}
+
+/// One part holding another without a connector pair: a frame and its filler, a tyre and the wheel inside it, a
+/// flexible part and what it touches along its path, a sticker and the surface it's on.
+fn holds(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
+    let center = |b: &Aabb| (b.min + b.max) / 2.0;
+    let contains = |outer: &Aabb, p: DVec3| {
+        p.cmpge(outer.min - DVec3::splat(2.0)).all() && p.cmple(outer.max + DVec3::splat(2.0)).all()
+    };
+    // A wheel: a rim, or a part with wheels on it (122c01, Plate 2 x 2 with Red Wheels), whose box holds the tyre's
+    // middle.
+    let wheel = |p: &Part| !tyre(p) && (p.category == "Wheel" || p.name.contains("Wheel"));
+    fills(pa, pb, wa, wb)
+        || tyre(pa) && wheel(pb) && contains(wb, center(wa))
+        || tyre(pb) && wheel(pa) && contains(wa, center(wb))
+        || (flexible(pa) || flexible(pb) || sticker(pa) || sticker(pb)) && touch(wa, wb, 1.0)
+}
+
+fn touch(a: &Aabb, b: &Aabb, slack: f64) -> bool {
+    (a.min - b.max).max_element() <= slack && (b.min - a.max).max_element() <= slack
+}
+
+/// Every pair of placements one holds the other (see [`holds`]), found by a sweep of their world boxes along x.
+fn held_pairs(placed: &[Placed], world: &[Option<Obb>]) -> HashSet<(usize, usize)> {
+    let boxes: Vec<Option<Aabb>> = world.iter().map(|o| o.map(|o| o.aabb())).collect();
+    let mut order: Vec<usize> = (0..placed.len())
+        .filter(|&i| boxes[i].is_some() && placed[i].info.is_some())
+        .collect();
+    order.sort_by(|&a, &b| boxes[a].unwrap().min.x.total_cmp(&boxes[b].unwrap().min.x));
+    let mut out = HashSet::new();
+    for (k, &i) in order.iter().enumerate() {
+        let bi = boxes[i].unwrap();
+        for &j in &order[k + 1..] {
+            let bj = boxes[j].unwrap();
+            if bj.min.x > bi.max.x + 2.0 {
+                break;
+            }
+            let (pi, pj) = (
+                &placed[i].info.as_ref().unwrap().part,
+                &placed[j].info.as_ref().unwrap().part,
+            );
+            if touch(&bi, &bj, 2.0) && holds(pi, pj, &bi, &bj) {
+                out.insert((i.min(j), i.max(j)));
+            }
+        }
+    }
+    out
+}
+
+fn collisions(placed: &[Placed], world: &[Option<Obb>], held: &HashSet<(usize, usize)>) -> Vec<Raw> {
     let shrunk: Vec<Option<(Obb, Aabb)>> = placed
         .iter()
         .map(|q| {
@@ -374,7 +586,7 @@ fn collisions(placed: &[Placed], world: &[Option<Obb>]) -> Vec<Raw> {
             if depth <= if vertical { OVERLAP } else { OVERLAP_SIDE } {
                 continue;
             }
-            if fills(placed, world, a, b) {
+            if held.contains(&(a.min(b), a.max(b))) {
                 continue;
             }
             let (wa, wb) = (world[a].unwrap().aabb(), world[b].unwrap().aabb());
@@ -445,73 +657,22 @@ fn collision(placed: &[Placed], a: usize, b: usize, depth: f64, axis: DVec3, wa:
     }
 }
 
-/// floating: stud connections make a graph; every component with a part on the model's lowest level stands, and
-/// every other component floats.
-fn floating(placed: &[Placed], world: &[Option<Obb>]) -> Vec<Raw> {
+/// floating: the connection graph's components; every component with a part on the model's lowest level stands, and
+/// every other component floats. A frame holds what fills it.
+fn floating(
+    placed: &[Placed],
+    world: &[Option<Obb>],
+    links: &[graph::Connection],
+    held: &HashSet<(usize, usize)>,
+) -> Vec<Raw> {
     let n = placed.len();
     let boxes: Vec<Option<Aabb>> = world.iter().map(|o| o.map(|o| o.aabb())).collect();
-    // A grid over x and z of the parts' world boxes, so each stud is tested against the parts around it.
-    const CELL: f64 = 40.0;
-    let cell = |v: f64| (v / CELL).floor() as i64;
-    let mut grid: HashMap<(i64, i64), Vec<usize>> = HashMap::new();
-    for (i, b) in boxes.iter().enumerate() {
-        let Some(b) = b else { continue };
-        for x in cell(b.min.x)..=cell(b.max.x) {
-            for z in cell(b.min.z)..=cell(b.max.z) {
-                grid.entry((x, z)).or_default().push(i);
-            }
-        }
-    }
-    let inverse: Vec<Option<DMat4>> = placed
-        .iter()
-        .map(|q| (q.m.determinant().abs() > 1e-12).then(|| q.m.inverse()))
-        .collect();
     let mut sets = UnionFind::new(n);
-    // A frame holds what fills it.
-    for (i, b) in boxes.iter().enumerate() {
-        let Some(b) = b else { continue };
-        for x in cell(b.min.x)..=cell(b.max.x) {
-            for z in cell(b.min.z)..=cell(b.max.z) {
-                for &j in grid.get(&(x, z)).into_iter().flatten() {
-                    if j > i && !sets.same(i, j) && fills(placed, world, i, j) {
-                        sets.join(i, j);
-                    }
-                }
-            }
-        }
+    for c in links {
+        sets.join(c.a, c.b);
     }
-    for (i, q) in placed.iter().enumerate() {
-        let Some(info) = &q.info else { continue };
-        let turn = connectors::rotation(glam::DMat3::from_mat4(q.m));
-        for s in info.studs.iter() {
-            let base = q.m.transform_point3(s.pos);
-            let dir = turn * s.dir;
-            // A point inside the stud, 2 LDU short of its tip: whatever takes the stud holds that point.
-            let probe = base + dir * (s.len - ENTER).max(0.0);
-            let Some(cands) = grid.get(&(cell(probe.x), cell(probe.z))) else {
-                continue;
-            };
-            for &j in cands {
-                if j == i || sets.same(i, j) {
-                    continue;
-                }
-                let (Some(b), Some(inv)) = (boxes[j], inverse[j]) else {
-                    continue;
-                };
-                if probe.cmplt(b.min).any() || probe.cmpgt(b.max).any() {
-                    continue;
-                }
-                if receives(
-                    placed[j].info.as_ref().and_then(|i| i.body.as_ref()),
-                    &inv,
-                    base,
-                    dir,
-                    s.len,
-                ) {
-                    sets.join(i, j);
-                }
-            }
-        }
+    for &(i, j) in held {
+        sets.join(i, j);
     }
     // The ground: the model's lowest point (LDraw's −Y is up, so the largest y).
     let lowest = boxes
@@ -536,24 +697,6 @@ fn floating(placed: &[Placed], world: &[Option<Obb>]) -> Vec<Raw> {
         .into_values()
         .map(|parts| floating_finding(placed, &boxes, parts))
         .collect()
-}
-
-/// Whether part `j` (its body box, and its inverse placement) takes a stud whose base is at `base` pointing along
-/// `dir` and reaching `len`, in world space: the stud enters it through its underside, inside its sides.
-fn receives(body: Option<&Aabb>, inv: &DMat4, base: DVec3, dir: DVec3, len: f64) -> bool {
-    let Some(body) = body else { return false };
-    let local = inv.transform_point3(base);
-    let local_dir = inv.transform_vector3(dir).normalize_or_zero();
-    // Into the underside: the stud points up the part's own frame (−Y, so y shrinks along it), its base is at or
-    // below the part's bottom, and its tip reaches into the part.
-    let bottom = body.max.y;
-    if local_dir.y > -0.9 || local.y < bottom - SEAT || local.y - len > bottom - ENTER {
-        return false;
-    }
-    local.x >= body.min.x + INSET
-        && local.x <= body.max.x - INSET
-        && local.z >= body.min.z + INSET
-        && local.z <= body.max.z - INSET
 }
 
 fn floating_finding(placed: &[Placed], boxes: &[Option<Aabb>], parts: Vec<usize>) -> Raw {
@@ -758,10 +901,6 @@ impl UnionFind {
             i = self.0[i];
         }
         i
-    }
-
-    fn same(&mut self, a: usize, b: usize) -> bool {
-        self.root(a) == self.root(b)
     }
 
     fn join(&mut self, a: usize, b: usize) {

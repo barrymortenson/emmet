@@ -128,15 +128,49 @@ fn corpus_nightly() {
 fn corpus_dir() {
     let dir = PathBuf::from(std::env::var("EMMET_CORPUS_DIR").expect("EMMET_CORPUS_DIR"));
     let data = PathBuf::from(std::env::var("EMMET_CORPUS_DATA").expect("EMMET_CORPUS_DATA"));
+    let index = emmet_core::index::Index::ensure(&emmet_core::data::DataDir::at(&data)).unwrap();
     for f in models_in(&dir) {
+        let placements = placements_of(&f);
         let started = std::time::Instant::now();
-        let v = validate(&data, &placements_of(&f));
+        let v = validate(&data, &placements);
         println!(
-            "{} — {} findings in {} ms\n{}",
+            "{} — {} findings in {} ms",
             f.file_name().unwrap().to_string_lossy(),
             v.findings.len(),
             started.elapsed().as_millis(),
-            report(&v)
         );
+        for x in &v.findings {
+            let names: Vec<String> = x
+                .parts
+                .iter()
+                .filter_map(|id| placements.iter().find(|p| &p.id == id))
+                .map(|p| {
+                    let name = index.part(&p.part).ok().flatten().map(|q| q.name).unwrap_or_default();
+                    format!("{} {} [{name}]", p.id, p.part)
+                })
+                .collect();
+            println!("  {} {} {}: {}", x.id, x.rule.name(), names.join(" | "), x.message);
+        }
     }
+}
+
+/// Not run by default: prints the connectors and connections of the parts in `EMMET_EXPLAIN_PARTS` (comma-separated
+/// ids) of the model `EMMET_EXPLAIN` against `EMMET_CORPUS_DATA` (default: ldraw-mini).
+#[test]
+#[ignore]
+fn explain() {
+    let file = PathBuf::from(std::env::var("EMMET_EXPLAIN").expect("EMMET_EXPLAIN"));
+    let data = std::env::var("EMMET_CORPUS_DATA").map_or_else(|_| shared_library().to_path_buf(), PathBuf::from);
+    let ids: Vec<String> = std::env::var("EMMET_EXPLAIN_PARTS")
+        .unwrap_or_default()
+        .split(',')
+        .map(String::from)
+        .collect();
+    let data = emmet_core::data::DataDir::at(&data);
+    let index = emmet_core::index::Index::ensure(&data).unwrap();
+    let lib = emmet_core::ldraw::geometry::LibFiles::probe(&data.ldraw());
+    println!(
+        "{}",
+        emmet_core::check::explain(&index, &lib, &placements_of(&file), &ids).unwrap()
+    );
 }

@@ -43,16 +43,14 @@ pub struct SubmodelCopy {
 pub fn placements(doc: &Document) -> Vec<Placement> {
     let mut out = Vec::new();
     if let Some(main) = doc.files.first() {
-        let mut copies = Vec::new();
         walk(
             doc,
             &main.lines,
             DMat4::IDENTITY,
             16,
             &mut Vec::new(),
-            &mut copies,
+            &mut Vec::new(),
             &mut out,
-            0,
         );
     }
     out
@@ -87,9 +85,9 @@ fn walk(
     path: &mut Vec<String>,
     copies: &mut Vec<SubmodelCopy>,
     out: &mut Vec<Placement>,
-    depth: usize,
 ) {
-    if depth > 16 {
+    // The submodel path is the depth: a document whose submodels reference each other in a loop stops here.
+    if path.len() > 16 {
         return;
     }
     let mut step = 1;
@@ -120,7 +118,7 @@ fn walk(
                         id
                     };
                     copies.push(SubmodelCopy { id, step });
-                    walk(doc, &sub.lines, world, color, path, copies, out, depth + 1);
+                    walk(doc, &sub.lines, world, color, path, copies, out);
                     copies.pop();
                     path.pop();
                 } else {
