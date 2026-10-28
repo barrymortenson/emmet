@@ -119,7 +119,7 @@ window.EMMET_STATUS = {
       ],
       note: "Open nightly gaps are #25 to #29; Allow.rule and [build] age as enums and copies consistency are left for 3B; floating recall by the rule itself is 88.3 % nightly"
     },
-    "3B": { status: "in-progress", branch: "bmortenson/s3b-dsl-steps-bom-data", started: "2026-10-28" },
+    "3B": { status: "review", pr: 32, branch: "bmortenson/s3b-dsl-steps-bom-data", started: "2026-10-28" },
     "3C": { status: "todo" },
     "4A": { status: "todo" },
     "4B": { status: "todo" },
