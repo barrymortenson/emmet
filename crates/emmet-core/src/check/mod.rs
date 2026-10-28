@@ -9,6 +9,7 @@ mod collision;
 pub mod connectors;
 pub mod graph;
 mod holds;
+pub mod proxy;
 mod steps;
 mod structure;
 
@@ -173,13 +174,8 @@ pub struct Allow {
     pub reason: String,
 }
 
-/// Shrunk this far on every side, body boxes that only touch never collide.
-const SHRINK: f64 = 1.0;
-/// Shrunk boxes that overlap by more than this collide (plan section 11)…
+/// Proxies that overlap by more than this collide (plan section 11).
 const OVERLAP: f64 = 0.5;
-/// …and by more than this side by side, where body boxes take in pins, clips, and hinges that stick out of a part's
-/// sides (a quarter stud). A part a half stud or more into its neighbor still collides.
-const OVERLAP_SIDE: f64 = 5.0;
 /// A stud enters a part through its underside when its base is at most this far inside it…
 const SEAT: f64 = 1.5;
 /// Parts whose bottom is this close to the model's lowest point stand on the ground.
@@ -219,6 +215,8 @@ struct Model<'p> {
     conns: Vec<graph::Placed>,
     links: Vec<graph::Connection>,
     held: HashSet<(usize, usize)>,
+    /// Each placement's collision proxy (empty for an unknown part).
+    proxies: Vec<Rc<Vec<proxy::ProxyBox>>>,
 }
 
 impl Model<'_> {
@@ -293,6 +291,16 @@ fn prepare<'p>(index: &Index, lib: &LibFiles, placements: &'p [Placement]) -> Re
     );
     let mut links = graph::connections(&conns);
     links.extend(holds::underside_links(&placed, &world, &conns));
+    let ids: Vec<String> = infos
+        .iter()
+        .filter(|(_, i)| i.is_some())
+        .map(|(id, _)| id.clone())
+        .collect();
+    let cache = index.proxies(lib, &ids)?;
+    let proxies = placed
+        .iter()
+        .map(|q| cache.get(&q.p.part).cloned().unwrap_or_default())
+        .collect();
     let boxes: Vec<Option<Aabb>> = world.iter().map(|o| o.map(|o| o.aabb())).collect();
     let lowest = boxes
         .iter()
@@ -307,6 +315,7 @@ fn prepare<'p>(index: &Index, lib: &LibFiles, placements: &'p [Placement]) -> Re
         conns,
         links,
         held,
+        proxies,
     })
 }
 
@@ -321,16 +330,14 @@ pub fn validate(
     inputs_hash: Option<String>,
 ) -> Result<Validation> {
     let model = prepare(index, lib, placements)?;
-    let Model {
-        placed, world, held, ..
-    } = &model;
+    let placed = &model.placed;
     let mut raw: Vec<Raw> = Vec::new();
     let on = |r: Rule| rules.contains(&r);
     if on(Rule::UnknownPart) || on(Rule::ObsoletePart) || on(Rule::AliasPart) {
         raw.extend(part_rules(placed, rules));
     }
     if on(Rule::Collision) {
-        raw.extend(collision::collisions(placed, world, held));
+        raw.extend(collision::collisions(&model));
     }
     let ground = structure::ground(&model, options);
     let groups = structure::floating_groups(&model, options);

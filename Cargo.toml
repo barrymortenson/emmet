@@ -23,6 +23,9 @@ keyring-core = "1.0.1"
 apple-native-keyring-store = { version = "1.0.2", default-features = false, features = ["keychain"] }
 windows-native-keyring-store = { version = "1.1.0", default-features = false }
 interprocess = "2.4.6"
+# The validator's collision broad and narrow phases (plan section 06; 3A, ADR 0013): the 64-bit build of parry3d,
+# since the engine's geometry is f64.
+parry3d-f64 = { version = "0.31.1", default-features = false, features = ["std", "alloc", "dim3", "f64"] }
 # Sign in with ChatGPT (1E, ADR 0011, approved 2026-10-26): RS256 ID-token signatures, SHA-256 for PKCE, and the system
 # random source. Already in the tree through ureq and rustls.
 ring = { version = "0.17.14", default-features = false, features = ["alloc"] }

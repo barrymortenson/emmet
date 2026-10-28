@@ -174,3 +174,39 @@ fn explain() {
         emmet_core::check::explain(&index, &lib, &placements_of(&file), &ids).unwrap()
     );
 }
+
+/// Not run by default: builds the collision proxy of every part in `EMMET_CORPUS_DATA`'s library and prints the
+/// time and the box counts (for sizing the index).
+#[test]
+#[ignore]
+fn proxy_stats() {
+    let data = PathBuf::from(std::env::var("EMMET_CORPUS_DATA").expect("EMMET_CORPUS_DATA"));
+    let lib = emmet_core::ldraw::geometry::LibFiles::scan(&data.join("ldraw")).unwrap();
+    let parts: Vec<String> = lib.parts().iter().map(|(n, _)| n.to_string()).collect();
+    let started = std::time::Instant::now();
+    let mut m = emmet_core::ldraw::geometry::Measurer::new(&lib);
+    let mut counts = Vec::new();
+    for p in &parts {
+        let t = std::time::Instant::now();
+        let b = emmet_core::check::proxy::build(&mut m, p);
+        counts.push((b.len(), t.elapsed().as_millis(), p.clone()));
+    }
+    counts.sort();
+    let total: usize = counts.iter().map(|c| c.0).sum();
+    println!("{} parts in {:?}, {total} boxes", parts.len(), started.elapsed());
+    for c in counts.iter().rev().take(10) {
+        println!("  {:?}", c);
+    }
+    let mut slow = counts.clone();
+    slow.sort_by_key(|c| c.1);
+    for c in slow.iter().rev().take(10) {
+        println!("  slow {:?}", c);
+    }
+    for id in [
+        "3001", "3003", "3020", "3024", "3062b", "3039", "3811", "53401", "4070", "60592",
+    ] {
+        if let Some(c) = counts.iter().find(|c| c.2 == format!("{id}.dat")) {
+            println!("  {id}: {} boxes", c.0);
+        }
+    }
+}

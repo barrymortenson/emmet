@@ -69,7 +69,7 @@ pub enum Fault {
     Sink,
     /// A part pushed a stud sideways into the part beside it: collision.
     Slide,
-    /// A long part turned a quarter turn about its middle: collision or floating.
+    /// A long part with an odd and an even side turned a quarter turn about its middle: collision or floating.
     Turn,
     /// A part moved to a step before every part under it: step_order.
     Early,
@@ -361,7 +361,10 @@ pub fn mutants(index: &Index, placements: &[Placement], per_fault: usize, rng: &
         &|i| {
             let a = geo[i].as_ref()?;
             let (w, d) = (a.max.x - a.min.x, a.max.z - a.min.z);
-            if (w - d).abs() < 2.0 * STUD - 1.0 {
+            // One side an odd number of studs, the other even: turned about its middle, its studs land half a stud
+            // off the grid (a 2 x 4 turned lands back on it and seats).
+            let studs = |v: f64| (v / STUD).round() as i64;
+            if (w - d).abs() < 2.0 * STUD - 1.0 || (studs(w) + studs(d)) % 2 == 0 {
                 return None;
             }
             let center = (a.min + a.max) / 2.0;
