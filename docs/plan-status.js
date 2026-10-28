@@ -109,7 +109,7 @@ window.EMMET_STATUS = {
       ],
       note: "The Steps tab is the model's tree and there's no command palette (docs/decisions.md); the Steps tree's every-copy highlight isn't drawn, since emmet render --highlight drew none for window ids (4C)"
     },
-    "3A": { status: "todo" },
+    "3A": { status: "in-progress", branch: "bmortenson/s3a-validator-connection-model", started: "2026-10-27" },
     "3B": { status: "todo" },
     "3C": { status: "todo" },
     "4A": { status: "todo" },
