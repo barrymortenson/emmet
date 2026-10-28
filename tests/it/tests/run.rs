@@ -305,11 +305,18 @@ fn the_dsl_spec_example_runs() {
     std::fs::write(dir.join("model.py"), example).unwrap();
     let (v, code) = emmet_in(&dir, &["run"]);
     assert_eq!(code, 0, "{v}");
-    assert_eq!(v["data"]["parts"], 3);
-    let (v, code) = emmet_in(&dir, &["run", "--params", "width=3"]);
+    // The baseplate, two courses of wall (one brick, then two staggered), and four lamps of four parts each.
+    assert_eq!(
+        (v["data"]["parts"].as_u64(), v["data"]["submodels"].as_u64()),
+        (Some(20), Some(1))
+    );
+    let (v, code) = emmet_in(&dir, &["check"]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
+    let (v, code) = emmet_in(&dir, &["run", "--params", "length=12"]);
     assert_eq!(
         (code, v["error"]["code"].as_str()),
         (3, Some("PARAM_INVALID")),
-        "3 isn't on the steps of 2: {v}"
+        "12 isn't on the steps of 8: {v}"
     );
 }
