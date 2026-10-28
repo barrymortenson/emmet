@@ -114,6 +114,17 @@ pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &H
             })
             .collect();
         edges.sort();
+        // In a submodel, an element joined to a part outside it is built onto the model around it (files often use
+        // submodels to organize, not as sub-assemblies built in hand): it counts as joined to what came before.
+        let mut outside = vec![false; es.len()];
+        if !scope.key.is_empty() {
+            for &(a, b) in &pairs {
+                match (scope.of.get(&a), scope.of.get(&b)) {
+                    (Some(&e), None) | (None, Some(&e)) => outside[e] = true,
+                    _ => {}
+                }
+            }
+        }
         let mut sets = UnionFind::new(es.len());
         let mut earliest: Vec<u32> = es.iter().map(|e| e.step).collect();
         let mut steps: Vec<u32> = es.iter().map(|e| e.step).collect();
@@ -131,9 +142,9 @@ pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &H
                 }
                 k += 1;
             }
-            // Which groups stand on the ground (in the main model; a submodel is built in hand).
+            // Which groups stand on the ground (the model's ground, wherever the scope is).
             let mut stands = vec![false; es.len()];
-            if scope.key.is_empty() {
+            {
                 for (ei, e) in es.iter().enumerate().filter(|(_, e)| e.step <= s) {
                     let on = e.parts.iter().any(|&i| ground[i])
                         || loose
@@ -151,13 +162,18 @@ pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &H
                     continue;
                 }
                 let r = sets.root(ei);
-                let connected = earliest[r] < s;
+                let connected = earliest[r] < s || outside[ei];
                 // The first step needs nothing before it: its pieces may be laid out apart, or held in hand and built
                 // under later (a body first, its legs last).
                 if s == first {
                     continue;
                 }
                 if !connected && !stands[r] {
+                    // Laid out and joined later by parts put on it (an instruction book bridges two plates this way):
+                    // fine. Resting on parts that come later: it hangs in the air at its step.
+                    if !rests_on_later(m, &scope, ei) {
+                        continue;
+                    }
                     out.push(unconnected(m, &scope, ei, &edges));
                 } else if connected && !e.copy {
                     out.extend(no_way_in(m, &scope, ei));
@@ -196,6 +212,34 @@ fn unconnected(m: &Model, scope: &Scope, ei: usize, edges: &[(u32, usize, usize)
     };
     let at = dsl_box(&bounds(m, &e.parts)).min;
     Raw::new(Rule::StepOrder, e.parts.clone(), at, message, hint)
+}
+
+/// Whether element `ei` sits on a part a later step adds (that part holds it up), or is held only by later parts some
+/// way the connectors don't tell.
+fn rests_on_later(m: &Model, scope: &Scope, ei: usize) -> bool {
+    let es = &scope.elements;
+    let e = &es[ei];
+    let mine: HashSet<usize> = e.parts.iter().copied().collect();
+    let later = |j: usize| scope.of.get(&j).is_some_and(|&o| es[o].step > e.step);
+    let mut joined = false;
+    for c in &m.links {
+        let (me, other, toward) = if mine.contains(&c.a) {
+            (c.a, c.b, c.toward_a)
+        } else if mine.contains(&c.b) {
+            (c.b, c.a, c.toward_b)
+        } else {
+            continue;
+        };
+        if me == other || mine.contains(&other) || !later(other) {
+            continue;
+        }
+        joined = true;
+        // Its side of the seat is up: it sits on the later part. Unknown: assume so.
+        if toward.is_none_or(|t| t.y < -0.5) {
+            return true;
+        }
+    }
+    !joined
 }
 
 fn bounds(m: &Model, parts: &[usize]) -> Aabb {
