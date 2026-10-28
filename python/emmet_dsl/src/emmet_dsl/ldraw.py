@@ -52,23 +52,31 @@ def import_ldraw(path: str) -> Submodel:
             if top and words[:2] == ["0", "STEP"]:
                 step = _Step("", "l")
                 m._steps.append(step)
-            if len(words) < 15 or words[0] != "1":
+            if not words or words[0] != "1":
                 continue
             try:
-                color = int(words[1])
+                if len(words) < 15:
+                    raise ValueError
+                color = int(words[1], 0)  # an LDraw code, or a direct color like 0x2FF0000
                 nums = [float(v) for v in words[2:14]]
             except ValueError:
-                continue
+                raise EmmetError(
+                    "MODEL_EXEC_FAILED",
+                    f"{src} line {n} isn't a part line LDraw can read: {text.strip()[:80]}",
+                    "Fix that line in the file (1 color x y z a b c d e f g h i part.dat), then run again.",
+                    src,
+                    n,
+                ) from None
             color = color0 if color == 16 else color
             name = " ".join(words[14:]).replace("\\", "/").lower()
             r, pos = frame.compose(r0, pos0, (tuple(nums[3:6]), tuple(nums[6:9]), tuple(nums[9:12])), nums[0:3])
             pid = f"{prefix}L{n}"
             inner = files.get(name)
-            if inner is not None and depth < 16:
+            # A part embedded in the file (an unofficial or custom part) is one part, as the Rust reader takes it.
+            if inner is not None and depth < 16 and not _embedded_part(inner):
                 walk(inner, r, pos, color, pid + "/", depth + 1, False)
                 continue
             part = name[:-4] if name.endswith(".dat") else name
-            ctx.count += 1
             body = ctx.body(part, src, n)
             box = frame.box_in_dsl(frame.transform_box(r, pos, body))
             placed = Placed(pid, part, color, pos, r, body, box, src, n, sub=None)
@@ -91,6 +99,19 @@ def import_ldraw(path: str) -> Submodel:
     return sub
 
 
+PART_TYPES = ("Part", "Subpart", "Primitive", "8_Primitive", "48_Primitive", "Shortcut")
+
+
+def _embedded_part(lines) -> bool:
+    """A file of the document marked `0 !LDRAW_ORG [Unofficial_]Part …`: a part, not a submodel."""
+    for _n, text in lines:
+        words = text.split()
+        if words[:2] == ["0", "!LDRAW_ORG"] and len(words) > 2:
+            kind = words[2].removeprefix("Unofficial_")
+            return kind in PART_TYPES
+    return False
+
+
 def _split(text: str) -> dict[str, list[tuple[int, str]]]:
     """The document's files by lowercased name, each its (line number, text) lines; a plain .ldr is one file."""
     files: dict[str, list] = {}
@@ -105,6 +126,8 @@ def _split(text: str) -> dict[str, list[tuple[int, str]]]:
         if words[:2] == ["0", "NOFILE"]:
             continue
         if not files:
+            if not words:  # blank lines before the first 0 FILE don't make a file of their own
+                continue
             current = files.setdefault(name, [])
         current.append((n, raw))
     return files

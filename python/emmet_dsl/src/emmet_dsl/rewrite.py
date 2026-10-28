@@ -67,7 +67,9 @@ def _format(value, kind: str, old: str) -> str:
 
 def write_default(source: bytes, param: str, value, kind: str, file: str) -> tuple[bytes, int]:
     """`source` with `param`'s default replaced by `value`, and the line it's on."""
-    text = source.decode("utf-8")
+    # A byte-order mark (some Windows editors save one) stays; Python ignores it, and so does the parse.
+    bom = b"\xef\xbb\xbf" if source.startswith(b"\xef\xbb\xbf") else b""
+    text = source[len(bom) :].decode("utf-8")
     tree = ast.parse(text, filename=file)
     fn = _model_function(tree)
     if fn is None:
@@ -96,9 +98,9 @@ def write_default(source: bytes, param: str, value, kind: str, file: str) -> tup
             node.lineno,
         )
     # ast's columns count UTF-8 bytes, so the edit is made on the bytes.
-    lines = source.splitlines(keepends=True)
-    start = sum(len(x) for x in lines[: node.lineno - 1]) + node.col_offset
-    end = sum(len(x) for x in lines[: node.end_lineno - 1]) + node.end_col_offset
+    lines = source[len(bom) :].splitlines(keepends=True)
+    start = len(bom) + sum(len(x) for x in lines[: node.lineno - 1]) + node.col_offset
+    end = len(bom) + sum(len(x) for x in lines[: node.end_lineno - 1]) + node.end_col_offset
     old = source[start:end].decode("utf-8")
     new = _format(value, kind, old).encode("utf-8")
     return source[:start] + new + source[end:], node.lineno

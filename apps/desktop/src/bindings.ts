@@ -219,6 +219,8 @@ export type Bom = {
 	parts: number,
 	/**  Whether the parts data pack was there for availability (the Parts list's Rebrickable credit). */
 	parts_data: boolean,
+	/**  Why there's no parts list for a build that ran (a damaged parts data pack, say), or null. */
+	problem: string | null,
 };
 
 export type BomLine = {

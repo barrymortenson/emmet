@@ -23,6 +23,12 @@ export function partsLabel(bom: Bom | null | undefined): string {
 
 export function Parts({ bom }: { bom: Bom | null | undefined }) {
   if (!bom) return <p className="muted">The parts list is made after each build.</p>;
+  if (bom.problem)
+    return (
+      <p className="notice" role="alert" id="parts-problem">
+        The parts list couldn't be made: {bom.problem}
+      </p>
+    );
   return (
     <>
       <p className="muted" id="parts-total">

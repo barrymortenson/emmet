@@ -12,6 +12,19 @@ from .errors import EmmetError, caller
 LENGTHS = (1, 2, 3, 4, 6, 8, 10, 12, 14, 16)
 
 
+def _whole(v, file: str, line: int) -> int:
+    """A size in whole studs (or degrees): 2.0 is 2, but 2.5 is an error, never silently 2."""
+    if isinstance(v, bool) or not isinstance(v, int | float) or v != int(v):
+        raise EmmetError(
+            "MODEL_EXEC_FAILED",
+            f"{v!r} isn't a whole number.",
+            "Part helpers take sizes in whole studs, like Brick(2, 4).",
+            file,
+            line,
+        )
+    return int(v)
+
+
 def _lookup(kind: str, dims: tuple, soft: bool):
     file, line = caller()
     ctx = core.active
@@ -23,6 +36,7 @@ def _lookup(kind: str, dims: tuple, soft: bool):
             file,
             line,
         )
+    dims = tuple(_whole(v, ctx.rel(file), line) for v in dims)
     return ctx.helper(kind, dims, soft, ctx.rel(file), line)
 
 
@@ -36,12 +50,12 @@ class Family:
 
     def __call__(self, w: int, l: int, h: int = 1) -> str:  # noqa: E741 - the l of "w x l"
         """The part id of a w × l piece (and h bricks tall, for Brick)."""
-        w, l = sorted((int(w), int(l)))  # noqa: E741
-        return _lookup(self.kind, (w, l, int(h)), soft=False)
+        w, l = sorted((w, l))  # noqa: E741
+        return _lookup(self.kind, (w, l, h), soft=False)
 
     def piece(self, w: int, n: int) -> str | None:
         """A w × n piece's id, or None when the library has no such size."""
-        lo, hi = sorted((int(w), int(n)))
+        lo, hi = sorted((w, n))
         return _lookup(self.kind, (lo, hi, 1), soft=True)
 
     def has_width(self, w: int) -> bool:
@@ -98,4 +112,4 @@ Tile = Family("tile", 1)
 
 def Slope(angle: int, w: int, l: int) -> str:  # noqa: E741, N802 - named like the other helpers
     """The part id of a slope: Slope(45, 2, 1) is the Slope Brick 45 2 x 1, w deep down the slope and l wide."""
-    return _lookup("slope", (int(w), int(l), int(angle)), soft=False)
+    return _lookup("slope", (w, l, angle), soft=False)

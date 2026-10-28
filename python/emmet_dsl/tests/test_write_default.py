@@ -56,6 +56,11 @@ def station(
         after = rewrite(before, "note", 'say "hi"', "choice")
         self.assertEqual(after, before.replace('"it\'s ‘here’"', '"say \\"hi\\""'))
 
+    def test_a_byte_order_mark_stays(self):
+        # Some Windows editors save one; the rewrite used to fail on it with a SyntaxError at line 1.
+        before = "\ufefffrom emmet_dsl import model\n\n@model\ndef m(w: int = 8): ...\n"
+        self.assertEqual(rewrite(before, "w", 9, "int"), before.replace("= 8", "= 9"))
+
     def test_the_last_model_function_is_the_one_rewritten(self):
         before = (
             "import emmet_dsl\n\n@emmet_dsl.model\ndef a(w: int = 1): ...\n\n"

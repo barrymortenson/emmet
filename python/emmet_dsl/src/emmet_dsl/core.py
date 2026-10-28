@@ -164,8 +164,8 @@ class Model:
     @contextlib.contextmanager
     def step(self, title: str):
         """Everything added inside is one build step (LDraw `0 STEP`). A step opened inside another is titled
-        "<outer>: <inner>" (unless the inner title already starts with the outer one), so a technique's own steps
-        group under the step that uses it."""
+        "<outer>: <inner>" ("<outer>, <inner>" when the outer title has a colon; just the inner title when it already
+        starts with the outer one), so a technique's own steps group under the step that uses it."""
         outer = self._current
         if outer is not None and outer.title and not title.startswith(outer.title):
             title = f"{outer.title}{', ' if ':' in outer.title else ': '}{title}"
@@ -217,8 +217,8 @@ class Model:
 
     def add_raw(self, part: str, color, matrix, id: str | None = None) -> Handle:
         """The escape hatch: places a part by an LDraw transform, in LDU in LDraw's frame (−Y up), as the 12 numbers
-        of an LDraw line: x y z a b c d e f g h i. Use it only for what `add` can't place (a curve of track at
-        22.5°, a part at an angle)."""
+        of an LDraw line: x y z a b c d e f g h i. Use it for a part placed by its LDraw origin rather than its
+        footprint, such as track at 22.5°, whose ends have to meet exactly."""
         file, line = caller()
         ctx = self._ctx("Model.add_raw", file, line)
         rel = ctx.rel(file)
@@ -269,7 +269,7 @@ class Model:
         lo, hi = frame.place(body, at, _rotation(rot, rel, line))[2]
         at2 = (2 * about - hi[0], lo[1], lo[2]) if axis == "x" else (lo[0], 2 * about - hi[1], lo[2])
         turned = _mirror_rotation(rot, axis, rel, line)
-        self._put_all(part, code, body, at2, turned, f"{id}/mirror-{axis}", rel, line, sub, rest)
+        self._put_all(part, code, body, at2, turned, f"{id}-mirror-{axis}", rel, line, sub, rest)
         return first
 
     def _step_for_new(self) -> _Step:
@@ -418,7 +418,8 @@ class Model:
         """Brick walls, a row at a time from z up. With depth, the four walls of a length × depth rectangle whose
         front-left corner is (x, y), with interlocking corners; without it, one straight wall along x. sides: "all",
         or some of "front", "back", "left", "right", and "sides" (left and right), to build a wall at a time. bond:
-        "running" (joints staggered row to row) or "stacked". openings: (x, y) cells left empty, for doors and
+        "running" (joints staggered row to row, for a straight wall; a rectangle's corners stagger it anyway) or
+        "stacked". openings: (x, y) cells left empty, for doors and
         windows. kind: the piece family (Brick by default). sizes: the piece lengths to use. Returns the Handles."""
         file, line = caller()
         ctx = self._ctx("Model.wall", file, line)
@@ -468,11 +469,13 @@ class Model:
     @contextlib.contextmanager
     def mirror(self, axis: str, about: float):
         """Everything placed inside is placed twice: as written, and mirrored across the plane x = about (axis "x")
-        or y = about (axis "y"), in the model's frame. A mirrored part turns to face the other way; its id gets
-        "/mirror-x" (or "-y"). Parts are turned, not reflected, so a left-handed part stays left-handed."""
+        or y = about (axis "y"), moved with Model.repeat like any position. A mirrored part turns to face the other way;
+        its id gets
+        "-mirror-x" (or "-y"). Parts are turned, not reflected, so a left-handed part stays left-handed."""
         file, line = caller()
         _axis(axis, self._context.rel(file) if self._context else file, line)
-        self._mirrors.append((axis, float(about)))
+        # In the frame Model.repeat has moved to, so a mirror inside a repeat mirrors each copy across its own plane.
+        self._mirrors.append((axis, float(about) + self._offset[0 if axis == "x" else 1]))
         try:
             yield self
         finally:
@@ -495,12 +498,15 @@ class Model:
                 rel,
                 line,
             )
-        key = (name, getattr(fn, "__qualname__", repr(fn)), repr(sorted(params.items())))
+        key = (name, _function_key(fn), repr(sorted(params.items())))
         made = ctx.submodels.get(key)
         if made is not None:
             return made
         child = Model()
+        # A copy's parts count when it's placed, not while it's built.
+        counted = ctx.count
         result = fn(child, **params)
+        ctx.count = counted
         built = result if isinstance(result, Model) else child
         if not any(s.parts for s in built._steps):
             raise EmmetError(
@@ -738,9 +744,30 @@ def _takes_argument(fn) -> bool:
     return any(p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD, p.VAR_POSITIONAL) for p in params)
 
 
+def _function_key(fn) -> tuple:
+    """What makes two builder functions the same: their code, their defaults, and what they close over. Lambdas
+    share a qualname, so `lambda t, color=color: …` in a loop must differ by its default, not look alike."""
+    cells = tuple(repr(c.cell_contents) for c in getattr(fn, "__closure__", None) or () if _filled(c))
+    return (
+        getattr(fn, "__code__", fn),
+        repr(getattr(fn, "__defaults__", None)),
+        repr(getattr(fn, "__kwdefaults__", None)),
+        cells,
+    )
+
+
+def _filled(cell) -> bool:
+    try:
+        cell.cell_contents  # noqa: B018 - an empty cell raises
+    except ValueError:
+        return False
+    return True
+
+
 def _file_name(ctx, name: str) -> str:
     """The submodel's file in the .mpd: its name, then "-2", "-3", … for each other parameter set."""
-    taken = {s.file for s in ctx.submodels.values()}
+    # The main model's file is taken too: a submodel named like the @model function would reference itself.
+    taken = {s.file for s in ctx.submodels.values()} | {getattr(ctx, "main_file", "")}
     base = _slug(name)
     file, n = f"{base}.ldr", 1
     while file in taken:

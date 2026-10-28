@@ -160,6 +160,8 @@ pub struct Bom {
     pub parts: u32,
     /// Whether the parts data pack was there for availability (the Parts list's Rebrickable credit).
     pub parts_data: bool,
+    /// Why there's no parts list for a build that ran (a damaged parts data pack, say), or null.
+    pub problem: Option<String>,
 }
 
 /// Settings → Data: the parts data pack and the BOM's color naming.
@@ -454,25 +456,35 @@ fn annotate(data: &DataDir, root: &Path, scene: &mut Scene) {
         },
     });
     let names = emmet_core::bom::ColorNames::preferred(data);
-    scene.bom = emmet_core::ops::bom_build(data, &project, names).ok().map(|b| Bom {
-        pieces: b.totals.pieces as u32,
-        parts: b.totals.parts as u32,
-        parts_data: b.parts_data.is_some(),
-        lines: b
-            .lines
-            .into_iter()
-            .map(|l| BomLine {
-                availability: serde_json::to_value(l.availability.status)
-                    .ok()
-                    .and_then(|s| s.as_str().map(String::from))
-                    .unwrap_or_default(),
-                part: l.part,
-                name: l.name,
-                color: l.color,
-                color_name: l.color_name,
-                qty: l.qty as u32,
-            })
-            .collect(),
+    scene.bom = Some(match emmet_core::ops::bom_build(data, &project, names) {
+        Ok(b) => Bom {
+            pieces: b.totals.pieces as u32,
+            parts: b.totals.parts as u32,
+            parts_data: b.parts_data.is_some(),
+            problem: None,
+            lines: b
+                .lines
+                .into_iter()
+                .map(|l| BomLine {
+                    availability: serde_json::to_value(l.availability.status)
+                        .ok()
+                        .and_then(|s| s.as_str().map(String::from))
+                        .unwrap_or_default(),
+                    part: l.part,
+                    name: l.name,
+                    color: l.color,
+                    color_name: l.color_name,
+                    qty: l.qty as u32,
+                })
+                .collect(),
+        },
+        Err(e) => Bom {
+            lines: vec![],
+            pieces: 0,
+            parts: 0,
+            parts_data: false,
+            problem: Some(format!("{} {}", e.message, e.hint)),
+        },
     });
 }
 
