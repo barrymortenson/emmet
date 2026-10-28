@@ -208,21 +208,28 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
             Ok(seat(a.pos, a.axis, r, l, Kind::Gen))
         }
         (Kind::Finger, Kind::Finger) => {
-            let (lo, hi) = along(a, b, dot).ok_or("off the line")?;
             // Fingers of one named group are made for each other (a window and its glass: LDCad gives them radii 4
             // and 2); without a group, their radii must match.
             let (ra, rb) = (a.secs[0].radius, b.secs[0].radius);
             if a.group.is_none() && (ra - rb).abs() > GRIP {
                 return fail("radius");
             }
-            if hi - lo <= TOLERANCE {
+            // A hinge: the two sets of fingers on one line, together on it. LDCad's finger runs start at a point and
+            // go one way, which a part turned over reverses (3937 and 3938 in 889-1 start at one point and run
+            // apart), so starts within a run's length count as together.
+            let d = a.pos - b.pos;
+            let t = d.dot(b.axis);
+            if (d - b.axis * t).length() > JOINT + 1e-3 {
+                return fail("off the line");
+            }
+            if t.abs() > a.len().max(b.len()) {
                 return fail("no overlap");
             }
             Ok(seat(
-                b.pos + b.axis * (lo + hi) / 2.0,
+                (a.pos + b.pos) / 2.0,
                 b.axis,
                 ra,
-                hi - lo,
+                a.len().max(b.len()),
                 Kind::Finger,
             ))
         }
@@ -451,6 +458,25 @@ mod tests {
         };
         assert!(mate(&wheel_pin, &wheel(-5.0)).is_some());
         assert!(mate(&wheel_pin, &wheel(-7.0)).is_none());
+    }
+
+    #[test]
+    fn hinge_fingers_turned_over_still_mesh() {
+        // 3937 and 3938 (889-1): runs that start at one point and go opposite ways; a run a whole hinge away doesn't.
+        let base = at(
+            "!LDCAD SNAP_FGR [group=hgBrC] [genderOfs=F] [seq=18 4 18] [radius=4] [ori=0 1 0 -1 0 0 0 0 1]",
+            DVec3::ZERO,
+        );
+        let top = at(
+            "!LDCAD SNAP_FGR [group=hgBrC] [genderOfs=M] [seq=18 4 18] [radius=4] [ori=0 -1 0 1 0 0 0 0 1]",
+            DVec3::ZERO,
+        );
+        assert!(mate(&top, &base).is_some());
+        let far = at(
+            "!LDCAD SNAP_FGR [group=hgBrC] [genderOfs=M] [seq=18 4 18] [radius=4] [ori=0 -1 0 1 0 0 0 0 1]",
+            DVec3::new(100.0, 0.0, 0.0),
+        );
+        assert!(mate(&far, &base).is_none());
     }
 
     #[test]

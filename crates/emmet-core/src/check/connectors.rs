@@ -684,19 +684,20 @@ impl<'a> Scanner<'a> {
     }
 }
 
-/// Drops connectors that repeat another of the same kind and gender at the same place (a tube's anti-studs where the
-/// part's shadow entry lists them too).
+/// Drops connectors that repeat another exactly: the same kind, gender, place, axis, group, and sections (a tube's
+/// anti-studs where the part's shadow entry lists them too). Two at one place that differ (a tube's short anti-stud and
+/// the shadow's deeper one, or a turntable's pin hole) both stay.
 fn dedupe(v: &mut Vec<Connector>) {
     let key = |c: &Connector| {
         let r = |x: f64| (x * 10.0).round() as i64;
-        let p = c.pos;
-        let a = c.axis;
+        let (p, a) = (c.pos, c.axis);
         (
             c.kind,
             c.gender,
             [r(p.x), r(p.y), r(p.z)],
             [r(a.x), r(a.y), r(a.z)],
-            r(c.secs.first().map_or(0.0, |s| s.radius)),
+            c.group.clone(),
+            c.secs.iter().map(|s| (r(s.radius), r(s.len))).collect::<Vec<_>>(),
         )
     };
     let mut seen = std::collections::HashSet::new();
@@ -769,6 +770,23 @@ mod tests {
         // A stud (scale none) scaled that way is dropped.
         let stud = snap("!LDCAD SNAP_CYL [gender=M] [caps=one] [secs=R 6 4]");
         assert!(stud[0].transformed(m, DVec3::ZERO).is_none());
+    }
+
+    #[test]
+    fn dedupe_keeps_connectors_that_differ_at_one_place() {
+        // 3680, a turntable base: its tube's short anti-stud, the shadow's deeper one, and its grouped pin hole, all
+        // starting at its middle.
+        let mut v = vec![
+            parse_one("!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 6 2] [pos=0 8 0]"),
+            parse_one("!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 6 4] [pos=0 8 0]"),
+            parse_one(
+                "!LDCAD SNAP_CYL [group=turnTablePin] [gender=F] [caps=none] [secs=R 6 2 R 4 2] [center=true] [pos=0 6 0]",
+            ),
+            parse_one("!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 6 4] [pos=0 8 0]"),
+        ];
+        dedupe(&mut v);
+        assert_eq!(v.len(), 3);
+        assert!(v.iter().any(|c| c.group.as_deref() == Some("turntablepin")));
     }
 
     #[test]
