@@ -36,6 +36,11 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
 - Checks (session 1D): `emmet check` finds collisions, floating parts, and unknown or obsolete parts, each with the
   `model.py` line that placed it; `emmet bom` lists the parts. In the app, the Checks drawer highlights a finding's
   parts and shows its line, and "Ask agent to fix" sends it to the chat; agent runs build up part by part.
+- The DSL v1 and the data (session 3B): walls, rows, fills, submodels placed many times, and a technique library
+  (`emmet technique`); `emmet steps` lists the build steps with each step's parts and sub-assemblies; `emmet bom
+  --format csv|rebrickable|bricklink-xml` exports the parts list with Rebrickable ids and availability (part, color,
+  and set data from Rebrickable, rebrickable.com); `emmet export --format ldr|mpd|lpub3d` writes the model for other
+  LDraw tools; `emmet params --write-default <name>` makes a slider's value the default in `model.py`.
 - CI on macOS and Windows, the license, SPDX, DCO, secret, and supply-chain checks, and the plan tracker check.
 - `just e2e`: end-to-end specs drive the real app through WebdriverIO (`tests/e2e/`): the live viewer, rendering with
   the app open, a killed run, a leak test, and visual baselines.
