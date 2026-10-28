@@ -31,7 +31,10 @@ pub const DSL_FILES: &[(&str, &str)] = dsl_files![
     "emit.py",
     "errors.py",
     "frame.py",
+    "ldraw.py",
     "params.py",
+    "parts.py",
+    "rewrite.py",
     "run.py"
 ];
 

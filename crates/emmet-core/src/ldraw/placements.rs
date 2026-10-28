@@ -114,6 +114,8 @@ fn walk(
                     let id = if src.is_empty() && id.starts_with("part/") {
                         let parent = copies.last().map_or("main", |c| c.id.as_str());
                         format!("{parent}/{}", n + 1)
+                    } else if let Some(parent) = copies.last() {
+                        format!("{}/{id}", parent.id)
                     } else {
                         id
                     };
@@ -124,6 +126,12 @@ fn walk(
                 } else {
                     let part = normalize_ref(file);
                     let part = part.strip_suffix(".dat").unwrap_or(&part).to_string();
+                    // Inside a submodel copy, an Emmet id is the copy's id plus the part's own (towers/2/wall/3), as
+                    // emmet_dsl writes placements.json.
+                    let id = match copies.last() {
+                        Some(copy) if !src.is_empty() => format!("{}/{id}", copy.id),
+                        _ => id,
+                    };
                     out.push(Placement {
                         id,
                         part,

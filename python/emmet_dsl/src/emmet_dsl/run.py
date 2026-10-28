@@ -19,8 +19,9 @@ import traceback
 
 from . import core as model_mod
 from . import params as params_mod
+from . import rewrite
 from .core import Model, suggest
-from .emit import write_all
+from .emit import write_all, write_atomic_bytes
 from .errors import EmmetError, in_dsl
 
 
@@ -32,7 +33,7 @@ def color_key(name: str) -> str:
 class Context:
     """What Model.add needs from emmet: part geometry, the color table, and where to note missing parts."""
 
-    def __init__(self, root: str, geometry: dict, colors: list):
+    def __init__(self, root: str, geometry: dict, colors: list, helpers: dict | None = None, step_target: int = 8):
         self.root = root
         self.geometry = geometry
         self.colors = {c["code"]: c for c in colors}
@@ -40,7 +41,15 @@ class Context:
         for c in colors:
             for n in [c["name"], *c.get("aliases", [])]:
                 self.color_keys.setdefault(color_key(n), c["code"])
+        # The colors parts were ever made in, from the parts data pack; None without one.
+        produced = {c["code"] for c in colors if c.get("produced", True)}
+        self.produced = produced if len(produced) < len(self.colors) else None
+        self.helpers = helpers or {}  # "brick 2x4" → {"id": …, "near": […]}, as emmet resolved them
         self.missing: dict[str, tuple[str, int]] = {}
+        self.missing_helpers: dict[str, dict] = {}
+        self.count = 0  # parts placed so far, every submodel copy counted
+        self.submodels: dict = {}  # (name, function, params) → Submodel, in the order they were made
+        self.step_target = step_target
         # The @model function's (file, line), once it's known: where an error with no frame of its own points.
         self.model_at: tuple[str | None, int | None] = (None, None)
 
@@ -62,7 +71,34 @@ class Context:
         pid = part.strip().replace("\\", "/").lower()
         return pid[:-4] if pid.endswith(".dat") else pid
 
+    def helper(self, kind: str, dims: tuple, soft: bool, file: str, line: int) -> str | None:
+        """The part id for a helper (Brick(2, 4)), from emmet's answers. Before emmet has answered, the lookup is
+        noted for the next pass and a placeholder stands in."""
+        a, b, c = dims
+        key = f"{kind} {a}x{b}" + (f"x{c}" if kind == "brick" and c != 1 else "") + (f" {c}" if kind == "slope" else "")
+        if key not in self.helpers:
+            self.missing_helpers.setdefault(key, {"kind": kind, "dims": list(dims), "file": file, "line": line})
+            return f"?{key}"
+        found = self.helpers[key]
+        if found.get("id"):
+            return found["id"]
+        if soft:
+            return None
+        name = {"brick": "Brick", "plate": "Plate", "tile": "Tile", "slope": "Slope"}[kind]
+        size = f"{c} {a} x {b}" if kind == "slope" else f"{a} x {b}" + (f" x {c}" if kind == "brick" and c != 1 else "")
+        near = found.get("near") or []
+        maybe = f"The library has {_either(near)}. " if near else ""
+        raise EmmetError(
+            "UNKNOWN_PART",
+            f"There's no {name} {size} in the library.",
+            f"{maybe}Use one of those sizes, or find a part with emmet search.",
+            file,
+            line,
+        )
+
     def body(self, part: str, file: str, line: int) -> list:
+        if part.startswith("?"):  # a helper emmet hasn't looked up yet
+            return [0, 0, 0, 0, 0, 0]
         found = self.geometry.get(part)
         if found is None:
             self.missing.setdefault(part, (file, line))
@@ -187,8 +223,8 @@ def main() -> int:
         faulthandler.dump_traceback_later(float(timeout), exit=True)
     sys.path.insert(0, root)
     colors = _read_json(request.get("colors"), {"colors": []})["colors"]
-    geometry = _read_json(request.get("geometry"), {"parts": {}})["parts"]
-    ctx = Context(root, geometry, colors)
+    known = _read_json(request.get("geometry"), {"parts": {}})
+    ctx = Context(root, known["parts"], colors, known.get("helpers"), request.get("step_target") or 8)
     model_mod.active = ctx
     try:
         reply = _run(request, ctx)
@@ -202,8 +238,8 @@ def main() -> int:
 def _failure(root: str, ctx: Context, exc: BaseException) -> dict:
     """The reply for a pass that raised. Parts the model asked for that emmet hasn't sent yet come first: until the
     model has their real sizes, an error that depends on them (a size divided into a length, say) isn't the model's."""
-    if ctx.missing:
-        return {"ok": False, "need": [{"part": p, "file": f, "line": n} for p, (f, n) in ctx.missing.items()]}
+    if ctx.missing or ctx.missing_helpers:
+        return _need(ctx)
     try:
         return _from_exception(root, ctx, exc)
     except Exception as inner:  # noqa: BLE001 - a reply must go out whatever happens here
@@ -211,7 +247,28 @@ def _failure(root: str, ctx: Context, exc: BaseException) -> dict:
         return _error(root, "INTERNAL", msg, "This is a bug in Emmet; build/run.log has the details.", None, None)
 
 
+def _need(ctx: Context) -> dict:
+    """The parts and helpers this pass lacked, for emmet to look up before the next."""
+    need = [{"part": p, "file": f, "line": n} for p, (f, n) in ctx.missing.items() if not p.startswith("?")]
+    need += [{"helper": k, **v} for k, v in ctx.missing_helpers.items()]
+    return {"ok": False, "need": need}
+
+
+def _write_default(request: dict, ctx: Context) -> dict:
+    """mode write_default: rewrites one default in model.py without running the model."""
+    entry = request.get("entry", "model.py")
+    path = os.path.join(ctx.root, entry)
+    with open(path, "rb") as f:
+        source = f.read()
+    new, line = rewrite.write_default(source, request["param"], request["value"], request.get("kind", ""), entry)
+    if new != source:
+        write_atomic_bytes(path, new)
+    return {"ok": True, "data": {"param": request["param"], "file": entry, "line": line}}
+
+
 def _run(request: dict, ctx: Context) -> dict:
+    if request.get("mode") == "write_default":
+        return _write_default(request, ctx)
     entry = request.get("entry", "model.py")
     path = os.path.join(ctx.root, entry)
     if not os.path.isfile(path):
@@ -239,7 +296,8 @@ def _run(request: dict, ctx: Context) -> dict:
     values = params_mod.check(schema, request.get("params", {}), file, request.get("params_source", "params"))
     for p in schema:
         if p.type == "color":
-            ctx.color(values[p.name], file, p.line)
+            code = ctx.color(values[p.name], file, p.line)
+            params_mod.check_produced(p, values[p.name], code, ctx, file)
     doc = (fn.__doc__ or "").strip().splitlines()
     title = doc[0] if doc else ""
     if request.get("mode") == "schema":
@@ -255,8 +313,8 @@ def _run(request: dict, ctx: Context) -> dict:
             file,
             def_line,
         )
-    if ctx.missing:
-        return {"ok": False, "need": [{"part": p, "file": f, "line": n} for p, (f, n) in ctx.missing.items()]}
+    if ctx.missing or ctx.missing_helpers:
+        return _need(ctx)
     ms = int((time.perf_counter() - started) * 1000)
     try:
         summary = write_all(request["out"], fn.__name__, title, result, request.get("manifest", {}), ms)

@@ -3,6 +3,7 @@
 //! categories, and keywords, colors, and search synonyms. `connectors` and `elements` stay empty until 3A and 3B.
 
 pub mod dims;
+mod helpers;
 mod search;
 
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ use rusqlite::{Connection, OpenFlags, OptionalExtension, params};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+pub use helpers::Resolved;
 pub use search::SearchHit;
 
 use crate::colors::{self, Color};
@@ -285,7 +287,7 @@ fn missing_index(data: &DataDir) -> Error {
     )
 }
 
-fn db(e: rusqlite::Error) -> Error {
+pub(crate) fn db(e: rusqlite::Error) -> Error {
     Error::internal(format!("parts index: {e}"))
 }
 

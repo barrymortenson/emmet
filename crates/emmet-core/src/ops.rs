@@ -211,6 +211,35 @@ pub fn set_params(data: &DataDir, project: &Project, values: &BTreeMap<String, s
     Ok(after)
 }
 
+/// "Make this the default": writes a parameter's current value into model.py as its default (one literal rewritten,
+/// the rest of the file byte for byte), and drops it from params.json.
+pub fn write_default(data: &DataDir, project: &Project, name: &str) -> Result<Params> {
+    let before = get_params(data, project)?;
+    let Some(spec) = before.params.iter().find(|p| p.name == name) else {
+        let known = before
+            .params
+            .iter()
+            .map(|p| p.name.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
+        return Err(Error::new(
+            ErrorCode::ParamInvalid,
+            format!("There's no parameter '{name}'."),
+            format!("The model's parameters are: {known}."),
+        ));
+    };
+    let value = before.values[name].clone();
+    if value != spec.default {
+        crate::run::write_default(data, project, name, &value, &spec.kind)?;
+    }
+    let mut overrides = project.params()?;
+    overrides.remove(name);
+    project.write_params(&overrides)?;
+    let mut after = get_params(data, project)?;
+    after.changed = vec![name.to_string()];
+    Ok(after)
+}
+
 pub fn run_model(
     data: &DataDir,
     project: &Project,

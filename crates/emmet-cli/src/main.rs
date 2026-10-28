@@ -100,6 +100,9 @@ enum Command {
         /// Set a value (repeatable). A value equal to the default is dropped from params.json.
         #[arg(long = "set", value_name = "K=V", num_args = 1..)]
         set: Vec<String>,
+        /// Write a parameter's current value into model.py as its default, and drop it from params.json.
+        #[arg(long = "write-default", value_name = "K", conflicts_with = "set")]
+        write_default: Option<String>,
     },
     /// Trust the project on this machine, so its model.py may run.
     Trust,
@@ -416,13 +419,15 @@ fn main() -> ExitCode {
                 )
             })
         }
-        Command::Params { set } => {
+        Command::Params { set, write_default } => {
             let mut root = None;
             let out = data.and_then(|d| {
                 let values = key_values(set)?;
                 let project = Project::find(cli.project.as_deref())?;
                 root = Some(project.root.display().to_string());
-                if values.is_empty() {
+                if let Some(name) = write_default {
+                    ops::write_default(&d, &project, name)
+                } else if values.is_empty() {
                     ops::get_params(&d, &project)
                 } else {
                     ops::set_params(&d, &project, &values)
