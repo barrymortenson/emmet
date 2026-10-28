@@ -99,7 +99,7 @@ window.EMMET_STATUS = {
       ],
       note: "The Windows cottage visual baseline is stale until the Windows pass regenerates it (D-43); 2B can raise A's Chat focus layout and C's ⌘K palette again"
     },
-    "2B": { status: "todo" },
+    "2B": { status: "in-progress", branch: "bmortenson/s2b-design-system-frozen", started: "2026-10-27" },
     "3A": { status: "todo" },
     "3B": { status: "todo" },
     "3C": { status: "todo" },
