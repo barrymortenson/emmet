@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-26",
+  updated: "2026-10-27",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -89,7 +89,16 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-10-26 (D-43): merged without the Windows fresh-account run and Windows CI, which come back in the Windows pass; Antigravity is out of the MVP"
     },
-    "2A": { status: "todo" },
+    "2A": {
+      status: "done", pr: 23, branch: "bmortenson/s2a-ux-research-directions", started: "2026-10-26",
+      evidence: [
+        "CI ci check green #23 (run 40618957958: mac with the full E2E suite, plan with the contrast gate; windows paused, D-43)",
+        "docs/design/{research,storyboards}.md, directions/{a,b,c}/ (36 screens and states each), review.html, brand/",
+        "scripts/contrast-check.mjs (contrast-check: ok) and tests/scripts/contrast-check.test.mjs; each #audit 0 failures",
+        "H-07: B (Canvas), as revised; docs/decisions.md"
+      ],
+      note: "The Windows cottage visual baseline is stale until the Windows pass regenerates it (D-43); 2B can raise A's Chat focus layout and C's ⌘K palette again"
+    },
     "2B": { status: "todo" },
     "3A": { status: "todo" },
     "3B": { status: "todo" },
@@ -109,7 +118,9 @@ window.EMMET_STATUS = {
     "8D": { status: "backlog" },
     "8E": { status: "backlog" },
     "8F": { status: "backlog" },
-    "8G": { status: "backlog" }
+    "8G": { status: "backlog" },
+    "8H": { status: "backlog" },
+    "8I": { status: "backlog" }
   },
   human: {
     "H-01": { status: "done", date: "2026-10-24", note: "repo created public; settings applied and read back in 0A" },
@@ -118,7 +129,7 @@ window.EMMET_STATUS = {
     "H-04": { status: "done", date: "2026-10-25", note: "Windows 11 ARM VM (Parallels); Claude Code (native installer, Max plan) and Codex 0.164.0 (npm, API key) both edited the model from Emmet; ADR 0001's Windows section" },
     "H-05": { status: "done", date: "2026-10-26", note: "Developer ID Application certificate and the emmet-notary notarytool profile in the login keychain; just release-dry --sign: notarization Accepted, spctl accepted (Notarized Developer ID), stapler validate worked; the .dmg opened, set up, and built the cottage in a fresh Standard macOS account" },
     "H-06": { status: "done", date: "2026-10-26", note: "Rung 1 passed on both agents, each after one rerun (docs/evals/2026-10-26-rung1.md); Barry called G1 a go. terms-check and name-check weren't run for this call" },
-    "H-07": { status: "todo" },
+    "H-07": { status: "done", date: "2026-10-27", note: "B (Canvas), as revised with Barry in 2A; asked through AskUserQuestion; docs/decisions.md" },
     "H-08": { status: "todo" },
     "H-09": { status: "todo" },
     "H-10": { status: "todo" },

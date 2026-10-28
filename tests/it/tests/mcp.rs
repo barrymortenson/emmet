@@ -224,8 +224,8 @@ async fn run_model() {
     assert_matches_committed(&client, "run_model");
     let c = client.call("run_model", json!({})).await;
     assert!(!c.is_error, "{}", c.text);
-    assert_eq!(c.envelope["data"]["parts"], 93);
-    assert!(c.text.starts_with("Built 93 parts in 12 steps ("), "{}", c.text);
+    assert_eq!(c.envelope["data"]["parts"], 163);
+    assert!(c.text.starts_with("Built 163 parts in 31 steps ("), "{}", c.text);
     assert_eq!(c.envelope["meta"]["generation"], 1);
     // The same output the CLI writes.
     assert!(dir.join("build/model.mpd").is_file());
@@ -482,6 +482,7 @@ async fn rules_and_api_return_the_doctrine_and_the_dsl() {
         "Show a draft in the first minute",
         "Keep it lean",
         "Real parts for real things",
+        "Sized for the figure",
         "never write it",
         "Say numbers",
         "ask_user",

@@ -3,6 +3,106 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-27, session 2A
+
+- **H-07 (UX-1): B, as revised.** Asked through AskUserQuestion whether the refined B was done, Barry said yes
+  ("B is done, record it"). B (Canvas), with the revisions recorded below, is the direction 2B turns into the design
+  system and the frozen screens. A and C stay in `docs/design/directions/` as the record; the mix that review.html
+  proposed before the revisions (A's Chat focus layout, C's ⌘K palette) wasn't part of the pick.
+- **No step scrubber.** Barry, on B's "◀ Step 31/31 ▶" pill: it isn't needed. The Steps tab picks a step, and the
+  step's number and parts box show over the viewer. Plan sections 13 and 14 and 4C drop the scrubber, and B's title
+  row loses it. A and C keep theirs as the record of the directions.
+- **No code in the app.** Barry, on the Checks card's excerpt and "Show in model.py": the user can't fix anything in
+  Python, so the app never shows code or offers to open a code file. A finding is a plain sentence with its parts
+  highlighted; a failed build says so in plain words; file-change cards in the chat say what changed, with no diff;
+  and the untrusted banner drops "Read model.py". The source line, the error, and the hint still go to the agent with
+  "Ask agent to fix". Law 2, section 14, and 4B and 4C say so now (4B takes the code out of 1D's Checks drawer and run
+  panel), and the mock follows.
+- **Steps read like an official instruction book.** Barry, from the books he builds from: a build goes bottom up a
+  layer or a section (a wall) at a time, with a side open to put the inside in; steps are small groups of parts;
+  a unit built apart is a sub-assembly in its own box with numbered sub-steps; each step shows its parts in a parts
+  box with counts; and adding a feature redoes the step order. Most important for the PDF and on-screen
+  instructions. Plan section 08 has the step rules, section 11 a `step_size` warning, and 3B, 4C, and 4E build them.
+  The cottage template follows them now (31 steps, the same 163 parts), so the tests and the mock match it. The
+  cottage's corners interlock row by row, so its four walls rise together and the room is furnished at the second
+  row, open from above, rather than through an open side.
+- **B is the starting design (H-07 in progress).** After reviewing the three directions, Barry took B (Canvas) as the
+  starting point and asked to refine it until it is a fairly complete prototype: the viewer on the left majority of
+  the window, the options panel on the right, and the chat along the bottom. H-07 is recorded when the refined B is
+  done.
+- **Rethink the parameters.** Barry: width, height, and even color aren't the best things to configure. Better: the
+  target size (fewest and most pieces), the detail level (low, medium, high), the scale (figure scale, micro, mini
+  town, a 1:8 car, and so on), and the build style (blocky, town, medieval, dinosaur park, and so on), the things that
+  set a build's size, detail, complexity, and style. The prototype shows them as build settings that steer the agent,
+  with the model's own tweaks under them; how they work is the next question. The style and scale names in the app are
+  plain words, not brand or theme names (D-30).
+
+- **Build settings plus character knobs.** Asked how build settings should work beside the model's sliders, Barry
+  leaned to settings only, since width and length aren't worth a slider and a look like "a beige wall with random
+  exposed brick" is a prompt. Shown that such a look makes a good knob once the agent writes it into model.py
+  (weathering 0-30 %, Shuffle for another random arrangement), he chose character knobs: the model keeps instant
+  sliders, but only two to five the agent picks because they change the model's character (weathering, features on
+  or off, counts like floors or windows, Shuffle), never raw dimensions; colors and looks go through the prompt. Over
+  settings only (dropping sliders, which would rewrite law 7, the sliders flow, the ladder, and the eval's Parameters
+  score) and deciding after 3B. Build settings (style, scale, detail, target size, baseplate) steer the agent, and
+  changing one is an agent turn. The plan's sections on sliders change with this PR.
+- **Web requests are for the user's links.** The approval-card mock had the agent open a parts page to check colors;
+  Barry asked why anything would need the web. Part, color, and availability questions go through Emmet's tools
+  (3B's parts data), never the web, and the doctrine says so (plan section 10). The mock now shows the real case:
+  the user pastes a link and the agent asks to open it.
+- **The ant is the mark, and B wears it.** Barry chose to brand B with the ant (`brand/mark-ant.svg`, three studs
+  for a body) over the brick: the project chip carries it and opens About, tips use it, first run shows the
+  "Emmet Builder" wordmark, the accent is the brand orange from `brand/palette.css`, and About shows the macOS icon
+  draft, what Emmet connects to, and the trademark line (D-30). The final typeface and the 16 px tuning are 2B's.
+- **A better starter cottage.** Barry asked for a more interesting example with a real door, window glass, and some
+  interior. The template (`crates/emmet-core/templates/cottage/model.py`) is now 10 x 8 studs and 163 parts: a
+  stone base course, a Reddish Brown door in its frame, Trans-Clear glass in five windows (two in front when it's 10
+  wide), a stone path with two flowers, a chimney over the stove, and a room inside (a bed, a table and stool, a
+  stove), all in colors Rebrickable lists for those parts. It gains the knobs from the design (`roof`, `weathering`,
+  `seed`), keeps width, depth, wall height, and colors for rung 1 and the tests, and validates clean at all 110
+  width and depth combinations. Building it found an older bug: an odd width left a stud of ceiling unplated, so the
+  roof above it floated; a Plate 1 x 2 now fills it, and the check test covers width 9. The Windows visual baseline
+  for the cottage is stale until the Windows pass regenerates it (D-43).
+- **Names, not subtext.** Barry: too much explanatory text under every option; naming should be intuitive. Options and
+  knobs show a short name and their control; any help is a hover tooltip. A new build starts with every build setting
+  on Any, so they don't box in the prompt, and style takes the user's own words (steampunk, zen garden) beside the
+  suggestions. An on/off switch for build settings came and went the same day: with everything on Any, the prompt
+  already decides, so the switch said nothing new. The settings run Base, Scale, Detail, Size, Style, then Age, which
+  takes LEGO's age bands (4+, 6+, 9+, 13+, 18+); 1.5+ is DUPLO, left out because the checks can't stack DUPLO parts
+  yet (their studs have no connectors, so a stacked DUPLO brick reads as floating). DUPLO and 1.5+ are backlog session
+  8H. Scale uses the hobby's words, small to large: Micro, Micropolis (the community micro city standard, built on
+  16 x 16 modules), Midi, Figure scale (what the hobby calls minifig scale; LEGO lists the Minifigure among its marks,
+  so D-30 keeps the plain name), Large (Miniland is LEGOLAND's name, and no official sets come at its 1:20, so Large
+  names no ratio; the large display cars, like the Ford Mustang at about 1:13, fit it), and Car 1:8. "Mini town" and
+  "Display" weren't terms anyone uses. Each setting decides one thing, and together they set how the agent designs the
+  model: Base what it stands on, Scale what the details are sized for (the 9,090-piece Titanic is Micro at 1:200),
+  Detail the techniques, Pieces how many (shown as counts, 50–150, 150–500, 500–1,500, so it can't be read as how big
+  it looks), Style the look, and Age who builds it. Scale isn't a strict ratio for the whole: like official sets, a
+  figure-scale starship has figure-sized doors and seats but is far shorter than true scale, so the agent sizes what a
+  figure touches for the figure and compresses the rest (the doctrine's "Sized for the figure, not to the ratio"). Age
+  leads Detail and Pieces: picking an age sets them to what sets for that age usually have (4+ and 6+ Low and 50–250,
+  9+ Medium and 250–1,000, 13+ High and 1,000–2,500, 18+ High and 2,500+), with no badge, and the user can change
+  either. Pieces has no cap: its top band is 2,500+, since 18+ sets run 2,000 to 5,000 pieces, and the doctrine no
+  longer asks before a build over 2,000 parts when the user asked for one that big. Emmet's side holds up there (a
+  5,000-part model runs in 0.25 s and checks in 0.6 s on a debug build, and `validate` returns at most 50 findings);
+  the agent's time and tokens grow with hand-placed detail, not the count.
+- **Submodels and versions are MVP.** Barry: builds are made of submodels used many times, and a user needs to save a
+  version and keep iterating without fear. Submodels: `m.submodel` defines one and `m.place` puts it in as often as
+  needed, one `0 FILE` per submodel referenced by each placement, with the BOM, steps ("× 4"), the project tree, and
+  the PDF counting every copy (sections 08 and 14; sessions 3B, 4A, 4E). Versions: a copy of the sources, the build,
+  and a thumbnail in `history/`, saved by the user (⌘S) or automatically before every agent turn; restore saves the
+  current state first, and any version can open as a new project (sections 07, 09, 14; sessions 4A and 4B).
+- **Big builds after launch (8I).** Barry: add a 5,000+ part budget and a build that pushes the limits. Section 13
+  gains a 5,000-part column (a target from 8I, not an MVP gate), the check gains 3.5 s for 5,000 parts, and the ladder
+  gains rung 4, a landmark of 5,000+ parts that Barry picks: a large castle on landscaped terrain, an airport
+  terminal, or a ballpark such as Fenway Park or Dodger Stadium. It measures limits and cost; it gates nothing.
+- **Say each thing once.** Barry asked for a pass over every screen for duplicated or redundant UI. In B: one Stop
+  (in the status, with Esc); the status shows only when it adds something (not "Idle", not when a card below says it);
+  the viewer carries only the finding's pin (a failed build and a read-only project are told by the chat card and the
+  banner); the panel head is the model's state in a word plus Export (counts are on the tabs); usage sits on the plan
+  badge; New, Open, Export, and About live in the project menu; the build animation is one Skip button; and labels
+  that repeat the card's own state ("Waiting for your answer" twice) are gone.
+
 ## 2026-10-26, session 1D
 
 - **Up next shows one session.** Barry: the rail's Up next should name one session, not every unblocked one; fixed in

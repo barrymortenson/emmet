@@ -270,6 +270,8 @@ jobs:
       - run: node scripts/spdx-check.mjs
       # The LDraw parts in the test fixture keep their license, authors, and bytes (ADR 0003).
       - run: node scripts/ldraw-mini-check.mjs
+      # The design mockups' contrast gate (2A): a push that changes only docs/design skips the Mac job, so it runs here.
+      - run: node scripts/contrast-check.mjs
       # A PR checks its own commits. The hosted fallback (ci-hosted-mac.yml, a manual run) checks the branch against main,
       # since its ci check can stand in for the Mac's.
       - name: DCO
@@ -278,7 +280,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || 'origin/main' }}
           HEAD: ${{ github.event.pull_request.head.sha || 'HEAD' }}
         run: scripts/dco-check.sh "$BASE" "$HEAD"
-      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs
+      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs tests/scripts/contrast-check.test.mjs
 
   # The one required check: green only when scope and plan passed and each OS job (and nsis) passed or was scoped out.
   ci:

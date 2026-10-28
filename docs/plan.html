@@ -257,7 +257,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td><span class="pill rec">Proposed</span></td><td>Drafted to fill a gap. It stands unless a session's ADR or Barry changes it.</td></tr>
 <tr><td><span class="pill open">Open</span></td><td>Needs an answer. It's listed in section 24 with the session that settles it.</td></tr>
 <tr><td><span class="pill gate">Gate</span></td><td>A go/no-go point. Work past it waits on Barry's call.</td></tr>
-<tr><td>IDs</td><td><code>D-nn</code> decision · <code>H-nn</code> human step · <code>0A</code>…<code>8G</code> sessions · <code>BLK-nnn</code> blocker · <code>Q-nn</code> open question · <code>F-nnnn</code> validator finding · <code>G1</code>, <code>G2</code> gates.</td></tr>
+<tr><td>IDs</td><td><code>D-nn</code> decision · <code>H-nn</code> human step · <code>0A</code>…<code>8I</code> sessions · <code>BLK-nnn</code> blocker · <code>Q-nn</code> open question · <code>F-nnnn</code> validator finding · <code>G1</code>, <code>G2</code> gates.</td></tr>
 </table></div>
 
 <h3>Names</h3>
@@ -393,13 +393,15 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td><b>2</b></td><td><b>Train station with a track loop</b>: a platform of any length with a canopy, benches, a ticket booth, and a loop of official track (straight 53401, curve 53400 R40, one switch) running past it. Sliders: platform length, canopy style, loop size, colors, and switch on/off.</td><td>~300–500 parts</td><td>Repeats, submodels, technique use, real connectivity (tiles, plates, track on plates), steps and BOM at a realistic size, and viewer performance.</td><td>Phase 3 reference model; Phase 4 exit (replay and hand sessions; its live run is at G2)</td></tr>
 <tr><td><b>P</b></td><td><b>Photo to model</b>: three subjects Barry photographs himself (two brick models, one real building), two angles each (H-23). The agent gets the first angle and the prompt "build this", plus the second angle if it asks.</td><td>50–300 parts</td><td>Image input on both agents, proportion judgment in studs, and asking instead of guessing. Scored by Barry with a short rubric (section 16.1).</td><td>Phase 5 exit (G2)</td></tr>
 <tr><td><b>3</b></td><td><b>Official set rebuild</b>: one set from the LDraw Official Model Repository (OMR), 150–400 parts, chosen by Barry (H-11). The agent gets the set's name and a photo description, never the OMR file.</td><td>150–400 parts</td><td>Objective accuracy: the BOM and the placements are scored against the OMR model as ground truth.</td><td>Phase 5 exit (G2: the working proof of concept)</td></tr>
+<tr><td><b>4</b></td><td><b>Landmark</b>, after launch: one model that pushes the limits, chosen by Barry from a large castle on landscaped terrain, an airport terminal with aircraft, or a ballpark (Fenway Park or Dodger Stadium). Built at figure scale for 18+: high detail, figure-sized where a figure goes, compressed elsewhere.</td><td>5,000+ parts</td><td>How big and how detailed a build Emmet and each agent can make, and what it costs in time, tool calls, tokens, and plan usage.</td><td>None: it measures limits, after launch (8I)</td></tr>
 </table></div>
 
 <h3>MVP scope and exit criteria</h3>
 <p>The MVP is the end of Phase 5, the working proof of concept. Beta (Phase 6) and the website and launch (Phase 7) come after it.</p>
 <ul class="small">
 <li>A Tauri app on macOS and Windows: project tree, 3D viewer, chat pane wired to Claude Code <i>and</i> Codex (on the user's Claude or ChatGPT plan, or an API key), sliders, checks, BOM, and steps.</li>
-<li>The Python DSL, <code>.mpd</code> output, and a three.js render that updates live from the project folder.</li>
+<li>The Python DSL, with submodels built once and placed many times, <code>.mpd</code> output, and a three.js render that updates live from the project folder.</li>
+<li>Versions: save one any time, an automatic one before every agent turn, and restore or open any of them as a new project, so iterating is never risky.</li>
 <li>Parts search, and a BOM with Rebrickable colors and availability.</li>
 <li>Validator v1 (collision, connectivity, floating parts, step order, availability), with findings fed to the agent as tool output and linked to the viewer and to source lines.</li>
 <li>Sliders from the params declared in <code>model.py</code>, plus a "make this the default" action.</li>
@@ -415,7 +417,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <h3 id="laws">Eight design laws</h3>
 <ol>
 <li><b>The viewer is sacred.</b> It never moves the camera on its own, never blocks, and always shows the last good model while a new one builds.</li>
-<li><b>Every finding is one click from its part and its line.</b> Clicking a check highlights the parts in the viewer and shows the <code>model.py</code> line that placed them.</li>
+<li><b>Every finding is one click from its parts.</b> Clicking a check highlights the parts in the viewer and says what's wrong in a plain sentence. The <code>model.py</code> line that placed them goes to the agent, never to the screen: the user can't fix Python, so the app never shows code or offers to open a code file.</li>
 <li><b>The user always knows what the agent is doing.</b> Every tool call is a visible card with a one-line plain-language summary.</li>
 <li><b>Real parts, real colors.</b> Anything that can't be bought in that color is flagged, never hidden.</li>
 <li><b>Files are the truth.</b> Anything the app shows can be reproduced from the project folder with <code>emmet run</code> and <code>emmet check</code>.</li>
@@ -697,17 +699,18 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 │  ├─ bom.json · steps.json
 │  ├─ run.log            stdout/stderr of the last run, capped
 │  └─ renders/*.png
-├─ history/          optional snapshots (emmet snapshot), e.g. before a big agent rewrite
+├─ history/          saved versions: one folder each, named by the user or made before each agent turn
 └─ .emmet/           local only: trust marker, session ids, transcripts (never shared)</code></pre>
 
 <h3>Rules</h3>
 <ol>
 <li><b>Sources:</b> <code>model.py</code>, <code>models/*.py</code>, <code>params.json</code>, <code>emmet.toml</code>, and <code>CARD.md</code>. <b>Derived:</b> everything in <code>build/</code>. <code>emmet run &amp;&amp; emmet check</code> on a clean checkout reproduces <code>build/</code> byte for byte, given the same Emmet, library, and parts data versions, except the run-only fields that describe a run rather than the model: the timings and generation counter (kept in <code>manifest.json</code>'s <code>run</code> block), <code>run.log</code>, and <code>renders/</code>. The comparison leaves those out, and an integration test proves the rest.</li>
-<li><b>Who writes what.</b> The agent edits <code>model.py</code>, <code>models/</code>, and <code>CARD.md</code>. The UI writes <code>params.json</code> and <code>emmet.toml</code>, plus <code>model.py</code> only through <code>emmet params --write-default</code>, a single-literal AST rewrite. Only <code>emmet</code> writes <code>build/</code>.</li>
+<li><b>Who writes what.</b> The agent edits <code>model.py</code>, <code>models/</code>, and <code>CARD.md</code>. The UI writes <code>params.json</code> and <code>emmet.toml</code>, plus <code>model.py</code> only through <code>emmet params --write-default</code>, a single-literal AST rewrite. Only <code>emmet</code> writes <code>build/</code> and <code>history/</code>.</li>
 <li><b>Atomic writes everywhere:</b> write to <code>*.tmp</code> in the same directory, fsync, rename. Readers never see half a file.</li>
 <li><b>Staleness is visible.</b> <code>manifest.json</code> carries <code>inputs_hash</code> = sha256 of the sources, the params, the Emmet version, the library version, and the parts data pack version (availability findings depend on it). If the hash doesn't match the current inputs, the UI shows "out of date: rebuilding" and keeps the last good model on screen.</li>
 <li><b>Generation counter.</b> Each run increments <code>generation</code>. The viewer ignores events older than what it shows, and the run queue cancels superseded runs.</li>
 <li><b>Watcher.</b> It watches sources only (not <code>build/</code>), debounced 150 ms, and ignores editor temp files.</li>
+<li><b>Versions (Barry 2026-10-27).</b> A version is a copy of the sources (<code>model.py</code>, <code>models/</code>, <code>params.json</code>, <code>emmet.toml</code>, <code>CARD.md</code>) plus that build's <code>model.mpd</code> and a thumbnail render, in <code>history/&lt;n&gt;-&lt;slug&gt;/</code> with a <code>version.json</code> (name, note, time, who made it, part count, <code>inputs_hash</code>). The user saves one any time ("Save version", <kbd>⌘S</kbd>) and keeps iterating without fear. Emmet saves one automatically before every agent turn that changes the sources, so any turn can be undone; the last 20 automatic versions are kept, and named versions until the user deletes them. Restoring first saves the current state as a version, then writes the sources back atomically, so a restore is never a loss. "Open as a new project" copies a version out to try a different direction side by side.</li>
 <li><b>Imports.</b> Opening a bare <code>.ldr</code> or <code>.mpd</code> creates a project whose <code>model.py</code> is <code>import_ldraw("source.mpd")</code>. The agent can then refactor it into a parametric model.</li>
 <li><b>Schema version.</b> <code>emmet.toml</code> has <code>schema = 1</code>. A newer app migrates forward explicitly and never silently.</li>
 </ol>
@@ -758,10 +761,14 @@ def cottage(
     with m.step("Baseplate"):
         m.add("3811", "Green", at=(0, 0, 0), id="base")
     for row in range(wall_rows):
-        with m.step(f"Walls, row {row + 1}"):
-            m.wall(x=2, y=2, z=0.5 + 3 * row, length=width, depth=depth,
-                   color=wall_color, bond="running", openings=door_and_windows(width, row))
-    with m.step("Roof"):
+        for side in ("back", "sides", "front"):    # a wall a step, the far side first
+            with m.step(f"Walls, row {row + 1}: {side}"):
+                m.wall(x=2, y=2, z=0.5 + 3 * row, length=width, depth=depth, sides=side,
+                       color=wall_color, bond="running", openings=door_and_windows(width, row))
+        if row == 1:                                # the room, while the walls are low
+            with m.step("Inside: table and bed"):
+                furnish(m, width, depth)
+    with m.step("Roof"):                            # a technique brings its own steps
         m.use("gable_roof", x=2, y=2, z=0.5 + 3 * wall_rows, width=width, depth=depth, color=roof_color)
     if chimney:
         with m.step("Chimney"):
@@ -773,14 +780,32 @@ def cottage(
 <tr><th>Call</th><th>Does</th></tr>
 <tr><td><code>@model</code></td><td>Marks the entry function. Its signature becomes the param schema (int, float, bool, <code>Literal[...]</code> choice, <code>Color</code>), with <code>Range</code>/<code>Step</code> via <code>Annotated</code> and help from the docstring lines.</td></tr>
 <tr><td><code>m.add(part, color, at, rot=0, id=None)</code></td><td>Places one part and returns a handle. With no <code>id</code>, the id is <code>&lt;step-slug&gt;/&lt;n&gt;</code>. The call site's <code>file:line</code> is captured.</td></tr>
-<tr><td><code>m.step(title)</code></td><td>Context manager: everything added inside is one build step (LDraw <code>0 STEP</code>).</td></tr>
+<tr><td><code>m.step(title)</code></td><td>Context manager: everything added inside is one build step (LDraw <code>0 STEP</code>). Steps follow the rules below.</td></tr>
 <tr><td><code>m.wall / m.row / m.grid / m.stack / m.fill</code></td><td>Helpers that place many parts with sensible bonds (running, stacked), openings, and corner interlock. Each emitted part still gets its own id and the helper call's line.</td></tr>
 <tr><td><code>m.repeat(fn, n, dx=0, dy=0, dz=0)</code> · <code>m.mirror(axis)</code></td><td>Repetition and symmetry without copy-paste.</td></tr>
-<tr><td><code>m.submodel(name, fn, at, rot)</code></td><td>A named submodel (<code>0 FILE</code> in the <code>.mpd</code>) with its own steps. Becomes a node in the project tree.</td></tr>
+<tr><td><code>sub = m.submodel(name, fn, **params)</code> · <code>m.place(sub, at, rot=0, id=None)</code></td><td>Builds are made of submodels used many times (Barry 2026-10-27): a window bay, a tower, a seating section. <code>submodel</code> defines one, built once by <code>fn</code> with its own steps; <code>place</code> puts it in the model, as often as needed. The <code>.mpd</code> holds one <code>0 FILE</code> per submodel and parameter set, referenced by each placement, so a change to the submodel changes every copy. Ids are the placement's id plus the part's (<code>towers/2/wall/3</code>). The BOM counts every placement; the steps build the submodel once and then place it "× 4"; the project tree shows "Tower × 4", and clicking it highlights every copy.</td></tr>
 <tr><td><code>m.use(technique, **kw)</code></td><td>Applies a technique from <code>data/techniques</code> (gable roof, SNOT panel, jumper offset, hinge roof, window frame, stair, …).</td></tr>
 <tr><td><code>m.allow(rule, ids, reason)</code></td><td>Records a deliberate exception (for example a floating minifig accessory). It shows in the Checks drawer as "allowed", never hidden.</td></tr>
 <tr><td><code>import_ldraw(path)</code></td><td>Brings an existing model in as fixed geometry, with ids taken from its line numbers.</td></tr>
 </table></div>
+
+<h3>Build steps, like an instruction book</h3>
+<p>Steps are what a person builds from, on screen (section 13) and in the PDF (4E), so they break the build down the way official instruction books do (Barry 2026-10-27, from the books he builds from). The doctrine teaches it, the validator checks what it can (<code>step_order</code>, <code>step_size</code>), and the templates show it: the cottage builds its walls a wall at a time, furnishes the room at the second row, and raises the chimney with the walls.</p>
+<ul>
+<li><b>Bottom up, a layer at a time.</b> Walls rise a row at a time, and each row goes on a wall at a time, the far side first, so each step's new parts are in view. A model made of sections (a wall panel, a floor, a tower) builds one section at a time.</li>
+<li><b>Small steps.</b> A step adds a few parts: about 2 to 8 for a 6+ build, 1 to 4 for 4+, and up to about 12 for 18+ when they're the same part in a plain run. A bigger step is split by wall, side, or row. The Age build setting sets the target.</li>
+<li><b>The inside goes in while it's easy to reach.</b> Furniture and interior details go in while the walls are low, or with one side left open (a wall built as a section and closed after). Never after a ceiling or roof has closed the room in.</li>
+<li><b>Features go up with the structure.</b> A chimney, a column, or a drainpipe gains a piece in each layer's step, not one tall stack at the end. Adding a feature means putting its parts in the steps where a builder would add them, and reordering when the old order no longer works; never a step tacked onto the end. The agent checks the order again after every change.</li>
+<li><b>Sub-assemblies.</b> A unit built apart and then attached (a door in its frame, a window with its glass, a tree, a bookcase) is a submodel with its own steps, numbered 1, 2, 3 inside its box. A unit built more than once is built once and marked "2x". Until submodels arrive (3B), a unit's parts share one step.</li>
+<li><b>Titles group steps.</b> A title reads "Walls, row 2: back wall": the part before the colon groups steps in the steps list. The PDF prints step numbers, not titles, like the books.</li>
+</ul>
+<p><b>How a step is shown</b>, on screen and in the PDF, laid out the same way:</p>
+<ul>
+<li><b>The step number</b>, large, at the top left, under the <b>parts box</b>: a picture of each new part in its color with its count ("2x"), larger parts first. No part numbers; the BOM page has them.</li>
+<li><b>The model built up to the step:</b> earlier parts at full color, the step's new parts outlined in red, later parts hidden.</li>
+<li><b>A sub-assembly</b> is drawn in a framed box with its own parts box and numbered sub-steps (1, 2, 3); the next picture shows it going on, with a line from the box to where it goes, and "2x" on the box when it's built twice.</li>
+<li><b>Arrows</b> show which way a part goes on when that isn't obvious; a <b>zoom box</b> shows a part placed somewhere hidden; a <b>turn icon</b> marks a step where the model turns around or over. The camera stays put through a run of steps and moves only when the model turns.</li>
+</ul>
 
 <h3>Ids, source lines, and output</h3>
 <p>Each placed part is written to the <code>.mpd</code> with a meta line before it, which other LDraw tools ignore:</p>
@@ -841,7 +866,8 @@ def cottage(
 <tr><td><code>emmet search &lt;query&gt; [--category c] [--limit 10]</code> · <code>emmet part &lt;id&gt;</code> · <code>emmet colors [--part id]</code></td><td>Parts search, part details (size in studs and plates, connectors, produced colors), colors</td></tr>
 <tr><td><code>emmet params [--set k=v] [--write-default k]</code></td><td>The param schema and values, set overrides, write a value back as the default</td></tr>
 <tr><td><code>emmet technique [name]</code> · <code>emmet rules</code> · <code>emmet api</code></td><td>Technique list and snippet, the doctrine, the DSL vocabulary</td></tr>
-<tr><td><code>emmet export --format ldr|mpd|lpub3d|pdf [--paper a4|letter] [--out]</code> · <code>emmet snapshot</code></td><td>Exports, and a history snapshot</td></tr>
+<tr><td><code>emmet export --format ldr|mpd|lpub3d|pdf [--paper a4|letter] [--out]</code></td><td>Exports</td></tr>
+<tr><td><code>emmet version save [name] [--note]</code> · <code>emmet version list</code> · <code>emmet version restore &lt;n&gt;</code></td><td>Save, list, and restore versions (section 07); restore saves the current state first</td></tr>
 <tr><td><code>emmet library status|install|update|verify</code></td><td>LDraw library management</td></tr>
 <tr><td><code>emmet doctor [--fix]</code> · <code>emmet trust</code></td><td>Environment check (Python, library, index, agents and their versions, render); trust the current project</td></tr>
 <tr><td><code>emmet mcp [--project dir] [--session id]</code></td><td>The stdio MCP server. <code>--session</code> is set only by the app, and turns on redirect notes (below)</td></tr>
@@ -859,7 +885,8 @@ def cottage(
 <tr><td><code>validate</code></td><td><code>rules?</code></td><td><code>{counts_by_rule, findings[≤50], total, clean}</code></td><td>Counts plus the top 10 findings with ids, positions, and source lines; "full list in build/validation.json"</td></tr>
 <tr><td><code>render</code></td><td><code>view?</code>, <code>step?</code> (with steps, 4E), <code>highlight?</code>, <code>size?=768</code></td><td>MCP image content (PNG) plus <code>{view, size, via, camera, highlighted}</code>; <code>via</code> is <code>app</code> (the open window, over the bus) or <code>render-mode</code></td><td>The view name and what's highlighted</td></tr>
 <tr><td><code>bom</code></td><td><code>format?</code></td><td><code>{lines:[{part, color, qty, rebrickable_id, availability}], totals}</code></td><td>Totals plus any unavailable lines</td></tr>
-<tr><td><code>steps</code></td><td>none</td><td><code>[{n, title, part_ids, submodel}]</code></td><td>The step count and titles</td></tr>
+<tr><td><code>steps</code></td><td>none</td><td><code>[{n, title, part_ids, parts, submodel}]</code>, <code>parts</code> being the step's parts box (part, color, count)</td><td>The step count and titles</td></tr>
+<tr><td><code>save_version</code></td><td><code>name</code>, <code>note?</code></td><td><code>{n, name, parts}</code></td><td>"Saved version 7: Before the roof rewrite". The agent may save a version before a risky change; only the user restores one.</td></tr>
 <tr><td><code>get_params</code> / <code>set_params</code></td><td><code>values?</code></td><td>Schema plus values / the new values</td><td>Changed values</td></tr>
 <tr><td><code>technique</code></td><td><code>name?</code></td><td>The list, or <code>{name, doc, snippet, parts}</code></td><td>The doc's first lines</td></tr>
 <tr><td><code>list_colors</code></td><td><code>part?</code></td><td><code>[{code, name, rgb, produced_for_part?}]</code></td><td>Compact list</td></tr>
@@ -954,7 +981,7 @@ server → client requests for command/file approvals → Approval events → re
 
 <h3>Instructions the agent gets</h3>
 <ul>
-<li><b>Doctrine</b> in <code>crates/emmet-cli/doctrine/EMMET.md</code>, embedded in the binary and printed by <code>emmet rules</code>: the frame and units, ids, the loop (search → write → run → validate → render → fix), build in visible stages (base, walls, openings, roof, details) and run after each one so the user watches it grow, say numbers not impressions, name params in the user's words, keep the card's <i>Don't</i> list, ask before builds over 2,000 parts, one tip per reply.</li>
+<li><b>Doctrine</b> in <code>crates/emmet-cli/doctrine/EMMET.md</code>, embedded in the binary and printed by <code>emmet rules</code>: the frame and units, ids, the loop (search → write → run → validate → render → fix), build in visible stages (base, walls, openings, roof, details) and run after each one so the user watches it grow, size what a figure touches for the figure and shorten the whole to stay buildable, the way official sets are built (Barry 2026-10-27), say numbers not impressions, name params in the user's words, keep the card's <i>Don't</i> list, ask before builds over 2,000 parts unless the user asked for one that big, one tip per reply, and answer part, color, and availability questions with Emmet's tools, never the web (a web request is for a link the user gave; Barry 2026-10-27).</li>
 <li><b>Asking and being redirected</b> (also in the doctrine): use <code>ask_user</code> only when the choice is the user's and a sensible default won't do; at most one question before the first draft; recommended option first. A <code>user_notes</code> entry overrides the current plan: acknowledge it in one line, then change course.</li>
 <li>The app passes a short pointer through <code>--append-system-prompt</code> / <code>developerInstructions</code> ("You are operating Emmet… run the <code>rules</code> tool first"), so the full doctrine is read once through a tool and stays current.</li>
 <li>New projects get an <code>AGENTS.md</code> (and <code>CLAUDE.md</code>) with the same pointer, so terminal agents behave the same way.</li>
@@ -1044,7 +1071,7 @@ server → client requests for command/file approvals → Approval events → re
 <div class="grid3">
 <div class="card"><h4>Precision</h4><p class="small"><b>Zero</b> error-severity findings on the official-model corpus (OMR models are buildable by definition). Every false positive found is a bug with a test.</p></div>
 <div class="card"><h4>Recall</h4><p class="small"><b>≥ 95 %</b> of injected faults detected: a part shifted by a plate, a support removed, a part rotated, a collision added.</p></div>
-<div class="card"><h4>Speed</h4><p class="small"><b>≤ 300 ms</b> for 500 parts and <b>≤ 1.5 s</b> for 2,000 on an M1, warm. Incremental re-checks of changed parts come later if needed.</p></div>
+<div class="card"><h4>Speed</h4><p class="small"><b>≤ 300 ms</b> for 500 parts and <b>≤ 1.5 s</b> for 2,000 on an M1, warm, and <b>≤ 3.5 s</b> for 5,000 from 8I on. Incremental re-checks of changed parts come later if needed.</p></div>
 </div>
 
 <h3>Connection data model</h3>
@@ -1071,7 +1098,8 @@ pub struct Connection { a: (PlacedId, usize), b: (PlacedId, usize), kind: ConnKi
 <tr><td><code>collision</code></td><td>error</td><td>Collision proxies (the body mesh minus stud and anti-stud geometry, cached per part) overlap by more than 0.5 LDU. Broad phase on AABBs, narrow phase with parry3d. Parts joined through a connector pair are exempt where that connector seats.</td><td>v0: shrunk body boxes (1D); v1: proxies (3A)</td></tr>
 <tr><td><code>floating</code></td><td>error</td><td>Connection graph components. Any component not connected to the ground component (the baseplate, the lowest part, or <code>m.ground(id)</code>) is floating.</td><td>v0 (studs only) → v1</td></tr>
 <tr><td><code>disconnected_submodel</code></td><td>error</td><td>A submodel whose parts don't connect to the parent (often a placement offset bug).</td><td>v1</td></tr>
-<tr><td><code>step_order</code></td><td>error</td><td>Each step's parts connect to parts from earlier steps (or form a submodel). A part placed under an existing part with no free insertion path is flagged.</td><td>v1 (insertion-path check is a warning in v1)</td></tr>
+<tr><td><code>step_order</code></td><td>error</td><td>Each step's parts connect to parts from earlier steps (or form a submodel). A part placed under an existing part with no free insertion path is flagged, such as furniture added after the ceiling closed the room in.</td><td>v1 (insertion-path check is a warning in v1)</td></tr>
+<tr><td><code>step_size</code></td><td>warning</td><td>A step adds more parts than the Age build setting's target (8 for 6+, section 08's step rules), counting a sub-assembly as one.</td><td>v1</td></tr>
 <tr><td><code>weak_connection</code></td><td>warning</td><td>A part held by one stud while cantilevering more than 4 studs, or a span held at one end only.</td><td>v1 heuristic; physics later</td></tr>
 <tr><td><code>off_grid</code></td><td>warning</td><td>A position not on the stud or plate grid with no connector seated there (often a typo).</td><td>v1</td></tr>
 <tr><td><code>unknown_part</code> · <code>obsolete_part</code> · <code>alias_part</code></td><td>error · warning · info</td><td>Not in the library, a "~Moved to"/obsolete part, or an alias with a canonical id.</td><td>v0</td></tr>
@@ -1161,7 +1189,7 @@ await viewer.update(placements, { animate: "build" | "none" });  // diff by emme
 viewer.replayBuild();                      // the whole model from empty, in build order
 viewer.skipAnimation();                    // jump to the final state
 viewer.highlight(ids, { mode: "issue" | "select" | "hover" });
-viewer.showSteps(upTo?: number);          // build-step scrubber
+viewer.showSteps(upTo?: number);          // the build up to a step
 viewer.frame(ids?);                        // explicit only: the camera never moves on its own
 viewer.setView("iso" | "front" | "top" | …);
 const { png, camera } = await viewer.render({ view, size, highlight, step });   // offscreen, the same scene code
@@ -1184,18 +1212,19 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
   <li>Renders for the agent always show the final state, never a frame mid-animation.</li>
   <li>Only animating instances get per-frame matrix updates. Everything else stays static in its <code>InstancedMesh</code>.</li>
   </ul></li>
-<li><b>Steps</b> show the build up to the chosen step: earlier steps dimmed, the current step at full color, and later steps hidden, from the scrubber or from the steps list.</li>
+<li><b>Steps</b> show the build up to the step chosen in the steps list, the way section 08's step rules lay it out: earlier steps at full color, the step's new parts outlined in red, later steps hidden, and the step number with its parts box (and any sub-assembly box) over the top left of the viewer.</li>
 <li><b>Render mode</b> (D-24): <code>Emmet --render &lt;project&gt; --view … --out …</code> opens a hidden window, renders through the same <code>viewer.render</code>, writes the PNG, and exits. When the app is already running, <code>render</code> goes over the bus to the open window instead. ADR 0005 proves this on both webviews and records the fallback (an off-screen visible window) if a hidden WebGL context is throttled.</li>
 </ul>
 <h3>Performance budgets (checked by <code>just bench</code> and E2E)</h3>
 <div class="table-wrap"><table>
-<tr><th>Measure</th><th>Rung 1 (~100)</th><th>Rung 2 (~500)</th><th>2,000 parts</th></tr>
-<tr><td>First load (cold library cache)</td><td>≤ 1.5 s</td><td>≤ 3 s</td><td>≤ 6 s</td></tr>
-<tr><td>Slider → updated viewer (run + check + diff), warm</td><td>≤ 0.8 s</td><td>≤ 1.5 s</td><td>≤ 3 s</td></tr>
-<tr><td>Orbit frame time, M1 / Intel Iris Xe class</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
-<tr><td>Frame time during a build animation (whole model added)</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td></tr>
-<tr><td>Heap growth after 100 slider changes</td><td colspan="3">≤ 20 % over the first-load heap (leak test). WebView2 reads the JS heap. WKWebView has no heap API, so macOS reads the WebContent process's footprint, with the baseline after one warm-up cycle through every width (its first-load footprint varies too much to compare against).</td></tr>
+<tr><th>Measure</th><th>Rung 1 (~100)</th><th>Rung 2 (~500)</th><th>2,000 parts</th><th>5,000 parts (from 8I)</th></tr>
+<tr><td>First load (cold library cache)</td><td>≤ 1.5 s</td><td>≤ 3 s</td><td>≤ 6 s</td><td>≤ 12 s</td></tr>
+<tr><td>Slider → updated viewer (run + check + diff), warm</td><td>≤ 0.8 s</td><td>≤ 1.5 s</td><td>≤ 3 s</td><td>≤ 6 s</td></tr>
+<tr><td>Orbit frame time, M1 / Intel Iris Xe class</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td><td>≤ 33 ms</td></tr>
+<tr><td>Frame time during a build animation (whole model added)</td><td>16 ms</td><td>16 ms</td><td>≤ 25 ms</td><td>≤ 33 ms</td></tr>
+<tr><td>Heap growth after 100 slider changes</td><td colspan="4">≤ 20 % over the first-load heap (leak test). WebView2 reads the JS heap. WKWebView has no heap API, so macOS reads the WebContent process's footprint, with the baseline after one warm-up cycle through every width (its first-load footprint varies too much to compare against).</td></tr>
 </table></div>
+<p class="small">The Pieces build setting goes to 2,500+ and 18+ sets run 2,000 to 5,000 pieces, so the 5,000-part column is a target from session 8I on, not an MVP exit gate. A first measure (2026-10-27, debug build, a plain 5,000-brick block): run 0.25 s, check 0.6 s, render 0.6 s; the viewer isn't measured at that size yet.</p>
 <p class="small">WKWebView is tested first and WebView2 in CI. No WebGPU, no OffscreenCanvas dependency (OffscreenCanvas is used only where both webviews support it, behind feature detection), and no WASM requirement.</p>
 </section>
 
@@ -1315,9 +1344,10 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 </svg>
 </div>
 <ul>
-<li><b>Left: project tree</b> with the model, submodels, and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
-<li><b>Center: viewer</b> with a toolbar for views, the step scrubber, frame, screenshot, and quality. Hovering shows the part name and color and the line in <code>model.py</code>.</li>
-<li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (expand for the diff), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
+<li><b>Left: project tree</b> with the model, submodels (with how many times each is used), and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
+<li><b>Versions</b> (section 07): "Save version" (<kbd>⌘S</kbd>) and a versions list with each one's thumbnail, name, time, part count, and who made it ("Before Claude's turn, 14:02"). A version opens read-only in the viewer to compare; Restore and "Open as a new project" sit beside it. "Undo the agent's last turn" restores the automatic version from before it.</li>
+<li><b>Center: viewer</b> with a toolbar for views, frame, screenshot, and quality. Hovering shows the part name and color. No step scrubber: the steps list picks a step.</li>
+<li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (what changed, in words: no diff and no code), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
 <li><b>Bottom drawer</b> with tabs: Parameters (sliders, toggles, color pickers limited to colors the parts come in, and "make default"), Checks (findings, click to highlight, "Ask agent to fix"), Parts list (BOM with availability and export), and Steps.</li>
 <li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), Claude plan usage meters with a popover and each agent's billing state (D-36, section 10), and the library and parts data versions.</li>
 </ul>
@@ -1327,7 +1357,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <li><b>First run</b>: welcome → parts library download (progress, about 1 minute) → Python runtime set up → agents set up (installed? signed in? "Install" and "Sign in" buttons, no terminal (D-41); which plans work, with each provider's link; for Codex, "Continue with ChatGPT" or an API key; the provider notice, use at your own risk (D-37)) → "Start with the Cottage example" or "New model from a prompt". Under 3 minutes on a normal connection.</li>
 <li><b>New model from a prompt</b>: New → name → the first message → the agent's first visible model inside the first minute (the doctrine tells it to show a draft fast) → refinement while the user watches.</li>
 <li><b>Tweak with sliders</b>: drag → the viewer updates in place → "make default" writes it back.</li>
-<li><b>Fix a finding</b>: Checks → click → highlight + source line → "Ask agent to fix" → the agent's fix shows up live.</li>
+<li><b>Fix a finding</b>: Checks → click → highlight + a plain sentence → "Ask agent to fix" (the finding goes with its source line) → the agent's fix shows up live.</li>
 <li><b>Export</b>: Parts list → CSV, Rebrickable, BrickLink XML · Model → LDraw <code>.mpd</code> (opens in Studio, LDCad, LeoCAD) · Instructions → PDF (native), or an LPub3D-ready file.</li>
 <li><b>Open an existing LDraw file</b>: it becomes an imported project (section 07), and the agent can be asked to make it parametric.</li>
 <li><b>Switch agent</b> mid-project: a new session with the other CLI. The project files carry the state, and the chat shows a divider.</li>
@@ -1339,7 +1369,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <p class="small">Empty · first run · loading library · building · build failed (traceback with the user's line, plus "Ask agent to fix") · checks with findings · agent thinking · waiting for approval · question waiting for an answer · redirect pending · stopped by the user · build animating (with Skip) · agent not installed or not signed in · agent crashed (one-click restart; project untouched) · offline (everything except the agent and downloads works) · untrusted project (read-only banner + Trust) · an old library version.</p>
 
 <h3>Keyboard (draft; frozen in 2B)</h3>
-<p class="small"><kbd>⌘K</kbd> command palette · <kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘↩</kbd> send · <kbd>Esc</kbd> stop agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> drawer tabs · <kbd>⌘L</kbd> focus chat. Windows uses <kbd>Ctrl</kbd>. Native menus on macOS, and a menu bar in the title bar on Windows.</p>
+<p class="small"><kbd>⌘K</kbd> command palette · <kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘S</kbd> save version · <kbd>⌘↩</kbd> send · <kbd>Esc</kbd> stop agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> drawer tabs · <kbd>⌘L</kbd> focus chat. Windows uses <kbd>Ctrl</kbd>. Native menus on macOS, and a menu bar in the title bar on Windows.</p>
 
 <h3>Content, tone, accessibility</h3>
 <ul class="small">
@@ -1586,8 +1616,9 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 12. Open the PR only when every Done when item holds. The description repeats the Done when list, each item ticked
     with its evidence (test name, command + result line, screenshot, file), and says how the work meets What good
     looks like. An item you couldn't finish stays unticked with the reason, and you ask Barry before opening the PR.
-    UI work includes light and dark screenshots on macOS and Windows (from CI artifacts). Set the session to review
-    with the PR number, run `node scripts/plan-check.mjs`, then stop. Don't start the next session unless told to.
+    UI work includes light and dark screenshots on macOS and Windows (from CI artifacts; macOS only while D-43
+    pauses the Windows jobs). Set the session to review with the PR number, run `node scripts/plan-check.mjs`, then
+    stop. Don't start the next session unless told to.
 13. When a decision changes the spec, update the matching section of docs/plan.html (and section 03 if it's a
     decision) in the same PR, plus docs/spec, the CHANGELOG, and the README when commands change. Progress is
     recorded only in docs/plan-status.js, never by editing the plan.
@@ -1627,7 +1658,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <!-- ============================================================ 21 -->
 <section id="s21">
 <h2><span class="num">21</span>Phases and sessions</h2>
-<p class="lede">Nine phases and twenty-five sessions to the public launch, plus a post-launch backlog. Each session is large and coherent on purpose: one prompt carries a whole slice (the engine skeleton, the agent bridge, the validator), so you're running about twenty sessions, not hundreds of tasks. Sizes are rough agent effort: M is about a day, L two to three, XL up to a week.</p>
+<p class="lede">Nine phases and twenty-five sessions to the public launch (twenty-four while 4F is skipped, D-43), plus a post-launch backlog. Each session is large and coherent on purpose: one prompt carries a whole slice (the engine skeleton, the agent bridge, the validator), so you're running about twenty sessions, not hundreds of tasks. Sizes are rough agent effort: M is about a day, L two to three, XL up to a week. While D-43 holds (the Mac app first), a Done when item that says "both OSes" or "macOS and Windows" is met on macOS, and its Windows half waits for the one Windows pass that comes back once the Mac app works, with the Windows CI jobs and H-10.</p>
 
 <div class="callout ok"><span class="label">Fast start: this week</span>
 <ol>
@@ -1648,7 +1679,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <tr><td><a href="#phase-5">5 · Quality gate: working proof of concept</a></td><td>The integration, E2E, and eval suites are complete; Windows, performance, and security are hardened; rung 3 and the photo rung pass; Barry's Windows pass; <span class="pill gate">G2</span>: the POC works, and the MVP exit criteria in section 02 hold.</td><td><a href="#session-5a">5A</a> <a href="#session-5b">5B</a></td></tr>
 <tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing GitHub Releases; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a></td></tr>
 <tr><td><a href="#phase-7">7 · Website and public launch</a></td><td>emmetbuilder.com live on Cloudflare; the provider terms re-checked; 1.0 released; launch posts.</td><td><a href="#session-7a">7A</a> <a href="#session-7b">7B</a></td></tr>
-<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files.</td><td>8D–8G</td></tr>
+<tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files, DUPLO, big builds.</td><td>8D–8I</td></tr>
 </table></div>
 
 <!-- ======================= PHASE 0 -->
@@ -1960,10 +1991,10 @@ what the docs specify, mapping each requirement to a test. When it works, ask me
 
 <div class="session" id="session-1f" data-session="1F" data-phase="1" data-title="Agent setup without a terminal, and Antigravity in terminal mode" data-after="1C" data-waits="" data-waits-merge="" data-read="02, 03, 10, 14, 15">
 <h4><span class="s-id">1F</span> Agent setup without a terminal, and Antigravity in terminal mode<span class="s-meta">after 1C · alongside 1D, 1E, 2A · size L</span></h4>
-<p class="goal"><b>Goal:</b> Someone who has never opened a terminal installs Claude Code or Codex and signs in from Emmet's first run, knows which plan they need, and is building in minutes (D-41). Antigravity users can work in terminal mode (D-42).</p>
+<p class="goal"><b>Goal:</b> Someone who has never opened a terminal installs Claude Code or Codex and signs in from Emmet's first run, knows which plan they need, and is building in minutes (D-41). Antigravity users can work in terminal mode (D-42); that part was built and then removed before merge, because Antigravity is out of the MVP (D-43).</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><b>Terms first:</b> re-read Anthropic's Claude Code legal page ("preinstalling or running Claude Code in your products"), Codex's license and install docs, and Google's Gemini CLI and Antigravity terms; update <code>docs/terms/</code> and the section 10 rows. Stop if a row loses its basis.</li>
+<li><b>Terms first:</b> re-read Anthropic's Claude Code legal page ("preinstalling or running Claude Code in your products"), Codex's license and install docs, and Google's Gemini CLI and Antigravity terms (kept in <code>docs/terms/</code> for when Antigravity comes back, D-43); update <code>docs/terms/</code> and the section 10 rows. Stop if a row loses its basis.</li>
 <li><b>Install:</b> "Install Claude Code" runs Anthropic's official native installer and "Install Codex" OpenAI's published install, each unmodified, from Rust, only after the user clicks, with progress, cancel, and a clear retry. Checksums or signatures are checked where the provider publishes them. No admin rights; the Windows prerequisites ADR 0001 found are explained in plain words. Detection runs again when it finishes.</li>
 <li><b>Sign-in:</b> find how Claude Code's own unmodified login can run without the user typing in a terminal (for example, Emmet hosting <code>claude</code> in a sign-in window that shows only its login and opens the browser), within Anthropic's terms. Record what works in an ADR; a new dependency (such as a pseudo-terminal crate) needs Barry's approval (rule 6). If nothing qualifies, keep the "Open Terminal" card with one command and pictures of each step. Codex sign-in is 1E's.</li>
 <li><b>Plan guidance:</b> onboarding says which plans work (Claude: a paid plan that includes Claude Code; Codex: a ChatGPT plan that includes Codex, or an API key), checked against each provider's current page, with links. No prices in the app. The provider notice (D-37) shows once, before the first install or sign-in.</li>
@@ -2124,7 +2155,8 @@ public types; don't edit emmet_dsl.</code></pre></details>
 <li>The DSL v1 API in section 08: wall, row, grid, stack, fill, repeat, mirror, submodel, use, allow, <code>import_ldraw</code>, and every param kind (int, float, bool, choice, <code>Color</code> limited to produced colors).</li>
 <li><code>emmet params --write-default</code>: a single-literal rewrite through Python <code>ast</code> positions, preserving formatting and comments, with tests on tricky signatures.</li>
 <li>Templates: every template gets a baseplate on/off parameter (on by default, the standard 32 × 32 plate); with it off, the model starts at the ground (Barry's notes).</li>
-<li>Steps v1: DSL steps, a layer-based auto-step fallback, submodel steps, <code>steps.json</code>, and <code>emmet steps</code>.</li>
+<li>Submodels used many times (section 08): <code>submodel</code> and <code>place</code>, one <code>0 FILE</code> per submodel and parameter set with a reference per placement, placement-prefixed ids, a BOM that counts every placement, and doctrine that builds a repeated unit as a submodel.</li>
+<li>Steps v1 to section 08's step rules: DSL steps, a layer-based auto-step fallback that keeps steps small, submodel steps (built once, then placed "× N"), <code>steps.json</code> with each step's parts box (part, color, count) and sub-assemblies, and <code>emmet steps</code>. The cottage's door and windows become sub-assemblies, and the doctrine teaches them.</li>
 <li>The parts data pack (section 12): <code>scripts/build-parts-data</code> (archive → validated, derived SQLite with a manifest), the app-side loader with signature check (against a fixture key until 6A, section 12) and atomic swap, the pack bundled into builds, the elements and availability tables, the color mapping, and <code>part_unavailable</code>/<code>color_unavailable</code> data for 3A's rules. Rebrickable credit in Settings → Data, the Parts list footer, and BOM exports.</li>
 <li>BOM v1: Rebrickable ids and names, the user's preferred color naming, availability, and exports to CSV, Rebrickable CSV, and BrickLink XML wanted list. Exporters for LDraw <code>.ldr</code>/<code>.mpd</code> and an LPub3D-ready <code>.mpd</code>.</li>
 <li>Technique library v0: 20 techniques in <code>data/techniques/</code> (gable roof, hip roof, SNOT panel, jumper offset, hinge roof, window frame, door frame, stairs, fence, tree, bench, lamp post, platform edge, canopy, track straight run, track curve, track switch, baseplate road, brick-built arch, tiled floor), each with docs, a render, and a validate-clean test. MCP <code>technique</code>.</li>
@@ -2134,6 +2166,7 @@ public types; don't edit emmet_dsl.</code></pre></details>
 <div class="s-dh">Done when</div>
 <ul class="done">
 <li>Every API call in section 08 exists, is documented in <code>emmet api</code>, and is used in at least one golden project.</li>
+<li>A golden project places one submodel four times: the <code>.mpd</code> has one <code>0 FILE</code> and four references, the BOM counts four, the steps build it once with "× 4", every id is unique, and editing the submodel changes all four.</li>
 <li><code>--write-default</code> passes its signature-rewrite tests and leaves the rest of the file byte-identical.</li>
 <li>BOM exports import cleanly into Rebrickable (CSV) and BrickLink (XML), with an evidence screenshot or the validator response in the PR.</li>
 <li>All 20 techniques render and validate clean, with a test each.</li>
@@ -2180,7 +2213,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="phase" id="phase-4" data-phase="4">
 <div class="ph-top"><span class="pnum">Phase 4</span><h3>App MVP</h3></div>
 <div class="pbar"><i></i></div>
-<p>Build the app to the frozen design. 4A lays the shell and first run; then 4B (chat and agent UX) and 4C (viewer polish and performance) run in parallel. 4D (photo to model) follows 4B, and 4E (native PDF instructions) follows 4C. 4F (Antigravity in the chat pane) needs only 1F, so it can run any time after it, and 4B waits for it so the full chat covers all three agents. The phase ends with rung 2 passing in replay and in Barry's hand session on each agent; its live eval run waits for G2.</p>
+<p>Build the app to the frozen design. 4A lays the shell and first run; then 4B (chat and agent UX) and 4C (viewer polish and performance) run in parallel. 4D (photo to model) follows 4B, and 4E (native PDF instructions) follows 4C. 4F (Antigravity in the chat pane) is skipped for the MVP (D-43), so the full chat covers Claude Code and Codex, and Antigravity comes after the MVP (Phase 8). The phase ends with rung 2 passing in replay and in Barry's hand session on each agent; its live eval run waits for G2.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> UX-2 must be signed (H-08) before 4A.</li>
 <li><span class="pill you">YOU</span> <b>H-23</b>: photograph the three photo-rung subjects, two angles each, before 4D starts.</li>
@@ -2189,7 +2222,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
 <tr data-session="4A"><td><a href="#session-4a">4A</a></td><td>App shell to the frozen design, plus first run</td><td>2B, 3A, 3B, 1F</td><td>&nbsp;</td><td>L</td></tr>
-<tr data-session="4B"><td><a href="#session-4b">4B</a></td><td>Chat and agent UX, complete</td><td>4A, 1E, 4F</td><td>4C</td><td>L</td></tr>
+<tr data-session="4B"><td><a href="#session-4b">4B</a></td><td>Chat and agent UX, complete</td><td>4A, 1E</td><td>4C</td><td>L</td></tr>
 <tr data-session="4C"><td><a href="#session-4c">4C</a></td><td>Viewer polish and performance</td><td>4A</td><td>4B</td><td>L</td></tr>
 <tr data-session="4D"><td><a href="#session-4d">4D</a></td><td>Photo to model</td><td>4B</td><td>4C, 4E</td><td>L</td></tr>
 <tr data-session="4E"><td><a href="#session-4e">4E</a></td><td>Native PDF instructions</td><td>4C</td><td>4D</td><td>L</td></tr>
@@ -2202,7 +2235,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>The layout, title bar, menus (native on macOS, title-bar menu on Windows), resizable panes, status bar, and command palette, all from tokens and components.</li>
-<li>The project tree (model, submodels, steps, parts summary, checks summary; click → highlight), open, new, and recent projects (New saves to a default Emmet folder, <code>Documents/Emmet</code>, without a save dialog; Barry's notes), import of an <code>.ldr</code>/<code>.mpd</code> file, and snapshots.</li>
+<li>The project tree (model, submodels, steps, parts summary, checks summary; click → highlight), open, new, and recent projects (New saves to a default Emmet folder, <code>Documents/Emmet</code>, without a save dialog; Barry's notes), import of an <code>.ldr</code>/<code>.mpd</code> file, and versions: <code>emmet version</code>, Save version (<kbd>⌘S</kbd>), the versions list, compare, Restore, and Open as a new project (sections 07 and 14).</li>
 <li>The drawers to design: Parameters (every param kind and "make default"), Checks (v1 findings, allowed list, "Ask agent to fix"), Parts list (BOM v1, availability, exports), and Steps.</li>
 <li>First run: welcome, the library download with progress, the Python setup, agent setup from 1F (install and sign-in with no terminal, and which plans work) restyled, and the example or new-from-prompt choice. Every failure path has a clear retry.</li>
 <li>Settings: agent and model preference, the projects folder, color naming, quality, updates (stub until 6A), "Install command line tool", About (attributions, the disclaimer, the provider notice (D-37), "what Emmet connects to"), and "Copy diagnostics".</li>
@@ -2214,6 +2247,7 @@ accepted ones into techniques with tests and provenance notes.</code></pre></det
 <li>Every frozen screen and state except chat internals and viewer polish matches the design (side-by-side screenshots in the PR, both OSes, both themes).</li>
 <li>The first-run E2E passes on both OSes, and the full first run takes ≤ 3 minutes on a real connection (timed on this Mac).</li>
 <li>The trust, import, and drawer E2E specs pass on both OSes.</li>
+<li>Versions round-trip: save, change, and restore gives byte-identical sources, a restore first saves the current state, and an E2E spec covers save, compare, restore, and open as a new project.</li>
 <li>Keyboard reach: every action in the keyboard map works, and focus is visible (an E2E spec).</li>
 </ul>
 <div class="s-dh">What good looks like</div>
@@ -2226,17 +2260,18 @@ and ask before inventing. Build first run against a local fixture server so E2E 
 Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace them.</code></pre></details>
 </div>
 
-<div class="session" id="session-4b" data-session="4B" data-phase="4" data-title="Chat and agent UX, complete" data-after="4A 1E 4F" data-waits="" data-waits-merge="" data-read="10, 14, 15, 16">
-<h4><span class="s-id">4B</span> Chat and agent UX, complete<span class="s-meta">after 4A, 1E, 4F · alongside 4C · size L</span></h4>
+<div class="session" id="session-4b" data-session="4B" data-phase="4" data-title="Chat and agent UX, complete" data-after="4A 1E" data-waits="" data-waits-merge="" data-read="10, 14, 15, 16">
+<h4><span class="s-id">4B</span> Chat and agent UX, complete<span class="s-meta">after 4A, 1E · alongside 4C · size L</span></h4>
 <p class="goal"><b>Goal:</b> Working with the agent feels as good as nurb's terminal loop, or better: you always know what it's doing, you can steer and stop it, and it sees what you see.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 issues"), file-change cards with diffs, approval cards with session-scoped allow, question cards and pending-redirect bubbles to the frozen design, stop, and retry.</li>
-<li>Context from the UI: "the agent sees what you selected" (selected ids and the view are sent as structured context with the next message), plus "Ask agent to fix" from findings and run errors.</li>
+<li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 issues"), file-change cards in words (no diffs or code), approval cards with session-scoped allow, question cards and pending-redirect bubbles to the frozen design, stop, and retry.</li>
+<li>Context from the UI: "the agent sees what you selected" (selected ids and the view are sent as structured context with the next message), plus "Ask agent to fix" from findings and run errors. Both show in plain words, never as code (law 2): the Checks drawer and the run panel drop 1D's file:line labels, source excerpts, and tracebacks, which go to the agent instead.</li>
 <li>The doctrine in the UI: one tip at a time (first slider, first finding, first export), tracked per user.</li>
 <li>Sessions: per-project history, resume after an app restart, switching agents mid-project like nurb (the picker in the chat header starts a fresh conversation and keeps the old one, with the state carried by files), Start fresh to clear the context without switching (Barry's notes), and a usage display where the CLI reports it.</li>
 <li>A model and effort picker per session (Barry's live-check notes, <code>docs/design/notes.md</code>), offering only what each CLI documents, with a plain note on which choices make a small plan last longer.</li>
 <li>Plan usage to the frozen design: the Claude meters, the Detailed and Compact popover, the detail panel (windows, usage credits, "Updated 8m ago"), the Codex billing state, the 90 % line, and the limit-reached card with "Continue with the other agent".</li>
+<li>Versions and the agent: an automatic version before every agent turn that changes the sources, "Undo the agent's last turn" in the chat, the <code>save_version</code> MCP tool, and doctrine to save a version before a risky change.</li>
 <li>emmet-bus complete: highlight, camera, and selection queries, used by both the app's own sessions and terminal agents.</li>
 <li>Agent health: a crashed agent → a one-click restart that resumes the session; not installed or not signed in → the fix card; an untested version → a quiet note.</li>
 <li>Replay E2E: a full rung 1 build replayed from a live transcript on both OSes; an interrupt; an approval denied; a question answered with Other; a redirect mid-build; a crash and restart.</li>
@@ -2245,6 +2280,7 @@ Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace th
 <ul class="done">
 <li>Every chat state in the frozen design is implemented (screenshots, both OSes).</li>
 <li>The replay E2E specs above pass on both OSes.</li>
+<li>After a replayed agent turn, "Undo the agent's last turn" restores the sources from before it, byte for byte (E2E).</li>
 <li>A terminal agent in a project folder can highlight parts in the open app (an integration test plus a manual recording).</li>
 <li>Rung 2 builds clean in Barry's hand session in the app with each agent, and its scrubbed transcripts pass in replay.</li>
 </ul>
@@ -2265,7 +2301,7 @@ the replay corpus. No scripted eval runs in this session (D-38).</code></pre></d
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>Materials for every LDraw finish, the studio lighting rig, an optional ground shadow, edge and conditional lines tuned for both themes, stud LOD, and quality presets (auto by GPU).</li>
-<li>Interaction to the design: hover (the part, color, and source line), click to select, box select, frame, the views, the step scrubber and the steps list (the build up to the chosen step: earlier steps dimmed, later steps hidden), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
+<li>Interaction to the design: hover (the part and color), click to select, box select, frame, the views, the steps list (the build up to the chosen step: earlier steps at full color, its new parts outlined, later steps hidden, with the parts box and sub-assembly boxes of section 08's step rules), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
 <li>Build animation to section 13: the drop, fade, and glide motion; Animated, Fast, and Off in Settings; Skip and Replay build in the toolbar; reduced motion; and an E2E spec that proves sliders never animate and the camera never moves.</li>
 <li>Highlight modes (issue, select, hover, agent) that are distinct and accessible (not color alone).</li>
 <li>Performance work to meet section 13 on both OSes, including instancing edge cases, transparent sorting, and geometry disposal. Bench and E2E checks enforce the budgets.</li>
@@ -2318,7 +2354,7 @@ fake agents and my hand sessions; the live photo rung runs at G2.</code></pre></
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><b>ADR:</b> the PDF engine (webview print-to-PDF or a Rust PDF crate), proven on both OSes, with font embedding and file size measured.</li>
-<li><b>Step pages:</b> step renders through <code>viewer.render</code> with a fixed camera per page group, new parts highlighted, and earlier parts at full color; parts-per-step callouts with part renders and counts; submodel callouts; a cover; a BOM page; page numbers; A4 and Letter.</li>
+<li><b>Step pages</b> laid out by section 08's step rules, like the official books: step renders through <code>viewer.render</code> with a fixed camera per page group, earlier parts at full color and new parts outlined in red; a parts box per step with part renders and counts; sub-assembly boxes with numbered sub-steps and a line to where they go ("2x" when built twice); arrows, zoom boxes, and the turn icon where needed; a cover; a BOM page; page numbers; A4 and Letter.</li>
 <li><code>emmet export --format pdf</code>, and Parts list → "Instructions (PDF)". The LPub3D-ready export stays for power users.</li>
 <li>Visual baselines per page for rung 1 and rung 2, on both OSes.</li>
 </ul>
@@ -2591,6 +2627,8 @@ read every repo setting back. Prepare 1.0.0 through the release pipeline. I publ
 <tr data-session="8E"><td><a href="#session-8e">8E</a></td><td>BrickLink pricing</td><td>8D</td><td>any</td><td>M</td></tr>
 <tr data-session="8F"><td><a href="#session-8f">8F</a></td><td>Host third-party MCP servers</td><td>7B</td><td>any</td><td>M</td></tr>
 <tr data-session="8G"><td><a href="#session-8g">8G</a></td><td>Studio file import and export</td><td>7B</td><td>any</td><td>M</td></tr>
+<tr data-session="8H"><td><a href="#session-8h">8H</a></td><td>DUPLO for ages 1.5+</td><td>7B</td><td>any</td><td>M</td></tr>
+<tr data-session="8I"><td><a href="#session-8i">8I</a></td><td>Big builds: 5,000+ parts and a landmark</td><td>7B</td><td>any</td><td>L</td></tr>
 </table></div>
 
 
@@ -2635,6 +2673,28 @@ add the approval-on-first-use policy, and test with three real servers.</code></
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8G. Refresh scope with me first. Write the format and terms ADR before any code, and stop if
 the terms don't allow it.</code></pre></details>
 </div>
+
+<div class="session" id="session-8h" data-session="8H" data-phase="8" data-title="DUPLO for ages 1.5+" data-after="7B" data-waits="" data-waits-merge="" data-read="08, 11, 12, 14">
+<h4><span class="s-id">8H</span> DUPLO for ages 1.5+<span class="s-meta">after 7B · size M · backlog</span></h4>
+<p class="goal"><b>Goal:</b> The build settings' Age gains 1.5+, and the agent builds DUPLO models that check as cleanly as System ones.</p>
+<ul class="build"><li>DUPLO connectors in the validator: today DUPLO top studs are left out of body boxes but get no connectors, so two stacked DUPLO bricks (3011 at z=0 and z=6) read as floating. Then DUPLO's grid in the DSL and <code>api</code> text (a DUPLO stud is two System studs, a DUPLO brick two System bricks tall), doctrine for DUPLO building, search that keeps DUPLO and System parts apart unless asked, and the 1.5+ option, which tells the agent to build in DUPLO.</li></ul>
+<ul class="done"><li>A stacked DUPLO pair checks clean, and one shifted off the studs is floating (test).</li><li>A 1.5+ prompt gives a DUPLO-only model with 0 findings (replay).</li></ul>
+<ul class="good"><li>DUPLO parts have availability and colors from the parts data pack (ADR 0004 lists the DUPLO-style parts it doesn't map yet).</li></ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8H. Refresh scope with me first. Start from the floating finding on two stacked DUPLO bricks, add
+DUPLO connectors with tests, then the DSL grid, doctrine, and the 1.5+ age option. Ask me before letting one model
+mix DUPLO and System parts.</code></pre></details>
+</div>
+
+<div class="session" id="session-8i" data-session="8I" data-phase="8" data-title="Big builds: 5,000+ parts and a landmark" data-after="7B" data-waits="" data-waits-merge="" data-read="10, 11, 13, 16">
+<h4><span class="s-id">8I</span> Big builds: 5,000+ parts and a landmark<span class="s-meta">after 7B · size L · backlog</span></h4>
+<p class="goal"><b>Goal:</b> Find how big and how detailed a build Emmet and the agents can make: hold section 13's 5,000-part budgets, then build ladder rung 4, a landmark of 5,000 parts or more.</p>
+<ul class="build"><li>Bench fixtures at 5,000 and 10,000 parts (a plain block and a dense, detailed one) for the viewer, the check, the diff, and render, and fixes for what misses its budget (instancing, chunked loads, incremental checks).</li><li>Rung 4 in <code>docs/spec/ladder.md</code> and <code>emmet eval</code>: Barry picks the subject (a large castle on landscaped terrain, an airport terminal with aircraft, or a ballpark such as Fenway Park or Dodger Stadium), built at figure scale for 18+, high detail, 2,500+ pieces.</li><li>Doctrine for big builds from what the runs teach: submodels in <code>models/*.py</code>, reused modules, and stages sized so each run and check stays quick.</li></ul>
+<ul class="done"><li>Section 13's 5,000-part column and the check's 3.5 s hold on the M-series runner (bench output in the PR).</li><li>Rung 4 runs once on each agent and validates with 0 errors; its report in <code>docs/evals/</code> gives the part count, time, tool calls, tokens, and plan usage, and where it struggled.</li></ul>
+<ul class="good"><li>The Pieces setting's bands and the age presets are checked against what the runs cost, and the app warns before a build likely to use a large share of the user's plan.</li></ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 8I. Refresh scope with me first. Bench 5,000 and 10,000 parts before any agent run and fix what
+misses section 13's budgets. Ask me to pick the rung 4 subject, and ask before each live run: they bill my eval keys
+(D-38) and will be the most expensive runs yet.</code></pre></details>
+</div>
 </div>
 </section>
 
@@ -2653,7 +2713,7 @@ the terms don't allow it.</code></pre></details>
 <tr data-h="H-07"><td>H-07</td><td>UX-1: pick a design direction</td><td>2A merge, 2B start</td><td>Asked in 2A</td></tr>
 <tr data-h="H-08"><td>H-08</td><td>UX-2: sign the frozen design (<code>docs/design/SIGNOFF.md</code>)</td><td>2B merge, 4A start</td><td>Asked in 2B</td></tr>
 <tr data-h="H-09"><td>H-09</td><td><span class="pill gate">G2</span> Run the live eval once for rungs 1–3 and the photo rung on both agents, and confirm the POC works</td><td>5A merge; 6A, 6B start</td><td><a href="#g-h09">guide</a></td></tr>
-<tr data-h="H-10"><td>H-10</td><td>Hands-on pass on the Windows VM with 5B's checklist</td><td>5B merge</td><td><code>docs/security/windows-pass.md</code></td></tr>
+<tr data-h="H-10"><td>H-10</td><td>Hands-on pass on the Windows VM with 5B's checklist (paused with the Windows work until the Mac app works, D-43)</td><td>5B merge</td><td><code>docs/security/windows-pass.md</code></td></tr>
 <tr data-h="H-11"><td>H-11</td><td>Pick the rung 3 set from 0B's shortlist</td><td>0B merge, 5A start</td><td>Asked in 0B</td></tr>
 <tr data-h="H-12"><td>H-12</td><td>Recruit 3–5 beta testers (at least 1 on Windows x64) and send them the beta</td><td>6B merge</td><td>Welcome draft from 6B</td></tr>
 <tr data-h="H-13"><td>H-13</td><td>Back up the updater signing key and password</td><td>6A merge</td><td><a href="#g-h13">guide</a></td></tr>
@@ -2755,7 +2815,7 @@ the terms don't allow it.</code></pre></details>
 <details id="g-h25"><summary>H-25 Antigravity CLI on this Mac (about 10 minutes)</summary>
 <ul class="small">
 <li>Install the Antigravity CLI from Google's Antigravity docs (<a href="https://antigravity.google/docs/cli/headless/">antigravity.google/docs</a>), run <code>agy</code> once, and sign in with your Google account.</li>
-<li>Tell the agent when it's done. 1F then asks you to add Emmet's tools to a project with the Antigravity card (Antigravity has no command for it) and build rung 1 in terminal mode, and 4F asks for hand sessions in the chat pane (no scripted runs on your Google account).</li>
+<li>Not needed for the MVP (D-43). When Antigravity comes back after it, tell the agent when it's done: the session asks you to add Emmet's tools to a project (Antigravity has no command for it) and build rung 1 in terminal mode, then for hand sessions in the chat pane (no scripted runs on your Google account).</li>
 </ul>
 </details>
 <details id="g-h20"><summary>H-20 Anthropic's Commercial Terms (about 10 minutes)</summary>
@@ -2784,7 +2844,7 @@ the terms don't allow it.</code></pre></details>
 <tr><td>The build animation slows the loop or hides problems</td><td>Low</td><td>Capped at 6 s and skipped by any new run, never used for sliders, never in agent renders; Fast and Off in Settings; a frame-time budget in section 13.</td><td>1D, 4C</td></tr>
 <tr><td>A provider changes its terms for apps that run its CLI or use its plans (both did in 2026)</td><td>High</td><td>The terms gate (D-37): every agent feature cites current provider text or Barry's recorded best reading, and users see the provider notice; <code>docs/terms/</code> is re-checked at G1, G2, and 7B; a feature that loses its basis is switched off before the next release; terminal mode always remains.</td><td>0B, 7B</td></tr>
 <tr><td>A provider's installer or sign-in flow changes, or a provider objects to apps installing its CLI</td><td>Medium</td><td>Only official installers, run unmodified; a terms row for installing (D-41); install and sign-in replay tests per CLI version; the Terminal card stays as the fallback.</td><td>1F, 4A</td></tr>
-<tr><td>Google's terms for third-party use of its CLI are strict and enforced with account bans, its CLI changed in 2026, and the chat pane rests on Barry's best reading</td><td>High</td><td>Only the user's unmodified <code>agy</code> in its documented headless mode; Emmet never touches a Google token or <code>~/.gemini</code> (D-42); the provider notice (D-37); the chat pane is switched off if Google objects or users report account action, and terminal mode stays.</td><td>1F, 4F</td></tr>
+<tr><td>Google's terms for third-party use of its CLI are strict and enforced with account bans, its CLI changed in 2026, and the chat pane rests on Barry's best reading</td><td>High</td><td>Only the user's unmodified <code>agy</code> in its documented headless mode; Emmet never touches a Google token or <code>~/.gemini</code> (D-42); the provider notice (D-37); the chat pane is switched off if Google objects or users report account action, and terminal mode stays. Out of the MVP (D-43), so this risk returns only when Antigravity does.</td><td>Phase 8</td></tr>
 <tr><td>WKWebView WebGL performance or hidden-window throttling</td><td>Medium</td><td>Bench in 1B, instancing, ADR 0005 with an off-screen-window fallback.</td><td>0B, 1B, 4C</td></tr>
 <tr><td>Windows differences (paths, CLIs, GPU), with only an ARM VM in hand</td><td>Medium</td><td>Hosted x64 CI from day one, the 5B hardening list, and a Windows x64 beta tester.</td><td>5B, 6B</td></tr>
 <tr><td>Trademark: other uses of the name "Emmet"</td><td>Medium</td><td>The 2026-10-24 search (H-17); the full name "Emmet Builder" where it matters; no reference to the film or character (D-30); "brick" language and a disclaimer everywhere; <code>scripts/name-check</code> at G1, G2, and 7B.</td><td>0A, 2A, 7B</td></tr>
@@ -2819,7 +2879,7 @@ the terms don't allow it.</code></pre></details>
 <tr><td>Q-13</td><td>When does Emmet go open source? Codex on a ChatGPT plan inside Emmet depends on it (OpenAI's Sign in with ChatGPT rule).</td><td>Decided 2026-10-24: from day one, AGPL-3.0, public repo (D-12, D-14). Codex on a ChatGPT plan is in the MVP (1E).</td><td><span class="pill decided">Decided</span></td></tr>
 <tr><td>Q-14</td><td>Rebrickable's Terms say its content may not be "used in the training of AI models". Emmet never trains, but small Rebrickable facts reach the user's AI provider in tool results. Confirm with Rebrickable that this is fine.</td><td>Settled by reading (Barry 2026-10-24): the clause is about training models on Rebrickable content. Emmet trains nothing, and its tools answer the user's own agent with small facts at run time; no note to Rebrickable (H-24 not needed). If Rebrickable ever objects, that use is switched off (D-37 style).</td><td><span class="pill decided">Settled</span></td></tr>
 <tr><td>Q-15</td><td>Can Claude Code's own unmodified login run from inside Emmet, so a user never types in a terminal, within Anthropic's terms?</td><td>1F (an ADR), on Barry's best reading of the terms (D-37)</td><td><span class="pill open">Open</span></td></tr>
-<tr><td>Q-16</td><td>Will Google allow Emmet to run the unmodified Antigravity CLI under each user's own Google sign-in?</td><td>Decided on Barry's best reading (2026-10-25): providers rarely answer such questions, so Emmet builds on the published text, Google's documented headless mode, and the Zed precedent, with the provider notice (D-37, D-42, 4F).</td><td><span class="pill decided">Decided</span></td></tr>
+<tr><td>Q-16</td><td>Will Google allow Emmet to run the unmodified Antigravity CLI under each user's own Google sign-in?</td><td>Decided on Barry's best reading (2026-10-25): providers rarely answer such questions, so Emmet builds on the published text, Google's documented headless mode, and the Zed precedent, with the provider notice (D-37, D-42, 4F). Antigravity is out of the MVP (D-43), so this applies when it comes back.</td><td><span class="pill decided">Decided</span></td></tr>
 </table></div>
 </section>
 

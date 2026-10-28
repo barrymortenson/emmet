@@ -109,22 +109,26 @@ fn the_cottage_validates_clean_at_every_corner() {
             .unwrap()
             .contains("[check")
     );
+    // Each corner is checked from the defaults with --params, so no setting carries over to the next one.
     let corners: &[&[&str]] = &[
         &[],
         &["width=6", "depth=4", "wall_rows=6", "chimney=false"],
-        &["width=16", "depth=12", "wall_rows=9"],
-        &["width=6", "depth=12", "wall_rows=9"],
-        &["width=16", "depth=4", "wall_rows=6"],
+        &["width=16", "depth=12", "wall_rows=9", "chimney=true"],
+        &["width=6", "depth=12", "wall_rows=9", "chimney=true"],
+        &["width=16", "depth=4", "wall_rows=6", "chimney=true"],
         &["width=11", "depth=10", "wall_rows=7", "chimney=false"],
+        // An odd width once left a stud of ceiling unplated, and the roof above it floated.
+        &["width=9", "depth=8", "wall_rows=6", "chimney=true"],
+        &["width=7", "depth=6", "roof=false", "weathering=30", "seed=7"],
+        &["width=16", "depth=12", "wall_rows=9", "chimney=true", "roof=false"],
     ];
     for set in corners {
+        let mut args = vec!["--strict"];
         if !set.is_empty() {
-            let mut args = vec!["params", "--set"];
+            args.push("--params");
             args.extend_from_slice(set);
-            let (v, code) = emmet_in(&dir, &args);
-            assert_eq!(code, 0, "{v}");
         }
-        let (v, code) = check(&dir, &["--strict"]);
+        let (v, code) = check(&dir, &args);
         assert_eq!(code, 0, "{set:?}: {v}");
         assert_eq!(v["data"]["findings"], json!([]), "{set:?}: {v}");
     }

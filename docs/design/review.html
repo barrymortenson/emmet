@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emmet 2A: three directions, side by side</title>
+<link rel="stylesheet" href="review.css">
+</head>
+<body>
+<div class="bar"><b>Emmet 2A · Design review (UX-1)</b>
+  <span role="group" aria-label="Theme"><button type="button" data-t="light" aria-pressed="true">Light</button> <button type="button" data-t="dark" aria-pressed="false">Dark</button></span></div>
+<main>
+<h1>Three directions for Emmet, side by side</h1>
+<p class="lede">Each direction is a clickable prototype of the whole app: every screen and state in plan section 14, in light and dark, with real renders of the cottage, the real output of <code>emmet run</code>, <code>check</code>, and <code>bom</code>, and chat text from the recorded transcripts. Open one from this folder (no server needed), use the ◀ ▶ and the menu at the top to move between screens, and click the buttons in the mockup to move through a flow. The thumbnails below are live; click one to open it.</p>
+
+<div class="dirs" id="dirs"></div>
+
+<div class="callout" id="recommendation"></div>
+
+<h2>How each direction answers Barry's notes</h2>
+<table id="notes"></table>
+
+<h2>Screen by screen</h2>
+<p class="muted">One row per screen or group of related states. The thumbnails follow the theme switch at the top.</p>
+<div id="rows"></div>
+
+<h2>Coverage: every section 14 state, in every direction</h2>
+<p class="muted">Every direction renders every screen in <code>shared/states.js</code>, which fails to load if a section 14 state has no screen. The contrast audit (below) renders all of them in both themes.</p>
+<table id="coverage"></table>
+
+<h2>Contrast (WCAG 2.2 AA)</h2>
+<div id="contrast"></div>
+
+<h2>Sources</h2>
+<p><a href="research.md">research.md</a> (nurb hands-on and six brick-CAD tools) · <a href="storyboards.md">storyboards.md</a> (the information architecture and the nine flows) · <a href="notes.md">notes.md</a> (Barry's notes) · <a href="brand/index.html">brand starter</a></p>
+</main>
+
+<script>window.EMMET_ROOT = "";</script>
+<script src="shared/data.js"></script>
+<script src="shared/states.js"></script>
+<script src="review-data.js"></script>
+<script>
+(() => {
+  const { byId, STATES } = window.EMMET_STATES;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  const DIRS = window.REVIEW_DIRS;
+  const ROWS = window.REVIEW_ROWS;
+  const NOTES = window.REVIEW_NOTES;
+
+  document.getElementById("dirs").innerHTML = DIRS.map((d) => `<div class="dir"><h3><a href="directions/${d.id}/index.html#s=built">${esc(d.name)}</a></h3><p>${esc(d.summary)}</p><p class="muted">${esc(d.best)}</p></div>`).join("");
+  document.getElementById("recommendation").innerHTML = window.REVIEW_RECOMMENDATION;
+  document.getElementById("notes").innerHTML = `<tr><th>Note</th>${DIRS.map((d) => `<th>${esc(d.name)}</th>`).join("")}</tr>` +
+    NOTES.map((n) => `<tr><td><b>${esc(n.note)}</b></td>${DIRS.map((d) => `<td>${esc(n[d.id] || "")}</td>`).join("")}</tr>`).join("");
+  document.getElementById("coverage").innerHTML = `<tr><th>Section 14 state</th><th>Screens</th>${DIRS.map((d) => `<th>${esc(d.id.toUpperCase())}</th>`).join("")}</tr>` +
+    STATES.map((s) => { const ids = window.EMMET_STATES.screens.filter((x) => x.covers.includes(s)).map((x) => x.id); return `<tr><td>${esc(s)}</td><td>${ids.map((id) => `<code>${id}</code>`).join(", ")}</td>${DIRS.map((d) => `<td class="ok">${ids.map((id) => `<a href="directions/${d.id}/index.html#s=${id}">✓</a>`).join(" ")}</td>`).join("")}</tr>`; }).join("");
+  document.getElementById("contrast").innerHTML = window.REVIEW_CONTRAST;
+
+  function rows(theme) {
+    document.getElementById("rows").innerHTML = ROWS.map((r) => {
+      const s = byId[r.screen];
+      const also = (r.also || []).map((id) => `<a href="directions/a/index.html#s=${id}&t=${theme}">${esc(byId[id].title)}</a>`).join(" · ");
+      return `<section class="row" id="${r.screen}"><div class="row-head"><h3>${esc(r.title)}</h3>${s.covers.map((c) => `<span class="chip">${esc(c)}</span>`).join("")}</div>
+        <div class="cols">${DIRS.map((d) => `<div><a class="shot" href="directions/${d.id}/index.html#s=${r.screen}&t=${theme}" title="Open ${esc(d.name)} at this screen"><iframe loading="lazy" tabindex="-1" title="${esc(d.name)}: ${esc(s.title)}" src="directions/${d.id}/index.html#s=${r.screen}&t=${theme}&bare"></iframe><span></span></a><b>${esc(d.name)}</b><p>${esc(r[d.id] || "")}</p></div>`).join("")}</div>
+        <p class="trade"><b>Trade-off:</b> ${esc(r.trade || "")}${also ? `</p><p class="also">Also in this group (opens A; each direction has them): ${also}` : ""}</p></section>`;
+    }).join("");
+    fit();
+  }
+  function fit() {
+    for (const f of document.querySelectorAll(".shot iframe")) f.style.transform = `scale(${f.parentElement.clientWidth / 1280})`;
+  }
+  function theme(t) {
+    document.documentElement.dataset.theme = t;
+    for (const b of document.querySelectorAll("[data-t]")) b.setAttribute("aria-pressed", String(b.dataset.t === t));
+    rows(t);
+  }
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-t]"); if (b) theme(b.dataset.t); });
+  window.addEventListener("resize", fit);
+  theme(matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+})();
+</script>
+</body>
+</html>

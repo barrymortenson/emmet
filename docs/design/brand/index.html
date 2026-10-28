@@ -1,0 +1,146 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emmet brand starter (2A draft)</title>
+<link rel="stylesheet" href="palette.css">
+<style>
+  /* Every color comes from palette.css's tokens; the SVG files hold the artwork's own colors. */
+  body { margin: 0; background: var(--bg-canvas); color: var(--fg-text); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable", system-ui, sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 36px 28px 64px; }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 40px 0 10px; }
+  h3 { font-size: 15px; margin: 0 0 10px; }
+  p { margin: 0 0 10px; }
+  .lede { color: var(--fg-muted); max-width: 760px; }
+  .muted { color: var(--fg-muted); font-size: 13px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .panel { background: var(--bg-surface); color: var(--fg-text); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .panel.canvas { background: var(--bg-canvas); }
+  .row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 22px; margin: 6px 0 12px; }
+  .size { display: grid; justify-items: center; gap: 6px; font-size: 12px; color: var(--fg-muted); }
+  .words img { display: block; height: 56px; width: auto; margin: 8px 0; }
+  .words img.sm { height: 32px; }
+  .callout { background: var(--bg-accent-soft); border-radius: 12px; padding: 16px 20px; margin-top: 16px; }
+  .callout b { color: var(--fg-accent); }
+  .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .sw { display: grid; gap: 4px; font-size: 12px; }
+  .sw i { display: block; height: 52px; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--line); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--fg-muted); font-weight: 600; }
+  td.n { font-variant-numeric: tabular-nums; }
+  .chipline { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; box-shadow: inset 0 0 0 1px var(--line); }
+  .tm { font-size: 12px; color: var(--fg-muted); }
+  .about { display: grid; justify-items: center; gap: 6px; text-align: center; padding: 24px 18px; border-radius: 12px; background: var(--bg-raised); }
+  .about b { font-size: 16px; }
+  .footer { display: flex; justify-content: space-between; gap: 18px; padding: 14px 16px; border-top: 1px solid var(--line); background: var(--bg-raised); border-radius: 0 0 12px 12px; }
+  .places { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  code { font: 12px ui-monospace, "SF Mono", Menlo, monospace; background: var(--bg-raised); padding: 1px 5px; border-radius: 4px; }
+  ul.dd { margin: 0; padding-left: 18px; }
+  .do b { color: var(--fg-ok); } .dont b { color: var(--fg-bad); }
+</style>
+</head>
+<body>
+<main>
+<h1>Emmet brand starter</h1>
+<p class="lede">A draft for session 2A, for Barry to react to before 2B freezes it. Full name <b>Emmet Builder</b>, short name <b>Emmet</b> (D-30). The brand story is the word itself: "emmet" is an old English word for ant, a small builder of big things. Two marks to choose from, each with its wordmarks and app icons. Draft caveats: the wordmarks set the name in the system font; the final needs a chosen typeface, outlined to paths. The icons are SVG drafts; the shipped ones need hand-tuned art at 16 and 32 px.</p>
+
+<div class="callout"><p><b>Recommendation: the ant (b).</b> It's ownable where a 2 x 2 brick isn't: every brick tool has a brick, and only Emmet has a name that means ant. The three studs keep the brick idea, so it still says "real parts" at a glance, and it gives the app a character for empty states and tips without a mascot. The brick (a) is safer at 16 px, so the ant's smallest sizes need the most care in 2B.</p></div>
+
+<h2>1. The marks</h2>
+<div class="grid2">
+  <section class="panel" data-theme="light"><h3>(a) The brick, cleaned up</h3><p class="muted">The plan's isometric 2 x 2 glyph without outlines: three flat faces, four studs, no tile.</p>
+    <div class="row"><span class="size"><img src="mark-brick.svg" width="128" height="128" alt="Mark (a), a 2 x 2 brick, at 128 px">128</span><span class="size"><img src="mark-brick.svg" width="64" height="64" alt="">64</span><span class="size"><img src="mark-brick.svg" width="32" height="32" alt="">32</span><span class="size"><img src="mark-brick.svg" width="16" height="16" alt="">16</span></div></section>
+  <section class="panel" data-theme="light"><h3>(b) The ant, made of studs</h3><p class="muted">Seen from above: head, thorax, and abdomen are three studs in a row, with elbowed antennae and six legs.</p>
+    <div class="row"><span class="size"><img src="mark-ant.svg" width="128" height="128" alt="Mark (b), an ant whose body is three studs, at 128 px">128</span><span class="size"><img src="mark-ant.svg" width="64" height="64" alt="">64</span><span class="size"><img src="mark-ant.svg" width="32" height="32" alt="">32</span><span class="size"><img src="mark-ant.svg" width="16" height="16" alt="">16</span></div></section>
+  <section class="panel" data-theme="dark"><h3>(a) on dark</h3>
+    <div class="row"><span class="size"><img src="mark-brick.svg" width="128" height="128" alt="">128</span><span class="size"><img src="mark-brick.svg" width="64" height="64" alt="">64</span><span class="size"><img src="mark-brick.svg" width="32" height="32" alt="">32</span><span class="size"><img src="mark-brick.svg" width="16" height="16" alt="">16</span></div></section>
+  <section class="panel" data-theme="dark"><h3>(b) on dark</h3>
+    <div class="row"><span class="size"><img src="mark-ant.svg" width="128" height="128" alt="">128</span><span class="size"><img src="mark-ant.svg" width="64" height="64" alt="">64</span><span class="size"><img src="mark-ant.svg" width="32" height="32" alt="">32</span><span class="size"><img src="mark-ant.svg" width="16" height="16" alt="">16</span></div></section>
+</div>
+
+<h2>2. Wordmarks</h2>
+<div class="grid2">
+  <section class="panel words" data-theme="light"><h3>Light</h3>
+    <img src="wordmark-emmet-builder-ant-light.svg" alt="Emmet Builder wordmark with the ant, light"><img src="wordmark-emmet-ant-light.svg" class="sm" alt="Emmet wordmark with the ant, light">
+    <img src="wordmark-emmet-builder-brick-light.svg" alt="Emmet Builder wordmark with the brick, light"><img src="wordmark-emmet-brick-light.svg" class="sm" alt="Emmet wordmark with the brick, light"></section>
+  <section class="panel words" data-theme="dark"><h3>Dark</h3>
+    <img src="wordmark-emmet-builder-ant-dark.svg" alt="Emmet Builder wordmark with the ant, dark"><img src="wordmark-emmet-ant-dark.svg" class="sm" alt="Emmet wordmark with the ant, dark">
+    <img src="wordmark-emmet-builder-brick-dark.svg" alt="Emmet Builder wordmark with the brick, dark"><img src="wordmark-emmet-brick-dark.svg" class="sm" alt="Emmet wordmark with the brick, dark"></section>
+</div>
+<p class="muted">"Emmet Builder" is for the website, the installer, the About window, and the PDF cover; "Emmet" is for the menu bar, the window title, the Dock and Start menu, and anywhere space is short. "Builder" is set lighter and in the accent, so the short name stays the one people say.</p>
+
+<h2>3. App icons</h2>
+<div class="grid2">
+  <section class="panel canvas" data-theme="light"><h3>macOS: Apple's icon grid (an 824 body on 1024), with depth</h3>
+    <div class="row"><span class="size"><img src="icon-macos-ant.svg" width="160" height="160" alt="macOS icon draft with the ant">160</span><span class="size"><img src="icon-macos-ant.svg" width="64" height="64" alt="">64</span><span class="size"><img src="icon-macos-ant.svg" width="32" height="32" alt="">32</span><span class="size"><img src="icon-macos-ant.svg" width="16" height="16" alt="">16</span></div>
+    <div class="row"><span class="size"><img src="icon-macos-brick.svg" width="160" height="160" alt="macOS icon draft with the brick">160</span><span class="size"><img src="icon-macos-brick.svg" width="64" height="64" alt="">64</span><span class="size"><img src="icon-macos-brick.svg" width="32" height="32" alt="">32</span><span class="size"><img src="icon-macos-brick.svg" width="16" height="16" alt="">16</span></div></section>
+  <section class="panel canvas" data-theme="dark"><h3>Windows: Fluent style, the shape itself, no tile</h3>
+    <div class="row"><span class="size"><img src="icon-windows-ant.svg" width="128" height="128" alt="Windows icon draft with the ant">256 (shown at 128)</span><span class="size"><img src="icon-windows-ant.svg" width="48" height="48" alt="">48</span><span class="size"><img src="icon-windows-ant.svg" width="32" height="32" alt="">32</span><span class="size"><img src="icon-windows-ant.svg" width="24" height="24" alt="">24</span><span class="size"><img src="icon-windows-ant.svg" width="16" height="16" alt="">16</span></div>
+    <div class="row"><span class="size"><img src="icon-windows-brick.svg" width="128" height="128" alt="Windows icon draft with the brick">256 (shown at 128)</span><span class="size"><img src="icon-windows-brick.svg" width="48" height="48" alt="">48</span><span class="size"><img src="icon-windows-brick.svg" width="32" height="32" alt="">32</span><span class="size"><img src="icon-windows-brick.svg" width="24" height="24" alt="">24</span><span class="size"><img src="icon-windows-brick.svg" width="16" height="16" alt="">16</span></div></section>
+</div>
+<p class="muted">The macOS ant sits on a warm cream body so it reads as friendly beside other apps; the brick keeps the plan's graphite tile. On Windows, the 16 and 24 px sizes need their own simplified art in 2B (the ant's legs merge below 24 px).</p>
+
+<h2>4. Palette</h2>
+<section class="panel" data-theme="light">
+  <div class="swatches" id="swatches"></div>
+  <p class="muted" style="margin-top:12px">The brand orange is the plan glyph's <code>#E8590C</code>, with its light and deep shades. Text never uses the raw orange: <code>--fg-accent</code> and <code>--fill-accent</code> are the shades that pass AA. Warm neutrals instead of the red and yellow that would read as another brand's.</p>
+</section>
+<h3 style="margin-top:18px">Contrast on the main surfaces (computed here from palette.css)</h3>
+<div class="grid2"><section class="panel" data-theme="light"><table id="ratios-light"></table></section><section class="panel" data-theme="dark"><table id="ratios-dark"></table></section></div>
+<p class="muted"><code>node scripts/contrast-check.mjs</code> checks every pair in palette.css: text 4.5:1, icons, controls, and fills 3:1, and text on the accent fill 4.5:1.</p>
+
+<h2>5. The trademark line, and where it goes</h2>
+<p>The exact line from <code>TRADEMARKS.md</code>, always in full, never shortened, and the only place Emmet's app, site, and instructions use the word (D-30):</p>
+<p class="callout" id="tm-line">LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize, or endorse this software.</p>
+<div class="places">
+  <section class="panel" data-theme="light"><h3>The About window</h3>
+    <div class="about"><img src="mark-ant.svg" width="64" height="64" alt=""><b>Emmet Builder</b><span class="muted">Version 0.1.0 · AGPL-3.0-or-later</span><span class="tm">LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize, or endorse this software. LDraw is a trademark owned and licensed by the Estate of James Jessiman.</span></div></section>
+  <section class="panel" data-theme="dark" style="padding:0"><div style="padding:18px 20px"><h3>The website footer</h3><p class="muted">emmetbuilder.com, on every page (7A).</p></div>
+    <div class="footer"><span class="tm">© 2026 Barry Mortenson · AGPL-3.0-or-later · <span>Emmet Builder is a free, open-source app.</span></span><span class="tm">LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize, or endorse this software.</span></div></section>
+  <section class="panel" data-theme="light"><h3>The README</h3><p class="muted">A "Trademarks" section at the end, linking <code>TRADEMARKS.md</code>, with the same line.</p></section>
+  <section class="panel" data-theme="light"><h3>The PDF instructions' back page</h3><p class="muted">The small print at the foot of the back page (4E), beside the parts credits and the LDraw attribution.</p></section>
+</div>
+
+<h2>6. Do and don't (D-30)</h2>
+<div class="grid2">
+  <section class="panel do" data-theme="light"><h3><b>Do</b></h3><ul class="dd">
+    <li>Say "brick", "brick models", and "real parts".</li>
+    <li>Tell the ant story: a small builder of big things.</li>
+    <li>Use the orange with warm neutrals and the system fonts.</li>
+    <li>Keep the trademark line to the places above.</li></ul></section>
+  <section class="panel dont" data-theme="light"><h3><b>Don't</b></h3><ul class="dd">
+    <li>Evoke The LEGO Movie: no "Brickowski", "Master Builder", "Everything is awesome", or "the Special".</li>
+    <li>Use a construction-worker minifig, a hard hat, a hi-vis vest, or a minifig face.</li>
+    <li>Pair red and yellow, or use rounded white-outlined lettering.</li>
+    <li>Say LEGO anywhere but the trademark line.</li></ul></section>
+</div>
+</main>
+<script>
+  // The swatches and the contrast table, read from palette.css so this page can't drift from it.
+  const SW = [["orange", "Orange"], ["orange-light", "Light orange"], ["orange-deep", "Deep orange"], ["stud", "Stud"], ["ink", "Ink"], ["graphite", "Graphite"],
+    ["paper", "Paper"], ["cream", "Cream"], ["ok", "OK"], ["warn", "Warn"], ["bad", "Bad"], ["info", "Info"]];
+  const host = document.querySelector("section[data-theme=light]");
+  const tok = (el, name) => getComputedStyle(el).getPropertyValue(name).trim();
+  document.getElementById("swatches").innerHTML = SW.map(([id, label]) =>
+    `<span class="sw"><i style="background: var(--swatch-${id})"></i><b>${label}</b><span class="muted">${tok(host, "--swatch-" + id).toUpperCase()}</span></span>`).join("");
+  const hex = (s) => { const h = s.replace("#", ""); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
+  const lum = (c) => c.map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (a, b) => { const [x, y] = [lum(hex(a)), lum(hex(b))].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const FG = ["text", "muted", "accent", "ok", "warn", "bad", "info"], BG = ["surface", "canvas", "raised", "accent-soft"];
+  for (const theme of ["light", "dark"]) {
+    const el = document.querySelector(`#ratios-${theme}`).closest("section");
+    const head = `<tr><th>${theme === "light" ? "Light" : "Dark"}: text token</th>${BG.map((b) => `<th>on ${b}</th>`).join("")}</tr>`;
+    const rows = FG.map((f) => `<tr><td><span class="chipline" style="background: var(--fg-${f})"></span>--fg-${f}</td>${BG.map((b) => {
+      const r = ratio(tok(el, "--fg-" + f), tok(el, "--bg-" + b));
+      return `<td class="n">${r.toFixed(2)}:1${r >= 4.5 ? " ✓" : " ✗"}</td>`;
+    }).join("")}</tr>`).join("");
+    const acc = ratio(tok(el, "--on-accent"), tok(el, "--fill-accent"));
+    document.getElementById(`ratios-${theme}`).innerHTML = head + rows + `<tr><td>--on-accent on --fill-accent</td><td class="n" colspan="4">${acc.toFixed(2)}:1${acc >= 4.5 ? " ✓" : " ✗"}</td></tr>`;
+  }
+</script>
+</body>
+</html>
