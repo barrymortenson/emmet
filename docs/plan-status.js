@@ -130,7 +130,7 @@ window.EMMET_STATUS = {
     "H-05": { status: "done", date: "2026-10-26", note: "Developer ID Application certificate and the emmet-notary notarytool profile in the login keychain; just release-dry --sign: notarization Accepted, spctl accepted (Notarized Developer ID), stapler validate worked; the .dmg opened, set up, and built the cottage in a fresh Standard macOS account" },
     "H-06": { status: "done", date: "2026-10-26", note: "Rung 1 passed on both agents, each after one rerun (docs/evals/2026-10-26-rung1.md); Barry called G1 a go. terms-check and name-check weren't run for this call" },
     "H-07": { status: "done", date: "2026-10-27", note: "B (Canvas), as revised with Barry in 2A; asked through AskUserQuestion; docs/decisions.md" },
-    "H-08": { status: "todo" },
+    "H-08": { status: "done", date: "2026-10-27", note: "Barry signed docs/design/SIGNOFF.md as is (47 screens, 49 components, the keyboard map, the content guide, the icons); asked through AskUserQuestion" },
     "H-09": { status: "todo" },
     "H-10": { status: "todo" },
     "H-11": { status: "done", date: "2026-10-24", note: "6743-1 Street Speeder, from the 0B shortlist (docs/spec/ladder.md)" },

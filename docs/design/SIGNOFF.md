@@ -115,11 +115,11 @@ For Barry to confirm or change at sign-off:
 
 ## Changes Barry asked for at sign-off
 
-(None yet.)
+None: signed as is.
 
 ## Signature
 
-Signed by: _____________________ Date: __________
+Signed by: Barry Mortenson, as is, through AskUserQuestion in session 2B. Date: 2026-10-27
 
 ## After sign-off: design change notes
 
@@ -127,3 +127,5 @@ A change to anything above, once signed, comes as a short note in `docs/design/c
 as the change: what changes and why, the screens and components it touches, before and after (screenshots or the
 frozen screen's link), and Barry's yes with its date. The frozen files are updated in that PR, and the note is listed
 here.
+
+(No changes yet.)
