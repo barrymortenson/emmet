@@ -34,7 +34,15 @@ macro_rules! techniques {
     };
 }
 
-techniques!(gable_roof);
+techniques!(
+    gable_roof,
+    stairs,
+    fence,
+    tree,
+    baseplate_road,
+    brick_built_arch,
+    tiled_floor
+);
 
 fn builds_clean(name: &str) {
     let dir = temp_dir(&format!("technique-{name}")).join(name);
