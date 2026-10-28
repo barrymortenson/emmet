@@ -14,8 +14,8 @@ const expr = ci.match(/^ {2}mac:\n(?: {4}#.*\n)*? {4}runs-on: \$\{\{ (.+) \}\}$/
 
 // GitHub expressions in this one line use only ==, &&, ||, parentheses, '...' strings, and fromJSON. JS evaluates them
 // the same way (&& and || return an operand) once == becomes eq(), which ignores case as GitHub's == does.
-function runsOn(github) {
-  const js = expr
+function runsOn(github, line = expr) {
+  const js = line
     .replace(/([\w.]+|'[^']*') == ([\w.]+|'[^']*')/g, "eq($1, $2)")
     .replaceAll("fromJSON", "JSON.parse");
   const eq = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
@@ -62,6 +62,23 @@ for (const [why, github] of [
   ["a fork's own push", { repository: "someone/emmet", actor: BARRY, event_name: "push", ref: "refs/heads/main", event: {} }],
 ]) {
   test(`${why} runs on hosted macos-latest`, () => assert.equal(runsOn(github), "macos-latest"));
+}
+
+// nightly.yml (3A): the corpus job reaches the Mac for the schedule and Barry's own PRs, as ci.yml's mac job does.
+const nightly = readFileSync(join(workflows, "nightly.yml"), "utf8");
+const nightlyExpr = nightly.match(/^ {2}corpus:\n(?: {4}#.*\n)*? {4}runs-on: \$\{\{ (.+) \}\}$/m)?.[1];
+test("nightly.yml's corpus job has a runs-on expression", () => assert.ok(nightlyExpr, "corpus job runs-on not found"));
+test("the nightly schedule and Barry's PR run on the self-hosted Mac", () => {
+  assert.deepEqual(runsOn({ repository: REPO, actor: BARRY, event_name: "schedule", ref: "refs/heads/main", event: {} }, nightlyExpr), SELF);
+  assert.deepEqual(runsOn(pr(REPO, BARRY), nightlyExpr), SELF);
+});
+for (const [why, github] of [
+  ["a fork PR", pr("someone/emmet", "someone")],
+  ["Barry's PR that someone else pushed to", pr(REPO, BARRY, "someone")],
+  ["a manual run", { repository: REPO, actor: BARRY, event_name: "workflow_dispatch", ref: "refs/heads/main", event: {} }],
+  ["a fork's schedule", { repository: "someone/emmet", actor: BARRY, event_name: "schedule", ref: "refs/heads/main", event: {} }],
+]) {
+  test(`nightly: ${why} runs on hosted macos-latest`, () => assert.equal(runsOn(github, nightlyExpr), "macos-latest"));
 }
 
 // No YAML parser without a new dependency, so this checks the one rule that bit us: a plain (unquoted) scalar can't
