@@ -18,6 +18,9 @@ window.EMMET_FROZEN = (() => {
   const C = window.EMMET_C;
   const S = window.EMMET_STATES;
   const seg = D.seg;
+  // The frozen wording (docs/design/content.md) where 2A's mockups said it another way: no exit codes or finding ids
+  // on screen (Copy the details and the agent carry them). 2A's own files stay as they were reviewed.
+  seg.crashed[0].text = "It stopped in the middle of a turn. Your project is untouched: the model and the last build are as they were.";
   const story = (...p) => p.flat();
   const esc = C.esc;
   const { icon, button, badge } = C;
@@ -37,6 +40,7 @@ window.EMMET_FROZEN = (() => {
     from2A("fr-library", { group: "First run" }),
     { id: "fr-library-failed", title: "First run: the download failed", kind: "first-run", step: "library", failed: true, group: "First run", covers: ["First run", "Loading library"], on: { retry: "fr-library" }, note: "Every failure in first run has one clear retry (4A). The Python setup waits; nothing is lost." },
     from2A("fr-agents", { group: "First run" }),
+    { ...S.byId["fr-agents"], id: "fr-agents-signin", title: "First run: sign in to Codex", group: "First run", signin: true, covers: ["First run", "Agent not installed or not signed in"], on: { primary: "fr-start" }, note: "Codex installed and not signed in: OpenAI's approved Continue with ChatGPT button (1E, not restyled), or an API key." },
     from2A("fr-start", { group: "First run" }),
 
     // New model from a prompt: think, ask, build, redirect, approve, done.
@@ -59,11 +63,11 @@ window.EMMET_FROZEN = (() => {
     // Steps and the model's structure.
     from2A("step-door", { group: "Steps" }),
     from2A("steps", { group: "Steps" }),
-    { ...built, id: "structure", title: "Steps: a sub-assembly, every copy highlighted", group: "Steps", agent: { state: "idle", line: "Idle" }, drawer: "steps", selected: "Window", expanded: "Window", covers: [], note: "Barry 2026-10-27 (2B): the Steps tab is the model's tree. Clicking a sub-assembly highlights every copy (the viewer dims the rest, as the finding's render shows); clicking a step shows the build up to it." },
+    { ...built, id: "structure", title: "Steps: a sub-assembly selected in the tree", group: "Steps", agent: { state: "idle", line: "Idle" }, drawer: "steps", selected: "Window", expanded: "Window", covers: [], note: "Barry 2026-10-27 (2B): the Steps tab is the model's tree. Clicking a sub-assembly highlights every copy (the viewer dims the rest, as the finding's render shows); clicking a step shows the build up to it." },
 
     // Checks and failures.
     from2A("findings", { group: "Checks and failures" }),
-    from2A("fixing", { group: "Checks and failures" }),
+    from2A("fixing", { group: "Checks and failures", agent: { state: "working", line: "Fixing the floating chimney", elapsed: "0:07" } }),
     from2A("failed", { group: "Checks and failures" }),
 
     // The agent: stop, crash, sign-in, switch, model, usage.
@@ -74,6 +78,8 @@ window.EMMET_FROZEN = (() => {
     from2A("switched", { group: "The agent" }),
     from2A("model-picker", { group: "The agent" }),
     from2A("usage", { group: "The agent" }),
+    { ...built, id: "codex-limit", title: "Codex: ChatGPT's usage limit reached", group: "The agent", who: "codex", agent: { state: "limit", line: "ChatGPT's usage limit" }, chat: story([{ t: "divider", text: "Codex · a fresh conversation. The Claude one is kept." }], seg.garage), limit: "codex", covers: [], note: "OpenAI's usage-limit message, as 1E built it: the ChatGPT identity, Manage usage first, no reset time." },
+    { ...built, id: "chatgpt-notice", title: "Codex: the one-time ChatGPT plan notice", group: "The agent", who: "codex", agent: { state: "idle", line: "Idle" }, chat: [], overlay: "chatgpt-notice", covers: [], on: { close: "switched" }, note: "Shown once per account, the first time Codex signs in with plan use on (1E): OpenAI's words, and Got it." },
     { ...built, id: "limit", title: "The plan's limit reached", group: "The agent", agent: { state: "limit", line: "Claude's plan limit · resets in 2h 14m" }, usageAt: 100, limit: true, covers: [], on: { other: "switched" }, note: "4B: the limit-reached card offers the other agent. The plan badge turns warn from 90 %." },
 
     // The project: its menu, versions, export, import, About, Settings.
@@ -181,7 +187,7 @@ window.EMMET_FROZEN = (() => {
     return keep + D.params.map((p) => {
       const v = p.name in dirty ? dirty[p.name] : p.value;
       const help = p.help[0].toUpperCase() + p.help.slice(1);
-      const was = p.name in dirty && p.type !== "seed" ? `${p.value} ${p.unit || ""}`.trim() : undefined;
+      const was = p.name in dirty && p.type !== "seed" ? C.withUnit(p.value, p.unit) : undefined;
       const moved = { moved: p.name in dirty, was };
       if (p.type === "int") return setting(p.label, help, C.slider(p, v, { act: "slider" }), moved);
       if (p.type === "seed") return setting(p.label, help, button("Shuffle", { size: "sm", icon: "shuffle", act: "shuffle" }), { ...moved, inline: true });
@@ -217,6 +223,9 @@ window.EMMET_FROZEN = (() => {
   function activeCard(s) {
     const a = C.agentOf(s);
     if (s.agent.state === "signedout") return C.alertCard({ icon: "log-in", title: `${a.name} isn't signed in`, text: `Emmet builds with your own ${a.cli}. Sign in opens ${a.name}'s page in your browser; Emmet never sees your password.`, actions: button(`Sign in to ${a.name}`, { variant: "primary", act: "signin" }) + button("Use Codex instead", { variant: "quiet", act: "other" }), foot: D.plans.claude });
+    // OpenAI's usage-limit message (1E): the ChatGPT identity, Manage usage first, and no reset time, since OpenAI
+    // doesn't say when it ends.
+    if (s.limit === "codex") return C.alertCard({ icon: "gauge", title: "ChatGPT · Usage limit reached", text: "Review your plan or this app's limit in ChatGPT settings.", actions: C.manageUsage({ primary: true }) });
     if (s.limit) return C.alertCard({ icon: "gauge", title: `You've used ${a.name}'s plan limit for now`, text: "It resets in 2h 14m. Your model and this conversation are kept.", actions: button("Continue with Codex", { variant: "primary", act: "other" }) + button("Wait for the reset", { variant: "quiet" }) });
     if (s.error) return C.alertCard({ tone: "bad", icon: "octagon-alert", title: "The model didn't build", text: D.buildError.plain, actions: button("Ask agent to fix", { variant: "primary", act: "fix" }), foot: "The last good model is still shown." });
     if (s.pending) return C.pending(s.pending, a.name);
@@ -239,14 +248,17 @@ window.EMMET_FROZEN = (() => {
     const quiet = s.agent.line === "Idle" || says || s.banner;
     const undo = !quiet && s.agent.state === "idle" && /^Done/.test(s.agent.line || "") ? button("Undo turn", { variant: "quiet", size: "sm", icon: "undo-2", act: "undo-turn", title: "Restore the model from before this turn (version 6)" }) : "";
     const pct = s.usageAt ?? D.usage[0].pct;
-    const plan = badge(`${a.plan}${a === D.agents.claude ? ` · ${pct}%` : ""}`, { act: "usage", tone: pct >= 90 && a === D.agents.claude ? "warn" : undefined, title: "Plan usage" });
+    // Codex on a ChatGPT plan says so in OpenAI's words, with Manage usage, near the composer (1E); Claude's badge
+    // carries its usage and opens the meters.
+    const plan = a === D.agents.codex ? badge("Using ChatGPT plan") + C.manageUsage()
+      : badge(`${a.plan} · ${pct}%`, { act: "usage", tone: pct >= 90 ? "warn" : undefined, title: "Plan usage" });
     const n = s.chat.length;
     const top = `<div class="dock-top"><button type="button" class="agent-picker" data-act="agents" aria-haspopup="menu" aria-expanded="${s.overlay === "agents"}">${esc(a.name)}${icon("chevron-down", "sm")}</button>${plan}${quiet ? `<span class="grow"></span>` : C.status(s)}${undo}
       ${n ? button(open ? "Hide history" : `History · ${n}`, { variant: "quiet", size: "sm", icon: "messages-square", local: `history=${open ? "closed" : "open"}`, expanded: open }) : ""}${button("Start fresh", { variant: "quiet", size: "sm", icon: "message-square-plus", title: "Clear the context and keep the agent" })}</div>`;
     const mid = open ? `<div class="dock-history" data-scroll="end">${n ? C.chat(s) : ""}${card}</div>` : card ? `<div class="dock-active">${card}</div>` : (() => { const l = latestLine(s); return l ? `<div class="dock-line">${l}</div>` : ""; })();
     let pop = "";
     if (s.overlay === "agents") pop = C.menu([{ text: "Claude", sub: "Max plan", checked: (s.who || "claude") === "claude", act: "pick" }, { text: "Codex", sub: "ChatGPT plan", checked: s.who === "codex", act: "pick" }, { note: "Switching starts a fresh conversation. This one is kept." }], { role: "menu", label: "Agent" });
-    if (s.overlay === "usage") pop = C.popover(`${a.name} · ${a.plan}`, D.usage.map((u) => `<div class="meter-row"><span>${esc(u.label)}</span>${C.meter(u.label, u.pct)}<span class="num">${u.pct}%</span><span class="small">resets in ${esc(u.reset)}</span></div>`).join("") + `<p class="small">Codex · Using ChatGPT plan · no usage report yet. Updated 8m ago.</p>`);
+    if (s.overlay === "usage") pop = C.popover(`${a.name} · ${a.plan}`, D.usage.map((u) => `<div class="meter-row"><span>${esc(u.label)}</span>${C.meter(u.label, u.pct)}<span class="num">${u.pct}%</span><span class="small">resets in ${esc(u.reset)}</span></div>`).join("") + `<p class="small">Updated 8m ago.</p><div class="popover-head"><span class="small">Codex · Using ChatGPT plan</span>${C.manageUsage()}</div>`);
     return `<section class="dock" data-c="dock" data-state="${open ? "open" : "closed"}" aria-label="Chat">${open ? C.resizable("horizontal", "Resize the chat history", { value: 58, min: 20, max: 80 }) : ""}${top}${mid}${C.composer(s)}${pop ? `<div class="anchored">${pop}</div>` : ""}</section>`;
   }
 
@@ -262,7 +274,7 @@ window.EMMET_FROZEN = (() => {
     const row = (label, control) => `<div class="setting" data-c="setting" data-inline><span class="setting-name">${esc(label)}</span>${control}</div>`;
     const folder = ctx.platform === "windows" ? "Documents\\Emmet" : "Documents/Emmet";
     return C.dialog("Settings", `<p class="dialog-title">Settings</p>
-      <section class="panel-section"><div class="panel-section-head">Agent</div>${row("Start with", C.select("Start with", "Claude", { hideLabel: true }))}${row("Model and effort", C.select("Model and effort", "Opus 5.5 · Medium", { hideLabel: true }))}</section>
+      <section class="panel-section"><div class="panel-section-head">Agent</div>${row("Start with", C.select("Start with", "Claude", { hideLabel: true }))}${row("Model and effort", C.select("Model and effort", "Opus 5.5 · Medium", { hideLabel: true }))}${row("Codex runs on", `<span class="row">${badge("Using ChatGPT plan")}${C.manageUsage()}</span>`)}</section>
       <section class="panel-section"><div class="panel-section-head">Projects</div>${row(`New projects go in ${folder}`, button("Change…", { size: "sm" }))}</section>
       <section class="panel-section"><div class="panel-section-head">Look</div>${row("Appearance", C.segmented("Appearance", ["System", "Light", "Dark"], "System"))}${row("Color names", C.segmented("Color names", ["LDraw", "BrickLink"], "LDraw"))}${row("Viewer quality", C.segmented("Viewer quality", ["Fast", "Balanced", "Best"], "Balanced"))}</section>
       <section class="panel-section"><div class="panel-section-head">Emmet</div>${row("Updates", `<span class="small">Checked today · 0.1.0 is the latest</span>`)}${row("Command line tool", button("Install", { size: "sm", icon: "terminal" }))}${row("Diagnostics", button("Copy diagnostics", { size: "sm", icon: "copy" }))}</section>
@@ -272,7 +284,8 @@ window.EMMET_FROZEN = (() => {
   function workspace(s, ctx) {
     const win = ctx.platform === "windows";
     const main = `<div class="app-main">${win ? "" : titlebar(s, ctx)}${s.banner ? C.banner(s.banner) : ""}${viewer(s)}${dock(s, ctx)}</div>`;
-    const modal = s.overlay === "about" ? about() : s.overlay === "settings" ? settingsDialog(ctx) : "";
+    const notice = () => C.dialog("You're using your ChatGPT plan", `<p class="dialog-title">You're using your ChatGPT plan</p><p>Eligible usage in this app uses your ChatGPT plan. Manage usage in your ChatGPT settings.</p><div class="dialog-actions">${button("Got it", { variant: "primary", size: "sm", act: "close" })}</div>`);
+    const modal = s.overlay === "about" ? about() : s.overlay === "settings" ? settingsDialog(ctx) : s.overlay === "chatgpt-notice" ? notice() : "";
     return `<div class="app" data-c="app">${win ? titlebar(s, ctx) : ""}${main}${C.resizable("vertical", "Resize the options panel", { value: 384, min: 320, max: 520 })}${panel(s, ctx)}${modal}</div>`;
   }
 
@@ -296,7 +309,9 @@ window.EMMET_FROZEN = (() => {
     } else if (s.step === "agents") {
       body = `<h1>Set up your agent</h1><p class="lede">Emmet builds with your own Claude Code or Codex. Set up either one here, no terminal needed.</p>
         ${C.setupCard({ ready: true, icon: "circle-check", title: `Claude Code ${D.agents.claude.version}`, text: "Signed in · Max plan", action: badge("Ready") })}
-        ${C.setupCard({ icon: "download", title: "Codex", text: D.plans.codex, action: button("Install Codex", { variant: "primary" }) })}
+        ${s.signin
+          ? C.setupCard({ icon: "log-in", title: `Codex ${D.agents.codex.version}`, text: "Installed · not signed in. Sign in with ChatGPT to use your plan, or use an OpenAI API key.", action: `<span class="row">${C.continueChatGpt()}${button("Use an API key", { variant: "quiet", size: "sm" })}</span>` })
+          : C.setupCard({ icon: "download", title: "Codex", text: D.plans.codex, action: button("Install Codex", { variant: "primary" }) })}
         <p class="small">${esc(D.plans.claude)}</p>
         <div class="notice">${icon("info")}<p>Claude Code and Codex are made by Anthropic and OpenAI, not by Emmet. Your plan and its limits are between you and them, and you use them with Emmet at your own risk.</p></div>
         <div class="row">${button("Check agents again", { variant: "quiet", icon: "refresh-cw" })}<span class="grow"></span>${button("Continue", { variant: "primary", size: "lg", act: "primary" })}</div>`;

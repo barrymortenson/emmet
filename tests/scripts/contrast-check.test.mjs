@@ -53,6 +53,14 @@ test("it refuses a translucent surface, a token in one theme only, and colors ou
   assert.deepEqual(checkSource('const a = "#fff";\n// #000 in a comment\nel.style.width = "10%";\n<p>Orange is <code>#E8590C</code>.</p>', "s.js").length, 1);
 });
 
+test("a stylesheet that only uses another's tokens needs no blocks, but can't write a color or keep one theme", () => {
+  assert.deepEqual(checkCss(".button { color: var(--fg-text); background: var(--fill-accent); }", "uses.css").errors, []);
+  const color = checkCss(".button { color: var(--fg-text); border-color: #c2410c; }", "uses.css").errors.join("\n");
+  assert.match(color, /a color outside the tokens: \.button/);
+  const one = checkCss('[data-theme="light"] { --bg-a: #fff; --fg-t: #000; }', "one.css").errors.join("\n");
+  assert.match(one, /needs both a \[data-theme="light"\] and a \[data-theme="dark"\] block/);
+});
+
 test("the command fails on a bad stylesheet and passes docs/design as it stands", () => {
   const file = join(tempDir(), "bad.css");
   writeFileSync(file, css("--bg-a: #fff; --fg-t: #ccc;"));
@@ -78,7 +86,7 @@ test("the command still runs from a path with a space that goes through a symlin
   assert.match(bad.out, /contrast-check: 2 problems/);
 });
 
-test("the command checks every stylesheet, script, and page under docs/design, and fails when there are none", () => {
+test("the command checks every stylesheet, script, and page under docs/design and the app's styles, and fails when there are none", () => {
   const dir = tempDir();
   mkdirSync(join(dir, "scripts"));
   copyFileSync(join(ROOT, "scripts/contrast-check.mjs"), join(dir, "scripts/contrast-check.mjs"));
@@ -91,8 +99,12 @@ test("the command checks every stylesheet, script, and page under docs/design, a
   mkdirSync(join(dir, "docs/design/shared"), { recursive: true });
   writeFileSync(join(dir, "docs/design/extra/theme.css"), css("--bg-a: #fff; --fg-t: #ccc;"));
   writeFileSync(join(dir, "docs/design/shared/notes.mjs"), 'const c = "#cccccc";\n');
+  // And the app's own tokens (session 2B), which the frozen design and the app take every color from.
+  mkdirSync(join(dir, "apps/desktop/src/styles"), { recursive: true });
+  writeFileSync(join(dir, "apps/desktop/src/styles/tokens.css"), css("--bg-a: #fff; --fg-t: #ddd;"));
   const bad = run("node", [join(dir, "scripts/contrast-check.mjs")]);
   assert.equal(bad.code, 1, bad.out);
   assert.match(bad.out, /FAIL docs\/design\/extra\/theme\.css/);
+  assert.match(bad.out, /FAIL apps\/desktop\/src\/styles\/tokens\.css/);
   assert.match(bad.out, /docs\/design\/shared\/notes\.mjs: a color outside the tokens/);
 });

@@ -24,6 +24,9 @@ window.EMMET_C = (() => {
   const spinner = (label = "Working") => `<span class="spinner" data-c="spinner" role="status" aria-label="${esc(label)}"></span>`;
   const kbd = (k) => `<kbd class="kbd" data-c="kbd">${esc(k)}</kbd>`;
 
+  // A value with its unit, as content.md writes it: "20%", "150 MB", "6 studs".
+  const withUnit = (v, unit) => (!unit ? String(v) : unit === "%" ? `${v}%` : `${v} ${unit}`);
+
   // A button. o: variant (primary, quiet), size (sm, lg), icon, act (the flow it moves), local (a view toggle),
   // disabled, busy, title, show (hover, press, focus: the specimens' still states).
   function button(label, o = {}) {
@@ -40,7 +43,7 @@ window.EMMET_C = (() => {
   function slider(p, value, o = {}) {
     const pct = ((value - p.min) / (p.max - p.min)) * 100;
     return `<div class="slider" data-c="slider"${attrs({ "data-disabled": o.disabled })}><span class="slider-root" data-orientation="horizontal"><span class="slider-track"><span class="slider-range" style="width:${pct}%"></span></span>
-      <span class="slider-thumb" role="slider" tabindex="0" aria-label="${esc(p.label)}" aria-valuemin="${p.min}" aria-valuemax="${p.max}" aria-valuenow="${value}" aria-valuetext="${value} ${esc(p.unit)}" style="left:${pct}%"${attrs({ "data-show": o.show, "data-act": o.act })}></span></span><output>${value} ${esc(p.unit)}</output></div>`;
+      <span class="slider-thumb" role="slider" tabindex="0" aria-label="${esc(p.label)}" aria-valuemin="${p.min}" aria-valuemax="${p.max}" aria-valuenow="${value}" aria-valuetext="${esc(withUnit(value, p.unit))}" style="left:${pct}%"${attrs({ "data-show": o.show, "data-act": o.act })}></span></span><output>${esc(withUnit(value, p.unit))}</output></div>`;
   }
   // Radix Switch: a button with role switch and data-state checked or unchecked.
   const switchC = (label, on, o = {}) => `<button type="button" class="switch" data-c="switch" role="switch" aria-checked="${!!on}" aria-label="${esc(label)}" data-state="${on ? "checked" : "unchecked"}"${attrs({ "data-disabled": o.disabled, disabled: o.disabled, "data-show": o.show })}><span class="switch-thumb" data-state="${on ? "checked" : "unchecked"}"></span></button>`;
@@ -217,6 +220,10 @@ window.EMMET_C = (() => {
   }
 
   const agentOf = (screen) => D.agents[screen.who || "claude"];
+  // OpenAI's own UI for Codex on a ChatGPT plan (1E): the approved "Continue with ChatGPT" button (approved.css, not
+  // restyled), and Manage usage, which opens ChatGPT's usage settings in the browser.
+  const continueChatGpt = () => `<button type="button" class="continue-chatgpt"><img src="${ROOT()}../../apps/desktop/src/assets/openai/chatgpt-logo-white.svg" alt=""><span>Continue with ChatGPT</span></button>`;
+  const manageUsage = (o = {}) => button("Manage usage", { variant: o.primary ? "primary" : "quiet", size: "sm", icon: "external-link", title: "Opens ChatGPT's usage settings in your browser" });
   // What the agent is doing (note 1), with Stop and Esc while it works.
   function status(screen) {
     const a = screen.agent || { state: "idle" };
@@ -262,6 +269,6 @@ window.EMMET_C = (() => {
     esc, md, attrs, icon, spinner, kbd, button, iconButton, badge, textField, slider, switchC, segmented, chips, select, colorPicker, tabs,
     tooltip, menu, menubar, popover, dialog, toast, progress, meter, resizable, dataTable, tree, message, pending, toolCard, fileCard, chat,
     questionCard, approvalCard, alertCard, finding, banner, status, composer, stepView, pin, setupCard, versionRow, viewSwitch,
-    captionButtons, render, agentOf, partPic,
+    captionButtons, render, agentOf, partPic, withUnit, continueChatGpt, manageUsage,
   };
 })();

@@ -5,10 +5,10 @@
 //   --bg-*  surfaces (must be opaque)       --fg-*  text: 4.5:1 against every --bg-*
 //   --ui-*  icons and control edges: 3:1    --fill-X  a filled control: 3:1 against every --bg-*
 //   --on-X  text on --fill-X: 4.5:1         anything else (--line, --shadow) is decorative and not checked
-// A prefix keeps sets apart (--p-bg-page pairs only with --p-fg-*). Outside the token blocks a stylesheet may not
-// write a color, and the mockups' scripts and pages may not either, so every color on screen is a checked token.
+// A prefix keeps sets apart (--p-bg-page pairs only with --p-fg-*). A stylesheet with no blocks uses another's tokens.
+// Outside the token blocks a stylesheet may not write a color, and the mockups' scripts and pages may not either, so every color on screen is a checked token.
 // Usage: node scripts/contrast-check.mjs [stylesheet ...]  (default: docs/design's)
-import { readdirSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -62,7 +62,9 @@ export function checkCss(css, name = "stylesheet") {
     const tokens = themes[theme] ||= {};
     for (const [, k, v] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) tokens[k] = v.trim();
   }
-  if (!themes.light || !themes.dark) errors.push(`${name}: needs both a [data-theme="light"] and a [data-theme="dark"] block`);
+  // A stylesheet that only uses another's tokens (docs/design/frozen/components.css uses tokens.css) has no blocks of
+  // its own; the check below still refuses any color it writes. One theme without the other is a mistake.
+  if (!!themes.light !== !!themes.dark) errors.push(`${name}: needs both a [data-theme="light"] and a [data-theme="dark"] block`);
   const counts = {};
   let worst = null;
   for (const theme of Object.keys(themes)) {
@@ -127,7 +129,7 @@ export function checkSource(text, name) {
 // listed, so a new or renamed file is checked too. data.js holds the part colors, which are content.
 function designFiles() {
   const files = readdirSync(DESIGN, { recursive: true }).map((f) => join(DESIGN, f)).sort();
-  const app = readdirSync(APP_STYLES).filter((f) => /\.css$/i.test(f)).map((f) => join(APP_STYLES, f)).sort();
+  const app = (existsSync(APP_STYLES) ? readdirSync(APP_STYLES) : []).filter((f) => /\.css$/i.test(f)).map((f) => join(APP_STYLES, f)).sort();
   return {
     css: files.filter((f) => /\.css$/i.test(f)).concat(app),
     src: files.filter((f) => /\.(m?js|jsx|tsx?|html?)$/i.test(f) && f !== join(DESIGN, "shared/data.js")),
