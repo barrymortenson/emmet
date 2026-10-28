@@ -98,6 +98,13 @@ fn label(m: &Model, e: &Element) -> String {
 /// (already floating or disconnected) are left out.
 pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &HashSet<usize>) -> Vec<Raw> {
     let pairs = m.pairs();
+    // The finished model's assemblies, by connector joints alone (what something rests against doesn't count): a
+    // part that starts an assembly of its own (nothing in it from an earlier step) is its first piece, built in hand
+    // like a first step (a luggage cart built top down, its roller skates last, in 40142-1).
+    let mut finished = UnionFind::new(m.placed.len());
+    for c in &m.links {
+        finished.join(c.a, c.b);
+    }
     let loose =
         options.ground.is_empty() && !(0..m.placed.len()).any(|i| m.kind(i).is_some_and(|k| k.category == "Baseplate"));
     let mut out = Vec::new();
@@ -177,6 +184,14 @@ pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &H
                     // Laid out and joined later by parts put on it (an instruction book bridges two plates this way):
                     // fine. Resting on parts that come later: it hangs in the air at its step.
                     if !rests_on_later(m, &scope, ei) {
+                        continue;
+                    }
+                    let group = finished.root(e.parts[0]);
+                    let starts_one = !scope
+                        .of
+                        .iter()
+                        .any(|(&j, &o)| es[o].step < s && finished.root(j) == group);
+                    if starts_one {
                         continue;
                     }
                     misplaced.extend(e.parts.iter().copied());
