@@ -3,8 +3,8 @@
 // w=1440|1280&p=macos|windows shows one screen at its design size with the components and tokens it uses; &bare
 // leaves out the frame; #audit renders every screen at both sizes, in both themes, on both platforms and checks it:
 // the contrast of every visible text against what's really behind it, every element that claims a component is one
-// in the inventory, no icon is missing, no inline style but placement and content, and nothing spills out of the
-// window. index.html and components.html use the same helpers.
+// in the inventory, no icon is missing, no inline style but placement and content, no text cut off without an
+// ellipsis, and nothing spills out of the window. index.html and components.html use the same helpers.
 window.EMMET_H = (() => {
   const F = window.EMMET_FROZEN;
   const C = window.EMMET_C;
@@ -132,7 +132,15 @@ window.EMMET_H = (() => {
   }
 
   // ---- The audit ----------------------------------------------------------------------------------------------------
-  const parseRgb = (s) => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [r, g, b, a]; };
+  // Chrome reports a color as rgb()/rgba(), or as color(srgb r g b / a) with channels from 0 to 1 once a token is
+  // mixed (color-mix). Anything else is reported rather than read as transparent.
+  function parseRgb(s) {
+    let m = s.match(/^rgba?\(([^)]+)\)$/);
+    if (m) { const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [r, g, b, a]; }
+    m = s.match(/^color\(srgb ([^)]+)\)$/);
+    if (m) { const [r, g, b, a = 1] = m[1].split(/[ /]+/).filter(Boolean).map(Number); return [r * 255, g * 255, b * 255, a]; }
+    throw new Error(`a color the audit can't read: ${s}`);
+  }
   const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
   const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
   const over = (top, under) => top.slice(0, 3).map((c, i) => c * top[3] + under[i] * (1 - top[3]));
@@ -148,11 +156,14 @@ window.EMMET_H = (() => {
       const fail = (why, extra = {}) => out.push({ ...where, why, el: `${el.tagName.toLowerCase()}.${[...el.classList].join(".")}`, text: (el.textContent || "").trim().slice(0, 40), ...extra });
       if (el.dataset.c && !GEN.tokens[el.dataset.c]) fail("not in the inventory: " + el.dataset.c);
       if (el.matches("svg[data-missing]")) fail("missing icon: " + el.dataset.missing);
-      for (const prop of el.style) if (!INLINE_OK.test(prop) && !el.classList.contains("window")) fail("one-off inline style: " + prop);
+      // A swatch's part color is content (Chrome lists an inline background as its longhands).
+      for (const prop of el.style) if (!INLINE_OK.test(prop) && !el.classList.contains("window") && !(el.classList.contains("swatch") && prop.startsWith("background"))) fail("one-off inline style: " + prop);
       // Spilling out of the window (scrolled-away content and the render, which is cropped by design, aside).
       const r = el.getBoundingClientRect();
-      const clipped = el.closest(".viewer-render, .dock-history, .dock-active, .panel-body, .tree, .first-run-card");
-      if (!clipped && (r.right > wr.right + 1 || r.bottom > wr.bottom + 1 || r.left < wr.left - 1)) fail("outside the window");
+      // Inside a scroller (or the render, cropped by design) content may run past the window; the scrollers themselves
+      // may not.
+      const clipped = el.matches(".viewer-render") || el.parentElement?.closest(".viewer-render, .dock-history, .dock-active, .panel-body, .first-run-card");
+      if (!clipped && (r.right > wr.right + 1 || r.bottom > wr.bottom + 1 || r.left < wr.left - 1 || r.top < wr.top - 1)) fail("outside the window");
       // Text: its own text nodes, a field's value, or an empty field's placeholder.
       const field = el.matches("input:not([type=range], [type=checkbox], [type=radio]), textarea");
       const placeholder = field && el.placeholder && !el.value;
@@ -196,6 +207,8 @@ window.EMMET_H = (() => {
       check(win, { screen: s.id, theme: t, size: w, platform: p }, out);
       renders++;
     }
+    // An audit that rendered or read nothing proves nothing.
+    if (renders !== F.screens.length * 8 || out.checked < renders) out.push({ why: `the audit covered too little: ${renders} renders, ${out.checked} texts` });
     const result = { screens: F.screens.length, renders, checked: out.checked, components: Object.keys(GEN.tokens).length, failures: out.slice(0, 200), failureCount: out.length };
     window.EMMET_AUDIT = result;
     console.log(`[audit] ${renders} renders, ${out.checked} text elements, ${out.length} failures`, out);

@@ -142,8 +142,8 @@
   }
 }
 
-/* macOS: the traffic lights sit in the title row over the viewer (Tauri's overlay title bar), and focus is the
-   accent ring the system uses. */
+/* macOS: SF Pro. The title row's height and the room for the traffic lights (Tauri's overlay title bar) and the
+   accent focus ring are the :root defaults above. */
 [data-platform="macos"] {
   --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;

@@ -7,7 +7,7 @@
 //   tokens: each component's tokens, from its "@component <id>" section in components.css, which each screen's Uses
 //           list reads.
 // Usage: node scripts/design-frozen.mjs [out-file]  (tests write to a temp file and compare)
-import { readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -37,10 +37,11 @@ const draw = (node) => node.map(([tag, a]) => `<${tag} ${Object.entries(a).filte
 export async function generate() {
   const glyphs = Object.fromEntries(readdirSync(GLYPHS).filter((f) => f.endsWith(".svg")).sort().map((f) => {
     const svg = readFileSync(join(GLYPHS, f), "utf8");
+    if (!/<svg[^>]*viewBox="0 0 24 24"/.test(svg) || !svg.includes("</svg>")) throw new Error(`${f}: a glyph is an <svg> on the 24-unit grid`);
     return [f.slice(0, -4), svg.slice(svg.indexOf(">", svg.indexOf("<svg")) + 1, svg.lastIndexOf("</svg>"))];
   }));
   // Every quoted name in the frozen scripts that is a lucide icon or a glyph: a few extra icons cost nothing, and a
-  // missing one shows as a gap that the audit reports.
+  // missing one is marked (data-missing), which the design test and the audit report on every screen.
   const scripts = readdirSync(FROZEN).filter((f) => f.endsWith(".js") && f !== "generated.js").sort();
   const named = new Set(scripts.flatMap((f) => [...readFileSync(join(FROZEN, f), "utf8").matchAll(/"([a-z][a-z0-9-]*)"/g)].map((m) => m[1])));
   // An old name lucide keeps as an alias (history, now rotate-ccw-clock) has no drawing of its own and is left out:
@@ -48,12 +49,20 @@ export async function generate() {
   const icons = {};
   for (const name of [...named].sort()) {
     const file = join(LUCIDE, "dist/esm/icons", `${name}.mjs`);
-    let data = null;
-    try { data = (await import(pathToFileURL(file).href)).__iconData; } catch { /* not a lucide icon */ }
-    if (data && glyphs[name]) throw new Error(`glyph ${name} has the same name as a lucide icon`);
+    if (!existsSync(file)) {
+      if (glyphs[name]) icons[name] = glyphs[name];
+      continue;
+    }
+    if (glyphs[name]) throw new Error(`glyph ${name} has the same name as a lucide icon`);
+    const data = (await import(pathToFileURL(file).href)).__iconData;
     if (data) icons[name] = draw(data.node);
-    else if (glyphs[name]) icons[name] = glyphs[name];
+    else if (!/export \{ default \} from '\.\/[a-z0-9-]+\.mjs'/.test(readFileSync(file, "utf8"))) {
+      throw new Error(`${file} has no __iconData and isn't an alias: has lucide-react's layout changed?`);
+    }
   }
+  // Emmet's own glyphs are all drawn, named or not: they're the set (icons.md), and the specimens page shows each one.
+  for (const [g, body] of Object.entries(glyphs)) icons[g] ??= body;
+  if (!icons.x || !icons.brick) throw new Error("lucide's x or the brick glyph didn't load: the icon sources moved");
   const tokens = componentTokens(readFileSync(join(FROZEN, "components.css"), "utf8"));
   const version = JSON.parse(readFileSync(join(LUCIDE, "package.json"), "utf8")).version;
   return `// SPDX-License-Identifier: AGPL-3.0-or-later AND ISC AND MIT

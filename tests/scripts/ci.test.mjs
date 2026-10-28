@@ -136,6 +136,8 @@ for (const [change, runs] of [
   ["docs/plan-status.js", "nothing"],
   ["README.md", "nothing"],
   ["docs/spec/mcp/tools.json", "mac"],
+  ["docs/design/frozen/components.css", "mac"],
+  ["docs/design/components.md", "mac"],
   ["scripts/plan-check.mjs", "mac"],
   ["apps/desktop/src/App.tsx", "mac e2e_mac"],
   ["packages/viewer/src/index.ts", "mac e2e_mac"],

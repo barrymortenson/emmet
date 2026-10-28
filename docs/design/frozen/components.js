@@ -16,7 +16,7 @@ window.EMMET_C = (() => {
   // draws nothing and is marked, so the audit reports it.
   function icon(name, size) {
     const body = GEN.icons[name];
-    return `<svg class="icon" data-c="icon"${attrs({ "data-size": size, "data-missing": body ? undefined : name })} viewBox="0 0 24 24" aria-hidden="true">${body || ""}</svg>`;
+    return `<svg class="icon" data-c="icon"${attrs({ "data-size": size, "data-missing": body ? undefined : String(name) })} viewBox="0 0 24 24" aria-hidden="true">${body || ""}</svg>`;
   }
   // 2A's tool cards name their icons by role; these are the lucide icons for those roles.
   const TOOL_ICON = { book: "book-open", search: "search", cube: "box", check: "circle-check", eye: "eye", file: "file-pen" };
@@ -27,8 +27,9 @@ window.EMMET_C = (() => {
   // A value with its unit, as content.md writes it: "20%", "150 MB", "6 studs".
   const withUnit = (v, unit) => (!unit ? String(v) : unit === "%" ? `${v}%` : `${v} ${unit}`);
 
-  // A button. o: variant (primary, quiet), size (sm, lg), icon, act (the flow it moves), local (a view toggle),
-  // disabled, busy, title, show (hover, press, focus: the specimens' still states).
+  // A button. o: variant (primary, quiet; secondary when left out), size (sm, lg), icon, kbd, chevron, act (the flow
+  // it moves), local (a view toggle), disabled, busy, title, popup and expanded (for a menu), compact (the label drops
+  // to the tooltip in a narrow dock), cls, show (hover, press, focus: the specimens' still states).
   function button(label, o = {}) {
     const lead = o.busy ? spinner(label) : o.icon ? icon(o.icon) : "";
     return `<button type="button" class="button${o.cls ? " " + o.cls : ""}" data-c="button"${attrs({ "data-variant": o.variant, "data-size": o.size, "data-compact": o.compact, "data-act": o.act, "data-local": o.local, "data-busy": o.busy, "data-show": o.show, disabled: o.disabled, title: o.title || (o.compact ? label : undefined), "aria-haspopup": o.popup, "aria-expanded": o.expanded })}>${lead}<span>${esc(label)}</span>${o.kbd ? kbd(o.kbd) : ""}${o.chevron ? icon("chevron-down", "sm") : ""}</button>`;
@@ -77,8 +78,8 @@ window.EMMET_C = (() => {
   function tabs(active, counts = {}) {
     return `<div class="tabs" data-c="tabs" role="tablist" aria-label="Options panel">${TABS.map(([id, label]) => `<button type="button" class="tab" role="tab" data-tab="${id}" aria-selected="${id === active}" data-state="${id === active ? "active" : "inactive"}">${esc(label)}${counts[id] ? badge(String(counts[id]), { tone: id === "checks" ? "warn" : "count" }) : ""}</button>`).join("")}</div>`;
   }
-  // Radix Tooltip: role tooltip, shown on hover or focus after a pause. `at` places it (left and top, in a style
-  // the screen gives, since it sits next to what it explains).
+  // Radix Tooltip: role tooltip, shown on hover or focus after a pause. `style` places it (left and top, which
+  // Radix computes in the app, since it sits next to what it explains).
   const tooltip = (text, style) => `<div class="tooltip" data-c="tooltip" role="tooltip" style="${style}">${esc(text)}</div>`;
 
   // Radix DropdownMenu content: items with an icon, a label, and a key; separators; group labels; a note.
@@ -152,7 +153,7 @@ window.EMMET_C = (() => {
       case "question": return questionCard(m);
       case "approval": return approvalCard(m, screen);
       case "crash": return alertCard({ tone: "bad", icon: "octagon-alert", title: m.title, text: m.text, actions: button(`Restart ${who.cli}`, { variant: "primary", icon: "refresh-cw", act: "restart" }) + button("Copy the details", { variant: "quiet", icon: "copy" }) });
-      default: return "";
+      default: throw new Error(`a chat message of unknown kind: ${m.t}`);
     }
   }
   // A pending redirect: what you sent while the agent works, until its next step picks it up.
@@ -246,7 +247,7 @@ window.EMMET_C = (() => {
   }
 
   // A step as an instruction book draws it (plan section 08): the parts box, the step number, and a sub-assembly in
-  // its own box with numbered sub-steps; the leader to where it goes is drawn once it's laid out (frozen.js).
+  // its own box with numbered sub-steps; the leader to where it goes is drawn once it's laid out (harness.js).
   function stepView(n) {
     const v = D.stepView[n];
     if (!v) return "";

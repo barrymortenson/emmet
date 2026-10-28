@@ -82,7 +82,10 @@ window.EMMET_GEN = {
   "undo-2": "<path d=\"M9 14 4 9l5-5\"/><path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\"/>",
   "user": "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>",
   "wifi-off": "<path d=\"M12 20h.01\"/><path d=\"M8.5 16.429a5 5 0 0 1 7 0\"/><path d=\"M5 12.859a10 10 0 0 1 5.17-2.69\"/><path d=\"M19 12.859a10 10 0 0 0-2.007-1.523\"/><path d=\"M2 8.82a15 15 0 0 1 4.177-2.643\"/><path d=\"M22 8.82a15 15 0 0 0-11.288-3.764\"/><path d=\"m2 2 20 20\"/>",
-  "x": "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>"
+  "x": "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>",
+  "baseplate": "<rect x=\"2\" y=\"15\" width=\"20\" height=\"4\" rx=\"1\"/><path d=\"M4 15v-2h3v2M10.5 15v-2h3v2M17 15v-2h3v2\"/>",
+  "collision": "<rect x=\"2\" y=\"10\" width=\"12\" height=\"8\" rx=\"1.5\"/><rect x=\"10\" y=\"6\" width=\"12\" height=\"8\" rx=\"1.5\"/>",
+  "plate": "<rect x=\"3\" y=\"13\" width=\"18\" height=\"6\" rx=\"1.5\"/><path d=\"M5.5 13v-3h4.5v3M14 13v-3h4.5v3\"/>"
  },
  "tokens": {
   "base": [

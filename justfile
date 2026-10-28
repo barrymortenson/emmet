@@ -78,7 +78,8 @@ test *args:
       pick() { grep -qE "$1" <<<"$changed"; }
       if ! pick '^(justfile|\.node-version|rust-toolchain\.toml|rustfmt\.toml|package\.json|pnpm-(lock|workspace)\.yaml|tsconfig\.base\.json|eslint\.config\.js)$'; then
         all=()
-        if pick '^(scripts|tests/scripts|docs|\.githooks|\.github|deny\.toml)/?'; then all+=(scripts); fi
+        # tests/scripts/design.test.mjs also guards the app's tokens, glyphs, and icons (2B).
+        if pick '^(scripts|tests/scripts|docs|\.githooks|\.github|deny\.toml)/?|^apps/desktop/(src/styles|src/assets/glyphs|src-tauri/icons)/|^apps/desktop/src-tauri/tauri\.conf\.json$'; then all+=(scripts); fi
         if pick '^python/'; then all+=(python); fi
         if pick '^packages/viewer/'; then all+=(viewer); fi
         if pick '^apps/desktop/'; then all+=(desktop); fi

@@ -38,7 +38,8 @@ focus.
 
 Changes from section 14's draft: `⌘K` is gone (no palette); `⌘E` exports and `⌘,` opens Settings; `Enter` sends, as
 chat apps do, with `⇧↩` for a new line and `⌘↩` kept; `Esc` closes what's open before it stops the agent; the view keys
-are named (1 Iso, 2 Front, 3 Top, 4 Back, 5 Left, 6 Right); and `⌥⌘Z`, `F6`, and `⌘/` are new.
+are named (1 Iso, 2 Front, 3 Top, 4 Back, 5 Left, 6 Right); a question's keys run to `5` (Other); and orbit and
+zoom from the keyboard, undo for a knob's draft, `⌥⌘Z`, `F6`, and `⌘/` are new.
 
 ## Menus
 

@@ -2,7 +2,8 @@
 // Every frozen screen and state (plan session 2B), composed only from components.js. The list starts from 2A's
 // (docs/design/shared/states.js: the same ids, chat, and flows, which direction B was reviewed on) and adds what the
 // design system needed to settle: the Steps tab's tree, a failed download in first run, the project menu, the chat
-// history, a tooltip, a toast, the plan's limit, and Settings. `covers` names the section 14 states a screen shows,
+// history, a tooltip, a toast, Claude's plan limit, Settings, and what 1E requires for Codex on a ChatGPT plan (its
+// sign-in, OpenAI's usage limit, and the one-time notice). `covers` names the section 14 states a screen shows,
 // `group` places it in the catalog, and `on` maps a click to the next screen.
 window.EMMET_FROZEN_DATA = {
   // Sub-assemblies as 3B's submodels will make them (composed for these screens: today's model.py places the door
@@ -25,8 +26,8 @@ window.EMMET_FROZEN = (() => {
   const esc = C.esc;
   const { icon, button, badge } = C;
 
-  // The section 14 states, in the plan's words (tests/scripts/design.test.mjs reads them from plan.html and checks
-  // each has a screen), and the key flows.
+  // The key flows: 2A's, with the knobs' new name and the Steps tree's own. (Section 14's states are 2A's STATES, which
+  // tests/scripts/design.test.mjs checks against plan.html.)
   const FLOWS = S.FLOWS.map((f) => (f.id === "sliders" ? { ...f, name: "Tweak with knobs" } : f))
     .concat([{ id: "structure", name: "Find a sub-assembly", path: ["built", "structure"] }]);
 
@@ -80,7 +81,7 @@ window.EMMET_FROZEN = (() => {
     from2A("usage", { group: "The agent" }),
     { ...built, id: "codex-limit", title: "Codex: ChatGPT's usage limit reached", group: "The agent", who: "codex", agent: { state: "limit", line: "ChatGPT's usage limit" }, chat: story([{ t: "divider", text: "Codex · a fresh conversation. The Claude one is kept." }], seg.garage), limit: "codex", covers: [], note: "OpenAI's usage-limit message, as 1E built it: the ChatGPT identity, Manage usage first, no reset time." },
     { ...built, id: "chatgpt-notice", title: "Codex: the one-time ChatGPT plan notice", group: "The agent", who: "codex", agent: { state: "idle", line: "Idle" }, chat: [], overlay: "chatgpt-notice", covers: [], on: { close: "switched" }, note: "Shown once per account, the first time Codex signs in with plan use on (1E): OpenAI's words, and Got it." },
-    { ...built, id: "limit", title: "The plan's limit reached", group: "The agent", agent: { state: "limit", line: "Claude's plan limit · resets in 2h 14m" }, usageAt: 100, limit: true, covers: [], on: { other: "switched" }, note: "4B: the limit-reached card offers the other agent. The plan badge turns warn from 90 %." },
+    { ...built, id: "limit", title: "The plan's limit reached", group: "The agent", agent: { state: "limit", line: "Claude's plan limit · resets in 2h 14m" }, usageAt: 100, limit: true, covers: [], on: { other: "switched" }, note: "4B: the limit-reached card offers the other agent. The plan badge turns warn from 90%." },
 
     // The project: its menu, versions, export, import, About, Settings.
     { ...built, id: "project-menu", title: "The project menu", group: "The project", menu: "open", covers: [], note: "The project chip's menu: New, Open, versions, Export, and About. The native menus (macOS) and the title-bar menu (Windows) hold the same and more (docs/design/keyboard.md)." },

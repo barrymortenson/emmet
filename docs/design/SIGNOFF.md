@@ -9,7 +9,7 @@ change note (below) and Barry's yes.
 | What | Where |
 |------|-------|
 | Tokens: 15 colors a theme, type, space, radius, elevation, motion; light and dark; macOS and Windows | [`apps/desktop/src/styles/tokens.css`](../../apps/desktop/src/styles/tokens.css) |
-| 49 components, each with its Radix primitive and every state | [`components.md`](components.md), [`frozen/components.html`](frozen/components.html), [`frozen/components.css`](frozen/components.css) |
+| 41 components and 8 regions, each with its Radix primitive where one exists, and every state | [`components.md`](components.md), [`frozen/components.html`](frozen/components.html), [`frozen/components.css`](frozen/components.css) |
 | 47 screens and states, at 1440 × 900 and 1280 × 800, light and dark, macOS and Windows, each listing the components and tokens it uses | [`frozen/index.html`](frozen/index.html) |
 | The keyboard map and the menus | [`keyboard.md`](keyboard.md) |
 | The content and tone guide | [`content.md`](content.md) |

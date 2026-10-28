@@ -94,6 +94,11 @@ test("the command checks every stylesheet, script, and page under docs/design an
   const none = run("node", [join(dir, "scripts/contrast-check.mjs")]);
   assert.equal(none.code, 1, none.out);
   assert.match(none.out, /no stylesheets to check/);
+  // docs/design without the app's tokens.css: everything the design uses comes from it, so that fails too.
+  writeFileSync(join(dir, "docs/design/ok.css"), css("--bg-a: #fff; --fg-t: #000;"));
+  const lost = run("node", [join(dir, "scripts/contrast-check.mjs")]);
+  assert.equal(lost.code, 1, lost.out);
+  assert.match(lost.out, /apps\/desktop\/src\/styles\/tokens\.css is missing/);
   // Files a fixed list wouldn't name: a stylesheet in a new folder and a module in shared/.
   mkdirSync(join(dir, "docs/design/extra"), { recursive: true });
   mkdirSync(join(dir, "docs/design/shared"), { recursive: true });

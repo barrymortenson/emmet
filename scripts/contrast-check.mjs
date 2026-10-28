@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// WCAG 2.2 AA contrast for the design mockups (plan session 2A). Each stylesheet keeps its colors in two token blocks,
+// WCAG 2.2 AA contrast for the design mockups (plan session 2A) and the app's tokens (2B). Each stylesheet keeps its colors in two token blocks,
 // [data-theme="light"] and [data-theme="dark"], named by role:
 //   --bg-*  surfaces (must be opaque)       --fg-*  text: 4.5:1 against every --bg-*
 //   --ui-*  icons and control edges: 3:1    --fill-X  a filled control: 3:1 against every --bg-*
 //   --on-X  text on --fill-X: 4.5:1         anything else (--line, --shadow) is decorative and not checked
 // A prefix keeps sets apart (--p-bg-page pairs only with --p-fg-*). A stylesheet with no blocks uses another's tokens.
 // Outside the token blocks a stylesheet may not write a color, and the mockups' scripts and pages may not either, so every color on screen is a checked token.
-// Usage: node scripts/contrast-check.mjs [stylesheet ...]  (default: docs/design's)
+// Usage: node scripts/contrast-check.mjs [stylesheet ...]  (default: docs/design's and apps/desktop/src/styles')
 import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -143,12 +143,22 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
     console.error("contrast-check: no stylesheets to check");
     process.exit(1);
   }
+  // Every color in the app and the frozen design comes from tokens.css, so a run without it checks nothing that matters.
+  const TOKENS = join(APP_STYLES, "tokens.css");
+  if (!args.length && !css.includes(TOKENS)) {
+    console.error(`contrast-check: ${relative(ROOT, TOKENS)} is missing`);
+    process.exit(1);
+  }
   let failed = 0;
   for (const file of css) {
     const name = relative(ROOT, file);
     const r = checkCss(readFileSync(file, "utf8"), name);
     for (const e of r.errors) console.error(`error: ${e}`);
     failed += r.errors.length;
+    if (file.endsWith("tokens.css") && !(r.themes.light && r.themes.dark)) {
+      console.error(`error: ${name}: no color pairs to check (its theme blocks didn't parse)`);
+      failed++;
+    }
     const w = r.worst;
     console.log(`${r.errors.length ? "FAIL" : "ok  "} ${name}: ${r.themes.light ?? 0} light + ${r.themes.dark ?? 0} dark pairs` +
       (w ? `; tightest ${w.fg} on ${w.bg} (${w.theme}) ${w.ratio.toFixed(2)}:1, needs ${w.min}:1` : ""));

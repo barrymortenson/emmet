@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Makes the app's icons from the final SVGs (plan session 2B): `tauri icon` on docs/design/icon/app-icon-macos.svg
 // gives icon.icns and the PNGs, and on app-icon-windows.svg gives icon.ico, since macOS icons sit on a plate and
-// Windows icons don't. Only the files tauri.conf.json bundles are kept; the Android, iOS, and Store logos it also
-// writes are dropped. Usage: node scripts/app-icon.mjs [out-dir]  (default: apps/desktop/src-tauri/icons)
+// Windows icons don't. It keeps the files tauri.conf.json bundles plus icon.png; the rest tauri writes (64x64, and the
+// Android, iOS, and Store logos) is dropped. Usage: node scripts/app-icon.mjs [out-dir]  (default: apps/desktop/src-tauri/icons)
 import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { createRequire } from "node:module";
 import { join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const ROOT = join(import.meta.dirname, "..");
-const TAURI = join(ROOT, "apps/desktop/node_modules/.bin/tauri");
+// The CLI's own entry, run with this Node: node_modules/.bin/tauri is a shell shim Windows can't start.
+const TAURI = createRequire(join(ROOT, "apps/desktop/package.json")).resolve("@tauri-apps/cli/tauri.js");
 
 /** Each source SVG and the files taken from what `tauri icon` makes of it. */
 export const SOURCES = {
@@ -28,7 +30,7 @@ export function makeIcons(out) {
     for (const [svg, files] of Object.entries(SOURCES)) {
       const dir = join(work, String(written.length));
       // tauri lists every file it writes on stderr; that's shown only if it fails (execFileSync's error carries it).
-      execFileSync(TAURI, ["icon", join(ROOT, svg), "--output", dir], { stdio: "pipe" });
+      execFileSync(process.execPath, [TAURI, "icon", join(ROOT, svg), "--output", dir], { stdio: "pipe" });
       for (const f of files) {
         copyFileSync(join(dir, f), join(out, f));
         written.push(f);

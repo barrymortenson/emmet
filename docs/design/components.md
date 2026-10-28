@@ -4,7 +4,7 @@ The frozen design system (plan session 2B): direction B, Canvas, as Barry picked
 app from these components and nothing else. Each one is drawn in every state in
 [`frozen/components.html`](frozen/components.html), styled in [`frozen/components.css`](frozen/components.css) (one
 section per component, `/* @component <id> */`), and built in [`frozen/components.js`](frozen/components.js); every
-frozen screen ([`frozen/index.html`](frozen/index.html)) lists the components and tokens it uses.
+frozen screen (open it from [`frozen/index.html`](frozen/index.html)) lists the components and tokens it uses in its Uses panel.
 
 ## How to read this
 
@@ -30,11 +30,11 @@ frozen screen ([`frozen/index.html`](frozen/index.html)) lists the components an
 | Kind | Tokens | Notes |
 |------|--------|-------|
 | Color | `--bg-canvas` `--bg-surface` `--bg-raised` `--bg-sunken` `--bg-accent` `--bg-bad` · `--fg-text` `--fg-muted` `--fg-accent` `--fg-ok` `--fg-warn` `--fg-bad` · `--ui-control` `--fill-accent` `--on-accent` | 15 per theme. Every `--fg-*` is 4.5:1 on every `--bg-*`; `--ui-control` and `--fill-accent` 3:1; `--on-accent` 4.5:1 on `--fill-accent` (`scripts/contrast-check.mjs`). `--bg-canvas` is the viewer's background, the one the renders are made on. |
-| Mixed | `--line` `--scrim` `--elevation-1` `--elevation-2` `--elevation-3` | Mixed from the colors above: the hairline from the text color, the scrim and dark shadows from the sunken surface. |
+| Mixed | `--line` `--scrim` `--elevation-1` `--elevation-2` `--elevation-3` | Mixed from the colors above: the hairline from the text color; in light the scrim and shadows from the text color, in dark from the sunken surface. |
 | Type | `--font-ui` `--font-display` `--font-mono` · `--text-2xs` 11 · `--text-xs` 12 · `--text-sm` 13 · `--text-md` 14 · `--text-lg` 16 · `--text-xl` 20 · `--text-2xl` 28 · `--text-step` 44 · `--leading` `--leading-tight` · `--weight-light` `--weight-regular` `--weight-strong` `--weight-bold` | System fonts: SF Pro on macOS, Segoe UI Variable on Windows. 14 px body. |
 | Space | `--space-3xs` 2 · `--space-2xs` 4 · `--space-xs` 6 · `--space-sm` 8 · `--space-md` 12 · `--space-lg` 16 · `--space-xl` 24 · `--space-2xl` 32 · `--space-3xl` 48 | A 4 px rhythm. |
 | Radius | `--radius-xs` 4 · `--radius-sm` 6 · `--radius-md` 10 · `--radius-lg` 14 · `--radius-xl` 20 · `--radius-full` | Soft and roomy; pills for what floats on the viewer. |
-| Elevation | `--elevation-1` (a selected tab, a thumb) · `--elevation-2` (what floats on the viewer: the panel, the dock, chips) · `--elevation-3` (menus, popovers, dialogs, toasts) | |
+| Elevation | `--elevation-1` (a selected tab, a thumb) · `--elevation-2` (what floats on the viewer: the panel, the dock, the project chip, the view switch, banners, pins) · `--elevation-3` (menus, popovers, dialogs, toasts) | |
 | Motion | `--duration-fast` 120 ms · `--duration-base` 180 ms · `--duration-slow` 260 ms · `--duration-spin` · `--duration-part` · `--ease-standard` `--ease-exit` · `--rise` 4 px | Subtle: color changes and a 4 px rise, nothing longer than 260 ms. Reduced motion sets every duration to 0 and `--rise` to 0; the spinner stops (a dotted ring), and the viewer skips the build animation. |
 | Size and layout | `--control-sm` `--control-md` `--control-lg` · `--icon-sm` `--icon-md` `--icon-lg` `--icon-xl` · `--line-width` `--line-width-strong` · `--focus-*` · `--titlebar-height` `--titlebar-inset-start` `--caption-button-width` · `--panel-width` (384) `--panel-min` `--panel-max` · `--dock-history` `--dock-active-max` · and the fixed sizes of menus, dialogs, toasts, tooltips, thumbnails, and pictures | |
 | Platform | `[data-platform="macos"]`, `[data-platform="windows"]` | macOS: SF Pro, a 56 px title row with room for the traffic lights, the accent focus ring. Windows: Segoe UI Variable, a 48 px title row across the window with the menu bar and the caption buttons, the focus ring in the text color. |
@@ -76,19 +76,18 @@ same words.
 
 ### `badge`
 A short fact in a pill: the plan ("Max plan · 16%", a button that opens usage), a tab's count, a tag ("Floating"),
-"was 0 %". Tones: default, accent (a changed value), warn (a count of problems; the plan from 90 %), count (small
+"was 0%". Tones: default, accent (a changed value), warn (a count of problems; the plan from 90%), count (small
 numbers).
 
 ### `text-field`
 Radix: none (an `input`). One line: a version's name, Other on a question, the user's own style words. States:
-empty (placeholder in `--fg-muted`), filled, focus, invalid (`aria-invalid`, a `--fg-bad` edge, and the message under
-it), disabled.
+empty (placeholder in `--fg-muted`), filled, focus, invalid (`aria-invalid` and a `--fg-bad` edge; the field's message goes under it, in `--fg-bad`), disabled.
 
 ### `slider`
-Radix: Slider (Root, Track, Range, Thumb). A knob with a range (weathering 0–30 %): the track, the filled range, the
+Radix: Slider (Root, Track, Range, Thumb). A knob with a range (weathering 0–30%): the track, the filled range, the
 thumb, and the value with its unit beside it. States: rest, hover (the thumb grows a little), dragging, focus,
 disabled. Keys: arrows by one step, Page Up and Down by ten, Home and End. Moving it is a draft until Keep (the
-setting shows "was 0 %" and the panel a Keep bar).
+setting shows "was 0%" and the panel a Keep bar).
 
 ### `switch`
 Radix: Switch. The plan's "toggle": a knob that turns a feature on or off (Chimney, Roof). `data-state` checked or
@@ -142,7 +141,7 @@ actions at the end, primary last.
 
 ### `toast`
 Radix: Toast. A short confirmation at the bottom center of the viewer, for five seconds: what was done and where
-("Saved "Cottage parts.csv" to Downloads"), the one thing you'd do next ("Show in folder"), and dismiss. Never an
+("Saved “Cottage parts.csv” to Downloads"), the one thing you'd do next ("Show in folder"), and dismiss. Never an
 error (errors stay until dealt with, in a card).
 
 ### `progress`
@@ -150,11 +149,11 @@ Radix: Progress. Something that takes a while: what, how much in words ("96 of 1
 loading, done, failed (the bar in `--fg-bad`, with an alert card and Try again).
 
 ### `meter`
-A plan's usage (role `meter`): the share used, with the percent and when it resets beside it. Warn from 90 %.
+A plan's usage (role `meter`): the share used, with the percent and when it resets beside it. Warn from 90%.
 
 ### `resizable`
 Own (role `separator`, focusable, with its value). Between the viewer and the options panel (320–520 px, 384 by
-default) and on the chat history's top edge (20–80 % of the column). Invisible until hover or focus, then a grip in
+default) and on the chat history's top edge (20–80% of the column). Invisible until hover or focus, then a grip in
 `--ui-control`; arrows move it 16 px, Home and End to its limits. Both remember their size per window.
 
 ### `tree`
@@ -183,7 +182,7 @@ Checks", "Sent from Build settings"); one delivered mid-turn says so.
 Radix: Collapsible. A tool call in plain words: an icon for its kind, a title ("Built 70 parts"), a detail ("Walls,
 rows 1–3"), and its end state: running (accent, a spinner), done (a check), failed (`--bg-bad`, an x). Open, it shows
 the raw call, the only place a tool's own words show. A change to the model is a card in words ("Moved the chimney
-down"), never a diff or code (law 2). Three or more finished cards fold into one line ("7 steps · built in 3 stages")
+down"), never a diff or code (law 2). Three or more finished cards fold into one line ("7 steps · built in 2 stages")
 once the turn moves past them.
 
 ### `question-card`
@@ -248,7 +247,7 @@ automatic ones (muted names). Clicking one opens it read-only in the viewer, wit
 Back.
 
 ### `banner`
-Across the top of the viewer, one line and one action: read-only (Trust this project), offline (Try again), an old
+Across the top of the viewer, a line and its action: read-only (Trust this project), offline (Try again), an old
 library (Later, Update the library, with the size), an imported file (Make it parametric). The icon carries the tone.
 
 ### `caption-buttons`
@@ -258,17 +257,18 @@ Windows only: minimize, maximize, and close at the title row's right end (Tauri'
 ## Kept as the provider requires
 
 Not Emmet's components, and not restyled: what OpenAI's UI/UX guidelines fix for Codex on a ChatGPT plan, as 1E built
-it (`apps/desktop/src/ChatGpt.tsx`). The frozen screens show each one in place.
+it (`apps/desktop/src/ChatGpt.tsx`). The frozen screens show the first four in place.
 
 - **Continue with ChatGPT**, in OpenAI's approved black format with the white ChatGPT logo (the only place the logo
-  appears): first run's Codex card and Settings. Drawn from [`frozen/approved.css`](frozen/approved.css), a copy of
-  1E's style.
+  appears): first run's Codex card, and Settings' sign-in as 1E built it. Drawn from
+  [`frozen/approved.css`](frozen/approved.css), 1E's style.
 - **"Using ChatGPT plan · Manage usage"** near the composer whenever Codex runs on the plan, in a `badge` and a quiet
   `button`; Manage usage opens ChatGPT's usage settings in the browser.
 - **The usage-limit card**: "ChatGPT · Usage limit reached", "Review your plan or this app's limit in ChatGPT
   settings.", and Manage usage as the primary action; no reset time, since OpenAI's error doesn't give one.
 - **The one-time notice**, "You're using your ChatGPT plan", with Got it.
-- **The invitation** to API-key users in Settings, "Use your ChatGPT plan in this app."
+- **The invitation** to API-key users in Settings, "Use your ChatGPT plan in this app." (1E's; the frozen Settings
+  shows a plan user, so it isn't drawn).
 
 ## Regions
 

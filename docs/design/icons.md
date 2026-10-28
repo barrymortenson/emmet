@@ -46,6 +46,7 @@ The frozen pages draw them from `docs/design/frozen/generated.js`, which `node s
 | Download, export, update | `download` |
 | An imported file | `file-up` |
 | Open a project | `folder-open` |
+| Opens a page in the browser (Manage usage) | `external-link` |
 | New | `plus` |
 | Save a version | `save` |
 | Versions, a version open | `rotate-ccw-clock` |

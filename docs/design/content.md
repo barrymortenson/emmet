@@ -53,7 +53,7 @@ what to do next. It doesn't cheer, apologize, or explain itself at length.
 | A wait | What, how much, and that it's safe to move on | "Downloading the LDraw parts library (about 150 MB) … This takes a minute or two, and only happens once." |
 | A failure with a retry | What stopped, where it picks up, Try again | "The download stopped. The connection dropped at 96 of 150 MB. Emmet picks up where it stopped." · Try again |
 | A confirmation (toast) | What was done and where, then the next thing | "Saved “Cottage parts.csv” to Downloads" · Show in folder |
-| The agent's status | What it's doing now, in the present, with the time | "Building the walls, row 3 of 6 · 0:22", "Fixing the floating chimney", "Waiting for your answer" |
+| The agent's status | What it's doing now, in the present, with the time | "Building the walls, row 3 of 6 · 0:22", "Fixing the floating chimney", "Reading the project" |
 | A tool card | What was done, in the past, then the detail | "Built 70 parts · Walls, rows 1–3, and the room inside", "Checked: no problems" |
 | A change to the model | What changed, in words | "Moved the chimney down · It starts on the baseplate now" |
 | A question from the agent | The question, the answers recommended first, then Other | "Which style should the cottage have?" |
