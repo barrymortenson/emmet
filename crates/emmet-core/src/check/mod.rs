@@ -168,6 +168,9 @@ const OVERLAP_SIDE: f64 = 5.0;
 const SEAT: f64 = 1.5;
 /// Parts whose bottom is this close to the model's lowest point stand on the ground.
 const GROUND: f64 = 1.0;
+/// Without a baseplate, a group with nothing under it whose bottom is this close to the lowest point stands on the
+/// table beside the rest (two plates: models place a vehicle and the figures next to it a little apart in height).
+const ON_THE_TABLE: f64 = 16.0;
 const STUD: f64 = 20.0;
 const PLATE: f64 = 8.0;
 
@@ -735,7 +738,8 @@ fn floating(
         .fold(f64::NEG_INFINITY, f64::max);
     let mut grounded = vec![false; n];
     for (i, b) in boxes.iter().enumerate() {
-        if b.is_some_and(|b| b.max.y >= lowest - GROUND) {
+        let base = placed[i].info.as_ref().is_some_and(|i| i.kind.category == "Baseplate");
+        if base || b.is_some_and(|b| b.max.y >= lowest - GROUND) {
             let r = sets.root(i);
             grounded[r] = true;
         }
@@ -745,6 +749,34 @@ fn floating(
         if b.is_some() && !grounded[sets.root(i)] {
             groups.entry(sets.root(i)).or_default().push(i);
         }
+    }
+    // Without a baseplate, a model can be several things on the table (a car, a figure beside it), each at its own
+    // height off it: a group with nothing of the model under it, within two plates of the lowest point, stands.
+    let baseplate = placed
+        .iter()
+        .any(|q| q.info.as_ref().is_some_and(|i| i.kind.category == "Baseplate"));
+    if !baseplate {
+        groups.retain(|_, parts| {
+            let bottom = parts
+                .iter()
+                .map(|&i| boxes[i].unwrap().max.y)
+                .fold(f64::NEG_INFINITY, f64::max);
+            let members: HashSet<usize> = parts.iter().copied().collect();
+            let over_something = parts.iter().any(|&i| {
+                let a = boxes[i].unwrap();
+                boxes.iter().enumerate().any(|(j, b)| {
+                    !members.contains(&j)
+                        && b.is_some_and(|b| {
+                            b.min.y >= a.max.y - 1.0
+                                && a.min.x + 2.0 < b.max.x
+                                && b.min.x + 2.0 < a.max.x
+                                && a.min.z + 2.0 < b.max.z
+                                && b.min.z + 2.0 < a.max.z
+                        })
+                })
+            });
+            over_something || bottom < lowest - ON_THE_TABLE
+        });
     }
     groups
         .into_values()
