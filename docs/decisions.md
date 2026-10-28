@@ -391,3 +391,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   axles, bars, clips, fingers, and generic plugs, keeping 0.5 LDU for studs so stud-built work keeps a tight grid, over
   1 LDU everywhere and over 0.5 LDU with those models left out of the corpus. Faults agents make are 4 LDU or more, so
   recall doesn't change; LDCad data found wrong for a part gets an exact override, never a looser rule.
+- **Collision threshold: over 1 LDU.** Collision proxies are 1 LDU voxels, and a sloped or curved face can stick out
+  half a voxel, so touching slopes and official files' hand-placement slop read as 1 LDU overlaps (22 of the 33 false
+  collisions left on the nightly corpus). Barry chose to report overlaps of more than 1 LDU, past the measurement's own
+  resolution, over plan section 11's 0.5 LDU (with the 1 LDU findings chased one at a time) and over 0.5 LDU voxels
+  (about four times the build time and cache, and still quantized). Injected faults overlap by 8 LDU or more.

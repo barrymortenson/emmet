@@ -9,17 +9,16 @@ use parry3d_f64::partitioning::{Bvh, BvhBuildStrategy};
 use parry3d_f64::shape::Cuboid;
 
 use super::proxy::ProxyBox;
-use super::{
-    Model, OVERLAP, PLATE, Placed, Raw, Rule, STUD, dsl_box, dsl_point, graph, name, num, plural, round, src_key,
-};
+use super::{Model, PLATE, Placed, Raw, Rule, STUD, dsl_box, dsl_point, graph, name, num, plural, round, src_key};
 use crate::ldraw::geometry::Aabb;
 
-/// How deep two parts' proxies must overlap to collide (plan section 11).
-const DEEP: f64 = OVERLAP;
+/// How deep two parts' proxies must overlap to collide: more than their 1 LDU voxels can blur (Barry, 2026-10-28; a
+/// sloped face can stick out half a voxel, so touching slopes read as a 1 LDU overlap).
+const DEEP: f64 = 1.0;
 /// How far around a connected pair's seat an overlap is exempt: a stud in its anti-stud, a pin in its hole.
 const SEAT_ROOM: f64 = 2.0;
 
-/// collision: pairs of parts whose proxies overlap by more than 0.5 LDU. Candidates come from an AABB tree over the
+/// collision: pairs of parts whose proxies overlap by more than 1 LDU. Candidates come from an AABB tree over the
 /// parts' world boxes; each pair's proxy boxes are compared in the first part's frame (exactly when the second is turned
 /// by quarter turns, by parry's cuboid contact otherwise). Pairs one part holds the other are exempt, and so is an
 /// overlap inside a connected pair's seat.
@@ -53,7 +52,7 @@ pub(super) fn collisions(m: &Model) -> Vec<Raw> {
             let none = Vec::new();
             let at_seats = seats.get(&(*i, j)).unwrap_or(&none);
             if let Some((depth, axis)) = deepest(m, *i, j, at_seats)
-                && depth > DEEP
+                && depth > DEEP + 1e-6
             {
                 let (wa, wb) = (m.boxes[*i].unwrap(), m.boxes[j].unwrap());
                 out.push(collision(&m.placed, *i, j, depth, axis, &wa, &wb));

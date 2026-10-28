@@ -174,8 +174,6 @@ pub struct Allow {
     pub reason: String,
 }
 
-/// Proxies that overlap by more than this collide (plan section 11).
-const OVERLAP: f64 = 0.5;
 /// A stud enters a part through its underside when its base is at most this far inside it…
 const SEAT: f64 = 1.5;
 /// Parts whose bottom is this close to the model's lowest point stand on the ground.

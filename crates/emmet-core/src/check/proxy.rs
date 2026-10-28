@@ -71,7 +71,7 @@ fn crossing(tri: &[DVec3; 3], x: f64, z: f64) -> Option<f64> {
     let (px, pz) = (x - a.x, z - a.z);
     let u = (px * v1z - v1x * pz) / det;
     let v = (v0x * pz - px * v0z) / det;
-    (u >= 0.0 && v >= 0.0 && u + v <= 1.0).then(|| a.y + u * (b.y - a.y) + v * (c.y - a.y))
+    (u >= 0.0 && v >= 0.0 && u + v <= 1.0).then_some(a.y + u * (b.y - a.y) + v * (c.y - a.y))
 }
 
 /// The most boxes a proxy keeps: a part with more (a large curved one) is filled again at a coarser step.
@@ -195,7 +195,9 @@ pub fn to_blob(boxes: &[ProxyBox]) -> Vec<u8> {
 }
 
 pub fn from_blob(blob: &[u8]) -> Vec<ProxyBox> {
-    blob.chunks_exact(12)
+    blob.as_chunks::<12>()
+        .0
+        .iter()
         .map(|c| std::array::from_fn(|k| i16::from_le_bytes([c[2 * k], c[2 * k + 1]])))
         .collect()
 }

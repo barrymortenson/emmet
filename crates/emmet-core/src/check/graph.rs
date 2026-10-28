@@ -252,7 +252,10 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
             if overlap <= TOLERANCE {
                 return fail("no overlap");
             }
-            if !(a.slide || b.slide) && overlap < shorter - TOLERANCE {
+            // A stud goes all the way in; a pin, axle, or bar holds once half in (files put wheels on their pins a
+            // little short).
+            let need = if stud(a) { shorter - TOLERANCE } else { shorter / 2.0 };
+            if !(a.slide || b.slide) && overlap < need {
                 return fail("not all the way in");
             }
             let mut grip = 0.0f64;
@@ -316,7 +319,7 @@ fn reach(a: &Connector, b: &Connector) -> f64 {
 fn along(a: &Connector, b: &Connector, dot: f64) -> Option<(f64, f64)> {
     let d = a.pos - b.pos;
     let t = d.dot(b.axis);
-    if (d - b.axis * t).length() > reach(a, b) {
+    if (d - b.axis * t).length() > reach(a, b) + 1e-3 {
         return None;
     }
     let (a0, a1) = {
@@ -435,6 +438,16 @@ mod tests {
             DVec3::ZERO,
         );
         assert!(mate(&bar, &axle_hole).is_some());
+        // A wheel's pin half in its hole holds; a stud must go all the way.
+        let wheel_pin = at("!LDCAD SNAP_CYL [gender=M] [caps=one] [secs=R 4 12]", DVec3::ZERO);
+        let wheel = |y: f64| {
+            at(
+                "!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 4 12]",
+                DVec3::new(0.0, y, 0.0),
+            )
+        };
+        assert!(mate(&wheel_pin, &wheel(-5.0)).is_some());
+        assert!(mate(&wheel_pin, &wheel(-7.0)).is_none());
     }
 
     #[test]
