@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Builds the parts data pack (plan section 12, ADR 0004) from Rebrickable's full catalog download: the derived SQLite
+# file, parts-data.json (version, sha256, size, row counts, credit), its signature with --key, and the .sqlite.gz to
+# publish. Every check runs before anything is written: the schema, row counts within 10 % of --previous, every
+# ldraw-mini part mapping, and the color table's round trip.
+#
+#   for f in colors color_mappings parts part_categories part_mappings part_relationships elements sets \
+#            inventories inventory_parts; do
+#     curl -fLo <empty dir>/$f.csv.gz https://cdn.rebrickable.com/media/downloads/$f.csv.gz; done
+#   scripts/build-parts-data <that dir> <out dir> [--previous <old parts-data.json>] [--key <PKCS#8 DER>] [--date YYYY-MM-DD]
+#
+# Rebrickable allows automated downloads of these files at most once a day; never fetch its web pages from a script.
+# The publishing workflow and the real signing key come in 6A.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+if [[ $# -lt 2 ]]; then
+  echo "usage: scripts/build-parts-data <catalog dir> <out dir> [--previous <file>] [--key <file>] [--date YYYY-MM-DD]" >&2
+  exit 2
+fi
+catalog=$1
+out=$2
+shift 2
+
+# The engine reads plain .csv files; the download is .csv.gz, unpacked here into a temp folder.
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+for f in colors color_mappings parts part_categories part_mappings part_relationships elements sets inventories \
+  inventory_parts; do
+  if [[ -f "$catalog/$f.csv.gz" ]]; then
+    gzip -dc "$catalog/$f.csv.gz" >"$work/$f.csv"
+  elif [[ -f "$catalog/$f.csv" ]]; then
+    cp "$catalog/$f.csv" "$work/$f.csv"
+  else
+    echo "build-parts-data: $catalog has no $f.csv.gz or $f.csv" >&2
+    exit 1
+  fi
+done
+
+cargo build --release --locked -p emmet-cli
+target/release/emmet parts-data build "$work" --out "$out" --ldraw-mini tests/fixtures/ldraw-mini "$@"
+file=$(sed -n 's/^ *"file": "\(.*\)",$/\1/p' "$out/parts-data.json")
+[[ -n $file && -f "$out/$file" ]] || { echo "build-parts-data: parts-data.json names no SQLite file in $out" >&2; exit 1; }
+gzip -9 -n -k -f "$out/$file"
+echo "build-parts-data: $out/$file.gz ($(wc -c <"$out/$file.gz" | tr -d ' ') bytes)"

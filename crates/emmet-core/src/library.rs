@@ -8,7 +8,6 @@ use std::time::Duration;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 use crate::data::DataDir;
 use crate::envelope::{Error, ErrorCode, Result};
@@ -105,7 +104,7 @@ pub fn install(
         Source::Zip(path) => (path.to_path_buf(), false),
         Source::Url(url) => (download(data, release, url, progress)?, true),
     };
-    let got = sha256_file(&zip_path)?;
+    let got = fsx::sha256_file(&zip_path)?;
     if got != sha256.to_lowercase() {
         if downloaded {
             let _ = std::fs::remove_file(&zip_path);
@@ -252,19 +251,6 @@ fn download(data: &DataDir, release: &str, url: &str, progress: &mut dyn FnMut(u
 
 fn mb(bytes: u64) -> String {
     format!("{:.1}", bytes as f64 / 1e6)
-}
-
-fn sha256_file(path: &Path) -> Result<String> {
-    let mut f = std::fs::File::open(path).map_err(|e| Error::io(path, e))?;
-    let mut h = Sha256::new();
-    let mut buf = vec![0u8; 1 << 16];
-    loop {
-        match f.read(&mut buf).map_err(|e| Error::io(path, e))? {
-            0 => break,
-            n => h.update(&buf[..n]),
-        }
-    }
-    Ok(fsx::hex(&h.finalize()))
 }
 
 fn corrupt(zip: &Path, message: String) -> Error {

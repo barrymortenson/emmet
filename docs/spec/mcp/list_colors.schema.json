@@ -1,12 +1,12 @@
 {
   "name": "list_colors",
-  "description": "LDraw colors: code, name, RGB, finish, and other accepted spellings.",
+  "description": "LDraw colors: code, name, RGB, finish, other accepted spellings, and whether any part was made in it. With\n`part`, only the colors that part was made in.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
       "part": {
         "default": null,
-        "description": "A part id: checks the part exists. Every color is returned until the parts data pack (3B) knows which colors\neach part came in.",
+        "description": "A part id: only the colors that part was made in. Every color is returned when the parts data pack doesn't\nknow the part.",
         "type": [
           "string",
           "null"
@@ -20,7 +20,7 @@
       "Color": {
         "properties": {
           "aliases": {
-            "description": "Other names that resolve to this color: LDraw's own name, plus abbreviations from `data/synonyms.toml`.",
+            "description": "Other names that resolve to this color: LDraw's own name, abbreviations from `data/synonyms.toml`, and with\nthe parts data pack, Rebrickable's and BrickLink's names.",
             "items": {
               "type": "string"
             },
@@ -42,6 +42,13 @@
           "name": {
             "description": "The display name, in US spelling (\"Light Bluish Gray\").",
             "type": "string"
+          },
+          "produced": {
+            "description": "Whether any part was ever made in this color, by the parts data pack; omitted without one.",
+            "type": [
+              "boolean",
+              "null"
+            ]
           },
           "rgb": {
             "description": "`#RRGGBB`",

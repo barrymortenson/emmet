@@ -11,6 +11,7 @@ use crate::colors::Color;
 use crate::data::DataDir;
 use crate::envelope::{Details, Error, ErrorCode, Result};
 use crate::index::{Index, Part, SearchHit};
+use crate::parts_data::PartsData;
 use crate::project::Project;
 use crate::run::{RunMeta, RunSummary};
 
@@ -53,7 +54,12 @@ pub fn search_many(
 
 pub fn search_parts(data: &DataDir, query: &str, category: Option<&str>, limit: usize) -> Result<SearchResult> {
     let index = Index::ensure(data)?;
-    let parts = index.search(query, category, limit.clamp(1, 100))?;
+    let mut parts = index.search(query, category, limit.clamp(1, 100))?;
+    if let Some(pack) = PartsData::open(data)? {
+        for hit in &mut parts {
+            hit.colors_count = pack.part_colors(&index, &hit.id)?.map(|c| c.len() as u32);
+        }
+    }
     Ok(SearchResult {
         query: query.into(),
         parts,
@@ -67,22 +73,32 @@ pub struct PartInfo {
     pub part: Part,
     /// Connector summary; null until connectors arrive (3A), so an empty list always means "none".
     pub connectors: Option<Vec<String>>,
-    /// Colors the part was produced in; null until the parts data pack is installed (3B), so an empty list always
-    /// means "none".
+    /// LDraw codes of the colors the part was made in (the parts data pack); null without the pack or a Rebrickable
+    /// mapping, so an empty list always means "none".
     pub produced_colors: Option<Vec<u32>>,
-    /// Alternate and mold-variant ids; null until the parts data pack (3B).
+    /// Alternate and mold-variant part ids, as LDraw ids; null without the pack or a Rebrickable mapping.
     pub alternates: Option<Vec<String>>,
 }
 
 pub fn part_info(data: &DataDir, id: &str) -> Result<PartInfo> {
     let index = Index::ensure(data)?;
     match index.part(id)? {
-        Some(part) => Ok(PartInfo {
-            part,
-            connectors: None,
-            produced_colors: None,
-            alternates: None,
-        }),
+        Some(part) => {
+            let pack = PartsData::open(data)?;
+            let (produced_colors, alternates) = match &pack {
+                Some(p) => (
+                    p.part_colors(&index, &part.id)?.map(|c| c.into_iter().collect()),
+                    p.alternates(&index, &part.id)?,
+                ),
+                None => (None, None),
+            };
+            Ok(PartInfo {
+                part,
+                connectors: None,
+                produced_colors,
+                alternates,
+            })
+        }
         None => Err(unknown_part(&index, id)?),
     }
 }
@@ -122,17 +138,22 @@ pub struct ColorList {
     pub colors: Vec<Color>,
 }
 
-/// Every color, or with `part`, the colors that part was produced in (all colors until the parts data pack, 3B).
+/// Every color, or with `part`, the colors that part was made in. Without the parts data pack, or for a part with no
+/// Rebrickable mapping, `part` only checks the part exists and every color is listed.
 pub fn list_colors(data: &DataDir, part: Option<&str>) -> Result<ColorList> {
     let index = Index::ensure(data)?;
-    if let Some(id) = part
-        && index.part(id)?.is_none()
-    {
-        return Err(unknown_part(&index, id)?);
+    let pack = PartsData::open(data)?;
+    let mut colors = index.colors()?;
+    crate::parts_data::annotate_colors(pack.as_ref(), &mut colors)?;
+    if let Some(id) = part {
+        if index.part(id)?.is_none() {
+            return Err(unknown_part(&index, id)?);
+        }
+        if let Some(made) = pack.as_ref().map(|p| p.part_colors(&index, id)).transpose()?.flatten() {
+            colors.retain(|c| made.contains(&c.code));
+        }
     }
-    Ok(ColorList {
-        colors: index.colors()?,
-    })
+    Ok(ColorList { colors })
 }
 
 /// One parameter of the model's schema.
@@ -363,7 +384,8 @@ pub fn new_project(data: &DataDir, dir: &std::path::Path, template: crate::proje
 pub fn ensure_built(data: &DataDir, project: &Project) -> Result<()> {
     let manifest = read_json(&project.root.join("build/manifest.json"));
     let library = crate::library::require(data)?;
-    let current = project.inputs_hash(&BTreeMap::new(), &library.release)?;
+    let parts_data = crate::parts_data::version(data)?;
+    let current = project.inputs_hash(&BTreeMap::new(), &library.release, parts_data.as_deref())?;
     let fresh = project.root.join("build/placements.json").is_file()
         && manifest.as_ref().and_then(|m| m["inputs_hash"].as_str()) == Some(current.as_str());
     if !fresh {
@@ -474,20 +496,23 @@ pub fn validate_placements(
 ) -> Result<crate::check::Validation> {
     let index = Index::ensure(data)?;
     let lib = crate::ldraw::geometry::LibFiles::probe(&data.ldraw());
-    crate::check::validate(&index, &lib, placements, rules, options, inputs_hash)
+    let pack = PartsData::open(data)?;
+    crate::check::validate(&index, &lib, pack.as_ref(), placements, rules, options, inputs_hash)
 }
 
-/// The parts list of the project's current build (running the model first if build/ is stale); writes build/bom.json.
-pub fn bom(data: &DataDir, project: &Project) -> Result<crate::bom::Bom> {
+/// The parts list of the project's current build (running the model first if build/ is stale), with color names in
+/// `names`; writes build/bom.json.
+pub fn bom(data: &DataDir, project: &Project, names: crate::bom::ColorNames) -> Result<crate::bom::Bom> {
     ensure_built(data, project)?;
-    bom_build(data, project)
+    bom_build(data, project, names)
 }
 
 /// [`bom`] on build/ as it is, without running the model.
-pub fn bom_build(data: &DataDir, project: &Project) -> Result<crate::bom::Bom> {
+pub fn bom_build(data: &DataDir, project: &Project, names: crate::bom::ColorNames) -> Result<crate::bom::Bom> {
     let (placements, _) = built_placements(project)?;
     let index = Index::ensure(data)?;
-    let bom = crate::bom::bom(&index, &placements)?;
+    let pack = PartsData::open(data)?;
+    let bom = crate::bom::bom(&index, pack.as_ref(), &placements, names)?;
     let text = serde_json::to_string_pretty(&bom).expect("bom serializes") + "\n";
     crate::fsx::write_atomic(&project.root.join("build/bom.json"), text.as_bytes())?;
     Ok(bom)

@@ -1,0 +1,112 @@
+---
+source: tests/it/tests/bom.rs
+expression: "redact(v, &[(&dir, \"<project>\")])"
+---
+{
+  "data": {
+    "color_names": "ldraw",
+    "lines": [
+      {
+        "availability": {
+          "sets": 1,
+          "status": "available",
+          "years": [
+            2009,
+            2009
+          ]
+        },
+        "bricklink_color": 5,
+        "bricklink_id": "3001",
+        "color": 4,
+        "color_name": "Red",
+        "name": "Brick 2 x 4",
+        "part": "3001",
+        "qty": 2,
+        "rebrickable_color": 4,
+        "rebrickable_id": "3001",
+        "rebrickable_name": "Brick 2 x 4"
+      },
+      {
+        "availability": {
+          "sets": 0,
+          "status": "color_unavailable",
+          "years": null
+        },
+        "bricklink_color": 43,
+        "bricklink_id": "3001",
+        "color": 110,
+        "color_name": "Violet",
+        "name": "Brick 2 x 4",
+        "part": "3001",
+        "qty": 1,
+        "rebrickable_color": 110,
+        "rebrickable_id": "3001",
+        "rebrickable_name": "Brick 2 x 4"
+      },
+      {
+        "availability": {
+          "sets": 0,
+          "status": "available",
+          "years": null
+        },
+        "bricklink_color": 241,
+        "bricklink_id": "3023",
+        "color": 371,
+        "color_name": "Medium Tan",
+        "name": "~Moved to 3023b",
+        "part": "3023",
+        "qty": 1,
+        "rebrickable_color": 1089,
+        "rebrickable_id": "3023",
+        "rebrickable_name": "Plate 1 x 2"
+      },
+      {
+        "availability": {
+          "sets": null,
+          "status": "unknown",
+          "years": null
+        },
+        "bricklink_color": 1,
+        "bricklink_id": null,
+        "color": 15,
+        "color_name": "White",
+        "name": "Window 1 x 4 x 3",
+        "part": "3853",
+        "qty": 1,
+        "rebrickable_color": 15,
+        "rebrickable_id": null,
+        "rebrickable_name": null
+      },
+      {
+        "availability": {
+          "sets": 0,
+          "status": "available",
+          "years": null
+        },
+        "bricklink_color": 236,
+        "bricklink_id": "3958",
+        "color": 368,
+        "color_name": "Neon Yellow",
+        "name": "Plate 6 x 6",
+        "part": "3958",
+        "qty": 1,
+        "rebrickable_color": 1062,
+        "rebrickable_id": "3958",
+        "rebrickable_name": "Plate 6 x 6"
+      }
+    ],
+    "parts_data": "2026-10-24",
+    "totals": {
+      "lines": 5,
+      "parts": 4,
+      "pieces": 6
+    }
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "ms": "[ms]",
+    "project": "<project>"
+  },
+  "ok": true,
+  "warnings": []
+}

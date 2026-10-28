@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The validator (plan section 11, `docs/spec/validator.md`): the connection model (connectors, the pairs they seat,
-//! and the pairs that hold without them) and the rules over it, collisions by collision proxies, and unknown,
-//! obsolete, and alias parts. Findings carry stable ids, the parts' source lines, a position in the DSL frame, and a
+//! and the pairs that hold without them) and the rules over it, collisions by collision proxies, unknown, obsolete,
+//! and alias parts, and parts or colors never made (the parts data pack). Findings carry stable ids, the parts' source lines, a position in the DSL frame, and a
 //! hint, and go to `build/validation.json`.
 
+mod availability;
 mod boxes;
 mod collision;
 pub mod connectors;
@@ -24,6 +25,7 @@ use crate::envelope::Result;
 use crate::index::{Index, Part};
 use crate::ldraw::geometry::{Aabb, LibFiles, Measurer};
 use crate::ldraw::placements::Placement;
+use crate::parts_data::PartsData;
 use boxes::Obb;
 use connectors::{Connector, Scanner};
 
@@ -48,12 +50,14 @@ pub enum Rule {
     StepSize,
     WeakConnection,
     OffGrid,
+    PartUnavailable,
+    ColorUnavailable,
     ObsoletePart,
     AliasPart,
 }
 
 impl Rule {
-    pub const ALL: [Rule; 10] = [
+    pub const ALL: [Rule; 12] = [
         Rule::UnknownPart,
         Rule::Collision,
         Rule::Floating,
@@ -62,6 +66,8 @@ impl Rule {
         Rule::StepSize,
         Rule::WeakConnection,
         Rule::OffGrid,
+        Rule::PartUnavailable,
+        Rule::ColorUnavailable,
         Rule::ObsoletePart,
         Rule::AliasPart,
     ];
@@ -76,6 +82,8 @@ impl Rule {
             Rule::StepSize => "step_size",
             Rule::WeakConnection => "weak_connection",
             Rule::OffGrid => "off_grid",
+            Rule::PartUnavailable => "part_unavailable",
+            Rule::ColorUnavailable => "color_unavailable",
             Rule::ObsoletePart => "obsolete_part",
             Rule::AliasPart => "alias_part",
         }
@@ -96,7 +104,12 @@ impl Rule {
             Rule::UnknownPart | Rule::Collision | Rule::Floating | Rule::DisconnectedSubmodel | Rule::StepOrder => {
                 Severity::Error
             }
-            Rule::StepSize | Rule::WeakConnection | Rule::OffGrid | Rule::ObsoletePart => Severity::Warning,
+            Rule::StepSize
+            | Rule::WeakConnection
+            | Rule::OffGrid
+            | Rule::PartUnavailable
+            | Rule::ColorUnavailable
+            | Rule::ObsoletePart => Severity::Warning,
             Rule::AliasPart => Severity::Info,
         }
     }
@@ -326,11 +339,13 @@ fn prepare<'p>(index: &Index, lib: &LibFiles, placements: &'p [Placement]) -> Re
     })
 }
 
-/// Checks `placements` (the rows of build/placements.json) with the rules in `rules`, against the parts index and the
-/// library at `lib`.
+/// Checks `placements` (the rows of build/placements.json) with the rules in `rules`, against the parts index, the
+/// library at `lib`, and the parts data pack when there is one (without it, part_unavailable and color_unavailable
+/// find nothing).
 pub fn validate(
     index: &Index,
     lib: &LibFiles,
+    pack: Option<&PartsData>,
     placements: &[Placement],
     rules: &[Rule],
     options: &Options,
@@ -342,6 +357,11 @@ pub fn validate(
     let on = |r: Rule| rules.contains(&r);
     if on(Rule::UnknownPart) || on(Rule::ObsoletePart) || on(Rule::AliasPart) {
         raw.extend(part_rules(placed, rules));
+    }
+    if let Some(pack) = pack
+        && (on(Rule::PartUnavailable) || on(Rule::ColorUnavailable))
+    {
+        raw.extend(availability::findings(index, pack, placed, rules)?);
     }
     if on(Rule::Collision) {
         raw.extend(collision::collisions(&model));

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The color table from the library's `LDConfig.ldr`, and name lookup that takes an LDraw name in any spelling
 //! ("Light Bluish Gray", "Light_Bluish_Grey"), an abbreviation from `data/synonyms.toml` ("LBG"), or an LDraw code
-//! (plan section 08). Rebrickable and BrickLink names join with the parts data pack (3B).
+//! (plan section 08). Rebrickable and BrickLink names join from the parts data pack (`parts_data::annotate_colors`).
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -17,8 +17,12 @@ pub struct Color {
     pub edge_rgb: String,
     /// solid, transparent, chrome, pearlescent, metal, matte_metallic, rubber, glitter, speckle, or glow.
     pub finish: String,
-    /// Other names that resolve to this color: LDraw's own name, plus abbreviations from `data/synonyms.toml`.
+    /// Other names that resolve to this color: LDraw's own name, abbreviations from `data/synonyms.toml`, and with
+    /// the parts data pack, Rebrickable's and BrickLink's names.
     pub aliases: Vec<String>,
+    /// Whether any part was ever made in this color, by the parts data pack; omitted without one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub produced: Option<bool>,
 }
 
 /// The key a color name is looked up by: lowercase letters and digits only, with "grey" spelled "gray", so
@@ -80,6 +84,7 @@ pub fn parse_ldconfig(text: &str) -> Vec<Color> {
             edge_rgb: field("EDGE").unwrap_or("#000000").to_uppercase(),
             finish,
             aliases: vec![raw_name.to_string()],
+            produced: None,
         });
     }
     out

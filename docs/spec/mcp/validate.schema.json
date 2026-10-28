@@ -1,6 +1,6 @@
 {
   "name": "validate",
-  "description": "Check the model: collisions, floating parts, submodels placed off the model, build steps (order and size),\nweak spans, parts a little off the grid, and unknown or obsolete parts. Runs the model first if build/ is out\nof date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed them,\nand a hint that says what to change.",
+  "description": "Check the model: collisions, floating parts, submodels placed off the model, build steps (order and size),\nweak spans, parts a little off the grid, parts or colors never made, and unknown or obsolete parts. Runs the model first if build/ is out\nof date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed them,\nand a hint that says what to change.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
@@ -15,7 +15,7 @@
       },
       "rules": {
         "default": null,
-        "description": "Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,\nweak_connection, off_grid, unknown_part, obsolete_part, alias_part.",
+        "description": "Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,\nweak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part.",
         "items": {
           "type": "string"
         },
@@ -311,6 +311,8 @@
           "step_size",
           "weak_connection",
           "off_grid",
+          "part_unavailable",
+          "color_unavailable",
           "obsolete_part",
           "alias_part"
         ],

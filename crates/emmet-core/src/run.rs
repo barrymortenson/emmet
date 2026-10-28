@@ -134,12 +134,13 @@ fn run_inner(
         "params.json and --params"
     };
     params.extend(overrides.clone());
-    let hash = project.inputs_hash(overrides, &library.release)?;
+    let parts_data = crate::parts_data::version(data)?;
+    let hash = project.inputs_hash(overrides, &library.release, parts_data.as_deref())?;
     meta.inputs_hash = Some(hash.clone());
     let generation = project.next_generation()?;
     meta.generation = Some(generation);
     let build = project.build_dir()?;
-    write_colors(&index, &build)?;
+    write_colors(data, &index, &build)?;
 
     let geometry_path = build.join("part-geometry.json");
     let mut geometry = read_geometry(&geometry_path);
@@ -148,7 +149,7 @@ fn run_inner(
         "inputs_hash": hash,
         "emmet": crate::version(),
         "library": library.release,
-        "parts_data": null,
+        "parts_data": parts_data,
         "generation": generation,
     });
     // Each pass that meets parts it has no geometry for reports them all; a pass can only add parts, so this ends
@@ -237,7 +238,7 @@ pub fn schema(data: &DataDir, project: &Project, overrides: &BTreeMap<String, Va
     let index = Index::ensure(data)?;
     let python = crate::python::ensure(data)?;
     let build = project.build_dir()?;
-    write_colors(&index, &build)?;
+    write_colors(data, &index, &build)?;
     let mut params = project.params()?;
     let source = if overrides.is_empty() {
         "params.json"
@@ -261,8 +262,9 @@ pub fn schema(data: &DataDir, project: &Project, overrides: &BTreeMap<String, Va
     }
 }
 
-fn write_colors(index: &Index, build: &Path) -> Result<()> {
-    let colors = index.colors()?;
+fn write_colors(data: &DataDir, index: &Index, build: &Path) -> Result<()> {
+    let mut colors = index.colors()?;
+    crate::parts_data::annotate_colors(crate::parts_data::PartsData::open(data)?.as_ref(), &mut colors)?;
     let text = serde_json::to_string_pretty(&json!({ "colors": colors })).expect("json") + "\n";
     let path = build.join("colors.json");
     if std::fs::read_to_string(&path).ok().as_deref() != Some(text.as_str()) {
