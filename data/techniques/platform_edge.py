@@ -24,7 +24,7 @@ def build(
 
 
 def example(m):
-    """A short platform: a deck of plates on two courses of bricks, with its edge."""
+    """A short platform: a deck of plates on a course of bricks at the front and back, with its edge."""
     with m.step("Platform walls"):
         m.row(Brick, "Light Bluish Gray", at=(0, 0, 0), length=12)
         m.row(Brick, "Light Bluish Gray", at=(0, 3, 0), length=12)

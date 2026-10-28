@@ -44,8 +44,8 @@ A brick model built from LDraw parts in the DSL frame: x right and y back in stu
 ### Model.step(title: str)
 
 Everything added inside is one build step (LDraw `0 STEP`). A step opened inside another is titled
-"<outer>: <inner>" (unless the inner title already starts with the outer one), so a technique's own steps
-group under the step that uses it.
+"<outer>: <inner>" ("<outer>, <inner>" when the outer title has a colon; just the inner title when it already
+starts with the outer one), so a technique's own steps group under the step that uses it.
 
 ### Model.add(part: str, color, at=(0, 0, 0), rot: int | Rot = 0, id: str | None = None) -> Handle
 
@@ -58,8 +58,8 @@ a stable name; by default "<step>/<n>".
 ### Model.add_raw(part: str, color, matrix, id: str | None = None) -> Handle
 
 The escape hatch: places a part by an LDraw transform, in LDU in LDraw's frame (−Y up), as the 12 numbers
-of an LDraw line: x y z a b c d e f g h i. Use it only for what `add` can't place (a curve of track at
-22.5°, a part at an angle).
+of an LDraw line: x y z a b c d e f g h i. Use it for a part placed by its LDraw origin rather than its
+footprint, such as track at 22.5°, whose ends have to meet exactly.
 
 ### Model.stack(part: str, color, at=(0, 0, 0), count: int = 1, rot: int | Rot = 0, id: str | None = None)
 
@@ -88,7 +88,8 @@ side, the longest pieces first, and a 1-wide strip when the short side is odd. R
 Brick walls, a row at a time from z up. With depth, the four walls of a length × depth rectangle whose
 front-left corner is (x, y), with interlocking corners; without it, one straight wall along x. sides: "all",
 or some of "front", "back", "left", "right", and "sides" (left and right), to build a wall at a time. bond:
-"running" (joints staggered row to row) or "stacked". openings: (x, y) cells left empty, for doors and
+"running" (joints staggered row to row, for a straight wall; a rectangle's corners stagger it anyway) or
+"stacked". openings: (x, y) cells left empty, for doors and
 windows. kind: the piece family (Brick by default). sizes: the piece lengths to use. Returns the Handles.
 
 ### Model.repeat(fn, n: int, dx: float = 0, dy: float = 0, dz: float = 0) -> list
@@ -99,8 +100,9 @@ call returned. Give parts placed with an id the index (id=f"lamp/{i}"), so each 
 ### Model.mirror(axis: str, about: float)
 
 Everything placed inside is placed twice: as written, and mirrored across the plane x = about (axis "x")
-or y = about (axis "y"), in the model's frame. A mirrored part turns to face the other way; its id gets
-"/mirror-x" (or "-y"). Parts are turned, not reflected, so a left-handed part stays left-handed.
+or y = about (axis "y"), moved with Model.repeat like any position. A mirrored part turns to face the other way;
+its id gets
+"-mirror-x" (or "-y"). Parts are turned, not reflected, so a left-handed part stays left-handed.
 
 ### Model.submodel(name: str, fn, **params) -> Submodel
 

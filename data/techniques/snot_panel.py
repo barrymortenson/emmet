@@ -5,7 +5,7 @@ m.use("snot_panel", x, y, z, length, height=1, facing="front", color="Light Blui
 title="Panel") builds a wall one stud thick and `length` studs long from (x, y), starting at z (on the ground or a
 wall below), and covers its outer face with smooth tiles standing on edge: `height` rows of tiles, each 2 studs tall
 (5 plates). Each row is two courses of plates and a course of bricks, in which a brick 1 x 1 with a stud on one side
-(87087) sits under each end of each tile, its stud pointing out; the tiles (2 x 4, 2 x 2, and a 1 x 2 for an odd
+(87087) sits behind each end of each tile, its stud pointing out; the tiles (2 x 4, 2 x 2, and a 1 x 2 for an odd
 length) hang on those studs, their tops flush with the bricks'. facing is the side the tiles face, which also sets the
 wall's direction: "front" (−y) and "back" (+y) walls run along x, "left" (−x) and "right" (+x) ones along y. Build on
 it at the z it returns; the tiles stand out 0.4 studs (one plate) from the wall. It brings its own steps, a course at

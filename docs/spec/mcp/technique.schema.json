@@ -173,7 +173,7 @@
             "type": "string"
           },
           "parts": {
-            "description": "The LDraw ids of the parts it uses.",
+            "description": "The LDraw ids of the parts it uses (part helpers in it may pick other sizes for other arguments).",
             "items": {
               "type": "string"
             },

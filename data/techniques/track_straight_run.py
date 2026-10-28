@@ -4,7 +4,8 @@
 m.use("track_straight_run", at=(x, y, z), heading=0, count=1, color="Dark Bluish Gray", title="Track") lays `count`
 straights from a pose: (x, y) the track's center line where the run starts, in studs; z the track's bottom, in plates
 (0 on the table, 0.5 on a baseplate); heading the way it runs, in degrees counterclockwise from +x seen from above
-(0 runs along +x, 90 along +y). `at` may also be a whole pose, (x, y, z, heading), as every track technique returns.
+(0 runs along +x, 90 along +y; 0 when left out). `at` may also be a whole pose, (x, y, z, heading), as every track technique
+returns; then heading is ignored.
 
 It returns the pose where the run ends, which the next piece's `at` takes as it is: another run, a track_curve, or a
 track_switch. Track is 8 studs wide (4 each side of the center line) and 3 plates tall, and stands on the table or a

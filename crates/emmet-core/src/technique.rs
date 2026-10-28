@@ -26,7 +26,7 @@ pub struct Technique {
     pub doc: String,
     /// The body of its example: model code that uses it.
     pub snippet: String,
-    /// The LDraw ids of the parts it uses.
+    /// The LDraw ids of the parts it uses (part helpers in it may pick other sizes for other arguments).
     pub parts: Vec<String>,
 }
 

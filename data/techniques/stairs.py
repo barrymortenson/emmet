@@ -6,8 +6,8 @@ tread_color=None, title="Stairs") builds `steps` steps over the rectangle whose 
 studs across and steps × tread studs along the axis you climb. toward ("+x", "-x", "+y", or "-y") is the way up.
 Each step rises `rise` plates (3 is a brick) and is `tread` studs deep. It stands on the studs at height z (a
 baseplate, a floor of plates, the top of a wall) and builds as a stepped block, a layer per step, each layer one tread
-shorter than the one under it, bricks and then plates, with the strips across the stairs alternating 2 and 1 studs
-wide from course to course so the layers interlock. A tile on each tread leaves it smooth, with the tread's top at
+shorter than the one under it, bricks and then plates, with the strips across the stairs, at widths of 3 or more,
+alternating 2 and 1 studs wide from course to course so the layers interlock. A tile on each tread leaves it smooth, with the tread's top at
 exactly z + rise × (step number): the first layer is a plate lower to make room for its tile. It brings its own steps,
 a layer at a time, titled "<title>, step 1" and so on, and returns the z of the top tread, z + rise × steps.
 """

@@ -8,7 +8,7 @@ long along the axis ("x" or "y") from (x, y), `rows` bricks tall (3 plates each)
 with an opening `opening` studs wide (2 or 4) starting `offset` studs from the wall's start (by default in the
 middle; at least 2 studs of wall on each side). The opening's sides rise `opening_rows` rows; then the arch spans it,
 its feet on the wall a stud to each side: Arch 1 x 4 (3659, a brick tall) over 2, Arch 1 x 6 x 2 (3307, two bricks)
-over 4, or with curved=True two Arch 1 x 3 x 2 with Curved Top (6005) meeting in the middle with a Plate 1 x 2 on
+over 4, or with curved=True (opening=4 only) two Arch 1 x 3 x 2 with Curved Top (6005) meeting in the middle with a Plate 1 x 2 on
 their tabs as a keystone (the curves leave a small open corner over each foot, as they do in real builds). The row over the arch starts with a lintel, a brick 1 x 6 (or 1 x 8) over the arch and a
 stud of wall each side, that ties it into the wall; rows (opening_rows + the arch's rows + 1 by default, the
 fewest) can add more wall above. The courses are a running bond, every other row starting with a shorter brick. It

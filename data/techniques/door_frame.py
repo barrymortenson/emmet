@@ -3,11 +3,11 @@
 
 m.use("door_frame", x, y, z, length, rows, offset, sill=0, facing="front", color="Tan", frame_color="White",
 door_color="Reddish Brown", title="Wall") builds a wall one stud thick and `length` studs long from (x, y), `rows`
-bricks tall from z (6 or more), with a door 1 x 4 x 6 (a frame 4 studs wide and 6 bricks tall, and its door, closed)
+bricks tall from z (at least sill + 6), with a door 1 x 4 x 6 (a frame 4 studs wide and 6 bricks tall, and its door, closed)
 `offset` studs from the wall's start, its bottom `sill` rows up: 0 on the ground floor. facing is the side the door
 opens out of, which also sets the wall's direction: "front" (−y) and "back" (+y) walls run along x, "left" (−x) and
 "right" (+x) ones along y. The bricks go around the door in a running bond, and the row above it, if any, bridges its
-top. The door in its frame is a submodel (the frame, then the door), placed in the step of the row it stands on. It
+top. The door in its frame is a submodel (the frame, then the door), placed in the step of its own bottom row (row sill + 1). It
 brings its own steps, a row at a time, titled "<title>, row 1" and so on, and returns the z of the wall's top.
 """
 

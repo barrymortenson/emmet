@@ -9,7 +9,7 @@ top. pattern: "plain" tiles in `color`, laid in strips across the plates' strips
 "checker", squares of `cell` studs (1 or 2) alternating `color` and color2, the front-left one in `color` (a square at
 an odd edge is cut to 1 stud); or "border", a 1-stud border in color2 around plain tiles in `color`. color2 defaults to
 White. It brings its own steps, "<title>, plates" and "<title>, tiles" (split into parts of up to 8), the back rows
-first, and returns the z of the floor's top, z + 2.
+first for strips along x (left to right for strips along y), and returns the z of the floor's top, z + 2.
 """
 
 from emmet_dsl import Plate, Tile

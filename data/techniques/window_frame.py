@@ -6,8 +6,8 @@ frame_color="White", glass_color="Trans-Clear", title="Wall") builds a wall one 
 from (x, y), `rows` bricks tall from z (on the ground or a wall below), with a window `offset` studs from the wall's
 start, its bottom `sill` rows up. window is "1x2x2" (2 studs wide, 2 bricks tall) or "1x2x3" (2 wide, 3 tall). facing is the side the window looks out of, which also sets the wall's direction: "front"
 (−y) and "back" (+y) walls run along x, "left" (−x) and "right" (+x) ones along y. The bricks go around the window in
-a running bond, and the row above it bridges its top. The window is a submodel (the frame, then its glass), placed
-in the step of the row it stands on. It brings its own steps, a row at a time, titled "<title>, row 1" and so on, and
+a running bond, and the row above it, if any, bridges its top. The window is a submodel (the frame, then its glass), placed
+in the step of its own bottom row (row sill + 1). It brings its own steps, a row at a time, titled "<title>, row 1" and so on, and
 returns the z of the wall's top.
 """
 

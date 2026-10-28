@@ -2,8 +2,8 @@
 """Gable roof: two sides of 45° slopes that meet at a ridge, over a rectangle of any length.
 
 m.use("gable_roof", x, y, z, length, depth, color="Dark Red", title="Roof") covers the length × depth rectangle
-whose front-left corner is (x, y), starting at height z: the top of the walls, with a layer of plates (a ceiling)
-under the whole rectangle for the first course to stand on. The slopes run along x and face the front and the back;
+whose front-left corner is (x, y), starting at height z: the top of a layer of plates (a ceiling) you lay over the
+whole rectangle first, for the first course to stand on; the technique doesn't lay it. The slopes run along x and face the front and the back;
 each course steps in one stud on both sides, with bricks behind the slopes, until a ridge of double slopes closes it.
 depth must be even (4 or more). It brings its own steps, a side of a course at a time, titled "<title>, course 1:
 front" and so on, and returns the z of the ridge's top.

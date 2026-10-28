@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Track curve: plastic train track curves (53400, radius 40 studs, 22.5° each), turning left or right.
 
-m.use("track_curve", at=pose, count=1, turn="left", color="Dark Bluish Gray", title="Track") lays `count` curves
+m.use("track_curve", at=pose, heading=None, count=1, turn="left", color="Dark Bluish Gray", title="Track") lays `count` curves
 from a pose, (x, y, z, heading) as track_straight_run takes and returns it: 4 curves make a quarter turn, 8 a half,
 16 a full circle 80 studs across the center line. turn is "left" (counterclockwise seen from above) or "right".
 

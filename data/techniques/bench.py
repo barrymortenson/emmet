@@ -27,7 +27,7 @@ def build(m, at, rot=0, color="Reddish Brown", legs="Dark Bluish Gray", id=None)
 
 
 def example(m):
-    """Two benches back to back on a plate."""
+    """Two benches facing each other on a plate."""
     with m.step("Plate"):
         m.add("3031", "Light Bluish Gray", at=(0, 0, 0))
     with m.step("Benches"):

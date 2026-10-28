@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Track switch: a 9V switch point (75541 right, 75542 left), which joins plastic track, with a straight way through
+"""Track switch: a 9V switch point (75541-f1 right, 75542-f1 left), which joins plastic track, with a straight way through
 and a branch.
 
-m.use("track_switch", at=pose, side="right", color="Dark Bluish Gray", title="Track") lays one switch from a pose,
+m.use("track_switch", at=pose, heading=None, side="right", color="Dark Bluish Gray", title="Track") lays one switch from a pose,
 (x, y, z, heading) as track_straight_run takes and returns it. Its straight way is 32 studs long, as two straights;
 its branch leaves to the `side` ("right" or "left" of the way it runs) at 22.5°.
 

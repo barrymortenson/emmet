@@ -7,7 +7,7 @@ depth rectangle whose front-left corner is (x, y), on walls whose top is at z. C
 handle (the bar) of a plate 1 x 2 with a handle (2540) along the bottom edge of a panel. A panel is a layer of plates
 under a layer of tiles, one stud longer than the walls (half a stud over each end, which centers each handle on its
 clip), built flat as a submodel and placed turned up about its hinge. The angle is worked out so the front panel's
-edge meets the underside of the back one, which is a row wider and covers the ridge: 45° to 55° for most depths
+edge meets the underside of the back one, which is a row or more wider and covers the ridge: 45° to 55° for most depths
 (49.5° for 8; 38.6° for 6). The clips hold the panels at that angle, and the panels brace each other at the ridge.
 (The hinge plates 1 x 4, 2429 and 2430, turn about an upright pin, flat: they angle walls, not roofs.)
 The clips reach a stud into the room and a quarter plate below the walls' top, so keep a ceiling clear of that strip.

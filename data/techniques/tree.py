@@ -5,10 +5,10 @@ m.use("tree", x, y, z, size="medium", trunk_color="Reddish Brown", leaves_color=
 on the studs at height z, its trunk on the stud at (x, y): a 1 × 1 trunk covering x to x + 1 and y to y + 1, or, for
 size="large", a 2 × 2 trunk covering x to x + 2 and y to y + 2. The leaves spread about 3.5 studs around the trunk,
 so keep that much clear of walls. size: "small" (a round brick 1 x 1, two layers of Plant Leaves 4 x 3, and a plant
-with three large leaves on top: 12 plates tall), "medium" (two round bricks and four layers: 17 plates), or "large"
-(two round bricks 2 x 2, jumper plates that bring a single stud to the middle, a round brick 1 x 1, and six layers:
-27 plates). Each layer of leaves (2423) sits on the open stud of the one under it, turned a quarter turn further, so
-they spiral around the trunk. It's a submodel (one file in the .mpd, however many trees use it) with its own steps,
+with three large leaves on top: about 10½ plates tall), "medium" (two round bricks and four layers: about 15½), or
+"large" (two round bricks 2 x 2, jumper plates that bring a single stud to the middle, a round brick 1 x 1, and six
+layers: about 22½). Each layer of leaves (2423) sits on the open stud of the one under it, turned a quarter turn further, so
+they spiral around the trunk. It's a submodel (one file in the .mpd for each size and colors, however many trees use it) with its own steps,
 "<title>, trunk" and "<title>, leaves", placed in a step titled "<title>"; it returns the placed copy's Handle,
 whose .max[2] is the top of the tree.
 """

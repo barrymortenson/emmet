@@ -120,8 +120,9 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - emmet_dsl v1 (session 3B, `docs/spec/dsl.md`): `m.wall`, `m.row`, `m.grid`, `m.stack`, `m.fill`, `m.repeat`,
   `m.mirror`, submodels built once and placed many times (`m.submodel`, `m.place`: one `0 FILE` each, ids prefixed by
   the copy, every copy counted), `m.use` with the technique library, `m.allow`, `m.ground`, `import_ldraw`, `Rot` and
-  `m.add_raw` for any angle, and the part helpers `Brick`, `Plate`, `Tile`, and `Slope`. Color params take only
-  colors parts were made in. `emmet params --write-default` rewrites one default in model.py and nothing else.
+  `m.add_raw` for any angle, and the part helpers `Brick`, `Plate`, `Tile`, and `Slope`. With the parts data pack,
+  Color params take only colors parts were made in. `emmet params --write-default` rewrites one default in model.py
+  and nothing else.
 - Steps v1: `build/steps.json` with each step's parts box and sub-assemblies ("× 4"), a layer-a-step fallback for
   parts outside any step, `emmet steps`, and the MCP `steps` tool. The cottage's door and windows are sub-assemblies,
   and every template has a baseplate switch.

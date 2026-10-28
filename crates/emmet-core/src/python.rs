@@ -45,7 +45,7 @@ macro_rules! technique_files {
 }
 
 /// The technique library (data/techniques/, plan section 08), installed as `emmet_dsl.techniques`, so `m.use(name)`
-/// imports it. `tests/it/tests/python.rs` checks this list against the folder.
+/// imports it. `tests/it/tests/techniques.rs` checks this list against the folder.
 pub const TECHNIQUES: &[(&str, &str)] = technique_files![
     "baseplate_road",
     "bench",

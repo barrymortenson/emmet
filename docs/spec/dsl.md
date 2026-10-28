@@ -55,7 +55,7 @@ def street(
   in its own file) faces +x at `rot=0`, −y at `rot=3`, −x at `rot=2`, and +y at `rot=1`. `rot=Rot(x=…, y=…, z=…)`
   turns it by any angles in degrees about the DSL axes, x first, then y, then z; footprint placement still applies.
 - **The escape hatch.** `m.add_raw(part, color, matrix)` places a part by the 12 numbers of an LDraw line (x y z
-  a b c d e f g h i, in LDU in LDraw's frame), for what `add` can't place: track at 22.5°, a part at an angle.
+  a b c d e f g h i, in LDU in LDraw's frame), for a part placed by its LDraw origin rather than its footprint, such as track at 22.5°, whose ends have to meet exactly.
 
 ## API
 
@@ -65,14 +65,14 @@ def street(
 | `Model()` | An empty model. |
 | `m.add(part, color, at=(0, 0, 0), rot=0, id=None)` | Places one part and returns a `Handle` (`.id`, `.min`, `.max`: the box it covers). `part` is an LDraw id (`"3001"`, `"3001.dat"`, any case) or a part helper. `color` is a name or an LDraw code. Without `id`, the id is `<step slug>/<n>`, numbered per slug across the model, so steps that share a title still get distinct ids. An `id` given twice is an error. The call's file and line are recorded. |
 | `m.add_raw(part, color, matrix, id=None)` | The escape hatch above. |
-| `with m.step(title):` | Everything added inside is one build step (`0 STEP`). A step opened inside another is titled "outer: inner" (unless the inner title already starts with the outer one), so a technique's own steps group under the step that uses it; parts added to the outer step after the inner one closes go in a step after it. Steps with no parts are left out. |
+| `with m.step(title):` | Everything added inside is one build step (`0 STEP`). A step opened inside another is titled "outer: inner" ("outer, inner" when the outer title already has a colon, and just the inner title when it already starts with the outer one), so a technique's own steps group under the step that uses it; parts added to the outer step after the inner one closes go in a step after it. Steps with no parts are left out. |
 | `m.stack(part, color, at, count, rot=0, id=None)` | `count` copies straight up, each on the one before: a column, a chimney. |
 | `m.grid(part, color, at, nx, ny, rot=0, id=None)` | nx × ny copies side by side. |
 | `m.row(kind, color, at, length, axis="x", width=1, first=None, sizes=None, id=None)` | A run of `length` studs along `axis` in the longest pieces of a family (`Brick`, `Plate`, `Tile`), `width` studs across; `first` sets the first piece (for a running bond), `sizes` limits the lengths. |
 | `m.fill(kind, color, at, size=(x, y), id=None)` | Covers a rectangle with plates or tiles: 2-wide strips along its long side, the longest pieces first. |
-| `m.wall(x, y, z, length, depth=0, color, sides="all", rows=1, bond="running", openings=(), kind=Brick, sizes=None)` | Brick walls a course at a time. With `depth`, the four walls of a rectangle with interlocking corners (the front and back own the corners on even courses, the sides on odd ones); without it, one straight wall along x, its joints staggered row to row. `sides` builds a wall at a time ("front", "back", "left", "right", "sides"); `openings` are (x, y) cells left empty. |
+| `m.wall(x, y, z, length, depth=0, color, sides="all", rows=1, bond="running", openings=(), kind=Brick, sizes=None)` | Brick walls a course at a time. With `depth`, the four walls of a rectangle with interlocking corners (the front and back own the corners on even courses, the sides on odd ones); without it, one straight wall along x, its joints staggered row to row. `sides` builds a wall at a time ("front", "back", "left", "right", "sides"); `openings` are (x, y) cells left empty. `bond` applies to a straight wall; a rectangle's courses alternate at the corners whatever the bond. |
 | `m.repeat(fn, n, dx=0, dy=0, dz=0)` | Calls `fn(i)` (or `fn()`) for i in 0 … n−1 with every position it places moved by (i·dx, i·dy, i·dz). |
-| `with m.mirror(axis, about):` | Everything placed inside is placed again across the plane x = about (or y = about), turned to face the other way, with "/mirror-x" (or "-y") on its id. Parts are turned, not reflected: a left-handed part stays left-handed. |
+| `with m.mirror(axis, about):` | Everything placed inside is placed again across the plane x = about (or y = about), moved with `m.repeat` like any position, and turned to face the other way, with "-mirror-x" (or "-y") on its id. Parts are turned, not reflected: a left-handed part stays left-handed. |
 | `sub = m.submodel(name, fn, **params)` | A unit built once by `fn(m, **params)` on its own Model, with its own steps. The same name, function, and params return the same submodel. |
 | `m.place(sub, at, rot=0, id=None)` | Places a copy by the footprint of its parts' box. The copy's id is by default `<name slug>/<n>`; its parts' ids are `<copy id>/<part id>` (towers/2/wall/3). |
 | `m.use(technique, **kw)` | Applies a technique from the library and returns what it returns (below). |
@@ -118,12 +118,12 @@ and the step that places its copies shows it as one sub-assembly "× n".
 `emmet_dsl.techniques`). Each is a module with a doc, its `PARTS`, `build(m, …)`, and `example(m)`, which builds it
 on its own; `emmet technique` lists them, and `emmet technique <name>` gives the doc, the example, and the parts.
 Each has a render (`data/techniques/<name>.png`, from `scripts/render-techniques`) and a test that its example
-validates with no findings (`tests/it/tests/techniques.rs`). A technique brings its own small steps, titled after
-its `title` argument. The library (v0): gable_roof, hip_roof, hinge_roof, snot_panel, jumper_offset, window_frame,
+validates with no findings (`tests/it/tests/techniques.rs`). Most techniques bring their own small steps, titled
+after their `title` argument; bench, lamp_post, and tree are sub-assemblies, placed in the step you call them in. The library (v0): gable_roof, hip_roof, hinge_roof, snot_panel, jumper_offset, window_frame,
 door_frame, stairs, fence, tree, bench, lamp_post, platform_edge, canopy, track_straight_run, track_curve,
-track_switch, baseplate_road, brick_built_arch, tiled_floor. The track techniques take and return a pose,
-`(x, y, z, heading)`: where the track's center line ends and the way it runs, so `p = m.use("track_curve", at=p, …)`
-chains pieces and a loop closes exactly.
+track_switch, baseplate_road, brick_built_arch, tiled_floor. The track techniques take a pose and return
+one, `(x, y, z, heading)`: where the track's center line ends and the way it runs (track_switch returns one for each
+way, `{"straight", "branch"}`), so `p = m.use("track_curve", at=p, …)` chains pieces and a loop closes exactly.
 
 ## Parameters
 

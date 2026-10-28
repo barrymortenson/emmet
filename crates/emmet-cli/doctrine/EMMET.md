@@ -48,7 +48,8 @@ your reply instead of running them.
 - Call `technique` before you build something common: a roof (gable_roof, hip_roof, hinge_roof), a window or a door
   in a wall, stairs, a fence, a tree, a bench, a lamp post, a platform edge, a canopy, track (track_straight_run,
   track_curve, track_switch), a road, an arch, a tiled floor, studs on the side (snot_panel), a half-stud offset
-  (jumper_offset). `m.use(name, …)` applies one, with its own steps, and validates clean as the library tests it.
+  (jumper_offset). `m.use(name, …)` applies one, with its own steps; its example validates clean in the library's tests, and
+  you validate your use of it like anything else.
 - Let the helpers do the counting: `m.wall` for walls with openings and interlocking corners, `m.row` and `m.fill`
   for runs and floors of the longest pieces, `m.stack`, `m.grid`, `m.repeat`, and `m.mirror`. `Brick(2, 4)`,
   `Plate(1, 6)`, `Tile(2, 2)`, and `Slope(45, 2, 1)` name plain parts by size.

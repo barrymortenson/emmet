@@ -2,8 +2,8 @@
 """Hip roof: 45° slopes on all four sides, with corner slopes, rising to a short ridge (or a point on a square).
 
 m.use("hip_roof", x, y, z, length, depth, color="Dark Bluish Gray", title="Roof") covers the length × depth rectangle
-whose front-left corner is (x, y), starting at height z: the top of the walls, with a layer of plates (a ceiling)
-under the whole rectangle for the first course to stand on. Each course is a ring a brick tall that steps in one
+whose front-left corner is (x, y), starting at height z: the top of a layer of plates (a ceiling) you lay over the
+whole rectangle first, for the first course to stand on; the technique doesn't lay it. Each course is a ring a brick tall that steps in one
 stud on every side: a double convex corner slope (2 x 2) at each corner, plain slopes between them, and, while the
 roof is still wide, a band of bricks inside for the next ring to stand on. The top course is a ridge of double slopes
 along the longer side, ended by triple slopes (1 x 2); on a square it's two triple slopes back to back. The shorter
