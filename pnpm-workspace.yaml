@@ -11,6 +11,12 @@ allowBuilds:
   esbuild: false
   geckodriver: false
 
+# Security fixes in the WebdriverIO dev tree (Dependabot), past the ranges its packages ask for: mocha 10 takes
+# serialize-javascript 6 and get-uri takes basic-ftp 5. Drop these once WebdriverIO moves up.
+overrides:
+  basic-ftp@<6.2.1: 6.2.3
+  serialize-javascript@<7.1.3: 7.1.4
+
 catalog:
   "@wdio/cli": 9.32.0
   "@wdio/globals": 9.31.3
