@@ -43,12 +43,30 @@ describe("checks", () => {
     await expect($("#chat-error")).toHaveText(expect.stringContaining("Start a chat with an agent first"));
   });
 
-  it("the Parts drawer lists part, color, and quantity", async () => {
+  it("the Parts drawer lists part, color, quantity, and availability", async () => {
     await $("#tab-parts").click();
     await expect($("#parts-total")).toHaveText(expect.stringContaining("3 pieces"));
     const rows = await $$(".bom tbody tr");
     expect(rows.length).toBe(3);
+    // No parts data pack in the E2E data dir: availability is Unknown, never "Not made" (3B), and with no Rebrickable
+    // data shown there's no credit line. tests/it/tests/parts_data.rs covers a pack.
+    await expect($(".bom thead")).toHaveText(expect.stringContaining("Availability"));
+    for (const row of rows) await expect(row.$("td:last-child")).toHaveText("Unknown");
+    expect(await (await $("#parts-credit")).isExisting()).toBe(false);
+    await screenshots("parts-list");
     await $("#tab-checks").click();
+  });
+
+  it("Settings → Data says what the parts data is and credits Rebrickable", async () => {
+    await $("#settings-button").click();
+    await expect($("#parts-data-status")).toHaveText("No parts data yet: availability shows as Unknown.");
+    await expect($("dialog.settings[open]")).toHaveText(
+      expect.stringContaining("Part, color, and set data from Rebrickable (rebrickable.com)"),
+    );
+    await expect($("#color-names")).toBeEnabled();
+    await screenshots("settings-data");
+    await browser.keys("Escape");
+    await browser.waitUntil(async () => !(await (await $("dialog.settings[open]")).isExisting()));
   });
 
   it("fixing the model clears the finding and its highlight", async () => {
