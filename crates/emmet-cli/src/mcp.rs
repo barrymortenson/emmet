@@ -58,6 +58,13 @@ pub struct RunArgs {
 pub struct NoArgs {}
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct TechniqueArgs {
+    /// A technique's name, like "gable_roof"; leave it out for the list.
+    #[serde(default)]
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct SetParamsArgs {
     /// Parameter values to keep in params.json. A value equal to its default is dropped from the file.
     pub values: BTreeMap<String, Value>,
@@ -522,6 +529,46 @@ impl EmmetMcp {
         CallToolResult::success(vec![ContentBlock::text(API)])
     }
 
+    /// The build steps, like an instruction book: each step's title, the ids of the parts it adds, its parts box
+    /// (part, color, count), and the sub-assemblies it puts on; then each sub-assembly's own steps and how many copies
+    /// the model has. Runs the model first if build/ is out of date.
+    #[tool(output_schema = schema_for_output::<Envelope<emmet_core::steps::Steps>>())]
+    async fn steps(&self, Parameters(_): Parameters<NoArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let (data, me) = (self.data.clone(), self.clone());
+        let (out, root) = blocking(
+            move || with_project(&me, |p| emmet_core::steps::steps(&data, p)),
+            |e| (Err(e), None),
+        )
+        .await;
+        result(started, out, RunMeta::default(), root, |s| {
+            let titles: Vec<String> = s
+                .steps
+                .iter()
+                .map(|st| {
+                    let title = if st.title.is_empty() {
+                        "(untitled)"
+                    } else {
+                        st.title.as_str()
+                    };
+                    let n: usize = st.parts.iter().map(|b| b.count).sum::<usize>()
+                        + st.submodels.iter().map(|m| m.count).sum::<usize>();
+                    format!("{}. {title} ({n})", st.n)
+                })
+                .collect();
+            format!("{}.\n{}", emmet_core::steps::summary(s), titles.join("\n"))
+        })
+    }
+
+    /// The technique library: proven building blocks (gable roof, SNOT panel, window frame, track curve, …) that
+    /// `m.use(name, …)` applies. With no name, the list; with a name, its doc, an example to copy, and its parts.
+    #[tool(output_schema = schema_for_output::<Envelope<emmet_core::technique::Techniques>>())]
+    async fn technique(&self, Parameters(args): Parameters<TechniqueArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let out = emmet_core::technique::techniques(args.name.as_deref());
+        result(started, out, RunMeta::default(), None, technique_text)
+    }
+
     /// LDraw colors: code, name, RGB, finish, and other accepted spellings.
     #[tool(output_schema = schema_for_output::<Envelope<ColorList>>())]
     async fn list_colors(&self, Parameters(args): Parameters<ColorsArgs>) -> CallToolResult {
@@ -537,6 +584,24 @@ impl EmmetMcp {
                 .collect();
             format!("{} colors. Solid: {}.", r.colors.len(), solid.join(", "))
         })
+    }
+}
+
+/// The list, one technique a line; or one technique's doc and example.
+pub fn technique_text(t: &emmet_core::technique::Techniques) -> String {
+    match &t.technique {
+        Some(one) => format!(
+            "{}\n\nExample:\n{}\n\nParts: {}",
+            one.doc,
+            one.snippet,
+            one.parts.join(", ")
+        ),
+        None => t
+            .techniques
+            .iter()
+            .map(|s| format!("{}: {}", s.name, s.title))
+            .collect::<Vec<_>>()
+            .join("\n"),
     }
 }
 

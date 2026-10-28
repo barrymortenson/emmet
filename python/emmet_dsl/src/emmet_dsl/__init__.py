@@ -2,7 +2,7 @@
 """The DSL a model.py imports to emit an .mpd (plan section 08). v1: @model, Model and its calls (add, step, the
 helpers, repeat, mirror, submodels, techniques, allow), part helpers, Rot, import_ldraw, and parameters."""
 
-__version__ = "0.2.0"
+__version__ = "0.1.0"
 
 from .core import Handle, Model, Rot, Submodel, model  # noqa: E402
 from .errors import EmmetError  # noqa: E402

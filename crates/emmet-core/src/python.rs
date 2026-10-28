@@ -38,6 +38,16 @@ pub const DSL_FILES: &[(&str, &str)] = dsl_files![
     "run.py"
 ];
 
+macro_rules! technique_files {
+    ($($name:literal),* $(,)?) => {
+        &[$(($name, include_str!(concat!("../../../data/techniques/", $name, ".py")))),*]
+    };
+}
+
+/// The technique library (data/techniques/, plan section 08), installed as `emmet_dsl.techniques`, so `m.use(name)`
+/// imports it. `tests/it/tests/python.rs` checks this list against the folder.
+pub const TECHNIQUES: &[(&str, &str)] = technique_files![];
+
 /// `__version__` from the embedded `__init__.py`.
 pub fn dsl_version() -> &'static str {
     let init = DSL_FILES[0].1;
@@ -46,9 +56,19 @@ pub fn dsl_version() -> &'static str {
         .expect("emmet_dsl/__init__.py sets __version__")
 }
 
+/// Every file the wheel installs under `emmet_dsl/`: the package, then `techniques/`.
+fn package_files() -> Vec<(String, &'static str)> {
+    let mut files: Vec<(String, &'static str)> = DSL_FILES.iter().map(|(n, t)| (n.to_string(), *t)).collect();
+    files.push(("techniques/__init__.py".into(), TECHNIQUES_INIT));
+    files.extend(TECHNIQUES.iter().map(|(n, t)| (format!("techniques/{n}.py"), *t)));
+    files
+}
+
+const TECHNIQUES_INIT: &str = "# SPDX-License-Identifier: Apache-2.0\n\"\"\"Emmet's technique library (data/techniques/ in the Emmet repo); m.use(name) applies one.\"\"\"\n";
+
 fn dsl_hash() -> String {
     let mut all = Vec::new();
-    for (name, text) in DSL_FILES {
+    for (name, text) in package_files() {
         all.extend_from_slice(name.as_bytes());
         all.push(0);
         all.extend_from_slice(text.as_bytes());
@@ -246,8 +266,8 @@ fn uv_command(uv: &Path, data: &DataDir) -> Command {
 fn build_wheel() -> Vec<u8> {
     let version = dsl_version();
     let dist = format!("emmet_dsl-{version}.dist-info");
-    let mut files: Vec<(String, Vec<u8>)> = DSL_FILES
-        .iter()
+    let mut files: Vec<(String, Vec<u8>)> = package_files()
+        .into_iter()
         .map(|(n, t)| (format!("emmet_dsl/{n}"), t.as_bytes().to_vec()))
         .collect();
     files.push((

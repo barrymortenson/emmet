@@ -136,6 +136,18 @@ enum Command {
     Rules,
     /// Print the emmet_dsl vocabulary for model.py (the same text as the MCP `api` tool).
     Api,
+    /// The build steps: each step's title, parts box, and sub-assemblies (runs the model first if needed).
+    Steps,
+    /// Export the model: a flat LDraw .ldr, an .mpd with its submodels, or an LPub3D-ready .mpd.
+    Export {
+        #[arg(long, value_enum)]
+        format: ExportFormat,
+        /// Where to write it; by default build/export/.
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// The technique library: the list, or one technique's doc, example, and parts.
+    Technique { name: Option<String> },
     /// Run the stdio MCP server.
     Mcp {
         /// The app's chat session (set only by the app): every tool result carries the user's redirect notes.
@@ -178,6 +190,13 @@ enum Command {
 enum AgentArg {
     Claude,
     Codex,
+}
+
+#[derive(Clone, Copy, PartialEq, clap::ValueEnum)]
+enum ExportFormat {
+    Ldr,
+    Mpd,
+    Lpub3d,
 }
 
 #[derive(Clone, Copy, PartialEq, clap::ValueEnum)]
@@ -532,6 +551,41 @@ fn main() -> ExitCode {
             d.trim_end().to_string()
         }),
         Command::Api => finish(&cli, started, Output::from(Ok(mcp::API)), |d| d.trim_end().to_string()),
+        Command::Steps => {
+            let mut root = None;
+            let out = data.and_then(|d| {
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                emmet_core::steps::steps(&d, &project)
+            });
+            let mut out = Output::from(out);
+            out.project = root;
+            finish(&cli, started, out, steps_text)
+        }
+        Command::Export { format, out } => {
+            let mut root = None;
+            let out = data.and_then(|d| {
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                let format = match format {
+                    ExportFormat::Ldr => emmet_core::export::Format::Ldr,
+                    ExportFormat::Mpd => emmet_core::export::Format::Mpd,
+                    ExportFormat::Lpub3d => emmet_core::export::Format::Lpub3d,
+                };
+                emmet_core::export::export(&d, &project, format, out.as_deref())
+            });
+            let mut out = Output::from(out);
+            out.project = root;
+            finish(&cli, started, out, |e| {
+                format!("Exported {} parts as {} → {}", e.parts, e.format, e.path)
+            })
+        }
+        Command::Technique { name } => finish(
+            &cli,
+            started,
+            Output::from(emmet_core::technique::techniques(name.as_deref())),
+            mcp::technique_text,
+        ),
         Command::Eval {
             rung,
             agent,
@@ -680,6 +734,29 @@ fn library_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &
 }
 
 /// Findings as a compiler-style list: `error[collision] F-0001: …`, then `--> model.py:41` and `help:`.
+fn steps_text(s: &emmet_core::steps::Steps) -> String {
+    fn lines(steps: &[emmet_core::steps::Step], indent: &str, out: &mut Vec<String>) {
+        for st in steps {
+            let mut what: Vec<String> = st.parts.iter().map(|b| format!("{}x {}", b.count, b.part)).collect();
+            what.extend(st.submodels.iter().map(|m| format!("{}x {}", m.count, m.name)));
+            let title = if st.title.is_empty() {
+                "(untitled)"
+            } else {
+                st.title.as_str()
+            };
+            out.push(format!("{indent}{:>3}. {title}: {}", st.n, what.join(", ")));
+        }
+    }
+    let mut out = Vec::new();
+    for m in &s.submodels {
+        out.push(format!("Built apart: {} × {} ({} parts)", m.name, m.count, m.parts));
+        lines(&m.steps, "    ", &mut out);
+    }
+    lines(&s.steps, "", &mut out);
+    out.push(format!("{} → build/steps.json", emmet_core::steps::summary(s)));
+    out.join("\n")
+}
+
 fn check_text(v: &emmet_core::check::Validation) -> String {
     if v.findings.is_empty() {
         let allowed = if v.allowed.is_empty() {
