@@ -112,10 +112,15 @@ fn a_bad_pack_is_refused_and_the_installed_one_stays() {
         .unwrap();
     assert!(out.status.success());
 
+    // A pack with no signature at all (only the bundled pack goes without).
+    let unsigned = copy_pack(&newer, "pack-unsigned");
+    std::fs::remove_file(unsigned.join("parts-data.json.sig")).unwrap();
+
     for (pack, why) in [
         (&bad_sig, "isn't signed by a key Emmet trusts"),
         (&tampered, "but its manifest says"),
         (&other, "isn't signed by a key Emmet trusts"),
+        (&unsigned, "has no readable signature"),
     ] {
         let (v, code) = install(&data, pack);
         assert_eq!((code, v["error"]["code"].clone()), (4, json!("LIBRARY_CORRUPT")), "{v}");
@@ -182,6 +187,66 @@ fn the_bundled_pack_installs_on_first_use_when_newer() {
     let (v, code) = parts_data(&fresh, &["status"], Some(&bad));
     assert_eq!((code, v["error"]["code"].clone()), (4, json!("LIBRARY_CORRUPT")), "{v}");
     assert_eq!(parts_data(&fresh, &["status"], None).0["data"], Value::Null);
+}
+
+/// A rollback from the bundled pack stays rolled back: opening a pack used to put the bundled one back at once.
+#[test]
+fn a_rollback_from_the_bundled_pack_sticks() {
+    let older = temp_dir("pack-roll-older");
+    build_mini_pack(&older, MINI_PACK_DATE);
+    let bundled = temp_dir("pack-roll-bundled");
+    build_mini_pack(&bundled, "2026-10-31");
+    let data = temp_dir("pack-roll-data");
+    assert_eq!(install(&data, &older).1, 0);
+    // The bundled pack is newer, so the first open takes it.
+    assert_eq!(
+        parts_data(&data, &["status"], Some(&bundled)).0["data"]["version"],
+        "2026-10-31"
+    );
+    let (v, code) = parts_data(&data, &["rollback"], Some(&bundled));
+    assert_eq!((code, v["data"]["version"].clone()), (0, json!(MINI_PACK_DATE)), "{v}");
+    assert_eq!(
+        parts_data(&data, &["status"], Some(&bundled)).0["data"]["version"],
+        MINI_PACK_DATE
+    );
+}
+
+/// A pack whose SQLite file went missing is put back from the bundled one; a damaged pointer is replaced without
+/// deleting the packs it no longer names.
+#[test]
+fn a_damaged_install_recovers_from_the_bundled_pack() {
+    let bundled = temp_dir("pack-recover-bundled");
+    build_mini_pack(&bundled, MINI_PACK_DATE);
+    let data = temp_dir("pack-recover-data");
+    assert_eq!(
+        parts_data(&data, &["status"], Some(&bundled)).0["data"]["version"],
+        MINI_PACK_DATE
+    );
+    let folder = data.join("parts-data");
+    let sqlite: Vec<_> = std::fs::read_dir(&folder)
+        .unwrap()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|x| x == "sqlite"))
+        .collect();
+    std::fs::remove_file(&sqlite[0]).unwrap();
+    let (v, code) = parts_data(&data, &["status"], Some(&bundled));
+    assert_eq!((code, v["data"]["version"].clone()), (0, json!(MINI_PACK_DATE)), "{v}");
+    assert!(sqlite[0].is_file(), "the pack's file is back");
+
+    // Another installed pack, then a damaged pointer: the bundled pack takes over, and the other pack's files stay.
+    let newer = temp_dir("pack-recover-newer");
+    build_mini_pack(&newer, "2026-10-31");
+    assert_eq!(install(&data, &newer).1, 0);
+    std::fs::write(folder.join("current.json"), "{ not json").unwrap();
+    let (v, code) = parts_data(&data, &["status"], Some(&bundled));
+    assert_eq!((code, v["data"]["version"].clone()), (0, json!(MINI_PACK_DATE)), "{v}");
+    let kept = std::fs::read_dir(&folder)
+        .unwrap()
+        .flatten()
+        .filter(|e| e.file_name().to_string_lossy().contains("2026-10-31"))
+        .count();
+    assert_eq!(kept, 2, "the newer pack's .sqlite and .json are still there");
 }
 
 fn open_pack() -> (Index, PartsData) {
@@ -323,7 +388,17 @@ fn the_run_records_the_pack() {
             .unwrap()["produced"]
             .clone()
     };
-    assert_eq!((produced(4), produced(16)), (json!(true), json!(false)));
+    // Red was made; the main color 16 has no Rebrickable color, so it's unknown, not unmade (no flag).
+    assert_eq!((produced(4), produced(16)), (json!(true), Value::Null));
+
+    // A Color param may be a color the pack doesn't map (Light Orange): unknown is never "no parts were made in it".
+    let model = std::fs::read_to_string(dir.join("model.py")).unwrap();
+    let model = model.replacen("@model\ndef ", "@model\ndef _old_", 1)
+        + "\n\nfrom emmet_dsl import Color\n\n\n@model\ndef tinted(tint: Color = \"Light Orange\"):\n    \"\"\"One brick.\"\"\"\n    \
+           m = Model()\n    m.add(\"3001\", tint, at=(0, 0, 0))\n    return m\n";
+    std::fs::write(dir.join("model.py"), model).unwrap();
+    let (v, code) = emmet_in_data(shared_data_with_parts(), &dir, &["run"]);
+    assert_eq!(code, 0, "an unmapped color is refused as a Color param: {v}");
 
     let plain = project("broken-color-unavailable");
     let (v, _) = emmet_in(&plain, &["run"]);

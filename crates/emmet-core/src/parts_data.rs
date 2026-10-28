@@ -968,8 +968,8 @@ fn corrupt(dir: &Path, message: impl Into<String>) -> Error {
     Error::new(
         ErrorCode::LibraryCorrupt,
         message,
-        "The pack is damaged or wasn't made by Emmet's release workflow; the installed pack wasn't changed. Get the \
-         pack again.",
+        "The pack is damaged or wasn't made by Emmet's release workflow, and nothing was installed from it. If the pack \
+         Emmet came with is damaged, reinstall Emmet; emmet parts-data rollback goes back to the previous pack.",
     )
     .at_file(dir.display().to_string())
 }
@@ -987,6 +987,10 @@ enum Trust<'a> {
 struct Pointer {
     current: Option<String>,
     previous: Option<String>,
+    /// The bundled pack this data dir has already taken (or passed over for a newer one), so a rollback from it
+    /// isn't undone the next time a pack is opened.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    bundled: Option<String>,
 }
 
 fn pointer_path(data: &DataDir) -> PathBuf {
@@ -1075,13 +1079,7 @@ fn install_from(data: &DataDir, dir: &Path, trust: Trust) -> Result<Manifest> {
             format!("The manifest names '{}', which isn't a file name.", manifest.file),
         ));
     }
-    let stem = format!(
-        "parts-data-{}-{}",
-        manifest
-            .version
-            .replace(|c: char| !c.is_ascii_alphanumeric() && c != '-', "_"),
-        manifest.sha256.get(..12).unwrap_or("x")
-    );
+    let stem = stem_of(&manifest);
     let folder = data.parts_data();
     std::fs::create_dir_all(&folder).map_err(|e| Error::io(&folder, e))?;
     let dest = folder.join(format!("{stem}.sqlite"));
@@ -1090,27 +1088,45 @@ fn install_from(data: &DataDir, dir: &Path, trust: Trust) -> Result<Manifest> {
         copy_checked(&dir.join(&manifest.file), &dest, &manifest)?;
     }
     // The file must be a pack this Emmet reads, with the manifest's version.
-    let version: Option<String> = Connection::open_with_flags(&dest, OpenFlags::SQLITE_OPEN_READ_ONLY)
-        .ok()
-        .and_then(|c| {
-            c.query_row("SELECT value FROM meta WHERE key = 'version'", [], |r| r.get(0))
-                .ok()
-        });
-    if version.as_deref() != Some(manifest.version.as_str()) {
-        let _ = std::fs::remove_file(&dest);
+    let version = Connection::open_with_flags(&dest, OpenFlags::SQLITE_OPEN_READ_ONLY).and_then(|c| {
+        c.query_row("SELECT value FROM meta WHERE key = 'version'", [], |r| {
+            r.get::<_, String>(0)
+        })
+    });
+    if version.as_ref().ok() != Some(&manifest.version) {
+        // Only a file this call copied goes; one that was already here may be the pack in use.
+        if !present {
+            let _ = std::fs::remove_file(&dest);
+        }
+        let why = match version {
+            Ok(v) => format!("it's version {v}"),
+            Err(e) => format!("it doesn't read as a pack: {e}"),
+        };
         return Err(corrupt(
             dir,
-            "The pack's SQLite file isn't the version its manifest names.",
+            format!(
+                "The pack's SQLite file isn't the version its manifest names ({}): {why}.",
+                manifest.version
+            ),
         ));
     }
     fsx::write_atomic(&folder.join(format!("{stem}.json")), &bytes)?;
-    let mut pointer = read_pointer(data).unwrap_or_default();
+    // A damaged pointer starts over, but then nothing is pruned: the other packs it no longer names may be wanted.
+    let (mut pointer, readable) = match read_pointer(data) {
+        Ok(p) => (p, true),
+        Err(_) => (Pointer::default(), false),
+    };
     if pointer.current.as_deref() != Some(stem.as_str()) {
         pointer.previous = pointer.current.take();
-        pointer.current = Some(stem);
+        pointer.current = Some(stem.clone());
+    }
+    if matches!(trust, Trust::Bundled) {
+        pointer.bundled = Some(stem);
     }
     write_pointer(data, &pointer)?;
-    prune(data, &pointer);
+    if readable {
+        prune(data, &pointer);
+    }
     Ok(manifest)
 }
 
@@ -1206,15 +1222,31 @@ pub fn rollback(data: &DataDir) -> Result<Manifest> {
         &Pointer {
             current: Some(previous),
             previous: pointer.current,
+            bundled: pointer.bundled,
         },
     )?;
     Ok(manifest)
 }
 
-/// The installed pack's manifest, or None.
+/// The installed pack's manifest, or None (none installed, or its manifest or SQLite file is gone or unreadable).
 pub fn installed(data: &DataDir) -> Option<Manifest> {
     let stem = read_pointer(data).ok()?.current?;
-    installed_manifest(data, &stem).ok()
+    let manifest = installed_manifest(data, &stem).ok()?;
+    data.parts_data()
+        .join(format!("{stem}.sqlite"))
+        .is_file()
+        .then_some(manifest)
+}
+
+/// The name a pack is installed under: its version and the start of its sha256.
+fn stem_of(manifest: &Manifest) -> String {
+    format!(
+        "parts-data-{}-{}",
+        manifest
+            .version
+            .replace(|c: char| !c.is_ascii_alphanumeric() && c != '-', "_"),
+        manifest.sha256.get(..12).unwrap_or("x")
+    )
 }
 
 /// The pack bundled with the app: `EMMET_BUNDLED_PARTS_DATA`, else next to the executable (`parts-data/` beside it on
@@ -1231,8 +1263,9 @@ pub fn bundled_dir() -> Option<PathBuf> {
         .find(|d| d.join(MANIFEST).is_file())
 }
 
-/// Installs the bundled pack when the data dir has none, an unreadable one, or an older one. Returns the bundled
-/// manifest when it installed it.
+/// Installs the bundled pack when the data dir has none or an unreadable one, or the first time it meets this bundled
+/// pack and the installed one is older. A bundled pack it has met before isn't installed again, so a rollback from it
+/// stays rolled back. Returns the bundled manifest when it installed it.
 pub fn ensure_bundled(data: &DataDir) -> Result<Option<Manifest>> {
     let Some(dir) = bundled_dir() else {
         return Ok(None);
@@ -1247,14 +1280,26 @@ pub fn ensure_bundled(data: &DataDir) -> Result<Option<Manifest>> {
     if bundled.schema != SCHEMA {
         return Ok(None);
     }
-    let older = match installed(data) {
-        Some(m) => m.schema != SCHEMA || m.version < bundled.version,
-        None => true,
+    let stem = stem_of(&bundled);
+    let Some(current) = installed(data) else {
+        return install_bundled(data, &dir).map(Some);
     };
-    if !older {
+    let pointer = read_pointer(data)?;
+    if pointer.bundled.as_deref() == Some(stem.as_str()) {
         return Ok(None);
     }
-    install_bundled(data, &dir).map(Some)
+    if current.schema != SCHEMA || current.version < bundled.version {
+        return install_bundled(data, &dir).map(Some);
+    }
+    // The installed pack is newer: remember this bundled one, so it isn't weighed again.
+    write_pointer(
+        data,
+        &Pointer {
+            bundled: Some(stem),
+            ..pointer
+        },
+    )?;
+    Ok(None)
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1601,7 +1646,11 @@ pub fn annotate_colors(pack: Option<&PartsData>, colors: &mut [crate::colors::Co
         }
     }
     for c in colors.iter_mut() {
-        c.produced = Some(produced.contains(&c.code));
+        // A color Rebrickable doesn't map is unknown, not unmade: only a mapped one gets an answer.
+        c.produced = match pack.rebrickable_color(c.code)? {
+            Some(_) => Some(produced.contains(&c.code)),
+            None => None,
+        };
         for n in pack.color_aliases(c.code)? {
             let k = key(&n);
             if owner.get(&k).is_none_or(|o| *o == c.code) && !c.aliases.contains(&n) && n != c.name {

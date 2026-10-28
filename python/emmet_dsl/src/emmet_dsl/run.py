@@ -41,9 +41,8 @@ class Context:
         for c in colors:
             for n in [c["name"], *c.get("aliases", [])]:
                 self.color_keys.setdefault(color_key(n), c["code"])
-        # The colors parts were ever made in, from the parts data pack; None without one.
-        produced = {c["code"] for c in colors if c.get("produced", True)}
-        self.produced = produced if len(produced) < len(self.colors) else None
+        # The colors the parts data pack says no part was made in; a color it doesn't know (no "produced") stays open.
+        self.unmade = {c["code"] for c in colors if c.get("produced") is False}
         self.helpers = helpers or {}  # "brick 2x4" → {"id": …, "near": […]}, as emmet resolved them
         self.missing: dict[str, tuple[str, int]] = {}
         self.missing_helpers: dict[str, dict] = {}
@@ -292,6 +291,7 @@ def _run(request: dict, ctx: Context) -> dict:
     file = ctx.rel(fn.__code__.co_filename)
     def_line = fn.__code__.co_firstlineno
     ctx.model_at = (file, def_line)
+    ctx.main_file = f"{fn.__name__}.ldr".lower()
     schema = params_mod.schema(fn, file, def_line)
     values = params_mod.check(schema, request.get("params", {}), file, request.get("params_source", "params"))
     for p in schema:
