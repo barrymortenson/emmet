@@ -237,7 +237,10 @@
  "removed": [
   {
    "file": "10013-1.mpd",
-   "reason": "File: the same headlight brick (4070) placed twice at one spot. Rare: 1990s train magnets (73092) on their couplings, whose LDCad data doesn't meet the files."
+   "reason": "File: the same headlight brick (4070) placed twice at one spot. Rare: 1990s train magnets (73092) on their couplings, whose LDCad data doesn't meet the files.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/29"
+   ]
   },
   {
    "file": "10124-1.mpd",
@@ -245,7 +248,11 @@
   },
   {
    "file": "20006-1.mpd",
-   "reason": "File: an antenna's rod down the seam of two bricks, a tap over a Technic plate's pin hole, the hinge control stick 2 LDU off its pivot. Rare: a pneumatic T-piece. Open: the gun panels hang on 6232's side pins, 8 LDU from the slopes' anti-studs."
+   "reason": "File: an antenna's rod down the seam of two bricks, a tap over a Technic plate's pin hole, the hinge control stick 2 LDU off its pivot. Rare: a pneumatic T-piece. Open: the gun panels hang on 6232's side pins, 8 LDU from the slopes' anti-studs.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/25",
+    "https://github.com/barrymortenson/emmet/issues/29"
+   ]
   },
   {
    "file": "21017-1.mpd",
@@ -257,7 +264,10 @@
   },
   {
    "file": "2150-1.mpd",
-   "reason": "File: round plates 1 LDU off their headlight studs, the clock pressed flat on an arch, suitcases in the air. Open: a dish a plate low on a round brick, the cupboard door 2.2 LDU off its hinge."
+   "reason": "File: round plates 1 LDU off their headlight studs, the clock pressed flat on an arch, suitcases in the air. Open: a dish a plate low on a round brick, the cupboard door 2.2 LDU off its hinge.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/26"
+   ]
   },
   {
    "file": "30311-1.mpd",
@@ -269,7 +279,10 @@
   },
   {
    "file": "4543-1.mpd",
-   "reason": "Rare: train magnets, the excavator arm and bucket, 1980s hinge plates (4275b, 4504, 4531, 2433), the sunroof glass. File: hinge control sticks off their pivots."
+   "reason": "Rare: train magnets, the excavator arm and bucket, 1980s hinge plates (4275b, 4504, 4531, 2433), the sunroof glass. File: hinge control sticks off their pivots.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/29"
+   ]
   },
   {
    "file": "4939-1_Truck.mpd",
@@ -277,11 +290,18 @@
   },
   {
    "file": "6375-1.mpd",
-   "reason": "Rare: jet engines (4868a). File: container boxes set loose in the hold, turned 30 degrees. Open: the landing gear group."
+   "reason": "Rare: jet engines (4868a). File: container boxes set loose in the hold, turned 30 degrees. Open: the landing gear group.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/27",
+    "https://github.com/barrymortenson/emmet/issues/29"
+   ]
   },
   {
    "file": "6927-1.mpd",
-   "reason": "Open: the cabin on its turntable and brackets isn't held."
+   "reason": "Open: the cabin on its turntable and brackets isn't held.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/28"
+   ]
   }
  ]
 }
