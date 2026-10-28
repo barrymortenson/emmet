@@ -36,6 +36,18 @@ const askFix =
 const before = '    m.add("3001", "Blue", at=(1, 0, 1), id="wall/b")';
 const after = '    m.add("3001", "Blue", at=(2, 0, 1), id="wall/b")';
 const fixed = "Fixed F-0001: wall/b now starts at x=2, beside wall/a. validate reports 0 findings.";
+// The v1 summary's fix (3A): replay-floating-step-order's tower brick a plate too high, and its lamp's step before the
+// post's: lower the brick, then put the post's step first.
+const askCheck = "Validate the model and fix what it finds.";
+const floatBefore = '        m.add("3001", "Red", at=(0, 0, 5), id="tower/2")';
+const floatAfter = '        m.add("3001", "Red", at=(0, 0, 4), id="tower/2")';
+const stepsBefore =
+  '    with m.step("Lamp"):\n        m.add("3024", "Yellow", at=(5, 5, 4), id="lamp")\n' +
+  '    with m.step("Post"):\n        m.add("3005", "Black", at=(5, 5, 1), id="post")';
+const stepsAfter =
+  '    with m.step("Post"):\n        m.add("3005", "Black", at=(5, 5, 1), id="post")\n' +
+  '    with m.step("Lamp"):\n        m.add("3024", "Yellow", at=(5, 5, 4), id="lamp")';
+const fixedTwo = "Fixed both: tower/2 sits on tower/1 now, and the post goes in before the lamp. validate reports 0 findings.";
 const finished = "The cottage is up: 8 x 6 studs, 6 bricks tall, 93 parts, 0 errors. Sliders: width, depth, wall rows, wall color, roof color, chimney.";
 const load = (cli, name) =>
   readFileSync(join(here, cli, `${name}.jsonl`), "utf8")
@@ -153,6 +165,36 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     result("toolu_validate2", placeholder),
     text("msg_0006", fixed),
     done(fixed),
+    exit(0),
+  ]);
+
+  save("claude", "fix-floating-step-order", "tool-call.jsonl", "validate's v1 summary, two Edits as its hints say, run, validate", [
+    meta,
+    user(askCheck),
+    init,
+    ...search("msg_0001", "toolu_search1", "mcp__emmet__validate"),
+    use("msg_0002", "toolu_validate1", "mcp__emmet__validate", {}),
+    result("toolu_validate1", placeholder),
+    use("msg_0003", "toolu_edit1", "Edit", {
+      file_path: "<WS>/project/model.py",
+      old_string: floatBefore,
+      new_string: floatAfter,
+      replace_all: false,
+    }),
+    result("toolu_edit1", "The file <WS>/project/model.py has been updated successfully."),
+    use("msg_0004", "toolu_edit2", "Edit", {
+      file_path: "<WS>/project/model.py",
+      old_string: stepsBefore,
+      new_string: stepsAfter,
+      replace_all: false,
+    }),
+    result("toolu_edit2", "The file <WS>/project/model.py has been updated successfully."),
+    use("msg_0005", "toolu_run", "mcp__emmet__run_model", {}),
+    result("toolu_run", placeholder),
+    use("msg_0006", "toolu_validate2", "mcp__emmet__validate", {}),
+    result("toolu_validate2", placeholder),
+    text("msg_0007", fixedTwo),
+    done(fixedTwo),
     exit(0),
   ]);
 
@@ -317,6 +359,27 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     ...tool("emmet", "run_model", {}, 2),
     ...tool("emmet", "validate", {}, 3),
     ...finish(fixed),
+  ]);
+  const lines = (t) => t.split("\n").map((l) => `-${l}`).join("\n");
+  const plus = (t) => t.split("\n").map((l) => `+${l}`).join("\n");
+  const twoEdits = change.map((l) => {
+    const c = clone(l);
+    c.msg.params.item.changes = [
+      {
+        path: "<WS>/project/model.py",
+        kind: { type: "update", move_path: null },
+        diff: `@@ -14 +14 @@\n-${floatBefore}\n+${floatAfter}\n@@ -15,4 +15,4 @@\n${lines(stepsBefore)}\n${plus(stepsAfter)}\n`,
+      },
+    ];
+    return c;
+  });
+  save("codex", "fix-floating-step-order", "tool-call.jsonl, permissions-untrusted.jsonl", "validate's v1 summary, a fileChange as its hints say, run, validate", [
+    ...turnText(head, askCheck),
+    ...tool("emmet", "validate", {}, 1),
+    ...twoEdits,
+    ...tool("emmet", "run_model", {}, 2),
+    ...tool("emmet", "validate", {}, 3),
+    ...finish(fixedTwo),
   ]);
   save("codex", "ask-user", "tool-call.jsonl", "a real ask_user question, answered in the same turn", [
     ...turnText(head, "Build a wall."),
