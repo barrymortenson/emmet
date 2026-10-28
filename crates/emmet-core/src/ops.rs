@@ -394,6 +394,33 @@ pub fn built_placements(project: &Project) -> Result<(Vec<crate::ldraw::placemen
     Ok((rows, hash))
 }
 
+/// What the model wrote into build/placements.json besides its parts: `m.allow` and `m.ground` (DSL v1, 3B).
+#[derive(Debug, Clone, Default, serde::Deserialize)]
+struct BuildExtras {
+    #[serde(default)]
+    allow: Vec<crate::check::Allow>,
+    #[serde(default)]
+    ground: Vec<String>,
+}
+
+/// The validator's options for the project's current build: the allow entries from emmet.toml and the model, the
+/// model's ground parts, and the step target from the Age build setting.
+pub fn check_options(project: &Project) -> Result<crate::check::Options> {
+    let path = project.root.join("build/placements.json");
+    let text = std::fs::read_to_string(&path).map_err(|e| Error::io(&path, e))?;
+    let extras: BuildExtras = serde_json::from_str(&text).map_err(|e| {
+        Error::internal(format!("build/placements.json's allow or ground doesn't parse: {e}"))
+            .at_file("build/placements.json")
+    })?;
+    let mut allow = project.config.check.allow.clone();
+    allow.extend(extras.allow);
+    Ok(crate::check::Options {
+        allow,
+        ground: extras.ground,
+        step_target: project.config.build.step_target(),
+    })
+}
+
 /// Validates the project's current build (running the model first if build/ is stale) and, when every rule runs,
 /// writes build/validation.json. `rules` empty means every rule.
 pub fn check(data: &DataDir, project: &Project, rules: &[crate::check::Rule]) -> Result<crate::check::Validation> {
@@ -429,7 +456,7 @@ pub fn check_build(
     } else {
         rules.to_vec()
     };
-    let validation = validate_placements(data, &placements, &rules, &project.config.check.allow, hash)?;
+    let validation = validate_placements(data, &placements, &rules, &check_options(project)?, hash)?;
     if all {
         let text = serde_json::to_string_pretty(&validation).expect("validation serializes") + "\n";
         crate::fsx::write_atomic(&project.root.join("build/validation.json"), text.as_bytes())?;
@@ -442,12 +469,12 @@ pub fn validate_placements(
     data: &DataDir,
     placements: &[crate::ldraw::placements::Placement],
     rules: &[crate::check::Rule],
-    allow: &[crate::check::Allow],
+    options: &crate::check::Options,
     inputs_hash: Option<String>,
 ) -> Result<crate::check::Validation> {
     let index = Index::ensure(data)?;
     let lib = crate::ldraw::geometry::LibFiles::probe(&data.ldraw());
-    crate::check::validate(&index, &lib, placements, rules, allow, inputs_hash)
+    crate::check::validate(&index, &lib, placements, rules, options, inputs_hash)
 }
 
 /// The parts list of the project's current build (running the model first if build/ is stale); writes build/bom.json.

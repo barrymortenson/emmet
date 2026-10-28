@@ -66,6 +66,8 @@ pub(super) fn underside_links(
                     axis: c.axis,
                     radius: 6.0,
                     len: c.len(),
+                    toward_a: Some(-c.axis),
+                    toward_b: Some(c.axis),
                 });
             }
         }

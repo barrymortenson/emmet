@@ -34,7 +34,7 @@ pub fn models_in(dir: &Path) -> Vec<PathBuf> {
 }
 
 pub fn validate(data: &Path, placements: &[Placement]) -> Validation {
-    emmet_core::ops::validate_placements(&DataDir::at(data), placements, &Rule::ALL, &[], None)
+    emmet_core::ops::validate_placements(&DataDir::at(data), placements, &Rule::ALL, &Default::default(), None)
         .unwrap_or_else(|e| panic!("validate: {e}"))
 }
 
@@ -388,7 +388,13 @@ pub fn mutants(index: &Index, placements: &[Placement], per_fault: usize, rng: &
             }
             let s = supports(&geo, i);
             let first = s.iter().map(|&j| placements[j].step).min()?;
-            if first < 2 || s.iter().any(|&j| !placements[j].submodel.is_empty()) {
+            // To a step after the main model's first: a part in the first step may be built under later.
+            let start = placements
+                .iter()
+                .filter(|p| p.submodel.is_empty())
+                .map(|p| p.step)
+                .min()?;
+            if first < start + 2 || s.iter().any(|&j| !placements[j].submodel.is_empty()) {
                 return None;
             }
             let mut q = p.clone();
@@ -445,7 +451,9 @@ pub fn mutants(index: &Index, placements: &[Placement], per_fault: usize, rng: &
         (0..copy_list.len()).collect(),
         &|k| {
             let members = &copies[&copy_list[k]];
-            if members.len() == placements.len() || !members.iter().all(|&i| raised(i)) {
+            // The main model must have parts of its own to hold the copy.
+            let own = placements.iter().any(|p| p.copies.is_empty() && p.submodel.is_empty());
+            if !own || members.len() == placements.len() || !members.iter().all(|&i| raised(i)) {
                 return None;
             }
             let inside = |j: usize| members.contains(&j);

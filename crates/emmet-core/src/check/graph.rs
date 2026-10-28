@@ -46,6 +46,10 @@ pub struct Connection {
     pub axis: DVec3,
     pub radius: f64,
     pub len: f64,
+    /// From the seat toward part `a`'s side, and toward `b`'s, when the shapes' closed ends say (a stud's base is in
+    /// its part, an anti-stud's far end in its): the way each part was put on.
+    pub toward_a: Option<DVec3>,
+    pub toward_b: Option<DVec3>,
 }
 
 /// Every placement's connectors in the world. `parts[i]` is placement i's matrix and connectors (empty for an
@@ -273,7 +277,11 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
                 return fail("no grip");
             }
             let r = a.secs.iter().map(|s| s.radius).fold(0.0, f64::max);
-            Ok(seat(b.pos + b.axis * (lo + hi) / 2.0, b.axis, r, overlap, Kind::Cyl))
+            Ok(Connection {
+                toward_a: (!a.open.0 && a.open.1).then_some(-a.axis),
+                toward_b: (b.open.0 && !b.open.1).then_some(b.axis),
+                ..seat(b.pos + b.axis * (lo + hi) / 2.0, b.axis, r, overlap, Kind::Cyl)
+            })
         }
         _ => fail("kinds"),
     }
@@ -288,6 +296,8 @@ fn seat(at: DVec3, axis: DVec3, radius: f64, len: f64, kind: Kind) -> Connection
         axis,
         radius,
         len,
+        toward_a: None,
+        toward_b: None,
     }
 }
 

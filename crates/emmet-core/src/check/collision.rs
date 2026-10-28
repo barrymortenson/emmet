@@ -101,11 +101,11 @@ fn collision(placed: &[Placed], a: usize, b: usize, depth: f64, axis: DVec3, wa:
             qb.p.id
         )
     };
-    Raw {
-        rule: Rule::Collision,
-        parts: vec![a, b],
-        at: dsl_point((both.min + both.max) / 2.0),
+    Raw::new(
+        Rule::Collision,
+        vec![a, b],
+        dsl_point((both.min + both.max) / 2.0),
         message,
         hint,
-    }
+    )
 }

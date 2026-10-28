@@ -9,6 +9,7 @@ mod collision;
 pub mod connectors;
 pub mod graph;
 mod holds;
+mod steps;
 mod structure;
 
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -150,7 +151,19 @@ impl Validation {
     }
 }
 
-/// An allow entry from emmet.toml.
+/// What the validator reads besides the placements.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Options {
+    /// Findings the project allows: emmet.toml's `[[check.allow]]` and the model's `m.allow`.
+    pub allow: Vec<Allow>,
+    /// The parts the model stands on (`m.ground`), besides its lowest level and any baseplate.
+    pub ground: Vec<String>,
+    /// How many parts a step may add before step_size warns: the Age build setting's target (0 means 8, the 6+
+    /// target).
+    pub step_target: usize,
+}
+
+/// An allow entry from emmet.toml or the model (`m.allow`).
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Allow {
     pub rule: String,
@@ -199,9 +212,32 @@ struct Info {
 struct Model<'p> {
     placed: Vec<Placed<'p>>,
     world: Vec<Option<Obb>>,
+    /// The world boxes around `world`.
+    boxes: Vec<Option<Aabb>>,
+    /// The model's lowest point (LDraw's −Y is up, so the largest y).
+    lowest: f64,
     conns: Vec<graph::Placed>,
     links: Vec<graph::Connection>,
     held: HashSet<(usize, usize)>,
+}
+
+impl Model<'_> {
+    /// Every pair of placements joined by a connection or held one by the other, each once.
+    fn pairs(&self) -> Vec<(usize, usize)> {
+        let mut out: Vec<(usize, usize)> = self
+            .links
+            .iter()
+            .map(|c| (c.a.min(c.b), c.a.max(c.b)))
+            .chain(self.held.iter().copied())
+            .collect();
+        out.sort();
+        out.dedup();
+        out
+    }
+
+    fn kind(&self, i: usize) -> Option<&Part> {
+        self.placed[i].info.as_ref().map(|i| &i.kind)
+    }
 }
 
 fn prepare<'p>(index: &Index, lib: &LibFiles, placements: &'p [Placement]) -> Result<Model<'p>> {
@@ -257,9 +293,17 @@ fn prepare<'p>(index: &Index, lib: &LibFiles, placements: &'p [Placement]) -> Re
     );
     let mut links = graph::connections(&conns);
     links.extend(holds::underside_links(&placed, &world, &conns));
+    let boxes: Vec<Option<Aabb>> = world.iter().map(|o| o.map(|o| o.aabb())).collect();
+    let lowest = boxes
+        .iter()
+        .flatten()
+        .map(|b| b.max.y)
+        .fold(f64::NEG_INFINITY, f64::max);
     Ok(Model {
         placed,
         world,
+        boxes,
+        lowest,
         conns,
         links,
         held,
@@ -273,16 +317,12 @@ pub fn validate(
     lib: &LibFiles,
     placements: &[Placement],
     rules: &[Rule],
-    allow: &[Allow],
+    options: &Options,
     inputs_hash: Option<String>,
 ) -> Result<Validation> {
     let model = prepare(index, lib, placements)?;
     let Model {
-        placed,
-        world,
-        links,
-        held,
-        ..
+        placed, world, held, ..
     } = &model;
     let mut raw: Vec<Raw> = Vec::new();
     let on = |r: Rule| rules.contains(&r);
@@ -292,10 +332,35 @@ pub fn validate(
     if on(Rule::Collision) {
         raw.extend(collision::collisions(placed, world, held));
     }
-    if on(Rule::Floating) {
-        raw.extend(structure::floating(placed, world, links, held));
+    let ground = structure::ground(&model, options);
+    let groups = structure::floating_groups(&model, options);
+    let (disconnected, named) = structure::disconnected_submodels(&model);
+    if on(Rule::DisconnectedSubmodel) {
+        raw.extend(disconnected);
     }
-    Ok(finish(placed, raw, allow, inputs_hash))
+    let skip: HashSet<usize> = if on(Rule::DisconnectedSubmodel) {
+        named
+    } else {
+        HashSet::new()
+    };
+    if on(Rule::Floating) {
+        raw.extend(structure::floating(&model, &groups, &skip));
+    }
+    if on(Rule::StepOrder) {
+        let mut stuck: HashSet<usize> = groups.iter().flatten().copied().collect();
+        stuck.extend(skip.iter().copied());
+        raw.extend(steps::step_order(&model, options, &ground, &stuck));
+    }
+    if on(Rule::StepSize) {
+        raw.extend(steps::step_size(&model, options.step_target));
+    }
+    if on(Rule::WeakConnection) {
+        raw.extend(structure::weak_connections(&model, &ground));
+    }
+    if on(Rule::OffGrid) {
+        raw.extend(structure::off_grid(&model));
+    }
+    Ok(finish(placed, raw, &options.allow, inputs_hash))
 }
 
 /// For debugging the connection model: each named placement's connectors in the world, the near misses, every
@@ -362,11 +427,30 @@ pub fn explain(index: &Index, lib: &LibFiles, placements: &[Placement], ids: &[S
 /// A finding before it's numbered.
 struct Raw {
     rule: Rule,
+    /// The finding's severity when it isn't the rule's (step_order's insertion-path check is a warning in v1).
+    severity: Option<Severity>,
     /// Indexes into the placements.
     parts: Vec<usize>,
     at: [f64; 3],
     message: String,
     hint: String,
+}
+
+impl Raw {
+    fn new(rule: Rule, parts: Vec<usize>, at: [f64; 3], message: String, hint: String) -> Self {
+        Self {
+            rule,
+            severity: None,
+            parts,
+            at,
+            message,
+            hint,
+        }
+    }
+
+    fn severity(&self) -> Severity {
+        self.severity.unwrap_or(self.rule.severity())
+    }
 }
 
 fn name(q: &Placed) -> String {
@@ -425,13 +509,7 @@ fn part_rules(placed: &[Placed], rules: &[Rule]) -> Vec<Raw> {
         if !rules.contains(&rule) {
             continue;
         }
-        out.push(Raw {
-            rule,
-            at: dsl_point(q.m.w_axis.truncate()),
-            parts: idx,
-            message,
-            hint,
-        });
+        out.push(Raw::new(rule, idx, dsl_point(q.m.w_axis.truncate()), message, hint));
     }
     out
 }
@@ -456,8 +534,8 @@ fn finish(placed: &[Placed], raw: Vec<Raw>, allow: &[Allow], inputs_hash: Option
         })
         .collect();
     items.sort_by(|a, b| {
-        (a.0.rule.severity(), a.1.first().cloned(), a.0.rule, &a.2).cmp(&(
-            b.0.rule.severity(),
+        (a.0.severity(), a.1.first().cloned(), a.0.rule, &a.2).cmp(&(
+            b.0.severity(),
             b.1.first().cloned(),
             b.0.rule,
             &b.2,
@@ -480,7 +558,7 @@ fn finish(placed: &[Placed], raw: Vec<Raw>, allow: &[Allow], inputs_hash: Option
         findings.push(Finding {
             id: format!("F-{:04}", findings.len() + 1),
             rule: r.rule,
-            severity: r.rule.severity(),
+            severity: r.severity(),
             parts: ids,
             source,
             at: r.at,
