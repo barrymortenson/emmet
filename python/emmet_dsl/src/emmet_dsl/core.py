@@ -164,9 +164,10 @@ class Model:
     @contextlib.contextmanager
     def step(self, title: str):
         """Everything added inside is one build step (LDraw `0 STEP`). A step opened inside another is titled
-        "<outer>: <inner>", so a technique's own steps group under the step that uses it."""
+        "<outer>: <inner>" (unless the inner title already starts with the outer one), so a technique's own steps
+        group under the step that uses it."""
         outer = self._current
-        if outer is not None and outer.title:
+        if outer is not None and outer.title and not title.startswith(outer.title):
             title = f"{outer.title}{', ' if ':' in outer.title else ': '}{title}"
         self._loose = None
         self._current = _Step(title, _slug(title))
@@ -590,6 +591,25 @@ class Model:
                 line,
             )
         return ctx
+
+
+def in_steps(m: Model, title: str, actions) -> None:
+    """For techniques and templates: runs actions, each (how many parts it adds, a function that adds them), in steps
+    of at most the step target. A title that has to split is "title (1 of 2)", and so on; one action's parts (a frame
+    and its glass) stay together."""
+    target = _step_target(m._context)
+    chunks, count = [[]], 0
+    for n, add in actions:
+        if chunks[-1] and count + n > target:
+            chunks.append([])
+            count = 0
+        chunks[-1].append(add)
+        count += n
+    chunks = [c for c in chunks if c]
+    for i, chunk in enumerate(chunks):
+        with m.step(title if len(chunks) == 1 else f"{title} ({i + 1} of {len(chunks)})"):
+            for add in chunk:
+                add()
 
 
 def suggest(name: str, choices) -> list[str]:
