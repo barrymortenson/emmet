@@ -96,17 +96,17 @@
 
   /* Layout: the window's regions and the few fixed sizes inside them. */
   --titlebar-height: 56px;
-  --titlebar-inset-start: 72px;   /* room for the traffic lights */
+  --titlebar-inset-start: 84px;   /* room for the traffic lights */
   --caption-button-width: 0px;    /* Windows' caption buttons; none on macOS */
   --panel-width: 384px;
   --panel-min: 320px;
   --panel-max: 520px;
-  --dock-history: 58%;            /* the chat history's share of the viewer column */
+  --dock-history: 0.58;           /* the chat history's share of the viewer column's height */
   --dock-active-max: 300px;       /* a card that needs you, before it scrolls */
   --menu-min: 240px;
   --menu-wide: 320px;
   --dialog-width: 420px;
-  --toast-width: 360px;
+  --toast-width: 440px;
   --tooltip-max: 280px;
   --first-run-width: 560px;
   --thumb-width: 64px;

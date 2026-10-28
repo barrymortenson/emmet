@@ -1,0 +1,64 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* The frame around the frozen design (the bar, the catalog, the Uses list, the specimens' labels), not the design
+   itself: the app's own look is tokens.css and components.css alone. Its colors are its own --h-* tokens, which
+   scripts/contrast-check.mjs checks like any others. */
+[data-theme="light"] {
+  --h-bg-page: #e7e8eb; --h-bg-bar: #ffffff; --h-bg-chip: #eef0f3;
+  --h-fg-text: #1d1f24; --h-fg-muted: #555b66; --h-fg-accent: #9a3412;
+  --h-ui-line: #727884; --h-line: #d5d8de; --h-shadow: #00000033; --h-os: #b9bcc3;
+}
+[data-theme="dark"] {
+  --h-bg-page: #0e0f12; --h-bg-bar: #1a1c21; --h-bg-chip: #262930;
+  --h-fg-text: #eceef2; --h-fg-muted: #a6acb7; --h-fg-accent: #ffb48a;
+  --h-ui-line: #6c7380; --h-line: #30333b; --h-shadow: #00000099; --h-os: #4a4e57;
+}
+
+html, body { margin: 0; height: 100%; }
+body.h { background: var(--h-bg-page); color: var(--h-fg-text); font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; }
+body.h-screen { display: flex; flex-direction: column; overflow: hidden; }
+.h a { color: var(--h-fg-accent); }
+.h-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 14px; background: var(--h-bg-bar); border-bottom: 1px solid var(--h-line); flex: none; }
+.h-bar b { font-size: 14px; }
+.h-grow { flex: 1; }
+.h-btn, .h-select { font: inherit; color: var(--h-fg-text); background: var(--h-bg-chip); border: 1px solid var(--h-ui-line); border-radius: 6px; padding: 3px 9px; cursor: pointer; }
+.h-select { max-width: 340px; }
+.h-seg { display: inline-flex; gap: 2px; }
+.h-btn[aria-pressed="true"] { border-color: var(--h-fg-accent); color: var(--h-fg-accent); font-weight: 600; }
+.h-note { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 14px; color: var(--h-fg-muted); background: var(--h-bg-bar); border-bottom: 1px solid var(--h-line); flex: none; }
+.h-chip { display: inline-block; background: var(--h-bg-chip); color: var(--h-fg-text); border-radius: 999px; padding: 1px 8px; font-size: 12px; margin: 1px 2px; }
+.h-body { flex: 1; display: flex; min-height: 0; }
+.h-stage { flex: 1; position: relative; padding: 14px; overflow: hidden; }
+.h-bare .h-stage { padding: 0; }
+.h-uses { width: 300px; flex: none; overflow: auto; padding: 12px 14px; background: var(--h-bg-bar); border-left: 1px solid var(--h-line); }
+.h-uses h2 { font-size: 13px; margin: 12px 0 6px; }
+.h-uses h2:first-child { margin-top: 0; }
+.h-uses p { margin: 4px 0; color: var(--h-fg-muted); }
+.h-uses code { font-size: 11.5px; }
+.h-flash { outline: 3px dashed var(--h-fg-accent) !important; }
+
+/* The window at its design size, scaled to fit; the OS's own traffic lights, drawn as the system would. */
+.h .window { position: relative; overflow: hidden; transform-origin: top left; box-shadow: 0 12px 40px var(--h-shadow); border-radius: 12px; }
+.h-bare .window { border-radius: 0; box-shadow: none; }
+.h .window[data-platform="windows"] { border-radius: 8px; }
+.h-lights { position: absolute; z-index: 50; top: 22px; left: 20px; display: flex; gap: 8px; pointer-events: none; }
+.h-lights i { width: 12px; height: 12px; border-radius: 50%; background: var(--h-os); }
+
+/* The catalog and the specimens. */
+.h-page { max-width: 1180px; margin: 0 auto; padding: 24px 28px 60px; }
+.h-page h1 { font-size: 22px; margin: 0 0 6px; }
+.h-page h2 { font-size: 16px; margin: 28px 0 8px; }
+.h-page p, .h-page li { max-width: 820px; }
+.h-muted { color: var(--h-fg-muted); }
+.h-table { border-collapse: collapse; width: 100%; background: var(--h-bg-bar); }
+.h-table th, .h-table td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--h-line); }
+.h-table th { font-size: 12px; color: var(--h-fg-muted); }
+.h-spec { margin: 0 0 22px; padding: 14px; background: var(--h-bg-bar); border: 1px solid var(--h-line); border-radius: 10px; }
+.h-spec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-bottom: 10px; }
+.h-spec-head h2 { margin: 0; }
+.h-spec-tokens { font-size: 11.5px; color: var(--h-fg-muted); }
+.h-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.h-pair > .window { border-radius: 10px; padding: 14px; box-shadow: none; overflow: visible; }
+.h-state { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; align-items: center; padding: 6px 0; }
+.h-state + .h-state { border-top: 1px dashed var(--h-line); }
+.h-state > span { font-size: 11.5px; }
+.h-state > div { position: relative; min-width: 0; }
