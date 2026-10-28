@@ -275,7 +275,7 @@ pub fn mutants(index: &Index, placements: &[Placement], per_fault: usize, rng: &
             if let Some((placements, part, what)) = make(i) {
                 let stacked_with = (0..n)
                     .filter(|&j| supports(&geo, i).contains(&j) || supports(&geo, j).contains(&i))
-                    .map(|j| id(j))
+                    .map(&id)
                     .collect();
                 out.push(Mutant {
                     fault,

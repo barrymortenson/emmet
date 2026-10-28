@@ -33,7 +33,7 @@ queries = [
   { q = "slope 2x4", want = "3037" },
   { q = "roof 2x2", want = "3039" },
   { q = "slope 33 3x4", want = "3297" },
-  { q = "inverted slope", want = "3665a" },
+  { q = "inverted slope 2x1", want = "3665a" },
   { q = "cheese slope", want = "54200" },
   { q = "baseplate 32x32", want = "3811" },
   { q = "baseplate 16 x 16", want = "3867" },

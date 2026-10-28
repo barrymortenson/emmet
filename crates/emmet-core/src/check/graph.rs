@@ -3,9 +3,9 @@
 //! pairs that mate, and the parts they join.
 //!
 //! Two connectors mate when their kinds and genders fit and they sit on one line: their axes parallel (within about
-//! 8°) and no more than 0.5 LDU apart across it. Along it, a cylinder must reach into its mate: a stud all the way
-//! into an anti-stud (its length, give or take 0.5 LDU), a bar or pin anywhere along a hole or clip that slides.
-//! Section radii must fit (no male wider than the hole it's in) and at least one must grip (the same radius).
+//! 8°) and no more than 0.5 LDU apart across it (1 LDU for a round joint: a pin, axle, bar, clip, finger, or plug).
+//! Along it, a cylinder must reach into its mate: a stud all the way into an anti-stud (its length, give or take
+//! 0.5 LDU), a round joint at least half way, and a bar or pin anywhere along a hole or clip that slides. Section radii must fit (no male wider than the hole it's in) and at least one must grip (the same radius).
 
 use std::collections::{HashMap, HashSet};
 

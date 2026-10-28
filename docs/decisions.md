@@ -381,10 +381,12 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 
 - **The LDCad shadow data is compiled into the binary.** The connector table built from the LDCad shadow library
   (CC BY-SA 4.0) stays its own file in the source, `data/connections/ldcad-shadow.ldr`, with its license and
-  attribution; emmet-core compiles that file's bytes in unchanged, as it does `data/synonyms.toml`, and NOTICE and
-  About credit it. Barry chose this over shipping it as a separate file read at run time (ADR 0003's wording, with a
+  attribution; emmet-core compiles that file's bytes in unchanged, as it does `data/synonyms.toml`, and NOTICE (and
+  About, from 4A) credit it. Barry chose this over shipping it as a separate file read at run time (ADR 0003's wording, with a
   lookup now and a packaging step in 6A) and over not using it (overrides only). CC lists GPLv3 as compatible with
   BY-SA 4.0, and GPLv3 combines with the AGPL. ADR 0003 records it.
+## 2026-10-28, session 3A
+
 - **Connector match tolerance: 1 LDU for round joints, 0.5 LDU for studs.** Official OMR files place parts by hand,
   and round joints (wheels on holder pins, hands on clips, hinge fingers, posed arms) are often 1 LDU (0.4 mm) off
   their mates; plan section 11's 0.5 LDU reported those as floating. Barry chose 1 LDU across the axis for pins,

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! validate v0 (plan section 11): collisions by shrunk body boxes, floating parts by stud connections, and unknown,
+//! The validator (plan section 11, `docs/spec/validator.md`): the connection model (connectors, the pairs they seat,
+//! and the pairs that hold without them) and the rules over it, collisions by collision proxies, and unknown,
 //! obsolete, and alias parts. Findings carry stable ids, the parts' source lines, a position in the DSL frame, and a
-//! hint, and go to `build/validation.json`. 3A replaces the boxes with collision proxies and the studs with the full
-//! connection model.
+//! hint, and go to `build/validation.json`.
 
 mod boxes;
 mod collision;

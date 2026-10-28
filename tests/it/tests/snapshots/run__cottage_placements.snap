@@ -27,7 +27,7 @@ expression: placements
         1
       ],
       "part": "3811",
-      "src": "model.py:197",
+      "src": "model.py:247",
       "step": 1,
       "submodel": []
     },
@@ -53,7 +53,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
+      "src": "model.py:151",
       "step": 2,
       "submodel": []
     },
@@ -79,7 +79,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
+      "src": "model.py:238",
       "step": 2,
       "submodel": []
     },
@@ -105,7 +105,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
+      "src": "model.py:238",
       "step": 2,
       "submodel": []
     },
@@ -131,7 +131,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
+      "src": "model.py:238",
       "step": 2,
       "submodel": []
     },
@@ -157,7 +157,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
+      "src": "model.py:238",
       "step": 2,
       "submodel": []
     },
@@ -183,13 +183,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
+      "src": "model.py:238",
       "step": 2,
       "submodel": []
     },
     {
       "color": 72,
-      "id": "walls-row-1-side-walls/1",
+      "id": "walls-row-1-left-wall/1",
       "matrix": [
         1,
         0,
@@ -209,13 +209,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
+      "src": "model.py:238",
       "step": 3,
       "submodel": []
     },
     {
       "color": 72,
-      "id": "walls-row-1-side-walls/2",
+      "id": "walls-row-1-left-wall/2",
       "matrix": [
         1,
         0,
@@ -235,13 +235,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
+      "src": "model.py:238",
       "step": 3,
       "submodel": []
     },
     {
       "color": 72,
-      "id": "walls-row-1-side-walls/3",
+      "id": "walls-row-1-left-wall/3",
       "matrix": [
         1,
         0,
@@ -261,13 +261,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
+      "src": "model.py:238",
       "step": 3,
       "submodel": []
     },
     {
       "color": 72,
-      "id": "walls-row-1-side-walls/4",
+      "id": "walls-row-1-right-wall/1",
       "matrix": [
         1,
         0,
@@ -287,13 +287,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 3,
+      "src": "model.py:238",
+      "step": 4,
       "submodel": []
     },
     {
       "color": 72,
-      "id": "walls-row-1-side-walls/5",
+      "id": "walls-row-1-right-wall/2",
       "matrix": [
         1,
         0,
@@ -313,13 +313,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 3,
+      "src": "model.py:238",
+      "step": 4,
       "submodel": []
     },
     {
       "color": 72,
-      "id": "walls-row-1-side-walls/6",
+      "id": "walls-row-1-right-wall/3",
       "matrix": [
         1,
         0,
@@ -339,8 +339,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 3,
+      "src": "model.py:238",
+      "step": 4,
       "submodel": []
     },
     {
@@ -365,8 +365,8 @@ expression: placements
         1
       ],
       "part": "60596",
-      "src": "model.py:131",
-      "step": 4,
+      "src": "model.py:161",
+      "step": 5,
       "submodel": []
     },
     {
@@ -391,8 +391,8 @@ expression: placements
         1
       ],
       "part": "60623",
-      "src": "model.py:38",
-      "step": 4,
+      "src": "model.py:68",
+      "step": 5,
       "submodel": []
     },
     {
@@ -417,8 +417,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 4,
+      "src": "model.py:238",
+      "step": 5,
       "submodel": []
     },
     {
@@ -443,8 +443,8 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 4,
+      "src": "model.py:238",
+      "step": 5,
       "submodel": []
     },
     {
@@ -469,8 +469,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 4,
+      "src": "model.py:238",
+      "step": 5,
       "submodel": []
     },
     {
@@ -495,8 +495,8 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 4,
+      "src": "model.py:238",
+      "step": 5,
       "submodel": []
     },
     {
@@ -521,8 +521,8 @@ expression: placements
         1
       ],
       "part": "3068b",
-      "src": "model.py:203",
-      "step": 5,
+      "src": "model.py:253",
+      "step": 6,
       "submodel": []
     },
     {
@@ -547,8 +547,8 @@ expression: placements
         1
       ],
       "part": "3068b",
-      "src": "model.py:203",
-      "step": 5,
+      "src": "model.py:253",
+      "step": 6,
       "submodel": []
     },
     {
@@ -573,8 +573,8 @@ expression: placements
         1
       ],
       "part": "3062b",
-      "src": "model.py:210",
-      "step": 5,
+      "src": "model.py:260",
+      "step": 6,
       "submodel": []
     },
     {
@@ -599,8 +599,8 @@ expression: placements
         1
       ],
       "part": "6141",
-      "src": "model.py:211",
-      "step": 5,
+      "src": "model.py:261",
+      "step": 6,
       "submodel": []
     },
     {
@@ -625,8 +625,8 @@ expression: placements
         1
       ],
       "part": "3062b",
-      "src": "model.py:210",
-      "step": 5,
+      "src": "model.py:260",
+      "step": 6,
       "submodel": []
     },
     {
@@ -651,8 +651,8 @@ expression: placements
         1
       ],
       "part": "6141",
-      "src": "model.py:211",
-      "step": 5,
+      "src": "model.py:261",
+      "step": 6,
       "submodel": []
     },
     {
@@ -677,8 +677,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 6,
+      "src": "model.py:151",
+      "step": 7,
       "submodel": []
     },
     {
@@ -703,8 +703,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 6,
+      "src": "model.py:238",
+      "step": 7,
       "submodel": []
     },
     {
@@ -729,8 +729,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 6,
+      "src": "model.py:238",
+      "step": 7,
       "submodel": []
     },
     {
@@ -755,8 +755,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 6,
+      "src": "model.py:238",
+      "step": 7,
       "submodel": []
     },
     {
@@ -781,13 +781,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 6,
+      "src": "model.py:238",
+      "step": 7,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-2-side-walls/1",
+      "id": "walls-row-2-left-wall/1",
       "matrix": [
         1,
         0,
@@ -807,13 +807,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 7,
+      "src": "model.py:238",
+      "step": 8,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-2-side-walls/2",
+      "id": "walls-row-2-left-wall/2",
       "matrix": [
         1,
         0,
@@ -833,13 +833,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 7,
+      "src": "model.py:238",
+      "step": 8,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-2-side-walls/3",
+      "id": "walls-row-2-left-wall/3",
       "matrix": [
         1,
         0,
@@ -859,13 +859,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 7,
+      "src": "model.py:238",
+      "step": 8,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-2-side-walls/4",
+      "id": "walls-row-2-left-wall/4",
       "matrix": [
         1,
         0,
@@ -885,13 +885,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 7,
+      "src": "model.py:238",
+      "step": 8,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-2-side-walls/5",
+      "id": "walls-row-2-right-wall/1",
       "matrix": [
         1,
         0,
@@ -911,13 +911,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 7,
+      "src": "model.py:238",
+      "step": 9,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-2-side-walls/6",
+      "id": "walls-row-2-right-wall/2",
       "matrix": [
         1,
         0,
@@ -937,13 +937,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 7,
+      "src": "model.py:238",
+      "step": 9,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-2-side-walls/7",
+      "id": "walls-row-2-right-wall/3",
       "matrix": [
         1,
         0,
@@ -963,13 +963,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 7,
+      "src": "model.py:238",
+      "step": 9,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-2-side-walls/8",
+      "id": "walls-row-2-right-wall/4",
       "matrix": [
         1,
         0,
@@ -989,8 +989,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 7,
+      "src": "model.py:238",
+      "step": 9,
       "submodel": []
     },
     {
@@ -1015,8 +1015,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 8,
+      "src": "model.py:238",
+      "step": 10,
       "submodel": []
     },
     {
@@ -1041,8 +1041,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 8,
+      "src": "model.py:238",
+      "step": 10,
       "submodel": []
     },
     {
@@ -1067,8 +1067,8 @@ expression: placements
         1
       ],
       "part": "3003",
-      "src": "model.py:222",
-      "step": 9,
+      "src": "model.py:272",
+      "step": 11,
       "submodel": []
     },
     {
@@ -1093,8 +1093,8 @@ expression: placements
         1
       ],
       "part": "2412b",
-      "src": "model.py:224",
-      "step": 9,
+      "src": "model.py:274",
+      "step": 11,
       "submodel": []
     },
     {
@@ -1119,8 +1119,8 @@ expression: placements
         1
       ],
       "part": "2412b",
-      "src": "model.py:224",
-      "step": 9,
+      "src": "model.py:274",
+      "step": 11,
       "submodel": []
     },
     {
@@ -1145,8 +1145,8 @@ expression: placements
         1
       ],
       "part": "3062b",
-      "src": "model.py:231",
-      "step": 10,
+      "src": "model.py:281",
+      "step": 12,
       "submodel": []
     },
     {
@@ -1171,8 +1171,8 @@ expression: placements
         1
       ],
       "part": "4032a",
-      "src": "model.py:232",
-      "step": 10,
+      "src": "model.py:282",
+      "step": 12,
       "submodel": []
     },
     {
@@ -1197,8 +1197,8 @@ expression: placements
         1
       ],
       "part": "3062b",
-      "src": "model.py:234",
-      "step": 10,
+      "src": "model.py:284",
+      "step": 12,
       "submodel": []
     },
     {
@@ -1223,8 +1223,8 @@ expression: placements
         1
       ],
       "part": "3001",
-      "src": "model.py:240",
-      "step": 11,
+      "src": "model.py:290",
+      "step": 13,
       "submodel": []
     },
     {
@@ -1249,8 +1249,8 @@ expression: placements
         1
       ],
       "part": "3068b",
-      "src": "model.py:241",
-      "step": 11,
+      "src": "model.py:291",
+      "step": 13,
       "submodel": []
     },
     {
@@ -1275,8 +1275,8 @@ expression: placements
         1
       ],
       "part": "3068b",
-      "src": "model.py:242",
-      "step": 11,
+      "src": "model.py:292",
+      "step": 13,
       "submodel": []
     },
     {
@@ -1301,8 +1301,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 12,
+      "src": "model.py:151",
+      "step": 14,
       "submodel": []
     },
     {
@@ -1327,8 +1327,8 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:135",
-      "step": 12,
+      "src": "model.py:165",
+      "step": 14,
       "submodel": []
     },
     {
@@ -1353,8 +1353,8 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:38",
-      "step": 12,
+      "src": "model.py:68",
+      "step": 14,
       "submodel": []
     },
     {
@@ -1379,8 +1379,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 12,
+      "src": "model.py:238",
+      "step": 14,
       "submodel": []
     },
     {
@@ -1405,8 +1405,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 12,
+      "src": "model.py:238",
+      "step": 14,
       "submodel": []
     },
     {
@@ -1431,8 +1431,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 12,
+      "src": "model.py:238",
+      "step": 14,
       "submodel": []
     },
     {
@@ -1457,8 +1457,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 12,
+      "src": "model.py:238",
+      "step": 14,
       "submodel": []
     },
     {
@@ -1483,8 +1483,8 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:135",
-      "step": 13,
+      "src": "model.py:165",
+      "step": 15,
       "submodel": []
     },
     {
@@ -1509,8 +1509,60 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:38",
-      "step": 13,
+      "src": "model.py:68",
+      "step": 15,
+      "submodel": []
+    },
+    {
+      "color": 19,
+      "id": "walls-row-3-left-wall/1",
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        280,
+        -76,
+        -230,
+        1
+      ],
+      "part": "3004",
+      "src": "model.py:238",
+      "step": 15,
+      "submodel": []
+    },
+    {
+      "color": 19,
+      "id": "walls-row-3-left-wall/2",
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        360,
+        -76,
+        -230,
+        1
+      ],
+      "part": "3004",
+      "src": "model.py:238",
+      "step": 15,
       "submodel": []
     },
     {
@@ -1535,8 +1587,8 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:135",
-      "step": 13,
+      "src": "model.py:165",
+      "step": 16,
       "submodel": []
     },
     {
@@ -1561,65 +1613,13 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:38",
-      "step": 13,
+      "src": "model.py:68",
+      "step": 16,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-3-side-walls/1",
-      "matrix": [
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        280,
-        -76,
-        -230,
-        1
-      ],
-      "part": "3004",
-      "src": "model.py:193",
-      "step": 13,
-      "submodel": []
-    },
-    {
-      "color": 19,
-      "id": "walls-row-3-side-walls/2",
-      "matrix": [
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        360,
-        -76,
-        -230,
-        1
-      ],
-      "part": "3004",
-      "src": "model.py:193",
-      "step": 13,
-      "submodel": []
-    },
-    {
-      "color": 19,
-      "id": "walls-row-3-side-walls/3",
+      "id": "walls-row-3-right-wall/1",
       "matrix": [
         1,
         0,
@@ -1639,13 +1639,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 13,
+      "src": "model.py:238",
+      "step": 16,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-3-side-walls/4",
+      "id": "walls-row-3-right-wall/2",
       "matrix": [
         1,
         0,
@@ -1665,8 +1665,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 13,
+      "src": "model.py:238",
+      "step": 16,
       "submodel": []
     },
     {
@@ -1691,8 +1691,8 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:135",
-      "step": 14,
+      "src": "model.py:165",
+      "step": 17,
       "submodel": []
     },
     {
@@ -1717,8 +1717,8 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:38",
-      "step": 14,
+      "src": "model.py:68",
+      "step": 17,
       "submodel": []
     },
     {
@@ -1743,8 +1743,8 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:135",
-      "step": 14,
+      "src": "model.py:165",
+      "step": 17,
       "submodel": []
     },
     {
@@ -1769,8 +1769,8 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:38",
-      "step": 14,
+      "src": "model.py:68",
+      "step": 17,
       "submodel": []
     },
     {
@@ -1795,8 +1795,8 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 14,
+      "src": "model.py:238",
+      "step": 17,
       "submodel": []
     },
     {
@@ -1821,8 +1821,8 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 14,
+      "src": "model.py:238",
+      "step": 17,
       "submodel": []
     },
     {
@@ -1847,8 +1847,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 15,
+      "src": "model.py:151",
+      "step": 18,
       "submodel": []
     },
     {
@@ -1873,8 +1873,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 15,
+      "src": "model.py:238",
+      "step": 18,
       "submodel": []
     },
     {
@@ -1899,8 +1899,8 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 15,
+      "src": "model.py:238",
+      "step": 18,
       "submodel": []
     },
     {
@@ -1925,8 +1925,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 15,
+      "src": "model.py:238",
+      "step": 18,
       "submodel": []
     },
     {
@@ -1951,13 +1951,13 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 15,
+      "src": "model.py:238",
+      "step": 18,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-4-side-walls/1",
+      "id": "walls-row-4-left-wall/1",
       "matrix": [
         1,
         0,
@@ -1977,13 +1977,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 16,
+      "src": "model.py:238",
+      "step": 19,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-4-side-walls/2",
+      "id": "walls-row-4-left-wall/2",
       "matrix": [
         1,
         0,
@@ -2003,13 +2003,13 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 16,
+      "src": "model.py:238",
+      "step": 19,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-4-side-walls/3",
+      "id": "walls-row-4-left-wall/3",
       "matrix": [
         1,
         0,
@@ -2029,13 +2029,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 16,
+      "src": "model.py:238",
+      "step": 19,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-4-side-walls/4",
+      "id": "walls-row-4-left-wall/4",
       "matrix": [
         1,
         0,
@@ -2055,13 +2055,13 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 16,
+      "src": "model.py:238",
+      "step": 19,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-4-side-walls/5",
+      "id": "walls-row-4-right-wall/1",
       "matrix": [
         1,
         0,
@@ -2081,13 +2081,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 16,
+      "src": "model.py:238",
+      "step": 20,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-4-side-walls/6",
+      "id": "walls-row-4-right-wall/2",
       "matrix": [
         1,
         0,
@@ -2107,13 +2107,13 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 16,
+      "src": "model.py:238",
+      "step": 20,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-4-side-walls/7",
+      "id": "walls-row-4-right-wall/3",
       "matrix": [
         1,
         0,
@@ -2133,13 +2133,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 16,
+      "src": "model.py:238",
+      "step": 20,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-4-side-walls/8",
+      "id": "walls-row-4-right-wall/4",
       "matrix": [
         1,
         0,
@@ -2159,8 +2159,8 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 16,
+      "src": "model.py:238",
+      "step": 20,
       "submodel": []
     },
     {
@@ -2185,8 +2185,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 17,
+      "src": "model.py:151",
+      "step": 21,
       "submodel": []
     },
     {
@@ -2211,8 +2211,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 17,
+      "src": "model.py:238",
+      "step": 21,
       "submodel": []
     },
     {
@@ -2237,8 +2237,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 17,
+      "src": "model.py:238",
+      "step": 21,
       "submodel": []
     },
     {
@@ -2263,8 +2263,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 17,
+      "src": "model.py:238",
+      "step": 21,
       "submodel": []
     },
     {
@@ -2289,8 +2289,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 17,
+      "src": "model.py:238",
+      "step": 21,
       "submodel": []
     },
     {
@@ -2315,13 +2315,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 17,
+      "src": "model.py:238",
+      "step": 21,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-5-side-walls/1",
+      "id": "walls-row-5-left-wall/1",
       "matrix": [
         1,
         0,
@@ -2341,13 +2341,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 18,
+      "src": "model.py:238",
+      "step": 22,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-5-side-walls/2",
+      "id": "walls-row-5-left-wall/2",
       "matrix": [
         1,
         0,
@@ -2367,13 +2367,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 18,
+      "src": "model.py:238",
+      "step": 22,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-5-side-walls/3",
+      "id": "walls-row-5-left-wall/3",
       "matrix": [
         1,
         0,
@@ -2393,13 +2393,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 18,
+      "src": "model.py:238",
+      "step": 22,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-5-side-walls/4",
+      "id": "walls-row-5-right-wall/1",
       "matrix": [
         1,
         0,
@@ -2419,13 +2419,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 18,
+      "src": "model.py:238",
+      "step": 23,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-5-side-walls/5",
+      "id": "walls-row-5-right-wall/2",
       "matrix": [
         1,
         0,
@@ -2445,13 +2445,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 18,
+      "src": "model.py:238",
+      "step": 23,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-5-side-walls/6",
+      "id": "walls-row-5-right-wall/3",
       "matrix": [
         1,
         0,
@@ -2471,8 +2471,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 18,
+      "src": "model.py:238",
+      "step": 23,
       "submodel": []
     },
     {
@@ -2497,8 +2497,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 19,
+      "src": "model.py:238",
+      "step": 24,
       "submodel": []
     },
     {
@@ -2523,8 +2523,8 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 19,
+      "src": "model.py:238",
+      "step": 24,
       "submodel": []
     },
     {
@@ -2549,8 +2549,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 19,
+      "src": "model.py:238",
+      "step": 24,
       "submodel": []
     },
     {
@@ -2575,8 +2575,8 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:193",
-      "step": 19,
+      "src": "model.py:238",
+      "step": 24,
       "submodel": []
     },
     {
@@ -2601,8 +2601,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 20,
+      "src": "model.py:151",
+      "step": 25,
       "submodel": []
     },
     {
@@ -2627,8 +2627,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 20,
+      "src": "model.py:238",
+      "step": 25,
       "submodel": []
     },
     {
@@ -2653,8 +2653,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 20,
+      "src": "model.py:238",
+      "step": 25,
       "submodel": []
     },
     {
@@ -2679,8 +2679,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 20,
+      "src": "model.py:238",
+      "step": 25,
       "submodel": []
     },
     {
@@ -2705,13 +2705,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 20,
+      "src": "model.py:238",
+      "step": 25,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-6-side-walls/1",
+      "id": "walls-row-6-left-wall/1",
       "matrix": [
         1,
         0,
@@ -2731,13 +2731,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 21,
+      "src": "model.py:238",
+      "step": 26,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-6-side-walls/2",
+      "id": "walls-row-6-left-wall/2",
       "matrix": [
         1,
         0,
@@ -2757,13 +2757,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 21,
+      "src": "model.py:238",
+      "step": 26,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-6-side-walls/3",
+      "id": "walls-row-6-left-wall/3",
       "matrix": [
         1,
         0,
@@ -2783,13 +2783,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 21,
+      "src": "model.py:238",
+      "step": 26,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-6-side-walls/4",
+      "id": "walls-row-6-left-wall/4",
       "matrix": [
         1,
         0,
@@ -2809,13 +2809,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 21,
+      "src": "model.py:238",
+      "step": 26,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-6-side-walls/5",
+      "id": "walls-row-6-right-wall/1",
       "matrix": [
         1,
         0,
@@ -2835,13 +2835,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 21,
+      "src": "model.py:238",
+      "step": 27,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-6-side-walls/6",
+      "id": "walls-row-6-right-wall/2",
       "matrix": [
         1,
         0,
@@ -2861,13 +2861,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 21,
+      "src": "model.py:238",
+      "step": 27,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-6-side-walls/7",
+      "id": "walls-row-6-right-wall/3",
       "matrix": [
         1,
         0,
@@ -2887,13 +2887,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 21,
+      "src": "model.py:238",
+      "step": 27,
       "submodel": []
     },
     {
       "color": 19,
-      "id": "walls-row-6-side-walls/8",
+      "id": "walls-row-6-right-wall/4",
       "matrix": [
         1,
         0,
@@ -2913,8 +2913,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 21,
+      "src": "model.py:238",
+      "step": 27,
       "submodel": []
     },
     {
@@ -2939,8 +2939,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 22,
+      "src": "model.py:238",
+      "step": 28,
       "submodel": []
     },
     {
@@ -2965,8 +2965,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:193",
-      "step": 22,
+      "src": "model.py:238",
+      "step": 28,
       "submodel": []
     },
     {
@@ -2991,8 +2991,8 @@ expression: placements
         1
       ],
       "part": "3832",
-      "src": "model.py:256",
-      "step": 23,
+      "src": "model.py:306",
+      "step": 29,
       "submodel": []
     },
     {
@@ -3017,8 +3017,8 @@ expression: placements
         1
       ],
       "part": "3832",
-      "src": "model.py:256",
-      "step": 23,
+      "src": "model.py:306",
+      "step": 29,
       "submodel": []
     },
     {
@@ -3043,8 +3043,8 @@ expression: placements
         1
       ],
       "part": "3832",
-      "src": "model.py:256",
-      "step": 23,
+      "src": "model.py:306",
+      "step": 29,
       "submodel": []
     },
     {
@@ -3069,13 +3069,13 @@ expression: placements
         1
       ],
       "part": "3832",
-      "src": "model.py:256",
-      "step": 23,
+      "src": "model.py:306",
+      "step": 29,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/1",
+      "id": "roof-course-1-front-1-of-2/1",
       "matrix": [
         0,
         0,
@@ -3095,13 +3095,13 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 24,
+      "src": "model.py:336",
+      "step": 30,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/2",
+      "id": "roof-course-1-front-1-of-2/2",
       "matrix": [
         0,
         0,
@@ -3121,13 +3121,13 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 24,
+      "src": "model.py:336",
+      "step": 30,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/3",
+      "id": "roof-course-1-front-1-of-2/3",
       "matrix": [
         0,
         0,
@@ -3147,13 +3147,13 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:280",
-      "step": 24,
+      "src": "model.py:336",
+      "step": 30,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/4",
+      "id": "roof-course-1-front-1-of-2/4",
       "matrix": [
         0,
         0,
@@ -3173,13 +3173,13 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 24,
+      "src": "model.py:57",
+      "step": 30,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/5",
+      "id": "roof-course-1-front-1-of-2/5",
       "matrix": [
         0,
         0,
@@ -3199,13 +3199,13 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 24,
+      "src": "model.py:57",
+      "step": 30,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/6",
+      "id": "roof-course-1-front-1-of-2/6",
       "matrix": [
         0,
         0,
@@ -3225,13 +3225,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:285",
-      "step": 24,
+      "src": "model.py:57",
+      "step": 30,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/7",
+      "id": "roof-course-1-front-2-of-2/1",
       "matrix": [
         0,
         0,
@@ -3251,13 +3251,13 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 24,
+      "src": "model.py:57",
+      "step": 31,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/8",
+      "id": "roof-course-1-front-2-of-2/2",
       "matrix": [
         0,
         0,
@@ -3277,13 +3277,13 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 24,
+      "src": "model.py:57",
+      "step": 31,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-front/9",
+      "id": "roof-course-1-front-2-of-2/3",
       "matrix": [
         0,
         0,
@@ -3303,13 +3303,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:285",
-      "step": 24,
+      "src": "model.py:57",
+      "step": 31,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/1",
+      "id": "roof-course-1-back-1-of-2/1",
       "matrix": [
         0,
         0,
@@ -3329,13 +3329,13 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 25,
+      "src": "model.py:336",
+      "step": 32,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/2",
+      "id": "roof-course-1-back-1-of-2/2",
       "matrix": [
         0,
         0,
@@ -3355,13 +3355,13 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 25,
+      "src": "model.py:336",
+      "step": 32,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/3",
+      "id": "roof-course-1-back-1-of-2/3",
       "matrix": [
         0,
         0,
@@ -3381,13 +3381,13 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:280",
-      "step": 25,
+      "src": "model.py:336",
+      "step": 32,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/4",
+      "id": "roof-course-1-back-1-of-2/4",
       "matrix": [
         0,
         0,
@@ -3407,13 +3407,13 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 25,
+      "src": "model.py:57",
+      "step": 32,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/5",
+      "id": "roof-course-1-back-1-of-2/5",
       "matrix": [
         0,
         0,
@@ -3433,13 +3433,13 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 25,
+      "src": "model.py:57",
+      "step": 32,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/6",
+      "id": "roof-course-1-back-1-of-2/6",
       "matrix": [
         0,
         0,
@@ -3459,13 +3459,13 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:285",
-      "step": 25,
+      "src": "model.py:57",
+      "step": 32,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/7",
+      "id": "roof-course-1-back-2-of-2/1",
       "matrix": [
         0,
         0,
@@ -3485,13 +3485,13 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 25,
+      "src": "model.py:57",
+      "step": 33,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/8",
+      "id": "roof-course-1-back-2-of-2/2",
       "matrix": [
         0,
         0,
@@ -3511,13 +3511,13 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 25,
+      "src": "model.py:57",
+      "step": 33,
       "submodel": []
     },
     {
       "color": 320,
-      "id": "roof-course-1-back/9",
+      "id": "roof-course-1-back-2-of-2/3",
       "matrix": [
         0,
         0,
@@ -3537,8 +3537,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:285",
-      "step": 25,
+      "src": "model.py:57",
+      "step": 33,
       "submodel": []
     },
     {
@@ -3563,8 +3563,8 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 26,
+      "src": "model.py:336",
+      "step": 34,
       "submodel": []
     },
     {
@@ -3589,8 +3589,8 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 26,
+      "src": "model.py:336",
+      "step": 34,
       "submodel": []
     },
     {
@@ -3615,8 +3615,8 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:280",
-      "step": 26,
+      "src": "model.py:336",
+      "step": 34,
       "submodel": []
     },
     {
@@ -3641,8 +3641,8 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 26,
+      "src": "model.py:57",
+      "step": 34,
       "submodel": []
     },
     {
@@ -3667,8 +3667,8 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 26,
+      "src": "model.py:57",
+      "step": 34,
       "submodel": []
     },
     {
@@ -3693,8 +3693,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:285",
-      "step": 26,
+      "src": "model.py:57",
+      "step": 34,
       "submodel": []
     },
     {
@@ -3719,8 +3719,8 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 27,
+      "src": "model.py:336",
+      "step": 35,
       "submodel": []
     },
     {
@@ -3745,8 +3745,8 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 27,
+      "src": "model.py:336",
+      "step": 35,
       "submodel": []
     },
     {
@@ -3771,8 +3771,8 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:280",
-      "step": 27,
+      "src": "model.py:336",
+      "step": 35,
       "submodel": []
     },
     {
@@ -3797,8 +3797,8 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 27,
+      "src": "model.py:57",
+      "step": 35,
       "submodel": []
     },
     {
@@ -3823,8 +3823,8 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:285",
-      "step": 27,
+      "src": "model.py:57",
+      "step": 35,
       "submodel": []
     },
     {
@@ -3849,8 +3849,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:285",
-      "step": 27,
+      "src": "model.py:57",
+      "step": 35,
       "submodel": []
     },
     {
@@ -3875,8 +3875,8 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 28,
+      "src": "model.py:336",
+      "step": 36,
       "submodel": []
     },
     {
@@ -3901,8 +3901,8 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 28,
+      "src": "model.py:336",
+      "step": 36,
       "submodel": []
     },
     {
@@ -3927,8 +3927,8 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:280",
-      "step": 28,
+      "src": "model.py:336",
+      "step": 36,
       "submodel": []
     },
     {
@@ -3953,8 +3953,8 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 29,
+      "src": "model.py:336",
+      "step": 37,
       "submodel": []
     },
     {
@@ -3979,8 +3979,8 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:280",
-      "step": 29,
+      "src": "model.py:336",
+      "step": 37,
       "submodel": []
     },
     {
@@ -4005,8 +4005,8 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:280",
-      "step": 29,
+      "src": "model.py:336",
+      "step": 37,
       "submodel": []
     },
     {
@@ -4031,8 +4031,8 @@ expression: placements
         1
       ],
       "part": "3041",
-      "src": "model.py:290",
-      "step": 30,
+      "src": "model.py:351",
+      "step": 38,
       "submodel": []
     },
     {
@@ -4057,8 +4057,8 @@ expression: placements
         1
       ],
       "part": "3041",
-      "src": "model.py:290",
-      "step": 30,
+      "src": "model.py:351",
+      "step": 38,
       "submodel": []
     },
     {
@@ -4083,8 +4083,8 @@ expression: placements
         1
       ],
       "part": "3043",
-      "src": "model.py:290",
-      "step": 30,
+      "src": "model.py:351",
+      "step": 38,
       "submodel": []
     },
     {
@@ -4109,8 +4109,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 31,
+      "src": "model.py:151",
+      "step": 39,
       "submodel": []
     },
     {
@@ -4135,8 +4135,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 31,
+      "src": "model.py:151",
+      "step": 39,
       "submodel": []
     },
     {
@@ -4161,8 +4161,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 31,
+      "src": "model.py:151",
+      "step": 39,
       "submodel": []
     },
     {
@@ -4187,8 +4187,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 31,
+      "src": "model.py:151",
+      "step": 39,
       "submodel": []
     },
     {
@@ -4213,8 +4213,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 31,
+      "src": "model.py:151",
+      "step": 39,
       "submodel": []
     },
     {
@@ -4239,8 +4239,8 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:121",
-      "step": 31,
+      "src": "model.py:151",
+      "step": 39,
       "submodel": []
     }
   ],
