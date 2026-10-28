@@ -79,6 +79,7 @@
 3023    # ~Moved to 3023b
 3040    # ~Moved to 3040b
 4073    # ~Moved to 6141
+2859c01 # ~Moved to 75541-f1; Rebrickable's LD row still names it (ADR 0004's mapping rule 2)
 3660a   # ~Slope Brick 45 2 x 2 Inverted (Obsolete)
 15570   # =Plate 1 x 1 Round (an alias of 6141)
 18860   # =Brick 1 x 1 Round with Hollow Stud (an alias of 3062b)

@@ -6,3 +6,6 @@
 tests/fixtures/ldraw-mini/** -text
 # The OMR models too: unmodified, as LDraw publishes them (ADR 0003).
 tests/fixtures/omr/*.mpd -text
+# Keys and other raw bytes: random bytes can look like text, and a line-ending change would break them.
+*.der binary
+tests/fixtures/parts-data/*.pub binary
