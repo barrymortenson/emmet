@@ -5,6 +5,10 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
 
 ## 2026-10-27, session 2A
 
+- **H-07 (UX-1): B, as revised.** Asked through AskUserQuestion whether the refined B was done, Barry said yes
+  ("B is done, record it"). B (Canvas), with the revisions recorded below, is the direction 2B turns into the design
+  system and the frozen screens. A and C stay in `docs/design/directions/` as the record; the mix that review.html
+  proposed before the revisions (A's Chat focus layout, C's ⌘K palette) wasn't part of the pick.
 - **No step scrubber.** Barry, on B's "◀ Step 31/31 ▶" pill: it isn't needed. The Steps tab picks a step, and the
   step's number and parts box show over the viewer. Plan sections 13 and 14 and 4C drop the scrubber, and B's title
   row loses it. A and C keep theirs as the record of the directions.

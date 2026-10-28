@@ -102,7 +102,7 @@
 .e-parts-box { display: flex; gap: 14px; align-items: flex-end; padding: 8px 14px 6px; border-radius: 6px; background: var(--bg-card); border: 1.5px solid var(--line-strong); box-shadow: 0 1px 3px var(--shadow-soft); }
 .e-parts-item { display: flex; flex-direction: column; align-items: center; font-size: 12px; }
 .e-parts-item img { width: 44px; height: 44px; object-fit: contain; }
-.e-step-no { font-size: 44px; font-weight: 300; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.e-step-no { padding: 0 4px; border-radius: 4px; background: var(--bg-viewer); font-size: 44px; font-weight: 300; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .e-sub { position: absolute; left: 20px; top: 150px; height: 204px; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 8px; border-radius: 6px; background: var(--bg-viewer); border: 1.5px solid var(--ui-control); }
 .e-sub .e-parts-box { box-shadow: none; }
 .e-sub-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
