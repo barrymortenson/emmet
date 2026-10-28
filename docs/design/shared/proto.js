@@ -108,8 +108,9 @@ window.EMMET_PROTO = (() => {
     if (e.key === "PageDown" || e.key === "PageUp") document.querySelector(`[data-p=${e.key === "PageDown" ? "next" : "prev"}]`)?.click();
   }
 
-  // #audit: WCAG 2.2 AA contrast of every visible text element, against the first opaque background behind it.
-  // Text whose background search reaches the render first is reported: it has no surface of its own.
+  // #audit: WCAG 2.2 AA contrast of every visible text element, and of every empty field's placeholder, against the
+  // first opaque background behind it. Text whose background search reaches the render first is reported: it has no
+  // surface of its own.
   const parseRgb = (s) => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [r, g, b, a]; };
   const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
   const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
@@ -123,7 +124,8 @@ window.EMMET_PROTO = (() => {
       render({ s: s.id, t, bare: true });
       for (const el of document.querySelectorAll(".e-window *")) {
         const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-        if (!own || !el.getClientRects().length) continue;
+        const placeholder = el.matches("input, textarea") && el.placeholder && !el.value;
+        if ((!own && !placeholder) || !el.getClientRects().length) continue;
         const cs = getComputedStyle(el);
         if (cs.visibility === "hidden" || el.closest("[aria-hidden=true]")) continue;
         // Background layers from the element outward, until an opaque one; then composite them back up.
@@ -142,10 +144,10 @@ window.EMMET_PROTO = (() => {
         checked++;
         const size = parseFloat(cs.fontSize), bold = Number(cs.fontWeight) >= 700;
         const need = size >= 24 || (bold && size >= 18.66) ? 3 : 4.5;
-        let fg = parseRgb(cs.color);
+        let fg = parseRgb(placeholder ? getComputedStyle(el, "::placeholder").color : cs.color);
         fg = bg ? over(fg, bg) : fg;
         const r = hit ? 0 : ratio(fg, bg);
-        if (hit || r < need) results.push({ theme: t, screen: s.id, text: el.textContent.trim().slice(0, 40), ratio: Math.round(r * 100) / 100, need, why: hit || "low contrast" });
+        if (hit || r < need) results.push({ theme: t, screen: s.id, text: (placeholder ? el.placeholder : el.textContent.trim()).slice(0, 40), ratio: Math.round(r * 100) / 100, need, why: hit || "low contrast" });
       }
     }
     window.EMMET_AUDIT = { direction: dir.id, screens: screens.length, themes: 2, checked, failures: results };

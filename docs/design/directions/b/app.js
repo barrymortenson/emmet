@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Direction B, Canvas (Barry's revision, 2026-10-27): the viewer takes the left of the window, the options panel the
 // right, and the chat docks along the bottom of the viewer, led by what the agent is doing. The chat is light by default (the latest line, or the card that needs you, then the composer); its
-// history opens upward and pushes the viewer up, never over the model. Options leads with the build settings (style,
-// scale, detail, size), which steer the agent, then the model's own tweaks. Warm, roomy, friendly.
+// history opens upward and pushes the viewer up, never over the model. Options leads with the build settings (base,
+// scale, age, detail, pieces, style), which steer the agent, then the model's own tweaks. Warm, roomy, friendly.
 (() => {
   const D = window.EMMET_DATA;
   const U = window.EMMET_UI;
   const S = window.EMMET_STATES;
   const esc = U.esc;
-  // The brand's ant (brand/mark-ant.svg): in the project chip, which opens About.
+  // The brand's ant (brand/mark-ant.svg): in the project chip, which opens the project menu (About is in it).
   const ANT = `<img class="b-ant" src="../../brand/mark-ant.svg" alt="">`;
 
   // History opens where the conversation itself is the point: picking an agent, and right after a switch. Elsewhere
@@ -83,7 +83,7 @@
       // Before the first build the settings are open; after it they're one summary line, Change opens them, and Done
       // folds them back (pending changes stay, with Undo and Rebuild on the summary).
       const full = b.state === "empty" || (s.briefDirty && s.brief !== "closed") || s.brief === "open";
-      // No on/off switch (Barry): every setting starts on Any, which already leaves the prompt to decide.
+      // No on/off switch (Barry): every setting but Base starts on Any, which already leaves the prompt to decide.
       const done = full && b.state !== "empty" ? `<button type="button" class="e-btn e-quiet e-sm" data-local="brief=closed">Done</button>` : "";
       body = `<div class="b-sec b-sec-row"><span title="Together they set how the agent designs the model">Build settings</span><span class="b-sec-tools">${done}</span></div>${U.buildSettings(s, { compact: !full, open: "brief=open" })}${tweaks}`;
     } else body = U.panel(t, s);
@@ -120,8 +120,8 @@
     const a = U.agentOf(s);
     const open = historyOpen(s);
     const n = s.chat.length;
-    // What the agent is doing (note 1) leads the chat, beside the agent it's about. An untrusted project is a warning
-    // for the agent too: it can't run the model until the user trusts it.
+    // What the agent is doing (note 1) leads the chat, beside the agent it's about. An untrusted project's banner says
+    // the agent can't run the model until the user trusts it, so the status stays quiet there.
     // The status shows only when it says something the screen doesn't: not "Idle", and not when the card under it
     // (a question, an approval, a crash, a sign-in, an error) says it bigger.
     const card = active(s);

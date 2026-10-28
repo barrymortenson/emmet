@@ -160,7 +160,7 @@ window.EMMET_UI = (() => {
       <button type="button" class="e-btn e-quiet e-sm" title="Start fresh: clear the context, keep the agent">${icon("fresh")}<span>Start fresh</span></button></div>`;
   }
 
-  // Parameters (note 5): grouped, labeled in words, help from the docstring, colors limited to what the parts come in.
+  // Parameters (note 5): labeled in words, help from the docstring, colors limited to what the parts come in.
   function params(screen) {
     const dirty = screen.dirty || {};
     // Names that explain themselves, and the docstring's help on hover only (Barry 2026-10-27: no subtext).
@@ -187,8 +187,8 @@ window.EMMET_UI = (() => {
     return `<div class="e-params">${keep}${D.params.map(row).join("")}</div>`;
   }
 
-  // Build settings: style, scale, detail, size, base. They steer the agent, so a change waits for Rebuild instead of
-  // rerunning model.py. A new build starts with each one on Any, so they don't box in the prompt; style takes the
+  // Build settings: base, scale, age, detail, pieces, style. They steer the agent, so a change waits for Rebuild instead of
+  // rerunning model.py. A new build starts with each one but Base on Any, so they don't box in the prompt; style takes the
   // user's own words as well as the suggestions (Barry 2026-10-27).
   const range = (p) => (p.max ? `${p.min.toLocaleString("en-US")}–${p.max.toLocaleString("en-US")}` : `${p.min.toLocaleString("en-US")}+`);
   function buildSettings(screen, opts = {}) {

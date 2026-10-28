@@ -189,7 +189,7 @@
 
 .e-composer { margin: 8px 10px 10px; border: 1px solid var(--ui-control); border-radius: 10px; background: var(--bg-panel); }
 .e-composer textarea { display: block; width: 100%; box-sizing: border-box; border: 0; background: none; resize: none; padding: 9px 11px 2px; outline: none; }
-.e-composer textarea::placeholder { color: var(--fg-muted); }
+.e-composer textarea::placeholder, .e-q-other input::placeholder { color: var(--fg-muted); }
 .e-composer-bar { display: flex; align-items: center; gap: 6px; padding: 4px 6px 6px; }
 .e-model-chip { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; color: var(--fg-muted); font-size: 12px; padding: 3px 6px; border-radius: 6px; }
 .e-model-chip:hover { background: var(--bg-raised); }

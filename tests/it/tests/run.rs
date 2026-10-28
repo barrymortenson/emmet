@@ -221,6 +221,38 @@ fn params_get_set_and_run_overrides() {
     assert_eq!(v["error"]["code"], "PARAM_INVALID");
 }
 
+/// The character knobs: weathering changes the bricks, the same seed gives the same build byte for byte (build/ is
+/// reproducible), another seed another arrangement, and roof=false takes the roof off.
+#[test]
+fn the_knobs_change_the_build_and_a_seed_reproduces_it() {
+    let demo = new_demo("knobs");
+    let placements = |params: &[&str]| {
+        let mut args = vec!["run", "--params"];
+        args.extend_from_slice(params);
+        let (v, code) = emmet_in(&demo, &args);
+        assert_eq!(code, 0, "{params:?}: {v}");
+        (
+            std::fs::read(demo.join("build/placements.json")).unwrap(),
+            v["data"]["parts"].as_u64().unwrap(),
+        )
+    };
+    let (plain, parts) = placements(&["weathering=0"]);
+    let (old, _) = placements(&["weathering=30", "seed=7"]);
+    assert_ne!(old, plain, "weathering changes no brick");
+    assert_eq!(
+        placements(&["weathering=30", "seed=7"]).0,
+        old,
+        "the same seed builds differently"
+    );
+    assert_ne!(
+        placements(&["weathering=30", "seed=8"]).0,
+        old,
+        "another seed builds the same"
+    );
+    let (_, roofless) = placements(&["roof=false"]);
+    assert!(roofless < parts, "roof=false keeps {roofless} of {parts} parts");
+}
+
 #[test]
 fn every_parameter_combination_at_the_edges_builds() {
     let demo = new_demo("edges");

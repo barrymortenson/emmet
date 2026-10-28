@@ -128,7 +128,7 @@
       case "agent": return { cls: "say", ic: "spark", text: cut(m.text, 70) };
       case "thinking": return { cls: "think", ic: "spark", text: "Thinking" };
       case "tool": return { cls: m.status === "running" ? "run" : m.status === "error" ? "bad" : "done", ic: m.icon, text: m.status === "running" ? `${m.title}: ${cut(m.detail, 40)}` : m.title, spin: m.status === "running" };
-      case "file": return { cls: "done", ic: "file", text: `${m.path}: ${m.summary.replace(/^Wrote the model · /, "wrote ")}` };
+      case "file": return { cls: "done", ic: "file", text: m.summary };
       case "question": return { cls: m.answered ? "done" : "attn", ic: "info", text: m.answered ? `${m.header}: ${cut(m.answered, 22)}` : `Asked: ${m.header}` };
       case "approval": return { cls: "attn", ic: "info", text: "Web request?" };
       case "note": return { cls: "note", ic: "stop", text: cut(m.text, 56) };

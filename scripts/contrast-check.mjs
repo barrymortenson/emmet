@@ -8,8 +8,9 @@
 // A prefix keeps sets apart (--p-bg-page pairs only with --p-fg-*). Outside the token blocks a stylesheet may not
 // write a color, and the mockups' scripts and pages may not either, so every color on screen is a checked token.
 // Usage: node scripts/contrast-check.mjs [stylesheet ...]  (default: docs/design's)
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, realpathSync } from "node:fs";
 import { join, relative } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const ROOT = join(import.meta.dirname, "..");
 const DESIGN = join(ROOT, "docs/design");
@@ -120,21 +121,23 @@ export function checkSource(text, name) {
   return errors;
 }
 
+// Every stylesheet, script, and page under docs/design, found rather than listed, so a new or renamed file is checked
+// too. data.js holds the part colors, which are content.
 function designFiles() {
-  const css = [join(DESIGN, "shared/proto.css")];
-  const src = [join(DESIGN, "shared/ui.js"), join(DESIGN, "shared/proto.js"), join(DESIGN, "review.html"), join(DESIGN, "review-data.js"), join(DESIGN, "brand/index.html")];
-  const dirs = join(DESIGN, "directions");
-  for (const d of existsSync(dirs) ? readdirSync(dirs).sort() : []) {
-    css.push(join(dirs, d, "style.css"));
-    src.push(join(dirs, d, "app.js"), join(dirs, d, "index.html"));
-  }
-  for (const f of ["brand/palette.css", "review.css"]) css.push(join(DESIGN, f));
-  return { css: css.filter(existsSync), src: src.filter(existsSync) };
+  const files = readdirSync(DESIGN, { recursive: true }).map((f) => join(DESIGN, f)).sort();
+  return {
+    css: files.filter((f) => f.endsWith(".css")),
+    src: files.filter((f) => /\.(js|html)$/.test(f) && f !== join(DESIGN, "shared/data.js")),
+  };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const args = process.argv.slice(2);
   const { css, src } = args.length ? { css: args, src: [] } : designFiles();
+  if (!css.length) {
+    console.error("contrast-check: no stylesheets to check");
+    process.exit(1);
+  }
   let failed = 0;
   for (const file of css) {
     const name = relative(ROOT, file);

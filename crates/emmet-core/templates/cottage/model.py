@@ -126,7 +126,7 @@ def cottage(
                     id=f"chimney/{i + 1}",
                 )
 
-    # The door in its frame and a window with its glass: each is put together off the model, then set in the wall.
+    # The door in its frame and a window with its glass, each placed together in the wall.
     def door_in_frame(z):
         frame = m.add("60596", "White", at=(door_x, y0, z), rot=3, id="door/frame")
         fill(m, "60623", "Reddish Brown", frame, (0.3, 3.55), 0.875, 3, "door")
@@ -138,10 +138,10 @@ def cottage(
         )
 
     def walls(row):
-        """One row of the walls, a wall a step: the back, then the two sides, then the front, so each step's
+        """One row of the walls: the back, then the two sides, then the front, a step each, so each step's
         bricks are in view."""
         z = GROUND + 3 * row
-        # Corners alternate between the long and the short walls, so the joints overlap from row to row.
+        # Corners alternate between the front and back walls and the side walls, so the joints overlap row to row.
         if row % 2 == 0:
             spans = [("front", (x0, y0), width, "x"), ("back", (x0, y1), width, "x")]
             spans += [
@@ -216,7 +216,7 @@ def cottage(
             )
 
     walls(1)
-    # The room, furnished while the walls are two bricks high: a stove under the chimney at the back right, a table
+    # The room, furnished while the walls are two bricks high: a stove before the chimney at the back right, a table
     # at the back left with stools when there's room, and a bed along the left wall when the house is deep enough.
     with m.step("Inside: stove"):
         m.add("3003", "Dark Bluish Gray", at=(x1 - 2, y1 - 2, GROUND), id="stove")

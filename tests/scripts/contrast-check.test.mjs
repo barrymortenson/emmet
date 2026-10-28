@@ -3,7 +3,7 @@
 // what it refuses: a translucent surface, a theme missing a token, and a color or fractional opacity outside the tokens.
 // The last test runs it on docs/design as it stands, so a mockup that loses AA fails here.
 import assert from "node:assert/strict";
-import { writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { checkCss, checkSource, contrast, parseColor } from "../../scripts/contrast-check.mjs";
@@ -61,4 +61,32 @@ test("the command fails on a bad stylesheet and passes docs/design as it stands"
   const real = run("node", [join(ROOT, "scripts/contrast-check.mjs")]);
   assert.equal(real.code, 0, real.out);
   assert.match(real.out, /contrast-check: ok$/m);
+});
+
+test("the command still runs from a path with a space that goes through a symlink", () => {
+  // The temp dir is under /var, a symlink to /private/var on macOS; a guard that compares raw paths ran nothing.
+  const dir = join(tempDir(), "my repo");
+  mkdirSync(join(dir, "scripts"), { recursive: true });
+  copyFileSync(join(ROOT, "scripts/contrast-check.mjs"), join(dir, "scripts/contrast-check.mjs"));
+  const file = join(dir, "bad.css");
+  writeFileSync(file, css("--bg-a: #fff; --fg-t: #ccc;"));
+  const bad = run("node", [join(dir, "scripts/contrast-check.mjs"), file]);
+  assert.equal(bad.code, 1, bad.out);
+  assert.match(bad.out, /contrast-check: 2 problems/);
+});
+
+test("the command checks every stylesheet under docs/design, and fails when there are none", () => {
+  const dir = tempDir();
+  mkdirSync(join(dir, "scripts"));
+  copyFileSync(join(ROOT, "scripts/contrast-check.mjs"), join(dir, "scripts/contrast-check.mjs"));
+  mkdirSync(join(dir, "docs/design"), { recursive: true });
+  const none = run("node", [join(dir, "scripts/contrast-check.mjs")]);
+  assert.equal(none.code, 1, none.out);
+  assert.match(none.out, /no stylesheets to check/);
+  // A file no list names: a new direction's stylesheet.
+  mkdirSync(join(dir, "docs/design/directions/d"), { recursive: true });
+  writeFileSync(join(dir, "docs/design/directions/d/style.css"), css("--bg-a: #fff; --fg-t: #ccc;"));
+  const bad = run("node", [join(dir, "scripts/contrast-check.mjs")]);
+  assert.equal(bad.code, 1, bad.out);
+  assert.match(bad.out, /FAIL docs\/design\/directions\/d\/style\.css/);
 });
