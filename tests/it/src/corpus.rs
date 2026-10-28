@@ -108,7 +108,9 @@ impl Fault {
             Fault::Early => &[Rule::StepOrder],
             Fault::Lump => &[Rule::StepSize],
             Fault::OffsetCopy => &[Rule::DisconnectedSubmodel],
-            Fault::Nudge => &[Rule::OffGrid],
+            // Nudged 4 LDU, a part is off the grid; pushed into a neighbor, it collides; unseated, it (or what it
+            // held) floats. Reported under off_grid.
+            Fault::Nudge => &[Rule::OffGrid, Rule::Collision, Rule::Floating],
             Fault::Unknown => &[Rule::UnknownPart],
         }
     }
@@ -125,14 +127,18 @@ pub struct Mutant {
     pub placements: Vec<Placement>,
     pub part: String,
     pub what: String,
+    /// The parts it stood on and that stood on it: a part nudged off the grid unseats them as much as it, so a finding
+    /// may name either.
+    pub stacked_with: Vec<String>,
 }
 
 impl Mutant {
-    /// True when a finding of one of the fault's rules names the part.
+    /// True when a finding of one of the fault's rules names the part (or, for a nudge, a part stacked with it).
     pub fn caught(&self, v: &Validation) -> bool {
+        let named = |p: &String| p == &self.part || self.fault == Fault::Nudge && self.stacked_with.contains(p);
         v.findings
             .iter()
-            .any(|f| self.fault.rules().contains(&f.rule) && f.parts.iter().any(|p| p == &self.part))
+            .any(|f| self.fault.rules().contains(&f.rule) && f.parts.iter().any(named))
     }
 }
 
@@ -260,11 +266,16 @@ pub fn mutants(index: &Index, placements: &[Placement], per_fault: usize, rng: &
                 break;
             }
             if let Some((placements, part, what)) = make(i) {
+                let stacked_with = (0..n)
+                    .filter(|&j| supports(&geo, i).contains(&j) || supports(&geo, j).contains(&i))
+                    .map(|j| id(j))
+                    .collect();
                 out.push(Mutant {
                     fault,
                     placements,
                     part,
                     what,
+                    stacked_with,
                 });
                 made += 1;
             }
