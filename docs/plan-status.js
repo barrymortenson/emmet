@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-27",
+  updated: "2026-10-28",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -109,7 +109,7 @@ window.EMMET_STATUS = {
       ],
       note: "The Steps tab is the model's tree and there's no command palette (docs/decisions.md); the Steps tree's every-copy highlight isn't drawn, since emmet render --highlight drew none for window ids (4C)"
     },
-    "3A": { status: "in-progress", branch: "bmortenson/s3a-validator-connection-model", started: "2026-10-27" },
+    "3A": { status: "review", branch: "bmortenson/s3a-validator-connection-model", started: "2026-10-27", pr: 30 },
     "3B": { status: "todo" },
     "3C": { status: "todo" },
     "4A": { status: "todo" },
