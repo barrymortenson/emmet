@@ -284,10 +284,10 @@ pub fn explain(index: &Index, lib: &LibFiles, placements: &[Placement], ids: &[S
                 c.slide,
                 c.group
             );
-            for (j, mates, off) in graph::near(&world, k, 4.0) {
+            for (j, why, off) in graph::near(&world, k, 4.0) {
                 let q = &world[j];
                 out += &format!(
-                    "      near {} ({}) {:?} {:?} pos {:.2?} axis {:.2?} secs {:?} off {off:.2} mates {mates}\n",
+                    "      near {} ({}) {:?} {:?} pos {:.2?} axis {:.2?} secs {:?} off {off:.2} why {why}\n",
                     placements[q.part].id,
                     placements[q.part].part,
                     q.c.kind,
@@ -508,12 +508,19 @@ pub(crate) fn flexible(p: &Part) -> bool {
         .any(|w| n.contains(w))
 }
 
+/// A minifigure's or figure's parts (and what they hold: headwear, accessories).
+pub(crate) fn figure(p: &Part) -> bool {
+    p.category.starts_with("Minifig") || p.category.starts_with("Figure")
+}
+
 pub(crate) fn sticker(p: &Part) -> bool {
     p.category.starts_with("Sticker")
 }
 
 /// One part holding another without a connector pair: a frame and its filler, a tyre and the wheel inside it, a
-/// flexible part and what it touches along its path, a sticker and the surface it's on.
+/// flexible part and what it touches along its path, a sticker and the surface it's on, and a figure's parts that
+/// touch (models pose figures by hand, a millimeter off their joints; between a figure and the model, connectors
+/// still decide).
 fn holds(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
     let center = |b: &Aabb| (b.min + b.max) / 2.0;
     let contains = |outer: &Aabb, p: DVec3| {
@@ -525,7 +532,8 @@ fn holds(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
     fills(pa, pb, wa, wb)
         || tyre(pa) && wheel(pb) && contains(wb, center(wa))
         || tyre(pb) && wheel(pa) && contains(wa, center(wb))
-        || (flexible(pa) || flexible(pb) || sticker(pa) || sticker(pb)) && touch(wa, wb, 1.0)
+        || (flexible(pa) || flexible(pb) || sticker(pa) || sticker(pb) || figure(pa) && figure(pb))
+            && touch(wa, wb, 1.0)
 }
 
 fn touch(a: &Aabb, b: &Aabb, slack: f64) -> bool {

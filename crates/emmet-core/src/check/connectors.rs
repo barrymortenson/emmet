@@ -96,6 +96,8 @@ pub struct Connector {
     /// Whether the shape's start and end are open (a stud's base is closed, its tip open).
     pub open: (bool, bool),
     pub slide: bool,
+    /// A generic shape that mates in any orientation (LDCad's `placement=free`, or a sphere's bounding: a ball joint).
+    pub free: bool,
     pub group: Option<Rc<str>>,
     pub source: Source,
     /// LDCad's id, which a `SNAP_CLEAR` can name.
@@ -393,6 +395,9 @@ fn parse_snap(line: &str, source: Source) -> Option<Snap> {
         secs,
         open,
         slide: truthy(&p, "slide"),
+        free: kind == Kind::Gen
+            && (p.get("placement").is_some_and(|v| v.eq_ignore_ascii_case("free"))
+                || p.get("bounding").is_some_and(|v| v.to_lowercase().starts_with("sph"))),
         group,
         source,
         id,
@@ -460,7 +465,8 @@ fn index_ldr(text: &str) -> HashMap<String, Vec<String>> {
 /// Emmet's own connectors for stud primitives the LDCad data has no entry for, by base name, as LDCad snap lines in
 /// the primitive's frame. Top studs point up their own −Y from their base; underside tubes (`stud4` and its family,
 /// drawn from y = −4 at the part's underside up to 0, and scaled to the part's height) take the four studs around
-/// them, at the corners of a stud pitch, and a bar in their middle.
+/// them, at the corners of a stud pitch, and a stud or a bar inside (a tube's 4.8 mm bore is a stud's width, a 2 x 2
+/// plate centered on one stud; a 1 x 1 round plate's underside, drawn with the same tube, holds a bar).
 pub const PRIMITIVES: &[(&[&str], &[&str])] = &[
     (
         // Top studs.
@@ -505,6 +511,7 @@ pub const PRIMITIVES: &[(&[&str], &[&str])] = &[
         &[
             "!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 6 4] [scale=YOnly] [pos=0 -4 0] [ori=1 0 0 0 -1 0 0 0 -1] \
              [grid=C 2 C 2 20 20]",
+            "!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 6 4] [scale=YOnly] [pos=0 -4 0] [ori=1 0 0 0 -1 0 0 0 -1]",
             "!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 4 4] [scale=YOnly] [pos=0 -4 0] [ori=1 0 0 0 -1 0 0 0 -1]",
         ],
     ),

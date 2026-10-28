@@ -20,6 +20,8 @@ const PARALLEL: f64 = 0.99;
 /// How close a male section's radius must be to its hole's to grip, and how much wider it may be (a pin's ridge).
 const GRIP: f64 = 0.6;
 const CELL: f64 = 10.0;
+/// A bar's radius (3.2 mm).
+const BAR: f64 = 4.0;
 
 /// A connector of a placed part, in the world.
 #[derive(Debug, Clone)]
@@ -139,7 +141,7 @@ pub fn connections(conns: &[Placed]) -> Vec<Connection> {
 /// For debugging: connectors of other placements within `reach` LDU of `c`'s line that could be its mate (opposite
 /// gender, or both fingers or generic shapes), with whether they mate.
 #[doc(hidden)]
-pub fn near(conns: &[Placed], i: usize, reach: f64) -> Vec<(usize, bool, f64)> {
+pub fn near(conns: &[Placed], i: usize, reach: f64) -> Vec<(usize, &'static str, f64)> {
     let p = &conns[i];
     let mut out = Vec::new();
     for (j, q) in conns.iter().enumerate() {
@@ -162,7 +164,11 @@ pub fn near(conns: &[Placed], i: usize, reach: f64) -> Vec<(usize, bool, f64)> {
         };
         let off = (m.pos - f.pos) - f.axis * (m.pos - f.pos).dot(f.axis);
         if off.length() <= reach {
-            out.push((j, mate(m, f).is_some() || mate(f, m).is_some(), off.length()));
+            let why = match (try_mate(m, f), try_mate(f, m)) {
+                (Ok(_), _) | (_, Ok(_)) => "mates",
+                (Err(w), _) => w,
+            };
+            out.push((j, why, off.length()));
         }
     }
     out
@@ -170,67 +176,104 @@ pub fn near(conns: &[Placed], i: usize, reach: f64) -> Vec<(usize, bool, f64)> {
 
 /// Whether two connectors mate, and where. `a` is the male cylinder, or either finger or generic shape.
 fn mate(a: &Connector, b: &Connector) -> Option<Connection> {
+    try_mate(a, b).ok()
+}
+
+/// [`mate`], or why not.
+fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
+    let fail = |why| Err(why);
     if a.group != b.group {
-        return None;
+        return fail("group");
     }
     let dot = a.axis.dot(b.axis);
-    if dot.abs() < PARALLEL {
-        return None;
+    if dot.abs() < PARALLEL && !(a.free || b.free) {
+        return fail("not parallel");
     }
     match (a.kind, b.kind) {
         (Kind::Gen, Kind::Gen) => {
-            if a.gender == b.gender || a.pos.distance(b.pos) > 2.0 * TOLERANCE {
-                return None;
+            if a.gender == b.gender {
+                return fail("same gender");
             }
-            Some(seat(a.pos, a.axis, 0.0, 0.0, Kind::Gen))
+            if a.pos.distance(b.pos) > 2.0 * TOLERANCE {
+                return fail("apart");
+            }
+            Ok(seat(a.pos, a.axis, 0.0, 0.0, Kind::Gen))
         }
         (Kind::Finger, Kind::Finger) => {
-            let (lo, hi) = along(a, b, dot)?;
+            let (lo, hi) = along(a, b, dot).ok_or("off the line")?;
             let (ra, rb) = (a.secs[0].radius, b.secs[0].radius);
-            ((ra - rb).abs() <= GRIP && hi - lo > TOLERANCE)
-                .then(|| seat(b.pos + b.axis * (lo + hi) / 2.0, b.axis, ra, hi - lo, Kind::Finger))
+            if (ra - rb).abs() > GRIP {
+                return fail("radius");
+            }
+            if hi - lo <= TOLERANCE {
+                return fail("no overlap");
+            }
+            Ok(seat(
+                b.pos + b.axis * (lo + hi) / 2.0,
+                b.axis,
+                ra,
+                hi - lo,
+                Kind::Finger,
+            ))
         }
         (Kind::Cyl, Kind::Clip) => {
-            let (lo, hi) = along(a, b, dot)?;
+            let (lo, hi) = along(a, b, dot).ok_or("off the line")?;
             let r = b.secs[0].radius;
             let grip = sections_over(a, b, dot)
                 .filter(|(sa, _, l)| (sa.radius - r).abs() <= GRIP && *l > TOLERANCE)
                 .count();
-            (grip > 0 && hi - lo > TOLERANCE)
-                .then(|| seat(b.pos + b.axis * (lo + hi) / 2.0, b.axis, r, hi - lo, Kind::Clip))
+            if grip == 0 {
+                return fail("radius");
+            }
+            if hi - lo <= TOLERANCE {
+                return fail("no overlap");
+            }
+            Ok(seat(b.pos + b.axis * (lo + hi) / 2.0, b.axis, r, hi - lo, Kind::Clip))
         }
         (Kind::Cyl, Kind::Cyl) => {
             if a.gender != Gender::Male || b.gender != Gender::Female {
-                return None;
+                return fail("genders");
             }
-            // A stud enters an anti-stud from its open side: a male closed at its base into a female closed at its far
-            // end runs the same way.
-            if !a.open.0 && !b.open.1 && dot < 0.0 {
-                return None;
+            // A stud enters an anti-stud from its open side: a stud (closed at its base) into an anti-stud (closed at its
+            // far end) runs the same way. Short centered pins (a minifig's shoulder, a wheel's) seat either way round.
+            let stud = a.secs.len() == 1 && (a.secs[0].radius - 6.0).abs() <= GRIP && a.len() <= 6.0;
+            if stud && !a.open.0 && !b.open.1 && dot < 0.0 {
+                return fail("closed ends face each other");
             }
-            let (lo, hi) = along(a, b, dot)?;
+            let (lo, hi) = along(a, b, dot).ok_or("off the line")?;
             let overlap = hi - lo;
             let shorter = a.len().min(b.len());
-            if overlap <= TOLERANCE || !(a.slide || b.slide) && overlap < shorter - TOLERANCE {
-                return None;
+            if overlap <= TOLERANCE {
+                return fail("no overlap");
+            }
+            if !(a.slide || b.slide) && overlap < shorter - TOLERANCE {
+                return fail("not all the way in");
             }
             let mut grip = 0.0f64;
             for (sa, sb, l) in sections_over(a, b, dot) {
                 if l <= TOLERANCE || sa.shape == Shape::Flex || sb.shape == Shape::Flex {
                     continue;
                 }
-                // An axle hole takes only an axle; a round or square hole takes a pin, an axle, or a stud.
-                if sb.shape == Shape::Axle && sa.shape != Shape::Axle || sa.radius > sb.radius + GRIP {
-                    return None;
+                // An axle hole takes an axle, and a bar (3.2 mm, a snug fit in its cross), but no round pin; a round or
+                // square hole takes a pin, an axle, or a stud.
+                let bar = sa.shape == Shape::Round && sa.radius <= BAR + GRIP;
+                if sb.shape == Shape::Axle && sa.shape != Shape::Axle && !bar {
+                    return fail("round in an axle hole");
                 }
-                if (sa.radius - sb.radius).abs() <= GRIP {
+                if sa.radius > sb.radius + GRIP {
+                    return fail("too wide");
+                }
+                if (sa.radius - sb.radius).abs() <= GRIP || sb.shape == Shape::Axle && bar {
                     grip += l;
                 }
             }
+            if grip <= TOLERANCE {
+                return fail("no grip");
+            }
             let r = a.secs.iter().map(|s| s.radius).fold(0.0, f64::max);
-            (grip > TOLERANCE).then(|| seat(b.pos + b.axis * (lo + hi) / 2.0, b.axis, r, overlap, Kind::Cyl))
+            Ok(seat(b.pos + b.axis * (lo + hi) / 2.0, b.axis, r, overlap, Kind::Cyl))
         }
-        _ => None,
+        _ => fail("kinds"),
     }
 }
 
@@ -364,5 +407,31 @@ mod tests {
             DVec3::ZERO,
         );
         assert!(mate(&pin, &axle_hole).is_none());
+        // A bar is a snug fit in an axle hole (a lightsaber blade in a bush, in 10124-1).
+        let bar = at(
+            "!LDCAD SNAP_CYL [gender=M] [caps=none] [secs=R 4 40] [center=true]",
+            DVec3::ZERO,
+        );
+        assert!(mate(&bar, &axle_hole).is_some());
+    }
+
+    #[test]
+    fn a_minifig_arm_seats_either_way_round_but_a_stud_only_one_way() {
+        // A centered shoulder pin and the torso's hole, the pin's axis reversed (an arm posed the other way, 2150-1).
+        let pin = at(
+            "!LDCAD SNAP_CYL [gender=M] [caps=one] [secs=R 5 2] [center=true] [ori=1 0 0 0 -1 0 0 0 -1]",
+            DVec3::ZERO,
+        );
+        let hole = at(
+            "!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 5 2 R 6 5] [pos=0 1 0]",
+            DVec3::ZERO,
+        );
+        assert!(mate(&pin, &hole).is_some());
+        // A stud pointing down at an anti-stud that opens upward doesn't enter it.
+        let down = at(
+            "!LDCAD SNAP_CYL [gender=M] [caps=one] [secs=R 6 4] [ori=1 0 0 0 -1 0 0 0 -1]",
+            DVec3::new(0.0, -4.0, 0.0),
+        );
+        assert!(mate(&down, &at(ANTI, DVec3::new(0.0, -8.0, 0.0))).is_none());
     }
 }
