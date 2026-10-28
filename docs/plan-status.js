@@ -129,7 +129,7 @@ window.EMMET_STATUS = {
       ],
       note: "The macOS E2E app hung intermittently on CI in three runs, cause unknown; holds.rs's filler() matches \"Shutter\" in 60594 (validator follow-up); the LPub3D export hasn't been opened in LPub3D"
     },
-    "3C": { status: "todo" },
+    "3C": { status: "in-progress", branch: "bmortenson/s3c-technique-mining", started: "2026-10-28" },
     "4A": { status: "todo" },
     "4B": { status: "todo" },
     "4C": { status: "todo" },

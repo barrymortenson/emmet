@@ -420,3 +420,19 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   goes back into Rebrickable, and any line besides `Part,Color,Quantity` and the parts risks breaking its import.
   Barry chose to leave the credit out of that one file (it's in the other exports, the Parts list, Settings → Data,
   About, and NOTICE), over adding it and testing the import again, or putting it in the file name. Section 12 says so.
+
+## 2026-10-28, session 3C
+
+- **Mined techniques aren't derived from OMR models (D-48).** Every model the miner reads (the 10 committed
+  fixtures and the 33 nightly ones) is "Redistributable under CCAL version 2.0", which LDraw reads as CC BY 2.0: that
+  would allow snippets derived from them under our Apache-2.0, with each model's author, title, and URL credited.
+  Barry chose not to derive from them at all, over crediting every model a motif was found in and over crediting
+  only the examples a snippet was written from. The mining ranks ideas (which sub-assemblies recur, and how widely),
+  and each technique is written from general building knowledge and Barry's own instruction books (sets 21335,
+  10350, 43217, and 60440), which are read for methods only: no page, picture, or text from them goes into the repo.
+  Each technique's provenance note says that, citing the books by set number. ADR 0003 records it.
+- **What proves 3C's Done when 2 (D-49).** It asks that rung 2's replay and dry-run eval scores don't regress, but no
+  rung 2 eval exists yet: `emmet eval` runs rung 1, and rung 2 arrives with 5A. Barry chose to prove it with what
+  exists (the rung 1 dry-run eval with both fake agents, every replay test, and the rung 2 reference model clean at
+  each of its params), with the real rung 2 scores moving to 5A and G2, over building a rung 2 dry-run in this
+  session and over leaving the item unticked.
