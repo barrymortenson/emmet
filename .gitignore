@@ -11,5 +11,6 @@ tests/spikes/headless-render/gen/
 /tmp/
 tests/e2e/out/
 
-# The release sidecars scripts/release-dry.sh puts in place for Tauri to bundle.
+# The release sidecars and parts data pack scripts/release-dry.sh puts in place for Tauri to bundle.
 apps/desktop/src-tauri/binaries/
+apps/desktop/src-tauri/parts-data/
