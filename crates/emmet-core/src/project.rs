@@ -343,12 +343,17 @@ impl Project {
 
     /// sha256 of the sources (line endings normalized), the run's parameter overrides, and the Emmet, library, and
     /// parts data versions (plan section 07).
-    pub fn inputs_hash(&self, overrides: &BTreeMap<String, Value>, library: &str) -> Result<String> {
+    pub fn inputs_hash(
+        &self,
+        overrides: &BTreeMap<String, Value>,
+        library: &str,
+        parts_data: Option<&str>,
+    ) -> Result<String> {
         let mut h = Vec::new();
         let mut line = |k: &str, v: &str| h.extend_from_slice(format!("{k} {v}\n").as_bytes());
         line("emmet", crate::version());
         line("library", library);
-        line("parts_data", "none");
+        line("parts_data", parts_data.unwrap_or("none"));
         line("params", &serde_json::to_string(overrides).expect("json"));
         for path in self.sources() {
             let bytes = std::fs::read(&path).map_err(|e| Error::io(&path, e))?;

@@ -15,7 +15,8 @@ PLATES |= {
     1: "3023b",
 }  # Plate 2 x n, and a Plate 1 x 2 for an odd width
 SLOPES = {4: "3037", 3: "3038", 2: "3039", 1: "3040b"}  # Slope 45 2 x n
-RIDGES = {4: "3041", 2: "3043", 1: "3044c"}  # Slope 45 2 x n double
+# Slope 45 2 x n double: the 2 x 2 comes in the most colors (Dark Red included), so it goes first.
+RIDGES = {2: "3043", 1: "3044c"}
 
 
 def lengths(n, sizes):

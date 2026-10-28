@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-data-settings"
+description = "Enables the data_settings command without any pre-configured scope."
+commands.allow = ["data_settings"]
+
+[[permission]]
+identifier = "deny-data-settings"
+description = "Denies the data_settings command without any pre-configured scope."
+commands.deny = ["data_settings"]

@@ -145,8 +145,11 @@ pub struct BomLine {
     pub part: String,
     pub name: String,
     pub color: u32,
+    /// In the user's color naming (Settings → Data).
     pub color_name: String,
     pub qty: u32,
+    /// available, color_unavailable, part_unavailable, or unknown (never read as unavailable).
+    pub availability: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -155,6 +158,17 @@ pub struct Bom {
     pub pieces: u32,
     /// Different parts, in any color.
     pub parts: u32,
+    /// Whether the parts data pack was there for availability (the Parts list's Rebrickable credit).
+    pub parts_data: bool,
+}
+
+/// Settings → Data: the parts data pack and the BOM's color naming.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct DataSettings {
+    /// The installed pack's date, or null when there's none.
+    pub parts_data: Option<String>,
+    /// ldraw, rebrickable, or bricklink.
+    pub color_names: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -439,13 +453,19 @@ fn annotate(data: &DataDir, root: &Path, scene: &mut Scene) {
             problem: Some(format!("{} {}", e.message, e.hint)),
         },
     });
-    scene.bom = emmet_core::ops::bom_build(data, &project).ok().map(|b| Bom {
+    let names = emmet_core::bom::ColorNames::preferred(data);
+    scene.bom = emmet_core::ops::bom_build(data, &project, names).ok().map(|b| Bom {
         pieces: b.totals.pieces as u32,
         parts: b.totals.parts as u32,
+        parts_data: b.parts_data.is_some(),
         lines: b
             .lines
             .into_iter()
             .map(|l| BomLine {
+                availability: serde_json::to_value(l.availability.status)
+                    .ok()
+                    .and_then(|s| s.as_str().map(String::from))
+                    .unwrap_or_default(),
                 part: l.part,
                 name: l.name,
                 color: l.color,
@@ -583,7 +603,10 @@ pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
         s
     });
     let fresh = emmet_core::library::require(&state.data)
-        .and_then(|lib| project.inputs_hash(&BTreeMap::new(), &lib.release))
+        .and_then(|lib| {
+            let parts_data = emmet_core::parts_data::version(&state.data)?;
+            project.inputs_hash(&BTreeMap::new(), &lib.release, parts_data.as_deref())
+        })
         .ok()
         .zip(
             std::fs::read_to_string(root.join("build/manifest.json"))
@@ -819,6 +842,52 @@ pub async fn list_colors(app: AppHandle) -> Result<Vec<ColorView>, Box<Problem>>
             rgb: c.rgb,
         })
         .collect())
+}
+
+/// Settings → Data: the installed parts data pack's date and the BOM's color naming.
+#[tauri::command]
+#[specta::specta]
+pub async fn data_settings(app: AppHandle) -> Result<DataSettings, Box<Problem>> {
+    let data = app.state::<AppState>().data.clone();
+    tauri::async_runtime::spawn_blocking(move || -> Result<DataSettings, Box<Problem>> {
+        let pack = emmet_core::parts_data::PartsData::open(&data)?;
+        let names = serde_json::to_value(emmet_core::bom::ColorNames::preferred(&data)).unwrap_or_default();
+        Ok(DataSettings {
+            parts_data: pack.map(|p| p.manifest().date.clone()),
+            color_names: names.as_str().unwrap_or("ldraw").to_string(),
+        })
+    })
+    .await
+    .map_err(|e| Problem::internal(e.to_string()))?
+}
+
+/// Saves the BOM's color naming (ldraw, rebrickable, or bricklink) in the data dir's settings.json, which `emmet bom`
+/// and the MCP `bom` tool read too, and rebuilds the open project's parts list.
+#[tauri::command]
+#[specta::specta]
+pub fn set_color_names(state: State<'_, AppState>, names: String) -> Result<(), Box<Problem>> {
+    let value: emmet_core::bom::ColorNames = serde_json::from_value(Value::String(names.clone())).map_err(|_| {
+        Box::new(Problem {
+            code: "PARAM_INVALID".into(),
+            message: format!("There's no color naming '{names}'."),
+            hint: "Use ldraw, rebrickable, or bricklink.".into(),
+            file: None,
+            line: None,
+            excerpt: None,
+        })
+    })?;
+    let path = state.data.settings();
+    let mut settings: serde_json::Map<String, Value> = std::fs::read_to_string(&path)
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok())
+        .unwrap_or_default();
+    settings.insert("color_names".into(), serde_json::to_value(value).expect("json"));
+    let text = serde_json::to_string_pretty(&settings).expect("json") + "\n";
+    emmet_core::fsx::write_atomic(&path, text.as_bytes())?;
+    if let Some(root) = state.open_root() {
+        state.request_run(&root);
+    }
+    Ok(())
 }
 
 /// Runs the open project's model again.

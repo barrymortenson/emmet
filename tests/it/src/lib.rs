@@ -5,6 +5,9 @@
 //! Nothing here touches the real app data or home: every `emmet` gets `--data-dir`, and HOME (USERPROFILE and
 //! APPDATA on Windows) points at the test home. CI's runner guard sets `EMMET_DATA_DIR` and `EMMET_TEST_HOME` inside
 //! the runner's temp dir; locally they default to `target/it-data` and `target/it-home`.
+//!
+//! The shared data dir has no parts data pack, so availability reads unknown there. Tests that need the pack opt in
+//! with [`shared_data_with_parts`], a second data dir next to it with the pack built from rebrickable-mini.
 
 pub mod agents;
 pub mod chatgpt;
@@ -145,30 +148,47 @@ pub fn shared_library() -> &'static Path {
     static DATA: OnceLock<PathBuf> = OnceLock::new();
     DATA.get_or_init(|| {
         let data = env_dir("EMMET_DATA_DIR", "it-data");
-        let zip = library_zip(&[]);
-        let installed = std::fs::read_to_string(data.join("library.json")).unwrap_or_default();
-        if !installed.contains(&sha256(&zip)) || !data.join("parts.sqlite").exists() {
-            let zip_path = data.join("ldraw-mini.zip");
-            std::fs::write(&zip_path, &zip).expect("write library zip");
-            let out = emmet()
-                .arg("--data-dir")
-                .arg(&data)
-                .args([
-                    "library",
-                    "install",
-                    "--release",
-                    "ldraw-mini",
-                    "--sha256",
-                    &sha256(&zip),
-                    "--zip",
-                ])
-                .arg(&zip_path)
-                .output()
-                .expect("run emmet library install");
-            assert!(out.status.success(), "library install failed: {}", text(&out));
-        }
+        install_library(&data);
         data
     })
+}
+
+/// Installs ldraw-mini into `data` and builds the parts index, unless it's already there.
+fn install_library(data: &Path) {
+    let zip = library_zip(&[]);
+    let installed = std::fs::read_to_string(data.join("library.json")).unwrap_or_default();
+    if installed.contains(&sha256(&zip)) && data.join("parts.sqlite").exists() {
+        return;
+    }
+    let zip_path = data.join("ldraw-mini.zip");
+    std::fs::write(&zip_path, &zip).expect("write library zip");
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(data)
+        .args([
+            "library",
+            "install",
+            "--release",
+            "ldraw-mini",
+            "--sha256",
+            &sha256(&zip),
+            "--zip",
+        ])
+        .arg(&zip_path)
+        .output()
+        .expect("run emmet library install");
+    assert!(out.status.success(), "library install failed: {}", text(&out));
+}
+
+/// Bootstraps Python in `data` (`emmet doctor --fix`).
+fn setup_python(data: &Path) {
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(data)
+        .args(["doctor", "--fix"])
+        .output()
+        .expect("run emmet doctor");
+    assert!(out.status.success(), "doctor --fix failed: {}", text(&out));
 }
 
 /// [`shared_library`] with Python bootstrapped too (`emmet doctor --fix`).
@@ -176,13 +196,56 @@ pub fn shared_data() -> &'static Path {
     static DATA: OnceLock<PathBuf> = OnceLock::new();
     DATA.get_or_init(|| {
         let data = shared_library().to_path_buf();
+        setup_python(&data);
+        data
+    })
+}
+
+/// The date of the test pack: rebrickable-mini's download.
+pub const MINI_PACK_DATE: &str = "2026-10-24";
+
+/// Builds a parts data pack from `tests/fixtures/rebrickable-mini` into `out` with `emmet parts-data build`, signed
+/// with the fixture key, and returns the manifest.
+pub fn build_mini_pack(out: &Path, date: &str) -> Value {
+    let built = emmet()
+        .arg("--json")
+        .args(["parts-data", "build"])
+        .arg(fixture("rebrickable-mini"))
+        .arg("--out")
+        .arg(out)
+        .args(["--date", date, "--key"])
+        .arg(fixture("parts-data/test-signing-key.der"))
+        .output()
+        .expect("run emmet parts-data build");
+    let (v, code) = envelope(&built);
+    assert_eq!(code, 0, "parts-data build failed: {v}");
+    v["data"].clone()
+}
+
+/// A second shared data dir like [`shared_data`] (ldraw-mini and Python), plus the parts data pack built from
+/// rebrickable-mini and installed through its signature check: for the tests that opt in to availability.
+pub fn shared_data_with_parts() -> &'static Path {
+    static DATA: OnceLock<PathBuf> = OnceLock::new();
+    DATA.get_or_init(|| {
+        let base = std::env::var_os("EMMET_DATA_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| target_dir().parent().expect("target/").join("it-data"));
+        let mut name = base.file_name().expect("a data dir name").to_os_string();
+        name.push("-parts");
+        let data = base.with_file_name(name);
+        std::fs::create_dir_all(&data).expect("create test dir");
+        install_library(&data);
+        setup_python(&data);
+        let pack = temp_dir("mini-pack");
+        build_mini_pack(&pack, MINI_PACK_DATE);
         let out = emmet()
             .arg("--data-dir")
             .arg(&data)
-            .args(["doctor", "--fix"])
+            .args(["parts-data", "install"])
+            .arg(&pack)
             .output()
-            .expect("run emmet doctor");
-        assert!(out.status.success(), "doctor --fix failed: {}", text(&out));
+            .expect("run emmet parts-data install");
+        assert!(out.status.success(), "parts-data install failed: {}", text(&out));
         data
     })
 }
@@ -215,11 +278,16 @@ pub fn envelope(out: &Output) -> (Value, i32) {
 
 /// Copies a project fixture (`tests/fixtures/projects/<name>`) into a fresh temp dir and trusts it.
 pub fn project(name: &str) -> PathBuf {
+    project_for(name, shared_data())
+}
+
+/// [`project`], trusted for the data dir `data` (trust is per data dir).
+pub fn project_for(name: &str, data: &Path) -> PathBuf {
     let dir = temp_dir(name).join(name);
     copy_tree(&fixture("projects").join(name), &dir);
     let out = emmet()
         .arg("--data-dir")
-        .arg(shared_data())
+        .arg(data)
         .args(["trust", "--project"])
         .arg(&dir)
         .output()
@@ -279,10 +347,15 @@ pub fn redact(mut v: Value, paths: &[(&Path, &str)]) -> Value {
 
 /// Runs `emmet --json --data-dir <shared> <args> --project <dir>`.
 pub fn emmet_in(project: &Path, args: &[&str]) -> (Value, i32) {
+    emmet_in_data(shared_data(), project, args)
+}
+
+/// [`emmet_in`] with the data dir `data`.
+pub fn emmet_in_data(data: &Path, project: &Path, args: &[&str]) -> (Value, i32) {
     let out = emmet()
         .arg("--json")
         .arg("--data-dir")
-        .arg(shared_data())
+        .arg(data)
         .args(args)
         .arg("--project")
         .arg(project)

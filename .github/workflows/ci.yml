@@ -248,7 +248,14 @@ jobs:
           key: release
       - run: rustup toolchain install
       - run: just deps
+      # A test installer bundles the small pack built from the Rebrickable fixture, with no network; a release bundles
+      # the full one (plan section 12).
+      - run: >-
+          cargo build --release --locked -p emmet-cli &&
+          target/release/emmet parts-data build tests/fixtures/rebrickable-mini --out target/parts-data-mini
       - run: just release-dry
+        env:
+          EMMET_PARTS_DATA_PACK: target/parts-data-mini
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: emmet-windows-nsis

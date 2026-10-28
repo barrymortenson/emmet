@@ -17,7 +17,6 @@ PARTS = [
     "3038",
     "3039",
     "3040b",
-    "3041",
     "3043",
     "3044c",
     "3010",
@@ -26,8 +25,8 @@ PARTS = [
     "3005",
 ]
 
-# Double slopes for the ridge, by length (the library has no 3-long one).
-RIDGES = {4: "3041", 2: "3043", 1: "3044c"}
+# Double slopes for the ridge, by length: the 2 x 2 comes in the most colors (the 2 x 4 was never made in Dark Red).
+RIDGES = {2: "3043", 1: "3044c"}
 
 
 def _lengths(n, sizes):

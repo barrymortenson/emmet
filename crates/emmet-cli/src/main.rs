@@ -68,7 +68,7 @@ enum Command {
         #[arg(long)]
         strict: bool,
         /// Only these rules (repeatable): collision, floating, disconnected_submodel, step_order, step_size,
-        /// weak_connection, off_grid, unknown_part, obsolete_part, alias_part.
+        /// weak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part.
         #[arg(long = "rule", value_name = "RULE")]
         rules: Vec<String>,
         /// Check the model run with these values, on top of params.json (which isn't changed).
@@ -78,8 +78,13 @@ enum Command {
     /// The parts list (part × color × quantity), written to build/bom.json. Runs the model first if build/ is out of
     /// date.
     Bom {
+        /// json (the default), csv, rebrickable (Rebrickable's parts-list import), or bricklink-xml (a BrickLink
+        /// wanted list).
         #[arg(long, value_enum, default_value_t = BomFormat::Json)]
         format: BomFormat,
+        /// Color names as LDraw, Rebrickable, or BrickLink spell them (default: the app's setting, else ldraw).
+        #[arg(long, value_enum)]
+        color_names: Option<ColorNamesArg>,
     },
     /// Render the model to a PNG through the running app, or the app's hidden render mode when it isn't open. Runs
     /// the model first if build/ is out of date.
@@ -122,7 +127,7 @@ enum Command {
     },
     /// Show one part: name, size in studs and plates, flags.
     Part { id: String },
-    /// List colors (--part checks a part id; per-part colors arrive with the parts data pack, 3B).
+    /// List colors (--part: only the colors that part was made in, by the parts data pack).
     Colors {
         #[arg(long)]
         part: Option<String>,
@@ -184,6 +189,41 @@ enum Command {
         #[arg(long)]
         session: String,
     },
+    /// The parts data pack (plan section 12): build one from a Rebrickable catalog, install one, or roll back. For
+    /// scripts/build-parts-data, dev, and tests.
+    #[command(hide = true)]
+    PartsData {
+        #[command(subcommand)]
+        action: PartsDataAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum PartsDataAction {
+    /// Build a pack from the catalog's .csv files: the SQLite file and parts-data.json in --out.
+    Build {
+        catalog: PathBuf,
+        #[arg(long, value_name = "DIR")]
+        out: PathBuf,
+        /// The previous pack's parts-data.json: row counts must be within 10 % of it.
+        #[arg(long, value_name = "FILE")]
+        previous: Option<PathBuf>,
+        /// ldraw-mini (tests/fixtures/ldraw-mini): every real part in its PARTS.txt must map.
+        #[arg(long, value_name = "DIR")]
+        ldraw_mini: Option<PathBuf>,
+        /// The pack's date and version, YYYY-MM-DD (default: today, UTC).
+        #[arg(long)]
+        date: Option<String>,
+        /// A PKCS#8 Ed25519 private key (DER) to sign parts-data.json with.
+        #[arg(long, value_name = "FILE")]
+        key: Option<PathBuf>,
+    },
+    /// Install a signed pack (a folder with parts-data.json, its .sig, and the SQLite file) after checking it.
+    Install { dir: PathBuf },
+    /// Go back to the pack installed before the current one.
+    Rollback,
+    /// The installed pack (after installing the bundled one when it's newer), or null.
+    Status,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -203,6 +243,27 @@ enum ExportFormat {
 enum BomFormat {
     Json,
     Csv,
+    /// Rebrickable's parts-list import CSV.
+    Rebrickable,
+    /// A BrickLink wanted list.
+    BricklinkXml,
+}
+
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum ColorNamesArg {
+    Ldraw,
+    Rebrickable,
+    Bricklink,
+}
+
+impl From<ColorNamesArg> for emmet_core::bom::ColorNames {
+    fn from(a: ColorNamesArg) -> Self {
+        match a {
+            ColorNamesArg::Ldraw => Self::Ldraw,
+            ColorNamesArg::Rebrickable => Self::Rebrickable,
+            ColorNamesArg::Bricklink => Self::Bricklink,
+        }
+    }
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -376,29 +437,52 @@ fn main() -> ExitCode {
                 code
             }
         }
-        Command::Bom { format } => {
+        Command::Bom { format, color_names } => {
             let mut root = None;
             let out = data.and_then(|d| {
                 let project = Project::find(cli.project.as_deref())?;
                 root = Some(project.root.display().to_string());
-                ops::bom(&d, &project)
+                let names = color_names.map_or_else(|| emmet_core::bom::ColorNames::preferred(&d), Into::into);
+                let bom = ops::bom(&d, &project, names)?;
+                let export = match format {
+                    BomFormat::Json => None,
+                    BomFormat::Csv => Some((emmet_core::bom::csv(&bom), vec![])),
+                    BomFormat::Rebrickable => Some(emmet_core::bom::rebrickable_csv(&bom)?),
+                    BomFormat::BricklinkXml => Some(emmet_core::bom::bricklink_xml(&bom)?),
+                };
+                Ok((bom, export))
             });
-            let mut out = Output::from(out);
-            out.project = root;
-            let csv = *format == BomFormat::Csv;
-            finish(&cli, started, out, |b| {
-                if csv {
-                    return emmet_core::bom::csv(b).trim_end().to_string();
+            let warnings = out
+                .as_ref()
+                .ok()
+                .and_then(|(_, e)| e.as_ref().map(|(_, w)| w.clone()))
+                .unwrap_or_default();
+            let mut output = Output::from(out.as_ref().map(|(b, _)| b.clone()).map_err(Clone::clone));
+            output.project = root;
+            let export = out.ok().and_then(|(_, e)| e.map(|(text, _)| text));
+            finish_with(&cli, started, output, warnings, |b| {
+                if let Some(text) = export {
+                    return text.trim_end().to_string();
                 }
                 let mut lines: Vec<String> = b
                     .lines
                     .iter()
-                    .map(|l| format!("{:>4} × {:<10} {:<24} {}", l.qty, l.part, l.color_name, l.name))
+                    .map(|l| {
+                        let made = match l.availability.status {
+                            emmet_core::parts_data::Status::ColorUnavailable => "  (not made in this color)",
+                            emmet_core::parts_data::Status::PartUnavailable => "  (not made)",
+                            _ => "",
+                        };
+                        format!("{:>4} × {:<10} {:<24} {}{made}", l.qty, l.part, l.color_name, l.name)
+                    })
                     .collect();
                 lines.push(format!(
                     "{} pieces: {} parts in {} part × color lines → build/bom.json",
                     b.totals.pieces, b.totals.parts, b.totals.lines
                 ));
+                if b.parts_data.is_some() {
+                    lines.push(emmet_core::parts_data::CREDIT.to_string());
+                }
                 lines.join("\n")
             })
         }
@@ -634,6 +718,7 @@ fn main() -> ExitCode {
                 code
             }
         }
+        Command::PartsData { action } => parts_data_command(&cli, started, data, action),
         Command::McpHost { session } => {
             let out = data.and_then(|d| {
                 let project = Project::find(cli.project.as_deref())?;
@@ -733,6 +818,67 @@ fn library_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &
     }
 }
 
+fn parts_data_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &PartsDataAction) -> ExitCode {
+    use emmet_core::parts_data;
+    let text = |m: &parts_data::Manifest| {
+        let rows: Vec<String> = m.rows.iter().map(|(t, n)| format!("{t} {n}")).collect();
+        format!(
+            "Parts data {} ({} bytes, sha256 {}): {}.",
+            m.version,
+            m.size,
+            m.sha256,
+            rows.join(", ")
+        )
+    };
+    match action {
+        PartsDataAction::Build {
+            catalog,
+            out,
+            previous,
+            ldraw_mini,
+            date,
+            key,
+        } => {
+            let result = (|| {
+                let key = match key {
+                    Some(k) => Some(std::fs::read(k).map_err(|e| Error::io(k, e))?),
+                    None => None,
+                };
+                let opts = parts_data::BuildOptions {
+                    date: date.clone(),
+                    previous: previous.clone(),
+                    ldraw_mini: ldraw_mini.clone(),
+                    key,
+                };
+                parts_data::build(catalog, out, &opts)
+            })();
+            finish(cli, started, result.into(), |m| format!("Built {}", text(m)))
+        }
+        PartsDataAction::Install { dir } => {
+            let out = data.and_then(|d| match parts_data::TRUSTED_KEY {
+                Some(key) => parts_data::install(&d, dir, key),
+                None => Err(emmet_core::envelope::Error::new(
+                    emmet_core::envelope::ErrorCode::LibraryCorrupt,
+                    "This build has no key to check a signed parts data pack with yet.",
+                    "Packs come bundled with Emmet until signed updates arrive.",
+                )),
+            });
+            finish(cli, started, out.into(), |m| format!("Installed {}", text(m)))
+        }
+        PartsDataAction::Rollback => {
+            let out = data.and_then(|d| parts_data::rollback(&d));
+            finish(cli, started, out.into(), |m| format!("Back to {}", text(m)))
+        }
+        PartsDataAction::Status => {
+            let out = data.and_then(|d| Ok(parts_data::PartsData::open(&d)?.map(|p| p.manifest().clone())));
+            finish(cli, started, out.into(), |m| match m {
+                Some(m) => format!("Installed {}", text(m)),
+                None => "No parts data pack is installed.".into(),
+            })
+        }
+    }
+}
+
 /// Findings as a compiler-style list: `error[collision] F-0001: …`, then `--> model.py:41` and `help:`.
 fn steps_text(s: &emmet_core::steps::Steps) -> String {
     fn lines(steps: &[emmet_core::steps::Step], indent: &str, out: &mut Vec<String>) {
@@ -817,6 +963,17 @@ fn size_text(size: Option<emmet_core::index::Size>) -> String {
 
 /// Prints the envelope (`--json`) or the text, and turns the result into the exit code (plan section 09).
 fn finish<T: Serialize>(cli: &Cli, started: Instant, out: Output<T>, text: impl FnOnce(&T) -> String) -> ExitCode {
+    finish_with(cli, started, out, vec![], text)
+}
+
+/// [`finish`] with the envelope's warnings, which text mode prints to stderr.
+fn finish_with<T: Serialize>(
+    cli: &Cli,
+    started: Instant,
+    out: Output<T>,
+    warnings: Vec<emmet_core::envelope::Warning>,
+    text: impl FnOnce(&T) -> String,
+) -> ExitCode {
     let code = match &out.result {
         Ok(_) => 0,
         Err(e) => e.code.exit_code(),
@@ -829,9 +986,12 @@ fn finish<T: Serialize>(cli: &Cli, started: Instant, out: Output<T>, text: impl 
             generation: out.generation,
             ms: started.elapsed().as_millis() as u64,
         };
-        let env = Envelope::from_result(out.result, vec![], meta);
+        let env = Envelope::from_result(out.result, warnings, meta);
         println!("{}", serde_json::to_string(&env).expect("envelope serializes"));
     } else {
+        for w in &warnings {
+            eprintln!("warning[{}]: {}", w.code, w.message);
+        }
         match &out.result {
             Ok(data) => {
                 let t = text(data);

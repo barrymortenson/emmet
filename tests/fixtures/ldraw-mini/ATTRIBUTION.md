@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 216 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 217 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -311,6 +311,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/26604.dat | Brick  1 x  1 with Studs on Two Adjacent Sides | Niklas Buchmann [NiklasB] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/2859.dat | ~Train Track  9V Switch Right - Plastic Part | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2859c00.dat | ~Train Track  9V Switch Right - Plastic Part with Underside Cover Plate and Metal Elements | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/2859c01.dat | ~Moved to 75541-f1 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2860a.dat | ~Train Track 9V Switch Tongue Right - Plastic Part | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2860ac01.dat | ~Train Track 9V Switch Tongue Right | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2861.dat | ~Train Track  9V Switch Left - Plastic Part | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |

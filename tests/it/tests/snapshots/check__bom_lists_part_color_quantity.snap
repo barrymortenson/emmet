@@ -4,35 +4,61 @@ expression: "snapshot(&dir, v)"
 ---
 {
   "data": {
+    "color_names": "ldraw",
     "lines": [
       {
-        "availability": null,
+        "availability": {
+          "sets": null,
+          "status": "unknown",
+          "years": null
+        },
+        "bricklink_color": null,
+        "bricklink_id": null,
         "color": 4,
         "color_name": "Red",
         "name": "Brick 2 x 4",
         "part": "3001",
         "qty": 2,
-        "rebrickable_id": null
+        "rebrickable_color": null,
+        "rebrickable_id": null,
+        "rebrickable_name": null
       },
       {
-        "availability": null,
+        "availability": {
+          "sets": null,
+          "status": "unknown",
+          "years": null
+        },
+        "bricklink_color": null,
+        "bricklink_id": null,
         "color": 4,
         "color_name": "Red",
         "name": "Plate 2 x 4",
         "part": "3020",
         "qty": 1,
-        "rebrickable_id": null
+        "rebrickable_color": null,
+        "rebrickable_id": null,
+        "rebrickable_name": null
       },
       {
-        "availability": null,
+        "availability": {
+          "sets": null,
+          "status": "unknown",
+          "years": null
+        },
+        "bricklink_color": null,
+        "bricklink_id": null,
         "color": 2,
         "color_name": "Green",
         "name": "Plate 4 x 4",
         "part": "3031",
         "qty": 1,
-        "rebrickable_id": null
+        "rebrickable_color": null,
+        "rebrickable_id": null,
+        "rebrickable_name": null
       }
     ],
+    "parts_data": null,
     "totals": {
       "lines": 3,
       "parts": 3,

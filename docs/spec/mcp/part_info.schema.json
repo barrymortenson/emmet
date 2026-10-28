@@ -156,7 +156,7 @@
             ]
           },
           "alternates": {
-            "description": "Alternate and mold-variant ids; null until the parts data pack (3B).",
+            "description": "Alternate and mold-variant part ids, as LDraw ids; null without the pack or a Rebrickable mapping.",
             "items": {
               "type": "string"
             },
@@ -215,7 +215,7 @@
             "type": "string"
           },
           "produced_colors": {
-            "description": "Colors the part was produced in; null until the parts data pack is installed (3B), so an empty list always\nmeans \"none\".",
+            "description": "LDraw codes of the colors the part was made in (the parts data pack); null without the pack or a Rebrickable\nmapping, so an empty list always means \"none\".",
             "items": {
               "format": "uint32",
               "minimum": 0,

@@ -14,6 +14,8 @@
     "allow-get-params",
     "allow-set-params",
     "allow-list-colors",
+    "allow-data-settings",
+    "allow-set-color-names",
     "allow-rebuild",
     "allow-bus-reply",
     "allow-setup",

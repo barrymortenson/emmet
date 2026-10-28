@@ -7,7 +7,8 @@ What `emmet validate` (and MCP's `validate`) checks, and how (plan section 11, A
 
 ## Inputs
 
-`build/placements.json`, the library, and the parts index. Besides `{ schema, model, parts }`
+`build/placements.json`, the library, the parts index, and the parts data pack when one is installed (plan section 12;
+`crates/emmet-core/src/parts_data.rs`). Besides `{ schema, model, parts }`
 (`docs/spec/dsl.md`), the validator reads three optional keys, which the DSL writes from 3B on:
 
 - `allow`: `[{ "rule", "parts": [ids], "reason" }]`, from `m.allow(rule, ids, reason)`. A finding of that rule whose
@@ -71,8 +72,15 @@ hint says what to change.
 | `step_size` | warning | a step adding more elements than the target (a copy counts once, a figure once per torso) | split the step |
 | `weak_connection` | warning | a part held by one or two studs and nothing else that reaches more than 4 studs past them | a support, or more studs |
 | `off_grid` | warning | a part joined to nothing whose connector is within 10 LDU of a mate, off sideways, or up or down by other than whole half plates | the move in DSL units |
+| `part_unavailable` | warning | a part Rebrickable knows but has no element or set inventory with, in any color: it was never made | a part that was made (its alternates, when Rebrickable lists any) |
+| `color_unavailable` | warning | a part in a color it was never made in: no element and no set inventory with it in that color | the closest colors (by RGB) that part was made in |
 | `obsolete_part` | warning | a `~Moved to` or obsolete part | the current id |
 | `alias_part` | info | an alias | the canonical id |
+
+part_unavailable and color_unavailable give one finding per part × color, naming every placement of it. They need the
+parts data pack: without one, or for a part or color with no Rebrickable mapping (ADR 0004's four rules), availability
+is unknown and there's no finding. Unknown is never unavailable. The golden is `broken-color-unavailable`, checked with
+the pack built from `tests/fixtures/rebrickable-mini/` (`check.rs`).
 
 The first step of a scope is free (its parts are laid out together). An element laid out early and joined later by
 parts on top of it is fine. A part moved elsewhere in the library is judged as its target.

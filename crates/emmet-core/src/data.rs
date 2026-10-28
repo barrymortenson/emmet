@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! The app data directory: the LDraw library, the parts index, and the Python runtime (plan sections 04 and 12).
+//! The app data directory: the LDraw library, the parts index, the parts data pack, and the Python runtime (plan
+//! sections 04 and 12).
 
 use std::path::{Path, PathBuf};
 
@@ -70,6 +71,16 @@ impl DataDir {
 
     pub fn downloads(&self) -> PathBuf {
         self.root.join("downloads")
+    }
+
+    /// The parts data pack (plan section 12): `current.json`, and the current and previous packs.
+    pub fn parts_data(&self) -> PathBuf {
+        self.root.join("parts-data")
+    }
+
+    /// The app's settings that the CLI reads too (the BOM's color naming).
+    pub fn settings(&self) -> PathBuf {
+        self.root.join("settings.json")
     }
 
     /// uv's managed Pythons, uv's cache, and the venv models run in.

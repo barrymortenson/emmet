@@ -1,0 +1,51 @@
+---
+source: tests/it/tests/check.rs
+expression: "snapshot(&dir, v)"
+---
+{
+  "data": {
+    "allowed": [],
+    "clean": false,
+    "counts": {
+      "color_unavailable": 1
+    },
+    "findings": [
+      {
+        "at": [
+          1.0,
+          2.0,
+          4.0
+        ],
+        "hint": "Use a color 3001 was made in, such as Blue, Lilac, or Medium Violet (closest first); list_colors with part 3001 lists all 86.",
+        "id": "F-0001",
+        "message": "2 parts use 3001 (Brick 2 x 4) in Violet, a color it was never made in.",
+        "parts": [
+          "left",
+          "right"
+        ],
+        "rule": "color_unavailable",
+        "severity": "warning",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 11
+          },
+          {
+            "file": "model.py",
+            "line": 12
+          }
+        ]
+      }
+    ],
+    "inputs_hash": "[inputs_hash]",
+    "schema": 1
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "<project>"
+  },
+  "ok": true,
+  "warnings": []
+}
