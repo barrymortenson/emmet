@@ -119,6 +119,9 @@ pub struct Checked {
     pub allowed: Vec<emmet_core::check::Allowed>,
     /// No errors and no warnings.
     pub clean: bool,
+    /// The rules checked, when the call named some; empty when every rule ran.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub only: Vec<String>,
 }
 
 /// The most findings `validate` returns; the rest are in build/validation.json.
@@ -416,17 +419,18 @@ impl EmmetMcp {
                             })
                         })
                         .collect::<Result<Vec<_>>>()?;
-                    ops::check_with(&data, p, &rules, &args.params.unwrap_or_default())
+                    let names: Vec<String> = rules.iter().map(|r| r.name().to_string()).collect();
+                    ops::check_with(&data, p, &rules, &args.params.unwrap_or_default()).map(|v| (v, names))
                 })
             },
             |e| (Err(e), None),
         )
         .await;
         let meta = RunMeta {
-            inputs_hash: out.as_ref().ok().and_then(|v| v.inputs_hash.clone()),
+            inputs_hash: out.as_ref().ok().and_then(|(v, _)| v.inputs_hash.clone()),
             generation: None,
         };
-        let out = out.map(|v| {
+        let out = out.map(|(v, only)| {
             let count = |s| v.findings.iter().filter(|f| f.severity == s).count();
             Checked {
                 counts_by_rule: v.counts.clone(),
@@ -436,6 +440,7 @@ impl EmmetMcp {
                 allowed: v.allowed.clone(),
                 clean: v.clean,
                 findings: v.findings.into_iter().take(MAX_FINDINGS).collect(),
+                only,
             }
         });
         result(started, out, meta, root, validate_text)
@@ -545,6 +550,12 @@ fn validate_text(c: &Checked) -> String {
         n => format!(" ({n} allowed)"),
     };
     if c.total == 0 {
+        if !c.only.is_empty() {
+            return format!(
+                "No {} findings{allowed}. Only those rules were checked: validate with no rules to check them all.",
+                c.only.join(", ")
+            );
+        }
         return format!("No findings{allowed}: the model is clean.");
     }
     let n = |k: usize, one: &str, many: &str| format!("{k} {}", if k == 1 { one } else { many });

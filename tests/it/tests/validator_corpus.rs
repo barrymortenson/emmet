@@ -295,7 +295,7 @@ fn proxy_stats() {
     let mut counts = Vec::new();
     for p in &parts {
         let t = std::time::Instant::now();
-        let b = emmet_core::check::proxy::build(&mut m, p);
+        let b = emmet_core::check::proxy::build(&mut m, p).0;
         counts.push((b.len(), t.elapsed().as_millis(), p.clone()));
     }
     counts.sort();
@@ -331,7 +331,7 @@ fn anti_studs() {
         .split(',')
     {
         let mut m = emmet_core::ldraw::geometry::Measurer::new(&lib);
-        let boxes = emmet_core::check::proxy::build(&mut m, &format!("{id}.dat"));
+        let boxes = emmet_core::check::proxy::build(&mut m, &format!("{id}.dat")).0;
         let bottom = boxes.iter().map(|b| b[4]).max().unwrap_or(0) as f64;
         let (x0, x1) = (
             boxes.iter().map(|b| b[0]).min().unwrap() as f64,

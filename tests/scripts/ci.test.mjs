@@ -68,6 +68,9 @@ for (const [why, github] of [
 const nightly = readFileSync(join(workflows, "nightly.yml"), "utf8");
 const nightlyExpr = nightly.match(/^ {2}corpus:\n(?: {4}#.*\n)*? {4}runs-on: \$\{\{ (.+) \}\}$/m)?.[1];
 test("nightly.yml's corpus job has a runs-on expression", () => assert.ok(nightlyExpr, "corpus job runs-on not found"));
+// Without bash's pipefail, `cargo test … | tee` passes whatever the test does.
+test("nightly.yml's steps run in bash with pipefail", () =>
+  assert.match(nightly, /^ {4}defaults:\n {6}run:\n {8}shell: bash$/m));
 test("the nightly schedule and Barry's PR run on the self-hosted Mac", () => {
   assert.deepEqual(runsOn({ repository: REPO, actor: BARRY, event_name: "schedule", ref: "refs/heads/main", event: {} }, nightlyExpr), SELF);
   assert.deepEqual(runsOn(pr(REPO, BARRY), nightlyExpr), SELF);

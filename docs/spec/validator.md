@@ -27,8 +27,8 @@ anti-studs, holes, pins, axles, bars) made of sections, each a radius and a leng
 flexible fit; clips; hinge fingers; and generic plugs with a bounding shape. A shape runs from its position along its
 own −Y. Three sources, in order (`connectors.rs`):
 
-1. The primitive table: top studs (`stud`, `stud2`, `stud10`, the `stu2*` families …) and the underside tubes
-   (`stud4` and kin: a female cylinder at each tube and its ±10 LDU grid, and the tube's own hole for a bar).
+1. The primitive table: top-stud and underside-tube primitives the shadow data lacks (logo and open studs, and the
+   `stud4` family of tubes: a female cylinder at each tube and its ±10 LDU grid, and the tube's own hole for a bar).
 2. The LDCad Shadow Library, `data/connections/ldcad-shadow.ldr` (CC BY-SA 4.0), compiled in.
 3. The overrides, `data/connections/*.toml`, each with a test model (`data/connections/README.md`).
 
@@ -46,29 +46,31 @@ Hinge fingers mate with the same group's fingers on one line; generic plugs with
 within 1 LDU.
 
 Some pairs hold without connectors (`holds.rs`): a window or door frame and the glass, pane, shutter, or door in it; a
-tyre and its wheel; a flexible part (hose, cable, chain, string) and what it touches; a sticker and its surface; a
+tire and its wheel; a flexible part (hose, cable, chain, string) and what it touches; a sticker and its surface; a
 figure's parts and what they touch (figures are posed by hand); a plate wedged on its edge between studs. A part with no
-female connector at all takes any stud that enters its underside.
+female cylinder (no anti-stud or hole) takes any stud that enters its underside.
 
 The ground is the parts on the model's lowest level (within 1 LDU), any baseplate, and the `ground` parts. In a model
 with neither a baseplate nor `ground` parts, a group with nothing of the model under it, within 16 LDU of the lowest
-point, stands on the table; so does a group resting on a tyre or wheel.
+point, stands on the table. In any model, a group whose own tire or wheel rests on top of another part stands (a car
+parked on a platform).
 
 ## Rules
 
-Findings are sorted by severity, then source line, and numbered `F-0001` on. Every hint names the part and a move.
+Findings are sorted by severity, then source line, and numbered `F-0001` on. Every message names the parts, and every
+hint says what to change.
 
 | Rule | Severity | Finds | Hint |
 |---|---|---|---|
 | `unknown_part` | error | a part id the library lacks | search for the part |
-| `collision` | error | two parts' collision proxies overlapping by more than 1 LDU (D-46), outside a connected pair's seat and outside a pair one holds the other | how far, along which axis, to move which part |
+| `collision` | error | two parts' collision proxies overlapping by more than 1 LDU (D-46), outside a connected pair's seat and outside a pair one holds the other | how far to move which part (up or down for a vertical overlap) |
 | `floating` | error | a connected group that reaches no ground | the part under it and the gap, in plates |
-| `disconnected_submodel` | error | the outermost submodel copy no pair crosses, inside a parent with parts of its own | where to move the copy |
-| `step_order` | error | per scope (the main model, and each copy with its own steps): an element joined to nothing from earlier steps, not resting on the ground, and not the start of a new assembly; or one resting on parts from later steps | the step to move it to, or what to move earlier |
-| `step_order` | warning | an element that goes in where earlier parts close its way in (from above, or between parts on both sides) | the step to move it to |
+| `disconnected_submodel` | error | the outermost submodel copy none of whose parts is joined to or held by a part outside it, inside a parent with parts of its own | where to move the copy |
+| `step_order` | error | per scope (the main model, and each copy with its own steps): an element joined to nothing from earlier steps, not resting on the ground, and not the start of a new assembly (or, when all that holds, one resting on parts from later steps) | the step to move it to, or what to move earlier |
+| `step_order` | warning | an element whose way in (from above, below, or the side) earlier parts have closed, or that goes in between parts on both sides | the step to move it to |
 | `step_size` | warning | a step adding more elements than the target (a copy counts once, a figure once per torso) | split the step |
 | `weak_connection` | warning | a part held by one or two studs and nothing else that reaches more than 4 studs past them | a support, or more studs |
-| `off_grid` | warning | a part joined to nothing whose connector is within 10 LDU of a mate, off sideways or by part of a plate | the move in DSL units |
+| `off_grid` | warning | a part joined to nothing whose connector is within 10 LDU of a mate, off sideways, or up or down by other than whole half plates | the move in DSL units |
 | `obsolete_part` | warning | a `~Moved to` or obsolete part | the current id |
 | `alias_part` | info | an alias | the canonical id |
 
@@ -106,4 +108,4 @@ source line, its position in DSL units, the message, and the hint. The rest are 
 | Recall | `validator_mutations.rs`: seeded faults over the fixtures and the cottage (lift, remove a support, sink, slide, turn, move a step earlier, lump steps, offset a copy, nudge off the grid, unknown part), each with the rule it must trip; the nightly runs it over its corpus | ≥ 95 % overall, ≥ 90 % per error rule |
 | Speed | `just bench validator`: warm, release, on the fixtures tiled to 500 and 2,000 parts | ≤ 300 ms and ≤ 1.5 s |
 | Goldens | `check.rs` (`broken-*` projects) and `validator_corpus.rs` (`tests/fixtures/validator/`) | exactly the snapshot |
-| Overrides | `each_override_holds_in_its_test_model`, `track_joins_exactly` | each test model clean only with its override |
+| Overrides | `each_override_holds_in_its_test_model`, `track_joins_exactly` | each test model has no errors, every use of the overridden part connected |

@@ -33,7 +33,7 @@ preferred = "claude"
 timeout = 30                        # seconds a model may run, more than 0 and at most 3600; optional
 
 [build]
-age = "6+"                          # the Age build setting: "4+", "6+", or "18+"; optional
+age = "6+"                          # the Age build setting: "4+", "6+", "9+", "13+", or "18+"; optional
 
 [[check.allow]]                     # a finding the user has decided to allow; optional, any number
 rule = "floating"

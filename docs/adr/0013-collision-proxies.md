@@ -35,7 +35,7 @@ more than 2,048 boxes is filled again at a coarser step.
 
 - **Threshold: more than 1 LDU** (D-46), past the voxels' own resolution.
 - **Seat exemption:** an overlap within a connected pair's seat (its radius plus 2 LDU, half its length plus 2 LDU)
-  isn't a collision; nor is one between parts one holds the other (a frame and its glass, a tyre and its wheel).
+  isn't a collision; nor is one between parts one holds the other (a frame and its glass, a tire and its wheel).
 
 Rejected:
 
@@ -44,8 +44,8 @@ Rejected:
   (studs and tubes are separate primitives with open ends). Depth needs a closed volume.
 - **Convex decomposition** (V-HACD or CoACD). Not named in section 06 (a new dependency), and approximate: its hulls
   round off the very corners and openings that make a slope or arch fit, and a tolerance to hide that hides faults too.
-- **Our own box test** (v0's separating axis test, kept for the boxes). It worked for quarter turns but needed its own
-  depth and axis for turned boxes. parry3d's contact query gives both, so ours went.
+- **Our own separating axis test** (v0's, for every pair). It needed its own depth and axis for turned boxes;
+  parry3d's contact query gives both, so v0's test went. Quarter-turned pairs keep a plain interval overlap.
 
 ### Built on first use, cached in the index
 
@@ -60,10 +60,10 @@ second.
 
 ### Broad and narrow phase
 
-parry3d-f64 (`default-features = false`, `dim3`, `f64`): a `Bvh` over the parts' world boxes gives candidate pairs.
+parry3d-f64 (`default-features = false`, with `std`, `alloc`, `dim3`, and `f64`): a `Bvh` over the parts' world boxes gives candidate pairs.
 Each pair's boxes are compared in the first part's frame: by exact interval overlap when the second is turned by
 quarter turns (almost every pair), by parry3d's `query::contact` on cuboids otherwise. The finding's depth and axis
-come from the parts' body boxes, so the hint says which way to move.
+come from the parts' body boxes, so the hint says how far to move which part, and up or down for a vertical overlap.
 
 ## Measured
 

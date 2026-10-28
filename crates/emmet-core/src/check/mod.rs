@@ -36,7 +36,7 @@ pub enum Severity {
     Info,
 }
 
-/// The rules (plan section 11), in the order findings are listed within a severity.
+/// The rules (plan section 11), in the order findings with the same severity and source line are listed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Rule {
@@ -126,7 +126,7 @@ pub struct Finding {
     pub hint: String,
 }
 
-/// A finding the project allows (`[[check.allow]]` in emmet.toml), with its reason.
+/// A finding the project or the model allows (`[[check.allow]]` in emmet.toml, `m.allow`), with its reason.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Allowed {
     pub rule: String,
@@ -180,11 +180,12 @@ pub struct Allow {
     pub reason: String,
 }
 
-/// A stud enters a part through its underside when its base is at most this far inside it…
+/// How far inside a part a stud's base may be and still enter it through its underside, and how far a part's top may
+/// be inside another's bottom and still be under it.
 const SEAT: f64 = 1.5;
 /// Parts whose bottom is this close to the model's lowest point stand on the ground.
 const GROUND: f64 = 1.0;
-/// Without a baseplate, a group with nothing under it whose bottom is this close to the lowest point stands on the
+/// Without a baseplate or ground parts, a group with nothing under it whose bottom is this close to the lowest point stands on the
 /// table beside the rest (two plates: models place a vehicle and the figures next to it a little apart in height).
 const ON_THE_TABLE: f64 = 16.0;
 const STUD: f64 = 20.0;
@@ -544,7 +545,7 @@ fn part_rules(placed: &[Placed], rules: &[Rule]) -> Vec<Raw> {
     out
 }
 
-/// Numbers the findings in a stable order (severity, then the first source line, then the parts) and applies the
+/// Numbers the findings in a stable order (severity, then the first source line, then the rule, then the parts) and applies the
 /// project's allow entries.
 fn finish(placed: &[Placed], raw: Vec<Raw>, allow: &[Allow], inputs_hash: Option<String>) -> Validation {
     let mut items: Vec<(Raw, Vec<Source>, Vec<String>)> = raw

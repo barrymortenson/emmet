@@ -30,7 +30,7 @@
   "output": {
     "$defs": {
       "Allowed": {
-        "description": "A finding the project allows (`[[check.allow]]` in emmet.toml), with its reason.",
+        "description": "A finding the project or the model allows (`[[check.allow]]` in emmet.toml, `m.allow`), with its reason.",
         "properties": {
           "parts": {
             "items": {
@@ -83,6 +83,13 @@
             "description": "The first 50, errors first, in source order.",
             "items": {
               "$ref": "#/$defs/Finding"
+            },
+            "type": "array"
+          },
+          "only": {
+            "description": "The rules checked, when the call named some; empty when every rule ran.",
+            "items": {
+              "type": "string"
             },
             "type": "array"
           },
@@ -294,7 +301,7 @@
         "type": "object"
       },
       "Rule": {
-        "description": "The rules (plan section 11), in the order findings are listed within a severity.",
+        "description": "The rules (plan section 11), in the order findings with the same severity and source line are listed.",
         "enum": [
           "unknown_part",
           "collision",

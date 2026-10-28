@@ -24,6 +24,10 @@ jobs:
     # The self-hosted Mac takes trusted events only (D-13, plan section 17), as in ci.yml, plus the schedule.
     runs-on: ${{ fromJSON((github.repository == 'barrymortenson/emmet' && github.actor == 'barrymortenson' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'barrymortenson'))) && '["self-hosted","macOS","emmet"]' || '"macos-latest"') }}
     timeout-minutes: 30
+    # bash with pipefail (GitHub's default shell lacks it), so the corpus step fails when the test does, not tee.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

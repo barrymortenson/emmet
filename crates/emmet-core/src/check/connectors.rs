@@ -5,7 +5,7 @@
 //! 1. The primitive table ([`PRIMITIVES`]): top studs and underside tubes that the LDCad data has no entry for.
 //! 2. The LDCad Shadow Library (`data/connections/ldcad-shadow.ldr`, CC BY-SA 4.0): `!LDCAD SNAP_*` lines for about
 //!    4,000 parts, subparts, and primitives.
-//! 3. Emmet's overrides (`data/connections/*.toml`), for parts the others get wrong or miss (track, the 9V switch).
+//! 3. Emmet's overrides (`data/connections/*.toml`), for parts the others get wrong or miss (train track ends, the hinge control stick).
 //!
 //! A file's connectors are LDCad's: those of every file it references, moved into its frame, then its own snap lines
 //! in order (`SNAP_CLEAR` drops what came before, `SNAP_INCL` adds another shadow entry's). A file with no shadow
@@ -44,7 +44,7 @@ pub enum Kind {
     Cyl,
     /// A clip, which holds a male cylinder of its radius (a bar, a handle).
     Clip,
-    /// Hinge fingers, which mesh with fingers of the same radius.
+    /// Hinge fingers, which mesh with fingers of the same radius, or of any radius in the same group.
     Finger,
     /// An odd shape that matches only its own group (an electric plug, a window's glass).
     Gen,
@@ -225,43 +225,53 @@ fn mat3(s: Option<&String>) -> DMat3 {
     }
 }
 
-/// A grid (`C 4 C 2 20 20`: counts along X and Z, each centered with `C`, then the steps), as offsets in the snap's
-/// own X and Z.
-fn grid(s: Option<&String>) -> Vec<(f64, f64)> {
-    let Some(s) = s else { return vec![(0.0, 0.0)] };
-    let mut tokens = s.split_whitespace().peekable();
-    let count = |tokens: &mut std::iter::Peekable<std::str::SplitWhitespace>| {
-        let centered = tokens.peek().is_some_and(|t| t.eq_ignore_ascii_case("c"));
-        if centered {
-            tokens.next();
-        }
-        (
-            tokens
-                .next()
-                .and_then(|t| t.parse::<f64>().ok())
-                .unwrap_or(1.0)
-                .max(1.0) as usize,
-            centered,
-        )
-    };
-    let (nx, cx) = count(&mut tokens);
-    let (nz, cz) = count(&mut tokens);
-    let sx: f64 = tokens.next().and_then(|t| t.parse().ok()).unwrap_or(0.0);
-    let sz: f64 = tokens.next().and_then(|t| t.parse().ok()).unwrap_or(0.0);
-    let at = |i: usize, n: usize, c: bool, step: f64| {
-        if c {
-            (i as f64 - (n as f64 - 1.0) / 2.0) * step
+/// A grid, as offsets in the snap's own frame: `C 4 C 2 20 20` (counts along X and Z, each centered with `C`, then the
+/// steps) or `1 C 2 C 2 0 80 60` (counts along X, Y, and Z, then the steps). None for a grid it can't read.
+fn grid(s: Option<&String>) -> Option<Vec<DVec3>> {
+    let Some(s) = s else { return Some(vec![DVec3::ZERO]) };
+    // Each number, and whether a `C` came before it.
+    let mut items: Vec<(bool, f64)> = Vec::new();
+    let mut centered = false;
+    for t in s.split_whitespace() {
+        if t.eq_ignore_ascii_case("c") {
+            centered = true;
         } else {
-            i as f64 * step
-        }
-    };
-    let mut out = Vec::with_capacity(nx * nz);
-    for i in 0..nx.min(64) {
-        for k in 0..nz.min(64) {
-            out.push((at(i, nx, cx, sx), at(k, nz, cz, sz)));
+            items.push((centered, t.parse().ok()?));
+            centered = false;
         }
     }
-    out
+    let axes = match items.len() {
+        4 => vec![0, 2],
+        6 => vec![0, 1, 2],
+        _ => return None,
+    };
+    let (counts, steps) = items.split_at(axes.len());
+    if steps.iter().any(|s| s.0) || counts.iter().any(|c| !(1.0..=64.0).contains(&c.1)) {
+        return None;
+    }
+    let mut out = vec![DVec3::ZERO];
+    for (k, &axis) in axes.iter().enumerate() {
+        let (c, n) = (counts[k].0, counts[k].1 as usize);
+        let step = steps[k].1;
+        let at = |i: usize| {
+            if c {
+                (i as f64 - (n as f64 - 1.0) / 2.0) * step
+            } else {
+                i as f64 * step
+            }
+        };
+        out = out
+            .into_iter()
+            .flat_map(|o| {
+                (0..n).map(move |i| {
+                    let mut v = o;
+                    v[axis] += at(i);
+                    v
+                })
+            })
+            .collect();
+    }
+    Some(out)
 }
 
 fn sections(s: &str) -> Vec<Section> {
@@ -307,10 +317,7 @@ fn parse_snap(line: &str, source: Source) -> Option<Snap> {
     let pos = vec3(p.get("pos"));
     let id: Option<Rc<str>> = p.get("id").map(|s| Rc::from(s.to_lowercase().as_str()));
     let group: Option<Rc<str>> = p.get("group").map(|s| Rc::from(s.to_lowercase().as_str()));
-    let offsets: Vec<DVec3> = grid(p.get("grid"))
-        .into_iter()
-        .map(|(x, z)| ori * DVec3::new(x, 0.0, z))
-        .collect();
+    let offsets: Vec<DVec3> = grid(p.get("grid"))?.into_iter().map(|o| ori * o).collect();
     let gender = |key: &str, default: Gender| match p.get(key).map(|g| g.to_uppercase()).as_deref() {
         Some("F") => Gender::Female,
         Some("M") => Gender::Male,
@@ -755,6 +762,29 @@ mod tests {
         let v = snap("!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=S 6 4] [pos=-10 8 10] [grid=1 2 0 20]");
         let zs: Vec<f64> = v.iter().map(|c| c.pos.z).collect();
         assert_eq!(zs, vec![10.0, 30.0]);
+    }
+
+    #[test]
+    fn a_grid_on_three_axes() {
+        // 2486's bars: one along X, two 46 apart along Y (centered), one along Z.
+        let v = snap("!LDCAD SNAP_CYL [gender=M] [caps=none] [secs=R 4 8] [pos=0 0 0] [grid=1 C 2 1 0 46 0]");
+        let ys: Vec<f64> = v.iter().map(|c| c.pos.y).collect();
+        assert_eq!(ys, vec![-23.0, 23.0]);
+        assert!(v.iter().all(|c| c.pos.x == 0.0 && c.pos.z == 0.0));
+        let v = snap("!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 6 4] [grid=C 3 C 2 1 20 100 0]");
+        assert_eq!(v.len(), 6);
+        assert!(
+            v.iter()
+                .all(|c| [-20.0, 0.0, 20.0].contains(&c.pos.x) && c.pos.y.abs() == 50.0)
+        );
+        // A grid it can't read is no snap, not one at the origin.
+        assert!(
+            parse_snap(
+                "!LDCAD SNAP_CYL [gender=F] [secs=R 6 4] [grid=C 2 x 20]",
+                Source::Shadow
+            )
+            .is_none()
+        );
     }
 
     #[test]

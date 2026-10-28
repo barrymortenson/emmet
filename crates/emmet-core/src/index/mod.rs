@@ -215,7 +215,7 @@ impl Index {
 
     /// The collision proxies of parts (by id), from the index's cache, building and caching the missing ones from the
     /// library (ADR 0013). The cache fills as models use parts; a cache that can't be written (a read-only data dir)
-    /// only costs the build again next time.
+    /// only costs the build again next time. A proxy built without all of its part's files isn't cached.
     pub fn proxies(
         &self,
         lib: &LibFiles,
@@ -231,9 +231,9 @@ impl Index {
                 .map_err(db)?;
             for id in ids {
                 let blob: Option<Vec<u8>> = stmt.query_row([id], |r| r.get(0)).optional().map_err(db)?;
-                match blob {
-                    Some(b) => {
-                        out.insert(id.clone(), std::rc::Rc::new(proxy::from_blob(&b)));
+                match blob.as_deref().and_then(proxy::from_blob) {
+                    Some(boxes) => {
+                        out.insert(id.clone(), std::rc::Rc::new(boxes));
                     }
                     None => missing.push(id.clone()),
                 }
@@ -243,7 +243,7 @@ impl Index {
             return Ok(out);
         }
         let mut m = Measurer::new(lib);
-        let built: Vec<(String, Vec<proxy::ProxyBox>)> = missing
+        let built: Vec<(String, (Vec<proxy::ProxyBox>, bool))> = missing
             .into_iter()
             .map(|id| {
                 let boxes = proxy::build(&mut m, &format!("{id}.dat"));
@@ -253,7 +253,8 @@ impl Index {
         if let Ok(mut w) = Connection::open(&self.path) {
             let _ = w.busy_timeout(std::time::Duration::from_secs(2));
             if let Ok(tx) = w.transaction() {
-                for (id, boxes) in &built {
+                // A part whose files couldn't be read isn't cached: the next run tries again.
+                for (id, (boxes, _)) in built.iter().filter(|(_, (_, complete))| *complete) {
                     let _ = tx.execute(
                         "INSERT OR REPLACE INTO proxies(part_id, boxes) VALUES (?, ?)",
                         params![id, proxy::to_blob(boxes)],
@@ -263,7 +264,7 @@ impl Index {
             }
         }
         for (id, boxes) in built {
-            out.insert(id, std::rc::Rc::new(boxes));
+            out.insert(id, std::rc::Rc::new(boxes.0));
         }
         Ok(out)
     }

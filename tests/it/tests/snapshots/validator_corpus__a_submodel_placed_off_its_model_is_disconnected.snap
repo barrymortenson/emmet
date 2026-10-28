@@ -24,7 +24,7 @@ expression: v
         -1.0,
         1.0
       ],
-      "message": "Submodel 'tower.ldr' (copy tower) in step 2 isn't connected to the model around it: none of its 2 parts touches a part outside it.",
+      "message": "Submodel 'tower.ldr' (copy tower) in step 2 isn't connected to the model around it: none of its 2 parts is joined to a part outside it.",
       "hint": "The copy sits 1 plate above base (Plate 6 x 6): move where it's placed down by 1 plate."
     }
   ],

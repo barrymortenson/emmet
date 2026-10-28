@@ -119,6 +119,51 @@ fn the_models_allow_and_ground_count() {
     std::fs::write(&path, serde_json::to_string(&doc).unwrap()).unwrap();
     let (v, _) = check(&dir, &[]);
     assert_eq!(v["data"]["findings"], json!([]), "{v}");
+
+    // The group moved off to the side, a plate off the table: with no baseplate and no ground parts it stands on the
+    // table beside the tower. A ground id that names no part doesn't change that; a real one does.
+    doc.as_object_mut().unwrap().remove("ground");
+    for row in doc["parts"].as_array_mut().unwrap() {
+        if ["tower/2", "tower/cap"].contains(&row["id"].as_str().unwrap()) {
+            let m = row["matrix"].as_array_mut().unwrap();
+            m[12] = json!(m[12].as_f64().unwrap() + 200.0);
+            m[13] = json!(m[13].as_f64().unwrap() + 32.0);
+        }
+    }
+    for (ground, floating) in [
+        (json!([]), false),
+        (json!(["no-such-part"]), false),
+        (json!(["base"]), true),
+    ] {
+        doc["ground"] = ground.clone();
+        std::fs::write(&path, serde_json::to_string(&doc).unwrap()).unwrap();
+        let (v, _) = check(&dir, &[]);
+        let counts = if floating { json!({ "floating": 1 }) } else { json!({}) };
+        assert_eq!(v["data"]["counts"], counts, "ground {ground}: {v}");
+    }
+}
+
+/// emmet.toml's `[build] age` sets step_size's target: broken-step-size's 10-part step is within 18+'s 12 and twice
+/// 4+'s 4.
+#[test]
+fn the_age_setting_sets_the_step_target() {
+    let dir = project("broken-step-size");
+    let toml = dir.join("emmet.toml");
+    let base = std::fs::read_to_string(&toml).unwrap();
+    for (age, message) in [
+        ("18+", None),
+        ("4+", Some("Step 2 adds 10 parts: the build's target is 4 a step.")),
+    ] {
+        std::fs::write(&toml, format!("{base}\n[build]\nage = \"{age}\"\n")).unwrap();
+        let (v, _) = check(&dir, &[]);
+        let messages: Vec<&str> = v["data"]["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|f| f["message"].as_str().unwrap())
+            .collect();
+        assert_eq!(messages, message.into_iter().collect::<Vec<_>>(), "age {age}: {v}");
+    }
 }
 
 /// The rung 1 reference: the cottage template validates clean at its defaults and at the corners of its sliders, with

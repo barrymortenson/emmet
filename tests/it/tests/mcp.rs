@@ -397,10 +397,31 @@ async fn validate_tool() {
     assert!(dir.join("build/validation.json").is_file());
     let c = client.call("validate", json!({ "rules": ["collision"] })).await;
     assert_eq!(c.envelope["data"]["total"], 0);
-    assert_eq!(c.text, "No findings: the model is clean.");
+    // Only collision ran, so the floating group is unseen: the summary doesn't call the model clean.
+    assert_eq!(
+        c.text,
+        "No collision findings. Only those rules were checked: validate with no rules to check them all."
+    );
+    assert_eq!(c.envelope["data"]["only"], json!(["collision"]));
     let c = client.call("validate", json!({ "rules": ["wobbly"] })).await;
     assert!(c.is_error);
     assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+
+    // Warnings only: the header counts them, and the next step says there are no errors.
+    let dir = project("broken-step-size");
+    let client = connect(Some(&dir)).await;
+    let c = client.call("validate", json!({})).await;
+    assert!(
+        c.text.starts_with("1 warning: 1 step_size.\nF-0001 warning step_size "),
+        "{}",
+        c.text
+    );
+    assert!(
+        c.text
+            .ends_with(" No errors: fix the warnings that matter for this build."),
+        "{}",
+        c.text
+    );
 }
 
 /// bom: part × color × quantity with totals, the most-used lines first.

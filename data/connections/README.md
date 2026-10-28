@@ -9,7 +9,7 @@ Where parts connect, for the validator (plan section 11, docs/spec/validator.md)
    `0 FILE` line naming the library file they extend.
 3. The overrides, `*.toml`: parts the other sources get wrong or miss. Each `[[override]]` names the part (or subpart),
    why, the LDCad snap lines in its frame, whether they `replace` everything else, and a test model in
-   `tests/fixtures/validator/connections/` that validates with no errors only with it
+   `tests/fixtures/validator/connections/` that validates with no errors, every use of the part connected
    (`tests/it/tests/validator_corpus.rs`, `each_override_holds_in_its_test_model`). A new override file goes in
    `OVERRIDES` in `connectors.rs` too.
 

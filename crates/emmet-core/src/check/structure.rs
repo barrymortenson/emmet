@@ -33,6 +33,13 @@ pub(super) fn ground(m: &Model, options: &Options) -> Vec<bool> {
         .collect()
 }
 
+/// Whether the model is things on the table: no baseplate, and no `m.ground` part among its placements (a ground id
+/// that names no part doesn't count).
+pub(super) fn loose(m: &Model, options: &Options) -> bool {
+    !(0..m.placed.len())
+        .any(|i| m.kind(i).is_some_and(|k| k.category == "Baseplate") || options.ground.contains(&m.placed[i].p.id))
+}
+
 /// The groups of connected parts that stand on nothing: no part of theirs is ground. Without a baseplate or ground
 /// parts, a model can be several things on the table (a car, a figure beside it), each at its own height off it, so a
 /// group with nothing of the model under it, within two plates of the lowest point, stands too.
@@ -43,6 +50,7 @@ pub(super) fn floating_groups(m: &Model, options: &Options) -> Vec<Vec<usize>> {
         sets.join(a, b);
     }
     let ground = ground(m, options);
+    let loose = loose(m, options);
     let mut grounded = vec![false; n];
     for i in (0..n).filter(|&i| ground[i]) {
         let r = sets.root(i);
@@ -54,23 +62,22 @@ pub(super) fn floating_groups(m: &Model, options: &Options) -> Vec<Vec<usize>> {
             groups.entry(sets.root(i)).or_default().push(i);
         }
     }
-    let loose = options.ground.is_empty() && !(0..n).any(|i| m.kind(i).is_some_and(|k| k.category == "Baseplate"));
     if loose {
         groups.retain(|_, parts| over_something(m, parts) || bottom(m, parts) < m.lowest - ON_THE_TABLE);
     }
-    // A vehicle stands on its wheels: a group with a tyre or wheel resting on a part below it (a car parked on a
+    // A vehicle stands on its wheels: a group with a tire or wheel resting on a part below it (a car parked on a
     // platform) is a separate toy put there, not a floating part of the build.
     groups.retain(|_, parts| !on_wheels(m, parts));
     groups.into_values().collect()
 }
 
-/// Whether one of `parts` is a tyre or wheel whose bottom rests on the top of a part outside them.
+/// Whether one of `parts` is a tire or wheel whose bottom rests on the top of a part outside them.
 fn on_wheels(m: &Model, parts: &[usize]) -> bool {
     let members: HashSet<usize> = parts.iter().copied().collect();
     parts.iter().any(|&i| {
         let rolls = m
             .kind(i)
-            .is_some_and(|k| holds::tyre(k) || k.category == "Wheel" || k.name.contains("Wheel"));
+            .is_some_and(|k| holds::tire(k) || k.category == "Wheel" || k.name.contains("Wheel"));
         let Some(a) = m.boxes[i].filter(|_| rolls) else {
             return false;
         };
@@ -204,7 +211,7 @@ pub(super) fn floating(m: &Model, groups: &[Vec<usize>], skip: &HashSet<usize>) 
         .collect()
 }
 
-/// disconnected_submodel: a submodel copy none of whose parts touches a part outside it, placed in a model that has
+/// disconnected_submodel: a submodel copy no part of which is connected to, or held by, a part outside it, placed in a model that has
 /// parts of its own to hold it (often a placement offset bug). Only the outermost such copy is reported. Returns the
 /// findings and the parts they name.
 pub(super) fn disconnected_submodels(m: &Model) -> (Vec<Raw>, HashSet<usize>) {
@@ -245,7 +252,7 @@ pub(super) fn disconnected_submodels(m: &Model) -> (Vec<Raw>, HashSet<usize>) {
                 .unwrap_or_default();
         let all = union(m, &parts);
         let message = format!(
-            "Submodel '{sub}' (copy {}){step} isn't connected to the model around it: none of its {} parts touches a \
+            "Submodel '{sub}' (copy {}){step} isn't connected to the model around it: none of its {} parts is joined to a \
              part outside it.",
             key.last().unwrap(),
             parts.len()
@@ -354,7 +361,7 @@ pub(super) fn weak_connections(m: &Model, ground: &[bool]) -> Vec<Raw> {
 const NEAR: f64 = STUD / 2.0;
 
 /// off_grid: a part connected to nothing whose connector is a little off a mate (a typo in a position): sideways off the
-/// stud grid, or up or down by part of a plate. The hint says how far to move it, in the DSL frame. Parts held some
+/// stud grid, or up or down by part of a half plate. The hint says how far to move it, in the DSL frame. Parts held some
 /// other way (figures, stickers, flexible parts) and the ground are left out.
 pub(super) fn off_grid(m: &Model, ground: &[bool]) -> Vec<Raw> {
     let mut linked = vec![false; m.placed.len()];
@@ -380,8 +387,8 @@ pub(super) fn off_grid(m: &Model, ground: &[bool]) -> Vec<Raw> {
                     continue;
                 }
                 let d = seat_move(c, &o.c);
-                // Off the grid: sideways off the stud's line, or along it by part of a plate (a whole plate's gap is
-                // floating's to report).
+                // Off the grid: sideways off the stud's line, or along it by an offset that isn't a whole number of
+                // half plates (a gap of whole half plates is floating's to report).
                 let along = d.dot(o.c.axis);
                 let across = (d - o.c.axis * along).length();
                 let plates = along.abs() / (PLATE / 2.0);

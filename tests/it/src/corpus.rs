@@ -135,10 +135,19 @@ pub struct Mutant {
 impl Mutant {
     /// True when a finding of one of the fault's rules names the part (or, for a nudge, a part stacked with it).
     pub fn caught(&self, v: &Validation) -> bool {
+        self.caught_by(v, self.fault.rules())
+    }
+
+    /// True when a finding of the rule its recall is reported under names the part: off_grid itself for a nudge.
+    pub fn caught_by_its_rule(&self, v: &Validation) -> bool {
+        self.caught_by(v, &[self.fault.rule()])
+    }
+
+    fn caught_by(&self, v: &Validation, rules: &[Rule]) -> bool {
         let named = |p: &String| p == &self.part || self.fault == Fault::Nudge && self.stacked_with.contains(p);
         v.findings
             .iter()
-            .any(|f| self.fault.rules().contains(&f.rule) && f.parts.iter().any(named))
+            .any(|f| rules.contains(&f.rule) && f.parts.iter().any(named))
     }
 }
 
@@ -544,24 +553,30 @@ pub fn recall(data: &Path, models: &[(String, Vec<Placement>)], per_fault: usize
             if !caught {
                 println!("missed {:?} in {name}: {}\n{}", m.fault, m.what, report(&v));
             }
-            recall.add(m.fault, caught);
+            recall.add(m.fault, caught, m.caught_by_its_rule(&v));
         }
     }
     recall
 }
 
-/// Caught and total faults per rule.
+/// The fewest faults an error rule's recall may rest on: a generator that stops making a fault can't pass the gate
+/// with nothing measured.
+const MIN_SAMPLES: usize = 3;
+
+/// Per rule: faults caught (by any of the fault's rules), caught by the rule itself, and made.
 #[derive(Default)]
-pub struct Recall(pub BTreeMap<Rule, (usize, usize)>);
+pub struct Recall(pub BTreeMap<Rule, (usize, usize, usize)>);
 
 impl Recall {
-    pub fn add(&mut self, fault: Fault, caught: bool) {
+    pub fn add(&mut self, fault: Fault, caught: bool, by_its_rule: bool) {
         let e = self.0.entry(fault.rule()).or_default();
         e.0 += caught as usize;
-        e.1 += 1;
+        e.1 += by_its_rule as usize;
+        e.2 += 1;
     }
 
-    /// Fails under the gates (plan section 11): 95 % overall, 90 % for each error rule.
+    /// Fails under the gates (plan section 11): 95 % overall, 90 % for each error rule, each error rule measured on
+    /// at least [`MIN_SAMPLES`] faults.
     pub fn gate(&self) {
         let (c, t) = self.overall();
         assert!(
@@ -569,20 +584,28 @@ impl Recall {
             "overall recall under 95 %:\n{}",
             self.table()
         );
-        for (rule, &(c, t)) in &self.0 {
-            if rule.severity() == emmet_core::check::Severity::Error {
-                assert!(
-                    c * 100 >= t * 90,
-                    "{} recall under 90 %:\n{}",
-                    rule.name(),
-                    self.table()
-                );
+        for rule in Rule::ALL {
+            if rule.severity() != emmet_core::check::Severity::Error {
+                continue;
             }
+            let (c, _, t) = self.0.get(&rule).copied().unwrap_or_default();
+            assert!(
+                t >= MIN_SAMPLES,
+                "{} recall rests on {t} faults:\n{}",
+                rule.name(),
+                self.table()
+            );
+            assert!(
+                c * 100 >= t * 90,
+                "{} recall under 90 %:\n{}",
+                rule.name(),
+                self.table()
+            );
         }
     }
 
     pub fn overall(&self) -> (usize, usize) {
-        self.0.values().fold((0, 0), |a, b| (a.0 + b.0, a.1 + b.1))
+        self.0.values().fold((0, 0), |a, b| (a.0 + b.0, a.1 + b.2))
     }
 
     /// A Markdown table, for the test output and the PR.
@@ -594,17 +617,20 @@ impl Recall {
                 format!("{:.1} %", 100.0 * c as f64 / t as f64)
             }
         };
-        let mut s = String::from("| Rule | Severity | Caught | Recall |\n|---|---|---|---|\n");
-        for (rule, &(c, t)) in &self.0 {
+        // "By the rule itself" counts only findings of the row's own rule: a nudge caught as a collision counts for
+        // recall, not for off_grid's own.
+        let mut s = String::from("| Rule | Severity | Caught | Recall | By the rule itself |\n|---|---|---|---|---|\n");
+        for (rule, &(c, own, t)) in &self.0 {
             s += &format!(
-                "| {} | {:?} | {c} / {t} | {} |\n",
+                "| {} | {:?} | {c} / {t} | {} | {own} / {t}, {} |\n",
                 rule.name(),
                 rule.severity(),
-                pct((c, t))
+                pct((c, t)),
+                pct((own, t))
             );
         }
         let o = self.overall();
-        s += &format!("| **overall** | | {} / {} | {} |\n", o.0, o.1, pct(o));
+        s += &format!("| **overall** | | {} / {} | {} | |\n", o.0, o.1, pct(o));
         s
     }
 }

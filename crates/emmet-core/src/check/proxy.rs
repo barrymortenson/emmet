@@ -36,17 +36,18 @@ fn anti_stud(reference: &str) -> bool {
     .any(|p| base.starts_with(p))
 }
 
-/// The part's body triangles in its frame.
-fn triangles(m: &mut Measurer, reference: &str, r: DMat3, t: DVec3, depth: usize, out: &mut Vec<[DVec3; 3]>) {
+/// The part's body triangles in its frame. False when a file it references can't be read.
+fn triangles(m: &mut Measurer, reference: &str, r: DMat3, t: DVec3, depth: usize, out: &mut Vec<[DVec3; 3]>) -> bool {
     if depth > MAX_DEPTH {
-        return;
+        return true;
     }
-    let Some(lines) = m.lines(reference) else { return };
+    let Some(lines) = m.lines(reference) else { return false };
+    let mut read = true;
     for line in lines.iter() {
         match line {
             Line::Sub { pos, matrix, file, .. } => {
                 if !is_stud(file) && !anti_stud(file) {
-                    triangles(m, file, r * *matrix, r * *pos + t, depth + 1, out);
+                    read &= triangles(m, file, r * *matrix, r * *pos + t, depth + 1, out);
                 }
             }
             Line::Tri { points, .. } => out.push(points.map(|p| r * p + t)),
@@ -58,6 +59,7 @@ fn triangles(m: &mut Measurer, reference: &str, r: DMat3, t: DVec3, depth: usize
             _ => {}
         }
     }
+    read
 }
 
 /// The y values where the vertical line through (x, z) crosses a triangle.
@@ -77,15 +79,16 @@ fn crossing(tri: &[DVec3; 3], x: f64, z: f64) -> Option<f64> {
 /// The most boxes a proxy keeps: a part with more (a large curved one) is filled again at a coarser step.
 const MAX_BOXES: usize = 2048;
 
-/// The proxy of a part file: its body's boxes. Empty when it has no closed body (a sticker, a flag, a missing file).
-pub fn build(m: &mut Measurer, reference: &str) -> Vec<ProxyBox> {
+/// The proxy of a part file: its body's boxes, empty when it has no closed body (a sticker, a flag), and whether every
+/// file it references could be read. A proxy built from part of its files is used for the run but isn't cached.
+pub fn build(m: &mut Measurer, reference: &str) -> (Vec<ProxyBox>, bool) {
     let mut tris = Vec::new();
-    triangles(m, reference, DMat3::IDENTITY, DVec3::ZERO, 0, &mut tris);
+    let complete = triangles(m, reference, DMat3::IDENTITY, DVec3::ZERO, 0, &mut tris);
     let mut step = 1.0;
     loop {
         let boxes = fill(&tris, step);
         if boxes.len() <= MAX_BOXES || step >= 64.0 {
-            return boxes;
+            return (boxes, complete);
         }
         step *= 2.0;
     }
@@ -194,10 +197,54 @@ pub fn to_blob(boxes: &[ProxyBox]) -> Vec<u8> {
     boxes.iter().flatten().flat_map(|v| v.to_le_bytes()).collect()
 }
 
-pub fn from_blob(blob: &[u8]) -> Vec<ProxyBox> {
-    blob.as_chunks::<12>()
-        .0
-        .iter()
-        .map(|c| std::array::from_fn(|k| i16::from_le_bytes([c[2 * k], c[2 * k + 1]])))
-        .collect()
+/// The boxes from the index's bytes; None for bytes that aren't whole boxes (a damaged cache entry, built again).
+pub fn from_blob(blob: &[u8]) -> Option<Vec<ProxyBox>> {
+    let (boxes, rest) = blob.as_chunks::<12>();
+    rest.is_empty().then(|| {
+        boxes
+            .iter()
+            .map(|c| std::array::from_fn(|k| i16::from_le_bytes([c[2 * k], c[2 * k + 1]])))
+            .collect()
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ldraw::geometry::LibFiles;
+
+    #[test]
+    fn boxes_round_trip_through_the_index_bytes() {
+        let boxes: Vec<ProxyBox> = vec![[-30, -24, -10, 30, 0, 10], [i16::MIN, -1, 0, 1, 2, i16::MAX]];
+        assert_eq!(from_blob(&to_blob(&boxes)), Some(boxes));
+        assert_eq!(from_blob(&[]), Some(Vec::new()));
+        assert_eq!(from_blob(&[0; 13]), None);
+    }
+
+    #[test]
+    fn a_proxy_missing_a_subfile_is_marked_incomplete() {
+        let root = std::env::temp_dir().join(format!("emmet-proxy-{}", std::process::id()));
+        std::fs::create_dir_all(root.join("parts")).unwrap();
+        // A 20 x 8 x 20 box drawn as its six faces, then a reference to a file the library lacks.
+        let quads = [
+            "4 16 -10 0 -10 10 0 -10 10 0 10 -10 0 10",
+            "4 16 -10 8 -10 -10 8 10 10 8 10 10 8 -10",
+            "4 16 -10 0 -10 -10 0 10 -10 8 10 -10 8 -10",
+            "4 16 10 0 -10 10 8 -10 10 8 10 10 0 10",
+            "4 16 -10 0 -10 -10 8 -10 10 8 -10 10 0 -10",
+            "4 16 -10 0 10 10 0 10 10 8 10 -10 8 10",
+        ];
+        std::fs::write(root.join("parts/whole.dat"), quads.join("\n")).unwrap();
+        let partial = format!("{}\n1 16 0 0 0 1 0 0 0 1 0 0 0 1 gone.dat\n", quads.join("\n"));
+        std::fs::write(root.join("parts/partial.dat"), partial).unwrap();
+        let lib = LibFiles::scan(&root).unwrap();
+        let mut m = Measurer::new(&lib);
+        let (boxes, complete) = build(&mut m, "whole.dat");
+        assert!(complete);
+        assert_eq!(boxes, vec![[-10, 0, -10, 10, 8, 10]]);
+        let (boxes, complete) = build(&mut m, "partial.dat");
+        assert!(!complete && boxes.len() == 1, "{boxes:?}");
+        assert!(!build(&mut m, "missing.dat").1);
+        std::fs::remove_dir_all(&root).ok();
+    }
 }

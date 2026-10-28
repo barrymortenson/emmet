@@ -83,18 +83,19 @@ fn scope_name(m: &Model, scope: &Scope) -> String {
     }
 }
 
-fn label(m: &Model, e: &Element) -> String {
+/// An element by name: a part's id and name, or a copy's submodel (the one at `depth`, the scope's own depth: a copy's
+/// parts may sit in deeper copies too).
+fn label(m: &Model, e: &Element, depth: usize) -> String {
     let q = &m.placed[e.parts[0]];
     if e.copy {
-        let d = q.p.submodel.len().min(q.p.copies.len()).saturating_sub(1);
-        format!("submodel '{}'", q.p.submodel.get(d).cloned().unwrap_or_default())
+        format!("submodel '{}'", q.p.submodel.get(depth).cloned().unwrap_or_default())
     } else {
         format!("{} ({})", q.p.id, name(q))
     }
 }
 
-/// step_order: each step's elements connect to elements from earlier steps of their scope (or stand on the ground in
-/// the main model). An element placed under earlier parts with no free way in is a warning (v1). Parts in `skip`
+/// step_order: each step's elements connect to elements from earlier steps of their scope (or stand on the ground). An
+/// element whose way in (from above, below, or the side) earlier parts have closed is a warning (v1). Parts in `skip`
 /// (already floating or disconnected) are left out.
 pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &HashSet<usize>) -> Vec<Raw> {
     let pairs = m.pairs();
@@ -105,8 +106,7 @@ pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &H
     for c in &m.links {
         finished.join(c.a, c.b);
     }
-    let loose =
-        options.ground.is_empty() && !(0..m.placed.len()).any(|i| m.kind(i).is_some_and(|k| k.category == "Baseplate"));
+    let loose = structure::loose(m, options);
     let mut out = Vec::new();
     for scope in scopes(m) {
         let es = &scope.elements;
@@ -219,7 +219,7 @@ fn unconnected(m: &Model, scope: &Scope, ei: usize, edges: &[(u32, usize, usize)
         .map(|&(_, a, b)| if a == ei { b } else { a })
         .filter(|&o| es[o].step > e.step)
         .min_by_key(|&o| es[o].step);
-    let what = label(m, e);
+    let what = label(m, e, scope.key.len());
     let message = format!(
         "{what} in step {}{} connects to nothing from earlier steps.",
         e.step,
@@ -228,10 +228,10 @@ fn unconnected(m: &Model, scope: &Scope, ei: usize, edges: &[(u32, usize, usize)
     let hint = match later {
         Some(o) => format!(
             "It's held only by {} from step {}: move it to step {} or later, or move {} earlier.",
-            label(m, &es[o]),
+            label(m, &es[o], scope.key.len()),
             es[o].step,
             es[o].step,
-            label(m, &es[o])
+            label(m, &es[o], scope.key.len())
         ),
         None => "Move it to a step after the parts that hold it.".into(),
     };
@@ -341,7 +341,7 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize, misplaced: &HashSet<usize>) ->
     if squeezed.is_none() && blocker.is_none() {
         return None;
     }
-    let what = label(m, e);
+    let what = label(m, e, scope.key.len());
     let from = if way.y < -0.5 {
         "above"
     } else if way.y > 0.5 {
@@ -356,7 +356,7 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize, misplaced: &HashSet<usize>) ->
                 format!(
                     "{what} goes in at step {}, after {} from step {t} closed the way in from {from}.",
                     e.step,
-                    label(m, &es[scope.of[&j]])
+                    label(m, &es[scope.of[&j]], scope.key.len())
                 ),
                 format!(
                     "Move it to a step before {t}, while there's room to put it in, or build that part as a section \
@@ -367,7 +367,7 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize, misplaced: &HashSet<usize>) ->
         None => {
             let o = squeezed.expect("squeezed or blocked");
             let t = scope.of.get(&o).map_or(0, |&x| es[x].step);
-            let other = label(m, &es[scope.of[&o]]);
+            let other = label(m, &es[scope.of[&o]], scope.key.len());
             (
                 format!(
                     "{what} goes in at step {} between earlier parts on both sides of it: {other} from step {t} is \

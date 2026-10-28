@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! What holds a part without a connector pair (plan section 11): a frame its filler, a tyre its wheel, flexible
+//! What holds a part without a connector pair (plan section 11): a frame its filler, a tire its wheel, flexible
 //! parts and stickers what they touch, a figure where it touches; and the fallback for a part with no female
 //! connector at all.
 
@@ -87,8 +87,8 @@ fn receives(body: Option<&Aabb>, inv: &DMat4, base: DVec3, dir: DVec3, len: f64)
     let Some(body) = body else { return false };
     let local = inv.transform_point3(base);
     let local_dir = inv.transform_vector3(dir).normalize_or_zero();
-    // Into the underside: the stud points up the part's own frame (−Y, so y shrinks along it), its base is at or
-    // below the part's bottom, and its tip reaches into the part.
+    // Into the underside: the stud points up the part's own frame (−Y, so y shrinks along it), its base is at most
+    // SEAT inside the part's bottom, and its tip reaches into the part.
     let bottom = body.max.y;
     if local_dir.y > -0.9 || local.y < bottom - SEAT || local.y - len > bottom - ENTER {
         return false;
@@ -122,7 +122,7 @@ fn fills(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
     pa.id != pb.id && (frame(pa) && filler(pb) && inside(wb, wa, 2.0) || frame(pb) && filler(pa) && inside(wa, wb, 2.0))
 }
 
-pub(super) fn tyre(p: &Part) -> bool {
+pub(super) fn tire(p: &Part) -> bool {
     p.category == "Tyre" || p.name.trim_start_matches('~').starts_with("Tyre")
 }
 
@@ -155,7 +155,7 @@ pub(crate) fn sticker(p: &Part) -> bool {
     p.category.starts_with("Sticker")
 }
 
-/// One part holding another without a connector pair: a frame and its filler, a tyre and the wheel inside it, a
+/// One part holding another without a connector pair: a frame and its filler, a tire and the wheel inside it, a
 /// flexible part and what it touches along its path, a sticker and the surface it's on, and a figure and what it
 /// touches (a figure is placed, not built: models pose figures by hand a millimeter off their joints, and seat or
 /// stand them a millimeter off their studs).
@@ -164,12 +164,12 @@ fn holds(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
     let contains = |outer: &Aabb, p: DVec3| {
         p.cmpge(outer.min - DVec3::splat(2.0)).all() && p.cmple(outer.max + DVec3::splat(2.0)).all()
     };
-    // A wheel: a rim, or a part with wheels on it (122c01, Plate 2 x 2 with Red Wheels), whose box holds the tyre's
+    // A wheel: a rim, or a part with wheels on it (122c01, Plate 2 x 2 with Red Wheels), whose box holds the tire's
     // middle.
-    let wheel = |p: &Part| !tyre(p) && (p.category == "Wheel" || p.name.contains("Wheel"));
+    let wheel = |p: &Part| !tire(p) && (p.category == "Wheel" || p.name.contains("Wheel"));
     fills(pa, pb, wa, wb)
-        || tyre(pa) && wheel(pb) && contains(wb, center(wa))
-        || tyre(pb) && wheel(pa) && contains(wa, center(wb))
+        || tire(pa) && wheel(pb) && contains(wb, center(wa))
+        || tire(pb) && wheel(pa) && contains(wa, center(wb))
         || (flexible(pa) || flexible(pb) || sticker(pa) || sticker(pb) || figure(pa) || figure(pb))
             && touch(wa, wb, 1.0)
 }

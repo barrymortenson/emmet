@@ -36,7 +36,7 @@ pub struct Config {
 /// `[build]`: the build settings the validator reads (plan section 14's Options tab; each is Any until set).
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct BuildConfig {
-    /// The Age build setting: "4+", "6+", or "18+" (plan section 08's step rules).
+    /// The Age build setting: "4+", "6+", "9+", "13+", or "18+" (plan section 08's step rules).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub age: Option<String>,
 }

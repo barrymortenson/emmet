@@ -1,5 +1,5 @@
 # Hinge overrides (plan section 11): parts whose LDCad snap data is off their geometry. Each names a model in
-# tests/fixtures/validator/connections/ that validates only with it.
+# tests/fixtures/validator/connections/ that validates with no errors, every use of the part connected.
 
 [[override]]
 part = "4592"

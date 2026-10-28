@@ -1,5 +1,5 @@
 # Train track's interlocking ends (plan section 11; rung 2 depends on them). The LDCad Shadow Library has no entry
-# for any of these parts. Every end sleeper has a knob on one side of its end face and a socket on the other, 20 LDU
+# for any of these subparts. Every end sleeper has a knob on one side of its end face and a socket on the other, 20 LDU
 # out from the track's center line, on the end face's line (local x = 0), at the top of the sleeper. A track turned
 # end for end puts its knob where the next track's socket is, so each joint is a knob in a socket and a socket on a
 # knob. Measured from the subparts' geometry in the 2026-09 library:
@@ -13,7 +13,11 @@
 # its socket, and the rail fingers 9 LDU past the face at z = +-50, up to 14 LDU above the sleeper), so the joint
 # covers 62 LDU around each knob and 32 LDU of height (the sleeper and the rails).
 #
-# Each override names a model in tests/fixtures/validator/connections/ that validates only with it.
+# The curve's end sleepers (s/53400s03, s/53400s04) also carry LDCad's own `traintrk` plugs, but the straight's and the
+# 9V's ends don't, so a curve meeting either needs these; two curves join by both.
+#
+# Each override names a model in tests/fixtures/validator/connections/ that validates with no errors, every use of the
+# part connected.
 
 [[override]]
 part = "s/53401s02"
