@@ -260,9 +260,16 @@ pub fn mutants(index: &Index, placements: &[Placement], per_fault: usize, rng: &
                    cands: Vec<usize>,
                    make: &dyn Fn(usize) -> Option<(Vec<Placement>, String, String)>,
                    rng: &mut Rng| {
+        // The faults few models offer (a step order, a submodel copy) take three times as many, so their recall rests
+        // on more than a handful.
+        let cap = if matches!(fault, Fault::Early | Fault::OffsetCopy) {
+            3 * per_fault
+        } else {
+            per_fault
+        };
         let mut made = 0;
         for i in rng.pick(&cands, cands.len()) {
-            if made == per_fault {
+            if made == cap {
                 break;
             }
             if let Some((placements, part, what)) = make(i) {
