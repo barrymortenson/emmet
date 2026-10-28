@@ -157,10 +157,22 @@ eval *args: build
 screenshots:
     @echo "just screenshots: not yet; session 6B adds it" && exit 1
 
-# The viewer bench (plan section 13) in the real app: first load, slider → viewer, and orbit frame time for 93,
-# 500, and 2,000 parts. Prints the table and writes tests/e2e/out/bench-<os>.md. The validator bench arrives in 3A.
-bench: e2e-build
-    EMMET_BENCH=1 pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs
+# The benches: `just bench` runs both, `just bench viewer` or `just bench validator` one. The viewer bench (plan
+# section 13) runs in the real app: first load, slider → viewer, and orbit frame time for 93, 500, and 2,000 parts,
+# written to tests/e2e/out/bench-<os>.md. The validator bench (plan section 11) validates 500- and 2,000-part models,
+# warm, in a release build, fails over its budget, and writes tests/e2e/out/bench-validator-<os>.md.
+bench *what:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    what="{{ what }}"
+    if [[ -z "$what" || "$what" == viewer ]]; then
+      just e2e-build
+      EMMET_BENCH=1 pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs
+    fi
+    if [[ -z "$what" || "$what" == validator ]]; then
+      cargo build --release --locked -p emmet-cli
+      cargo test --release --locked -p emmet-it --test validator_bench -- --ignored --nocapture
+    fi
 
 # A release build without a release (scripts/release-dry.sh): a universal .dmg on macOS (--sign: Developer ID,
 # notarized and stapled, H-05), the unsigned NSIS installer on Windows.
