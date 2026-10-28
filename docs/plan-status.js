@@ -89,7 +89,16 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-10-26 (D-43): merged without the Windows fresh-account run and Windows CI, which come back in the Windows pass; Antigravity is out of the MVP"
     },
-    "2A": { status: "review", pr: 23, branch: "bmortenson/s2a-ux-research-directions", started: "2026-10-26" },
+    "2A": {
+      status: "done", pr: 23, branch: "bmortenson/s2a-ux-research-directions", started: "2026-10-26",
+      evidence: [
+        "CI ci check green #23 (run 40618957958: mac with the full E2E suite, plan with the contrast gate; windows paused, D-43)",
+        "docs/design/{research,storyboards}.md, directions/{a,b,c}/ (36 screens and states each), review.html, brand/",
+        "scripts/contrast-check.mjs (contrast-check: ok) and tests/scripts/contrast-check.test.mjs; each #audit 0 failures",
+        "H-07: B (Canvas), as revised; docs/decisions.md"
+      ],
+      note: "The Windows cottage visual baseline is stale until the Windows pass regenerates it (D-43); 2B can raise A's Chat focus layout and C's ⌘K palette again"
+    },
     "2B": { status: "todo" },
     "3A": { status: "todo" },
     "3B": { status: "todo" },
