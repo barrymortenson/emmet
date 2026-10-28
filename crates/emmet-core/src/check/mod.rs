@@ -81,6 +81,12 @@ impl Rule {
         }
     }
 
+    /// Every rule's name, for a hint: "collision, floating, …, or alias_part".
+    pub fn list() -> String {
+        let names: Vec<&str> = Rule::ALL.iter().map(|r| r.name()).collect();
+        format!("{}, or {}", names[..names.len() - 1].join(", "), names[names.len() - 1])
+    }
+
     pub fn parse(name: &str) -> Option<Rule> {
         Rule::ALL.into_iter().find(|r| r.name() == name.trim())
     }

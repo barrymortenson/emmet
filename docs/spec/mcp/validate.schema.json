@@ -1,6 +1,6 @@
 {
   "name": "validate",
-  "description": "Check the model: collisions, floating parts, and unknown or obsolete parts. Runs the model first if build/ is\nout of date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed\nthem, and a hint.",
+  "description": "Check the model: collisions, floating parts, submodels placed off the model, build steps (order and size),\nweak spans, parts a little off the grid, and unknown or obsolete parts. Runs the model first if build/ is out\nof date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed them,\nand a hint that says what to change.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
@@ -15,7 +15,7 @@
       },
       "rules": {
         "default": null,
-        "description": "Only these rules: collision, floating, unknown_part, obsolete_part, alias_part (default: all).",
+        "description": "Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,\nweak_connection, off_grid, unknown_part, obsolete_part, alias_part.",
         "items": {
           "type": "string"
         },
@@ -29,9 +29,39 @@
   },
   "output": {
     "$defs": {
+      "Allowed": {
+        "description": "A finding the project allows (`[[check.allow]]` in emmet.toml), with its reason.",
+        "properties": {
+          "parts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "rule": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "parts",
+          "reason"
+        ],
+        "type": "object"
+      },
       "Checked": {
         "description": "What `validate` returns: the counts, and the first findings (all of them are in build/validation.json).",
         "properties": {
+          "allowed": {
+            "description": "Findings the project or the model allows (`[[check.allow]]`, `m.allow`), with their reasons.",
+            "items": {
+              "$ref": "#/$defs/Allowed"
+            },
+            "type": "array"
+          },
           "clean": {
             "description": "No errors and no warnings.",
             "type": "boolean"
@@ -44,6 +74,11 @@
             },
             "type": "object"
           },
+          "errors": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
           "findings": {
             "description": "The first 50, errors first, in source order.",
             "items": {
@@ -55,12 +90,20 @@
             "format": "uint",
             "minimum": 0,
             "type": "integer"
+          },
+          "warnings": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
           }
         },
         "required": [
           "counts_by_rule",
           "findings",
           "total",
+          "errors",
+          "warnings",
+          "allowed",
           "clean"
         ],
         "type": "object"

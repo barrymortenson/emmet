@@ -67,7 +67,8 @@ enum Command {
         /// Exit 1 when there's an error-severity finding.
         #[arg(long)]
         strict: bool,
-        /// Only these rules (repeatable): collision, floating, unknown_part, obsolete_part, alias_part.
+        /// Only these rules (repeatable): collision, floating, disconnected_submodel, step_order, step_size,
+        /// weak_connection, off_grid, unknown_part, obsolete_part, alias_part.
         #[arg(long = "rule", value_name = "RULE")]
         rules: Vec<String>,
         /// Check the model run with these values, on top of params.json (which isn't changed).
@@ -327,7 +328,7 @@ fn main() -> ExitCode {
                             Error::new(
                                 emmet_core::envelope::ErrorCode::ParamInvalid,
                                 format!("There's no rule '{r}'."),
-                                "Use collision, floating, unknown_part, obsolete_part, or alias_part.",
+                                format!("Use {}.", emmet_core::check::Rule::list()),
                             )
                         })
                     })
