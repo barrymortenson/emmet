@@ -181,20 +181,24 @@ struct Placed<'p> {
 /// A part's index row and its connectors.
 struct Info {
     part: Part,
+    /// What the part is, for rules that go by category or name: the part itself, or for a moved id (`~Moved to
+    /// 3139b`) the part it moved to.
+    kind: Part,
     body: Option<Aabb>,
     connectors: Rc<Vec<Connector>>,
 }
 
-/// Checks `placements` (the rows of build/placements.json) with the rules in `rules`, against the parts index and the
-/// library at `lib`.
-pub fn validate(
-    index: &Index,
-    lib: &LibFiles,
-    placements: &[Placement],
-    rules: &[Rule],
-    allow: &[Allow],
-    inputs_hash: Option<String>,
-) -> Result<Validation> {
+/// The placements with what the rules need: each part's row, its box in the world, its connectors in the world, the
+/// connections, and the pairs one part holds the other without a connector pair.
+struct Model<'p> {
+    placed: Vec<Placed<'p>>,
+    world: Vec<Option<Obb>>,
+    conns: Vec<graph::Placed>,
+    links: Vec<graph::Connection>,
+    held: HashSet<(usize, usize)>,
+}
+
+fn prepare<'p>(index: &Index, lib: &LibFiles, placements: &'p [Placement]) -> Result<Model<'p>> {
     let mut scanner = Scanner::new(Measurer::new(lib));
     let mut infos: HashMap<String, Option<Rc<Info>>> = HashMap::new();
     let mut placed = Vec::with_capacity(placements.len());
@@ -202,11 +206,23 @@ pub fn validate(
         let info = match infos.get(&p.part) {
             Some(i) => i.clone(),
             None => {
-                let info = index.part(&p.part)?.map(|part| {
-                    let body = part.body_box.map(Aabb::from_array);
-                    let connectors = scanner.connectors(&format!("{}.dat", part.id));
-                    Rc::new(Info { part, body, connectors })
-                });
+                let info = match index.part(&p.part)? {
+                    Some(part) => {
+                        let body = part.body_box.map(Aabb::from_array);
+                        let connectors = scanner.connectors(&format!("{}.dat", part.id));
+                        let kind = match (&part.alias_of, part.name.starts_with("~Moved to")) {
+                            (Some(to), true) => index.part(to)?.unwrap_or_else(|| part.clone()),
+                            _ => part.clone(),
+                        };
+                        Some(Rc::new(Info {
+                            part,
+                            kind,
+                            body,
+                            connectors,
+                        }))
+                    }
+                    None => None,
+                };
                 infos.insert(p.part.clone(), info.clone());
                 info
             }
@@ -217,20 +233,11 @@ pub fn validate(
             info,
         });
     }
-
-    let mut raw: Vec<Raw> = Vec::new();
-    let on = |r: Rule| rules.contains(&r);
-    if on(Rule::UnknownPart) || on(Rule::ObsoletePart) || on(Rule::AliasPart) {
-        raw.extend(part_rules(&placed, rules));
-    }
     let world: Vec<Option<Obb>> = placed
         .iter()
         .map(|q| Some(Obb::new(q.info.as_ref()?.body.as_ref()?, &q.m, 0.0)))
         .collect();
     let held = held_pairs(&placed, &world);
-    if on(Rule::Collision) {
-        raw.extend(collisions(&placed, &world, &held));
-    }
     let conns = graph::world(
         &placed
             .iter()
@@ -244,27 +251,53 @@ pub fn validate(
     );
     let mut links = graph::connections(&conns);
     links.extend(underside_links(&placed, &world, &conns));
-    if on(Rule::Floating) {
-        raw.extend(floating(&placed, &world, &links, &held));
-    }
-    Ok(finish(&placed, raw, allow, inputs_hash))
+    Ok(Model {
+        placed,
+        world,
+        conns,
+        links,
+        held,
+    })
 }
 
-/// For debugging the connection model: each named placement's connectors in the world, and every connection that
-/// touches it.
+/// Checks `placements` (the rows of build/placements.json) with the rules in `rules`, against the parts index and the
+/// library at `lib`.
+pub fn validate(
+    index: &Index,
+    lib: &LibFiles,
+    placements: &[Placement],
+    rules: &[Rule],
+    allow: &[Allow],
+    inputs_hash: Option<String>,
+) -> Result<Validation> {
+    let model = prepare(index, lib, placements)?;
+    let Model {
+        placed,
+        world,
+        links,
+        held,
+        ..
+    } = &model;
+    let mut raw: Vec<Raw> = Vec::new();
+    let on = |r: Rule| rules.contains(&r);
+    if on(Rule::UnknownPart) || on(Rule::ObsoletePart) || on(Rule::AliasPart) {
+        raw.extend(part_rules(placed, rules));
+    }
+    if on(Rule::Collision) {
+        raw.extend(collisions(placed, world, held));
+    }
+    if on(Rule::Floating) {
+        raw.extend(floating(placed, world, links, held));
+    }
+    Ok(finish(placed, raw, allow, inputs_hash))
+}
+
+/// For debugging the connection model: each named placement's connectors in the world, the near misses, every
+/// connection that touches it, and what holds it without a connector pair.
 #[doc(hidden)]
 pub fn explain(index: &Index, lib: &LibFiles, placements: &[Placement], ids: &[String]) -> Result<String> {
-    let mut scanner = Scanner::new(Measurer::new(lib));
-    let mut parts = Vec::new();
-    for p in placements {
-        let cs = match index.part(&p.part)? {
-            Some(part) => scanner.connectors(&format!("{}.dat", part.id)),
-            None => Default::default(),
-        };
-        parts.push((DMat4::from_cols_array(&p.matrix), cs));
-    }
-    let world = graph::world(&parts);
-    let links = graph::connections(&world);
+    let model = prepare(index, lib, placements)?;
+    let (world, links) = (&model.conns, &model.links);
     let mut out = String::new();
     for (i, p) in placements.iter().enumerate() {
         if !ids.iter().any(|id| id == &p.id) {
@@ -307,6 +340,14 @@ pub fn explain(index: &Index, lib: &LibFiles, placements: &[Placement], ids: &[S
                 l.kind,
                 l.at.to_array()
             );
+        }
+        for &(a, b) in model.held.iter().filter(|(a, b)| *a == i || *b == i) {
+            let other = if a == i { b } else { a };
+            out += &format!("  held with {} ({})\n", placements[other].id, placements[other].part);
+        }
+        if let Some(w) = model.world[i] {
+            let b = w.aabb();
+            out += &format!("  box {:.1?}..{:.1?}\n", b.min.to_array(), b.max.to_array());
         }
     }
     Ok(out)
@@ -510,7 +551,11 @@ pub(crate) fn flexible(p: &Part) -> bool {
 
 /// A minifigure's or figure's parts (and what they hold: headwear, accessories).
 pub(crate) fn figure(p: &Part) -> bool {
-    p.category.starts_with("Minifig") || p.category.starts_with("Figure")
+    // By name too: an obsolete figure part's category is "Obsolete" (`~Minifig Hips (Obsolete)`).
+    let name = p.name.trim_start_matches(['~', '_']);
+    ["Minifig", "Figure"]
+        .iter()
+        .any(|w| p.category.starts_with(w) || name.starts_with(w))
 }
 
 pub(crate) fn sticker(p: &Part) -> bool {
@@ -518,9 +563,9 @@ pub(crate) fn sticker(p: &Part) -> bool {
 }
 
 /// One part holding another without a connector pair: a frame and its filler, a tyre and the wheel inside it, a
-/// flexible part and what it touches along its path, a sticker and the surface it's on, and a figure's parts that
-/// touch (models pose figures by hand, a millimeter off their joints; between a figure and the model, connectors
-/// still decide).
+/// flexible part and what it touches along its path, a sticker and the surface it's on, and a figure and what it
+/// touches (a figure is placed, not built: models pose figures by hand a millimeter off their joints, and seat or
+/// stand them a millimeter off their studs).
 fn holds(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
     let center = |b: &Aabb| (b.min + b.max) / 2.0;
     let contains = |outer: &Aabb, p: DVec3| {
@@ -532,7 +577,7 @@ fn holds(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
     fills(pa, pb, wa, wb)
         || tyre(pa) && wheel(pb) && contains(wb, center(wa))
         || tyre(pb) && wheel(pa) && contains(wa, center(wb))
-        || (flexible(pa) || flexible(pb) || sticker(pa) || sticker(pb) || figure(pa) && figure(pb))
+        || (flexible(pa) || flexible(pb) || sticker(pa) || sticker(pb) || figure(pa) || figure(pb))
             && touch(wa, wb, 1.0)
 }
 
@@ -556,8 +601,8 @@ fn held_pairs(placed: &[Placed], world: &[Option<Obb>]) -> HashSet<(usize, usize
                 break;
             }
             let (pi, pj) = (
-                &placed[i].info.as_ref().unwrap().part,
-                &placed[j].info.as_ref().unwrap().part,
+                &placed[i].info.as_ref().unwrap().kind,
+                &placed[j].info.as_ref().unwrap().kind,
             );
             if touch(&bi, &bj, 2.0) && holds(pi, pj, &bi, &bj) {
                 out.insert((i.min(j), i.max(j)));
