@@ -279,9 +279,13 @@ pub fn bricklink_xml(bom: &Bom) -> Result<(String, Vec<Warning>)> {
     let mut out = format!("<!-- {} -->\n", parts_data::CREDIT);
     if !missing.is_empty() {
         out.push_str(&format!(
-            "<!-- {} line{} left out, with no BrickLink id; Emmet's warnings name them. -->\n",
-            missing.len(),
-            if missing.len() == 1 { "" } else { "s" }
+            "<!-- {} left out, with no BrickLink id; Emmet's warnings name {}. -->\n",
+            if missing.len() == 1 {
+                "1 line".to_string()
+            } else {
+                format!("{} lines", missing.len())
+            },
+            if missing.len() == 1 { "it" } else { "them" }
         ));
     }
     out.push_str("<INVENTORY>\n");

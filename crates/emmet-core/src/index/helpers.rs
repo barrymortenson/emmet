@@ -105,13 +105,13 @@ impl Index {
                         .next()
                         .is_some_and(|ch| ch.is_ascii_digit())
             })
-            .filter_map(|(id, name, x, y, z)| {
+            .map(|(id, name, x, y, z)| {
                 let (x, y) = (x.round() as u32, y.round() as u32);
                 let (w, l) = if kind == "slope" { (x, y) } else { (x.min(y), x.max(y)) };
                 let off = w.abs_diff(a) * 4 + l.abs_diff(b) + height(*z).abs_diff(c) * 2;
                 let name = plain(name);
                 let short = name.split(" with ").next().unwrap_or(&name).to_string();
-                Some((off, format!("{short} ({id})")))
+                (off, format!("{short} ({id})"))
             })
             .collect();
         near.sort();

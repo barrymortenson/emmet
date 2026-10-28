@@ -27,7 +27,7 @@ expression: placements
         1
       ],
       "part": "3811",
-      "src": "model.py:265",
+      "src": "model.py:266",
       "step": 1,
       "submodel": []
     },
@@ -53,7 +53,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 2,
       "submodel": []
     },
@@ -79,7 +79,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 2,
       "submodel": []
     },
@@ -105,7 +105,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 2,
       "submodel": []
     },
@@ -131,7 +131,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 2,
       "submodel": []
     },
@@ -157,7 +157,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 2,
       "submodel": []
     },
@@ -183,7 +183,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 2,
       "submodel": []
     },
@@ -209,7 +209,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 3,
       "submodel": []
     },
@@ -235,7 +235,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 3,
       "submodel": []
     },
@@ -261,7 +261,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 3,
       "submodel": []
     },
@@ -287,7 +287,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 4,
       "submodel": []
     },
@@ -313,7 +313,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 4,
       "submodel": []
     },
@@ -339,7 +339,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 4,
       "submodel": []
     },
@@ -371,7 +371,7 @@ expression: placements
         1
       ],
       "part": "60596",
-      "src": "model.py:80",
+      "src": "model.py:81",
       "step": 1,
       "submodel": [
         "door.ldr"
@@ -405,7 +405,7 @@ expression: placements
         1
       ],
       "part": "60623",
-      "src": "model.py:68",
+      "src": "model.py:69",
       "step": 1,
       "submodel": [
         "door.ldr"
@@ -433,7 +433,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 5,
       "submodel": []
     },
@@ -459,7 +459,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 5,
       "submodel": []
     },
@@ -485,7 +485,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 5,
       "submodel": []
     },
@@ -511,7 +511,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 5,
       "submodel": []
     },
@@ -537,7 +537,7 @@ expression: placements
         1
       ],
       "part": "3068b",
-      "src": "model.py:271",
+      "src": "model.py:272",
       "step": 6,
       "submodel": []
     },
@@ -563,7 +563,7 @@ expression: placements
         1
       ],
       "part": "3068b",
-      "src": "model.py:271",
+      "src": "model.py:272",
       "step": 6,
       "submodel": []
     },
@@ -589,7 +589,7 @@ expression: placements
         1
       ],
       "part": "3062b",
-      "src": "model.py:278",
+      "src": "model.py:279",
       "step": 6,
       "submodel": []
     },
@@ -615,7 +615,7 @@ expression: placements
         1
       ],
       "part": "6141",
-      "src": "model.py:279",
+      "src": "model.py:280",
       "step": 6,
       "submodel": []
     },
@@ -641,7 +641,7 @@ expression: placements
         1
       ],
       "part": "3062b",
-      "src": "model.py:278",
+      "src": "model.py:279",
       "step": 6,
       "submodel": []
     },
@@ -667,7 +667,7 @@ expression: placements
         1
       ],
       "part": "6141",
-      "src": "model.py:279",
+      "src": "model.py:280",
       "step": 6,
       "submodel": []
     },
@@ -693,7 +693,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 7,
       "submodel": []
     },
@@ -719,7 +719,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 7,
       "submodel": []
     },
@@ -745,7 +745,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 7,
       "submodel": []
     },
@@ -771,7 +771,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 7,
       "submodel": []
     },
@@ -797,7 +797,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 7,
       "submodel": []
     },
@@ -823,7 +823,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 8,
       "submodel": []
     },
@@ -849,7 +849,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 8,
       "submodel": []
     },
@@ -875,7 +875,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 8,
       "submodel": []
     },
@@ -901,7 +901,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 8,
       "submodel": []
     },
@@ -927,7 +927,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 9,
       "submodel": []
     },
@@ -953,7 +953,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 9,
       "submodel": []
     },
@@ -979,7 +979,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 9,
       "submodel": []
     },
@@ -1005,7 +1005,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 9,
       "submodel": []
     },
@@ -1031,7 +1031,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 10,
       "submodel": []
     },
@@ -1057,7 +1057,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 10,
       "submodel": []
     },
@@ -1083,7 +1083,7 @@ expression: placements
         1
       ],
       "part": "3003",
-      "src": "model.py:290",
+      "src": "model.py:291",
       "step": 11,
       "submodel": []
     },
@@ -1109,7 +1109,7 @@ expression: placements
         1
       ],
       "part": "2412b",
-      "src": "model.py:292",
+      "src": "model.py:293",
       "step": 11,
       "submodel": []
     },
@@ -1135,7 +1135,7 @@ expression: placements
         1
       ],
       "part": "2412b",
-      "src": "model.py:292",
+      "src": "model.py:293",
       "step": 11,
       "submodel": []
     },
@@ -1161,7 +1161,7 @@ expression: placements
         1
       ],
       "part": "3062b",
-      "src": "model.py:299",
+      "src": "model.py:300",
       "step": 12,
       "submodel": []
     },
@@ -1187,7 +1187,7 @@ expression: placements
         1
       ],
       "part": "4032a",
-      "src": "model.py:300",
+      "src": "model.py:301",
       "step": 12,
       "submodel": []
     },
@@ -1213,7 +1213,7 @@ expression: placements
         1
       ],
       "part": "3062b",
-      "src": "model.py:302",
+      "src": "model.py:303",
       "step": 12,
       "submodel": []
     },
@@ -1239,7 +1239,7 @@ expression: placements
         1
       ],
       "part": "3001",
-      "src": "model.py:308",
+      "src": "model.py:309",
       "step": 13,
       "submodel": []
     },
@@ -1265,7 +1265,7 @@ expression: placements
         1
       ],
       "part": "3068b",
-      "src": "model.py:309",
+      "src": "model.py:310",
       "step": 13,
       "submodel": []
     },
@@ -1291,7 +1291,7 @@ expression: placements
         1
       ],
       "part": "3068b",
-      "src": "model.py:310",
+      "src": "model.py:311",
       "step": 13,
       "submodel": []
     },
@@ -1317,7 +1317,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 14,
       "submodel": []
     },
@@ -1349,7 +1349,7 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:87",
+      "src": "model.py:88",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1383,7 +1383,7 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:68",
+      "src": "model.py:69",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1411,7 +1411,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 14,
       "submodel": []
     },
@@ -1437,7 +1437,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 14,
       "submodel": []
     },
@@ -1463,7 +1463,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 14,
       "submodel": []
     },
@@ -1489,7 +1489,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 14,
       "submodel": []
     },
@@ -1521,7 +1521,7 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:87",
+      "src": "model.py:88",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1555,7 +1555,7 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:68",
+      "src": "model.py:69",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1583,7 +1583,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 15,
       "submodel": []
     },
@@ -1609,7 +1609,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 15,
       "submodel": []
     },
@@ -1641,7 +1641,7 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:87",
+      "src": "model.py:88",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1675,7 +1675,7 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:68",
+      "src": "model.py:69",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1703,7 +1703,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 16,
       "submodel": []
     },
@@ -1729,7 +1729,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 16,
       "submodel": []
     },
@@ -1761,7 +1761,7 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:87",
+      "src": "model.py:88",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1795,7 +1795,7 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:68",
+      "src": "model.py:69",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1829,7 +1829,7 @@ expression: placements
         1
       ],
       "part": "60592",
-      "src": "model.py:87",
+      "src": "model.py:88",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1863,7 +1863,7 @@ expression: placements
         1
       ],
       "part": "60601",
-      "src": "model.py:68",
+      "src": "model.py:69",
       "step": 1,
       "submodel": [
         "window.ldr"
@@ -1891,7 +1891,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 17,
       "submodel": []
     },
@@ -1917,7 +1917,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 17,
       "submodel": []
     },
@@ -1943,7 +1943,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 18,
       "submodel": []
     },
@@ -1969,7 +1969,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 18,
       "submodel": []
     },
@@ -1995,7 +1995,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 18,
       "submodel": []
     },
@@ -2021,7 +2021,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 18,
       "submodel": []
     },
@@ -2047,7 +2047,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 18,
       "submodel": []
     },
@@ -2073,7 +2073,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 19,
       "submodel": []
     },
@@ -2099,7 +2099,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 19,
       "submodel": []
     },
@@ -2125,7 +2125,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 19,
       "submodel": []
     },
@@ -2151,7 +2151,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 19,
       "submodel": []
     },
@@ -2177,7 +2177,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 20,
       "submodel": []
     },
@@ -2203,7 +2203,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 20,
       "submodel": []
     },
@@ -2229,7 +2229,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 20,
       "submodel": []
     },
@@ -2255,7 +2255,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 20,
       "submodel": []
     },
@@ -2281,7 +2281,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 21,
       "submodel": []
     },
@@ -2307,7 +2307,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 21,
       "submodel": []
     },
@@ -2333,7 +2333,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 21,
       "submodel": []
     },
@@ -2359,7 +2359,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 21,
       "submodel": []
     },
@@ -2385,7 +2385,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 21,
       "submodel": []
     },
@@ -2411,7 +2411,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 21,
       "submodel": []
     },
@@ -2437,7 +2437,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 22,
       "submodel": []
     },
@@ -2463,7 +2463,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 22,
       "submodel": []
     },
@@ -2489,7 +2489,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 22,
       "submodel": []
     },
@@ -2515,7 +2515,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 23,
       "submodel": []
     },
@@ -2541,7 +2541,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 23,
       "submodel": []
     },
@@ -2567,7 +2567,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 23,
       "submodel": []
     },
@@ -2593,7 +2593,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 24,
       "submodel": []
     },
@@ -2619,7 +2619,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 24,
       "submodel": []
     },
@@ -2645,7 +2645,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 24,
       "submodel": []
     },
@@ -2671,7 +2671,7 @@ expression: placements
         1
       ],
       "part": "3005",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 24,
       "submodel": []
     },
@@ -2697,7 +2697,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 25,
       "submodel": []
     },
@@ -2723,7 +2723,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 25,
       "submodel": []
     },
@@ -2749,7 +2749,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 25,
       "submodel": []
     },
@@ -2775,7 +2775,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 25,
       "submodel": []
     },
@@ -2801,7 +2801,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 25,
       "submodel": []
     },
@@ -2827,7 +2827,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 26,
       "submodel": []
     },
@@ -2853,7 +2853,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 26,
       "submodel": []
     },
@@ -2879,7 +2879,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 26,
       "submodel": []
     },
@@ -2905,7 +2905,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 26,
       "submodel": []
     },
@@ -2931,7 +2931,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 27,
       "submodel": []
     },
@@ -2957,7 +2957,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 27,
       "submodel": []
     },
@@ -2983,7 +2983,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 27,
       "submodel": []
     },
@@ -3009,7 +3009,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 27,
       "submodel": []
     },
@@ -3035,7 +3035,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 28,
       "submodel": []
     },
@@ -3061,7 +3061,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:255",
+      "src": "model.py:256",
       "step": 28,
       "submodel": []
     },
@@ -3087,7 +3087,7 @@ expression: placements
         1
       ],
       "part": "3832",
-      "src": "model.py:329",
+      "src": "model.py:330",
       "step": 29,
       "submodel": []
     },
@@ -3113,7 +3113,7 @@ expression: placements
         1
       ],
       "part": "3832",
-      "src": "model.py:329",
+      "src": "model.py:330",
       "step": 29,
       "submodel": []
     },
@@ -3139,7 +3139,7 @@ expression: placements
         1
       ],
       "part": "3832",
-      "src": "model.py:329",
+      "src": "model.py:330",
       "step": 29,
       "submodel": []
     },
@@ -3165,7 +3165,7 @@ expression: placements
         1
       ],
       "part": "3832",
-      "src": "model.py:329",
+      "src": "model.py:330",
       "step": 29,
       "submodel": []
     },
@@ -3191,7 +3191,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 30,
       "submodel": []
     },
@@ -3217,7 +3217,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 30,
       "submodel": []
     },
@@ -3243,7 +3243,7 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 30,
       "submodel": []
     },
@@ -3269,7 +3269,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 30,
       "submodel": []
     },
@@ -3295,7 +3295,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 30,
       "submodel": []
     },
@@ -3321,7 +3321,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 30,
       "submodel": []
     },
@@ -3347,7 +3347,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 31,
       "submodel": []
     },
@@ -3373,7 +3373,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 31,
       "submodel": []
     },
@@ -3399,7 +3399,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 31,
       "submodel": []
     },
@@ -3425,7 +3425,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 32,
       "submodel": []
     },
@@ -3451,7 +3451,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 32,
       "submodel": []
     },
@@ -3477,7 +3477,7 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 32,
       "submodel": []
     },
@@ -3503,7 +3503,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 32,
       "submodel": []
     },
@@ -3529,7 +3529,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 32,
       "submodel": []
     },
@@ -3555,7 +3555,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 32,
       "submodel": []
     },
@@ -3581,7 +3581,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 33,
       "submodel": []
     },
@@ -3607,7 +3607,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 33,
       "submodel": []
     },
@@ -3633,7 +3633,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 33,
       "submodel": []
     },
@@ -3659,7 +3659,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 34,
       "submodel": []
     },
@@ -3685,7 +3685,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 34,
       "submodel": []
     },
@@ -3711,7 +3711,7 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 34,
       "submodel": []
     },
@@ -3737,7 +3737,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 34,
       "submodel": []
     },
@@ -3763,7 +3763,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 34,
       "submodel": []
     },
@@ -3789,7 +3789,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 34,
       "submodel": []
     },
@@ -3815,7 +3815,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 35,
       "submodel": []
     },
@@ -3841,7 +3841,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 35,
       "submodel": []
     },
@@ -3867,7 +3867,7 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 35,
       "submodel": []
     },
@@ -3893,7 +3893,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 35,
       "submodel": []
     },
@@ -3919,7 +3919,7 @@ expression: placements
         1
       ],
       "part": "3010",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 35,
       "submodel": []
     },
@@ -3945,7 +3945,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:57",
+      "src": "model.py:58",
       "step": 35,
       "submodel": []
     },
@@ -3971,7 +3971,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 36,
       "submodel": []
     },
@@ -3997,7 +3997,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 36,
       "submodel": []
     },
@@ -4023,7 +4023,7 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 36,
       "submodel": []
     },
@@ -4049,7 +4049,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 37,
       "submodel": []
     },
@@ -4075,7 +4075,7 @@ expression: placements
         1
       ],
       "part": "3037",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 37,
       "submodel": []
     },
@@ -4101,7 +4101,7 @@ expression: placements
         1
       ],
       "part": "3039",
-      "src": "model.py:359",
+      "src": "model.py:360",
       "step": 37,
       "submodel": []
     },
@@ -4123,11 +4123,11 @@ expression: placements
         0,
         320,
         -252,
-        -260,
+        -240,
         1
       ],
-      "part": "3041",
-      "src": "model.py:374",
+      "part": "3043",
+      "src": "model.py:375",
       "step": 38,
       "submodel": []
     },
@@ -4149,11 +4149,11 @@ expression: placements
         0,
         320,
         -252,
-        -340,
+        -280,
         1
       ],
-      "part": "3041",
-      "src": "model.py:374",
+      "part": "3043",
+      "src": "model.py:375",
       "step": 38,
       "submodel": []
     },
@@ -4175,11 +4175,63 @@ expression: placements
         0,
         320,
         -252,
+        -320,
+        1
+      ],
+      "part": "3043",
+      "src": "model.py:375",
+      "step": 38,
+      "submodel": []
+    },
+    {
+      "color": 320,
+      "id": "roof-ridge/4",
+      "matrix": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        320,
+        -252,
+        -360,
+        1
+      ],
+      "part": "3043",
+      "src": "model.py:375",
+      "step": 38,
+      "submodel": []
+    },
+    {
+      "color": 320,
+      "id": "roof-ridge/5",
+      "matrix": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        320,
+        -252,
         -400,
         1
       ],
       "part": "3043",
-      "src": "model.py:374",
+      "src": "model.py:375",
       "step": 38,
       "submodel": []
     },
@@ -4205,7 +4257,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 39,
       "submodel": []
     },
@@ -4231,7 +4283,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 39,
       "submodel": []
     },
@@ -4257,7 +4309,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 39,
       "submodel": []
     },
@@ -4283,7 +4335,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 39,
       "submodel": []
     },
@@ -4309,7 +4361,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 39,
       "submodel": []
     },
@@ -4335,7 +4387,7 @@ expression: placements
         1
       ],
       "part": "3004",
-      "src": "model.py:168",
+      "src": "model.py:169",
       "step": 39,
       "submodel": []
     }

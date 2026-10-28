@@ -78,8 +78,10 @@ fn builds_clean(name: &str) {
     assert_eq!(code, 0, "{v}");
     let t = &v["data"]["technique"];
     assert!(!t["doc"].as_str().unwrap().is_empty(), "{name} has no doc");
+    // Whitespace aside, so a call the formatter wraps still counts.
+    let snippet: String = t["snippet"].as_str().unwrap().split_whitespace().collect();
     assert!(
-        t["snippet"].as_str().unwrap().contains(&format!("m.use(\"{name}\"")),
+        snippet.contains(&format!("m.use(\"{name}\"")),
         "{name}'s example doesn't use it through m.use: {t:#}"
     );
     assert!(!t["parts"].as_array().unwrap().is_empty(), "{name} lists no PARTS");
