@@ -46,7 +46,16 @@ macro_rules! technique_files {
 
 /// The technique library (data/techniques/, plan section 08), installed as `emmet_dsl.techniques`, so `m.use(name)`
 /// imports it. `tests/it/tests/python.rs` checks this list against the folder.
-pub const TECHNIQUES: &[(&str, &str)] = technique_files!["gable_roof"];
+pub const TECHNIQUES: &[(&str, &str)] = technique_files![
+    "bench",
+    "canopy",
+    "gable_roof",
+    "lamp_post",
+    "platform_edge",
+    "track_curve",
+    "track_straight_run",
+    "track_switch"
+];
 
 /// `__version__` from the embedded `__init__.py`.
 pub fn dsl_version() -> &'static str {

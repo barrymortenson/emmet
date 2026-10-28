@@ -612,6 +612,22 @@ def in_steps(m: Model, title: str, actions) -> None:
                 add()
 
 
+def row_actions(m: Model, kind, color, at, length: int, axis: str = "x", width: int = 1, sizes=None) -> list:
+    """For techniques and templates: Model.row as in_steps actions, one a piece, so a long run splits across steps."""
+    file, line = caller()
+    rel = m._context.rel(file) if m._context else file
+    family = _family(kind, "row", rel, line)
+    _axis(axis, rel, line)
+    actions = []
+    x, y, z = at
+    for n, part in family.split(length, width, sizes, None, rel, line):
+        actions.append(
+            (1, lambda part=part, x=x, y=y, n=n: m.add(part, color, at=(x, y, z), rot=_turn(axis, n, width)))
+        )
+        x, y = (x + n, y) if axis == "x" else (x, y + n)
+    return actions
+
+
 def suggest(name: str, choices) -> list[str]:
     return difflib.get_close_matches(name, list(choices), n=3, cutoff=0.5)
 

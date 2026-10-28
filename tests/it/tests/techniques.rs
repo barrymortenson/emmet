@@ -34,7 +34,16 @@ macro_rules! techniques {
     };
 }
 
-techniques!(gable_roof);
+techniques!(
+    bench,
+    canopy,
+    gable_roof,
+    lamp_post,
+    platform_edge,
+    track_curve,
+    track_straight_run,
+    track_switch,
+);
 
 fn builds_clean(name: &str) {
     let dir = temp_dir(&format!("technique-{name}")).join(name);
