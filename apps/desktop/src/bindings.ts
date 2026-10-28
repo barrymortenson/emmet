@@ -20,6 +20,13 @@ export const commands = {
 	/**  Checks the values against the model's schema and writes params.json; the watcher then runs the model. */
 	setParams: (values: { [key in string]: Value }) => typedError<ParamsView, Problem>(__TAURI_INVOKE("set_params", { values })),
 	listColors: () => typedError<ColorView[], Problem>(__TAURI_INVOKE("list_colors")),
+	/**  Settings → Data: the installed parts data pack's date and the BOM's color naming. */
+	dataSettings: () => typedError<DataSettings, Problem>(__TAURI_INVOKE("data_settings")),
+	/**
+	 *  Saves the BOM's color naming (ldraw, rebrickable, or bricklink) in the data dir's settings.json, which `emmet bom`
+	 *  and the MCP `bom` tool read too, and rebuilds the open project's parts list.
+	 */
+	setColorNames: (names: string) => typedError<null, Problem>(__TAURI_INVOKE("set_color_names", { names })),
 	/**  Runs the open project's model again. */
 	rebuild: () => typedError<null, Problem>(__TAURI_INVOKE("rebuild")),
 	/**  The window's answer to a [`BusRender`]. */
@@ -210,14 +217,21 @@ export type Bom = {
 	pieces: number,
 	/**  Different parts, in any color. */
 	parts: number,
+	/**  Whether the parts data pack was there for availability (the Parts list's Rebrickable credit). */
+	parts_data: boolean,
+	/**  Why there's no parts list for a build that ran (a damaged parts data pack, say), or null. */
+	problem: string | null,
 };
 
 export type BomLine = {
 	part: string,
 	name: string,
 	color: number,
+	/**  In the user's color naming (Settings → Data). */
 	color_name: string,
 	qty: number,
+	/**  available, color_unavailable, part_unavailable, or unknown (never read as unavailable). */
+	availability: string,
 };
 
 export type BusHighlight = {
@@ -294,6 +308,14 @@ export type Credits = {
 	used: number | null,
 	limit: number | null,
 	currency: string | null,
+};
+
+/**  Settings → Data: the parts data pack and the BOM's color naming. */
+export type DataSettings = {
+	/**  The installed pack's date, or null when there's none. */
+	parts_data: string | null,
+	/**  ldraw, rebrickable, or bricklink. */
+	color_names: string,
 };
 
 export type Decision = "allow_once" | "allow_session" | "deny";

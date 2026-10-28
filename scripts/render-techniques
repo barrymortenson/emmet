@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Renders each technique's example (data/techniques/<name>.py) to data/techniques/<name>.png, 512 px, iso view, with
+# the dev data dir's full LDraw library and Emmet's own render mode. Run after changing a technique:
+#
+#   scripts/render-techniques               # every technique
+#   scripts/render-techniques gable_roof    # just these
+#
+# Needs a debug build (cargo build -p emmet-cli, and the desktop app for render mode: just build-app).
+set -euo pipefail
+root=$(cd "$(dirname "$0")/.." && pwd)
+emmet="$root/target/debug/emmet"
+names=("$@")
+if [[ ${#names[@]} == 0 ]]; then
+  for f in "$root"/data/techniques/*.py; do names+=("$(basename "$f" .py)"); done
+fi
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+for name in "${names[@]}"; do
+  dir="$work/$name"
+  "$emmet" new "$dir" --template empty >/dev/null
+  cat >"$dir/model.py" <<PY
+from emmet_dsl import Model, model
+from emmet_dsl.techniques import $name as technique
+
+
+@model
+def example():
+    """The technique on its own."""
+    m = Model()
+    technique.example(m)
+    return m
+PY
+  "$emmet" trust --project "$dir" >/dev/null
+  "$emmet" run --project "$dir" >/dev/null
+  "$emmet" render --project "$dir" --view iso --size 512 --out "$root/data/techniques/$name.png"
+done

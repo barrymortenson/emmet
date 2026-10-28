@@ -135,6 +135,8 @@ async fn lists_exactly_the_tools_built_so_far() {
             "run_model",
             "search_parts",
             "set_params",
+            "steps",
+            "technique",
             "validate"
         ]
     );
@@ -224,8 +226,8 @@ async fn run_model() {
     assert_matches_committed(&client, "run_model");
     let c = client.call("run_model", json!({})).await;
     assert!(!c.is_error, "{}", c.text);
-    assert_eq!(c.envelope["data"]["parts"], 163);
-    assert!(c.text.starts_with("Built 163 parts in 39 steps ("), "{}", c.text);
+    assert_eq!(c.envelope["data"]["parts"], 165);
+    assert!(c.text.starts_with("Built 165 parts in 39 steps ("), "{}", c.text);
     assert_eq!(c.envelope["meta"]["generation"], 1);
     // The same output the CLI writes.
     assert!(dir.join("build/model.mpd").is_file());
@@ -438,6 +440,43 @@ async fn bom_tool() {
     assert_eq!(data["lines"][0]["qty"], 2);
     assert_eq!(data["lines"][0]["color_name"], "Red");
     insta::assert_snapshot!(c.text);
+}
+
+#[tokio::test]
+async fn steps_tool() {
+    let dir = project("submodel-x4");
+    let client = connect(Some(&dir)).await;
+    assert_matches_committed(&client, "steps");
+    let c = client.call("steps", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    let data = &c.envelope["data"];
+    assert_eq!(data["steps"][1]["submodels"][0]["count"], 4);
+    assert_eq!(data["submodels"][0]["count"], 4);
+    insta::assert_snapshot!(c.text);
+}
+
+#[tokio::test]
+async fn technique_tool() {
+    let client = connect(None).await;
+    assert_matches_committed(&client, "technique");
+    let c = client.call("technique", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(
+        c.envelope["data"]["techniques"].as_array().unwrap().len(),
+        emmet_core::python::TECHNIQUES.len()
+    );
+    let c = client.call("technique", json!({ "name": "track_curve" })).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["technique"]["parts"], json!(["53400"]));
+    assert!(c.text.contains("m.use(\"track_curve\""), "{}", c.text);
+    let c = client.call("technique", json!({ "name": "gable_rof" })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+    assert!(
+        c.envelope["error"]["hint"].as_str().unwrap().contains("'gable_roof'"),
+        "{}",
+        c.envelope
+    );
 }
 
 /// With `--session` (the app's chat), a tool result starts with what the user just said (D-33): `user_notes` in the

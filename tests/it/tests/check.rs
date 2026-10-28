@@ -6,7 +6,10 @@
 
 use std::path::Path;
 
-use emmet_it::{emmet, emmet_in, envelope, project, redact, shared_data, temp_dir};
+use emmet_it::{
+    emmet, emmet_in, emmet_in_data, envelope, project, project_for, redact, shared_data, shared_data_with_parts,
+    temp_dir,
+};
 use serde_json::{Value, json};
 
 fn check(dir: &Path, args: &[&str]) -> (Value, i32) {
@@ -265,7 +268,11 @@ fn bom_lists_part_color_quantity() {
     let csv = String::from_utf8(out.stdout).unwrap();
     assert_eq!(
         csv.lines().take(2).collect::<Vec<_>>(),
-        ["part,name,color,color_name,qty", "3001,Brick 2 x 4,4,Red,2"]
+        [
+            "part,name,color,color_name,qty,rebrickable_id,rebrickable_name,availability,sets,years",
+            "3001,Brick 2 x 4,4,Red,2,,,unknown,,"
+        ],
+        "no pack: no credit line, and availability unknown"
     );
     let (v, _) = envelope(
         &emmet()
@@ -278,4 +285,20 @@ fn bom_lists_part_color_quantity() {
             .unwrap(),
     );
     assert_eq!(v["error"]["code"], "PROJECT_NOT_FOUND");
+}
+
+/// part_unavailable and color_unavailable read the parts data pack: with it, broken-color-unavailable's two Violet
+/// bricks are one finding naming both, with the closest colors that brick was made in; without it, availability is
+/// unknown and there's no finding (unknown is never unavailable).
+#[test]
+fn broken_color_unavailable_needs_the_pack() {
+    let data = shared_data_with_parts();
+    let dir = project_for("broken-color-unavailable", data);
+    let (v, code) = emmet_in_data(data, &dir, &["check"]);
+    assert_eq!(code, 0, "{v}");
+    insta::assert_json_snapshot!("broken-color-unavailable", snapshot(&dir, v));
+
+    let dir = project("broken-color-unavailable");
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["findings"], json!([]), "{v}");
 }

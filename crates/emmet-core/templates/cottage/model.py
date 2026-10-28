@@ -5,7 +5,7 @@ from typing import Annotated
 from emmet_dsl import Color, Model, Range, Step, model
 
 # The baseplate is half a plate thick, so everything on it starts at z = 0.5.
-GROUND = 0.5
+BASEPLATE = 0.5
 
 BRICKS = {4: "3010", 3: "3622", 2: "3004", 1: "3005"}  # Brick 1 x n
 PLATES = {16: "4282", 12: "2445", 10: "3832", 8: "3034", 6: "3795", 4: "3020"}
@@ -15,7 +15,8 @@ PLATES |= {
     1: "3023b",
 }  # Plate 2 x n, and a Plate 1 x 2 for an odd width
 SLOPES = {4: "3037", 3: "3038", 2: "3039", 1: "3040b"}  # Slope 45 2 x n
-RIDGES = {4: "3041", 2: "3043", 1: "3044c"}  # Slope 45 2 x n double
+# Slope 45 2 x n double: the 2 x 2 comes in the most colors (Dark Red included), so it goes first.
+RIDGES = {2: "3043", 1: "3044c"}
 
 
 def lengths(n, sizes):
@@ -74,6 +75,20 @@ def fill(m, part, color, frame, size, lift, rot, id):
     )
 
 
+def door_in_frame(m):
+    """The door sub-assembly: a door frame with its door."""
+    with m.step("Frame and door"):
+        frame = m.add("60596", "White", at=(0, 0, 0), id="frame")
+        fill(m, "60623", "Reddish Brown", frame, (0.3, 3.55), 0.875, 0, "leaf")
+
+
+def window_with_glass(m):
+    """The window sub-assembly: a window frame with its glass."""
+    with m.step("Frame and glass"):
+        frame = m.add("60592", "White", at=(0, 0, 0), id="frame")
+        fill(m, "60601", "Trans-Clear", frame, (0.2, 1.65), 0.875, 0, "glass")
+
+
 def runs(cells, axis):
     """Groups cells into unbroken runs along the axis: [(first cell, length), ...]."""
     out = []
@@ -98,6 +113,7 @@ def cottage(
     roof: bool = True,
     weathering: Annotated[int, Range(0, 30)] = 0,
     seed: Annotated[int, Range(1, 99)] = 1,
+    baseplate: bool = True,
 ):
     """A small cottage on a green 32 x 32 baseplate.
     width: how many studs wide the house is
@@ -109,8 +125,10 @@ def cottage(
     roof: put the roof on (off shows the room inside)
     weathering: how much old brick shows through the walls, in percent
     seed: which arrangement of the old bricks (Shuffle picks another)
+    baseplate: stand the house on a green 32 x 32 baseplate (off: on the table)
     """
     m = Model()
+    ground = BASEPLATE if baseplate else 0  # the height everything stands on
     rng = random.Random(seed)
     # The house's front-left and back-right corners, centered on the baseplate.
     x0, y0 = (32 - width) // 2, (32 - depth) // 2
@@ -133,14 +151,14 @@ def cottage(
     ]
     frames += [(f"front/{i + 1}", (fx, y0), 3) for i, fx in enumerate(fronts)]
 
-    top = GROUND + 3 * wall_rows
+    top = ground + 3 * wall_rows
     courses = (depth - 4) // 2 + 1
     ridge_top = top + 1 + 3 * (courses + 1) if roof else top + 3
     # The chimney behind the stove: a stack of bricks from the baseplate to above the ridge, which goes up with the
     # walls a brick a row and gets its top after the roof.
     stack = []
     if chimney:
-        z = GROUND
+        z = ground
         while z < ridge_top + 3:
             stack.append(z)
             z += 3
@@ -156,21 +174,21 @@ def cottage(
                     id=f"chimney/{i + 1}",
                 )
 
-    # The door in its frame and a window with its glass, each placed together in the wall.
-    def door_in_frame(z):
-        frame = m.add("60596", "White", at=(door_x, y0, z), rot=3, id="door/frame")
-        fill(m, "60623", "Reddish Brown", frame, (0.3, 3.55), 0.875, 3, "door")
+    # The door in its frame and each window with its glass are sub-assemblies: built apart, once, then put in the
+    # wall ("Window × 5" in the steps).
+    door_unit = m.submodel("Door", door_in_frame)
+    window_unit = m.submodel("Window", window_with_glass)
 
-    def window(name, at, turn, z):
-        frame = m.add("60592", "White", at=(*at, z), rot=turn, id=f"window/{name}")
-        fill(
-            m, "60601", "Trans-Clear", frame, (0.2, 1.65), 0.875, turn, f"glass/{name}"
-        )
+    def put_door(z):
+        m.place(door_unit, at=(door_x, y0, z), rot=3, id="door")
+
+    def put_window(name, at, turn, z):
+        m.place(window_unit, at=(*at, z), rot=turn, id=f"window/{name}")
 
     def walls(row):
         """One row of the walls: the back, then the two sides, then the front, a step each (or more, at most STEP
         parts a step), so each step's bricks are in view."""
-        z = GROUND + 3 * row
+        z = ground + 3 * row
         # Corners alternate between the front and back walls and the side walls, so the joints overlap row to row.
         if row % 2 == 0:
             spans = [("front", (x0, y0), width, "x"), ("back", (x0, y1), width, "x")]
@@ -219,14 +237,14 @@ def cottage(
                     )
                 ]
             if row == 0 and wall == "front":
-                actions += [(2, lambda: door_in_frame(z))]
+                actions += [(1, lambda: put_door(z))]
             if row == 2:
                 for name, at, turn in frames:
                     if name.split("/")[0] == wall:
                         actions += [
                             (
-                                2,
-                                lambda name=name, at=at, turn=turn: window(
+                                1,
+                                lambda name=name, at=at, turn=turn: put_window(
                                     name, at, turn, z
                                 ),
                             )
@@ -243,8 +261,9 @@ def cottage(
             in_steps(m, f"Walls, row {row + 1}: {title}", actions)
 
     # Built the way an instruction book builds it: a few parts a step, from the baseplate up.
-    with m.step("Baseplate"):
-        m.add("3811", "Green", at=(0, 0, 0), id="base")
+    if baseplate:
+        with m.step("Baseplate"):
+            m.add("3811", "Green", at=(0, 0, 0), id="base")
 
     walls(0)
     # Outside, while there's room to reach: a stone path from the door, with a flower on each side.
@@ -253,15 +272,15 @@ def cottage(
             m.add(
                 "3068b",
                 "Light Bluish Gray",
-                at=(door_x + 1, y0 - 2 - 2 * k, GROUND),
+                at=(door_x + 1, y0 - 2 - 2 * k, ground),
                 id=f"path/{k + 1}",
             )
         for side, x in (("left", door_x), ("right", door_x + 3)):
-            m.add("3062b", "Green", at=(x, y0 - 2, GROUND), id=f"flower/{side}/stem")
+            m.add("3062b", "Green", at=(x, y0 - 2, ground), id=f"flower/{side}/stem")
             m.add(
                 "6141",
                 "Red" if side == "left" else "Yellow",
-                at=(x, y0 - 2, GROUND + 3),
+                at=(x, y0 - 2, ground + 3),
                 id=f"flower/{side}",
             )
 
@@ -269,32 +288,37 @@ def cottage(
     # The room, furnished while the walls are two bricks high: a stove in front of the chimney at the back right, a
     # table at the back left with stools when there's room, and a bed along the left wall when the house is deep enough.
     with m.step("Inside: stove"):
-        m.add("3003", "Dark Bluish Gray", at=(x1 - 2, y1 - 2, GROUND), id="stove")
+        m.add("3003", "Dark Bluish Gray", at=(x1 - 2, y1 - 2, ground), id="stove")
         for i in range(2):
             m.add(
                 "2412b",
                 "Black",
-                at=(x1 - 2 + i, y1 - 2, GROUND + 3),
+                at=(x1 - 2 + i, y1 - 2, ground + 3),
                 id=f"stove/top/{i + 1}",
             )
     with m.step("Inside: table and stools"):
-        m.add("3062b", "Reddish Brown", at=(x0 + 1, y1 - 1, GROUND), id="table/leg")
-        m.add("4032a", "Reddish Brown", at=(x0 + 1, y1 - 2, GROUND + 3), id="table/top")
+        m.add("3062b", "Reddish Brown", at=(x0 + 1, y1 - 1, ground), id="table/leg")
+        m.add("4032a", "Reddish Brown", at=(x0 + 1, y1 - 2, ground + 3), id="table/top")
         if width >= 8:
-            m.add("3062b", "Tan", at=(x0 + 3, y1 - 1, GROUND), id="stool/1")
+            m.add("3062b", "Tan", at=(x0 + 3, y1 - 1, ground), id="stool/1")
         bed = depth >= 8
         if y1 - 3 > (y0 + 4 if bed else y0):  # in front of the table, clear of the bed
-            m.add("3062b", "Tan", at=(x0 + 1, y1 - 3, GROUND), id="stool/2")
+            m.add("3062b", "Tan", at=(x0 + 1, y1 - 3, ground), id="stool/2")
     if bed:
         with m.step("Inside: bed"):
-            m.add("3001", "White", at=(x0 + 1, y0 + 1, GROUND), id="bed")
-            m.add("3068b", "White", at=(x0 + 1, y0 + 1, GROUND + 3), id="bed/pillow")
+            m.add("3001", "White", at=(x0 + 1, y0 + 1, ground), id="bed")
+            m.add("3068b", "White", at=(x0 + 1, y0 + 1, ground + 3), id="bed/pillow")
             m.add(
-                "3068b", "Dark Blue", at=(x0 + 1, y0 + 3, GROUND + 3), id="bed/blanket"
+                "3068b", "Dark Blue", at=(x0 + 1, y0 + 3, ground + 3), id="bed/blanket"
             )
 
     for row in range(2, wall_rows):
         walls(row)
+
+    # Without the ceiling, a plate across the top of the door frame ties it to the walls either side.
+    if not roof:
+        with m.step("Lintel over the door"):
+            m.add("3666", wall_color, at=(door_x - 1, y0, top), rot=1, id="lintel")
 
     # Off, the roof and ceiling are left out, so the room inside shows.
     if roof:

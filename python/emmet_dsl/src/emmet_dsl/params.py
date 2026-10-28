@@ -263,3 +263,20 @@ def _check_default(p: Param, file: str) -> None:
             file,
             p.line,
         )
+
+
+def check_produced(p: Param, value, code: int, ctx, file: str) -> None:
+    """A Color param takes only colors parts were made in, when the parts data pack says which (plan section 08)."""
+    if code not in ctx.unmade:
+        return
+    names = [c["name"] for c in ctx.colors.values() if c.get("produced") is True]
+    close = difflib.get_close_matches(ctx.colors[code]["name"], names, n=3, cutoff=0.4)
+    maybe = f"The closest that were: {', '.join(close)}. " if close else ""
+    which = "default" if value == p.default else "value"
+    raise EmmetError(
+        "PARAM_INVALID",
+        f"{p.name}'s {which} {value!r} is a color no parts were made in.",
+        f"{maybe}emmet colors lists the colors parts come in.",
+        file,
+        p.line,
+    )

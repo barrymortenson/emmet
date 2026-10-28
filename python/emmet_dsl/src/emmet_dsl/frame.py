@@ -4,10 +4,12 @@
 The DSL is Z-up: x runs right and y runs back, both in studs; z counts plates. LDraw is −Y-up in LDU (1 stud = 20,
 1 plate = 8). A DSL point (x, y, z) is the LDraw point (20·y, −8·z, −20·x), so a 2 × 4 brick, whose long side is
 LDraw's X, covers x 0–2 and y 0–4 at rot=0. The map is a proper rotation plus scale, so rotations stay rotations.
-`rot=k` turns the part k quarter turns counterclockwise, seen from above.
+`rot=k` turns the part k quarter turns counterclockwise, seen from above; `Rot(x=…, y=…, z=…)` turns it by any angles.
 """
 
 from __future__ import annotations
+
+import math
 
 STUD = 20
 PLATE = 8
@@ -40,25 +42,59 @@ def box_in_dsl(body: list[float]) -> tuple[tuple[float, float, float], tuple[flo
     return ((-z1 / STUD, x0 / STUD, -y1 / PLATE), (-z0 / STUD, x1 / STUD, -y0 / PLATE))
 
 
-def rotated_box(lo, hi, r: Mat3):
-    """The axis-aligned box around box (lo, hi) after rotation r about the origin."""
-    corners = [(x, y, z) for x in (lo[0], hi[0]) for y in (lo[1], hi[1]) for z in (lo[2], hi[2])]
-    turned = [tuple(sum(r[i][k] * c[k] for k in range(3)) for i in range(3)) for c in corners]
-    return (
-        tuple(min(c[i] for c in turned) for i in range(3)),
-        tuple(max(c[i] for c in turned) for i in range(3)),
-    )
+def box_in_ldraw(lo, hi) -> list[float]:
+    """The inverse of `box_in_dsl`: a DSL box as [min X, min Y, min Z, max X, max Y, max Z] in LDU."""
+    return [STUD * lo[1], -PLATE * hi[2], -STUD * hi[0], STUD * hi[1], -PLATE * lo[2], -STUD * lo[0]]
 
 
-def place(body: list[float], at: tuple[float, float, float], rot: int):
+def to_ldraw_point(p) -> tuple[float, float, float]:
+    """A DSL point in LDU, LDraw's frame."""
+    return (STUD * p[1], -PLATE * p[2], -STUD * p[0])
+
+
+def transform_box(r: Mat3, pos, body: list[float]) -> list[float]:
+    """The axis-aligned LDU box around `body` turned by r and moved by pos (both in LDraw's frame)."""
+    corners = [(x, y, z) for x in (body[0], body[3]) for y in (body[1], body[4]) for z in (body[2], body[5])]
+    turned = [tuple(sum(r[i][k] * c[k] for k in range(3)) + pos[i] for i in range(3)) for c in corners]
+    return [min(c[i] for c in turned) for i in range(3)] + [max(c[i] for c in turned) for i in range(3)]
+
+
+def compose(outer_r: Mat3, outer_pos, r: Mat3, pos):
+    """The transform `outer` ∘ (r, pos): a part placed by (r, pos) inside a submodel placed by outer."""
+    moved = tuple(sum(outer_r[i][k] * pos[k] for k in range(3)) + outer_pos[i] for i in range(3))
+    return _mul(outer_r, r), moved
+
+
+def rotation(x: float = 0, y: float = 0, z: float = 0) -> Mat3:
+    """Turns of x, y, then z degrees about the DSL axes, counterclockwise looking down each axis."""
+
+    def turn(deg, axis):
+        c, s = _snap(math.cos(math.radians(deg))), _snap(math.sin(math.radians(deg)))
+        if axis == 0:
+            return ((1, 0, 0), (0, c, -s), (0, s, c))
+        if axis == 1:
+            return ((c, 0, s), (0, 1, 0), (-s, 0, c))
+        return ((c, -s, 0), (s, c, 0), (0, 0, 1))
+
+    return _mul(turn(z, 2), _mul(turn(y, 1), turn(x, 0)))
+
+
+def _snap(v: float) -> float:
+    """cos(90°) is 6e-17, not 0: values within float error of 0 or ±1 snap to them, so quarter turns stay exact."""
+    for target in (0.0, 1.0, -1.0):
+        if abs(v - target) < 1e-12:
+            return target
+    return v
+
+
+def place(body: list[float], at: tuple[float, float, float], r_dsl: Mat3):
     """Footprint placement: the part's origin in LDU and its rotation in LDraw axes, such that the minimum corner of
     its rotated body box lands on `at`, and the DSL box it covers."""
-    r = quarter_turns(rot)
-    lo, hi = rotated_box(*box_in_dsl(body), r)
+    r = to_ldraw_rotation(r_dsl)
+    lo, hi = box_in_dsl(transform_box(r, (0, 0, 0), body))
     origin = tuple(at[i] - lo[i] for i in range(3))
-    pos = (STUD * origin[1], -PLATE * origin[2], -STUD * origin[0])
     covered = (tuple(at), tuple(at[i] + hi[i] - lo[i] for i in range(3)))
-    return pos, to_ldraw_rotation(r), covered
+    return to_ldraw_point(origin), r, covered
 
 
 def num(v: float) -> str:

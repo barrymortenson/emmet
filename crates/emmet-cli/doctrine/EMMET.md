@@ -43,11 +43,29 @@ validated once: about 30 tool calls. Search for what you'll need in a few calls 
 edit, and render only when the picture would tell you something the numbers don't. Offer more checks or details in
 your reply instead of running them.
 
+## Build with the library
+
+- Call `technique` before you build something common: a roof (gable_roof, hip_roof, hinge_roof), a window or a door
+  in a wall, stairs, a fence, a tree, a bench, a lamp post, a platform edge, a canopy, track (track_straight_run,
+  track_curve, track_switch), a road, an arch, a tiled floor, studs on the side (snot_panel), a half-stud offset
+  (jumper_offset). `m.use(name, …)` applies one, with its own steps; its example validates clean in the library's tests, and
+  you validate your use of it like anything else.
+- Let the helpers do the counting: `m.wall` for walls with openings and interlocking corners, `m.row` and `m.fill`
+  for runs and floors of the longest pieces, `m.stack`, `m.grid`, `m.repeat`, and `m.mirror`. `Brick(2, 4)`,
+  `Plate(1, 6)`, `Tile(2, 2)`, and `Slope(45, 2, 1)` name plain parts by size.
+- A unit that appears more than once (a window, a lamp post, a bench, a tower) is a submodel: define it once with
+  `m.submodel(name, fn)`, then `m.place` each copy. A change to it reaches every copy, and the steps build it once,
+  "× 4".
+
 ## Real parts for real things
 
 A door is a door part (a door frame, with a door in it); a window is a window part; a roof is slopes. Never stand in
 for one with plain bricks in its color: the parts list has to be what the model shows. If you can't find the part,
 search again with other words before you settle.
+
+Real colors too: `validate` warns with `color_unavailable` when a part was never made in its color, and
+`part_unavailable` when it was never made at all. Change the color (the hint names the closest ones it was made in)
+or the part; "availability unknown" is not a problem.
 
 ## Sized for the figure, not to the ratio
 
@@ -83,8 +101,9 @@ do. The cottage template (`emmet new`) shows all of it.
   the end.
 - When you add or change a feature, put its parts in the steps where a builder would add them, and reorder the steps
   when the old order no longer works. Never tack a step onto the end.
-- Keep a unit that's built apart and then attached (a door in its frame, a window with its glass) together in one
-  step.
+- A unit built apart and then attached (a door in its frame, a window with its glass, a tree) is a sub-assembly:
+  build it as a submodel, with its own steps, and place it in the step where it goes on. The cottage template's door
+  and windows show how.
 
 ## How to talk
 

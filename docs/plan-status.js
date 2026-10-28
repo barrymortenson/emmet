@@ -119,7 +119,16 @@ window.EMMET_STATUS = {
       ],
       note: "Open nightly gaps are #25 to #29; Allow.rule and [build] age as enums and copies consistency are left for 3B; floating recall by the rule itself is 88.3 % nightly"
     },
-    "3B": { status: "todo" },
+    "3B": {
+      status: "done", pr: 32, branch: "bmortenson/s3b-dsl-steps-bom-data", started: "2026-10-28",
+      evidence: [
+        "CI ci check green #32 (run 40767714403: mac with the full E2E suite and the bench, plan; windows and nsis paused, D-43)",
+        "tests/it/tests/{dsl,bom,techniques,ladder,parts_data}.rs; python/emmet_dsl/tests/test_write_default.py",
+        "BrickLink verified all 29 items and Rebrickable imported 29 lines, 154 pieces: docs/spec/sessions/3B/",
+        "data/ladder/rung2_reference.py: 188 lines, 9 params, no findings; 20 techniques in data/techniques/"
+      ],
+      note: "The macOS E2E app hung intermittently on CI in three runs, cause unknown; holds.rs's filler() matches \"Shutter\" in 60594 (validator follow-up); the LPub3D export hasn't been opened in LPub3D"
+    },
     "3C": { status: "todo" },
     "4A": { status: "todo" },
     "4B": { status: "todo" },

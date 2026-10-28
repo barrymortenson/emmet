@@ -62,6 +62,8 @@ pub(crate) struct Request<'a> {
     pub params: &'a BTreeMap<String, Value>,
     pub params_source: &'a str,
     pub manifest: Value,
+    /// More keys for the mode (write_default's param, value, and kind).
+    pub extra: Value,
 }
 
 /// The DSL's reply line.
@@ -86,9 +88,18 @@ struct RunData {
     used: Vec<String>,
 }
 
+/// A part (or a part helper, `Brick(2, 4)`) a pass lacked.
 #[derive(Debug, Deserialize)]
 struct Need {
-    part: String,
+    #[serde(default)]
+    part: Option<String>,
+    /// The helper's key ("brick 2x4"), with its kind and dims.
+    #[serde(default)]
+    helper: Option<String>,
+    #[serde(default)]
+    kind: String,
+    #[serde(default)]
+    dims: Vec<u32>,
     file: String,
     line: u32,
 }
@@ -134,32 +145,34 @@ fn run_inner(
         "params.json and --params"
     };
     params.extend(overrides.clone());
-    let hash = project.inputs_hash(overrides, &library.release)?;
+    let parts_data = crate::parts_data::version(data)?;
+    let hash = project.inputs_hash(overrides, &library.release, parts_data.as_deref())?;
     meta.inputs_hash = Some(hash.clone());
     let generation = project.next_generation()?;
     meta.generation = Some(generation);
     let build = project.build_dir()?;
-    write_colors(&index, &build)?;
+    write_colors(data, &index, &build)?;
 
     let geometry_path = build.join("part-geometry.json");
-    let mut geometry = read_geometry(&geometry_path);
-    refresh_geometry(&index, &mut geometry)?;
+    let (mut geometry, mut helpers) = read_geometry(&geometry_path);
+    refresh_geometry(&index, &mut geometry, &mut helpers)?;
     let manifest = json!({
         "inputs_hash": hash,
         "emmet": crate::version(),
         "library": library.release,
-        "parts_data": null,
+        "parts_data": parts_data,
         "generation": generation,
     });
     // Each pass that meets parts it has no geometry for reports them all; a pass can only add parts, so this ends
     // once every part the model uses is known. The cap is a backstop against a reply that never settles.
     for _pass in 0..MAX_PASSES {
-        write_geometry(&geometry_path, &geometry)?;
+        write_geometry(&geometry_path, &geometry, &helpers)?;
         let req = Request {
             mode: "run",
             params: &params,
             params_source: source,
             manifest: manifest.clone(),
+            extra: Value::Null,
         };
         let reply = call(&python, project, &req, cancel)?;
         if reply.ok {
@@ -167,7 +180,7 @@ fn run_inner(
                 .map_err(|e| Error::internal(format!("emmet_dsl's run reply doesn't match what emmet expects: {e}")))?;
             if data.used.len() != geometry.len() || data.used.iter().any(|u| !geometry.contains_key(u)) {
                 geometry.retain(|k, _| data.used.contains(k));
-                write_geometry(&geometry_path, &geometry)?;
+                write_geometry(&geometry_path, &geometry, &helpers)?;
             }
             if data.parts > MAX_PARTS {
                 return Err(too_large(None, None));
@@ -189,7 +202,7 @@ fn run_inner(
                 "emmet_dsl replied without a result, an error, or missing parts.",
             ));
         }
-        let before = geometry.len();
+        let before = geometry.len() + helpers.len();
         for need in &reply.need {
             let at = |mut e: Error| {
                 let d = e.details.get_or_insert_with(Default::default);
@@ -198,7 +211,24 @@ fn run_inner(
                 e.hint = format!("{} Fix {} line {} and run again.", e.hint, need.file, need.line);
                 with_excerpt(project, e)
             };
-            match index.part(&need.part)? {
+            let id = match (&need.part, &need.helper) {
+                (Some(id), _) => id.clone(),
+                // A helper the library lacks goes back as null with the sizes it has; the DSL says so (or, for a
+                // run of pieces, does without that size).
+                (None, Some(key)) => {
+                    let found = index.resolve_helper(&need.kind, &need.dims)?;
+                    helpers.insert(key.clone(), json!({ "id": found.id, "near": found.near }));
+                    match found.id {
+                        Some(id) => id,
+                        None => continue,
+                    }
+                }
+                (None, None) => return Err(Error::internal("emmet_dsl asked for nothing in a need.")),
+            };
+            if geometry.contains_key(&id) {
+                continue;
+            }
+            match index.part(&id)? {
                 Some(part) => match part.body_box {
                     Some(body) => {
                         geometry.insert(part.id.clone(), json!({ "name": part.name, "body": body }));
@@ -216,10 +246,10 @@ fn run_inner(
                         )));
                     }
                 },
-                None => return Err(at(crate::ops::unknown_part(&index, &need.part)?)),
+                None => return Err(at(crate::ops::unknown_part(&index, &id)?)),
             }
         }
-        if geometry.len() == before {
+        if geometry.len() + helpers.len() == before {
             return Err(Error::internal(
                 "emmet_dsl asked again for parts emmet had already sent.",
             ));
@@ -237,7 +267,7 @@ pub fn schema(data: &DataDir, project: &Project, overrides: &BTreeMap<String, Va
     let index = Index::ensure(data)?;
     let python = crate::python::ensure(data)?;
     let build = project.build_dir()?;
-    write_colors(&index, &build)?;
+    write_colors(data, &index, &build)?;
     let mut params = project.params()?;
     let source = if overrides.is_empty() {
         "params.json"
@@ -250,6 +280,7 @@ pub fn schema(data: &DataDir, project: &Project, overrides: &BTreeMap<String, Va
         params: &params,
         params_source: source,
         manifest: Value::Null,
+        extra: Value::Null,
     };
     let reply = call(&python, project, &req, &AtomicBool::new(false))?;
     match (reply.ok, reply.data, reply.error) {
@@ -261,8 +292,28 @@ pub fn schema(data: &DataDir, project: &Project, overrides: &BTreeMap<String, Va
     }
 }
 
-fn write_colors(index: &Index, build: &Path) -> Result<()> {
-    let colors = index.colors()?;
+/// Rewrites one parameter's default in model.py to `value` (`mode: write_default`), without running the model.
+pub fn write_default(data: &DataDir, project: &Project, param: &str, value: &Value, kind: &str) -> Result<()> {
+    project.require_trusted(data)?;
+    let python = crate::python::ensure(data)?;
+    let req = Request {
+        mode: "write_default",
+        params: &BTreeMap::new(),
+        params_source: "",
+        manifest: Value::Null,
+        extra: json!({ "param": param, "value": value, "kind": kind }),
+    };
+    let reply = call(&python, project, &req, &AtomicBool::new(false))?;
+    match (reply.ok, reply.error) {
+        (true, _) => Ok(()),
+        (_, Some(e)) => Err(with_excerpt(project, e)),
+        _ => Err(Error::internal("emmet_dsl replied to write_default without a result.")),
+    }
+}
+
+fn write_colors(data: &DataDir, index: &Index, build: &Path) -> Result<()> {
+    let mut colors = index.colors()?;
+    crate::parts_data::annotate_colors(crate::parts_data::PartsData::open(data)?.as_ref(), &mut colors)?;
     let text = serde_json::to_string_pretty(&json!({ "colors": colors })).expect("json") + "\n";
     let path = build.join("colors.json");
     if std::fs::read_to_string(&path).ok().as_deref() != Some(text.as_str()) {
@@ -271,16 +322,28 @@ fn write_colors(index: &Index, build: &Path) -> Result<()> {
     Ok(())
 }
 
-fn read_geometry(path: &Path) -> BTreeMap<String, Value> {
-    std::fs::read_to_string(path)
+/// part-geometry.json: the body boxes by part id, and the part helpers resolved so far ("brick 2x4" → 3001).
+fn read_geometry(path: &Path) -> (BTreeMap<String, Value>, BTreeMap<String, Value>) {
+    let file = std::fs::read_to_string(path)
         .ok()
         .and_then(|t| serde_json::from_str::<Value>(&t).ok())
-        .and_then(|v| serde_json::from_value(v["parts"].clone()).ok())
-        .unwrap_or_default()
+        .unwrap_or_default();
+    let get = |key: &str| serde_json::from_value(file[key].clone()).unwrap_or_default();
+    (get("parts"), get("helpers"))
 }
 
-/// Rereads every listed part from the index, dropping ids it no longer has, so a stale file can't feed old boxes.
-fn refresh_geometry(index: &Index, geometry: &mut BTreeMap<String, Value>) -> Result<()> {
+/// Rereads every listed part from the index, dropping ids it no longer has, so a stale file can't feed old boxes; and
+/// resolves the helpers again, since the library may have changed.
+fn refresh_geometry(
+    index: &Index,
+    geometry: &mut BTreeMap<String, Value>,
+    helpers: &mut BTreeMap<String, Value>,
+) -> Result<()> {
+    for (key, value) in helpers.iter_mut() {
+        let (kind, dims) = helper_key(key);
+        let found = index.resolve_helper(&kind, &dims)?;
+        *value = json!({ "id": found.id, "near": found.near });
+    }
     let ids: Vec<String> = geometry.keys().cloned().collect();
     geometry.clear();
     for id in ids {
@@ -294,8 +357,25 @@ fn refresh_geometry(index: &Index, geometry: &mut BTreeMap<String, Value>) -> Re
     Ok(())
 }
 
-fn write_geometry(path: &Path, geometry: &BTreeMap<String, Value>) -> Result<()> {
-    let text = serde_json::to_string_pretty(&json!({ "parts": geometry })).expect("json") + "\n";
+/// "brick 1x2x5" → ("brick", [1, 2, 5]); "slope 2x1 45" → ("slope", [2, 1, 45]); "plate 2x4" → ("plate", [2, 4, 1]).
+fn helper_key(key: &str) -> (String, Vec<u32>) {
+    let mut words = key.split_whitespace();
+    let kind = words.next().unwrap_or("").to_string();
+    let mut dims: Vec<u32> = words
+        .next()
+        .unwrap_or("")
+        .split('x')
+        .filter_map(|n| n.parse().ok())
+        .collect();
+    dims.extend(words.filter_map(|n| n.parse::<u32>().ok()));
+    if dims.len() == 2 {
+        dims.push(1);
+    }
+    (kind, dims)
+}
+
+fn write_geometry(path: &Path, geometry: &BTreeMap<String, Value>, helpers: &BTreeMap<String, Value>) -> Result<()> {
+    let text = serde_json::to_string_pretty(&json!({ "parts": geometry, "helpers": helpers })).expect("json") + "\n";
     if std::fs::read_to_string(path).ok().as_deref() != Some(text.as_str()) {
         write_atomic(path, text.as_bytes())?;
     }
@@ -337,7 +417,7 @@ fn with_excerpt(project: &Project, mut e: Error) -> Error {
 /// Runs the DSL once: request on stdin, reply on stdout, stderr to build/run.log.
 fn call(python: &Path, project: &Project, req: &Request, cancel: &AtomicBool) -> Result<Reply> {
     let timeout = project.config.run.timeout.max(0.1);
-    let request = json!({
+    let mut request = json!({
         "mode": req.mode,
         "entry": "model.py",
         "params": req.params,
@@ -346,8 +426,12 @@ fn call(python: &Path, project: &Project, req: &Request, cancel: &AtomicBool) ->
         "colors": "build/colors.json",
         "out": "build",
         "timeout": timeout,
+        "step_target": project.config.build.step_target(),
         "manifest": req.manifest,
     });
+    if let (Some(all), Some(more)) = (request.as_object_mut(), req.extra.as_object()) {
+        all.extend(more.clone());
+    }
     let mut cmd = Command::new(python);
     cmd.args(["-I", "-B", "-X", "utf8", "-m", "emmet_dsl.run"])
         .current_dir(&project.root)

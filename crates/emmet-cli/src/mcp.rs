@@ -58,6 +58,13 @@ pub struct RunArgs {
 pub struct NoArgs {}
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct TechniqueArgs {
+    /// A technique's name, like "gable_roof"; leave it out for the list.
+    #[serde(default)]
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct SetParamsArgs {
     /// Parameter values to keep in params.json. A value equal to its default is dropped from the file.
     pub values: BTreeMap<String, Value>,
@@ -65,10 +72,18 @@ pub struct SetParamsArgs {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ColorsArgs {
-    /// A part id: checks the part exists. Every color is returned until the parts data pack (3B) knows which colors
-    /// each part came in.
+    /// A part id: only the colors that part was made in. Every color is returned when the parts data pack doesn't
+    /// know the part.
     #[serde(default)]
     pub part: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct BomArgs {
+    /// Color names as LDraw, Rebrickable, or BrickLink spell them: ldraw, rebrickable, or bricklink (default: the
+    /// user's setting).
+    #[serde(default)]
+    pub color_names: Option<emmet_core::bom::ColorNames>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -97,7 +112,7 @@ pub struct HighlightArgs {
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ValidateArgs {
     /// Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,
-    /// weak_connection, off_grid, unknown_part, obsolete_part, alias_part.
+    /// weak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part.
     #[serde(default)]
     pub rules: Option<Vec<String>>,
     /// Parameter values to check, on top of params.json, which isn't changed: runs the model with them first. Use it
@@ -285,6 +300,12 @@ impl EmmetMcp {
             if let Some(a) = &p.part.alias_of {
                 s.push_str(&format!(". Use {a} instead"));
             }
+            if let Some(c) = &p.produced_colors {
+                s.push_str(&format!(". Made in {} colors", c.len()));
+            }
+            if let Some(a) = p.alternates.as_ref().filter(|a| !a.is_empty()) {
+                s.push_str(&format!(". Alternates: {}", a.join(", ")));
+            }
             s
         })
     }
@@ -395,7 +416,7 @@ impl EmmetMcp {
     }
 
     /// Check the model: collisions, floating parts, submodels placed off the model, build steps (order and size),
-    /// weak spans, parts a little off the grid, and unknown or obsolete parts. Runs the model first if build/ is out
+    /// weak spans, parts a little off the grid, parts or colors never made, and unknown or obsolete parts. Runs the model first if build/ is out
     /// of date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed them,
     /// and a hint that says what to change.
     #[tool(output_schema = schema_for_output::<Envelope<Checked>>())]
@@ -446,29 +467,25 @@ impl EmmetMcp {
         result(started, out, meta, root, validate_text)
     }
 
-    /// The parts list: part × color × quantity, with totals. Runs the model first if build/ is out of date.
+    /// The parts list: part × color × quantity, with totals, Rebrickable ids, and whether each part was ever made in
+    /// its color. Runs the model first if build/ is out of date.
     #[tool(output_schema = schema_for_output::<Envelope<emmet_core::bom::Bom>>())]
-    async fn bom(&self, Parameters(_): Parameters<NoArgs>) -> CallToolResult {
+    async fn bom(&self, Parameters(args): Parameters<BomArgs>) -> CallToolResult {
         let started = Instant::now();
         let (data, me) = (self.data.clone(), self.clone());
-        let (out, root) = blocking(move || with_project(&me, |p| ops::bom(&data, p)), |e| (Err(e), None)).await;
-        result(started, out, RunMeta::default(), root, |b| {
-            let top: Vec<String> = b
-                .lines
-                .iter()
-                .take(8)
-                .map(|l| format!("{} × {} {}", l.qty, l.color_name, l.name))
-                .collect();
-            let more = if b.lines.len() > top.len() { ", …" } else { "" };
-            format!(
-                "{} pieces: {} parts in {} part × color lines. Most used: {}{more}. Availability arrives with the parts \
-                 data pack.",
-                b.totals.pieces,
-                b.totals.parts,
-                b.totals.lines,
-                top.join(", ")
-            )
-        })
+        let (out, root) = blocking(
+            move || {
+                with_project(&me, |p| {
+                    let names = args
+                        .color_names
+                        .unwrap_or_else(|| emmet_core::bom::ColorNames::preferred(&data));
+                    ops::bom(&data, p, names)
+                })
+            },
+            |e| (Err(e), None),
+        )
+        .await;
+        result(started, out, RunMeta::default(), root, bom_text)
     }
 
     /// Highlight parts in the open Emmet app's viewer, by Emmet id or by a finding id from validate. Says so when the
@@ -522,7 +539,48 @@ impl EmmetMcp {
         CallToolResult::success(vec![ContentBlock::text(API)])
     }
 
-    /// LDraw colors: code, name, RGB, finish, and other accepted spellings.
+    /// The build steps, like an instruction book: each step's title, the ids of the parts it adds, its parts box
+    /// (part, color, count), and the sub-assemblies it puts on; then each sub-assembly's own steps and how many copies
+    /// the model has. Runs the model first if build/ is out of date.
+    #[tool(output_schema = schema_for_output::<Envelope<emmet_core::steps::Steps>>())]
+    async fn steps(&self, Parameters(_): Parameters<NoArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let (data, me) = (self.data.clone(), self.clone());
+        let (out, root) = blocking(
+            move || with_project(&me, |p| emmet_core::steps::steps(&data, p)),
+            |e| (Err(e), None),
+        )
+        .await;
+        result(started, out, RunMeta::default(), root, |s| {
+            let titles: Vec<String> = s
+                .steps
+                .iter()
+                .map(|st| {
+                    let title = if st.title.is_empty() {
+                        "(untitled)"
+                    } else {
+                        st.title.as_str()
+                    };
+                    let n: usize = st.parts.iter().map(|b| b.count).sum::<usize>()
+                        + st.submodels.iter().map(|m| m.count).sum::<usize>();
+                    format!("{}. {title} ({n})", st.n)
+                })
+                .collect();
+            format!("{}.\n{}", emmet_core::steps::summary(s), titles.join("\n"))
+        })
+    }
+
+    /// The technique library: proven building blocks (gable roof, SNOT panel, window frame, track curve, …) that
+    /// `m.use(name, …)` applies. With no name, the list; with a name, its doc, an example to copy, and its parts.
+    #[tool(output_schema = schema_for_output::<Envelope<emmet_core::technique::Techniques>>())]
+    async fn technique(&self, Parameters(args): Parameters<TechniqueArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let out = emmet_core::technique::techniques(args.name.as_deref());
+        result(started, out, RunMeta::default(), None, technique_text)
+    }
+
+    /// LDraw colors: code, name, RGB, finish, other accepted spellings, and whether any part was made in it. With
+    /// `part`, only the colors that part was made in.
     #[tool(output_schema = schema_for_output::<Envelope<ColorList>>())]
     async fn list_colors(&self, Parameters(args): Parameters<ColorsArgs>) -> CallToolResult {
         let started = Instant::now();
@@ -538,6 +596,71 @@ impl EmmetMcp {
             format!("{} colors. Solid: {}.", r.colors.len(), solid.join(", "))
         })
     }
+}
+
+/// The list, one technique a line; or one technique's doc and example.
+pub fn technique_text(t: &emmet_core::technique::Techniques) -> String {
+    match &t.technique {
+        Some(one) => format!(
+            "{}\n\nExample:\n{}\n\nParts: {}",
+            one.doc,
+            one.snippet,
+            one.parts.join(", ")
+        ),
+        None => t
+            .techniques
+            .iter()
+            .map(|s| format!("{}: {}", s.name, s.title))
+            .collect::<Vec<_>>()
+            .join("\n"),
+    }
+}
+
+/// The totals, the most used lines, and every line never made in its color (or never made at all).
+fn bom_text(b: &emmet_core::bom::Bom) -> String {
+    use emmet_core::parts_data::Status;
+    let top: Vec<String> = b
+        .lines
+        .iter()
+        .take(8)
+        .map(|l| format!("{} × {} {}", l.qty, l.color_name, l.name))
+        .collect();
+    let more = if b.lines.len() > top.len() { ", …" } else { "" };
+    let mut s = format!(
+        "{} pieces: {} parts in {} part × color lines. Most used: {}{more}.",
+        b.totals.pieces,
+        b.totals.parts,
+        b.totals.lines,
+        top.join(", ")
+    );
+    if b.parts_data.is_none() {
+        s.push_str(" Availability is unknown: the parts data pack isn't installed.");
+        return s;
+    }
+    let never: Vec<String> = b
+        .lines
+        .iter()
+        .filter_map(|l| match l.availability.status {
+            Status::ColorUnavailable => Some(format!("{} ({}) in {}", l.part, l.name, l.color_name)),
+            Status::PartUnavailable => Some(format!("{} ({}), in any color", l.part, l.name)),
+            _ => None,
+        })
+        .collect();
+    if never.is_empty() {
+        s.push_str(" Every line with known availability was made in its color.");
+    } else {
+        s.push_str(&format!(" Never made: {}.", never.join("; ")));
+    }
+    let unknown = b
+        .lines
+        .iter()
+        .filter(|l| l.availability.status == Status::Unknown)
+        .count();
+    if unknown > 0 {
+        s.push_str(&format!(" {unknown} lines have unknown availability."));
+    }
+    s.push_str(&format!(" {}.", emmet_core::parts_data::CREDIT));
+    s
 }
 
 /// The v1 summary, like a compiler's error list: the totals by severity and rule, then the first findings, errors

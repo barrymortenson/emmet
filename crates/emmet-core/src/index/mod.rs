@@ -3,6 +3,7 @@
 //! categories, and keywords, colors, and search synonyms. `connectors` and `elements` stay empty until 3A and 3B.
 
 pub mod dims;
+mod helpers;
 mod search;
 
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ use rusqlite::{Connection, OpenFlags, OptionalExtension, params};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+pub use helpers::Resolved;
 pub use search::SearchHit;
 
 use crate::colors::{self, Color};
@@ -177,6 +179,7 @@ impl Index {
                     edge_rgb: r.get(3)?,
                     finish: r.get(4)?,
                     aliases: serde_json::from_str(&aliases).unwrap_or_default(),
+                    produced: None,
                 })
             })
             .map_err(db)?;
@@ -186,6 +189,16 @@ impl Index {
     /// Color abbreviations from `data/synonyms.toml`, as (abbreviation, full name).
     pub fn color_abbreviations(&self) -> Vec<(String, String)> {
         synonyms_toml().1
+    }
+
+    /// Every `~Moved to` part as (old id, new id), for the parts data pack's mapping rule 2 (ADR 0004).
+    pub fn moved(&self) -> Result<Vec<(String, String)>> {
+        let mut stmt = self
+            .conn
+            .prepare("SELECT id, alias_of FROM parts WHERE alias_of IS NOT NULL AND name LIKE '~Moved to %'")
+            .map_err(db)?;
+        let rows = stmt.query_map([], |r| Ok((r.get(0)?, r.get(1)?))).map_err(db)?;
+        rows.collect::<std::result::Result<_, _>>().map_err(db)
     }
 
     /// Up to `n` part ids close to an id that doesn't exist: same prefix first, then by edit distance.
@@ -285,7 +298,7 @@ fn missing_index(data: &DataDir) -> Error {
     )
 }
 
-fn db(e: rusqlite::Error) -> Error {
+pub(crate) fn db(e: rusqlite::Error) -> Error {
     Error::internal(format!("parts index: {e}"))
 }
 

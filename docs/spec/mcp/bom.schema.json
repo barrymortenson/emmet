@@ -1,15 +1,78 @@
 {
   "name": "bom",
-  "description": "The parts list: part × color × quantity, with totals. Runs the model first if build/ is out of date.",
+  "description": "The parts list: part × color × quantity, with totals, Rebrickable ids, and whether each part was ever made in\nits color. Runs the model first if build/ is out of date.",
   "input": {
+    "$defs": {
+      "ColorNames": {
+        "description": "Whose color names the BOM uses (Settings → Data, `emmet bom --color-names`).",
+        "enum": [
+          "ldraw",
+          "rebrickable",
+          "bricklink"
+        ],
+        "type": "string"
+      }
+    },
     "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "color_names": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ColorNames"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Color names as LDraw, Rebrickable, or BrickLink spell them: ldraw, rebrickable, or bricklink (default: the\nuser's setting)."
+      }
+    },
     "type": "object"
   },
   "output": {
     "$defs": {
+      "Availability": {
+        "properties": {
+          "sets": {
+            "description": "Sets with the part in that color (Rebrickable's inventories); null when unknown.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/$defs/Status"
+          },
+          "years": {
+            "description": "The first and last year of those sets; null when there are none.",
+            "items": {
+              "format": "uint16",
+              "maximum": 65535,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
       "Bom": {
         "description": "`build/bom.json`.",
         "properties": {
+          "color_names": {
+            "$ref": "#/$defs/ColorNames"
+          },
           "lines": {
             "description": "Most pieces first, then by part id and color.",
             "items": {
@@ -17,20 +80,41 @@
             },
             "type": "array"
           },
+          "parts_data": {
+            "description": "The parts data pack's version, or null when none is installed.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "totals": {
             "$ref": "#/$defs/Totals"
           }
         },
         "required": [
           "lines",
-          "totals"
+          "totals",
+          "color_names"
         ],
         "type": "object"
       },
       "BomLine": {
         "properties": {
           "availability": {
-            "description": "Whether the part exists in that color; null until the parts data pack (3B).",
+            "$ref": "#/$defs/Availability",
+            "description": "Whether the part was ever made in that color; `unknown` (never unavailable) without the pack or a mapping."
+          },
+          "bricklink_color": {
+            "description": "BrickLink's color id.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "bricklink_id": {
+            "description": "BrickLink's part id, for the wanted list.",
             "type": [
               "string",
               "null"
@@ -43,9 +127,11 @@
             "type": "integer"
           },
           "color_name": {
+            "description": "The color's name in the BOM's naming (LDraw's when the other has no name for it).",
             "type": "string"
           },
           "name": {
+            "description": "The LDraw part's name.",
             "type": "string"
           },
           "part": {
@@ -57,8 +143,23 @@
             "minimum": 0,
             "type": "integer"
           },
+          "rebrickable_color": {
+            "description": "Rebrickable's color id.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
           "rebrickable_id": {
-            "description": "Rebrickable's part id; null until the parts data pack (3B).",
+            "description": "Rebrickable's part id; null without the parts data pack or a mapping.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rebrickable_name": {
+            "description": "Rebrickable's name for the part.",
             "type": [
               "string",
               "null"
@@ -70,9 +171,19 @@
           "name",
           "color",
           "color_name",
-          "qty"
+          "qty",
+          "availability"
         ],
         "type": "object"
+      },
+      "ColorNames": {
+        "description": "Whose color names the BOM uses (Settings → Data, `emmet bom --color-names`).",
+        "enum": [
+          "ldraw",
+          "rebrickable",
+          "bricklink"
+        ],
+        "type": "string"
       },
       "Details": {
         "description": "Where an error happened and what else helps fix it. Every field is optional.",
@@ -202,6 +313,31 @@
           "ms"
         ],
         "type": "object"
+      },
+      "Status": {
+        "description": "Whether a part was ever made in a color.",
+        "oneOf": [
+          {
+            "const": "available",
+            "description": "Rebrickable has an element or a set with the part in that color.",
+            "type": "string"
+          },
+          {
+            "const": "color_unavailable",
+            "description": "The part was made, but never in that color.",
+            "type": "string"
+          },
+          {
+            "const": "part_unavailable",
+            "description": "Rebrickable knows the part but has no element or set with it in any color.",
+            "type": "string"
+          },
+          {
+            "const": "unknown",
+            "description": "No pack, or the part or color has no Rebrickable mapping. Never read as unavailable.",
+            "type": "string"
+          }
+        ]
       },
       "Totals": {
         "properties": {

@@ -12,7 +12,8 @@ cottage/
 ├─ CARD.md           What it is · Design notes · Don't · an AUTO block for emmet
 ├─ AGENTS.md         a short guide for terminal agents; CLAUDE.md links to it (a copy on Windows)
 ├─ .gitignore        build/ and .emmet/
-├─ build/            derived: model.mpd, placements.json, manifest.json, part-geometry.json, colors.json, run.log
+├─ build/            derived: model.mpd, placements.json, steps.json, manifest.json, validation.json, bom.json,
+│                    part-geometry.json, colors.json, export/, run.log
 └─ .emmet/           local only: trust, generation
 ```
 

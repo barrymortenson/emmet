@@ -9,6 +9,10 @@
 # stapled, and spctl and stapler check it.
 # Windows (CI): the unsigned NSIS installer, with the same sidecars.
 #
+# Both bundle the parts data pack (plan section 12) as a resource: EMMET_PARTS_DATA_PACK names a pack folder, the
+# output of scripts/build-parts-data (parts-data.json and the .sqlite it names), and its sha256 is checked here. The
+# app installs it into app data on first use.
+#
 # No secret is read or printed here: the identity and the notary profile stay in the keychain.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
@@ -23,19 +27,39 @@ done
 
 UV_VERSION=0.12.22
 bins=apps/desktop/src-tauri/binaries
+res=apps/desktop/src-tauri/parts-data
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$bins"
+
+# Git Bash on Windows has sha256sum, macOS has shasum.
+sha256_of() {
+  local got
+  if command -v sha256sum >/dev/null; then got=$(sha256sum "$1"); else got=$(shasum -a 256 "$1"); fi
+  echo "${got%% *}"
+}
+
+# The parts data pack, first: without one there's no release to build.
+pack=${EMMET_PARTS_DATA_PACK:-}
+if [[ -z $pack || ! -f $pack/parts-data.json ]]; then
+  echo "release-dry: set EMMET_PARTS_DATA_PACK to a parts data pack folder (scripts/build-parts-data <catalog> <out>" >&2
+  echo "makes one); every installer bundles the pack (plan section 12)." >&2
+  exit 1
+fi
+pack_file=$(sed -n 's/^ *"file": "\(.*\)",$/\1/p' "$pack/parts-data.json")
+pack_sha=$(sed -n 's/^ *"sha256": "\(.*\)",$/\1/p' "$pack/parts-data.json")
+[[ -n $pack_file && -f $pack/$pack_file ]] || { echo "release-dry: $pack/parts-data.json names no SQLite file there" >&2; exit 1; }
+[[ $(sha256_of "$pack/$pack_file") == "$pack_sha" ]] || { echo "release-dry: $pack/$pack_file doesn't match its manifest's sha256" >&2; exit 1; }
+rm -rf "$res"
+mkdir -p "$res"
+cp "$pack/parts-data.json" "$pack/$pack_file" "$res/"
 
 # uv for one target: the release archive, checked against its pinned sha256.
 uv_for() {
   local target=$1 sha=$2 ext=$3
   local file="uv-$target.$ext"
   curl -fsSL -o "$tmp/$file" "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/$file"
-  local got
-  # Git Bash on Windows has sha256sum, macOS has shasum.
-  if command -v sha256sum >/dev/null; then got=$(sha256sum "$tmp/$file"); else got=$(shasum -a 256 "$tmp/$file"); fi
-  [[ ${got%% *} == "$sha" ]] || { echo "release-dry: $file doesn't match its pinned sha256" >&2; exit 1; }
+  [[ $(sha256_of "$tmp/$file") == "$sha" ]] || { echo "release-dry: $file doesn't match its pinned sha256" >&2; exit 1; }
   mkdir -p "$tmp/$target"
   if [[ $ext == zip ]]; then unzip -q -o "$tmp/$file" -d "$tmp/$target"; else tar -xzf "$tmp/$file" -C "$tmp/$target"; fi
   find "$tmp/$target" -name "uv" -o -name "uv.exe" | grep -E '/uv(\.exe)?$' | head -1

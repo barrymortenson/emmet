@@ -117,6 +117,27 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - The validator corpus: ten committed OMR models, a nightly job over 33 larger ones
   (`.github/workflows/nightly.yml`, `tests/fixtures/omr/nightly.json`), a seeded mutation generator that reports
   recall per rule, and `just bench validator`.
+- emmet_dsl v1 (session 3B, `docs/spec/dsl.md`): `m.wall`, `m.row`, `m.grid`, `m.stack`, `m.fill`, `m.repeat`,
+  `m.mirror`, submodels built once and placed many times (`m.submodel`, `m.place`: one `0 FILE` each, ids prefixed by
+  the copy, every copy counted), `m.use` with the technique library, `m.allow`, `m.ground`, `import_ldraw`, `Rot` and
+  `m.add_raw` for any angle, and the part helpers `Brick`, `Plate`, `Tile`, and `Slope`. With the parts data pack,
+  Color params take only colors parts were made in. `emmet params --write-default` rewrites one default in model.py
+  and nothing else.
+- Steps v1: `build/steps.json` with each step's parts box and sub-assemblies ("× 4"), a layer-a-step fallback for
+  parts outside any step, `emmet steps`, and the MCP `steps` tool. The cottage's door and windows are sub-assemblies,
+  and every template has a baseplate switch.
+- The technique library v0 (`data/techniques/`): 20 techniques, from roofs and walls to track, each with its doc, a
+  render, and a test that it validates clean; `emmet technique` and the MCP `technique` tool.
+  `data/ladder/rung2_reference.py`: a station beside a loop of track with a siding.
+- The parts data pack (plan section 12): `scripts/build-parts-data` turns Rebrickable's catalog into a checked SQLite
+  pack with a manifest; the app installs the pack it bundles (sha256-checked, swapped in atomically, the previous one
+  kept for rollback); signed packs are checked against a key (a test key until 6A, and none in a release). Availability
+  (available, never made in the color, never made, or unknown) feeds the validator's `color_unavailable` and
+  `part_unavailable` warnings, `part_info`'s produced colors and alternates, and search's color counts.
+- BOM v1: Rebrickable ids and names, availability, the color naming you choose (LDraw, Rebrickable, or BrickLink), and
+  exports to CSV, Rebrickable's parts list CSV, and a BrickLink wanted list; `emmet export` writes a flat .ldr, an
+  .mpd, and an LPub3D-ready .mpd. The Parts list shows availability and Rebrickable's credit, and Settings has a Data
+  section.
 
 ### Security
 

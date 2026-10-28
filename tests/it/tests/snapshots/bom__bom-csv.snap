@@ -1,0 +1,11 @@
+---
+source: tests/it/tests/bom.rs
+expression: "export(&dir, \"csv\")"
+---
+"Part, color, and set data from Rebrickable (rebrickable.com)"
+part,name,color,color_name,qty,rebrickable_id,rebrickable_name,availability,sets,years
+3001,Brick 2 x 4,4,Red,2,3001,Brick 2 x 4,available,1,2009-2009
+3001,Brick 2 x 4,110,Violet,1,3001,Brick 2 x 4,not made in this color,0,
+3023,~Moved to 3023b,371,Medium Tan,1,3023,Plate 1 x 2,available,0,
+3853,Window 1 x 4 x 3,15,White,1,,,unknown,,
+3958,Plate 6 x 6,368,Neon Yellow,1,3958,Plate 6 x 6,available,0,

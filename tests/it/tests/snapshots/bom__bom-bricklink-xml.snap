@@ -1,0 +1,12 @@
+---
+source: tests/it/tests/bom.rs
+expression: "export(&dir, \"bricklink-xml\")"
+---
+<!-- Part, color, and set data from Rebrickable (rebrickable.com) -->
+<!-- 1 line left out, with no BrickLink id; Emmet's warnings name it. -->
+<INVENTORY>
+<ITEM><ITEMTYPE>P</ITEMTYPE><ITEMID>3001</ITEMID><COLOR>5</COLOR><MINQTY>2</MINQTY></ITEM>
+<ITEM><ITEMTYPE>P</ITEMTYPE><ITEMID>3001</ITEMID><COLOR>43</COLOR><MINQTY>1</MINQTY></ITEM>
+<ITEM><ITEMTYPE>P</ITEMTYPE><ITEMID>3023</ITEMID><COLOR>241</COLOR><MINQTY>1</MINQTY></ITEM>
+<ITEM><ITEMTYPE>P</ITEMTYPE><ITEMID>3958</ITEMID><COLOR>236</COLOR><MINQTY>1</MINQTY></ITEM>
+</INVENTORY>

@@ -1047,6 +1047,7 @@ version = "0.1.0"
 dependencies = [
  "glam 0.34.1",
  "parry3d-f64",
+ "ring",
  "rusqlite",
  "schemars 1.2.3",
  "serde",

@@ -80,6 +80,21 @@ pub fn sha256_hex(bytes: &[u8]) -> String {
     hex(&Sha256::digest(bytes))
 }
 
+/// Lowercase hex sha256 of a file, read in chunks.
+pub fn sha256_file(path: &Path) -> Result<String> {
+    use std::io::Read;
+    let mut f = std::fs::File::open(path).map_err(|e| Error::io(path, e))?;
+    let mut h = Sha256::new();
+    let mut buf = vec![0u8; 1 << 16];
+    loop {
+        match f.read(&mut buf).map_err(|e| Error::io(path, e))? {
+            0 => break,
+            n => h.update(&buf[..n]),
+        }
+    }
+    Ok(hex(&h.finalize()))
+}
+
 pub fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }

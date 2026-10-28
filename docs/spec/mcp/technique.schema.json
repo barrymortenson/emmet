@@ -1,0 +1,308 @@
+{
+  "name": "technique",
+  "description": "The technique library: proven building blocks (gable roof, SNOT panel, window frame, track curve, …) that\n`m.use(name, …)` applies. With no name, the list; with a name, its doc, an example to copy, and its parts.",
+  "input": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "name": {
+        "default": null,
+        "description": "A technique's name, like \"gable_roof\"; leave it out for the list.",
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "type": "object"
+  },
+  "output": {
+    "$defs": {
+      "Details": {
+        "description": "Where an error happened and what else helps fix it. Every field is optional.",
+        "properties": {
+          "excerpt": {
+            "description": "The source line, as written.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "description": "The file: relative to the project root for model errors, otherwise the full path.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line": {
+            "description": "1-based line in `file`.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "suggestions": {
+            "description": "Close matches; part ids for `UNKNOWN_PART` (color and parameter suggestions are in the hint).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Error": {
+        "description": "A failure: what happened, where, and what to try.",
+        "properties": {
+          "code": {
+            "$ref": "#/$defs/ErrorCode"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Details"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hint": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "hint"
+        ],
+        "type": "object"
+      },
+      "ErrorCode": {
+        "description": "The error codes in plan section 09.",
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "PROJECT_UNTRUSTED",
+          "MODEL_EXEC_FAILED",
+          "MODEL_TIMEOUT",
+          "MODEL_TOO_LARGE",
+          "UNKNOWN_PART",
+          "UNKNOWN_COLOR",
+          "PARAM_INVALID",
+          "LIBRARY_MISSING",
+          "LIBRARY_CORRUPT",
+          "PYTHON_MISSING",
+          "RENDER_UNAVAILABLE",
+          "IO_ERROR",
+          "INTERNAL"
+        ],
+        "type": "string"
+      },
+      "Meta": {
+        "description": "Facts about the run that produced a result.",
+        "properties": {
+          "emmet": {
+            "description": "The Emmet version.",
+            "type": "string"
+          },
+          "generation": {
+            "description": "The project's run counter, after a run.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "inputs_hash": {
+            "description": "sha256 of the model's inputs (plan section 07), after a run.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ms": {
+            "description": "Wall time of the command in milliseconds.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project": {
+            "description": "The project root, when the command ran in one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "emmet",
+          "ms"
+        ],
+        "type": "object"
+      },
+      "Summary": {
+        "properties": {
+          "name": {
+            "description": "What `m.use` takes.",
+            "type": "string"
+          },
+          "title": {
+            "description": "The doc's first line.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "title"
+        ],
+        "type": "object"
+      },
+      "Technique": {
+        "properties": {
+          "doc": {
+            "description": "The whole doc: what it builds, its arguments, and how to use it.",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parts": {
+            "description": "The LDraw ids of the parts it uses (part helpers in it may pick other sizes for other arguments).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "snippet": {
+            "description": "The body of its example: model code that uses it.",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "title",
+          "doc",
+          "snippet",
+          "parts"
+        ],
+        "type": "object"
+      },
+      "Techniques": {
+        "description": "The list (no name), or one technique.",
+        "properties": {
+          "technique": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Technique"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "techniques": {
+            "items": {
+              "$ref": "#/$defs/Summary"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "UserNote": {
+        "description": "A message the user typed while the agent worked, attached to an MCP tool result (D-33, plan section 09). Only\n`emmet mcp --session` (the app's chat) ever sets these.",
+        "properties": {
+          "at": {
+            "description": "When the user sent it, as RFC 3339.",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "at"
+        ],
+        "type": "object"
+      },
+      "Warning": {
+        "description": "A non-fatal note attached to a success.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "data": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Techniques"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Error"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "meta": {
+        "$ref": "#/$defs/Meta"
+      },
+      "ok": {
+        "type": "boolean"
+      },
+      "user_notes": {
+        "description": "What the user just said, newest last. It overrides the current plan (the doctrine says how to handle it).",
+        "items": {
+          "$ref": "#/$defs/UserNote"
+        },
+        "type": "array"
+      },
+      "warnings": {
+        "items": {
+          "$ref": "#/$defs/Warning"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "ok",
+      "warnings",
+      "meta"
+    ],
+    "type": "object"
+  }
+}
