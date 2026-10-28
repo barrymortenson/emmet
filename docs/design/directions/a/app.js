@@ -20,7 +20,7 @@
   function tree(s) {
     // Only the steps built so far (a build in progress, or the step the scrubber shows).
     const cur = s.step || (s.build.parts ? D.stepOf(s.build.parts) : D.steps.length);
-    const groups = [["Baseplate", [1]], ["Walls", [2, 3, 4, 5, 6, 7]], ["Inside", [8]], ["Path and flowers", [9]], ["Ceiling", [10]], ["Roof", [11, 12, 13, 14]], ["Chimney", [15]]];
+    const groups = [...new Set(D.steps.map((x) => x.group))].map((g) => [g, D.steps.filter((x) => x.group === g).map((x) => x.n)]);
     const rows = groups.map(([g, ns]) => {
       const parts = ns.filter((i) => s.step || i <= cur).reduce((n, i) => n + D.steps[i - 1].parts, 0);
       const later = ns[0] > cur;

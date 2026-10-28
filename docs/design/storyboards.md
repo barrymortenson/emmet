@@ -3,7 +3,7 @@
 The nine key flows from plan section 14 as short annotated storyboards. Each frame names its screen in
 `shared/states.js`; open it in any direction with `directions/<a|b|c>/index.html#s=<screen>&t=light` (or `t=dark`),
 from the folder, no server needed. The words are the app's real ones (from 1C-1F and the transcripts); the numbers are
-the cottage template's (163 parts, 15 steps; knobs for weathering, the roof, the chimney, and Shuffle).
+the cottage template's (163 parts, 31 steps; knobs for weathering, the roof, the chimney, and Shuffle).
 
 ## Information architecture
 
@@ -79,7 +79,7 @@ library, an imported file with no model.py.
 
 | # | Screen | What happens |
 |---|---|---|
-| 1 | `import` | `cottage.mpd` opens as an imported project: 163 parts in 15 steps, the steps list, no sliders yet; "Make it parametric" asks the agent |
+| 1 | `import` | `cottage.mpd` opens as an imported project: 163 parts in 31 steps, the steps list, no sliders yet; "Make it parametric" asks the agent |
 
 ## 7. Switch agent mid-project
 
@@ -114,4 +114,5 @@ library, an imported file with no model.py.
 | `untrusted` | Untrusted project | Read-only, with the real message from `emmet run`; Read model.py, Trust this project |
 | `offline` | Offline | Building, checks, sliders, and exports work; the agent and downloads wait |
 | `old-library` | An old library version | 2026-06 against the expected 2026-09; Update the library |
-| `model-picker`, `usage`, `steps` | (notes 4, 6; section 10's usage) | Model and effort; plan usage; step 9 shows only what's built by then |
+| `model-picker`, `usage`, `steps` | (notes 4, 6; section 10's usage) | Model and effort; plan usage; step 9 shows only what's built by then: the stove, in while the walls are low |
+| `step-door` | (plan section 08's step rules, Barry 2026-10-27) | Step 4 as the instruction books draw it: the parts box, the step number, the new parts outlined in red, and the door built apart in its own box with a line to where it goes |

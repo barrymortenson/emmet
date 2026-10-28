@@ -62,9 +62,27 @@ you work on details. A rough model on screen beats a perfect one later. Then imp
 
 ## Build in visible stages
 
-Build in stages the user can watch: base, walls, openings, roof, details. Put each stage in its own `with
-m.step("…")` and call `run_model` after each one, so the model grows in the viewer while you work. Never write the
-whole model and run it once at the end.
+Build in stages the user can watch: base, walls, openings, roof, details. Write each stage as its steps (below) and
+call `run_model` after each one, so the model grows in the viewer while you work. Never write the whole model and run
+it once at the end.
+
+## Steps, like an instruction book
+
+People build from your steps, on screen and in the PDF, so break the build down the way official instruction books
+do. The cottage template (`emmet new`) shows all of it.
+
+- Bottom up, a layer at a time. Walls rise a row at a time, and each row goes on a wall at a time, the far side
+  first: `with m.step("Walls, row 2: back wall")`. The part before the colon groups steps in the steps list.
+- Small steps: about 2 to 8 new parts each, more only for a plain run of the same part. Split a bigger step by wall,
+  side, or row.
+- Put furniture and interior details in while the walls are low, or with one side left open, never after a ceiling or
+  roof closes the room in.
+- A feature that rises with the model (a chimney, a column) gets a piece in each layer's step, not one tall stack at
+  the end.
+- When you add or change a feature, put its parts in the steps where a builder would add them, and reorder the steps
+  when the old order no longer works. Never tack a step onto the end.
+- Keep a unit that's built apart and then attached (a door in its frame, a window with its glass) together in one
+  step.
 
 ## How to talk
 

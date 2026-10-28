@@ -13,7 +13,7 @@ window.REVIEW_NOTES = [
   { note: "3 · Agent picker and Start fresh, like nurb", a: "In the chat header, exactly nurb's place; switching shows a divider.", b: "In the composer's top row and in the history sheet's header.", c: "In the command bar, beside the model chip." },
   { note: "4 · Model and effort picker", a: "The chip beside Send; a popover with the plan note.", b: "The chip beside Send; a card at the bottom right, so it never covers the house.", c: "A chip in the command bar; a popover under it." },
   { note: "5 · Sliders worth having", a: "The drawer's Parameters tab: Size (two across), Colors, Options; help lines from the docstring; \"was 8\" and Keep as default.", b: "The left card, one column, the same groups and words.", c: "Compact rows in the inspector, the same groups and words." },
-  { note: "6 · A step shows the build up to it", a: "The Steps tab and the scrubber; later steps grayed in the tree too.", b: "The left card's Steps list and the scrubber at the top right.", c: "The scrubber names the step (\"step 8/12 Ceiling\"); the inspector's list highlights it." },
+  { note: "6 · A step shows the build up to it", a: "The Steps tab and the scrubber; later steps grayed in the tree too.", b: "The left card's Steps list and the scrubber at the top right.", c: "The scrubber names the step (\"step 9/31 Inside: stove\"); the inspector's list highlights it." },
 ];
 
 const ROW = (screen, title, a, b, c, trade, also) => ({ screen, title, a, b, c, trade, also });
@@ -64,11 +64,16 @@ window.REVIEW_ROWS = [
     "Changing a setting marks it (\"was Town\") and offers Undo or Rebuild with these settings, which says it's an agent turn on your plan; the model's tweaks still rerun at once.",
     "Not drawn in C: this came after the pick.",
     "Settings are about what to build, so they cost an agent turn; tweaks are about this model, so they're instant. Keeping both honest is the point.", ["restyle"]),
-  ROW("steps", "Steps: the build up to step 9",
-    "The Steps tab lists all 12 with part counts; later steps are grayed in the list and the tree; the viewer shows only what's built.",
-    "The Steps tab in Options, and the scrubber with the views on the title row.",
+  ROW("steps", "Steps: the build up to step 9, the stove going in while the walls are low",
+    "The Steps tab lists all 31, grouped by row, with part counts; later steps are grayed in the list and the tree; the viewer shows only what's built.",
+    "The Steps tab in Options, grouped by row, and the scrubber with the views on the title row; the step's parts box and number over the viewer, its new parts outlined in red.",
     "A single-column list in the inspector; the scrubber names the step.",
     "All three show the model up to the step (note 6); A says it in the most places."),
+  ROW("step-door", "A step as the instruction books draw it: step 4, the door (B only, new 2026-10-27)",
+    "Not drawn in A: this came after the pick.",
+    "Over the top left of the viewer: the parts box with counts (\"2x\"), the step number, and the door built apart in its own box, sub-steps 1 and 2, with a line to where it goes; the new parts outlined in red.",
+    "Not drawn in C: this came after the pick.",
+    "Barry 2026-10-27: steps should read like a real instruction book, on screen and in the PDF. The door box is how 3B's submodels show a sub-assembly; today's model.py puts the door in step 4 with the bricks."),
   ROW("findings", "Checks with findings, and the fix",
     "A pin beside the chimney, the Checks tab with the plain sentence, model.py lines 253-254, and Ask agent to fix.",
     "A pin with the reason beside the chimney, the finding in Options' Checks tab, and Ask agent to fix in the chat line too.",

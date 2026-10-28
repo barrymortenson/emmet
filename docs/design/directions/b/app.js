@@ -35,7 +35,7 @@
         <button type="button" class="e-btn e-quiet e-sm" data-local="view=">Back</button></div>` : "";
     return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-local="menu=${s.menu === "open" ? "closed" : "open"}" aria-haspopup="menu">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button>${pop}</div>
       ${U.views()}<div class="b-title-right">${scrub}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
-      <section class="b-viewer" aria-label="3D viewer" data-version="${!!seen}">${U.shot(seen ? seen.render : s.render, ctx.theme)}${seen ? "" : pin}${bar}
+      <section class="b-viewer" aria-label="3D viewer" data-version="${!!seen}">${U.shot(seen ? seen.render : s.render, ctx.theme)}${seen ? "" : pin + U.stepView(s)}${bar}
       <div class="b-tools">${U.animating(s, { bare: true })}</div></section>`;
   }
 

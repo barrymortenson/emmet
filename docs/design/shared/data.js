@@ -14,6 +14,10 @@ window.EMMET_DATA = (() => {
     stage1: { k: 0.9544, ty: 6.94 },
     stage2: { k: 0.9544, ty: 6.94 },
     stage3: { k: 0.9718, ty: 4.27 },
+    // A step as the steps view shows it: built up to the step, its new parts outlined in red (plan section 08's step
+    // rules). The red line is drawn around the parts a highlighted render adds, as 4C's viewer will draw it.
+    "step-4": { k: 0.9544, ty: 6.94 },
+    "step-9": { k: 0.9544, ty: 6.94 },
     empty: { k: 0.9086, ty: 14 },
   };
 
@@ -79,32 +83,49 @@ window.EMMET_DATA = (() => {
   ];
 
 
-  // The cottage's 15 steps (`m.step(...)` names in model.py) and their part counts from placements.json.
+  // The cottage's 31 steps (`m.step(...)` titles in model.py) and their part counts from placements.json. Built like
+  // an instruction book (Barry 2026-10-27, plan section 08): a wall a step, the room furnished at the second row, the
+  // chimney going up with the walls, and the roof a course side at a time. `group` is the title's first words.
   const steps = [
-    ["Baseplate", 1], ["Walls, row 1", 17], ["Walls, row 2", 14], ["Walls, row 3", 20], ["Walls, row 4", 12],
-    ["Walls, row 5", 15], ["Walls, row 6", 14], ["Inside", 9], ["Path and flowers", 6], ["Ceiling", 4],
-    ["Roof, course 1", 18], ["Roof, course 2", 12], ["Roof, course 3", 6], ["Roof, course 4", 3], ["Chimney", 12],
-  ].map(([name, parts], i) => ({ n: i + 1, name, parts }));
-  // Which render shows the model built up to a step (note 6): the stage variants stop where these steps end.
-  // The last step a partial build has reached, from its part count (36 parts is step 4).
+    ["Baseplate", 1], ["Walls, row 1: back wall", 6], ["Walls, row 1: side walls", 6], ["Walls, row 1: front wall", 6],
+    ["Path and flowers", 6], ["Walls, row 2: back wall", 5], ["Walls, row 2: side walls", 8], ["Walls, row 2: front wall", 2],
+    ["Inside: stove", 3], ["Inside: table and stools", 3], ["Inside: bed", 3],
+    ["Walls, row 3: back wall", 7], ["Walls, row 3: side walls", 8], ["Walls, row 3: front wall", 6],
+    ["Walls, row 4: back wall", 5], ["Walls, row 4: side walls", 8],
+    ["Walls, row 5: back wall", 6], ["Walls, row 5: side walls", 6], ["Walls, row 5: front wall", 4],
+    ["Walls, row 6: back wall", 5], ["Walls, row 6: side walls", 8], ["Walls, row 6: front wall", 2], ["Ceiling", 4],
+    ["Roof, course 1: front", 9], ["Roof, course 1: back", 9], ["Roof, course 2: front", 6], ["Roof, course 2: back", 6],
+    ["Roof, course 3: front", 3], ["Roof, course 3: back", 3], ["Roof, ridge", 3], ["Chimney top", 6],
+  ].map(([name, parts], i) => ({ n: i + 1, name, parts, group: name.split(/[,:]/)[0] }));
+  // The last step a partial build has reached, from its part count (70 parts is step 14). The stage renders stop at
+  // steps 14, 22, and 27.
   const stepOf = (parts) => { let sum = 0; for (const s of steps) { sum += s.parts; if (sum >= parts) return s.n; } return steps.length; };
-  const stepRender = (n) => (n <= 4 ? "stage1" : n <= 9 ? "stage2" : n <= 12 ? "stage3" : "cottage");
+  // What the steps view draws over the viewer for a step (plan section 08): the parts box (part, color, count, larger
+  // parts first) and any sub-assembly, with its own parts box and numbered sub-steps (renders of the door unit on its
+  // own). The door is the sub-assembly 3B's submodels make it; today's model.py puts it in step 4 with the bricks.
+  const stepView = {
+    4: {
+      parts: [["3004", "Dark Bluish Gray", 2], ["3005", "Dark Bluish Gray", 2]],
+      sub: { parts: [["60596", "White", 1], ["60623", "Reddish Brown", 1]], steps: ["door-1", "door-2"] },
+    },
+    9: { parts: [["3003", "Dark Bluish Gray", 1], ["2412b", "Black", 2]] },
+  };
 
   // `emmet check --json` on the cottage with its chimney started 9 plates up.
   const finding = {
-    id: "F-0001", rule: "floating", severity: "error", parts: 9, partIds: "chimney/1–9", line: 253,
+    id: "F-0001", rule: "floating", severity: "error", parts: 9, partIds: "chimney/1–9", line: 113,
     message: "9 parts at z=9.5 aren't held by any stud: they touch nothing below them.",
     hint: "They start 9 plates above base (Baseplate 32 x 32), which ends at z=0.5: lower them by 9 plates, or put a part under them.",
-    excerpt: ["            z = GROUND + 9", "            while z < ridge_top + 3:"],
+    // Emmet names the m.add on line 121 that placed them; the mock shows the lines that set their height.
+    excerpt: ["        z = GROUND + 9", "        while z < ridge_top + 3:"],
   };
 
   // `emmet run --json` after an edit that passed an argument Model.add() doesn't take.
   const buildError = {
-    code: "MODEL_EXEC_FAILED", line: 121,
+    code: "MODEL_EXEC_FAILED", line: 135,
     message: "TypeError: Model.add() got an unexpected keyword argument 'flip'",
-    hint: "Fix model.py line 121 and run again.",
-    // Emmet's excerpt is the call's first line; the mock shows the whole statement, lines 121–123.
-    excerpt: ['frame = m.add(', '    "60592", "White", at=(*at, z), rot=turn, id=f"window/{name}", flip=True', ')'],
+    hint: "Fix model.py line 135 and run again.",
+    excerpt: ['frame = m.add("60592", "White", at=(*at, z), rot=turn, id=f"window/{name}", flip=True)'],
   };
 
   // `emmet run --json` on a copy of the project moved to another folder.
@@ -113,7 +134,7 @@ window.EMMET_DATA = (() => {
     hint: "Read model.py first; it's code. Then trust the project in the app, or run emmet trust.",
   };
 
-  const run = { parts: 163, steps: 15, ms: 99 };
+  const run = { parts: 163, steps: 31, ms: 99 };
   // The project's saved versions (plan section 07), newest first: the user's, named, and Emmet's own before each agent
   // turn that changed the model. Each shows its build's render as the thumbnail.
   const history = [
@@ -121,8 +142,8 @@ window.EMMET_DATA = (() => {
     { n: 5, name: "Weathered, chimney at the back", when: "Today 14:20", parts: 163, render: "weathered-2" },
     { n: 4, name: "Before Claude's turn", auto: true, when: "Today 14:02", parts: 163, render: "weathered-1" },
     { n: 3, name: "Roof and chimney", when: "Today 13:51", parts: 163, render: "cottage" },
-    { n: 2, name: "Before Claude's turn", auto: true, when: "Today 13:40", parts: 108, render: "stage2" },
-    { n: 1, name: "First walls", when: "Today 13:32", parts: 52, render: "stage1" },
+    { n: 2, name: "Before Claude's turn", auto: true, when: "Today 13:40", parts: 114, render: "stage2" },
+    { n: 1, name: "First walls", when: "Today 13:32", parts: 70, render: "stage1" },
   ];
 
   const versions = { emmet: "0.1.0", library: "2026-09", partsData: "2026-10-23", oldLibrary: "2026-06" };
@@ -158,7 +179,7 @@ window.EMMET_DATA = (() => {
   // rendered"). Tool titles are the plain-language summaries 4B builds; `raw` is what the expanded card shows.
   const seg = {
     prompt: [{ t: "user", text: PROMPT }],
-    thinking: [{ t: "thinking", text: "Planning the cottage: the baseplate, then walls in rows with a door and windows, a ceiling, a gable roof, and the chimney." }],
+    thinking: [{ t: "thinking", text: "Planning the cottage: the baseplate, then the walls a row at a time with a door and windows, the room furnished while the walls are low, a ceiling, a gable roof, and a chimney that goes up with the walls." }],
     question: [QUESTION],
     answered: [{ ...QUESTION, answered: "Classic: tan walls and a dark red roof" }],
     start: [
@@ -166,14 +187,14 @@ window.EMMET_DATA = (() => {
       { t: "tool", icon: "search", title: "Found the parts", detail: "brick 1 x 2 · slope 45 2 x 4 · door 1 x 4 x 6 · window 1 x 2 x 2", status: "done", raw: 'search_parts(["brick 1x2", "slope 45 2x4", "door 1x4x6", "window 1x2x2"]) → 12 results' },
       { t: "file", path: "model.py", summary: "Wrote the model · 144 lines", diff: ["+@model", "+def cottage(", "+    width: Annotated[int, Range(6, 16)] = 8,", "+    depth: Annotated[int, Range(4, 12), Step(2)] = 6,", "+    wall_rows: Annotated[int, Range(6, 9)] = 6,", "+    …"] },
     ],
-    stage1Running: [{ t: "tool", icon: "cube", title: "Building", detail: "Baseplate and walls, rows 1–3", status: "running", raw: "run_model()" }],
+    stage1Running: [{ t: "tool", icon: "cube", title: "Building", detail: "Walls, rows 1–3, and the room inside", status: "running", raw: "run_model()" }],
     stage1: [
-      { t: "tool", icon: "cube", title: "Built 52 parts", detail: "Baseplate and walls, rows 1–3", status: "done", raw: 'run_model() → {"parts": 52, "steps": 4, "ms": 96}' },
+      { t: "tool", icon: "cube", title: "Built 70 parts", detail: "Walls, rows 1–3, the path, and the room inside", status: "done", raw: 'run_model() → {"parts": 70, "steps": 14, "ms": 96}' },
       { t: "tool", icon: "check", title: "Checked: no problems", detail: "Nothing collides or floats", status: "done", raw: 'validate() → {"clean": true, "findings": []}' },
     ],
-    stage2Running: [{ t: "tool", icon: "cube", title: "Building", detail: "Walls, rows 4–6, the room inside, and the path", status: "running", raw: "run_model()" }],
+    stage2Running: [{ t: "tool", icon: "cube", title: "Building", detail: "Walls, rows 4–6", status: "running", raw: "run_model()" }],
     stage2: [
-      { t: "tool", icon: "cube", title: "Built 108 parts", detail: "Walls, the room inside, and the path", status: "done", raw: 'run_model() → {"parts": 108, "steps": 9, "ms": 97}' },
+      { t: "tool", icon: "cube", title: "Built 114 parts", detail: "Walls, rows 4–6", status: "done", raw: 'run_model() → {"parts": 114, "steps": 22, "ms": 97}' },
       { t: "tool", icon: "check", title: "Checked: no problems", detail: "Nothing collides or floats", status: "done", raw: 'validate() → {"clean": true}' },
     ],
     // A redirect with a link the user pasted. Opening it is the agent's own web tool, outside its sandbox, so it asks
@@ -188,20 +209,20 @@ window.EMMET_DATA = (() => {
     }],
     approvalDenied: [{ t: "note", text: "You said no to the web request. Claude carries on without it." }],
     stage3: [
-      { t: "tool", icon: "cube", title: "Built 142 parts", detail: "Ceiling and roof, courses 1–2", status: "done", raw: 'run_model() → {"parts": 142, "steps": 12}' },
+      { t: "tool", icon: "cube", title: "Built 148 parts", detail: "Ceiling and roof, courses 1–2", status: "done", raw: 'run_model() → {"parts": 148, "steps": 27}' },
     ],
     finish: [
-      { t: "tool", icon: "cube", title: "Built 163 parts", detail: "Roof ridge and chimney", status: "done", raw: 'run_model() → {"parts": 163, "steps": 15, "ms": 99}' },
+      { t: "tool", icon: "cube", title: "Built 163 parts", detail: "Roof ridge and chimney top", status: "done", raw: 'run_model() → {"parts": 163, "steps": 31, "ms": 99}' },
       { t: "tool", icon: "check", title: "Checked: no problems", detail: "163 parts · 0 findings", status: "done", raw: 'validate() → {"clean": true, "findings": []}' },
       { t: "tool", icon: "eye", title: "Looked at the model", detail: "Iso render", status: "done", raw: 'render(view="iso")' },
       // The rung 1 transcript's closing line, with the template's numbers (163 parts) and knobs.
       { t: "agent", text: "The cottage is up: 10 x 8 studs, 6 bricks tall, 163 parts, 0 errors: a real door, glass in the windows, and a room inside with a bed, a table, and a stove. Knobs: weathering, roof on or off, and Shuffle." },
     ],
     // "Ask agent to fix" sends the finding in the form tests/replay/claude/derived-fix-collision.jsonl records.
-    fixAsk: [{ t: "user", text: "Fix F-0001 (floating, parts chimney/1–8 at model.py:142): 8 parts at z=9.5 aren't held by any stud: they touch nothing below them. They start 9 plates above base (Baseplate 32 x 32), which ends at z=0.5: lower them by 9 plates, or put a part under them. Then run validate again.", auto: true }],
+    fixAsk: [{ t: "user", text: "Fix F-0001 (floating, parts chimney/1–9 at model.py:113): 9 parts at z=9.5 aren't held by any stud: they touch nothing below them. They start 9 plates above base (Baseplate 32 x 32), which ends at z=0.5: lower them by 9 plates, or put a part under them. Then run validate again.", auto: true }],
     fixing: [
       { t: "tool", icon: "check", title: "Found 1 problem", detail: "9 floating parts: the chimney", status: "done", raw: 'validate() → {"counts": {"floating": 1}}' },
-      { t: "file", path: "model.py", summary: "Edited line 253", diff: ["-            z = GROUND + 9", "+            z = GROUND"] },
+      { t: "file", path: "model.py", summary: "Edited line 113", diff: ["-        z = GROUND + 9", "+        z = GROUND"] },
       { t: "tool", icon: "cube", title: "Building", detail: "Chimney from the baseplate up", status: "running", raw: "run_model()" },
     ],
     fixed: [
@@ -212,13 +233,13 @@ window.EMMET_DATA = (() => {
     // A request that led to the build error above (composed for this state).
     flipAsk: [{ t: "user", text: "flip the left window so its frame faces out" }],
     flipEdit: [
-      { t: "file", path: "model.py", summary: "Edited line 122", diff: ['-                        "60592", "White", at=(*at, z), rot=turn, id=f"window/{name}"', '+                        "60592", "White", at=(*at, z), rot=turn, id=f"window/{name}", flip=True'] },
-      { t: "tool", icon: "cube", title: "The build failed", detail: "model.py line 121", status: "error", raw: 'run_model() → MODEL_EXEC_FAILED' },
+      { t: "file", path: "model.py", summary: "Edited line 135", diff: ['-        frame = m.add("60592", "White", at=(*at, z), rot=turn, id=f"window/{name}")', '+        frame = m.add("60592", "White", at=(*at, z), rot=turn, id=f"window/{name}", flip=True)'] },
+      { t: "tool", icon: "cube", title: "The build failed", detail: "model.py line 135", status: "error", raw: 'run_model() → MODEL_EXEC_FAILED' },
     ],
     // What "Rebuild with these settings" sends (composed for this state; no transcript has it yet).
     restyleAsk: [{ t: "user", text: "Rework the cottage for the new build settings: style Steampunk (was Town), detail Medium (was Low). Keep figure scale, 150–500 pieces, and the 32 × 32 baseplate, and keep its knobs.", auto: "settings" }],
     restyleThinking: [{ t: "thinking", text: "Brass and copper trim, pipes up the walls, a gear on the chimney, and tiles and frames for medium detail, still about 170 pieces." }],
-    stopped: [{ t: "note", text: "You stopped the turn at 0:41. The model is as its last run left it: 108 parts." }],
+    stopped: [{ t: "note", text: "You stopped the turn at 0:41. The model is as its last run left it: 114 parts." }],
     crashed: [{ t: "crash", title: "Claude Code stopped unexpectedly", text: "It exited with code 1 in the middle of a turn. Your project is untouched: model.py and the last build are as they were." }],
     // Barry's request from his 1C session (docs/design/notes/emmet-1c-claude.png), sent to Codex after a switch.
     garage: [{ t: "user", text: "make the garage and cottage one building, make it larger and make a door from the cottage to the garage, make the garage fit two cars." }],
@@ -285,10 +306,10 @@ window.EMMET_DATA = (() => {
   };
 
   return {
-    brief, renders, params, colors, colorChoices, bom, steps, stepOf, stepRender, finding, buildError, untrusted, run, versions, history,
+    brief, renders, params, colors, colorChoices, bom, steps, stepOf, stepView, finding, buildError, untrusted, run, versions, history,
     agents, efforts, plans, usage, seg, PROMPT,
     project: { name: "Cottage", folder: "Documents/Emmet/Cottage" },
-    imported: { name: "Cottage (imported)", file: "cottage.mpd", parts: 163, steps: 15 },
+    imported: { name: "Cottage (imported)", file: "cottage.mpd", parts: 163, steps: 31 },
     recent: [
       { name: "Cottage", when: "today" },
       { name: "Station test", when: "yesterday" },

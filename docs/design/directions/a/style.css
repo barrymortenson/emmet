@@ -124,6 +124,7 @@
 .e-step-n { width: 20px; text-align: right; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
 .e-steps li[data-state="current"] { background: var(--bg-selected); font-weight: 600; }
 .e-steps li[data-state="later"] { color: var(--fg-muted); }
+.e-steps li.e-step-group { padding-top: 6px; font-size: 12px; font-weight: 700; color: var(--fg-muted); }
 
 /* Chat */
 .a-chat { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; background: var(--bg-panel); border-left: 1px solid var(--line); min-height: 0; }

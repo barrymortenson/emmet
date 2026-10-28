@@ -761,10 +761,14 @@ def cottage(
     with m.step("Baseplate"):
         m.add("3811", "Green", at=(0, 0, 0), id="base")
     for row in range(wall_rows):
-        with m.step(f"Walls, row {row + 1}"):
-            m.wall(x=2, y=2, z=0.5 + 3 * row, length=width, depth=depth,
-                   color=wall_color, bond="running", openings=door_and_windows(width, row))
-    with m.step("Roof"):
+        for side in ("back", "sides", "front"):    # a wall a step, the far side first
+            with m.step(f"Walls, row {row + 1}: {side}"):
+                m.wall(x=2, y=2, z=0.5 + 3 * row, length=width, depth=depth, sides=side,
+                       color=wall_color, bond="running", openings=door_and_windows(width, row))
+        if row == 1:                                # the room, while the walls are low
+            with m.step("Inside: table and bed"):
+                furnish(m, width, depth)
+    with m.step("Roof"):                            # a technique brings its own steps
         m.use("gable_roof", x=2, y=2, z=0.5 + 3 * wall_rows, width=width, depth=depth, color=roof_color)
     if chimney:
         with m.step("Chimney"):
@@ -776,7 +780,7 @@ def cottage(
 <tr><th>Call</th><th>Does</th></tr>
 <tr><td><code>@model</code></td><td>Marks the entry function. Its signature becomes the param schema (int, float, bool, <code>Literal[...]</code> choice, <code>Color</code>), with <code>Range</code>/<code>Step</code> via <code>Annotated</code> and help from the docstring lines.</td></tr>
 <tr><td><code>m.add(part, color, at, rot=0, id=None)</code></td><td>Places one part and returns a handle. With no <code>id</code>, the id is <code>&lt;step-slug&gt;/&lt;n&gt;</code>. The call site's <code>file:line</code> is captured.</td></tr>
-<tr><td><code>m.step(title)</code></td><td>Context manager: everything added inside is one build step (LDraw <code>0 STEP</code>).</td></tr>
+<tr><td><code>m.step(title)</code></td><td>Context manager: everything added inside is one build step (LDraw <code>0 STEP</code>). Steps follow the rules below.</td></tr>
 <tr><td><code>m.wall / m.row / m.grid / m.stack / m.fill</code></td><td>Helpers that place many parts with sensible bonds (running, stacked), openings, and corner interlock. Each emitted part still gets its own id and the helper call's line.</td></tr>
 <tr><td><code>m.repeat(fn, n, dx=0, dy=0, dz=0)</code> · <code>m.mirror(axis)</code></td><td>Repetition and symmetry without copy-paste.</td></tr>
 <tr><td><code>sub = m.submodel(name, fn, **params)</code> · <code>m.place(sub, at, rot=0, id=None)</code></td><td>Builds are made of submodels used many times (Barry 2026-10-27): a window bay, a tower, a seating section. <code>submodel</code> defines one, built once by <code>fn</code> with its own steps; <code>place</code> puts it in the model, as often as needed. The <code>.mpd</code> holds one <code>0 FILE</code> per submodel and parameter set, referenced by each placement, so a change to the submodel changes every copy. Ids are the placement's id plus the part's (<code>towers/2/wall/3</code>). The BOM counts every placement; the steps build the submodel once and then place it "× 4"; the project tree shows "Tower × 4", and clicking it highlights every copy.</td></tr>
@@ -784,6 +788,24 @@ def cottage(
 <tr><td><code>m.allow(rule, ids, reason)</code></td><td>Records a deliberate exception (for example a floating minifig accessory). It shows in the Checks drawer as "allowed", never hidden.</td></tr>
 <tr><td><code>import_ldraw(path)</code></td><td>Brings an existing model in as fixed geometry, with ids taken from its line numbers.</td></tr>
 </table></div>
+
+<h3>Build steps, like an instruction book</h3>
+<p>Steps are what a person builds from, on screen (section 13) and in the PDF (4E), so they break the build down the way official instruction books do (Barry 2026-10-27, from the books he builds from). The doctrine teaches it, the validator checks what it can (<code>step_order</code>, <code>step_size</code>), and the templates show it: the cottage builds its walls a wall at a time, furnishes the room at the second row, and raises the chimney with the walls.</p>
+<ul>
+<li><b>Bottom up, a layer at a time.</b> Walls rise a row at a time, and each row goes on a wall at a time, the far side first, so each step's new parts are in view. A model made of sections (a wall panel, a floor, a tower) builds one section at a time.</li>
+<li><b>Small steps.</b> A step adds a few parts: about 2 to 8 for a 6+ build, 1 to 4 for 4+, and up to about 12 for 18+ when they're the same part in a plain run. A bigger step is split by wall, side, or row. The Age build setting sets the target.</li>
+<li><b>The inside goes in while it's easy to reach.</b> Furniture and interior details go in while the walls are low, or with one side left open (a wall built as a section and closed after). Never after a ceiling or roof has closed the room in.</li>
+<li><b>Features go up with the structure.</b> A chimney, a column, or a drainpipe gains a piece in each layer's step, not one tall stack at the end. Adding a feature means putting its parts in the steps where a builder would add them, and reordering when the old order no longer works; never a step tacked onto the end. The agent checks the order again after every change.</li>
+<li><b>Sub-assemblies.</b> A unit built apart and then attached (a door in its frame, a window with its glass, a tree, a bookcase) is a submodel with its own steps, numbered 1, 2, 3 inside its box. A unit built more than once is built once and marked "2x". Until submodels arrive (3B), a unit's parts share one step.</li>
+<li><b>Titles group steps.</b> A title reads "Walls, row 2: back wall": the part before the colon groups steps in the steps list. The PDF prints step numbers, not titles, like the books.</li>
+</ul>
+<p><b>How a step is shown</b>, on screen and in the PDF, laid out the same way:</p>
+<ul>
+<li><b>The step number</b>, large, at the top left, under the <b>parts box</b>: a picture of each new part in its color with its count ("2x"), larger parts first. No part numbers; the BOM page has them.</li>
+<li><b>The model built up to the step:</b> earlier parts at full color, the step's new parts outlined in red, later parts hidden.</li>
+<li><b>A sub-assembly</b> is drawn in a framed box with its own parts box and numbered sub-steps (1, 2, 3); the next picture shows it going on, with a line from the box to where it goes, and "2x" on the box when it's built twice.</li>
+<li><b>Arrows</b> show which way a part goes on when that isn't obvious; a <b>zoom box</b> shows a part placed somewhere hidden; a <b>turn icon</b> marks a step where the model turns around or over. The camera stays put through a run of steps and moves only when the model turns.</li>
+</ul>
 
 <h3>Ids, source lines, and output</h3>
 <p>Each placed part is written to the <code>.mpd</code> with a meta line before it, which other LDraw tools ignore:</p>
@@ -863,7 +885,7 @@ def cottage(
 <tr><td><code>validate</code></td><td><code>rules?</code></td><td><code>{counts_by_rule, findings[≤50], total, clean}</code></td><td>Counts plus the top 10 findings with ids, positions, and source lines; "full list in build/validation.json"</td></tr>
 <tr><td><code>render</code></td><td><code>view?</code>, <code>step?</code> (with steps, 4E), <code>highlight?</code>, <code>size?=768</code></td><td>MCP image content (PNG) plus <code>{view, size, via, camera, highlighted}</code>; <code>via</code> is <code>app</code> (the open window, over the bus) or <code>render-mode</code></td><td>The view name and what's highlighted</td></tr>
 <tr><td><code>bom</code></td><td><code>format?</code></td><td><code>{lines:[{part, color, qty, rebrickable_id, availability}], totals}</code></td><td>Totals plus any unavailable lines</td></tr>
-<tr><td><code>steps</code></td><td>none</td><td><code>[{n, title, part_ids, submodel}]</code></td><td>The step count and titles</td></tr>
+<tr><td><code>steps</code></td><td>none</td><td><code>[{n, title, part_ids, parts, submodel}]</code>, <code>parts</code> being the step's parts box (part, color, count)</td><td>The step count and titles</td></tr>
 <tr><td><code>save_version</code></td><td><code>name</code>, <code>note?</code></td><td><code>{n, name, parts}</code></td><td>"Saved version 7: Before the roof rewrite". The agent may save a version before a risky change; only the user restores one.</td></tr>
 <tr><td><code>get_params</code> / <code>set_params</code></td><td><code>values?</code></td><td>Schema plus values / the new values</td><td>Changed values</td></tr>
 <tr><td><code>technique</code></td><td><code>name?</code></td><td>The list, or <code>{name, doc, snippet, parts}</code></td><td>The doc's first lines</td></tr>
@@ -1076,7 +1098,8 @@ pub struct Connection { a: (PlacedId, usize), b: (PlacedId, usize), kind: ConnKi
 <tr><td><code>collision</code></td><td>error</td><td>Collision proxies (the body mesh minus stud and anti-stud geometry, cached per part) overlap by more than 0.5 LDU. Broad phase on AABBs, narrow phase with parry3d. Parts joined through a connector pair are exempt where that connector seats.</td><td>v0: shrunk body boxes (1D); v1: proxies (3A)</td></tr>
 <tr><td><code>floating</code></td><td>error</td><td>Connection graph components. Any component not connected to the ground component (the baseplate, the lowest part, or <code>m.ground(id)</code>) is floating.</td><td>v0 (studs only) → v1</td></tr>
 <tr><td><code>disconnected_submodel</code></td><td>error</td><td>A submodel whose parts don't connect to the parent (often a placement offset bug).</td><td>v1</td></tr>
-<tr><td><code>step_order</code></td><td>error</td><td>Each step's parts connect to parts from earlier steps (or form a submodel). A part placed under an existing part with no free insertion path is flagged.</td><td>v1 (insertion-path check is a warning in v1)</td></tr>
+<tr><td><code>step_order</code></td><td>error</td><td>Each step's parts connect to parts from earlier steps (or form a submodel). A part placed under an existing part with no free insertion path is flagged, such as furniture added after the ceiling closed the room in.</td><td>v1 (insertion-path check is a warning in v1)</td></tr>
+<tr><td><code>step_size</code></td><td>warning</td><td>A step adds more parts than the Age build setting's target (8 for 6+, section 08's step rules), counting a sub-assembly as one.</td><td>v1</td></tr>
 <tr><td><code>weak_connection</code></td><td>warning</td><td>A part held by one stud while cantilevering more than 4 studs, or a span held at one end only.</td><td>v1 heuristic; physics later</td></tr>
 <tr><td><code>off_grid</code></td><td>warning</td><td>A position not on the stud or plate grid with no connector seated there (often a typo).</td><td>v1</td></tr>
 <tr><td><code>unknown_part</code> · <code>obsolete_part</code> · <code>alias_part</code></td><td>error · warning · info</td><td>Not in the library, a "~Moved to"/obsolete part, or an alias with a canonical id.</td><td>v0</td></tr>
@@ -1189,7 +1212,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
   <li>Renders for the agent always show the final state, never a frame mid-animation.</li>
   <li>Only animating instances get per-frame matrix updates. Everything else stays static in its <code>InstancedMesh</code>.</li>
   </ul></li>
-<li><b>Steps</b> show the build up to the chosen step: earlier steps dimmed, the current step at full color, and later steps hidden, from the scrubber or from the steps list.</li>
+<li><b>Steps</b> show the build up to the chosen step, from the scrubber or from the steps list, the way section 08's step rules lay it out: earlier steps at full color, the step's new parts outlined in red, later steps hidden, and the step number with its parts box (and any sub-assembly box) over the top left of the viewer.</li>
 <li><b>Render mode</b> (D-24): <code>Emmet --render &lt;project&gt; --view … --out …</code> opens a hidden window, renders through the same <code>viewer.render</code>, writes the PNG, and exits. When the app is already running, <code>render</code> goes over the bus to the open window instead. ADR 0005 proves this on both webviews and records the fallback (an off-screen visible window) if a hidden WebGL context is throttled.</li>
 </ul>
 <h3>Performance budgets (checked by <code>just bench</code> and E2E)</h3>
@@ -2133,7 +2156,7 @@ public types; don't edit emmet_dsl.</code></pre></details>
 <li><code>emmet params --write-default</code>: a single-literal rewrite through Python <code>ast</code> positions, preserving formatting and comments, with tests on tricky signatures.</li>
 <li>Templates: every template gets a baseplate on/off parameter (on by default, the standard 32 × 32 plate); with it off, the model starts at the ground (Barry's notes).</li>
 <li>Submodels used many times (section 08): <code>submodel</code> and <code>place</code>, one <code>0 FILE</code> per submodel and parameter set with a reference per placement, placement-prefixed ids, a BOM that counts every placement, and doctrine that builds a repeated unit as a submodel.</li>
-<li>Steps v1: DSL steps, a layer-based auto-step fallback, submodel steps (built once, then placed "× N"), <code>steps.json</code>, and <code>emmet steps</code>.</li>
+<li>Steps v1 to section 08's step rules: DSL steps, a layer-based auto-step fallback that keeps steps small, submodel steps (built once, then placed "× N"), <code>steps.json</code> with each step's parts box (part, color, count) and sub-assemblies, and <code>emmet steps</code>. The cottage's door and windows become sub-assemblies, and the doctrine teaches them.</li>
 <li>The parts data pack (section 12): <code>scripts/build-parts-data</code> (archive → validated, derived SQLite with a manifest), the app-side loader with signature check (against a fixture key until 6A, section 12) and atomic swap, the pack bundled into builds, the elements and availability tables, the color mapping, and <code>part_unavailable</code>/<code>color_unavailable</code> data for 3A's rules. Rebrickable credit in Settings → Data, the Parts list footer, and BOM exports.</li>
 <li>BOM v1: Rebrickable ids and names, the user's preferred color naming, availability, and exports to CSV, Rebrickable CSV, and BrickLink XML wanted list. Exporters for LDraw <code>.ldr</code>/<code>.mpd</code> and an LPub3D-ready <code>.mpd</code>.</li>
 <li>Technique library v0: 20 techniques in <code>data/techniques/</code> (gable roof, hip roof, SNOT panel, jumper offset, hinge roof, window frame, door frame, stairs, fence, tree, bench, lamp post, platform edge, canopy, track straight run, track curve, track switch, baseplate road, brick-built arch, tiled floor), each with docs, a render, and a validate-clean test. MCP <code>technique</code>.</li>
@@ -2278,7 +2301,7 @@ the replay corpus. No scripted eval runs in this session (D-38).</code></pre></d
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>Materials for every LDraw finish, the studio lighting rig, an optional ground shadow, edge and conditional lines tuned for both themes, stud LOD, and quality presets (auto by GPU).</li>
-<li>Interaction to the design: hover (the part, color, and source line), click to select, box select, frame, the views, the step scrubber and the steps list (the build up to the chosen step: earlier steps dimmed, later steps hidden), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
+<li>Interaction to the design: hover (the part, color, and source line), click to select, box select, frame, the views, the step scrubber and the steps list (the build up to the chosen step: earlier steps at full color, its new parts outlined, later steps hidden, with the parts box and sub-assembly boxes of section 08's step rules), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
 <li>Build animation to section 13: the drop, fade, and glide motion; Animated, Fast, and Off in Settings; Skip and Replay build in the toolbar; reduced motion; and an E2E spec that proves sliders never animate and the camera never moves.</li>
 <li>Highlight modes (issue, select, hover, agent) that are distinct and accessible (not color alone).</li>
 <li>Performance work to meet section 13 on both OSes, including instancing edge cases, transparent sorting, and geometry disposal. Bench and E2E checks enforce the budgets.</li>
@@ -2331,7 +2354,7 @@ fake agents and my hand sessions; the live photo rung runs at G2.</code></pre></
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><b>ADR:</b> the PDF engine (webview print-to-PDF or a Rust PDF crate), proven on both OSes, with font embedding and file size measured.</li>
-<li><b>Step pages:</b> step renders through <code>viewer.render</code> with a fixed camera per page group, new parts highlighted, and earlier parts at full color; parts-per-step callouts with part renders and counts; submodel callouts (a submodel is built once, then placed "× N"); a cover; a BOM page; page numbers; A4 and Letter.</li>
+<li><b>Step pages</b> laid out by section 08's step rules, like the official books: step renders through <code>viewer.render</code> with a fixed camera per page group, earlier parts at full color and new parts outlined in red; a parts box per step with part renders and counts; sub-assembly boxes with numbered sub-steps and a line to where they go ("2x" when built twice); arrows, zoom boxes, and the turn icon where needed; a cover; a BOM page; page numbers; A4 and Letter.</li>
 <li><code>emmet export --format pdf</code>, and Parts list → "Instructions (PDF)". The LPub3D-ready export stays for power users.</li>
 <li>Visual baselines per page for rung 1 and rung 2, on both OSes.</li>
 </ul>

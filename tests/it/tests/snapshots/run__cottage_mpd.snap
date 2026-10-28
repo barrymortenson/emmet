@@ -8,359 +8,391 @@ expression: mpd
 0 !EMMET MODEL cottage
 
 0 !EMMET STEP Baseplate
-0 !EMMET ID base SRC model.py:90
+0 !EMMET ID base SRC model.py:197
 1 2 320 -4 -320 1 0 0 0 1 0 0 0 1 3811.dat
 0 STEP
-0 !EMMET STEP Walls, row 1
-0 !EMMET ID door/frame SRC model.py:107
+0 !EMMET STEP Walls, row 1: back wall
+0 !EMMET ID chimney/1 SRC model.py:121
+1 70 410 -28 -380 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-1-back-wall/1 SRC model.py:193
+1 72 390 -28 -240 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-1-back-wall/2 SRC model.py:193
+1 72 390 -28 -280 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-1-back-wall/3 SRC model.py:193
+1 72 390 -28 -320 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-1-back-wall/4 SRC model.py:193
+1 72 390 -28 -360 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-1-back-wall/5 SRC model.py:193
+1 72 390 -28 -400 0 0 -1 0 1 0 1 0 0 3004.dat
+0 STEP
+0 !EMMET STEP Walls, row 1: side walls
+0 !EMMET ID walls-row-1-side-walls/1 SRC model.py:193
+1 72 280 -28 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-1-side-walls/2 SRC model.py:193
+1 72 320 -28 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-1-side-walls/3 SRC model.py:193
+1 72 360 -28 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-1-side-walls/4 SRC model.py:193
+1 72 280 -28 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-1-side-walls/5 SRC model.py:193
+1 72 320 -28 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-1-side-walls/6 SRC model.py:193
+1 72 360 -28 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 STEP
+0 !EMMET STEP Walls, row 1: front wall
+0 !EMMET ID door/frame SRC model.py:131
 1 15 250 -148 -320 0 0 1 0 1 0 -1 0 0 60596.dat
 0 !EMMET ID door SRC model.py:38
 1 70 250 -148 -288.5 0 0 1 0 1 0 -1 0 0 60623.dat
-0 !EMMET ID walls-row-1/1 SRC model.py:165
+0 !EMMET ID walls-row-1-front-wall/1 SRC model.py:193
 1 72 250 -28 -240 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-1/2 SRC model.py:165
+0 !EMMET ID walls-row-1-front-wall/2 SRC model.py:193
 1 72 250 -28 -270 0 0 -1 0 1 0 1 0 0 3005.dat
-0 !EMMET ID walls-row-1/3 SRC model.py:165
+0 !EMMET ID walls-row-1-front-wall/3 SRC model.py:193
 1 72 250 -28 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-1/4 SRC model.py:165
+0 !EMMET ID walls-row-1-front-wall/4 SRC model.py:193
 1 72 250 -28 -410 0 0 -1 0 1 0 1 0 0 3005.dat
-0 !EMMET ID walls-row-1/5 SRC model.py:165
-1 72 390 -28 -240 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-1/6 SRC model.py:165
-1 72 390 -28 -280 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-1/7 SRC model.py:165
-1 72 390 -28 -320 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-1/8 SRC model.py:165
-1 72 390 -28 -360 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-1/9 SRC model.py:165
-1 72 390 -28 -400 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-1/10 SRC model.py:165
-1 72 280 -28 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-1/11 SRC model.py:165
-1 72 320 -28 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-1/12 SRC model.py:165
-1 72 360 -28 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-1/13 SRC model.py:165
-1 72 280 -28 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-1/14 SRC model.py:165
-1 72 320 -28 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-1/15 SRC model.py:165
-1 72 360 -28 -410 1 0 0 0 1 0 0 0 1 3004.dat
 0 STEP
-0 !EMMET STEP Walls, row 2
-0 !EMMET ID walls-row-2/1 SRC model.py:165
-1 19 260 -52 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-2/2 SRC model.py:165
-1 19 300 -52 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-2/3 SRC model.py:165
-1 19 340 -52 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-2/4 SRC model.py:165
-1 19 380 -52 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-2/5 SRC model.py:165
-1 19 260 -52 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-2/6 SRC model.py:165
-1 19 300 -52 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-2/7 SRC model.py:165
-1 19 340 -52 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-2/8 SRC model.py:165
-1 19 380 -52 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-2/9 SRC model.py:165
-1 19 250 -52 -260 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-2/10 SRC model.py:165
-1 19 250 -52 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-2/11 SRC model.py:165
+0 !EMMET STEP Path and flowers
+0 !EMMET ID path/1 SRC model.py:203
+1 71 220 -12 -320 1 0 0 0 1 0 0 0 1 3068b.dat
+0 !EMMET ID path/2 SRC model.py:203
+1 71 180 -12 -320 1 0 0 0 1 0 0 0 1 3068b.dat
+0 !EMMET ID flower/left/stem SRC model.py:210
+1 2 210 -28 -290 1 0 0 0 1 0 0 0 1 3062b.dat
+0 !EMMET ID flower/left SRC model.py:211
+1 4 210 -36 -290 1 0 0 0 1 0 0 0 1 6141.dat
+0 !EMMET ID flower/right/stem SRC model.py:210
+1 2 210 -28 -350 1 0 0 0 1 0 0 0 1 3062b.dat
+0 !EMMET ID flower/right SRC model.py:211
+1 14 210 -36 -350 1 0 0 0 1 0 0 0 1 6141.dat
+0 STEP
+0 !EMMET STEP Walls, row 2: back wall
+0 !EMMET ID chimney/2 SRC model.py:121
+1 70 410 -52 -380 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-2-back-wall/1 SRC model.py:193
 1 19 390 -52 -260 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-2/12 SRC model.py:165
+0 !EMMET ID walls-row-2-back-wall/2 SRC model.py:193
 1 19 390 -52 -300 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-2/13 SRC model.py:165
+0 !EMMET ID walls-row-2-back-wall/3 SRC model.py:193
 1 19 390 -52 -340 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-2/14 SRC model.py:165
+0 !EMMET ID walls-row-2-back-wall/4 SRC model.py:193
 1 19 390 -52 -380 0 0 -1 0 1 0 1 0 0 3004.dat
 0 STEP
-0 !EMMET STEP Walls, row 3
-0 !EMMET ID window/left SRC model.py:121
-1 15 320 -100 -230 -1 0 0 0 1 0 0 0 -1 60592.dat
-0 !EMMET ID glass/left SRC model.py:38
-1 47 320 -100 -235 -1 0 0 0 1 0 0 0 -1 60601.dat
-0 !EMMET ID window/right SRC model.py:121
-1 15 320 -100 -410 1 0 0 0 1 0 0 0 1 60592.dat
-0 !EMMET ID glass/right SRC model.py:38
-1 47 320 -100 -405 1 0 0 0 1 0 0 0 1 60601.dat
-0 !EMMET ID window/back SRC model.py:121
+0 !EMMET STEP Walls, row 2: side walls
+0 !EMMET ID walls-row-2-side-walls/1 SRC model.py:193
+1 19 260 -52 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-2-side-walls/2 SRC model.py:193
+1 19 300 -52 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-2-side-walls/3 SRC model.py:193
+1 19 340 -52 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-2-side-walls/4 SRC model.py:193
+1 19 380 -52 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-2-side-walls/5 SRC model.py:193
+1 19 260 -52 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-2-side-walls/6 SRC model.py:193
+1 19 300 -52 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-2-side-walls/7 SRC model.py:193
+1 19 340 -52 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-2-side-walls/8 SRC model.py:193
+1 19 380 -52 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 STEP
+0 !EMMET STEP Walls, row 2: front wall
+0 !EMMET ID walls-row-2-front-wall/1 SRC model.py:193
+1 19 250 -52 -260 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-2-front-wall/2 SRC model.py:193
+1 19 250 -52 -380 0 0 -1 0 1 0 1 0 0 3004.dat
+0 STEP
+0 !EMMET STEP Inside: stove
+0 !EMMET ID stove SRC model.py:222
+1 72 360 -28 -380 1 0 0 0 1 0 0 0 1 3003.dat
+0 !EMMET ID stove/top/1 SRC model.py:224
+1 0 360 -36 -370 1 0 0 0 1 0 0 0 1 2412b.dat
+0 !EMMET ID stove/top/2 SRC model.py:224
+1 0 360 -36 -390 1 0 0 0 1 0 0 0 1 2412b.dat
+0 STEP
+0 !EMMET STEP Inside: table and stools
+0 !EMMET ID table/leg SRC model.py:231
+1 70 370 -28 -250 1 0 0 0 1 0 0 0 1 3062b.dat
+0 !EMMET ID table/top SRC model.py:232
+1 70 360.001 -36 -260.001 1 0 0 0 1 0 0 0 1 4032a.dat
+0 !EMMET ID stool/1 SRC model.py:234
+1 19 370 -28 -290 1 0 0 0 1 0 0 0 1 3062b.dat
+0 STEP
+0 !EMMET STEP Inside: bed
+0 !EMMET ID bed SRC model.py:240
+1 15 300 -28 -260 1 0 0 0 1 0 0 0 1 3001.dat
+0 !EMMET ID bed/pillow SRC model.py:241
+1 15 280 -36 -260 1 0 0 0 1 0 0 0 1 3068b.dat
+0 !EMMET ID bed/blanket SRC model.py:242
+1 272 320 -36 -260 1 0 0 0 1 0 0 0 1 3068b.dat
+0 STEP
+0 !EMMET STEP Walls, row 3: back wall
+0 !EMMET ID chimney/3 SRC model.py:121
+1 70 410 -76 -380 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID window/back SRC model.py:135
 1 15 390 -100 -320 0 0 -1 0 1 0 1 0 0 60592.dat
 0 !EMMET ID glass/back SRC model.py:38
 1 47 385 -100 -320 0 0 -1 0 1 0 1 0 0 60601.dat
-0 !EMMET ID window/front/1 SRC model.py:121
+0 !EMMET ID walls-row-3-back-wall/1 SRC model.py:193
+1 19 390 -76 -240 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-3-back-wall/2 SRC model.py:193
+1 19 390 -76 -280 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-3-back-wall/3 SRC model.py:193
+1 19 390 -76 -360 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-3-back-wall/4 SRC model.py:193
+1 19 390 -76 -400 0 0 -1 0 1 0 1 0 0 3004.dat
+0 STEP
+0 !EMMET STEP Walls, row 3: side walls
+0 !EMMET ID window/left SRC model.py:135
+1 15 320 -100 -230 -1 0 0 0 1 0 0 0 -1 60592.dat
+0 !EMMET ID glass/left SRC model.py:38
+1 47 320 -100 -235 -1 0 0 0 1 0 0 0 -1 60601.dat
+0 !EMMET ID window/right SRC model.py:135
+1 15 320 -100 -410 1 0 0 0 1 0 0 0 1 60592.dat
+0 !EMMET ID glass/right SRC model.py:38
+1 47 320 -100 -405 1 0 0 0 1 0 0 0 1 60601.dat
+0 !EMMET ID walls-row-3-side-walls/1 SRC model.py:193
+1 19 280 -76 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-3-side-walls/2 SRC model.py:193
+1 19 360 -76 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-3-side-walls/3 SRC model.py:193
+1 19 280 -76 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-3-side-walls/4 SRC model.py:193
+1 19 360 -76 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 STEP
+0 !EMMET STEP Walls, row 3: front wall
+0 !EMMET ID window/front/1 SRC model.py:135
 1 15 250 -100 -260 0 0 1 0 1 0 -1 0 0 60592.dat
 0 !EMMET ID glass/front/1 SRC model.py:38
 1 47 255 -100 -260 0 0 1 0 1 0 -1 0 0 60601.dat
-0 !EMMET ID window/front/2 SRC model.py:121
+0 !EMMET ID window/front/2 SRC model.py:135
 1 15 250 -100 -380 0 0 1 0 1 0 -1 0 0 60592.dat
 0 !EMMET ID glass/front/2 SRC model.py:38
 1 47 255 -100 -380 0 0 1 0 1 0 -1 0 0 60601.dat
-0 !EMMET ID walls-row-3/1 SRC model.py:165
+0 !EMMET ID walls-row-3-front-wall/1 SRC model.py:193
 1 19 250 -76 -230 0 0 -1 0 1 0 1 0 0 3005.dat
-0 !EMMET ID walls-row-3/2 SRC model.py:165
+0 !EMMET ID walls-row-3-front-wall/2 SRC model.py:193
 1 19 250 -76 -410 0 0 -1 0 1 0 1 0 0 3005.dat
-0 !EMMET ID walls-row-3/3 SRC model.py:165
-1 19 390 -76 -240 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-3/4 SRC model.py:165
-1 19 390 -76 -280 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-3/5 SRC model.py:165
-1 19 390 -76 -360 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-3/6 SRC model.py:165
-1 19 390 -76 -400 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-3/7 SRC model.py:165
-1 19 280 -76 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-3/8 SRC model.py:165
-1 19 360 -76 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-3/9 SRC model.py:165
-1 19 280 -76 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-3/10 SRC model.py:165
-1 19 360 -76 -410 1 0 0 0 1 0 0 0 1 3004.dat
 0 STEP
-0 !EMMET STEP Walls, row 4
-0 !EMMET ID walls-row-4/1 SRC model.py:165
-1 19 260 -100 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-4/2 SRC model.py:165
-1 19 290 -100 -230 1 0 0 0 1 0 0 0 1 3005.dat
-0 !EMMET ID walls-row-4/3 SRC model.py:165
-1 19 360 -100 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-4/4 SRC model.py:165
-1 19 390 -100 -230 1 0 0 0 1 0 0 0 1 3005.dat
-0 !EMMET ID walls-row-4/5 SRC model.py:165
-1 19 260 -100 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-4/6 SRC model.py:165
-1 19 290 -100 -410 1 0 0 0 1 0 0 0 1 3005.dat
-0 !EMMET ID walls-row-4/7 SRC model.py:165
-1 19 360 -100 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-4/8 SRC model.py:165
-1 19 390 -100 -410 1 0 0 0 1 0 0 0 1 3005.dat
-0 !EMMET ID walls-row-4/9 SRC model.py:165
+0 !EMMET STEP Walls, row 4: back wall
+0 !EMMET ID chimney/4 SRC model.py:121
+1 70 410 -100 -380 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-4-back-wall/1 SRC model.py:193
 1 19 390 -100 -260 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-4/10 SRC model.py:165
+0 !EMMET ID walls-row-4-back-wall/2 SRC model.py:193
 1 19 390 -100 -290 0 0 -1 0 1 0 1 0 0 3005.dat
-0 !EMMET ID walls-row-4/11 SRC model.py:165
+0 !EMMET ID walls-row-4-back-wall/3 SRC model.py:193
 1 19 390 -100 -360 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-4/12 SRC model.py:165
+0 !EMMET ID walls-row-4-back-wall/4 SRC model.py:193
 1 19 390 -100 -390 0 0 -1 0 1 0 1 0 0 3005.dat
 0 STEP
-0 !EMMET STEP Walls, row 5
-0 !EMMET ID walls-row-5/1 SRC model.py:165
-1 19 250 -124 -240 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-5/2 SRC model.py:165
-1 19 250 -124 -270 0 0 -1 0 1 0 1 0 0 3005.dat
-0 !EMMET ID walls-row-5/3 SRC model.py:165
-1 19 250 -124 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-5/4 SRC model.py:165
-1 19 250 -124 -410 0 0 -1 0 1 0 1 0 0 3005.dat
-0 !EMMET ID walls-row-5/5 SRC model.py:165
+0 !EMMET STEP Walls, row 4: side walls
+0 !EMMET ID walls-row-4-side-walls/1 SRC model.py:193
+1 19 260 -100 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-4-side-walls/2 SRC model.py:193
+1 19 290 -100 -230 1 0 0 0 1 0 0 0 1 3005.dat
+0 !EMMET ID walls-row-4-side-walls/3 SRC model.py:193
+1 19 360 -100 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-4-side-walls/4 SRC model.py:193
+1 19 390 -100 -230 1 0 0 0 1 0 0 0 1 3005.dat
+0 !EMMET ID walls-row-4-side-walls/5 SRC model.py:193
+1 19 260 -100 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-4-side-walls/6 SRC model.py:193
+1 19 290 -100 -410 1 0 0 0 1 0 0 0 1 3005.dat
+0 !EMMET ID walls-row-4-side-walls/7 SRC model.py:193
+1 19 360 -100 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-4-side-walls/8 SRC model.py:193
+1 19 390 -100 -410 1 0 0 0 1 0 0 0 1 3005.dat
+0 STEP
+0 !EMMET STEP Walls, row 5: back wall
+0 !EMMET ID chimney/5 SRC model.py:121
+1 70 410 -124 -380 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-5-back-wall/1 SRC model.py:193
 1 19 390 -124 -240 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-5/6 SRC model.py:165
+0 !EMMET ID walls-row-5-back-wall/2 SRC model.py:193
 1 19 390 -124 -280 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-5/7 SRC model.py:165
+0 !EMMET ID walls-row-5-back-wall/3 SRC model.py:193
 1 19 390 -124 -320 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-5/8 SRC model.py:165
+0 !EMMET ID walls-row-5-back-wall/4 SRC model.py:193
 1 19 390 -124 -360 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-5/9 SRC model.py:165
+0 !EMMET ID walls-row-5-back-wall/5 SRC model.py:193
 1 19 390 -124 -400 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-5/10 SRC model.py:165
+0 STEP
+0 !EMMET STEP Walls, row 5: side walls
+0 !EMMET ID walls-row-5-side-walls/1 SRC model.py:193
 1 19 280 -124 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-5/11 SRC model.py:165
+0 !EMMET ID walls-row-5-side-walls/2 SRC model.py:193
 1 19 320 -124 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-5/12 SRC model.py:165
+0 !EMMET ID walls-row-5-side-walls/3 SRC model.py:193
 1 19 360 -124 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-5/13 SRC model.py:165
+0 !EMMET ID walls-row-5-side-walls/4 SRC model.py:193
 1 19 280 -124 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-5/14 SRC model.py:165
+0 !EMMET ID walls-row-5-side-walls/5 SRC model.py:193
 1 19 320 -124 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-5/15 SRC model.py:165
+0 !EMMET ID walls-row-5-side-walls/6 SRC model.py:193
 1 19 360 -124 -410 1 0 0 0 1 0 0 0 1 3004.dat
 0 STEP
-0 !EMMET STEP Walls, row 6
-0 !EMMET ID walls-row-6/1 SRC model.py:165
-1 19 260 -148 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-6/2 SRC model.py:165
-1 19 300 -148 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-6/3 SRC model.py:165
-1 19 340 -148 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-6/4 SRC model.py:165
-1 19 380 -148 -230 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-6/5 SRC model.py:165
-1 19 260 -148 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-6/6 SRC model.py:165
-1 19 300 -148 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-6/7 SRC model.py:165
-1 19 340 -148 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-6/8 SRC model.py:165
-1 19 380 -148 -410 1 0 0 0 1 0 0 0 1 3004.dat
-0 !EMMET ID walls-row-6/9 SRC model.py:165
-1 19 250 -148 -260 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-6/10 SRC model.py:165
-1 19 250 -148 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-6/11 SRC model.py:165
+0 !EMMET STEP Walls, row 5: front wall
+0 !EMMET ID walls-row-5-front-wall/1 SRC model.py:193
+1 19 250 -124 -240 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-5-front-wall/2 SRC model.py:193
+1 19 250 -124 -270 0 0 -1 0 1 0 1 0 0 3005.dat
+0 !EMMET ID walls-row-5-front-wall/3 SRC model.py:193
+1 19 250 -124 -380 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-5-front-wall/4 SRC model.py:193
+1 19 250 -124 -410 0 0 -1 0 1 0 1 0 0 3005.dat
+0 STEP
+0 !EMMET STEP Walls, row 6: back wall
+0 !EMMET ID chimney/6 SRC model.py:121
+1 70 410 -148 -380 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-6-back-wall/1 SRC model.py:193
 1 19 390 -148 -260 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-6/12 SRC model.py:165
+0 !EMMET ID walls-row-6-back-wall/2 SRC model.py:193
 1 19 390 -148 -300 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-6/13 SRC model.py:165
+0 !EMMET ID walls-row-6-back-wall/3 SRC model.py:193
 1 19 390 -148 -340 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID walls-row-6/14 SRC model.py:165
+0 !EMMET ID walls-row-6-back-wall/4 SRC model.py:193
 1 19 390 -148 -380 0 0 -1 0 1 0 1 0 0 3004.dat
 0 STEP
-0 !EMMET STEP Inside
-0 !EMMET ID stove SRC model.py:171
-1 72 360 -28 -380 1 0 0 0 1 0 0 0 1 3003.dat
-0 !EMMET ID stove/top/1 SRC model.py:173
-1 0 360 -36 -370 1 0 0 0 1 0 0 0 1 2412b.dat
-0 !EMMET ID stove/top/2 SRC model.py:173
-1 0 360 -36 -390 1 0 0 0 1 0 0 0 1 2412b.dat
-0 !EMMET ID table/leg SRC model.py:179
-1 70 370 -28 -250 1 0 0 0 1 0 0 0 1 3062b.dat
-0 !EMMET ID table/top SRC model.py:180
-1 70 360.001 -36 -260.001 1 0 0 0 1 0 0 0 1 4032a.dat
-0 !EMMET ID stool/1 SRC model.py:182
-1 19 370 -28 -290 1 0 0 0 1 0 0 0 1 3062b.dat
-0 !EMMET ID bed SRC model.py:187
-1 15 300 -28 -260 1 0 0 0 1 0 0 0 1 3001.dat
-0 !EMMET ID bed/pillow SRC model.py:188
-1 15 280 -36 -260 1 0 0 0 1 0 0 0 1 3068b.dat
-0 !EMMET ID bed/blanket SRC model.py:189
-1 272 320 -36 -260 1 0 0 0 1 0 0 0 1 3068b.dat
+0 !EMMET STEP Walls, row 6: side walls
+0 !EMMET ID walls-row-6-side-walls/1 SRC model.py:193
+1 19 260 -148 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-6-side-walls/2 SRC model.py:193
+1 19 300 -148 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-6-side-walls/3 SRC model.py:193
+1 19 340 -148 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-6-side-walls/4 SRC model.py:193
+1 19 380 -148 -230 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-6-side-walls/5 SRC model.py:193
+1 19 260 -148 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-6-side-walls/6 SRC model.py:193
+1 19 300 -148 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-6-side-walls/7 SRC model.py:193
+1 19 340 -148 -410 1 0 0 0 1 0 0 0 1 3004.dat
+0 !EMMET ID walls-row-6-side-walls/8 SRC model.py:193
+1 19 380 -148 -410 1 0 0 0 1 0 0 0 1 3004.dat
 0 STEP
-0 !EMMET STEP Path and flowers
-0 !EMMET ID path/1 SRC model.py:196
-1 71 220 -12 -320 1 0 0 0 1 0 0 0 1 3068b.dat
-0 !EMMET ID path/2 SRC model.py:196
-1 71 180 -12 -320 1 0 0 0 1 0 0 0 1 3068b.dat
-0 !EMMET ID flower/left/stem SRC model.py:203
-1 2 210 -28 -290 1 0 0 0 1 0 0 0 1 3062b.dat
-0 !EMMET ID flower/left SRC model.py:204
-1 4 210 -36 -290 1 0 0 0 1 0 0 0 1 6141.dat
-0 !EMMET ID flower/right/stem SRC model.py:203
-1 2 210 -28 -350 1 0 0 0 1 0 0 0 1 3062b.dat
-0 !EMMET ID flower/right SRC model.py:204
-1 14 210 -36 -350 1 0 0 0 1 0 0 0 1 6141.dat
+0 !EMMET STEP Walls, row 6: front wall
+0 !EMMET ID walls-row-6-front-wall/1 SRC model.py:193
+1 19 250 -148 -260 0 0 -1 0 1 0 1 0 0 3004.dat
+0 !EMMET ID walls-row-6-front-wall/2 SRC model.py:193
+1 19 250 -148 -380 0 0 -1 0 1 0 1 0 0 3004.dat
 0 STEP
 0 !EMMET STEP Ceiling
-0 !EMMET ID ceiling/1 SRC model.py:220
+0 !EMMET ID ceiling/1 SRC model.py:256
 1 19 260 -156 -320 0 0 -1 0 1 0 1 0 0 3832.dat
-0 !EMMET ID ceiling/2 SRC model.py:220
+0 !EMMET ID ceiling/2 SRC model.py:256
 1 19 300 -156 -320 0 0 -1 0 1 0 1 0 0 3832.dat
-0 !EMMET ID ceiling/3 SRC model.py:220
+0 !EMMET ID ceiling/3 SRC model.py:256
 1 19 340 -156 -320 0 0 -1 0 1 0 1 0 0 3832.dat
-0 !EMMET ID ceiling/4 SRC model.py:220
+0 !EMMET ID ceiling/4 SRC model.py:256
 1 19 380 -156 -320 0 0 -1 0 1 0 1 0 0 3832.dat
 0 STEP
-0 !EMMET STEP Roof, course 1
-0 !EMMET ID roof-course-1/1 SRC model.py:241
+0 !EMMET STEP Roof, course 1: front
+0 !EMMET ID roof-course-1-front/1 SRC model.py:280
 1 320 270 -180 -260 0 0 1 0 1 0 -1 0 0 3037.dat
-0 !EMMET ID roof-course-1/2 SRC model.py:242
-1 320 370 -180 -260 0 0 -1 0 1 0 1 0 0 3037.dat
-0 !EMMET ID roof-course-1/3 SRC model.py:241
+0 !EMMET ID roof-course-1-front/2 SRC model.py:280
 1 320 270 -180 -340 0 0 1 0 1 0 -1 0 0 3037.dat
-0 !EMMET ID roof-course-1/4 SRC model.py:242
-1 320 370 -180 -340 0 0 -1 0 1 0 1 0 0 3037.dat
-0 !EMMET ID roof-course-1/5 SRC model.py:241
+0 !EMMET ID roof-course-1-front/3 SRC model.py:280
 1 320 270 -180 -400 0 0 1 0 1 0 -1 0 0 3039.dat
-0 !EMMET ID roof-course-1/6 SRC model.py:242
-1 320 370 -180 -400 0 0 -1 0 1 0 1 0 0 3039.dat
-0 !EMMET ID roof-course-1/7 SRC model.py:247
+0 !EMMET ID roof-course-1-front/4 SRC model.py:285
 1 320 290 -180 -260 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-1/8 SRC model.py:247
+0 !EMMET ID roof-course-1-front/5 SRC model.py:285
 1 320 290 -180 -340 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-1/9 SRC model.py:247
+0 !EMMET ID roof-course-1-front/6 SRC model.py:285
 1 320 290 -180 -400 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID roof-course-1/10 SRC model.py:247
+0 !EMMET ID roof-course-1-front/7 SRC model.py:285
 1 320 310 -180 -260 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-1/11 SRC model.py:247
+0 !EMMET ID roof-course-1-front/8 SRC model.py:285
 1 320 310 -180 -340 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-1/12 SRC model.py:247
+0 !EMMET ID roof-course-1-front/9 SRC model.py:285
 1 320 310 -180 -400 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID roof-course-1/13 SRC model.py:247
+0 STEP
+0 !EMMET STEP Roof, course 1: back
+0 !EMMET ID roof-course-1-back/1 SRC model.py:280
+1 320 370 -180 -260 0 0 -1 0 1 0 1 0 0 3037.dat
+0 !EMMET ID roof-course-1-back/2 SRC model.py:280
+1 320 370 -180 -340 0 0 -1 0 1 0 1 0 0 3037.dat
+0 !EMMET ID roof-course-1-back/3 SRC model.py:280
+1 320 370 -180 -400 0 0 -1 0 1 0 1 0 0 3039.dat
+0 !EMMET ID roof-course-1-back/4 SRC model.py:285
 1 320 330 -180 -260 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-1/14 SRC model.py:247
+0 !EMMET ID roof-course-1-back/5 SRC model.py:285
 1 320 330 -180 -340 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-1/15 SRC model.py:247
+0 !EMMET ID roof-course-1-back/6 SRC model.py:285
 1 320 330 -180 -400 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID roof-course-1/16 SRC model.py:247
+0 !EMMET ID roof-course-1-back/7 SRC model.py:285
 1 320 350 -180 -260 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-1/17 SRC model.py:247
+0 !EMMET ID roof-course-1-back/8 SRC model.py:285
 1 320 350 -180 -340 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-1/18 SRC model.py:247
+0 !EMMET ID roof-course-1-back/9 SRC model.py:285
 1 320 350 -180 -400 0 0 -1 0 1 0 1 0 0 3004.dat
 0 STEP
-0 !EMMET STEP Roof, course 2
-0 !EMMET ID roof-course-2/1 SRC model.py:241
+0 !EMMET STEP Roof, course 2: front
+0 !EMMET ID roof-course-2-front/1 SRC model.py:280
 1 320 290 -204 -260 0 0 1 0 1 0 -1 0 0 3037.dat
-0 !EMMET ID roof-course-2/2 SRC model.py:242
-1 320 350 -204 -260 0 0 -1 0 1 0 1 0 0 3037.dat
-0 !EMMET ID roof-course-2/3 SRC model.py:241
+0 !EMMET ID roof-course-2-front/2 SRC model.py:280
 1 320 290 -204 -340 0 0 1 0 1 0 -1 0 0 3037.dat
-0 !EMMET ID roof-course-2/4 SRC model.py:242
-1 320 350 -204 -340 0 0 -1 0 1 0 1 0 0 3037.dat
-0 !EMMET ID roof-course-2/5 SRC model.py:241
+0 !EMMET ID roof-course-2-front/3 SRC model.py:280
 1 320 290 -204 -400 0 0 1 0 1 0 -1 0 0 3039.dat
-0 !EMMET ID roof-course-2/6 SRC model.py:242
-1 320 350 -204 -400 0 0 -1 0 1 0 1 0 0 3039.dat
-0 !EMMET ID roof-course-2/7 SRC model.py:247
+0 !EMMET ID roof-course-2-front/4 SRC model.py:285
 1 320 310 -204 -260 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-2/8 SRC model.py:247
+0 !EMMET ID roof-course-2-front/5 SRC model.py:285
 1 320 310 -204 -340 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-2/9 SRC model.py:247
+0 !EMMET ID roof-course-2-front/6 SRC model.py:285
 1 320 310 -204 -400 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID roof-course-2/10 SRC model.py:247
+0 STEP
+0 !EMMET STEP Roof, course 2: back
+0 !EMMET ID roof-course-2-back/1 SRC model.py:280
+1 320 350 -204 -260 0 0 -1 0 1 0 1 0 0 3037.dat
+0 !EMMET ID roof-course-2-back/2 SRC model.py:280
+1 320 350 -204 -340 0 0 -1 0 1 0 1 0 0 3037.dat
+0 !EMMET ID roof-course-2-back/3 SRC model.py:280
+1 320 350 -204 -400 0 0 -1 0 1 0 1 0 0 3039.dat
+0 !EMMET ID roof-course-2-back/4 SRC model.py:285
 1 320 330 -204 -260 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-2/11 SRC model.py:247
+0 !EMMET ID roof-course-2-back/5 SRC model.py:285
 1 320 330 -204 -340 0 0 -1 0 1 0 1 0 0 3010.dat
-0 !EMMET ID roof-course-2/12 SRC model.py:247
+0 !EMMET ID roof-course-2-back/6 SRC model.py:285
 1 320 330 -204 -400 0 0 -1 0 1 0 1 0 0 3004.dat
 0 STEP
-0 !EMMET STEP Roof, course 3
-0 !EMMET ID roof-course-3/1 SRC model.py:241
+0 !EMMET STEP Roof, course 3: front
+0 !EMMET ID roof-course-3-front/1 SRC model.py:280
 1 320 310 -228 -260 0 0 1 0 1 0 -1 0 0 3037.dat
-0 !EMMET ID roof-course-3/2 SRC model.py:242
-1 320 330 -228 -260 0 0 -1 0 1 0 1 0 0 3037.dat
-0 !EMMET ID roof-course-3/3 SRC model.py:241
+0 !EMMET ID roof-course-3-front/2 SRC model.py:280
 1 320 310 -228 -340 0 0 1 0 1 0 -1 0 0 3037.dat
-0 !EMMET ID roof-course-3/4 SRC model.py:242
-1 320 330 -228 -340 0 0 -1 0 1 0 1 0 0 3037.dat
-0 !EMMET ID roof-course-3/5 SRC model.py:241
+0 !EMMET ID roof-course-3-front/3 SRC model.py:280
 1 320 310 -228 -400 0 0 1 0 1 0 -1 0 0 3039.dat
-0 !EMMET ID roof-course-3/6 SRC model.py:242
+0 STEP
+0 !EMMET STEP Roof, course 3: back
+0 !EMMET ID roof-course-3-back/1 SRC model.py:280
+1 320 330 -228 -260 0 0 -1 0 1 0 1 0 0 3037.dat
+0 !EMMET ID roof-course-3-back/2 SRC model.py:280
+1 320 330 -228 -340 0 0 -1 0 1 0 1 0 0 3037.dat
+0 !EMMET ID roof-course-3-back/3 SRC model.py:280
 1 320 330 -228 -400 0 0 -1 0 1 0 1 0 0 3039.dat
 0 STEP
-0 !EMMET STEP Roof, course 4
-0 !EMMET ID roof-course-4/1 SRC model.py:236
+0 !EMMET STEP Roof, ridge
+0 !EMMET ID roof-ridge/1 SRC model.py:290
 1 320 320 -252 -260 0 0 -1 0 1 0 1 0 0 3041.dat
-0 !EMMET ID roof-course-4/2 SRC model.py:236
+0 !EMMET ID roof-ridge/2 SRC model.py:290
 1 320 320 -252 -340 0 0 -1 0 1 0 1 0 0 3041.dat
-0 !EMMET ID roof-course-4/3 SRC model.py:236
+0 !EMMET ID roof-ridge/3 SRC model.py:290
 1 320 320 -252 -400 0 0 -1 0 1 0 1 0 0 3043.dat
 0 STEP
-0 !EMMET STEP Chimney
-0 !EMMET ID chimney/1 SRC model.py:255
-1 70 410 -28 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/2 SRC model.py:255
-1 70 410 -52 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/3 SRC model.py:255
-1 70 410 -76 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/4 SRC model.py:255
-1 70 410 -100 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/5 SRC model.py:255
-1 70 410 -124 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/6 SRC model.py:255
-1 70 410 -148 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/7 SRC model.py:255
+0 !EMMET STEP Chimney top
+0 !EMMET ID chimney/7 SRC model.py:121
 1 70 410 -172 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/8 SRC model.py:255
+0 !EMMET ID chimney/8 SRC model.py:121
 1 70 410 -196 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/9 SRC model.py:255
+0 !EMMET ID chimney/9 SRC model.py:121
 1 70 410 -220 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/10 SRC model.py:255
+0 !EMMET ID chimney/10 SRC model.py:121
 1 70 410 -244 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/11 SRC model.py:255
+0 !EMMET ID chimney/11 SRC model.py:121
 1 70 410 -268 -380 0 0 -1 0 1 0 1 0 0 3004.dat
-0 !EMMET ID chimney/12 SRC model.py:255
+0 !EMMET ID chimney/12 SRC model.py:121
 1 70 410 -292 -380 0 0 -1 0 1 0 1 0 0 3004.dat
 0 STEP
 0 NOFILE

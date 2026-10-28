@@ -5,6 +5,14 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
 
 ## 2026-10-27, session 2A
 
+- **Steps read like an official instruction book.** Barry, from the books he builds from: a build goes bottom up a
+  layer or a section (a wall) at a time, with a side open to put the inside in; steps are small groups of parts;
+  a unit built apart is a sub-assembly in its own box with numbered sub-steps; each step shows its parts in a parts
+  box with counts; and adding a feature redoes the step order. Most important for the PDF and on-screen
+  instructions. Plan section 08 has the step rules, section 11 a `step_size` warning, and 3B, 4C, and 4E build them.
+  The cottage template follows them now (31 steps, the same 163 parts), so the tests and the mock match it. The
+  cottage's corners interlock row by row, so its four walls rise together and the room is furnished at the second
+  row, open from above, rather than through an open side.
 - **B is the starting design (H-07 in progress).** After reviewing the three directions, Barry took B (Canvas) as the
   starting point and asked to refine it until it is a fairly complete prototype: the viewer on the left majority of
   the window, the options panel on the right, and the chat along the bottom. H-07 is recorded when the refined B is

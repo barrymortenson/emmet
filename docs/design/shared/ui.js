@@ -261,9 +261,16 @@ window.EMMET_UI = (() => {
       <table><thead><tr><th aria-label="Picture"></th><th>Part</th><th>Name</th><th>Color</th><th class="e-num">Qty</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
+  // Titles group by their words before the colon ("Walls, row 2: back wall"), as plan section 08's step rules say.
   function stepsList(screen) {
     const cur = screen.step || D.steps.length;
-    const rows = D.steps.map((s) => `<li data-state="${s.n < cur ? "past" : s.n === cur ? "current" : "later"}"><span class="e-step-n">${s.n}</span><span>${esc(s.name)}</span><span class="e-small">${s.parts} part${s.parts > 1 ? "s" : ""}</span></li>`).join("");
+    let head = null;
+    const rows = D.steps.map((s) => {
+      const [group, name] = s.name.includes(": ") ? s.name.split(": ") : [null, s.name];
+      const top = group && group !== head ? `<li class="e-step-group">${esc(group)}</li>` : "";
+      head = group;
+      return `${top}<li data-state="${s.n < cur ? "past" : s.n === cur ? "current" : "later"}" data-act="step-${s.n}"><span class="e-step-n">${s.n}</span><span>${esc(name)}</span><span class="e-small">${s.parts} part${s.parts > 1 ? "s" : ""}</span></li>`;
+    }).join("");
     return `<div class="e-steps"><div class="e-steps-top"><b>Step ${cur} of ${D.steps.length}</b>${cur < D.steps.length ? `<span class="e-small">Later steps are hidden</span>` : ""}</div><ol>${rows}</ol></div>`;
   }
 
@@ -281,7 +288,20 @@ window.EMMET_UI = (() => {
     // A partial model (building, or stopped part way) shows the step it reached, not the last one.
     const partial = (b.state === "building" || b.state === "built") && b.parts && b.parts < D.run.parts;
     const cur = screen.step || (partial ? D.stepOf(b.parts) : D.steps.length);
-    return `<div class="e-scrub"><button type="button" class="e-icon-btn" title="Previous step ([)">◀</button><span>Step ${cur}/${D.steps.length}</span><button type="button" class="e-icon-btn" title="Next step (])">▶</button></div>`;
+    return `<div class="e-scrub"><button type="button" class="e-icon-btn" data-act="step-prev" title="Previous step ([)">◀</button><span>Step ${cur}/${D.steps.length}</span><button type="button" class="e-icon-btn" data-act="step-next" title="Next step (])">▶</button></div>`;
+  }
+
+  // A step as the instruction books draw it (plan section 08), over the top left of the viewer: the parts box with
+  // each new part and its count, the step number under it, and a sub-assembly in its own box, its sub-steps numbered,
+  // with a line to where it goes. The render outlines the step's new parts.
+  function stepView(screen) {
+    const v = screen.step && D.stepView[screen.step];
+    if (!v) return "";
+    const theme = document.documentElement.dataset.theme || "light";
+    const pic = ([part, color]) => `${window.EMMET_ROOT}shared/parts/${part}-${color.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.webp`;
+    const box = (parts) => `<div class="e-parts-box">${parts.map((p) => `<span class="e-parts-item" title="${esc(D.bom.find((l) => l.part === p[0])?.name || p[0])}, ${esc(p[1])}"><img src="${pic(p)}" alt="" width="44" height="44"><b>${p[2]}x</b></span>`).join("")}</div>`;
+    const sub = v.sub ? `<div class="e-sub">${box(v.sub.parts)}<ol class="e-sub-steps">${v.sub.steps.map((r, i) => `<li><span class="e-sub-n">${i + 1}</span><img src="${window.EMMET_ROOT}shared/renders/${theme}/${r}.webp" alt=""></li>`).join("")}</ol><span class="e-sub-line" aria-hidden="true"></span></div>` : "";
+    return `<div class="e-step-view" aria-label="Step ${screen.step}">${box(v.parts)}<span class="e-step-no">${screen.step}</span></div>${sub}`;
   }
   function views() {
     return `<div class="e-views" role="group" aria-label="Views">${["Iso", "Front", "Top"].map((v, i) => `<button type="button" class="e-view" aria-pressed="${i === 0}">${v}</button>`).join("")}<button type="button" class="e-icon-btn" title="Frame (F)">${icon("frame")}</button><button type="button" class="e-icon-btn" title="Screenshot">${icon("camera")}</button></div>`;
@@ -382,7 +402,7 @@ window.EMMET_UI = (() => {
 
   return {
     esc, md, icon, spinner, lights, btn, kbd, swatch, shot, buildText, buildTone, agentState, chat, message, pending,
-    composer, chatHeader, params, buildSettings, checks, bom, stepsList, tabs, panel, scrubber, views, animating, banner, signedOut,
+    composer, chatHeader, params, buildSettings, checks, bom, stepsList, stepView, tabs, panel, scrubber, views, animating, banner, signedOut,
     overlay, usageMini, firstRun, trademark, agentOf,
   };
 })();

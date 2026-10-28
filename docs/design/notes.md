@@ -3,6 +3,20 @@
 Barry's notes from using Emmet, newest first. 2A reads this file before it starts, and each direction answers every
 layout note. Each note says which session builds it. Add new notes at the top with the date.
 
+## 2026-10-27, from building with official instruction books
+
+Barry compared the cottage's steps (15, one per wall row, the room furnished after the walls were up, the chimney
+in one stack at the end) with the official books he builds from. Homes proposed, not yet approved by Barry.
+
+11. **Steps like an instruction book.** Build bottom up a layer at a time, or a section at a time (a wall at a time),
+    with a side left open to put interior features in. Steps are small groups of parts. Adding a feature means
+    redoing the step order, not a step at the end. Each step shows its parts the way the books do (a parts box with
+    counts), and a unit built apart is a sub-assembly in its own box. This matters most for the PDF and on-screen
+    instructions. Plan section 08 now has the step rules; 3B builds sub-assemblies and `steps.json`, 4C the steps
+    view, 4E the PDF; the doctrine teaches it now, and the cottage template follows it (31 steps, the room furnished
+    at the second row, the chimney going up with the walls). 2A's mock shows step 4 (the door as a sub-assembly) and
+    step 9 (the stove) as the books would.
+
 ## 2026-10-25, from the 1C live check
 
 Barry used 1C's plain chat pane on the cottage, with Claude Code on his Max plan and Codex on an API key.

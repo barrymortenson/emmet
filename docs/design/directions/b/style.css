@@ -95,6 +95,27 @@
 .e-step-n { width: 20px; text-align: right; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
 .e-steps li[data-state="current"] { background: var(--bg-selected); font-weight: 650; }
 .e-steps li[data-state="later"] { color: var(--fg-muted); }
+.e-steps li[data-act] { cursor: pointer; }
+.e-steps li.e-step-group { padding: 8px 8px 0; font-size: 12px; font-weight: 700; color: var(--fg-muted); }
+
+/* A step as the instruction books draw it (plan section 08): the parts box with counts, the step number under it, and
+   a sub-assembly in its own box with numbered sub-steps and a line to where it goes. */
+.e-step-view { position: absolute; left: 20px; top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.e-parts-box { display: flex; gap: 14px; align-items: flex-end; padding: 8px 14px 6px; border-radius: 6px; background: var(--bg-card); border: 1.5px solid var(--line-strong); box-shadow: 0 1px 3px var(--shadow-soft); }
+.e-parts-item { display: flex; flex-direction: column; align-items: center; font-size: 12px; }
+.e-parts-item img { width: 44px; height: 44px; object-fit: contain; }
+.e-step-no { font-size: 44px; font-weight: 300; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.e-sub { position: absolute; left: 20px; top: 150px; height: 204px; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 8px; border-radius: 6px; background: var(--bg-viewer); border: 1.5px solid var(--ui-control); }
+.e-sub .e-parts-box { box-shadow: none; }
+.e-sub-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+.e-sub-steps li { position: relative; }
+.e-sub-steps img { display: block; width: 108px; height: 108px; object-fit: cover; }
+.e-sub-n { position: absolute; left: 4px; top: 0; font-size: 18px; font-weight: 300; }
+/* Down from the box, then across to the door: its end is a point in the render, so it's placed in the render's own
+   terms (the e-shot rule above; the door's left side is 40.8 % across and 52.5 % down the step-4 render). */
+.e-sub-line { position: absolute; left: 40px; top: 100%; border-left: 1.5px solid var(--fg-text); border-bottom: 1.5px solid var(--fg-text);
+  width: max(0px, calc(50cqw - 0.0878 * max(100cqw, 160cqh) - 60px)); height: max(0px, calc(50cqh + 0.0933 * max(100cqw, 160cqh) - 354px)); }
+.e-sub-line::after { content: ""; position: absolute; right: -2px; bottom: -6px; border: 5.5px solid transparent; border-left: 9px solid var(--fg-text); border-right: 0; }
 
 .e-views { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; }
 .e-view { background: none; border: 0; padding: 4px 11px; border-radius: 999px; color: var(--fg-text); }
