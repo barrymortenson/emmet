@@ -204,7 +204,8 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
             if a.pos.distance(b.pos) > JOINT {
                 return fail("apart");
             }
-            Ok(seat(a.pos, a.axis, 0.0, 0.0, Kind::Gen))
+            let (r, l) = (a.secs[0].radius.max(b.secs[0].radius), a.len().max(b.len()));
+            Ok(seat(a.pos, a.axis, r, l, Kind::Gen))
         }
         (Kind::Finger, Kind::Finger) => {
             let (lo, hi) = along(a, b, dot).ok_or("off the line")?;

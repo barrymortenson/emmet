@@ -26,7 +26,10 @@ use crate::ldraw::{Line, normalize_ref};
 const SHADOW: &str = include_str!("../../../../data/connections/ldcad-shadow.ldr");
 
 /// The override files, by name, so a test can check each one has its test model.
-pub const OVERRIDES: &[(&str, &str)] = &[("track.toml", include_str!("../../../../data/connections/track.toml"))];
+pub const OVERRIDES: &[(&str, &str)] = &[
+    ("track.toml", include_str!("../../../../data/connections/track.toml")),
+    ("hinges.toml", include_str!("../../../../data/connections/hinges.toml")),
+];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Gender {
@@ -359,16 +362,30 @@ fn parse_snap(line: &str, source: Source) -> Option<Snap> {
                 .collect();
             (Kind::Finger, gender("genderofs", Gender::Male), secs, (true, true))
         }
-        "SNAP_GEN" => (
-            Kind::Gen,
-            gender("gender", Gender::Male),
-            vec![Section {
-                shape: Shape::Round,
-                radius: 0.0,
-                len: 0.0,
-            }],
-            (true, true),
-        ),
+        "SNAP_GEN" => {
+            // Its size, for the collision rule's seat: LDCad's bounding (`cyl r h`, `sph r`, `box x y z`).
+            let b: Vec<String> = p
+                .get("bounding")
+                .map(|v| v.split_whitespace().map(str::to_lowercase).collect())
+                .unwrap_or_default();
+            let n: Vec<f64> = b.iter().skip(1).filter_map(|t| t.parse().ok()).collect();
+            let (radius, len) = match (b.first().map(String::as_str), n.as_slice()) {
+                (Some("cyl"), [r, h, ..]) => (*r, *h),
+                (Some("sph"), [r, ..]) => (*r, 2.0 * r),
+                (Some("box"), [x, y, z, ..]) => (x.max(*z), *y),
+                _ => (0.0, 0.0),
+            };
+            (
+                Kind::Gen,
+                gender("gender", Gender::Male),
+                vec![Section {
+                    shape: Shape::Round,
+                    radius,
+                    len,
+                }],
+                (true, true),
+            )
+        }
         _ => return None,
     };
     if secs.is_empty() {

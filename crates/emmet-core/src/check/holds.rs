@@ -12,7 +12,7 @@ use super::{Placed, SEAT, graph};
 use crate::index::Part;
 use crate::ldraw::geometry::Aabb;
 
-/// The connector data's fallback: a part with no female connector at all (one the LDCad data doesn't cover, whose
+/// The connector data's fallback: a part with no anti-stud or hole (no female cylinder) at all (one the LDCad data doesn't cover, whose
 /// underside isn't drawn with tube primitives) takes any stud that enters its underside, at least 4 LDU inside its
 /// sides (validate v0's rule).
 pub(super) fn underside_links(
@@ -26,9 +26,13 @@ pub(super) fn underside_links(
     let open: Vec<bool> = placed
         .iter()
         .map(|q| {
-            q.info
-                .as_ref()
-                .is_some_and(|i| i.body.is_some() && !i.connectors.iter().any(|c| c.gender == Gender::Female))
+            q.info.as_ref().is_some_and(|i| {
+                i.body.is_some()
+                    && !i
+                        .connectors
+                        .iter()
+                        .any(|c| c.gender == Gender::Female && c.kind == Kind::Cyl)
+            })
         })
         .collect();
     let mut grid: HashMap<(i64, i64), Vec<usize>> = HashMap::new();

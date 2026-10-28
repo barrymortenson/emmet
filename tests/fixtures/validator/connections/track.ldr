@@ -1,0 +1,10 @@
+0 Track joined end to end: plastic straight, curve, straight, a 9V switch, and a straight and a curve on its two
+0 exits (data/connections/track.toml)
+0 Name: track.ldr
+0 Author: Emmet
+1 7 0 0 0 1 0 0 0 1 0 0 0 1 53401.dat
+1 7 316.073 0 -15.3717 0.9808 0 0.1951 0 1 0 -0.1951 0 0.9808 53400.dat
+1 7 613.968 0 -122.1256 0.9239 0 0.3827 0 1 0 -0.3827 0 0.9239 53401.dat
+1 7 1057.4276 0 -305.8129 0.9239 0 0.3827 0 1 0 -0.3827 0 0.9239 75541-f1.dat
+1 7 1500.8872 0 -489.5001 0.9239 0 0.3827 0 1 0 -0.3827 0 0.9239 53401.dat
+1 7 1387.9406 0 -772.4419 -0.8315 0 -0.5556 0 1 0 0.5556 0 -0.8315 53400.dat

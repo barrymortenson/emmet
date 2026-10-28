@@ -368,6 +368,23 @@ pub fn validate(
     Ok(finish(placed, raw, &options.allow, inputs_hash))
 }
 
+/// Every connection between placements, as (id, id, kind), one per mating pair of connectors (a joint of two pairs
+/// is listed twice), and every pair one holds the other (kind "held"): for tests that pin the connector data (track,
+/// the overrides).
+#[doc(hidden)]
+pub fn links(index: &Index, lib: &LibFiles, placements: &[Placement]) -> Result<Vec<(String, String, String)>> {
+    let model = prepare(index, lib, placements)?;
+    let id = |i: usize| placements[i].id.clone();
+    let mut out: Vec<(String, String, String)> = model
+        .links
+        .iter()
+        .map(|c| (id(c.a), id(c.b), format!("{:?}", c.kind).to_lowercase()))
+        .chain(model.held.iter().map(|&(a, b)| (id(a), id(b), "held".to_string())))
+        .collect();
+    out.sort();
+    Ok(out)
+}
+
 /// For debugging the connection model: each named placement's connectors in the world, the near misses, every
 /// connection that touches it, and what holds it without a connector pair.
 #[doc(hidden)]

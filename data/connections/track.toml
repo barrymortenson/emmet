@@ -9,6 +9,10 @@
 # - 9V track, and the 9V switches' three ends: s/2867as05, which the end sleepers include: the clip (the socket) at
 #   (0, 0, 20), the pin (the knob) at (0, 0, -20), drawn the other way round, so a 9V end and a plastic end join.
 #
+# The bounding is the joint's size for the collision rule: two ends interlock across their whole end faces (the knob in
+# its socket, and the rail fingers 9 LDU past the face at z = +-50), so the joint covers 62 LDU around each knob, the
+# sleeper's 8 LDU height.
+#
 # Each override names a model in tests/fixtures/validator/connections/ that validates only with it.
 
 [[override]]
@@ -16,8 +20,8 @@ part = "s/53401s02"
 reason = "No shadow entry: the plastic straight track's interlocking end (knob and socket)."
 test = "track.ldr"
 snaps = [
-  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [pos=0 0 20]",
-  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [pos=0 0 -20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [bounding=cyl 62 8] [pos=0 0 20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [bounding=cyl 62 8] [pos=0 0 -20]",
 ]
 
 [[override]]
@@ -25,8 +29,8 @@ part = "s/53400s02"
 reason = "No shadow entry: the plastic curved track's interlocking end, the same as the straight's."
 test = "track.ldr"
 snaps = [
-  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [pos=0 0 20]",
-  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [pos=0 0 -20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [bounding=cyl 62 8] [pos=0 0 20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [bounding=cyl 62 8] [pos=0 0 -20]",
 ]
 
 [[override]]
@@ -34,6 +38,6 @@ part = "s/2867as05"
 reason = "No shadow entry: the 9V end sleeper's clip and pin, which every 9V switch end includes."
 test = "track.ldr"
 snaps = [
-  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [pos=0 0 20]",
-  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [pos=0 0 -20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [bounding=cyl 62 8] [pos=0 0 20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [bounding=cyl 62 8] [pos=0 0 -20]",
 ]

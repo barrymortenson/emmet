@@ -1,0 +1,6 @@
+0 Hinge control stick on its base on a plate, the stick tilted on its pivot (data/connections/hinges.toml)
+0 Name: hinge-control-stick.ldr
+0 Author: Emmet
+1 7 0 0 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 15 10 -8 10 1 0 0 0 1 0 0 0 1 4592.dat
+1 0 10 -10 10 1 0 0 0 0.707107 -0.707107 0 0.707107 0.707107 4593.dat

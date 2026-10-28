@@ -41,6 +41,102 @@ fn the_omr_fixtures_have_no_errors() {
     insta::assert_snapshot!(rest.join("\n"));
 }
 
+/// Each connector override (data/connections/*.toml) has a test model that validates with no errors, in which every
+/// placement of the overridden part connects to another part (plan section 11).
+#[test]
+fn each_override_holds_in_its_test_model() {
+    let data = emmet_core::data::DataDir::at(shared_library());
+    let index = emmet_core::index::Index::ensure(&data).unwrap();
+    let lib = emmet_core::ldraw::geometry::LibFiles::probe(&data.ldraw());
+    let overrides = emmet_core::check::connectors::overrides();
+    assert!(!overrides.is_empty());
+    for o in overrides.values() {
+        let path = fixture(&format!("validator/connections/{}", o.test));
+        let placements = placements_of(&path);
+        let v = validate(shared_library(), &placements);
+        assert_eq!(v.errors(), 0, "{}: {}\n{}", o.part, o.test, report(&v));
+        let links = emmet_core::check::links(&index, &lib, &placements).unwrap();
+        // The part itself, or (for a subpart) every part that includes it.
+        let users: Vec<&String> = placements
+            .iter()
+            .filter(|p| p.part == o.part || o.part.starts_with("s/"))
+            .map(|p| &p.id)
+            .collect();
+        assert!(!users.is_empty(), "{}: {} doesn't use it", o.part, o.test);
+        for id in users {
+            assert!(
+                links.iter().any(|(a, b, _)| a == id || b == id),
+                "{}: {id} in {} connects to nothing",
+                o.part,
+                o.test
+            );
+        }
+    }
+}
+
+/// Track joins exactly (plan section 11's What good looks like: rung 2's loop depends on it): in a layout built from
+/// the end sleepers' frames, each joint is two connections (a knob in a socket, a socket on a knob), plastic to
+/// plastic and plastic to the 9V switch; a piece pulled a stud away joins nothing, and a curve turned back into the
+/// switch collides with it.
+#[test]
+fn track_joins_exactly() {
+    let data = emmet_core::data::DataDir::at(shared_library());
+    let index = emmet_core::index::Index::ensure(&data).unwrap();
+    let lib = emmet_core::ldraw::geometry::LibFiles::probe(&data.ldraw());
+    let placements = placements_of(&fixture("validator/connections/track.ldr"));
+    let joints = |p: &[emmet_core::ldraw::placements::Placement]| {
+        let mut out: Vec<(String, String)> = emmet_core::check::links(&index, &lib, p)
+            .unwrap()
+            .into_iter()
+            .filter(|(_, _, kind)| kind == "gen")
+            .map(|(a, b, _)| (a, b))
+            .collect();
+        out.sort();
+        out
+    };
+    let pair = |a: &str, b: &str| (a.to_string(), b.to_string());
+    let all = vec![
+        pair("part/1", "part/2"),
+        pair("part/1", "part/2"),
+        pair("part/2", "part/3"),
+        pair("part/2", "part/3"),
+        pair("part/3", "part/4"),
+        pair("part/3", "part/4"),
+        pair("part/4", "part/5"),
+        pair("part/4", "part/5"),
+        pair("part/4", "part/6"),
+        pair("part/4", "part/6"),
+    ];
+    let mut got = joints(&placements);
+    got.iter_mut().for_each(|(a, b)| {
+        if a > b {
+            std::mem::swap(a, b)
+        }
+    });
+    got.sort();
+    assert_eq!(got, all);
+    assert_eq!(validate(shared_library(), &placements).errors(), 0);
+    // The straight on the switch's exit, pulled a stud away along itself.
+    let mut apart = placements.clone();
+    let m = &mut apart[4].matrix;
+    let (dx, dz) = (m[0] * 20.0, m[2] * 20.0);
+    m[12] += dx;
+    m[14] += dz;
+    assert!(!joints(&apart).iter().any(|(a, b)| a == "part/5" || b == "part/5"));
+    // The branch's curve turned the other way round runs back into the switch.
+    let mut back = placements.clone();
+    let turned = glam::DMat4::from_cols_array(&back[5].matrix) * glam::DMat4::from_rotation_y(std::f64::consts::PI);
+    back[5].matrix = turned.to_cols_array();
+    let v = validate(shared_library(), &back);
+    assert!(
+        v.findings
+            .iter()
+            .any(|f| f.rule == emmet_core::check::Rule::Collision || f.rule == emmet_core::check::Rule::Floating),
+        "{}",
+        report(&v)
+    );
+}
+
 /// The fixtures are the OMR's files unmodified, and ATTRIBUTION.md credits each one (ADR 0003).
 #[test]
 fn the_omr_fixtures_are_unmodified_and_credited() {
@@ -208,5 +304,56 @@ fn proxy_stats() {
         if let Some(c) = counts.iter().find(|c| c.2 == format!("{id}.dat")) {
             println!("  {id}: {} boxes", c.0);
         }
+    }
+}
+
+/// Not run by default: where a stud fits under each part in `EMMET_PROXY_PARTS` (comma-separated ids): stud-grid
+/// positions where a stud's volume (6 LDU around its axis, 4 LDU up from the underside) is empty in the part's
+/// proxy and the part is solid right above it. For measuring anti-studs the LDCad data lacks (track).
+#[test]
+#[ignore]
+fn anti_studs() {
+    let data = emmet_core::data::DataDir::at(shared_library());
+    let lib = emmet_core::ldraw::geometry::LibFiles::probe(&data.ldraw());
+    for id in std::env::var("EMMET_PROXY_PARTS")
+        .expect("EMMET_PROXY_PARTS")
+        .split(',')
+    {
+        let mut m = emmet_core::ldraw::geometry::Measurer::new(&lib);
+        let boxes = emmet_core::check::proxy::build(&mut m, &format!("{id}.dat"));
+        let bottom = boxes.iter().map(|b| b[4]).max().unwrap_or(0) as f64;
+        let (x0, x1) = (
+            boxes.iter().map(|b| b[0]).min().unwrap() as f64,
+            boxes.iter().map(|b| b[3]).max().unwrap() as f64,
+        );
+        let (z0, z1) = (
+            boxes.iter().map(|b| b[2]).min().unwrap() as f64,
+            boxes.iter().map(|b| b[5]).max().unwrap() as f64,
+        );
+        let hits = |lo: [f64; 3], hi: [f64; 3]| {
+            boxes
+                .iter()
+                .any(|b| (0..3).all(|k| (b[k] as f64) < hi[k] && lo[k] < (b[k + 3] as f64)))
+        };
+        let mut found = Vec::new();
+        let mut x = (x0 / 10.0).floor() * 10.0;
+        while x <= x1 {
+            let mut z = (z0 / 10.0).floor() * 10.0;
+            while z <= z1 {
+                let stud_free = !hits([x - 4.0, bottom - 4.0, z - 4.0], [x + 4.0, bottom, z + 4.0]);
+                let roof = hits([x - 1.0, bottom - 8.0, z - 1.0], [x + 1.0, bottom - 4.0, z + 1.0]);
+                let gripped = hits([x - 8.0, bottom - 4.0, z - 8.0], [x + 8.0, bottom, z + 8.0]);
+                if stud_free && roof && gripped {
+                    found.push(format!("({x}, {z})"));
+                }
+                z += 10.0;
+            }
+            x += 10.0;
+        }
+        println!(
+            "{id}: bottom y={bottom}, {} positions: {}",
+            found.len(),
+            found.join(" ")
+        );
     }
 }

@@ -1,0 +1,21 @@
+# Hinge overrides (plan section 11): parts whose LDCad snap data is off their geometry. Each names a model in
+# tests/fixtures/validator/connections/ that validates only with it.
+
+[[override]]
+part = "4592"
+reason = """The Hinge Control Stick Base's fingers are at its origin in the LDCad data, but its pivot (the bumps the \
+stick turns on) is 2 LDU up, at y = -2, where official models put the stick (1499-1, 4939-1, 4543-1)."""
+test = "hinge-control-stick.ldr"
+replace = true
+snaps = [
+  "!LDCAD SNAP_FGR [genderOfs=M] [seq=6 4 6] [radius=4] [center=true] [pos=0 -2 0] [ori=0 -1 0 1 0 0 0 0 1]",
+  "!LDCAD SNAP_CYL [gender=F] [caps=one] [secs=R 6 6] [pos=0 8 0]",
+  "!LDCAD SNAP_CYL [gender=M] [caps=none] [secs=R 8 5] [center=true] [pos=0 5.5 0]",
+]
+
+[[override]]
+part = "4593"
+reason = "The Hinge Control Stick's finger is its 4 LDU pivot, centered on its origin; the LDCad data starts it there."
+test = "hinge-control-stick.ldr"
+replace = true
+snaps = ["!LDCAD SNAP_FGR [genderOfs=M] [seq=4] [radius=4] [center=true] [ori=0 -1 0 1 0 0 0 0 1]"]

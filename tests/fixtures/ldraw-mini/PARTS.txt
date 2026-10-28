@@ -95,3 +95,6 @@
 43722 43723             # ~Moved to 43722a and 43723a (wedge plates)
 4586822a                # a sticker
 3624 3626bp01 3815b 3816b 3817b 3818 3819 3820 973   # a minifig: hat, head, hips, legs, arms, hands, torso
+
+# Parts the connector overrides' test models use (data/connections/, tests/fixtures/validator/connections/)
+4592 4593   # hinge control stick base and stick

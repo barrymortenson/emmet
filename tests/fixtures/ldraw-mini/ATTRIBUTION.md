@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 214 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 216 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -106,6 +106,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/4-4con2.dat | Cone  2 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/4-4con3.dat | Cone  3 x 1.0 | Niels Karsdorp [nielsk] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/4-4con4.dat | Cone  4 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/4-4cyl1sph2.dat | Cylinder  1 LDU Truncated to Fit Sphere  2 LDU | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/4-4cylc.dat | Cylinder Closed 1.0 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/4-4cylc3.dat | Cylinder Closed 1.0 without Top or Bottom Edge Lines | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/4-4cyli.dat | Cylinder 1.0 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -162,6 +163,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/7-16edge.dat | Circle 0.4375 | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/7-16ndis.dat | Disc Negative 0.4375 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/7-16ring3.dat | Ring  3 x 0.4375 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/8-8sphe.dat | Sphere 1.0 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/8/2-4chrd.dat | Chord 0.5 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/8/2-4cyli.dat | Cylinder 0.5 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/8/2-4cylo.dat | Cylinder Open 0.5 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -213,6 +215,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/clip6.dat | Clip Horizontal with Rounded Sides | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/connect.dat | Technic Pin 1.0 with Base Collar | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/connect2.dat | Technic Pin 1.0 without Base Collar | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/cylj4x8.dat | Cylinder Joint  4 to  8 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/empty.dat | Empty | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/filstud3.dat | Stud Filler with 3 Ribs for Hollow Studs | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/hipstud.dat | Stud for Minifig Hips | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -431,6 +434,8 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/4477.dat | Plate  1 x 10 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4586822a.dat | Sticker  0.8 x  0.8 Round with Black and White Eye | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4589.dat | Cone  1 x  1 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/4592.dat | Hinge Control Stick Base | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/4593.dat | Hinge Control Stick | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4740.dat | Dish  2 x  2 Inverted | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4864b.dat | Panel  1 x  2 x  2 with Hollow Studs | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4865b.dat | Panel  1 x  2 x  1 with Rounded Corners | Rolf Osterthun [Rolf] | Licensed under CC BY 4.0 : see CAreadme.txt |
