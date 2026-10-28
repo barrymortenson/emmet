@@ -51,8 +51,11 @@ pub const TECHNIQUES: &[(&str, &str)] = technique_files![
     "bench",
     "brick_built_arch",
     "canopy",
+    "door_frame",
     "fence",
     "gable_roof",
+    "hip_roof",
+    "jumper_offset",
     "lamp_post",
     "platform_edge",
     "stairs",
@@ -60,7 +63,8 @@ pub const TECHNIQUES: &[(&str, &str)] = technique_files![
     "track_curve",
     "track_straight_run",
     "track_switch",
-    "tree"
+    "tree",
+    "window_frame"
 ];
 
 /// `__version__` from the embedded `__init__.py`.
