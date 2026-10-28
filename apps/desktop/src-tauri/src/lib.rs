@@ -103,6 +103,8 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             get_params,
             set_params,
             list_colors,
+            data_settings,
+            set_color_names,
             rebuild,
             bus_reply,
             render_job,

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-color-names"
+description = "Enables the set_color_names command without any pre-configured scope."
+commands.allow = ["set_color_names"]
+
+[[permission]]
+identifier = "deny-set-color-names"
+description = "Denies the set_color_names command without any pre-configured scope."
+commands.deny = ["set_color_names"]
