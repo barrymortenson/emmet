@@ -14,6 +14,7 @@
   "dependencies": {
     "@emmet/viewer": "workspace:*",
     "@tauri-apps/api": "catalog:",
+    "lucide-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

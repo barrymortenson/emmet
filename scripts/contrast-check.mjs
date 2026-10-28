@@ -14,6 +14,8 @@ import { pathToFileURL } from "node:url";
 
 const ROOT = join(import.meta.dirname, "..");
 const DESIGN = join(ROOT, "docs/design");
+// The app's own tokens (session 2B), which the frozen design and, from 4A, the app take every color from.
+const APP_STYLES = join(ROOT, "apps/desktop/src/styles");
 
 /** #rgb, #rgba, #rrggbb, #rrggbbaa, or rgb()/rgba() → [r, g, b, a]. */
 export function parseColor(s) {
@@ -121,12 +123,13 @@ export function checkSource(text, name) {
   return errors;
 }
 
-// Every stylesheet, script, and page under docs/design, found rather than listed, so a new or renamed file is checked
-// too. data.js holds the part colors, which are content.
+// Every stylesheet, script, and page under docs/design, and the app's stylesheets in src/styles, found rather than
+// listed, so a new or renamed file is checked too. data.js holds the part colors, which are content.
 function designFiles() {
   const files = readdirSync(DESIGN, { recursive: true }).map((f) => join(DESIGN, f)).sort();
+  const app = readdirSync(APP_STYLES).filter((f) => /\.css$/i.test(f)).map((f) => join(APP_STYLES, f)).sort();
   return {
-    css: files.filter((f) => /\.css$/i.test(f)),
+    css: files.filter((f) => /\.css$/i.test(f)).concat(app),
     src: files.filter((f) => /\.(m?js|jsx|tsx?|html?)$/i.test(f) && f !== join(DESIGN, "shared/data.js")),
   };
 }
