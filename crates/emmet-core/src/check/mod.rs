@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! validate v0 (plan section 11): collisions by shrunk body boxes, floating parts by stud connections, and unknown,
+//! The validator (plan section 11, `docs/spec/validator.md`): the connection model (connectors, the pairs they seat,
+//! and the pairs that hold without them) and the rules over it, collisions by collision proxies, and unknown,
 //! obsolete, and alias parts. Findings carry stable ids, the parts' source lines, a position in the DSL frame, and a
-//! hint, and go to `build/validation.json`. 3A replaces the boxes with collision proxies and the studs with the full
-//! connection model.
+//! hint, and go to `build/validation.json`.
 
 mod boxes;
+mod collision;
 pub mod connectors;
+pub mod graph;
+mod holds;
+pub mod proxy;
+mod steps;
+mod structure;
 
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::rc::Rc;
 
 use glam::{DMat4, DVec3};
@@ -19,7 +25,7 @@ use crate::index::{Index, Part};
 use crate::ldraw::geometry::{Aabb, LibFiles, Measurer};
 use crate::ldraw::placements::Placement;
 use boxes::Obb;
-use connectors::{Scanner, Stud};
+use connectors::{Connector, Scanner};
 
 /// What a finding means for the build.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
@@ -30,22 +36,32 @@ pub enum Severity {
     Info,
 }
 
-/// The rules v0 checks, in the order findings are listed within a severity.
+/// The rules (plan section 11), in the order findings with the same severity and source line are listed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Rule {
     UnknownPart,
     Collision,
     Floating,
+    DisconnectedSubmodel,
+    StepOrder,
+    StepSize,
+    WeakConnection,
+    OffGrid,
     ObsoletePart,
     AliasPart,
 }
 
 impl Rule {
-    pub const ALL: [Rule; 5] = [
+    pub const ALL: [Rule; 10] = [
         Rule::UnknownPart,
         Rule::Collision,
         Rule::Floating,
+        Rule::DisconnectedSubmodel,
+        Rule::StepOrder,
+        Rule::StepSize,
+        Rule::WeakConnection,
+        Rule::OffGrid,
         Rule::ObsoletePart,
         Rule::AliasPart,
     ];
@@ -55,9 +71,20 @@ impl Rule {
             Rule::UnknownPart => "unknown_part",
             Rule::Collision => "collision",
             Rule::Floating => "floating",
+            Rule::DisconnectedSubmodel => "disconnected_submodel",
+            Rule::StepOrder => "step_order",
+            Rule::StepSize => "step_size",
+            Rule::WeakConnection => "weak_connection",
+            Rule::OffGrid => "off_grid",
             Rule::ObsoletePart => "obsolete_part",
             Rule::AliasPart => "alias_part",
         }
+    }
+
+    /// Every rule's name, for a hint: "collision, floating, …, or alias_part".
+    pub fn list() -> String {
+        let names: Vec<&str> = Rule::ALL.iter().map(|r| r.name()).collect();
+        format!("{}, or {}", names[..names.len() - 1].join(", "), names[names.len() - 1])
     }
 
     pub fn parse(name: &str) -> Option<Rule> {
@@ -66,8 +93,10 @@ impl Rule {
 
     pub fn severity(self) -> Severity {
         match self {
-            Rule::UnknownPart | Rule::Collision | Rule::Floating => Severity::Error,
-            Rule::ObsoletePart => Severity::Warning,
+            Rule::UnknownPart | Rule::Collision | Rule::Floating | Rule::DisconnectedSubmodel | Rule::StepOrder => {
+                Severity::Error
+            }
+            Rule::StepSize | Rule::WeakConnection | Rule::OffGrid | Rule::ObsoletePart => Severity::Warning,
             Rule::AliasPart => Severity::Info,
         }
     }
@@ -97,7 +126,7 @@ pub struct Finding {
     pub hint: String,
 }
 
-/// A finding the project allows (`[[check.allow]]` in emmet.toml), with its reason.
+/// A finding the project or the model allows (`[[check.allow]]` in emmet.toml, `m.allow`), with its reason.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Allowed {
     pub rule: String,
@@ -129,7 +158,19 @@ impl Validation {
     }
 }
 
-/// An allow entry from emmet.toml.
+/// What the validator reads besides the placements.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Options {
+    /// Findings the project allows: emmet.toml's `[[check.allow]]` and the model's `m.allow`.
+    pub allow: Vec<Allow>,
+    /// The parts the model stands on (`m.ground`), besides its lowest level and any baseplate.
+    pub ground: Vec<String>,
+    /// How many parts a step may add before step_size warns: the Age build setting's target (0 means 8, the 6+
+    /// target).
+    pub step_target: usize,
+}
+
+/// An allow entry from emmet.toml or the model (`m.allow`).
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
 pub struct Allow {
     pub rule: String,
@@ -139,21 +180,14 @@ pub struct Allow {
     pub reason: String,
 }
 
-/// Shrunk this far on every side, body boxes that only touch never collide.
-const SHRINK: f64 = 1.0;
-/// Shrunk boxes that overlap by more than this collide (plan section 11)…
-const OVERLAP: f64 = 0.5;
-/// …and by more than this side by side, where body boxes take in pins, clips, and hinges that stick out of a part's
-/// sides (a quarter stud). A part a half stud or more into its neighbor still collides.
-const OVERLAP_SIDE: f64 = 5.0;
-/// A stud enters a part through its underside when its base is at most this far inside it…
+/// How far inside a part a stud's base may be and still enter it through its underside, and how far a part's top may
+/// be inside another's bottom and still be under it.
 const SEAT: f64 = 1.5;
-/// …and its tip reaches at least this far into it.
-const ENTER: f64 = 2.0;
-/// How far inside the receiving part's sides a stud's center must be.
-const INSET: f64 = 4.0;
 /// Parts whose bottom is this close to the model's lowest point stand on the ground.
 const GROUND: f64 = 1.0;
+/// Without a baseplate or ground parts, a group with nothing under it whose bottom is this close to the lowest point stands on the
+/// table beside the rest (two plates: models place a vehicle and the figures next to it a little apart in height).
+const ON_THE_TABLE: f64 = 16.0;
 const STUD: f64 = 20.0;
 const PLATE: f64 = 8.0;
 
@@ -164,23 +198,52 @@ struct Placed<'p> {
     info: Option<Rc<Info>>,
 }
 
-/// A part's index row and its studs.
+/// A part's index row and its connectors.
 struct Info {
     part: Part,
+    /// What the part is, for rules that go by category or name: the part itself, or for a moved id (`~Moved to
+    /// 3139b`) the part it moved to.
+    kind: Part,
     body: Option<Aabb>,
-    studs: Rc<Vec<Stud>>,
+    connectors: Rc<Vec<Connector>>,
 }
 
-/// Checks `placements` (the rows of build/placements.json) with the rules in `rules`, against the parts index and the
-/// library at `lib`.
-pub fn validate(
-    index: &Index,
-    lib: &LibFiles,
-    placements: &[Placement],
-    rules: &[Rule],
-    allow: &[Allow],
-    inputs_hash: Option<String>,
-) -> Result<Validation> {
+/// The placements with what the rules need: each part's row, its box in the world, its connectors in the world, the
+/// connections, and the pairs one part holds the other without a connector pair.
+struct Model<'p> {
+    placed: Vec<Placed<'p>>,
+    world: Vec<Option<Obb>>,
+    /// The world boxes around `world`.
+    boxes: Vec<Option<Aabb>>,
+    /// The model's lowest point (LDraw's −Y is up, so the largest y).
+    lowest: f64,
+    conns: Vec<graph::Placed>,
+    links: Vec<graph::Connection>,
+    held: HashSet<(usize, usize)>,
+    /// Each placement's collision proxy (empty for an unknown part).
+    proxies: Vec<Rc<Vec<proxy::ProxyBox>>>,
+}
+
+impl Model<'_> {
+    /// Every pair of placements joined by a connection or held one by the other, each once.
+    fn pairs(&self) -> Vec<(usize, usize)> {
+        let mut out: Vec<(usize, usize)> = self
+            .links
+            .iter()
+            .map(|c| (c.a.min(c.b), c.a.max(c.b)))
+            .chain(self.held.iter().copied())
+            .collect();
+        out.sort();
+        out.dedup();
+        out
+    }
+
+    fn kind(&self, i: usize) -> Option<&Part> {
+        self.placed[i].info.as_ref().map(|i| &i.kind)
+    }
+}
+
+fn prepare<'p>(index: &Index, lib: &LibFiles, placements: &'p [Placement]) -> Result<Model<'p>> {
     let mut scanner = Scanner::new(Measurer::new(lib));
     let mut infos: HashMap<String, Option<Rc<Info>>> = HashMap::new();
     let mut placed = Vec::with_capacity(placements.len());
@@ -188,11 +251,23 @@ pub fn validate(
         let info = match infos.get(&p.part) {
             Some(i) => i.clone(),
             None => {
-                let info = index.part(&p.part)?.map(|part| {
-                    let body = part.body_box.map(Aabb::from_array);
-                    let studs = scanner.studs(&format!("{}.dat", part.id));
-                    Rc::new(Info { part, body, studs })
-                });
+                let info = match index.part(&p.part)? {
+                    Some(part) => {
+                        let body = part.body_box.map(Aabb::from_array);
+                        let connectors = scanner.connectors(&format!("{}.dat", part.id));
+                        let kind = match (&part.alias_of, part.name.starts_with("~Moved to")) {
+                            (Some(to), true) => index.part(to)?.unwrap_or_else(|| part.clone()),
+                            _ => part.clone(),
+                        };
+                        Some(Rc::new(Info {
+                            part,
+                            kind,
+                            body,
+                            connectors,
+                        }))
+                    }
+                    None => None,
+                };
                 infos.insert(p.part.clone(), info.clone());
                 info
             }
@@ -203,33 +278,210 @@ pub fn validate(
             info,
         });
     }
-
-    let mut raw: Vec<Raw> = Vec::new();
-    let on = |r: Rule| rules.contains(&r);
-    if on(Rule::UnknownPart) || on(Rule::ObsoletePart) || on(Rule::AliasPart) {
-        raw.extend(part_rules(&placed, rules));
-    }
     let world: Vec<Option<Obb>> = placed
         .iter()
         .map(|q| Some(Obb::new(q.info.as_ref()?.body.as_ref()?, &q.m, 0.0)))
         .collect();
+    let held = holds::held_pairs(&placed, &world);
+    let conns = graph::world(
+        &placed
+            .iter()
+            .map(|q| {
+                (
+                    q.m,
+                    q.info.as_ref().map_or_else(Default::default, |i| i.connectors.clone()),
+                )
+            })
+            .collect::<Vec<_>>(),
+    );
+    let mut links = graph::connections(&conns);
+    links.extend(holds::underside_links(&placed, &world, &conns));
+    let mut held = held;
+    held.extend(holds::wedged_pairs(&world, &conns));
+    let ids: Vec<String> = infos
+        .iter()
+        .filter(|(_, i)| i.is_some())
+        .map(|(id, _)| id.clone())
+        .collect();
+    let cache = index.proxies(lib, &ids)?;
+    let proxies = placed
+        .iter()
+        .map(|q| cache.get(&q.p.part).cloned().unwrap_or_default())
+        .collect();
+    let boxes: Vec<Option<Aabb>> = world.iter().map(|o| o.map(|o| o.aabb())).collect();
+    let lowest = boxes
+        .iter()
+        .flatten()
+        .map(|b| b.max.y)
+        .fold(f64::NEG_INFINITY, f64::max);
+    Ok(Model {
+        placed,
+        world,
+        boxes,
+        lowest,
+        conns,
+        links,
+        held,
+        proxies,
+    })
+}
+
+/// Checks `placements` (the rows of build/placements.json) with the rules in `rules`, against the parts index and the
+/// library at `lib`.
+pub fn validate(
+    index: &Index,
+    lib: &LibFiles,
+    placements: &[Placement],
+    rules: &[Rule],
+    options: &Options,
+    inputs_hash: Option<String>,
+) -> Result<Validation> {
+    let model = prepare(index, lib, placements)?;
+    let placed = &model.placed;
+    let mut raw: Vec<Raw> = Vec::new();
+    let on = |r: Rule| rules.contains(&r);
+    if on(Rule::UnknownPart) || on(Rule::ObsoletePart) || on(Rule::AliasPart) {
+        raw.extend(part_rules(placed, rules));
+    }
     if on(Rule::Collision) {
-        raw.extend(collisions(&placed, &world));
+        raw.extend(collision::collisions(&model));
     }
+    let ground = structure::ground(&model, options);
+    let groups = structure::floating_groups(&model, options);
+    let (disconnected, named) = structure::disconnected_submodels(&model);
+    if on(Rule::DisconnectedSubmodel) {
+        raw.extend(disconnected);
+    }
+    let skip: HashSet<usize> = if on(Rule::DisconnectedSubmodel) {
+        named
+    } else {
+        HashSet::new()
+    };
     if on(Rule::Floating) {
-        raw.extend(floating(&placed, &world));
+        raw.extend(structure::floating(&model, &groups, &skip));
     }
-    Ok(finish(&placed, raw, allow, inputs_hash))
+    if on(Rule::StepOrder) {
+        let mut stuck: HashSet<usize> = groups.iter().flatten().copied().collect();
+        stuck.extend(skip.iter().copied());
+        raw.extend(steps::step_order(&model, options, &ground, &stuck));
+    }
+    if on(Rule::StepSize) {
+        raw.extend(steps::step_size(&model, options.step_target));
+    }
+    if on(Rule::WeakConnection) {
+        raw.extend(structure::weak_connections(&model, &ground));
+    }
+    if on(Rule::OffGrid) {
+        raw.extend(structure::off_grid(&model, &ground));
+    }
+    Ok(finish(placed, raw, &options.allow, inputs_hash))
+}
+
+/// Every connection between placements, as (id, id, kind), one per mating pair of connectors (a joint of two pairs
+/// is listed twice), and every pair one holds the other (kind "held"): for tests that pin the connector data (track,
+/// the overrides).
+#[doc(hidden)]
+pub fn links(index: &Index, lib: &LibFiles, placements: &[Placement]) -> Result<Vec<(String, String, String)>> {
+    let model = prepare(index, lib, placements)?;
+    let id = |i: usize| placements[i].id.clone();
+    let mut out: Vec<(String, String, String)> = model
+        .links
+        .iter()
+        .map(|c| (id(c.a), id(c.b), format!("{:?}", c.kind).to_lowercase()))
+        .chain(model.held.iter().map(|&(a, b)| (id(a), id(b), "held".to_string())))
+        .collect();
+    out.sort();
+    Ok(out)
+}
+
+/// For debugging the connection model: each named placement's connectors in the world, the near misses, every
+/// connection that touches it, and what holds it without a connector pair.
+#[doc(hidden)]
+pub fn explain(index: &Index, lib: &LibFiles, placements: &[Placement], ids: &[String]) -> Result<String> {
+    let model = prepare(index, lib, placements)?;
+    let (world, links) = (&model.conns, &model.links);
+    let mut out = String::new();
+    for (i, p) in placements.iter().enumerate() {
+        if !ids.iter().any(|id| id == &p.id) {
+            continue;
+        }
+        out += &format!("{} {} at {:?}\n", p.id, p.part, &p.matrix[12..15]);
+        for (k, w) in world.iter().enumerate().filter(|(_, w)| w.part == i) {
+            let c = &w.c;
+            out += &format!(
+                "  {:?} {:?} {:?} pos {:.2?} axis {:.2?} secs {:?} slide {} group {:?}\n",
+                c.source,
+                c.kind,
+                c.gender,
+                c.pos.to_array(),
+                c.axis.to_array(),
+                c.secs.iter().map(|s| (s.radius, s.len)).collect::<Vec<_>>(),
+                c.slide,
+                c.group
+            );
+            for (j, why, off) in graph::near(world, k, 4.0) {
+                let q = &world[j];
+                out += &format!(
+                    "      near {} ({}) {:?} {:?} pos {:.2?} axis {:.2?} secs {:?} off {off:.2} why {why}\n",
+                    placements[q.part].id,
+                    placements[q.part].part,
+                    q.c.kind,
+                    q.c.gender,
+                    q.c.pos.to_array(),
+                    q.c.axis.to_array(),
+                    q.c.secs.iter().map(|s| (s.radius, s.len)).collect::<Vec<_>>(),
+                );
+            }
+        }
+        for l in links.iter().filter(|l| l.a == i || l.b == i) {
+            let other = if l.a == i { l.b } else { l.a };
+            out += &format!(
+                "  linked to {} ({}) by {:?} at {:.1?}\n",
+                placements[other].id,
+                placements[other].part,
+                l.kind,
+                l.at.to_array()
+            );
+        }
+        for &(a, b) in model.held.iter().filter(|(a, b)| *a == i || *b == i) {
+            let other = if a == i { b } else { a };
+            out += &format!("  held with {} ({})\n", placements[other].id, placements[other].part);
+        }
+        if let Some(w) = model.world[i] {
+            let b = w.aabb();
+            out += &format!("  box {:.1?}..{:.1?}\n", b.min.to_array(), b.max.to_array());
+        }
+    }
+    Ok(out)
 }
 
 /// A finding before it's numbered.
 struct Raw {
     rule: Rule,
+    /// The finding's severity when it isn't the rule's (step_order's insertion-path check is a warning in v1).
+    severity: Option<Severity>,
     /// Indexes into the placements.
     parts: Vec<usize>,
     at: [f64; 3],
     message: String,
     hint: String,
+}
+
+impl Raw {
+    fn new(rule: Rule, parts: Vec<usize>, at: [f64; 3], message: String, hint: String) -> Self {
+        Self {
+            rule,
+            severity: None,
+            parts,
+            at,
+            message,
+            hint,
+        }
+    }
+
+    fn severity(&self) -> Severity {
+        self.severity.unwrap_or(self.rule.severity())
+    }
 }
 
 fn name(q: &Placed) -> String {
@@ -288,331 +540,12 @@ fn part_rules(placed: &[Placed], rules: &[Rule]) -> Vec<Raw> {
         if !rules.contains(&rule) {
             continue;
         }
-        out.push(Raw {
-            rule,
-            at: dsl_point(q.m.w_axis.truncate()),
-            parts: idx,
-            message,
-            hint,
-        });
+        out.push(Raw::new(rule, idx, dsl_point(q.m.w_axis.truncate()), message, hint));
     }
     out
 }
 
-/// Window and door frames, and what fills them (glass, panes, shutters, doors): a filler inside its frame isn't a
-/// collision.
-fn frame(p: &Part) -> bool {
-    matches!(p.category.as_str(), "Window" | "Door") && !filler(p) || p.name.contains("Frame")
-}
-
-fn filler(p: &Part) -> bool {
-    p.category == "Glass"
-        || ["Pane", "Shutter", "Glass"].iter().any(|w| p.name.contains(w))
-        || p.category == "Door" && !p.name.contains("Frame")
-}
-
-fn inside(inner: &Aabb, outer: &Aabb, slack: f64) -> bool {
-    (inner.min - outer.min).min_element() >= -slack && (outer.max - inner.max).min_element() >= -slack
-}
-
-/// True when one of placements `a` and `b` is a frame and the other fills it (glass in a window, a door in its frame):
-/// they don't collide, and the frame holds the filler, which has no studs to hold it.
-fn fills(placed: &[Placed], world: &[Option<Obb>], a: usize, b: usize) -> bool {
-    let (Some(ia), Some(ib)) = (&placed[a].info, &placed[b].info) else {
-        return false;
-    };
-    let (Some(wa), Some(wb)) = (world[a], world[b]) else {
-        return false;
-    };
-    let (pa, pb) = (&ia.part, &ib.part);
-    let (wa, wb) = (wa.aabb(), wb.aabb());
-    pa.id != pb.id
-        && (frame(pa) && filler(pb) && inside(&wb, &wa, 2.0) || frame(pb) && filler(pa) && inside(&wa, &wb, 2.0))
-}
-
-fn collisions(placed: &[Placed], world: &[Option<Obb>]) -> Vec<Raw> {
-    let shrunk: Vec<Option<(Obb, Aabb)>> = placed
-        .iter()
-        .map(|q| {
-            let o = Obb::new(q.info.as_ref()?.body.as_ref()?, &q.m, SHRINK);
-            Some((o, o.aabb()))
-        })
-        .collect();
-    // Sweep along x: each box is tested only against boxes that start before it ends.
-    let mut order: Vec<usize> = (0..placed.len()).filter(|&i| shrunk[i].is_some()).collect();
-    order.sort_by(|&a, &b| shrunk[a].unwrap().1.min.x.total_cmp(&shrunk[b].unwrap().1.min.x));
-    let mut out = Vec::new();
-    for (k, &a) in order.iter().enumerate() {
-        let (oa, ba) = shrunk[a].unwrap();
-        for &b in &order[k + 1..] {
-            let (ob, bb) = shrunk[b].unwrap();
-            if bb.min.x >= ba.max.x {
-                break;
-            }
-            if bb.min.y >= ba.max.y || ba.min.y >= bb.max.y || bb.min.z >= ba.max.z || ba.min.z >= bb.max.z {
-                continue;
-            }
-            let Some((depth, axis)) = oa.overlap(&ob) else { continue };
-            let vertical = axis.y.abs() > 0.7;
-            if depth <= if vertical { OVERLAP } else { OVERLAP_SIDE } {
-                continue;
-            }
-            if fills(placed, world, a, b) {
-                continue;
-            }
-            let (wa, wb) = (world[a].unwrap().aabb(), world[b].unwrap().aabb());
-            out.push(collision(placed, a, b, depth + 2.0 * SHRINK, axis, &wa, &wb));
-        }
-    }
-    out
-}
-
-/// A collision finding between placements `a` and `b`, ordered so the part placed later is the one to move.
-fn collision(placed: &[Placed], a: usize, b: usize, depth: f64, axis: DVec3, wa: &Aabb, wb: &Aabb) -> Raw {
-    let (a, b, wa, wb) = if src_key(placed[b].p) < src_key(placed[a].p) {
-        (b, a, wb, wa)
-    } else {
-        (a, b, wa, wb)
-    };
-    let (qa, qb) = (&placed[a], &placed[b]);
-    let both = Aabb {
-        min: wa.min.max(wb.min),
-        max: wa.max.min(wb.max),
-    };
-    let vertical = axis.y.abs() > 0.7;
-    let amount = if vertical {
-        plural(round(depth / PLATE), "plate")
-    } else {
-        plural(round(depth / STUD), "stud")
-    };
-    let message = format!(
-        "{} ({}) and {} ({}) overlap by {amount}.",
-        qa.p.id,
-        name(qa),
-        qb.p.id,
-        name(qb)
-    );
-    let hint = if vertical {
-        let (da, db) = (dsl_box(wa), dsl_box(wb));
-        if db.min[2] + db.max[2] >= da.min[2] + da.max[2] {
-            format!(
-                "{} starts at z={} but {} ends at z={}: raise {} by {amount}.",
-                qb.p.id,
-                num(db.min[2]),
-                qa.p.id,
-                num(da.max[2]),
-                qb.p.id
-            )
-        } else {
-            format!(
-                "{} ends at z={} but {} starts at z={}: lower {} by {amount}.",
-                qb.p.id,
-                num(db.max[2]),
-                qa.p.id,
-                num(da.min[2]),
-                qb.p.id
-            )
-        }
-    } else {
-        format!(
-            "They share {amount} side by side. Move {} by {amount}, or use a shorter part.",
-            qb.p.id
-        )
-    };
-    Raw {
-        rule: Rule::Collision,
-        parts: vec![a, b],
-        at: dsl_point((both.min + both.max) / 2.0),
-        message,
-        hint,
-    }
-}
-
-/// floating: stud connections make a graph; every component with a part on the model's lowest level stands, and
-/// every other component floats.
-fn floating(placed: &[Placed], world: &[Option<Obb>]) -> Vec<Raw> {
-    let n = placed.len();
-    let boxes: Vec<Option<Aabb>> = world.iter().map(|o| o.map(|o| o.aabb())).collect();
-    // A grid over x and z of the parts' world boxes, so each stud is tested against the parts around it.
-    const CELL: f64 = 40.0;
-    let cell = |v: f64| (v / CELL).floor() as i64;
-    let mut grid: HashMap<(i64, i64), Vec<usize>> = HashMap::new();
-    for (i, b) in boxes.iter().enumerate() {
-        let Some(b) = b else { continue };
-        for x in cell(b.min.x)..=cell(b.max.x) {
-            for z in cell(b.min.z)..=cell(b.max.z) {
-                grid.entry((x, z)).or_default().push(i);
-            }
-        }
-    }
-    let inverse: Vec<Option<DMat4>> = placed
-        .iter()
-        .map(|q| (q.m.determinant().abs() > 1e-12).then(|| q.m.inverse()))
-        .collect();
-    let mut sets = UnionFind::new(n);
-    // A frame holds what fills it.
-    for (i, b) in boxes.iter().enumerate() {
-        let Some(b) = b else { continue };
-        for x in cell(b.min.x)..=cell(b.max.x) {
-            for z in cell(b.min.z)..=cell(b.max.z) {
-                for &j in grid.get(&(x, z)).into_iter().flatten() {
-                    if j > i && !sets.same(i, j) && fills(placed, world, i, j) {
-                        sets.join(i, j);
-                    }
-                }
-            }
-        }
-    }
-    for (i, q) in placed.iter().enumerate() {
-        let Some(info) = &q.info else { continue };
-        let turn = connectors::rotation(glam::DMat3::from_mat4(q.m));
-        for s in info.studs.iter() {
-            let base = q.m.transform_point3(s.pos);
-            let dir = turn * s.dir;
-            // A point inside the stud, 2 LDU short of its tip: whatever takes the stud holds that point.
-            let probe = base + dir * (s.len - ENTER).max(0.0);
-            let Some(cands) = grid.get(&(cell(probe.x), cell(probe.z))) else {
-                continue;
-            };
-            for &j in cands {
-                if j == i || sets.same(i, j) {
-                    continue;
-                }
-                let (Some(b), Some(inv)) = (boxes[j], inverse[j]) else {
-                    continue;
-                };
-                if probe.cmplt(b.min).any() || probe.cmpgt(b.max).any() {
-                    continue;
-                }
-                if receives(
-                    placed[j].info.as_ref().and_then(|i| i.body.as_ref()),
-                    &inv,
-                    base,
-                    dir,
-                    s.len,
-                ) {
-                    sets.join(i, j);
-                }
-            }
-        }
-    }
-    // The ground: the model's lowest point (LDraw's −Y is up, so the largest y).
-    let lowest = boxes
-        .iter()
-        .flatten()
-        .map(|b| b.max.y)
-        .fold(f64::NEG_INFINITY, f64::max);
-    let mut grounded = vec![false; n];
-    for (i, b) in boxes.iter().enumerate() {
-        if b.is_some_and(|b| b.max.y >= lowest - GROUND) {
-            let r = sets.root(i);
-            grounded[r] = true;
-        }
-    }
-    let mut groups: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
-    for (i, b) in boxes.iter().enumerate() {
-        if b.is_some() && !grounded[sets.root(i)] {
-            groups.entry(sets.root(i)).or_default().push(i);
-        }
-    }
-    groups
-        .into_values()
-        .map(|parts| floating_finding(placed, &boxes, parts))
-        .collect()
-}
-
-/// Whether part `j` (its body box, and its inverse placement) takes a stud whose base is at `base` pointing along
-/// `dir` and reaching `len`, in world space: the stud enters it through its underside, inside its sides.
-fn receives(body: Option<&Aabb>, inv: &DMat4, base: DVec3, dir: DVec3, len: f64) -> bool {
-    let Some(body) = body else { return false };
-    let local = inv.transform_point3(base);
-    let local_dir = inv.transform_vector3(dir).normalize_or_zero();
-    // Into the underside: the stud points up the part's own frame (−Y, so y shrinks along it), its base is at or
-    // below the part's bottom, and its tip reaches into the part.
-    let bottom = body.max.y;
-    if local_dir.y > -0.9 || local.y < bottom - SEAT || local.y - len > bottom - ENTER {
-        return false;
-    }
-    local.x >= body.min.x + INSET
-        && local.x <= body.max.x - INSET
-        && local.z >= body.min.z + INSET
-        && local.z <= body.max.z - INSET
-}
-
-fn floating_finding(placed: &[Placed], boxes: &[Option<Aabb>], parts: Vec<usize>) -> Raw {
-    let mut all = boxes[parts[0]].unwrap();
-    for &i in &parts[1..] {
-        let b = boxes[i].unwrap();
-        all = Aabb {
-            min: all.min.min(b.min),
-            max: all.max.max(b.max),
-        };
-    }
-    let here = dsl_box(&all);
-    let z = num(here.min[2]);
-    let message = if parts.len() == 1 {
-        let q = &placed[parts[0]];
-        format!(
-            "{} ({}) at z={z} isn't held by any stud: it touches nothing below it.",
-            q.p.id,
-            name(q)
-        )
-    } else {
-        format!(
-            "{} parts at z={z} aren't held by any stud: they touch nothing below them.",
-            parts.len()
-        )
-    };
-    // The highest part under the group, by footprint.
-    let members: BTreeSet<usize> = parts.iter().copied().collect();
-    let below = boxes
-        .iter()
-        .enumerate()
-        .filter(|(i, b)| !members.contains(i) && b.is_some())
-        .map(|(i, b)| (i, b.unwrap()))
-        .filter(|(_, b)| {
-            b.min.x < all.max.x
-                && b.max.x > all.min.x
-                && b.min.z < all.max.z
-                && b.max.z > all.min.z
-                && b.min.y >= all.max.y - SEAT
-        })
-        .max_by(|a, b| b.1.min.y.total_cmp(&a.1.min.y));
-    let hint = match below {
-        Some((i, b)) => {
-            let top = dsl_box(&b).max[2];
-            let gap = round(here.min[2] - top);
-            let q = &placed[i];
-            if gap > 0.0 {
-                format!(
-                    "They start {} above {} ({}), which ends at z={}: lower them by {}, or put a part under them.",
-                    plural(gap, "plate"),
-                    q.p.id,
-                    name(q),
-                    num(top),
-                    plural(gap, "plate")
-                )
-            } else {
-                format!(
-                    "They rest on {} ({}) without a stud between them: put them on whole-stud positions, or on a part \
-                     with studs.",
-                    q.p.id,
-                    name(q)
-                )
-            }
-        }
-        None => "Nothing is under them: give them a part to stand on, or move them down onto the model.".into(),
-    };
-    Raw {
-        rule: Rule::Floating,
-        at: here.min,
-        parts,
-        message,
-        hint,
-    }
-}
-
-/// Numbers the findings in a stable order (severity, then the first source line, then the parts) and applies the
+/// Numbers the findings in a stable order (severity, then the first source line, then the rule, then the parts) and applies the
 /// project's allow entries.
 fn finish(placed: &[Placed], raw: Vec<Raw>, allow: &[Allow], inputs_hash: Option<String>) -> Validation {
     let mut items: Vec<(Raw, Vec<Source>, Vec<String>)> = raw
@@ -632,8 +565,8 @@ fn finish(placed: &[Placed], raw: Vec<Raw>, allow: &[Allow], inputs_hash: Option
         })
         .collect();
     items.sort_by(|a, b| {
-        (a.0.rule.severity(), a.1.first().cloned(), a.0.rule, &a.2).cmp(&(
-            b.0.rule.severity(),
+        (a.0.severity(), a.1.first().cloned(), a.0.rule, &a.2).cmp(&(
+            b.0.severity(),
             b.1.first().cloned(),
             b.0.rule,
             &b.2,
@@ -656,7 +589,7 @@ fn finish(placed: &[Placed], raw: Vec<Raw>, allow: &[Allow], inputs_hash: Option
         findings.push(Finding {
             id: format!("F-{:04}", findings.len() + 1),
             rule: r.rule,
-            severity: r.rule.severity(),
+            severity: r.severity(),
             parts: ids,
             source,
             at: r.at,
@@ -741,10 +674,6 @@ impl UnionFind {
             i = self.0[i];
         }
         i
-    }
-
-    fn same(&mut self, a: usize, b: usize) -> bool {
-        self.root(a) == self.root(b)
     }
 
     fn join(&mut self, a: usize, b: usize) {

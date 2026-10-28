@@ -96,7 +96,8 @@ pub struct HighlightArgs {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ValidateArgs {
-    /// Only these rules: collision, floating, unknown_part, obsolete_part, alias_part (default: all).
+    /// Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,
+    /// weak_connection, off_grid, unknown_part, obsolete_part, alias_part.
     #[serde(default)]
     pub rules: Option<Vec<String>>,
     /// Parameter values to check, on top of params.json, which isn't changed: runs the model with them first. Use it
@@ -112,8 +113,15 @@ pub struct Checked {
     /// The first 50, errors first, in source order.
     pub findings: Vec<emmet_core::check::Finding>,
     pub total: usize,
+    pub errors: usize,
+    pub warnings: usize,
+    /// Findings the project or the model allows (`[[check.allow]]`, `m.allow`), with their reasons.
+    pub allowed: Vec<emmet_core::check::Allowed>,
     /// No errors and no warnings.
     pub clean: bool,
+    /// The rules checked, when the call named some; empty when every rule ran.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub only: Vec<String>,
 }
 
 /// The most findings `validate` returns; the rest are in build/validation.json.
@@ -386,9 +394,10 @@ impl EmmetMcp {
         call
     }
 
-    /// Check the model: collisions, floating parts, and unknown or obsolete parts. Runs the model first if build/ is
-    /// out of date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed
-    /// them, and a hint.
+    /// Check the model: collisions, floating parts, submodels placed off the model, build steps (order and size),
+    /// weak spans, parts a little off the grid, and unknown or obsolete parts. Runs the model first if build/ is out
+    /// of date, or with `params` when given. Each finding has an id, the parts, the model.py line that placed them,
+    /// and a hint that says what to change.
     #[tool(output_schema = schema_for_output::<Envelope<Checked>>())]
     async fn validate(&self, Parameters(args): Parameters<ValidateArgs>) -> CallToolResult {
         let started = Instant::now();
@@ -405,26 +414,34 @@ impl EmmetMcp {
                                 Error::new(
                                     emmet_core::envelope::ErrorCode::ParamInvalid,
                                     format!("There's no rule '{r}'."),
-                                    "Use collision, floating, unknown_part, obsolete_part, or alias_part.",
+                                    format!("Use {}.", emmet_core::check::Rule::list()),
                                 )
                             })
                         })
                         .collect::<Result<Vec<_>>>()?;
-                    ops::check_with(&data, p, &rules, &args.params.unwrap_or_default())
+                    let names: Vec<String> = rules.iter().map(|r| r.name().to_string()).collect();
+                    ops::check_with(&data, p, &rules, &args.params.unwrap_or_default()).map(|v| (v, names))
                 })
             },
             |e| (Err(e), None),
         )
         .await;
         let meta = RunMeta {
-            inputs_hash: out.as_ref().ok().and_then(|v| v.inputs_hash.clone()),
+            inputs_hash: out.as_ref().ok().and_then(|(v, _)| v.inputs_hash.clone()),
             generation: None,
         };
-        let out = out.map(|v| Checked {
-            counts_by_rule: v.counts,
-            total: v.findings.len(),
-            clean: v.clean,
-            findings: v.findings.into_iter().take(MAX_FINDINGS).collect(),
+        let out = out.map(|(v, only)| {
+            let count = |s| v.findings.iter().filter(|f| f.severity == s).count();
+            Checked {
+                counts_by_rule: v.counts.clone(),
+                total: v.findings.len(),
+                errors: count(emmet_core::check::Severity::Error),
+                warnings: count(emmet_core::check::Severity::Warning),
+                allowed: v.allowed.clone(),
+                clean: v.clean,
+                findings: v.findings.into_iter().take(MAX_FINDINGS).collect(),
+                only,
+            }
         });
         result(started, out, meta, root, validate_text)
     }
@@ -523,14 +540,38 @@ impl EmmetMcp {
     }
 }
 
-/// Counts, then the first findings like a compiler's error list: `F-0001 error collision model.py:41 at (3, 4, 2):
-/// message Hint.`
+/// The v1 summary, like a compiler's error list: the totals by severity and rule, then the first findings, errors
+/// first and in source order, each `F-0001 error floating model.py:41 at (3, 4, 2): message Hint.`, and what to do
+/// next.
 fn validate_text(c: &Checked) -> String {
+    let allowed = match c.allowed.len() {
+        0 => String::new(),
+        1 => " (1 allowed)".into(),
+        n => format!(" ({n} allowed)"),
+    };
     if c.total == 0 {
-        return "No findings: the model is clean.".into();
+        if !c.only.is_empty() {
+            return format!(
+                "No {} findings{allowed}. Only those rules were checked: validate with no rules to check them all.",
+                c.only.join(", ")
+            );
+        }
+        return format!("No findings{allowed}: the model is clean.");
+    }
+    let n = |k: usize, one: &str, many: &str| format!("{k} {}", if k == 1 { one } else { many });
+    let mut head = Vec::new();
+    if c.errors > 0 {
+        head.push(n(c.errors, "error", "errors"));
+    }
+    if c.warnings > 0 {
+        head.push(n(c.warnings, "warning", "warnings"));
+    }
+    let infos = c.total - c.errors - c.warnings;
+    if infos > 0 {
+        head.push(n(infos, "note", "notes"));
     }
     let counts: Vec<String> = c.counts_by_rule.iter().map(|(r, n)| format!("{n} {r}")).collect();
-    let mut lines = vec![format!("{} findings: {}.", c.total, counts.join(", "))];
+    let mut lines = vec![format!("{}{allowed}: {}.", head.join(", "), counts.join(", "))];
     for f in c.findings.iter().take(SUMMARY_FINDINGS) {
         let severity = serde_json::to_value(f.severity)
             .ok()
@@ -552,14 +593,20 @@ fn validate_text(c: &Checked) -> String {
             f.hint
         ));
     }
-    if c.total > SUMMARY_FINDINGS {
-        lines.push(format!(
+    let more = if c.total > SUMMARY_FINDINGS {
+        format!(
             "…and {} more; the full list is in build/validation.json.",
             c.total - SUMMARY_FINDINGS
-        ));
+        )
     } else {
-        lines.push("The full list is in build/validation.json.".into());
-    }
+        "The full list is in build/validation.json.".into()
+    };
+    let next = if c.errors > 0 {
+        " Fix the errors first, top down (one fix often clears the findings after it), then validate again."
+    } else {
+        " No errors: fix the warnings that matter for this build."
+    };
+    lines.push(format!("{more}{next}"));
     lines.join("\n")
 }
 

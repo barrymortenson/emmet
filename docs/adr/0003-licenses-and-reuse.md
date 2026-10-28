@@ -69,6 +69,12 @@ read.
   connector table"), separate from the AGPL code, and `NOTICE` names it when it first ships (3A). Overrides in
   `data/connections/` cover what it misses. Rejected: building the table on the user's machine from a first-run
   download, and not using it.
+- **How it ships (Barry 2026-10-27, 3A):** the table is its own file in the source,
+  `data/connections/ldcad-shadow.ldr`, with its license (`data/connections/LICENSE.md`) and attribution
+  (`data/connections/README.md`), and emmet-core compiles its bytes in unchanged, as data, the way it does
+  `data/synonyms.toml`. CC lists GPLv3 as a compatible license for BY-SA 4.0, and GPLv3 can be combined with the
+  AGPL, so carrying it in the binary raises no conflict. Rejected: shipping it beside the binaries as a file read at
+  run time (a lookup now and a packaging step in 6A for no license gain).
 
 ### Rebrickable catalog: free with credit, no automated site traffic
 

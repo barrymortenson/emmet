@@ -651,6 +651,42 @@ fn a_resume_token_that_isnt_a_plain_id_is_refused() {
     assert!(!rig.fake.join("claude-0.json").exists(), "the CLI never started");
 }
 
+/// Plan section 21, 3A's Done when 5: the agent validates replay-floating-step-order, gets the v1 summary with a
+/// floating and a step_order finding, applies both hints (lower the brick a plate, put the post's step before the
+/// lamp's), runs, and validates clean. Derived from the recordings until a live run is recorded.
+#[test]
+fn a_floating_and_a_step_order_finding_are_fixed_from_the_summary() {
+    let rig = Rig::new("claude-fix-two", "claude", "derived-fix-floating-step-order");
+    let model = emmet_it::fixture("projects/replay-floating-step-order/model.py");
+    std::fs::copy(&model, rig.project.join("model.py")).unwrap();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Validate the model and fix what it finds.")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let results: Vec<String> = events
+        .iter()
+        .filter_map(|e| match e {
+            emmet_agent::AgentEvent::ToolResult { summary, .. } => Some(summary.clone()),
+            _ => None,
+        })
+        .collect();
+    let first = results
+        .iter()
+        .find(|r| r.contains("F-0001"))
+        .expect("validate reported the findings");
+    assert!(first.starts_with("2 errors: 1 floating, 1 step_order."), "{first}");
+    assert!(first.contains("F-0001 error floating model.py:14"), "{first}");
+    assert!(first.contains("lower it by 1 plate"), "{first}");
+    assert!(first.contains("F-0002 error step_order model.py:16"), "{first}");
+    assert!(results.last().unwrap().contains("No findings"), "{results:?}");
+    let model = rig.model_py();
+    assert!(model.contains(r#"at=(0, 0, 4), id="tower/2""#), "{model}");
+    assert!(model.find(r#"id="post""#) < model.find(r#"id="lamp""#), "{model}");
+    let (v, code) = emmet_it::emmet_json(&["check", "--strict", "--project", rig.project.to_str().unwrap()]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]));
+}
+
 /// A finding sent by "Ask agent to fix" (1D): the agent validates, gets broken-collision's real F-0001, edits the line
 /// it names, runs, and validates clean. Derived from the recordings until a live run is recorded (plan section 21).
 #[test]

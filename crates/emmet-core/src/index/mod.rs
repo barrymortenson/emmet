@@ -5,6 +5,7 @@
 pub mod dims;
 mod search;
 
+use std::collections::HashMap;
 use std::path::Path;
 
 use rusqlite::{Connection, OpenFlags, OptionalExtension, params};
@@ -20,7 +21,7 @@ use crate::ldraw::geometry::{Aabb, LibFiles, Measurer};
 use crate::ldraw::{Line, Meta};
 
 /// Bumped when the schema or what goes into it changes; an older index is rebuilt.
-const SCHEMA: &str = "2";
+const SCHEMA: &str = "3";
 
 const SYNONYMS: &str = include_str!("../../../../data/synonyms.toml");
 
@@ -38,6 +39,7 @@ CREATE TABLE colors(code INTEGER PRIMARY KEY, name TEXT NOT NULL, rgb TEXT NOT N
 CREATE TABLE elements(part_id TEXT NOT NULL, color_code INTEGER NOT NULL, rebrickable_part TEXT, years TEXT,
   set_count INTEGER);
 CREATE TABLE synonyms(term TEXT NOT NULL, expands_to TEXT NOT NULL);
+CREATE TABLE proxies(part_id TEXT PRIMARY KEY, boxes BLOB NOT NULL);
 ";
 
 /// Size in DSL units at `rot=0`: x and y in studs, z in plates (plan section 08).
@@ -80,6 +82,7 @@ pub struct Part {
 
 pub struct Index {
     conn: Connection,
+    path: std::path::PathBuf,
 }
 
 impl Index {
@@ -95,7 +98,7 @@ impl Index {
         if schema.as_deref() != Some(SCHEMA) {
             return Err(missing_index(data));
         }
-        Ok(Self { conn })
+        Ok(Self { conn, path })
     }
 
     /// Opens the index, building it first when it's missing or its schema version isn't this Emmet's.
@@ -208,6 +211,62 @@ impl Index {
             .collect();
         scored.sort();
         Ok(scored.into_iter().take(n).map(|(_, _, id, name)| (id, name)).collect())
+    }
+
+    /// The collision proxies of parts (by id), from the index's cache, building and caching the missing ones from the
+    /// library (ADR 0013). The cache fills as models use parts; a cache that can't be written (a read-only data dir)
+    /// only costs the build again next time. A proxy built without all of its part's files isn't cached.
+    pub fn proxies(
+        &self,
+        lib: &LibFiles,
+        ids: &[String],
+    ) -> Result<HashMap<String, std::rc::Rc<Vec<crate::check::proxy::ProxyBox>>>> {
+        use crate::check::proxy;
+        let mut out = HashMap::new();
+        let mut missing = Vec::new();
+        {
+            let mut stmt = self
+                .conn
+                .prepare_cached("SELECT boxes FROM proxies WHERE part_id = ?")
+                .map_err(db)?;
+            for id in ids {
+                let blob: Option<Vec<u8>> = stmt.query_row([id], |r| r.get(0)).optional().map_err(db)?;
+                match blob.as_deref().and_then(proxy::from_blob) {
+                    Some(boxes) => {
+                        out.insert(id.clone(), std::rc::Rc::new(boxes));
+                    }
+                    None => missing.push(id.clone()),
+                }
+            }
+        }
+        if missing.is_empty() {
+            return Ok(out);
+        }
+        let mut m = Measurer::new(lib);
+        let built: Vec<(String, (Vec<proxy::ProxyBox>, bool))> = missing
+            .into_iter()
+            .map(|id| {
+                let boxes = proxy::build(&mut m, &format!("{id}.dat"));
+                (id, boxes)
+            })
+            .collect();
+        if let Ok(mut w) = Connection::open(&self.path) {
+            let _ = w.busy_timeout(std::time::Duration::from_secs(2));
+            if let Ok(tx) = w.transaction() {
+                // A part whose files couldn't be read isn't cached: the next run tries again.
+                for (id, (boxes, _)) in built.iter().filter(|(_, (_, complete))| *complete) {
+                    let _ = tx.execute(
+                        "INSERT OR REPLACE INTO proxies(part_id, boxes) VALUES (?, ?)",
+                        params![id, proxy::to_blob(boxes)],
+                    );
+                }
+                let _ = tx.commit();
+            }
+        }
+        for (id, boxes) in built {
+            out.insert(id, std::rc::Rc::new(boxes.0));
+        }
+        Ok(out)
     }
 
     pub(crate) fn conn(&self) -> &Connection {

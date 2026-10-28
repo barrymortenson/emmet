@@ -376,3 +376,32 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   Antigravity terminal mode from the PR (the card, `agy` detection, the project-file writer, and their tests), over
   keeping it hidden or shipping it unverified; it's in git history for later. This replaces the project-file decision
   above for the MVP. 4F is skipped and H-25 isn't needed.
+
+## 2026-10-27, session 3A
+
+- **The LDCad shadow data is compiled into the binary.** The connector table built from the LDCad shadow library
+  (CC BY-SA 4.0) stays its own file in the source, `data/connections/ldcad-shadow.ldr`, with its license and
+  attribution; emmet-core compiles that file's bytes in unchanged, as it does `data/synonyms.toml`, and NOTICE (and
+  About, from 4A) credit it. Barry chose this over shipping it as a separate file read at run time (ADR 0003's wording, with a
+  lookup now and a packaging step in 6A) and over not using it (overrides only). CC lists GPLv3 as compatible with
+  BY-SA 4.0, and GPLv3 combines with the AGPL. ADR 0003 records it.
+## 2026-10-28, session 3A
+
+- **Connector match tolerance: 1 LDU for round joints, 0.5 LDU for studs.** Official OMR files place parts by hand,
+  and round joints (wheels on holder pins, hands on clips, hinge fingers, posed arms) are often 1 LDU (0.4 mm) off
+  their mates; plan section 11's 0.5 LDU reported those as floating. Barry chose 1 LDU across the axis for pins,
+  axles, bars, clips, fingers, and generic plugs, keeping 0.5 LDU for studs so stud-built work keeps a tight grid, over
+  1 LDU everywhere and over 0.5 LDU with those models left out of the corpus. Faults agents make are 4 LDU or more, so
+  recall doesn't change; LDCad data found wrong for a part gets an exact override, never a looser rule.
+- **Collision threshold: over 1 LDU.** Collision proxies are 1 LDU voxels, and a sloped or curved face can stick out
+  half a voxel, so touching slopes and official files' hand-placement slop read as 1 LDU overlaps (22 of the 33 false
+  collisions left on the nightly corpus). Barry chose to report overlaps of more than 1 LDU, past the measurement's own
+  resolution, over plan section 11's 0.5 LDU (with the 1 LDU findings chased one at a time) and over 0.5 LDU voxels
+  (about four times the build time and cache, and still quantized). Injected faults overlap by 8 LDU or more.
+- **Closing the nightly corpus.** 19 of the 33 nightly models validated clean; the other 14 had verified file faults
+  (21022-1's attic resting on tile edges, 10124-1's rigging drawn with primitives, a hinge stick 2 LDU off its pivot
+  in 4 models) or part-specific data gaps. Barry chose to fix the gaps on parts agents will use (dishes on round
+  bricks, container doors, turntables, steering wheels, antennas) with exact overrides, and to take models whose only
+  errors are file faults or rare parts (train magnets, jet engines, the excavator) off the list, each with its reason
+  in nightly.json and an issue per gap, replacing them with clean models from the cached OMR pool to keep 20–40; over
+  fixing every gap first (several more hours) and over trimming to the clean models alone.

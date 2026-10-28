@@ -1,0 +1,47 @@
+# Train track's interlocking ends (plan section 11; rung 2 depends on them). The LDCad Shadow Library has no entry
+# for any of these subparts. Every end sleeper has a knob on one side of its end face and a socket on the other, 20 LDU
+# out from the track's center line, on the end face's line (local x = 0), at the top of the sleeper. A track turned
+# end for end puts its knob where the next track's socket is, so each joint is a knob in a socket and a socket on a
+# knob. Measured from the subparts' geometry in the 2026-09 library:
+#
+# - Plastic track, straight 53401 and curve 53400: s/53401s02 and s/53400s02 (the same end): the knob is a 3/4
+#   cylinder of radius 5 at (0, 0, 20), the socket an inverted 5/8 cylinder of radius 5 at (0, 0, -20).
+# - 9V track, and the 9V switches' three ends: s/2867as05, which the end sleepers include: the clip (the socket) at
+#   (0, 0, 20), the pin (the knob) at (0, 0, -20), drawn the other way round, so a 9V end and a plastic end join.
+#
+# The bounding is the joint's size for the collision rule: two ends interlock across their whole end faces (the knob in
+# its socket, and the rail fingers 9 LDU past the face at z = +-50, up to 14 LDU above the sleeper), so the joint
+# covers 62 LDU around each knob and 32 LDU of height (the sleeper and the rails).
+#
+# The curve's end sleepers (s/53400s03, s/53400s04) also carry LDCad's own `traintrk` plugs, but the straight's and the
+# 9V's ends don't, so a curve meeting either needs these; two curves join by both.
+#
+# Each override names a model in tests/fixtures/validator/connections/ that validates with no errors, every use of the
+# part connected.
+
+[[override]]
+part = "s/53401s02"
+reason = "No shadow entry: the plastic straight track's interlocking end (knob and socket)."
+test = "track.ldr"
+snaps = [
+  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [bounding=cyl 62 32] [pos=0 0 20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [bounding=cyl 62 32] [pos=0 0 -20]",
+]
+
+[[override]]
+part = "s/53400s02"
+reason = "No shadow entry: the plastic curved track's interlocking end, the same as the straight's."
+test = "track.ldr"
+snaps = [
+  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [bounding=cyl 62 32] [pos=0 0 20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [bounding=cyl 62 32] [pos=0 0 -20]",
+]
+
+[[override]]
+part = "s/2867as05"
+reason = "No shadow entry: the 9V end sleeper's clip and pin, which every 9V switch end includes."
+test = "track.ldr"
+snaps = [
+  "!LDCAD SNAP_GEN [group=trackend] [gender=F] [bounding=cyl 62 32] [pos=0 0 20]",
+  "!LDCAD SNAP_GEN [group=trackend] [gender=M] [bounding=cyl 62 32] [pos=0 0 -20]",
+]

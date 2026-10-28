@@ -107,6 +107,16 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   macOS and Windows, each listing the components and tokens it uses (`docs/design/frozen/`), the final keyboard map
   and menus, the content and tone guide, the icon set (lucide-react plus Emmet's brick glyphs), and the final app
   icon, which `scripts/app-icon.mjs` turns into every platform size. `docs/design/SIGNOFF.md` freezes it (H-08).
+- validate v1 (session 3A, `docs/spec/validator.md`, ADR 0013): a connection model of studs, anti-studs, holes, pins,
+  axles, bars, clips, hinges, and plugs from a primitive table, the LDCad Shadow Library (CC BY-SA 4.0, credited in
+  NOTICE), and overrides with test models (`data/connections/`), including exact train track and 9V switch ends;
+  collisions by collision proxies cached in the parts index; and new rules: disconnected_submodel, step_order,
+  step_size (from emmet.toml's `[build] age`), weak_connection, and off_grid, each finding with a concrete hint. The
+  MCP `validate` summary lists findings like a compiler. placements.json may carry `allow`, `ground`, and submodel
+  `copies`.
+- The validator corpus: ten committed OMR models, a nightly job over 33 larger ones
+  (`.github/workflows/nightly.yml`, `tests/fixtures/omr/nightly.json`), a seeded mutation generator that reports
+  recall per rule, and `just bench validator`.
 
 ### Security
 
@@ -124,6 +134,7 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
+- The cottage template splits its walls, ceiling, and roof into steps of 8 parts or fewer.
 - The Mac app comes first (D-43): CI's Windows jobs are paused (a manual run's "windows" box runs them), and
   Antigravity, Cursor, and Grok wait until after the MVP.
 - CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push

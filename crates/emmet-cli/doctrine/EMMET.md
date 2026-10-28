@@ -23,9 +23,11 @@ Run → validate → render → fix, every time:
 2. Write `model.py`: one `@model` function whose parameters are the user's knobs.
 3. Call `run_model`. It answers with the part count, or an error with the file, line, and a hint: fix that line and
    run again.
-4. Call `validate`. It lists findings (collisions, floating parts, unknown or obsolete parts), each with an id, the
-   parts, the `model.py` line that placed them, and a hint. Fix errors first, at the line it names, then run and
-   validate again. Don't stop with an error left; if you can't fix one, say which and why.
+4. Call `validate`. It lists findings (parts that collide or float, a submodel placed off the model, a part in a step
+   before what holds it, steps too big, weak spans, parts a little off the grid, unknown or obsolete parts), each
+   with an id, the parts, the `model.py` line that placed them, and a hint that says what to change. Fix errors
+   first, top down, at the line each names, then run and validate again. Don't stop with an error left; if you can't
+   fix one, say which and why.
 5. Call `render` and look at the picture: proportions, openings, roof. Fix what's wrong, then run and validate again.
 
 `highlight` with a finding id (`finding: "F-0003"`) shows the user the parts you're talking about.

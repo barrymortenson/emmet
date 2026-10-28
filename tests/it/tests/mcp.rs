@@ -225,7 +225,7 @@ async fn run_model() {
     let c = client.call("run_model", json!({})).await;
     assert!(!c.is_error, "{}", c.text);
     assert_eq!(c.envelope["data"]["parts"], 163);
-    assert!(c.text.starts_with("Built 163 parts in 31 steps ("), "{}", c.text);
+    assert!(c.text.starts_with("Built 163 parts in 39 steps ("), "{}", c.text);
     assert_eq!(c.envelope["meta"]["generation"], 1);
     // The same output the CLI writes.
     assert!(dir.join("build/model.mpd").is_file());
@@ -397,10 +397,31 @@ async fn validate_tool() {
     assert!(dir.join("build/validation.json").is_file());
     let c = client.call("validate", json!({ "rules": ["collision"] })).await;
     assert_eq!(c.envelope["data"]["total"], 0);
-    assert_eq!(c.text, "No findings: the model is clean.");
+    // Only collision ran, so the floating group is unseen: the summary doesn't call the model clean.
+    assert_eq!(
+        c.text,
+        "No collision findings. Only those rules were checked: validate with no rules to check them all."
+    );
+    assert_eq!(c.envelope["data"]["only"], json!(["collision"]));
     let c = client.call("validate", json!({ "rules": ["wobbly"] })).await;
     assert!(c.is_error);
     assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+
+    // Warnings only: the header counts them, and the next step says there are no errors.
+    let dir = project("broken-step-size");
+    let client = connect(Some(&dir)).await;
+    let c = client.call("validate", json!({})).await;
+    assert!(
+        c.text.starts_with("1 warning: 1 step_size.\nF-0001 warning step_size "),
+        "{}",
+        c.text
+    );
+    assert!(
+        c.text
+            .ends_with(" No errors: fix the warnings that matter for this build."),
+        "{}",
+        c.text
+    );
 }
 
 /// bom: part × color × quantity with totals, the most-used lines first.

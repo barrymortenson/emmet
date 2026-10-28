@@ -1,0 +1,18 @@
+0 FILE main.ldr
+0 A plate with a tower submodel placed one plate too high (validate: one disconnected_submodel finding)
+0 Name: main.ldr
+0 Author: Emmet
+0 !EMMET ID base SRC model.py:4
+1 2 0 0 0 1 0 0 0 1 0 0 0 1 3958.dat
+0 STEP
+0 !EMMET ID tower SRC model.py:6
+1 16 0 -32 0 1 0 0 0 1 0 0 0 1 tower.ldr
+0 NOFILE
+0 FILE tower.ldr
+0 tower
+0 Name: tower.ldr
+0 Author: Emmet
+1 4 0 0 0 1 0 0 0 1 0 0 0 1 3003.dat
+0 STEP
+1 4 0 -24 0 1 0 0 0 1 0 0 0 1 3003.dat
+0 NOFILE

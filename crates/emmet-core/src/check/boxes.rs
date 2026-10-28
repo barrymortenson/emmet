@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! Oriented boxes and their overlap (the separating axis test), for v0's collision rule: each part's body box (studs
-//! left out) placed in the world, shrunk a little so parts that only touch never collide.
+//! Oriented boxes: a part's body box (studs left out) placed in the world, for its world bounds.
 
 use glam::{DMat4, DVec3};
 
@@ -49,97 +48,5 @@ impl Obb {
     /// Half the box's length along the unit axis `l`.
     fn radius(&self, l: DVec3) -> f64 {
         (0..3).map(|i| self.half[i] * self.axes[i].dot(l).abs()).sum()
-    }
-
-    /// How deep the two boxes overlap: the smallest overlap along any separating axis, and that axis. None when an
-    /// axis separates them (they don't overlap, or only touch).
-    pub fn overlap(&self, other: &Obb) -> Option<(f64, DVec3)> {
-        let t = other.center - self.center;
-        let mut best: Option<(f64, DVec3)> = None;
-        let mut test = |l: DVec3| -> bool {
-            let len = l.length();
-            if len < 1e-6 {
-                return true; // parallel edges: this cross product is no axis
-            }
-            let l = l / len;
-            let depth = self.radius(l) + other.radius(l) - t.dot(l).abs();
-            if depth <= 0.0 {
-                return false;
-            }
-            if best.is_none_or(|(d, _)| depth < d) {
-                best = Some((depth, l));
-            }
-            true
-        };
-        for a in self.axes {
-            if !test(a) {
-                return None;
-            }
-        }
-        for b in other.axes {
-            if !test(b) {
-                return None;
-            }
-        }
-        for a in self.axes {
-            for b in other.axes {
-                if !test(a.cross(b)) {
-                    return None;
-                }
-            }
-        }
-        best
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn brick(at: DVec3) -> Obb {
-        // A 1 x 2 brick's body: 40 × 24 × 20 LDU.
-        let body = Aabb {
-            min: DVec3::new(-20.0, 0.0, -10.0),
-            max: DVec3::new(20.0, 24.0, 10.0),
-        };
-        Obb::new(&body, &DMat4::from_translation(at), 1.0)
-    }
-
-    #[test]
-    fn touching_parts_dont_overlap() {
-        assert!(brick(DVec3::ZERO).overlap(&brick(DVec3::new(40.0, 0.0, 0.0))).is_none());
-        assert!(
-            brick(DVec3::ZERO)
-                .overlap(&brick(DVec3::new(0.0, -24.0, 0.0)))
-                .is_none()
-        );
-    }
-
-    #[test]
-    fn a_part_a_plate_too_low_overlaps_by_a_plate() {
-        let (depth, axis) = brick(DVec3::ZERO)
-            .overlap(&brick(DVec3::new(0.0, -16.0, 0.0)))
-            .expect("overlap");
-        // 8 LDU, less the 1 LDU shrink on each part.
-        assert!((depth - 6.0).abs() < 1e-9, "{depth}");
-        assert!(axis.y.abs() > 0.99);
-    }
-
-    #[test]
-    fn a_turned_part_is_tested_as_turned() {
-        // A 1 x 2 brick turned 45° about Y, off another's corner: the boxes' world bounds overlap, the bricks don't.
-        let body = Aabb {
-            min: DVec3::new(-20.0, 0.0, -10.0),
-            max: DVec3::new(20.0, 24.0, 10.0),
-        };
-        let turned =
-            DMat4::from_translation(DVec3::new(25.0, 0.0, 25.0)) * DMat4::from_rotation_y(std::f64::consts::FRAC_PI_4);
-        let a = brick(DVec3::ZERO);
-        let b = Obb::new(&body, &turned, 1.0);
-        assert!(
-            a.aabb().max.x > b.aabb().min.x && a.aabb().max.z > b.aabb().min.z,
-            "the world bounds overlap"
-        );
-        assert!(a.overlap(&b).is_none());
     }
 }

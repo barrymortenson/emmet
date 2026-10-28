@@ -28,6 +28,36 @@ def lengths(n, sizes):
     return out
 
 
+# A step adds at most this many parts: the 6+ target (plan section 08's step rules).
+STEP = 8
+
+
+def in_steps(m, title, actions):
+    """Runs actions, each (how many parts it adds, a function that adds them), in steps of at most STEP parts. A step
+    that has to split is titled "title (1 of 2)", and so on; an action's parts (a frame and its glass) stay together."""
+    chunks, count = [[]], 0
+    for n, add in actions:
+        if chunks[-1] and count + n > STEP:
+            chunks.append([])
+            count = 0
+        chunks[-1].append(add)
+        count += n
+    for i, chunk in enumerate(c for c in chunks if c):
+        with m.step(
+            title if len(chunks) == 1 else f"{title} ({i + 1} of {len(chunks)})"
+        ):
+            for add in chunk:
+                add()
+
+
+def brick_row(m, sizes, x0, y, z, color):
+    """One row of bricks along x at y, the longest first."""
+    x = x0
+    for size in sizes:
+        m.add(BRICKS[size], color, at=(x, y, z), rot=1)
+        x += size
+
+
 def fill(m, part, color, frame, size, lift, rot, id):
     """Sets glass in a window or a door in its frame: centered in the frame's box, `lift` plates above its bottom.
 
@@ -138,8 +168,8 @@ def cottage(
         )
 
     def walls(row):
-        """One row of the walls: the back, then the two sides, then the front, a step each, so each step's
-        bricks are in view."""
+        """One row of the walls: the back, then the two sides, then the front, a step each (or more, at most STEP
+        parts a step), so each step's bricks are in view."""
         z = GROUND + 3 * row
         # Corners alternate between the front and back walls and the side walls, so the joints overlap row to row.
         if row % 2 == 0:
@@ -174,23 +204,43 @@ def cottage(
                         (BRICKS[size], color, (x, y, z), 1 if axis == "x" else 0)
                     )
                     x, y = (x + size, y) if axis == "x" else (x, y + size)
-        for title, sides in (
-            ("back wall", ["back"]),
-            ("side walls", ["left", "right"]),
-            ("front wall", ["front"]),
+        for title, wall in (
+            ("back wall", "back"),
+            ("left wall", "left"),
+            ("right wall", "right"),
+            ("front wall", "front"),
         ):
-            with m.step(f"Walls, row {row + 1}: {title}"):
-                if "back" in sides:
-                    chimney_bricks(z, z + 3)
-                if row == 0 and "front" in sides:
-                    door_in_frame(z)
-                if row == 2:
-                    for name, at, turn in frames:
-                        if name.split("/")[0] in sides:
-                            window(name, at, turn, z)
-                for wall in sides:
-                    for part, color, at, turn in bricks[wall]:
-                        m.add(part, color, at=at, rot=turn)
+            actions = []
+            if wall == "back":
+                actions += [
+                    (
+                        len([s for s in stack if z <= s < z + 3]),
+                        lambda: chimney_bricks(z, z + 3),
+                    )
+                ]
+            if row == 0 and wall == "front":
+                actions += [(2, lambda: door_in_frame(z))]
+            if row == 2:
+                for name, at, turn in frames:
+                    if name.split("/")[0] == wall:
+                        actions += [
+                            (
+                                2,
+                                lambda name=name, at=at, turn=turn: window(
+                                    name, at, turn, z
+                                ),
+                            )
+                        ]
+            for part, color, at, turn in bricks[wall]:
+                actions += [
+                    (
+                        1,
+                        lambda part=part, color=color, at=at, turn=turn: m.add(
+                            part, color, at=at, rot=turn
+                        ),
+                    )
+                ]
+            in_steps(m, f"Walls, row {row + 1}: {title}", actions)
 
     # Built the way an instruction book builds it: a few parts a step, from the baseplate up.
     with m.step("Baseplate"):
@@ -248,42 +298,53 @@ def cottage(
 
     # Off, the roof and ceiling are left out, so the room inside shows.
     if roof:
-        with m.step("Ceiling"):
-            for y in range(y0, y0 + depth, 2):
-                x = x0
-                for size in lengths(width, PLATES):
-                    # rot=1 lays a 2 x n plate along x; the 1 x 2 is already 1 along x.
-                    m.add(
-                        PLATES[size],
-                        wall_color,
-                        at=(x, y, top),
-                        rot=0 if size == 1 else 1,
-                    )
-                    x += size
+
+        def plate_row(y):
+            x = x0
+            for size in lengths(width, PLATES):
+                # rot=1 lays a 2 x n plate along x; the 1 x 2 is already 1 along x.
+                m.add(
+                    PLATES[size], wall_color, at=(x, y, top), rot=0 if size == 1 else 1
+                )
+                x += size
+
+        plates = len(lengths(width, PLATES))
+        in_steps(
+            m,
+            "Ceiling",
+            [(plates, lambda y=y: plate_row(y)) for y in range(y0, y0 + depth, 2)],
+        )
 
         # A gable roof: each course steps in one stud from the front and the back, until the two sides meet under a
-        # ridge of double slopes. A course is two steps: the front slopes and the bricks behind them up to the middle,
-        # then the back.
+        # ridge of double slopes. Each side of a course is its slopes, then the bricks behind them up to the middle,
+        # at most STEP parts a step.
+        slopes, bricks = lengths(width, SLOPES), lengths(width, BRICKS)
         for k in range(courses):
             z = top + 1 + 3 * k
-            # The rows of bricks under the next course, split between the two steps.
+            # The rows of bricks under the next course, split between the two sides.
             inner = list(range(y0 + k + 2, y1 - 1 - k))
             half = (len(inner) + 1) // 2
             for title, y, turn, rows in (
                 ("front", y0 + k, 3, inner[:half]),
                 ("back", y1 - 1 - k, 1, inner[half:]),
             ):
-                with m.step(f"Roof, course {k + 1}: {title}"):
+
+                def slope_row(y=y, turn=turn, z=z):
                     x = x0
-                    for size in lengths(width, SLOPES):
+                    for size in slopes:
                         # rot=3 slopes toward -y (the front side), rot=1 toward +y (the back).
                         m.add(SLOPES[size], roof_color, at=(x, y, z), rot=turn)
                         x += size
-                    for ry in rows:
-                        x = x0
-                        for size in lengths(width, BRICKS):
-                            m.add(BRICKS[size], roof_color, at=(x, ry, z), rot=1)
-                            x += size
+
+                actions = [(len(slopes), slope_row)]
+                actions += [
+                    (
+                        len(bricks),
+                        lambda ry=ry, z=z: brick_row(m, bricks, x0, ry, z, roof_color),
+                    )
+                    for ry in rows
+                ]
+                in_steps(m, f"Roof, course {k + 1}: {title}", actions)
         with m.step("Roof, ridge"):
             x = x0
             for size in lengths(width, RIDGES):

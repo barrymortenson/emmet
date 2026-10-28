@@ -1,0 +1,73 @@
+# The nightly validator corpus (plan sections 11 and 16): every model in tests/fixtures/omr/nightly.json, fetched
+# once and cached on the runner with the full pinned LDraw library, must validate with no error findings, and the
+# mutation gates hold over all of them. Also on a PR that changes this workflow or the list, and by hand.
+name: nightly
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/nightly.yml
+      - tests/fixtures/omr/nightly.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  corpus:
+    # The self-hosted Mac takes trusted events only (D-13, plan section 17), as in ci.yml, plus the schedule.
+    runs-on: ${{ fromJSON((github.repository == 'barrymortenson/emmet' && github.actor == 'barrymortenson' && (github.event_name == 'schedule' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'barrymortenson'))) && '["self-hosted","macOS","emmet"]' || '"macos-latest"') }}
+    timeout-minutes: 30
+    # bash with pipefail (GitHub's default shell lacks it), so the corpus step fails when the test does, not tee.
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          clean: ${{ runner.environment == 'github-hosted' }}
+      - name: Runner guard
+        if: runner.environment == 'self-hosted'
+        env:
+          EMMET_PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          EMMET_PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          EMMET_DATA_DIR: ${{ runner.temp }}/emmet-data
+          EMMET_TEST_HOME: ${{ runner.temp }}/home
+        run: |
+          scripts/runner-guard.sh
+          printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$EMMET_DATA_DIR" "$EMMET_TEST_HOME" >> "$GITHUB_ENV"
+      - name: Test data dirs
+        if: runner.environment == 'github-hosted'
+        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/emmet-data" "$RUNNER_TEMP/home" >> "$GITHUB_ENV"
+      - if: runner.environment == 'github-hosted'
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      # The corpus and the full library live in the runner's tool cache, which the self-hosted Mac keeps between runs:
+      # each model and the library download once.
+      - name: Corpus and library
+        run: |
+          cache="$RUNNER_TOOL_CACHE/emmet-nightly"
+          mkdir -p "$cache"
+          printf 'EMMET_CORPUS_DIR=%s\nEMMET_CORPUS_DATA=%s\n' "$cache/omr" "$cache/data" >> "$GITHUB_ENV"
+          node scripts/omr-corpus "$cache/omr"
+          cargo build --release --locked -p emmet-cli
+          target/release/emmet --data-dir "$cache/data" library verify ||
+            target/release/emmet --data-dir "$cache/data" library install
+      - name: Validate the corpus
+        run: |
+          cargo test --release --locked -p emmet-it --test validator_corpus -- --ignored corpus_nightly --nocapture |
+            tee "$RUNNER_TEMP/nightly.txt"
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Nightly validator corpus"
+            echo
+            grep -E '^\|' "$RUNNER_TEMP/nightly.txt" || echo "(no table: the run stopped early)"
+          } >> "$GITHUB_STEP_SUMMARY"

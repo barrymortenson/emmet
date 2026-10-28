@@ -31,7 +31,19 @@ preferred = "claude"
 
 [run]
 timeout = 30                        # seconds a model may run, more than 0 and at most 3600; optional
+
+[build]
+age = "6+"                          # the Age build setting: "4+", "6+", "9+", "13+", or "18+"; optional
+
+[[check.allow]]                     # a finding the user has decided to allow; optional, any number
+rule = "floating"
+parts = ["flag/1"]
+reason = "held by hand in photos"
 ```
+
+`[build] age` sets the step_size target: 4 parts a step for 4+, 12 for 18+, and 8 otherwise. Each `[[check.allow]]`
+moves each finding of that rule whose parts are all in `parts` from the findings to `allowed`, as `m.allow` does from
+the model (`docs/spec/validator.md`).
 
 `schema` is the format version. emmet refuses a project with a newer schema rather than guess. `created_by` is
 `m:` plus 16 hex digits of a hash of a random secret kept in the app data folder. It isn't personal data, and it

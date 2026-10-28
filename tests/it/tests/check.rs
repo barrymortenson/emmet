@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! `emmet check` (validate v0, plan section 11) and `emmet bom` against the project fixtures: each broken-* project
-//! gets exactly its findings, the cottage gets none at any slider setting, and build/validation.json is reproducible.
+//! `emmet check` (plan section 11) and `emmet bom` against the project fixtures: each broken-* project gets exactly its
+//! findings, the cottage gets none at any slider setting, the model's allow and ground entries count, and
+//! build/validation.json is reproducible. disconnected_submodel and unknown_part, which today's DSL can't produce, have
+//! their goldens in validator_corpus.rs.
 
 use std::path::Path;
 
@@ -27,6 +29,10 @@ fn each_broken_project_gets_exactly_its_findings() {
     for name in [
         "broken-collision",
         "broken-floating",
+        "broken-step-order",
+        "broken-step-size",
+        "broken-weak-connection",
+        "broken-off-grid",
         "broken-obsolete-part",
         "broken-alias-part",
     ] {
@@ -89,6 +95,75 @@ fn an_allowed_finding_moves_to_allowed() {
     assert_eq!(v["data"]["findings"], json!([]), "{v}");
     assert_eq!(v["data"]["allowed"][0]["reason"], "held by hand");
     assert_eq!(v["data"]["clean"], true);
+}
+
+/// `m.allow` and `m.ground` (DSL v1, 3B) reach the validator through build/placements.json: an allowed finding moves to
+/// `allowed`, and a part named as ground stands.
+#[test]
+fn the_models_allow_and_ground_count() {
+    let dir = project("broken-floating");
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["counts"], json!({ "floating": 1 }), "{v}");
+    // What 3B's DSL writes for m.allow("floating", ["tower/2", "tower/cap"], "…").
+    let path = dir.join("build/placements.json");
+    let mut doc: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    doc["allow"] =
+        json!([{ "rule": "floating", "parts": ["tower/2", "tower/cap"], "reason": "a sign held up by hand" }]);
+    std::fs::write(&path, serde_json::to_string(&doc).unwrap()).unwrap();
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["findings"], json!([]), "{v}");
+    assert_eq!(v["data"]["allowed"][0]["reason"], "a sign held up by hand");
+    // And m.ground("tower/2"): the group stands.
+    doc.as_object_mut().unwrap().remove("allow");
+    doc["ground"] = json!(["tower/2"]);
+    std::fs::write(&path, serde_json::to_string(&doc).unwrap()).unwrap();
+    let (v, _) = check(&dir, &[]);
+    assert_eq!(v["data"]["findings"], json!([]), "{v}");
+
+    // The group moved off to the side, a plate off the table: with no baseplate and no ground parts it stands on the
+    // table beside the tower. A ground id that names no part doesn't change that; a real one does.
+    doc.as_object_mut().unwrap().remove("ground");
+    for row in doc["parts"].as_array_mut().unwrap() {
+        if ["tower/2", "tower/cap"].contains(&row["id"].as_str().unwrap()) {
+            let m = row["matrix"].as_array_mut().unwrap();
+            m[12] = json!(m[12].as_f64().unwrap() + 200.0);
+            m[13] = json!(m[13].as_f64().unwrap() + 32.0);
+        }
+    }
+    for (ground, floating) in [
+        (json!([]), false),
+        (json!(["no-such-part"]), false),
+        (json!(["base"]), true),
+    ] {
+        doc["ground"] = ground.clone();
+        std::fs::write(&path, serde_json::to_string(&doc).unwrap()).unwrap();
+        let (v, _) = check(&dir, &[]);
+        let counts = if floating { json!({ "floating": 1 }) } else { json!({}) };
+        assert_eq!(v["data"]["counts"], counts, "ground {ground}: {v}");
+    }
+}
+
+/// emmet.toml's `[build] age` sets step_size's target: broken-step-size's 10-part step is within 18+'s 12 and twice
+/// 4+'s 4.
+#[test]
+fn the_age_setting_sets_the_step_target() {
+    let dir = project("broken-step-size");
+    let toml = dir.join("emmet.toml");
+    let base = std::fs::read_to_string(&toml).unwrap();
+    for (age, message) in [
+        ("18+", None),
+        ("4+", Some("Step 2 adds 10 parts: the build's target is 4 a step.")),
+    ] {
+        std::fs::write(&toml, format!("{base}\n[build]\nage = \"{age}\"\n")).unwrap();
+        let (v, _) = check(&dir, &[]);
+        let messages: Vec<&str> = v["data"]["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|f| f["message"].as_str().unwrap())
+            .collect();
+        assert_eq!(messages, message.into_iter().collect::<Vec<_>>(), "age {age}: {v}");
+    }
 }
 
 /// The rung 1 reference: the cottage template validates clean at its defaults and at the corners of its sliders, with

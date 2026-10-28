@@ -8,13 +8,15 @@
 //   scripts/make-ldraw-mini <empty dir>/complete.zip
 //
 // That URL always serves the newest release, so after the next one the pinned sha256 below stops matching and the
-// script says so: update RELEASE and ZIP_SHA256 deliberately.
+// script says so: update RELEASE and ZIP_SHA256 deliberately. Once LDraw serves a newer release, an Emmet data dir
+// that installed the pinned one works instead (`scripts/make-ldraw-mini <data dir>`): its library.json must name the
+// pinned zip's sha256, and every file read must match the per-file sha256s the install wrote (ldraw.sha256).
 //
 // The zip is only read through `unzip`; nothing inside it is executed. scripts/ldraw-mini-check.mjs checks the result.
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,22 +27,42 @@ const OUT = join(ROOT, "tests/fixtures/ldraw-mini");
 const EXTRA = ["LDConfig.ldr", "CAreadme.txt", "CAlicense.txt", "CAlicense4.txt"];
 const OWN = new Set(["PARTS.txt", "ATTRIBUTION.md", "MANIFEST.sha256"]);
 
-const zip = process.argv[2];
-if (!zip) {
-  console.error("usage: scripts/make-ldraw-mini <complete.zip>");
+const src = process.argv[2];
+if (!src) {
+  console.error("usage: scripts/make-ldraw-mini <complete.zip | Emmet data dir>");
   process.exit(2);
 }
 const sha = (buf) => createHash("sha256").update(buf).digest("hex");
-const got = sha(readFileSync(zip));
-if (got !== ZIP_SHA256) {
-  console.error(`make-ldraw-mini: ${zip} has sha256 ${got}, not the pinned ${RELEASE} release (${ZIP_SHA256}).`);
-  console.error("Update RELEASE and ZIP_SHA256 in this script when moving to a new release.");
-  process.exit(1);
+let entries, read;
+if (statSync(src).isDirectory()) {
+  const info = JSON.parse(readFileSync(join(src, "library.json"), "utf8"));
+  if (info.sha256 !== ZIP_SHA256) {
+    console.error(`make-ldraw-mini: ${src} installed ${info.release} (${info.sha256}), not the pinned ${RELEASE} release.`);
+    process.exit(1);
+  }
+  const hashes = new Map(
+    readFileSync(join(src, "ldraw.sha256"), "utf8")
+      .split("\n")
+      .filter(Boolean)
+      .map((l) => [`ldraw/${l.slice(66)}`, l.slice(0, 64)]),
+  );
+  entries = [...hashes.keys()];
+  read = (entry) => {
+    const buf = readFileSync(join(src, entry));
+    if (sha(buf) !== hashes.get(entry)) throw new Error(`${entry} doesn't match the install's ldraw.sha256`);
+    return buf;
+  };
+} else {
+  const got = sha(readFileSync(src));
+  if (got !== ZIP_SHA256) {
+    console.error(`make-ldraw-mini: ${src} has sha256 ${got}, not the pinned ${RELEASE} release (${ZIP_SHA256}).`);
+    console.error("Update RELEASE and ZIP_SHA256 in this script when moving to a new release.");
+    process.exit(1);
+  }
+  entries = execFileSync("unzip", ["-Z1", src], { encoding: "utf8", maxBuffer: 64 << 20 }).split("\n").filter(Boolean);
+  read = (entry) => execFileSync("unzip", ["-p", src, entry], { maxBuffer: 64 << 20 });
 }
-
-const entries = execFileSync("unzip", ["-Z1", zip], { encoding: "utf8", maxBuffer: 64 << 20 }).split("\n").filter(Boolean);
 const byLower = new Map(entries.map((e) => [e.toLowerCase(), e]));
-const read = (entry) => execFileSync("unzip", ["-p", zip, entry], { maxBuffer: 64 << 20 });
 
 /** The zip entry for a reference made from a part file, in LDraw's search order (parts/, then p/). */
 function resolve(ref) {

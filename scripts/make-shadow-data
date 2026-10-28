@@ -1,0 +1,75 @@
+#!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Builds data/connections/ldcad-shadow.ldr, Emmet's connector table from the LDCad Shadow Library (plan section 11,
+// ADR 0003): for every shadow file, its `!LDCAD SNAP_*` lines, unchanged, under a `0 FILE` line naming the library
+// file it extends. The output is CC BY-SA 4.0, like its source, with the attribution in its header. Run by hand when
+// the pinned commit changes:
+//
+//   git clone https://github.com/RolandMelkert/LDCadShadowLibrary <empty dir>
+//   git -C <empty dir> checkout <commit>
+//   scripts/make-shadow-data <empty dir>
+//
+// The checkout is only read; nothing in it is executed.
+
+import { execFileSync } from "node:child_process";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const COMMIT = "9b1131fb1991f8c0bfc072325e4e12f6271aba35";
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const OUT = join(ROOT, "data/connections/ldcad-shadow.ldr");
+
+const src = process.argv[2];
+if (!src) {
+  console.error("usage: scripts/make-shadow-data <LDCadShadowLibrary checkout>");
+  process.exit(2);
+}
+const head = execFileSync("git", ["-C", src, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+if (head !== COMMIT) {
+  console.error(`make-shadow-data: ${src} is at ${head}, not the pinned ${COMMIT}. Update COMMIT deliberately.`);
+  process.exit(1);
+}
+if (!readFileSync(join(src, "LICENSE.md"), "utf8").includes("Attribution-ShareAlike 4.0 International")) {
+  console.error("make-shadow-data: LICENSE.md isn't CC BY-SA 4.0; stop and read it (ADR 0003)");
+  process.exit(1);
+}
+
+function walk(dir, out = []) {
+  for (const name of readdirSync(dir).sort()) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) walk(path, out);
+    else if (/\.dat$/i.test(name)) out.push(path);
+  }
+  return out;
+}
+
+const blocks = [];
+let lines = 0;
+for (const top of ["parts", "p"]) {
+  for (const path of walk(join(src, top))) {
+    const snaps = readFileSync(path, "latin1")
+      .split(/\r?\n/)
+      .map((l) => l.trim().replace(/\s+/g, " "))
+      .filter((l) => /^0 !LDCAD SNAP_/.test(l));
+    if (!snaps.length) continue;
+    blocks.push(`0 FILE ${relative(src, path).replace(/\\/g, "/").toLowerCase()}\n${snaps.join("\n")}\n0 NOFILE`);
+    lines += snaps.length;
+  }
+}
+writeFileSync(
+  OUT,
+  `0 LDCad Shadow Library snap data, as Emmet's connector table
+0 SPDX-License-Identifier: CC-BY-SA-4.0
+0 !LICENSE CC BY-SA 4.0, see LICENSE.md in this directory
+0 Source: the LDCad Shadow Library by Roland Melkert and its contributors,
+0   https://github.com/RolandMelkert/LDCadShadowLibrary at commit ${COMMIT},
+0   licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
+0 Changes: converted to Emmet's connector table: each shadow file's !LDCAD SNAP_* lines, unchanged, under a 0 FILE
+0   line naming the library file they extend (parts/ or p/, lowercased); its comments, history, and other meta lines
+0   are left out. This file is licensed under CC BY-SA 4.0 too. Built by scripts/make-shadow-data.
+
+${blocks.join("\n")}
+`,
+);
+console.log(`make-shadow-data: ${blocks.length} files, ${lines} snap lines → ${relative(ROOT, OUT)}`);

@@ -29,6 +29,31 @@ pub struct Config {
     pub run: RunConfig,
     #[serde(default, skip_serializing_if = "CheckConfig::is_empty")]
     pub check: CheckConfig,
+    #[serde(default, skip_serializing_if = "BuildConfig::is_empty")]
+    pub build: BuildConfig,
+}
+
+/// `[build]`: the build settings the validator reads (plan section 14's Options tab; each is Any until set).
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct BuildConfig {
+    /// The Age build setting: "4+", "6+", "9+", "13+", or "18+" (plan section 08's step rules).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub age: Option<String>,
+}
+
+impl BuildConfig {
+    fn is_empty(&self) -> bool {
+        self.age.is_none()
+    }
+
+    /// The most parts a step should add for the Age setting: 4 for 4+, 12 for 18+, and 8 for 6+ or Any.
+    pub fn step_target(&self) -> usize {
+        match self.age.as_deref().map(str::trim) {
+            Some("4+") => 4,
+            Some("18+") => 12,
+            _ => 8,
+        }
+    }
 }
 
 /// `[check]`: findings the user has decided to allow (`[[check.allow]] rule = "floating", parts = ["flag/1"],

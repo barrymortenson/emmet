@@ -1,0 +1,307 @@
+{
+ "about": "The nightly validator corpus (plan section 11): official OMR models, fetched and cached on the runner by scripts/omr-corpus, never committed. Each must validate with no error findings (tests/it/tests/validator_corpus.rs, corpus_nightly).",
+ "left_out": "Models taken off the list, each for a fault in the file, a rare part whose data doesn't meet official files, or an open gap with its issue (Barry, 2026-10-28, docs/decisions.md). Models that embed unofficial parts aren't listed: validate rightly reports those parts as unknown.",
+ "models": [
+  {
+   "file": "106-1.mpd",
+   "set": "106-1",
+   "name": "UNICEF Van",
+   "url": "https://library.ldraw.org/media/omr_models/621/106-1.mpd",
+   "sha256": "f5f2ff47553ede535451177ee958c0ee4be7ca357a993f8a7a4fff4682521527"
+  },
+  {
+   "file": "1499-1.mpd",
+   "set": "1499-1",
+   "name": "Twin Starfire",
+   "url": "https://library.ldraw.org/media/omr_models/785/1499-1.mpd",
+   "sha256": "d74433c593533e20b713c5e99bb66d2fbf5bf0c96b278dfd132709ae657916b5"
+  },
+  {
+   "file": "21000-1.mpd",
+   "set": "21000-1",
+   "name": "Sears Tower",
+   "url": "https://library.ldraw.org/media/omr_models/77/21000-1.mpd",
+   "sha256": "20ca87b0b5f45c0e8f2922b7f09da8a806793023660cd34b6c02951e822215dd"
+  },
+  {
+   "file": "21013-1.mpd",
+   "set": "21013-1",
+   "name": "Big Ben",
+   "url": "https://library.ldraw.org/media/omr_models/17/21013-1.mpd",
+   "sha256": "9ff90d99bb36c2bdd1d2c3913a354bd6392bfe1cd5514b71d962cb2e12016bc6"
+  },
+  {
+   "file": "30030-1.mpd",
+   "set": "30030-1",
+   "name": "Racing Car",
+   "url": "https://library.ldraw.org/media/omr_models/911/30030-1.mpd",
+   "sha256": "e2562b640eaa9aab1b4826f76864d39829d5be19c43e262b66ad525b68607678"
+  },
+  {
+   "file": "30542-1_Cute-Pug.mpd",
+   "set": "30542-1",
+   "name": "Cute Pug",
+   "url": "https://library.ldraw.org/media/omr_models/605/30542-1_Cute-Pug.mpd",
+   "sha256": "b573ca38f9501058d0b936ec35164d545d8a06e0c7f8016827227e63c755e0e0"
+  },
+  {
+   "file": "30542-1_Koala.mpd",
+   "set": "30542-1",
+   "name": "Cute Pug",
+   "url": "https://library.ldraw.org/media/omr_models/606/30542-1_Koala.mpd",
+   "sha256": "cb657c58483771b23352c688b38e463dac0502f7b4fb8187898ec7b23df2fd86"
+  },
+  {
+   "file": "30542-1_Turkey.mpd",
+   "set": "30542-1",
+   "name": "Cute Pug",
+   "url": "https://library.ldraw.org/media/omr_models/607/30542-1_Turkey.mpd",
+   "sha256": "3ed23cd67b2296ad64e949f319afb38172a6fe7928e7b64003b857f79cff3c2d"
+  },
+  {
+   "file": "40142-1.mpd",
+   "set": "40142-1",
+   "name": "Bricktober Train Station",
+   "url": "https://library.ldraw.org/media/omr_models/1035/40142-1.mpd",
+   "sha256": "475c3cbf32064caf54cdb227b26de08e2589b12e59b8de2e2f66cf17434f3b52"
+  },
+  {
+   "file": "4939-1.mpd",
+   "set": "4939-1",
+   "name": "Cool Cars",
+   "url": "https://library.ldraw.org/media/omr_models/1712/4939-1.mpd",
+   "sha256": "f11f42691f18de00d8e61454cfd855623e5f1a71a1c96fbc7b894ec88ddcfc8f"
+  },
+  {
+   "file": "4939-1_Formula-1.mpd",
+   "set": "4939-1",
+   "name": "Cool Cars",
+   "url": "https://library.ldraw.org/media/omr_models/1713/4939-1_Formula-1.mpd",
+   "sha256": "55e4c0eda281ae66f0567954eea3ac3242ff1c845f36ce6f45f677184415d2a9"
+  },
+  {
+   "file": "601-1.mpd",
+   "set": "601-1",
+   "name": "Petrol Pump",
+   "url": "https://library.ldraw.org/media/omr_models/1453/601-1.mpd",
+   "sha256": "aa23c8fd150f1b564773b291eec71d0032080e5e9ef35f88457d52d71491c9f4"
+  },
+  {
+   "file": "6515-1.mpd",
+   "set": "6515-1",
+   "name": "Stunt Copter",
+   "url": "https://library.ldraw.org/media/omr_models/677/6515-1.mpd",
+   "sha256": "bbe6c9f50f7ca7e16499ec119e1f70472ca784576bda0c00319b5be62d9afd8a"
+  },
+  {
+   "file": "6605-1.mpd",
+   "set": "6605-1",
+   "name": "Road Racer",
+   "url": "https://library.ldraw.org/media/omr_models/1133/6605-1.mpd",
+   "sha256": "74b1bd62531f35aabd7dd714e0e6e8e5a3372ac6558c137542f1475f670b884e"
+  },
+  {
+   "file": "6657-1.mpd",
+   "set": "6657-1",
+   "name": "Fire Patrol Copter",
+   "url": "https://library.ldraw.org/media/omr_models/1144/6657-1.mpd",
+   "sha256": "fa718aa33fa4c29fd5b01408f2872c6dc43b25507695d9662bd0151e86dda149"
+  },
+  {
+   "file": "6743-1.mpd",
+   "set": "6743-1",
+   "name": "Street Speeder",
+   "url": "https://library.ldraw.org/media/omr_models/1377/6743-1.mpd",
+   "sha256": "6d70b766d666788ed4e5082ea1612e484ef613fa2e3c88123069ade350adce93"
+  },
+  {
+   "file": "6743-1_SpeedCar.mpd",
+   "set": "6743-1",
+   "name": "Street Speeder",
+   "url": "https://library.ldraw.org/media/omr_models/1378/6743-1_SpeedCar.mpd",
+   "sha256": "ae483a4b68b10c5ef371a497aa12ae4522d4146668db32e3d7e49e59bc22d499"
+  },
+  {
+   "file": "6743-1_Hot-Rod.mpd",
+   "set": "6743-1",
+   "name": "Street Speeder",
+   "url": "https://library.ldraw.org/media/omr_models/1379/6743-1_Hot-Rod.mpd",
+   "sha256": "be453da5a8b035aae47a14ac76efd08880fa6ef0169563ed821bfc84119485ff"
+  },
+  {
+   "file": "6841-1.mpd",
+   "set": "6841-1",
+   "name": "Mineral Detector",
+   "url": "https://library.ldraw.org/media/omr_models/272/6841-1.mpd",
+   "sha256": "e233a839381059c3e34dc6ff345e01d8891b0e9c456a50e413a85c09f3430392"
+  },
+  {
+   "file": "7110-1.mpd",
+   "set": "7110-1",
+   "name": "Landspeeder",
+   "url": "https://library.ldraw.org/media/omr_models/123/7110-1.mpd",
+   "sha256": "77686168733ff803ffe5b3d299c6a509700810216222bdb285e1dee096b3ea80"
+  },
+  {
+   "file": "889-1.mpd",
+   "set": "889-1",
+   "name": "Radar Truck",
+   "url": "https://library.ldraw.org/media/omr_models/112/889-1.mpd",
+   "sha256": "cdb984fedfa2d452684cb76777c967ee42beb7630cc69e32799923e93805e3c0"
+  },
+  {
+   "file": "722-1_Steam-Roller.mpd",
+   "set": "722-1",
+   "name": "Universal Building Set",
+   "url": "https://library.ldraw.org/media/omr_models/1805/722-1_Steam-Roller.mpd",
+   "sha256": "09241865893aac27f6140b402b4a0e03a74e149b9edf7b89bc456863e91378a4"
+  },
+  {
+   "file": "722-1_Helicopter.mpd",
+   "set": "722-1",
+   "name": "Universal Building Set",
+   "url": "https://library.ldraw.org/media/omr_models/1801/722-1_Helicopter.mpd",
+   "sha256": "39ee829af6946911a5b85d43102288f90e6b58dc8054bd231819b7405c39c0b4"
+  },
+  {
+   "file": "733-1_Semi-Truck.mpd",
+   "set": "733-1",
+   "name": "Universal Building Set",
+   "url": "https://library.ldraw.org/media/omr_models/1824/733-1_Semi-Truck.mpd",
+   "sha256": "5fd5a618f0d551c09252b2fb93a3f3ee5cf8bb50a1952276d3dc0d2f67ee588e"
+  },
+  {
+   "file": "722-1_Boat-Trailer.mpd",
+   "set": "722-1",
+   "name": "Universal Building Set",
+   "url": "https://library.ldraw.org/media/omr_models/1802/722-1_Boat-Trailer.mpd",
+   "sha256": "cb56f353f834f99e2b2fe54ec58ea14cd2b7e3f6e01a59fb2b29e2075a14bb9a"
+  },
+  {
+   "file": "555-2_Windmill.mpd",
+   "set": "555-2",
+   "name": "Basic Set",
+   "url": "https://library.ldraw.org/media/omr_models/1817/555-2_Windmill.mpd",
+   "sha256": "c85621c904d52a9b79a7a28f26f32ca8065eba72abae34a441895bd1518802d9"
+  },
+  {
+   "file": "555-2_Helicopter.mpd",
+   "set": "555-2",
+   "name": "Basic Set",
+   "url": "https://library.ldraw.org/media/omr_models/1816/555-2_Helicopter.mpd",
+   "sha256": "eff8113604663abcf8b024c249214962d9df0dcf85538f2c2860c88075825f69"
+  },
+  {
+   "file": "40290-1_Airport-Shuttle.mpd",
+   "set": "40290-1",
+   "name": "60 Years of the LEGO Brick",
+   "url": "https://library.ldraw.org/media/omr_models/1178/40290-1_Airport-Shuttle.mpd",
+   "sha256": "15d542ce63ad3fc730a4ceb6722d5996a840f66cfda53acdd9f7f603b358d83e"
+  },
+  {
+   "file": "40456-1.mpd",
+   "set": "40456-1",
+   "name": "Mickey Mouse",
+   "url": "https://library.ldraw.org/media/omr_models/1624/40456-1.mpd",
+   "sha256": "ae7c09ca3fc8d8358e123af056a2f537f3fcd41471630473387b3bb7f6cf4eab"
+  },
+  {
+   "file": "40148-1.mpd",
+   "set": "40148-1",
+   "name": "Year Of The Sheep",
+   "url": "https://library.ldraw.org/media/omr_models/229/40148-1.mpd",
+   "sha256": "289f53ad510bb95380afd950f2372b2f1963051ab6d4429bdd0c45bdc00aa3fb"
+  },
+  {
+   "file": "3223-1.mpd",
+   "set": "3223-1",
+   "name": "Orange Fish",
+   "url": "https://library.ldraw.org/media/omr_models/163/3223-1.mpd",
+   "sha256": "96eac4bca1ef45688e37c9b04c2323f4c7d15acb323f498d50398bdef2be4f56"
+  },
+  {
+   "file": "30029-1.mpd",
+   "set": "30029-1",
+   "name": "Pudsey Bear",
+   "url": "https://library.ldraw.org/media/omr_models/160/30029-1.mpd",
+   "sha256": "910593e48a8aa2d0aac2267baef154b8f18ddd11fb40441f6d41336e6dfa9567"
+  },
+  {
+   "file": "30027-1.mpd",
+   "set": "30027-1",
+   "name": "Reindeer",
+   "url": "https://library.ldraw.org/media/omr_models/1771/30027-1.mpd",
+   "sha256": "e1c0ecb8f1887611767eedd33c5a33a7ab0e26136654d6c5df973a50502e9d92"
+  }
+ ],
+ "removed": [
+  {
+   "file": "10013-1.mpd",
+   "reason": "File: the same headlight brick (4070) placed twice at one spot. Rare: 1990s train magnets (73092) on their couplings, whose LDCad data doesn't meet the files.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/29"
+   ]
+  },
+  {
+   "file": "10124-1.mpd",
+   "reason": "File: the rigging is drawn with primitives (4-4cyli) placed as parts."
+  },
+  {
+   "file": "20006-1.mpd",
+   "reason": "File: an antenna's rod down the seam of two bricks, a tap over a Technic plate's pin hole, the hinge control stick 2 LDU off its pivot. Rare: a pneumatic T-piece. Open: the gun panels hang on 6232's side pins, 8 LDU from the slopes' anti-studs.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/25",
+    "https://github.com/barrymortenson/emmet/issues/29"
+   ]
+  },
+  {
+   "file": "21017-1.mpd",
+   "reason": "File: a 1 x 2 tile centered half a stud off, over studs it can't grip."
+  },
+  {
+   "file": "21022-1.mpd",
+   "reason": "File: the attic rests on tile edges; no stud, bar, or clip holds it."
+  },
+  {
+   "file": "2150-1.mpd",
+   "reason": "File: round plates 1 LDU off their headlight studs, the clock pressed flat on an arch, suitcases in the air. Open: a dish a plate low on a round brick, the cupboard door 2.2 LDU off its hinge.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/26"
+   ]
+  },
+  {
+   "file": "30311-1.mpd",
+   "reason": "File: the hinge control sticks at their bases' origin, 2 LDU off the pivot (data/connections/hinges.toml)."
+  },
+  {
+   "file": "40182-1.mpd",
+   "reason": "File: the roof's telescope stands on a 1 x 1 tile on a tile, and a bar sits 1.6 LDU off its clip."
+  },
+  {
+   "file": "4543-1.mpd",
+   "reason": "Rare: train magnets, the excavator arm and bucket, 1980s hinge plates (4275b, 4504, 4531, 2433), the sunroof glass. File: hinge control sticks off their pivots.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/29"
+   ]
+  },
+  {
+   "file": "4939-1_Truck.mpd",
+   "reason": "File: the hinge control stick 2 LDU off its pivot."
+  },
+  {
+   "file": "6375-1.mpd",
+   "reason": "Rare: jet engines (4868a). File: container boxes set loose in the hold, turned 30 degrees. Open: the landing gear group.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/27",
+    "https://github.com/barrymortenson/emmet/issues/29"
+   ]
+  },
+  {
+   "file": "6927-1.mpd",
+   "reason": "Open: the cabin on its turntable and brackets isn't held.",
+   "issues": [
+    "https://github.com/barrymortenson/emmet/issues/28"
+   ]
+  }
+ ]
+}
