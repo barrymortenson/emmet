@@ -68,9 +68,7 @@
       ${U.btn("Edit", "", "e-quiet e-sm")}${U.btn("Cancel", "cancel", "e-quiet e-sm")}${U.btn("Stop and send now", "deliver", "e-sm")}</div></div>`;
   }
   function failed() {
-    const e = D.buildError;
-    return `<div class="c-dock" data-tone="bad" role="alert"><div class="c-dock-head">${U.icon("warn")}<span class="c-tag">model.py:${e.line}</span><b>The model didn't build</b><span class="c-hint">The last good model is still shown</span><span class="c-grow"></span>${U.btn("Open model.py", "", "e-quiet e-sm", "file")}${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div>
-      <pre class="c-src"><span class="c-err">${esc(e.message)}</span>\n${[].concat(e.excerpt).map((l, i) => `<span class="e-ln">${e.line + i}</span>${esc(l)}`).join("\n")}</pre></div>`;
+    return `<div class="c-dock" data-tone="bad" role="alert"><div class="c-dock-head">${U.icon("warn")}<b>The model didn't build</b><span class="c-hint">${esc(D.buildError.plain)} The last good model is still shown.</span><span class="c-grow"></span>${U.btn("Ask agent to fix", "fix", "e-primary e-sm")}</div></div>`;
   }
   function crashed(s, m) {
     return `<div class="c-dock" data-tone="bad" role="alert"><div class="c-dock-head">${U.icon("warn")}<b>${esc(m.title)}</b><span class="c-hint">${esc(m.text)}</span><span class="c-grow"></span>${U.btn("Copy the details", "", "e-quiet e-sm")}${U.btn(`Restart ${U.agentOf(s).cli}`, "restart", "e-primary e-sm", "refresh")}</div></div>`;
@@ -119,7 +117,7 @@
     const ro = s.build.state === "readonly" && tab === "params";
     let body = ro ? `<p class="c-ro-note">${U.icon("lock")}Trust the project to use its sliders.</p><fieldset class="c-ro" disabled>${U.panel(tab, s)}</fieldset>` : U.panel(tab, s);
     // An imported file has no model.py, so no parameters until the agent writes one.
-    if (s.imported && tab === "params") body = `<p class="c-empty">${esc(D.imported.file)} has no parameters: it's a plain LDraw file. "Make it parametric" asks the agent to write a model.py, and its sliders appear here.</p>`;
+    if (s.imported && tab === "params") body = `<p class="c-empty">${esc(D.imported.file)} has no parameters: it's a plain LDraw file. "Make it parametric" asks the agent to rebuild it with some, and its sliders appear here.</p>`;
     return `<aside class="c-insp" aria-label="Inspector">${U.tabs(tab, s)}<div class="c-panel" data-tab="${tab}">${body}</div></aside>`;
   }
 

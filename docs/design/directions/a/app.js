@@ -31,14 +31,13 @@
     return `<nav class="a-rail" aria-label="Project">
       <p class="a-h">Model</p><ul class="a-tree"><li class="a-root"><span>${U.icon("chev")}${esc(s.imported ? D.imported.file : "cottage")}</span><span class="a-dim">${s.build.parts || 0}</span></li>${s.build.state === "empty" ? "" : rows}</ul>
       <p class="a-h">Checks</p><p class="a-check" data-tone="${f ? "warn" : "ok"}">${U.icon(f ? "warn" : "check")}${f ? "1 problem: 9 floating parts" : s.build.state === "empty" ? "Waiting for the first build" : "No problems"}</p>
-      <p class="a-h">Files</p><ul class="a-files">${(s.imported ? [D.imported.file, "CARD.md"] : ["model.py", "params.json", "CARD.md"]).map((f) => `<li>${U.icon("file")}${esc(f)}</li>`).join("")}</ul>
     </nav>`;
   }
 
   function viewer(s, ctx) {
     const pin = s.build.state === "findings" ? `<button type="button" class="a-pin" data-tab="checks" title="F-0001: 9 floating parts">${U.icon("warn")}<span>9 floating</span></button>` : "";
     const failed = s.build.state === "failed" ? `<div class="a-vnote" data-tone="bad">${U.icon("warn")}Build failed · the last good model is still shown</div>` : "";
-    const ro = s.build.state === "readonly" ? `<div class="a-vnote" data-tone="warn">${U.icon("lock")}Read-only · model.py hasn't run</div>` : "";
+    const ro = s.build.state === "readonly" ? `<div class="a-vnote" data-tone="warn">${U.icon("lock")}Read-only · not built on this computer</div>` : "";
     return `<section class="a-viewer" aria-label="3D viewer">${U.shot(s.render, ctx.theme)}
       <div class="a-vtop">${U.views()}<span class="e-grow"></span>${failed}${ro}</div>
       ${pin}${U.animating(s)}${s.build.state === "empty" ? "" : `<div class="a-vbottom">${U.scrubber(s)}</div>`}</section>`;
@@ -46,7 +45,7 @@
 
   function drawer(s) {
     const tab = s.drawer || "params";
-    if (s.build.state === "readonly" && tab === "params") return `<section class="a-drawer">${U.tabs(tab, s)}<p class="a-empty">${U.icon("lock")} Sliders run model.py, so they wait until you trust the project. Parts and Steps work now.</p></section>`;
+    if (s.build.state === "readonly" && tab === "params") return `<section class="a-drawer">${U.tabs(tab, s)}<p class="a-empty">${U.icon("lock")} Sliders rebuild the model, so they wait until you trust the project. Parts and Steps work now.</p></section>`;
     if (s.build.state === "empty") return `<section class="a-drawer a-drawer-empty">${U.tabs(null, s)}<p class="a-empty">Parameters, checks, parts, and steps appear after the first build.</p></section>`;
     return `<section class="a-drawer">${U.tabs(tab, s)}<div class="a-panel" data-tab="${tab}">${U.panel(tab, s)}</div></section>`;
   }
@@ -56,7 +55,7 @@
     const pending = s.pending ? U.pending(s.pending, U.agentOf(s).name) : "";
     let body;
     if (a.state === "signedout") body = U.signedOut();
-    else if (!s.chat.length) body = `<div class="a-chat-empty">${U.icon("chat")}<p><b>${s.imported ? "Ask the agent about this model" : "Describe what to build"}</b></p><p class="a-dim">${s.imported ? "It can make it parametric, so it gets sliders." : "Your agent writes model.py from real parts and builds it here, stage by stage."}</p></div>`;
+    else if (!s.chat.length) body = `<div class="a-chat-empty">${U.icon("chat")}<p><b>${s.imported ? "Ask the agent about this model" : "Describe what to build"}</b></p><p class="a-dim">${s.imported ? "It can make it parametric, so it gets sliders." : "Your agent designs it from real parts and builds it here, stage by stage."}</p></div>`;
     else body = U.chat(s);
     return `<aside class="a-chat" aria-label="Chat">${U.chatHeader(s)}
       <div class="a-nowslot">${a.state === "idle" ? "" : U.agentState(s)}</div>

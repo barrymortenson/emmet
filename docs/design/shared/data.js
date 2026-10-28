@@ -111,27 +111,28 @@ window.EMMET_DATA = (() => {
     9: { parts: [["3003", "Dark Bluish Gray", 1], ["2412b", "Black", 2]] },
   };
 
-  // `emmet check --json` on the cottage with its chimney started 9 plates up.
+  // `emmet check --json` on the cottage with its chimney started 9 plates up. The message, hint, and line go to the
+  // agent; the Checks card shows only the plain sentence.
   const finding = {
     id: "F-0001", rule: "floating", severity: "error", parts: 9, partIds: "chimney/1–9", line: 113,
     message: "9 parts at z=9.5 aren't held by any stud: they touch nothing below them.",
     hint: "They start 9 plates above base (Baseplate 32 x 32), which ends at z=0.5: lower them by 9 plates, or put a part under them.",
-    // Emmet names the m.add on line 121 that placed them; the mock shows the lines that set their height.
-    excerpt: ["        z = GROUND + 9", "        while z < ridge_top + 3:"],
+    plain: "The chimney starts 9 plates above the baseplate, so nothing holds it up.",
   };
 
-  // `emmet run --json` after an edit that passed an argument Model.add() doesn't take.
+  // `emmet run --json` after an edit that passed an argument Model.add() doesn't take. The agent gets all of it; the
+  // user gets the plain sentence.
   const buildError = {
     code: "MODEL_EXEC_FAILED", line: 135,
     message: "TypeError: Model.add() got an unexpected keyword argument 'flip'",
     hint: "Fix model.py line 135 and run again.",
-    excerpt: ['frame = m.add("60592", "White", at=(*at, z), rot=turn, id=f"window/{name}", flip=True)'],
+    plain: "The agent's last change has a mistake in it, so the new model couldn't be built.",
   };
 
-  // `emmet run --json` on a copy of the project moved to another folder.
+  // What the app says when `emmet run --json` refuses a copy of the project moved to another folder.
   const untrusted = {
-    message: "Cottage isn't trusted on this machine (it was made elsewhere, or moved), so its model.py won't run until you trust it.",
-    hint: "Read model.py first; it's code. Then trust the project in the app, or run emmet trust.",
+    message: "Cottage was made on another computer, or moved, so Emmet won't build it until you trust it.",
+    hint: "A project can run code on your computer. Trust it only if you know where it came from.",
   };
 
   const run = { parts: 163, steps: 31, ms: 99 };
@@ -185,7 +186,7 @@ window.EMMET_DATA = (() => {
     start: [
       { t: "tool", icon: "book", title: "Read Emmet's rules", detail: "How to build with real parts", status: "done", raw: "rules()" },
       { t: "tool", icon: "search", title: "Found the parts", detail: "brick 1 x 2 · slope 45 2 x 4 · door 1 x 4 x 6 · window 1 x 2 x 2", status: "done", raw: 'search_parts(["brick 1x2", "slope 45 2x4", "door 1x4x6", "window 1x2x2"]) → 12 results' },
-      { t: "file", path: "model.py", summary: "Wrote the model · 144 lines", diff: ["+@model", "+def cottage(", "+    width: Annotated[int, Range(6, 16)] = 8,", "+    depth: Annotated[int, Range(4, 12), Step(2)] = 6,", "+    wall_rows: Annotated[int, Range(6, 9)] = 6,", "+    …"] },
+      { t: "file", summary: "Planned the cottage", detail: "Walls, roof, door, windows, and a room inside" },
     ],
     stage1Running: [{ t: "tool", icon: "cube", title: "Building", detail: "Walls, rows 1–3, and the room inside", status: "running", raw: "run_model()" }],
     stage1: [
@@ -219,10 +220,11 @@ window.EMMET_DATA = (() => {
       { t: "agent", text: "The cottage is up: 10 x 8 studs, 6 bricks tall, 163 parts, 0 errors: a real door, glass in the windows, and a room inside with a bed, a table, and a stove. Knobs: weathering, roof on or off, and Shuffle." },
     ],
     // "Ask agent to fix" sends the finding in the form tests/replay/claude/derived-fix-collision.jsonl records.
-    fixAsk: [{ t: "user", text: "Fix F-0001 (floating, parts chimney/1–9 at model.py:113): 9 parts at z=9.5 aren't held by any stud: they touch nothing below them. They start 9 plates above base (Baseplate 32 x 32), which ends at z=0.5: lower them by 9 plates, or put a part under them. Then run validate again.", auto: true }],
+    // The chat shows it in plain words; the agent gets the finding's id, parts, line, and hint as well.
+    fixAsk: [{ t: "user", text: "Fix this: 9 parts aren't held by anything. The chimney starts 9 plates above the baseplate, so nothing holds it up.", auto: true }],
     fixing: [
       { t: "tool", icon: "check", title: "Found 1 problem", detail: "9 floating parts: the chimney", status: "done", raw: 'validate() → {"counts": {"floating": 1}}' },
-      { t: "file", path: "model.py", summary: "Edited line 113", diff: ["-        z = GROUND + 9", "+        z = GROUND"] },
+      { t: "file", summary: "Moved the chimney down", detail: "It starts on the baseplate now" },
       { t: "tool", icon: "cube", title: "Building", detail: "Chimney from the baseplate up", status: "running", raw: "run_model()" },
     ],
     fixed: [
@@ -233,18 +235,18 @@ window.EMMET_DATA = (() => {
     // A request that led to the build error above (composed for this state).
     flipAsk: [{ t: "user", text: "flip the left window so its frame faces out" }],
     flipEdit: [
-      { t: "file", path: "model.py", summary: "Edited line 135", diff: ['-        frame = m.add("60592", "White", at=(*at, z), rot=turn, id=f"window/{name}")', '+        frame = m.add("60592", "White", at=(*at, z), rot=turn, id=f"window/{name}", flip=True)'] },
-      { t: "tool", icon: "cube", title: "The build failed", detail: "model.py line 135", status: "error", raw: 'run_model() → MODEL_EXEC_FAILED' },
+      { t: "file", summary: "Changed the left window", detail: "To face its frame out" },
+      { t: "tool", icon: "cube", title: "The build failed", detail: "A mistake in that change", status: "error", raw: 'run_model() → MODEL_EXEC_FAILED' },
     ],
     // What "Rebuild with these settings" sends (composed for this state; no transcript has it yet).
     restyleAsk: [{ t: "user", text: "Rework the cottage for the new build settings: style Steampunk (was Town), detail Medium (was Low). Keep figure scale, 150–500 pieces, and the 32 × 32 baseplate, and keep its knobs.", auto: "settings" }],
     restyleThinking: [{ t: "thinking", text: "Brass and copper trim, pipes up the walls, a gear on the chimney, and tiles and frames for medium detail, still about 170 pieces." }],
     stopped: [{ t: "note", text: "You stopped the turn at 0:41. The model is as its last run left it: 114 parts." }],
-    crashed: [{ t: "crash", title: "Claude Code stopped unexpectedly", text: "It exited with code 1 in the middle of a turn. Your project is untouched: model.py and the last build are as they were." }],
+    crashed: [{ t: "crash", title: "Claude Code stopped unexpectedly", text: "It exited with code 1 in the middle of a turn. Your project is untouched: the model and the last build are as they were." }],
     // Barry's request from his 1C session (docs/design/notes/emmet-1c-claude.png), sent to Codex after a switch.
     garage: [{ t: "user", text: "make the garage and cottage one building, make it larger and make a door from the cottage to the garage, make the garage fit two cars." }],
     codexStart: [
-      { t: "tool", icon: "book", title: "Read the project", detail: "model.py · CARD.md · params.json", status: "done", raw: "read model.py, CARD.md" },
+      { t: "tool", icon: "book", title: "Read the project", detail: "The model, its notes, and its settings", status: "done", raw: "read model.py, CARD.md" },
       { t: "thinking", text: "Joining the garage to the cottage's right wall and widening it to fit two cars." },
     ],
   };

@@ -5,6 +5,12 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
 
 ## 2026-10-27, session 2A
 
+- **No code in the app.** Barry, on the Checks card's excerpt and "Show in model.py": the user can't fix anything in
+  Python, so the app never shows code or offers to open a code file. A finding is a plain sentence with its parts
+  highlighted; a failed build says so in plain words; file-change cards in the chat say what changed, with no diff;
+  and the untrusted banner drops "Read model.py". The source line, the error, and the hint still go to the agent with
+  "Ask agent to fix". Law 2, section 14, and 4B and 4C say so now (4B takes the code out of 1D's Checks drawer and run
+  panel), and the mock follows.
 - **Steps read like an official instruction book.** Barry, from the books he builds from: a build goes bottom up a
   layer or a section (a wall) at a time, with a side open to put the inside in; steps are small groups of parts;
   a unit built apart is a sub-assembly in its own box with numbered sub-steps; each step shows its parts in a parts

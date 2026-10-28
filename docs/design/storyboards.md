@@ -20,7 +20,7 @@ Emmet window (one project per window)
 │   └── Composer: message · attach a photo · model and effort · Send / Stop        ← note 4
 ├── The model's panels
 │   ├── Parameters: Size · Colors · Options, in words, help from the docstring; Keep as default / Reset  ← note 5
-│   ├── Checks: findings, each with its parts, its model.py line, and "Ask agent to fix"
+│   ├── Checks: findings, each with its parts, a plain sentence, and "Ask agent to fix"
 │   ├── Parts: the BOM (part, color, quantity) · Export
 │   └── Steps: the list; a step shows the model up to it                         ← note 6
 ├── Status: agent state · LDraw library and parts data versions · plan usage meters
@@ -64,7 +64,7 @@ library, an imported file with no model.py.
 
 | # | Screen | What happens |
 |---|---|---|
-| 1 | `findings` | "9 parts aren't held by anything": the chimney is highlighted, the rest dimmed; the finding shows model.py lines 253-254 and the hint from `emmet check` |
+| 1 | `findings` | "9 parts aren't held by anything": the chimney is highlighted, the rest dimmed; the finding says it in a plain sentence (its line and `emmet check`'s hint go to the agent, never on screen) |
 | 2 | `fixing` | "Ask agent to fix" sent the finding (the form the fix-collision transcript records); the agent edits line 253 and rebuilds |
 | 3 | `built` | 163 parts, 0 findings |
 
@@ -108,10 +108,10 @@ library, an imported file with no model.py.
 
 | Screen | Section 14 state | What the user sees |
 |---|---|---|
-| `failed` | Build failed | "The model didn't build": the real TypeError, model.py line 121, Ask agent to fix; the last good model stays |
+| `failed` | Build failed | "The model didn't build" in plain words, Ask agent to fix (the TypeError and its line go to the agent); the last good model stays |
 | `crashed` | Agent crashed | "Claude Code stopped unexpectedly"; the project is untouched; Restart |
 | `signed-out` | Agent not installed or not signed in | "Claude isn't signed in": Sign in to Claude, or Use Codex instead |
-| `untrusted` | Untrusted project | Read-only, with the real message from `emmet run`; Read model.py, Trust this project |
+| `untrusted` | Untrusted project | Read-only, with `emmet run`'s refusal in plain words; Trust this project |
 | `offline` | Offline | Building, checks, sliders, and exports work; the agent and downloads wait |
 | `old-library` | An old library version | 2026-06 against the expected 2026-09; Update the library |
 | `model-picker`, `usage`, `steps` | (notes 4, 6; section 10's usage) | Model and effort; plan usage; step 9 shows only what's built by then: the stove, in while the walls are low |

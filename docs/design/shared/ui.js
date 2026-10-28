@@ -43,8 +43,8 @@ window.EMMET_UI = (() => {
     if (!b) return "";
     if (b.state === "empty") return "Empty baseplate · waiting for the first build";
     if (b.state === "building") return `Building · ${b.parts} parts so far`;
-    if (b.state === "failed") return `Build failed: model.py line ${D.buildError.line}; showing the last good model`;
-    if (b.state === "readonly") return `Read-only · ${b.parts} parts · model.py won't run until you trust it`;
+    if (b.state === "failed") return "Build failed · showing the last good model";
+    if (b.state === "readonly") return `Read-only · ${b.parts} parts · it won't build until you trust it`;
     if (b.state === "findings") return `Built ${b.parts} parts · ${b.findings} problem`;
     const ms = b.ms ?? D.run.ms;
     return `Built ${b.parts} parts in ${(ms / 1000).toFixed(1)} s${b.clean ? " · no problems" : ""}`;
@@ -70,9 +70,9 @@ window.EMMET_UI = (() => {
     const st = m.status === "running" ? spinner() : m.status === "error" ? icon("x", "e-bad") : icon("check", "e-ok");
     return `<details class="e-tool" data-status="${m.status}"><summary>${icon(m.icon)}<span class="e-tool-title">${esc(m.title)}</span><span class="e-tool-detail">${esc(m.detail)}</span>${st}</summary><pre class="e-raw">${esc(m.raw)}</pre></details>`;
   }
+  // A change to the model, in words: no diff and no file name, since the user doesn't fix Python (Barry 2026-10-27).
   function file(m) {
-    const lines = m.diff.map((l) => `<span class="e-diff" data-op="${l[0] === "+" ? "add" : l[0] === "-" ? "del" : ""}">${esc(l)}</span>`).join("\n");
-    return `<details class="e-tool e-file"><summary>${icon("file")}<span class="e-tool-title">${esc(m.summary)}</span><span class="e-tool-detail">${esc(m.path)}</span>${icon("check", "e-ok")}</summary><pre class="e-raw">${lines}</pre></details>`;
+    return `<div class="e-tool e-file"><div class="e-tool-row">${icon("file")}<span class="e-tool-title">${esc(m.summary)}</span><span class="e-tool-detail">${esc(m.detail || "")}</span>${icon("check", "e-ok")}</div></div>`;
   }
   function question(m) {
     if (m.answered) return `<div class="e-q e-q-done">${icon("check", "e-ok")}<span class="e-q-head">${esc(m.question)}</span><span class="e-q-ans">${esc(m.answered)}</span></div>`;
@@ -101,11 +101,11 @@ window.EMMET_UI = (() => {
       default: return "";
     }
   }
+  // The error and its line go to the agent; the user gets plain words and the fix button, never the code.
   function errorCard() {
-    const e = D.buildError;
-    return `<div class="e-err" role="alert"><div class="e-err-top">${icon("warn", "e-bad")}<b>The model didn't build</b><span class="e-chip">model.py:${e.line}</span></div>
-      <p>${esc(e.message)}</p><pre class="e-src">${[].concat(e.excerpt).map((l, i) => `<span class="e-ln">${e.line + i}</span>${esc(l)}`).join("\n")}</pre>
-      <div class="e-row">${btn("Ask agent to fix", "fix", "e-primary")}${btn("Open model.py", "", "e-quiet", "file")}</div><p class="e-small">The last good model is still shown.</p></div>`;
+    return `<div class="e-err" role="alert"><div class="e-err-top">${icon("warn", "e-bad")}<b>The model didn't build</b></div>
+      <p>${esc(D.buildError.plain)}</p>
+      <div class="e-row">${btn("Ask agent to fix", "fix", "e-primary")}</div><p class="e-small">The last good model is still shown.</p></div>`;
   }
   // A finished run of three or more tool cards folds into one line (note 2: less in the chat); a run still going, or
   // one the turn hasn't moved past, stays open.
@@ -179,7 +179,7 @@ window.EMMET_UI = (() => {
         ctl = `<label class="e-toggle"><input type="checkbox"${v ? " checked" : ""} aria-label="${esc(p.label)}"><span></span></label>`;
       }
       const was = p.type === "seed" ? "" : `was ${p.value}${p.unit === "%" ? " %" : ""}`;
-      const tip = `${p.help[0].toUpperCase()}${p.help.slice(1)} (model.py line ${p.line})`;
+      const tip = `${p.help[0].toUpperCase()}${p.help.slice(1)}`;
       return `<div class="e-param" data-type="${p.type}" data-moved="${moved}" title="${esc(tip)}"><div class="e-param-top"><span class="e-param-name">${esc(p.label)}</span>${moved && was ? `<span class="e-chip e-chip-accent">${esc(was)}</span>` : ""}</div>${ctl}</div>`;
     };
     const n = Object.keys(dirty).length;
@@ -240,16 +240,15 @@ window.EMMET_UI = (() => {
     return `<div class="e-brief">${bar}${base}${scale}${age}${detail}${pieces}${style}</div>`;
   }
 
-  // Checks (law 2: every finding one click from its part and its line).
+  // Checks (law 2: every finding one click from its parts). The finding's line and hint go to the agent; the user sees
+  // plain words and never the code (Barry 2026-10-27).
   function checks(screen) {
     const b = screen.build || {};
     if (b.state !== "findings") return `<div class="e-clean">${icon("check", "e-ok")}<div><b>No problems</b><p>Nothing collides, nothing floats, and every part is current.</p></div></div>`;
     const f = D.finding;
-    const src = f.excerpt.map((l, i) => `<span class="e-ln">${f.line + i}</span>${esc(l.trim())}`).join("\n");
     return `<div class="e-finding" data-selected="${!!screen.selected}"><div class="e-err-top">${icon("warn", "e-bad")}<b>${f.parts} parts aren't held by anything</b><span class="e-chip">${esc(f.id)} · floating</span></div>
-      <p>${esc(f.message)}</p><p class="e-small">${esc(f.hint)}</p>
-      <pre class="e-src" title="model.py line ${f.line}">${src}</pre>
-      <div class="e-row">${screen.agent?.state === "working" ? `<span class="e-fixing">${spinner()}${esc(agentOf(screen).name)} is fixing this</span>` : btn("Ask agent to fix", "fix", "e-primary")}${btn("Show in model.py", "", "e-quiet", "file")}${btn("It's fine", "", "e-quiet")}</div></div>`;
+      <p>${esc(f.plain)}</p>
+      <div class="e-row">${screen.agent?.state === "working" ? `<span class="e-fixing">${spinner()}${esc(agentOf(screen).name)} is fixing this</span>` : btn("Ask agent to fix", "fix", "e-primary")}${btn("It's fine", "", "e-quiet")}</div></div>`;
   }
 
   // Each line's part in its color, rendered by `emmet render` on a one-part model with the background keyed out.
@@ -314,10 +313,10 @@ window.EMMET_UI = (() => {
 
   function banner(kind) {
     const B = {
-      untrusted: [icon("lock"), "Read-only: " + D.untrusted.message, D.untrusted.hint, btn("Read model.py", "", "e-quiet e-sm") + btn("Trust this project", "trust", "e-primary e-sm")],
+      untrusted: [icon("lock"), "Read-only: " + D.untrusted.message, D.untrusted.hint, btn("Trust this project", "trust", "e-primary e-sm")],
       offline: [icon("wifi"), "You're offline.", "Building, checks, sliders, and exports still work. The agent and downloads need a connection.", btn("Try again", "", "e-quiet e-sm")],
       "old-library": [icon("download"), `Your parts library is ${D.versions.oldLibrary}. This Emmet expects ${D.versions.library}.`, "Some parts may be missing or renamed until you update (about 150 MB, a minute or two).", btn("Later", "", "e-quiet e-sm") + btn("Update the library", "update", "e-primary e-sm")],
-      imported: [icon("upload"), `Opened ${D.imported.file}: ${D.imported.parts} parts in ${D.imported.steps} steps.`, "It has no model.py yet, so it has no sliders. The agent can rewrite it as a parametric model.", btn("Make it parametric", "parametric", "e-primary e-sm")],
+      imported: [icon("upload"), `Opened ${D.imported.file}: ${D.imported.parts} parts in ${D.imported.steps} steps.`, "It's a fixed model, so it has no sliders yet. The agent can rebuild it with some.", btn("Make it parametric", "parametric", "e-primary e-sm")],
     }[kind];
     return B ? `<div class="e-banner" data-kind="${kind}" role="status">${B[0]}<div><b>${esc(B[1])}</b><p>${esc(B[2])}</p></div><span class="e-grow"></span><div class="e-row">${B[3]}</div></div>` : "";
   }

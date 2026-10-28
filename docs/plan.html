@@ -417,7 +417,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <h3 id="laws">Eight design laws</h3>
 <ol>
 <li><b>The viewer is sacred.</b> It never moves the camera on its own, never blocks, and always shows the last good model while a new one builds.</li>
-<li><b>Every finding is one click from its part and its line.</b> Clicking a check highlights the parts in the viewer and shows the <code>model.py</code> line that placed them.</li>
+<li><b>Every finding is one click from its parts.</b> Clicking a check highlights the parts in the viewer and says what's wrong in a plain sentence. The <code>model.py</code> line that placed them goes to the agent, never to the screen: the user can't fix Python, so the app never shows code or offers to open a code file.</li>
 <li><b>The user always knows what the agent is doing.</b> Every tool call is a visible card with a one-line plain-language summary.</li>
 <li><b>Real parts, real colors.</b> Anything that can't be bought in that color is flagged, never hidden.</li>
 <li><b>Files are the truth.</b> Anything the app shows can be reproduced from the project folder with <code>emmet run</code> and <code>emmet check</code>.</li>
@@ -1347,7 +1347,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <li><b>Left: project tree</b> with the model, submodels (with how many times each is used), and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
 <li><b>Versions</b> (section 07): "Save version" (<kbd>⌘S</kbd>) and a versions list with each one's thumbnail, name, time, part count, and who made it ("Before Claude's turn, 14:02"). A version opens read-only in the viewer to compare; Restore and "Open as a new project" sit beside it. "Undo the agent's last turn" restores the automatic version from before it.</li>
 <li><b>Center: viewer</b> with a toolbar for views, the step scrubber, frame, screenshot, and quality. Hovering shows the part name and color and the line in <code>model.py</code>.</li>
-<li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (expand for the diff), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
+<li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (what changed, in words: no diff and no code), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
 <li><b>Bottom drawer</b> with tabs: Parameters (sliders, toggles, color pickers limited to colors the parts come in, and "make default"), Checks (findings, click to highlight, "Ask agent to fix"), Parts list (BOM with availability and export), and Steps.</li>
 <li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), Claude plan usage meters with a popover and each agent's billing state (D-36, section 10), and the library and parts data versions.</li>
 </ul>
@@ -1357,7 +1357,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <li><b>First run</b>: welcome → parts library download (progress, about 1 minute) → Python runtime set up → agents set up (installed? signed in? "Install" and "Sign in" buttons, no terminal (D-41); which plans work, with each provider's link; for Codex, "Continue with ChatGPT" or an API key; the provider notice, use at your own risk (D-37)) → "Start with the Cottage example" or "New model from a prompt". Under 3 minutes on a normal connection.</li>
 <li><b>New model from a prompt</b>: New → name → the first message → the agent's first visible model inside the first minute (the doctrine tells it to show a draft fast) → refinement while the user watches.</li>
 <li><b>Tweak with sliders</b>: drag → the viewer updates in place → "make default" writes it back.</li>
-<li><b>Fix a finding</b>: Checks → click → highlight + source line → "Ask agent to fix" → the agent's fix shows up live.</li>
+<li><b>Fix a finding</b>: Checks → click → highlight + a plain sentence → "Ask agent to fix" (the finding goes with its source line) → the agent's fix shows up live.</li>
 <li><b>Export</b>: Parts list → CSV, Rebrickable, BrickLink XML · Model → LDraw <code>.mpd</code> (opens in Studio, LDCad, LeoCAD) · Instructions → PDF (native), or an LPub3D-ready file.</li>
 <li><b>Open an existing LDraw file</b>: it becomes an imported project (section 07), and the agent can be asked to make it parametric.</li>
 <li><b>Switch agent</b> mid-project: a new session with the other CLI. The project files carry the state, and the chat shows a divider.</li>
@@ -2265,8 +2265,8 @@ Leave the chat pane on 1C's version and the viewer on 1B's; 4B and 4C replace th
 <p class="goal"><b>Goal:</b> Working with the agent feels as good as nurb's terminal loop, or better: you always know what it's doing, you can steer and stop it, and it sees what you see.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 issues"), file-change cards with diffs, approval cards with session-scoped allow, question cards and pending-redirect bubbles to the frozen design, stop, and retry.</li>
-<li>Context from the UI: "the agent sees what you selected" (selected ids and the view are sent as structured context with the next message), plus "Ask agent to fix" from findings and run errors.</li>
+<li>The chat to the frozen design: streaming text with markdown (no raw HTML), reasoning collapsed by default, tool cards with plain-language summaries ("Built 412 parts · 2 issues"), file-change cards in words (no diffs or code), approval cards with session-scoped allow, question cards and pending-redirect bubbles to the frozen design, stop, and retry.</li>
+<li>Context from the UI: "the agent sees what you selected" (selected ids and the view are sent as structured context with the next message), plus "Ask agent to fix" from findings and run errors. Both show in plain words, never as code (law 2): the Checks drawer and the run panel drop 1D's file:line labels, source excerpts, and tracebacks, which go to the agent instead.</li>
 <li>The doctrine in the UI: one tip at a time (first slider, first finding, first export), tracked per user.</li>
 <li>Sessions: per-project history, resume after an app restart, switching agents mid-project like nurb (the picker in the chat header starts a fresh conversation and keeps the old one, with the state carried by files), Start fresh to clear the context without switching (Barry's notes), and a usage display where the CLI reports it.</li>
 <li>A model and effort picker per session (Barry's live-check notes, <code>docs/design/notes.md</code>), offering only what each CLI documents, with a plain note on which choices make a small plan last longer.</li>
@@ -2301,7 +2301,7 @@ the replay corpus. No scripted eval runs in this session (D-38).</code></pre></d
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>Materials for every LDraw finish, the studio lighting rig, an optional ground shadow, edge and conditional lines tuned for both themes, stud LOD, and quality presets (auto by GPU).</li>
-<li>Interaction to the design: hover (the part, color, and source line), click to select, box select, frame, the views, the step scrubber and the steps list (the build up to the chosen step: earlier steps at full color, its new parts outlined, later steps hidden, with the parts box and sub-assembly boxes of section 08's step rules), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
+<li>Interaction to the design: hover (the part and color), click to select, box select, frame, the views, the step scrubber and the steps list (the build up to the chosen step: earlier steps at full color, its new parts outlined, later steps hidden, with the parts box and sub-assembly boxes of section 08's step rules), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
 <li>Build animation to section 13: the drop, fade, and glide motion; Animated, Fast, and Off in Settings; Skip and Replay build in the toolbar; reduced motion; and an E2E spec that proves sliders never animate and the camera never moves.</li>
 <li>Highlight modes (issue, select, hover, agent) that are distinct and accessible (not color alone).</li>
 <li>Performance work to meet section 13 on both OSes, including instancing edge cases, transparent sorting, and geometry disposal. Bench and E2E checks enforce the budgets.</li>

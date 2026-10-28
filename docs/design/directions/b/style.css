@@ -74,8 +74,6 @@
 .e-finding[data-selected="true"] { box-shadow: inset 4px 0 0 var(--fg-bad); }
 .e-err-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
 .e-finding p, .e-err p { margin: 4px 0; }
-.e-src { margin: 8px 0; padding: 8px 10px; background: var(--bg-code); border-radius: 10px; white-space: pre; overflow: auto; }
-.e-ln { display: inline-block; width: 30px; color: var(--fg-muted); }
 .e-bom-top { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-bottom: 8px; }
 .e-bom-top .e-small { order: 3; width: 100%; }
 .e-bom table { font-size: 13px; width: 100%; table-layout: fixed; }
@@ -133,14 +131,13 @@
 .e-meta { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--fg-muted); margin-top: 4px; }
 .e-meta .e-ic { width: 13px; height: 13px; }
 .e-tool { border: 1px solid var(--line); border-radius: 12px; background: var(--bg-card); }
-.e-tool summary { display: flex; align-items: center; gap: 9px; padding: 7px 12px; }
-.e-tool summary > .e-ic:first-child { color: var(--fg-muted); }
+.e-tool summary, .e-tool-row { display: flex; align-items: center; gap: 9px; padding: 7px 12px; }
+.e-tool summary > .e-ic:first-child, .e-tool-row > .e-ic:first-child { color: var(--fg-muted); }
 .e-tool-title { font-weight: 650; white-space: nowrap; }
 .e-tool-detail { flex: 1; min-width: 0; color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .e-tool[data-status="running"] { background: var(--bg-accent-soft); } .e-tool[data-status="running"] .e-spin { color: var(--fg-accent); }
 .e-tool[data-status="error"] { background: var(--bg-bad-soft); }
 .e-raw { margin: 0; padding: 8px 12px; border-top: 1px solid var(--line); background: var(--bg-code); white-space: pre-wrap; border-radius: 0 0 12px 12px; }
-.e-diff[data-op="add"] { background: var(--diff-add); } .e-diff[data-op="del"] { background: var(--diff-del); }
 .e-fold > summary { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 12px; color: var(--fg-muted); background: var(--bg-raised); }
 .e-fold > summary > span { flex: 1; }
 .e-fold[open] { display: grid; gap: 6px; } .e-fold[open] > summary { margin-bottom: 2px; }
