@@ -1,0 +1,7 @@
+---
+source: tests/it/tests/mcp.rs
+expression: c.text
+---
+2 steps; built apart: Tower × 4.
+1. Plate (1)
+2. Towers (4)

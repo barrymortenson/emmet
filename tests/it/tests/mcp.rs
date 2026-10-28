@@ -442,6 +442,43 @@ async fn bom_tool() {
     insta::assert_snapshot!(c.text);
 }
 
+#[tokio::test]
+async fn steps_tool() {
+    let dir = project("submodel-x4");
+    let client = connect(Some(&dir)).await;
+    assert_matches_committed(&client, "steps");
+    let c = client.call("steps", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    let data = &c.envelope["data"];
+    assert_eq!(data["steps"][1]["submodels"][0]["count"], 4);
+    assert_eq!(data["submodels"][0]["count"], 4);
+    insta::assert_snapshot!(c.text);
+}
+
+#[tokio::test]
+async fn technique_tool() {
+    let client = connect(None).await;
+    assert_matches_committed(&client, "technique");
+    let c = client.call("technique", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(
+        c.envelope["data"]["techniques"].as_array().unwrap().len(),
+        emmet_core::python::TECHNIQUES.len()
+    );
+    let c = client.call("technique", json!({ "name": "track_curve" })).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["technique"]["parts"], json!(["53400"]));
+    assert!(c.text.contains("m.use(\"track_curve\""), "{}", c.text);
+    let c = client.call("technique", json!({ "name": "gable_rof" })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+    assert!(
+        c.envelope["error"]["hint"].as_str().unwrap().contains("'gable_roof'"),
+        "{}",
+        c.envelope
+    );
+}
+
 /// With `--session` (the app's chat), a tool result starts with what the user just said (D-33): `user_notes` in the
 /// envelope, which still matches the tool's output schema, and a first text line. Without it, no notes.
 #[tokio::test]

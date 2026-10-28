@@ -912,7 +912,7 @@ fn check_text(v: &emmet_core::check::Validation) -> String {
         let allowed = if v.allowed.is_empty() {
             String::new()
         } else {
-            format!(" ({} allowed in emmet.toml)", v.allowed.len())
+            format!(" ({} allowed)", v.allowed.len())
         };
         return format!("No findings{allowed}. → build/validation.json");
     }
