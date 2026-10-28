@@ -99,7 +99,16 @@ window.EMMET_STATUS = {
       ],
       note: "The Windows cottage visual baseline is stale until the Windows pass regenerates it (D-43); 2B can raise A's Chat focus layout and C's ⌘K palette again"
     },
-    "2B": { status: "review", pr: 24, branch: "bmortenson/s2b-design-system-frozen", started: "2026-10-27" },
+    "2B": {
+      status: "done", pr: 24, branch: "bmortenson/s2b-design-system-frozen", started: "2026-10-27",
+      evidence: [
+        "CI ci check green #24 (run 40626685728: mac, plan; windows and nsis paused, D-43)",
+        "apps/desktop/src/styles/tokens.css, docs/design/{components,keyboard,content,icons}.md, frozen/ (47 screens), SIGNOFF.md",
+        "tests/scripts/design.test.mjs (7 pass); frozen audit 376 renders, 0 failures; contrast-check: ok",
+        "H-08: signed as is; docs/decisions.md"
+      ],
+      note: "The Steps tab is the model's tree and there's no command palette (docs/decisions.md); the Steps tree's every-copy highlight isn't drawn, since emmet render --highlight drew none for window ids (4C)"
+    },
     "3A": { status: "todo" },
     "3B": { status: "todo" },
     "3C": { status: "todo" },
