@@ -1,0 +1,47 @@
+#!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Fetches the nightly validator corpus (tests/fixtures/omr/nightly.json, plan section 11) into a cache directory,
+// one request a second, and checks each file's sha256. Files already cached with the right sha256 aren't fetched
+// again, so the runner downloads each model once.
+//
+//   scripts/omr-corpus <cache dir>
+//
+// The files are only read and hashed here; the validator parses them as LDraw text.
+
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const dir = process.argv[2];
+if (!dir) {
+  console.error("usage: scripts/omr-corpus <cache dir>");
+  process.exit(2);
+}
+const { models } = JSON.parse(readFileSync(join(ROOT, "tests/fixtures/omr/nightly.json"), "utf8"));
+const sha = (buf) => createHash("sha256").update(buf).digest("hex");
+mkdirSync(dir, { recursive: true });
+let fetched = 0;
+for (const m of models) {
+  if (basename(m.file) !== m.file || !/^https:\/\/library\.ldraw\.org\//.test(m.url)) {
+    console.error(`omr-corpus: ${m.file}: only plain file names from library.ldraw.org`);
+    process.exit(1);
+  }
+  const path = join(dir, m.file);
+  if (existsSync(path) && sha(readFileSync(path)) === m.sha256) continue;
+  if (fetched++) await new Promise((r) => setTimeout(r, 1000));
+  const res = await fetch(m.url, { headers: { "user-agent": "emmet-ci (nightly validator corpus)" } });
+  if (!res.ok) {
+    console.error(`omr-corpus: ${m.url}: HTTP ${res.status}`);
+    process.exit(1);
+  }
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (sha(buf) !== m.sha256) {
+    console.error(`omr-corpus: ${m.file} has sha256 ${sha(buf)}, not ${m.sha256}: the OMR file changed; review it and update nightly.json`);
+    process.exit(1);
+  }
+  writeFileSync(`${path}.tmp`, buf);
+  renameSync(`${path}.tmp`, path);
+}
+console.log(`omr-corpus: ${models.length} models in ${dir} (${fetched} fetched)`);

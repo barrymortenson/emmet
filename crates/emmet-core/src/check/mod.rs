@@ -30,22 +30,32 @@ pub enum Severity {
     Info,
 }
 
-/// The rules v0 checks, in the order findings are listed within a severity.
+/// The rules (plan section 11), in the order findings are listed within a severity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Rule {
     UnknownPart,
     Collision,
     Floating,
+    DisconnectedSubmodel,
+    StepOrder,
+    StepSize,
+    WeakConnection,
+    OffGrid,
     ObsoletePart,
     AliasPart,
 }
 
 impl Rule {
-    pub const ALL: [Rule; 5] = [
+    pub const ALL: [Rule; 10] = [
         Rule::UnknownPart,
         Rule::Collision,
         Rule::Floating,
+        Rule::DisconnectedSubmodel,
+        Rule::StepOrder,
+        Rule::StepSize,
+        Rule::WeakConnection,
+        Rule::OffGrid,
         Rule::ObsoletePart,
         Rule::AliasPart,
     ];
@@ -55,6 +65,11 @@ impl Rule {
             Rule::UnknownPart => "unknown_part",
             Rule::Collision => "collision",
             Rule::Floating => "floating",
+            Rule::DisconnectedSubmodel => "disconnected_submodel",
+            Rule::StepOrder => "step_order",
+            Rule::StepSize => "step_size",
+            Rule::WeakConnection => "weak_connection",
+            Rule::OffGrid => "off_grid",
             Rule::ObsoletePart => "obsolete_part",
             Rule::AliasPart => "alias_part",
         }
@@ -66,8 +81,10 @@ impl Rule {
 
     pub fn severity(self) -> Severity {
         match self {
-            Rule::UnknownPart | Rule::Collision | Rule::Floating => Severity::Error,
-            Rule::ObsoletePart => Severity::Warning,
+            Rule::UnknownPart | Rule::Collision | Rule::Floating | Rule::DisconnectedSubmodel | Rule::StepOrder => {
+                Severity::Error
+            }
+            Rule::StepSize | Rule::WeakConnection | Rule::OffGrid | Rule::ObsoletePart => Severity::Warning,
             Rule::AliasPart => Severity::Info,
         }
     }

@@ -1,69 +1,51 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! The validator on official models (plan section 11's precision): the committed OMR fixtures, which are buildable by
-//! definition, have no findings; an .mpd with a part the library doesn't have gets `unknown_part`. 3A adds the
-//! mutation generator (recall) and the nightly corpus.
+//! The validator on official models (plan section 11's precision): the committed OMR fixtures and the nightly corpus,
+//! which are buildable by definition, have no error findings; the rule fixtures in `tests/fixtures/validator/` get
+//! exactly their findings. Recall is `validator_mutations.rs`.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use emmet_core::check::{Rule, Validation};
-use emmet_core::data::DataDir;
-use emmet_core::ldraw;
+use emmet_core::check::Severity;
+use emmet_it::corpus::{self, models_in, placements_of, report, validate};
 use emmet_it::{fixture, shared_library};
 
-fn validate(data: &Path, mpd: &Path) -> Validation {
-    let bytes = std::fs::read(mpd).unwrap_or_else(|e| panic!("{}: {e}", mpd.display()));
-    let doc = ldraw::parse(&String::from_utf8_lossy(&bytes)).unwrap_or_else(|e| panic!("{}: {e}", mpd.display()));
-    let placements = ldraw::placements::placements(&doc);
-    assert!(!placements.is_empty(), "{} places no parts", mpd.display());
-    emmet_core::ops::validate_placements(&DataDir::at(data), &placements, &Rule::ALL, &[], None)
-        .unwrap_or_else(|e| panic!("{}: {e}", mpd.display()))
-}
-
-fn mpds(dir: &Path) -> Vec<PathBuf> {
-    let mut out: Vec<PathBuf> = std::fs::read_dir(dir)
-        .unwrap_or_else(|e| panic!("{}: {e}", dir.display()))
-        .map(|e| e.unwrap().path())
-        .filter(|p| p.extension().is_some_and(|x| x == "mpd" || x == "ldr"))
-        .collect();
-    out.sort();
-    out
-}
-
-fn report(v: &Validation) -> String {
-    v.findings
-        .iter()
-        .map(|f| format!("  {} {} {:?}: {}", f.id, f.rule.name(), f.parts, f.message))
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
+/// Official models are buildable, so no error findings (plan section 11's precision gate). Their warnings and info
+/// (moved and obsolete part ids, a big step) are snapshotted, so a new one is a reviewed change.
 #[test]
-fn the_omr_fixtures_have_no_findings() {
-    let files = mpds(&fixture("omr"));
-    assert_eq!(
-        files.len(),
-        5,
-        "the five smallest stud-built OMR models (3A brings the corpus to 10)"
-    );
+fn the_omr_fixtures_have_no_errors() {
+    let files = models_in(&fixture("omr"));
+    assert_eq!(files.len(), 10, "the committed OMR fixtures (ATTRIBUTION.md)");
     let mut bad = Vec::new();
+    let mut rest = Vec::new();
     for f in &files {
-        let v = validate(shared_library(), f);
-        if !v.findings.is_empty() {
-            bad.push(format!("{}:\n{}", f.file_name().unwrap().to_string_lossy(), report(&v)));
+        let name = f.file_name().unwrap().to_string_lossy().into_owned();
+        let v = validate(shared_library(), &placements_of(f));
+        if v.errors() > 0 {
+            bad.push(format!("{name}:\n{}", report(&v)));
+        }
+        for f in v.findings.iter().filter(|f| f.severity != Severity::Error) {
+            rest.push(format!(
+                "{name} {} {} {:?}: {}",
+                f.id,
+                f.rule.name(),
+                f.parts,
+                f.message
+            ));
         }
     }
     assert!(
         bad.is_empty(),
-        "official models must validate clean:\n{}",
+        "official models must have no errors:\n{}",
         bad.join("\n")
     );
+    insta::assert_snapshot!(rest.join("\n"));
 }
 
 /// The fixtures are the OMR's files unmodified, and ATTRIBUTION.md credits each one (ADR 0003).
 #[test]
 fn the_omr_fixtures_are_unmodified_and_credited() {
     let attribution = std::fs::read_to_string(fixture("omr/ATTRIBUTION.md")).unwrap();
-    for f in mpds(&fixture("omr")) {
+    for f in models_in(&fixture("omr")) {
         let name = f.file_name().unwrap().to_string_lossy().into_owned();
         let bytes = std::fs::read(&f).unwrap();
         let row = attribution
@@ -89,20 +71,66 @@ fn the_omr_fixtures_are_unmodified_and_credited() {
 
 #[test]
 fn a_part_the_library_lacks_is_unknown() {
-    let v = validate(shared_library(), &fixture("validator/unknown-part.mpd"));
+    let v = validate(shared_library(), &placements_of(&fixture("validator/unknown-part.mpd")));
     insta::assert_json_snapshot!(v);
 }
 
-/// Not run by default: validates every .mpd in `EMMET_CORPUS_DIR` against the library in `EMMET_CORPUS_DATA` (a
-/// data dir with the full library) and prints the findings. For choosing fixtures and checking a change.
+/// The nightly corpus (`tests/fixtures/omr/nightly.json`, fetched by `scripts/omr-corpus` into
+/// `EMMET_CORPUS_DIR`), against the full library in the data dir `EMMET_CORPUS_DATA`: no error findings on any model,
+/// and the mutation gates over all of them. `.github/workflows/nightly.yml` runs it; by hand:
+///
+/// ```sh
+/// scripts/omr-corpus /tmp/omr && EMMET_CORPUS_DIR=/tmp/omr EMMET_CORPUS_DATA=<data dir> \
+///   cargo test -p emmet-it --test validator_corpus -- --ignored corpus_nightly --nocapture
+/// ```
+#[test]
+#[ignore]
+fn corpus_nightly() {
+    let dir = PathBuf::from(std::env::var("EMMET_CORPUS_DIR").expect("EMMET_CORPUS_DIR"));
+    let data = PathBuf::from(std::env::var("EMMET_CORPUS_DATA").expect("EMMET_CORPUS_DATA"));
+    let list: serde_json::Value = serde_json::from_slice(&std::fs::read(fixture("omr/nightly.json")).unwrap()).unwrap();
+    let mut models = Vec::new();
+    let mut bad = Vec::new();
+    println!("| Model | Parts | Errors | Warnings | ms |\n|---|---|---|---|---|");
+    for m in list["models"].as_array().unwrap() {
+        let file = m["file"].as_str().unwrap();
+        let bytes = std::fs::read(dir.join(file)).unwrap_or_else(|e| panic!("{file}: {e} (run scripts/omr-corpus)"));
+        assert_eq!(
+            emmet_it::sha256(&bytes),
+            m["sha256"].as_str().unwrap(),
+            "{file} isn't the listed file"
+        );
+        let placements = placements_of(&dir.join(file));
+        let started = std::time::Instant::now();
+        let v = validate(&data, &placements);
+        let ms = started.elapsed().as_millis();
+        let warnings = v.findings.iter().filter(|f| f.severity == Severity::Warning).count();
+        println!("| {file} | {} | {} | {warnings} | {ms} |", placements.len(), v.errors());
+        if v.errors() > 0 {
+            bad.push(format!("{file}:\n{}", report(&v)));
+        }
+        models.push((file.to_string(), placements));
+    }
+    let recall = corpus::recall(&data, &models, 3);
+    println!("\n{}", recall.table());
+    assert!(
+        bad.is_empty(),
+        "official models must have no errors:\n{}",
+        bad.join("\n")
+    );
+    recall.gate();
+}
+
+/// Not run by default: validates every model in `EMMET_CORPUS_DIR` against the library in `EMMET_CORPUS_DATA` and
+/// prints the findings. For choosing models and checking a change.
 #[test]
 #[ignore]
 fn corpus_dir() {
     let dir = PathBuf::from(std::env::var("EMMET_CORPUS_DIR").expect("EMMET_CORPUS_DIR"));
     let data = PathBuf::from(std::env::var("EMMET_CORPUS_DATA").expect("EMMET_CORPUS_DATA"));
-    for f in mpds(&dir) {
+    for f in models_in(&dir) {
         let started = std::time::Instant::now();
-        let v = validate(&data, &f);
+        let v = validate(&data, &placements_of(&f));
         println!(
             "{} — {} findings in {} ms\n{}",
             f.file_name().unwrap().to_string_lossy(),

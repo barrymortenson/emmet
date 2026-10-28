@@ -8,6 +8,7 @@
 
 pub mod agents;
 pub mod chatgpt;
+pub mod corpus;
 pub mod schema;
 
 use std::path::{Path, PathBuf};

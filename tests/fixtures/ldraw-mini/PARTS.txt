@@ -85,3 +85,13 @@
 
 # What the OMR fixtures use beyond the above (tests/fixtures/omr/)
 3137c05 # Brick 2 x 2 with Red Wheels (Complete)
+
+# What 3A's five OMR fixtures add (tests/fixtures/omr/): old windows and a door, curved and inverted slopes, SNOT,
+# a clip, a bar, a sticker, and a minifig.
+3853 3854 3856 3861c    # window 1 x 4 x 3 with pane and shutter, door 1 x 4 x 5
+11477 24201 61678       # curved slopes 2 x 1, 2 x 1 inverted, 4 x 1
+26047 26604 98138p07    # plate 1 x 1 round with handle, brick 1 x 1 with studs on two sides, a printed tile
+2540 63868 6091 52501   # plate 1 x 2 with handle, plate 1 x 2 with clip, curved-top brick, inverted double slope
+43722 43723             # ~Moved to 43722a and 43723a (wedge plates)
+4586822a                # a sticker
+3624 3626bp01 3815b 3816b 3817b 3818 3819 3820 973   # a minifig: hat, head, hips, legs, arms, hands, torso

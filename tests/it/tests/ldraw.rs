@@ -110,6 +110,41 @@ fn mpd_files_steps_and_emmet_meta() {
     );
     assert_eq!(p[1].submodel, vec!["sub model.ldr".to_string()]);
     assert_eq!(&p[1].matrix[12..15], &[20.0, -24.0, 0.0]);
+    // The copy is named by its !EMMET id and placed in the main model's step 2.
+    assert_eq!(
+        serde_json::to_value(&p[1].copies).unwrap(),
+        serde_json::json!([{ "id": "roof/1", "step": 2 }])
+    );
+}
+
+/// Two copies of a submodel are two copies, and a part embedded in the file (an OMR model's unofficial part) is one
+/// placed part, not a submodel of primitives: it used to flatten into `box5`, `4-4cyli`, … each "unknown".
+#[test]
+fn submodel_copies_and_embedded_parts() {
+    let text = "0 FILE main.ldr\n1 16 0 0 0 1 0 0 0 1 0 0 0 1 wing.ldr\n0 STEP\n1 16 40 0 0 1 0 0 0 1 0 0 0 1 wing.ldr\n\
+                0 NOFILE\n0 FILE wing.ldr\n1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat\n1 4 0 -24 0 1 0 0 0 1 0 0 0 1 x99.dat\n\
+                0 NOFILE\n0 FILE x99.dat\n0 Brick 1 x 1 Special\n0 !LDRAW_ORG Unofficial_Part\n\
+                1 16 0 0 0 1 0 0 0 1 0 0 0 1 box5.dat\n0 NOFILE\n";
+    let p = placements(&ldraw::parse(text).unwrap());
+    let rows: Vec<(String, Vec<(String, u32)>)> = p
+        .iter()
+        .map(|q| {
+            (
+                q.part.clone(),
+                q.copies.iter().map(|c| (c.id.clone(), c.step)).collect(),
+            )
+        })
+        .collect();
+    let copy = |id: &str, step| vec![(id.to_string(), step)];
+    assert_eq!(
+        rows,
+        vec![
+            ("3001".into(), copy("main/1", 1)),
+            ("x99".into(), copy("main/1", 1)),
+            ("3001".into(), copy("main/3", 2)),
+            ("x99".into(), copy("main/3", 2)),
+        ]
+    );
 }
 
 #[test]

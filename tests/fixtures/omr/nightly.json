@@ -1,0 +1,236 @@
+{
+ "about": "The nightly validator corpus (plan section 11): official OMR models, fetched and cached on the runner by scripts/omr-corpus, never committed. Each must validate with no error findings (tests/it/tests/validator_corpus.rs, corpus_nightly). Models that embed unofficial parts are left out: validate rightly reports those parts as unknown.",
+ "models": [
+  {
+   "file": "10013-1.mpd",
+   "set": "10013-1",
+   "name": "Open Freight Wagon",
+   "url": "https://library.ldraw.org/media/omr_models/1750/10013-1.mpd",
+   "sha256": "1aaac96c6ed21aa482cde43aa1213e95f0026cc39910b81d9e1bf51549756e45"
+  },
+  {
+   "file": "10124-1.mpd",
+   "set": "10124-1",
+   "name": "Wright Flyer",
+   "url": "https://library.ldraw.org/media/omr_models/1412/10124-1.mpd",
+   "sha256": "35caad022a84e0a287709b0682c26a80f70dd7070d5d54d307bfa16c489e2b03"
+  },
+  {
+   "file": "106-1.mpd",
+   "set": "106-1",
+   "name": "UNICEF Van",
+   "url": "https://library.ldraw.org/media/omr_models/621/106-1.mpd",
+   "sha256": "f5f2ff47553ede535451177ee958c0ee4be7ca357a993f8a7a4fff4682521527"
+  },
+  {
+   "file": "1499-1.mpd",
+   "set": "1499-1",
+   "name": "Twin Starfire",
+   "url": "https://library.ldraw.org/media/omr_models/785/1499-1.mpd",
+   "sha256": "d74433c593533e20b713c5e99bb66d2fbf5bf0c96b278dfd132709ae657916b5"
+  },
+  {
+   "file": "20006-1.mpd",
+   "set": "20006-1",
+   "name": "Clone Turbo Tank - Mini",
+   "url": "https://library.ldraw.org/media/omr_models/1024/20006-1.mpd",
+   "sha256": "4fc2074dad13ad8eb520c5b3d6f2532d64d377e3c201c4e2a361a6264e0a8adb"
+  },
+  {
+   "file": "21000-1.mpd",
+   "set": "21000-1",
+   "name": "Sears Tower",
+   "url": "https://library.ldraw.org/media/omr_models/77/21000-1.mpd",
+   "sha256": "20ca87b0b5f45c0e8f2922b7f09da8a806793023660cd34b6c02951e822215dd"
+  },
+  {
+   "file": "21013-1.mpd",
+   "set": "21013-1",
+   "name": "Big Ben",
+   "url": "https://library.ldraw.org/media/omr_models/17/21013-1.mpd",
+   "sha256": "9ff90d99bb36c2bdd1d2c3913a354bd6392bfe1cd5514b71d962cb2e12016bc6"
+  },
+  {
+   "file": "21017-1.mpd",
+   "set": "21017-1",
+   "name": "Imperial Hotel",
+   "url": "https://library.ldraw.org/media/omr_models/85/21017-1.mpd",
+   "sha256": "636b906916de051ae99618276496612db2225cdedee246ae1b3caf442a152008"
+  },
+  {
+   "file": "21022-1.mpd",
+   "set": "21022-1",
+   "name": "Lincoln Memorial",
+   "url": "https://library.ldraw.org/media/omr_models/90/21022-1.mpd",
+   "sha256": "95a17ee1bd458aca27490e38a513702a1d895a13be2c2941b95a53ce501e072d"
+  },
+  {
+   "file": "2150-1.mpd",
+   "set": "2150-1",
+   "name": "Train Station",
+   "url": "https://library.ldraw.org/media/omr_models/642/2150-1.mpd",
+   "sha256": "1633ac12ac0a76d5c56225fb7302720b198a81fd805b7ee6620a323305327d11"
+  },
+  {
+   "file": "30030-1.mpd",
+   "set": "30030-1",
+   "name": "Racing Car",
+   "url": "https://library.ldraw.org/media/omr_models/911/30030-1.mpd",
+   "sha256": "e2562b640eaa9aab1b4826f76864d39829d5be19c43e262b66ad525b68607678"
+  },
+  {
+   "file": "30311-1.mpd",
+   "set": "30311-1",
+   "name": "Swamp Police Helicopter",
+   "url": "https://library.ldraw.org/media/omr_models/379/30311-1.mpd",
+   "sha256": "cf50b95a9be5f414ea534bdb4c7eb42246f88c2215169b39d056893d41684a7d"
+  },
+  {
+   "file": "30542-1_Cute-Pug.mpd",
+   "set": "30542-1",
+   "name": "Cute Pug",
+   "url": "https://library.ldraw.org/media/omr_models/605/30542-1_Cute-Pug.mpd",
+   "sha256": "b573ca38f9501058d0b936ec35164d545d8a06e0c7f8016827227e63c755e0e0"
+  },
+  {
+   "file": "30542-1_Koala.mpd",
+   "set": "30542-1",
+   "name": "Cute Pug",
+   "url": "https://library.ldraw.org/media/omr_models/606/30542-1_Koala.mpd",
+   "sha256": "cb657c58483771b23352c688b38e463dac0502f7b4fb8187898ec7b23df2fd86"
+  },
+  {
+   "file": "30542-1_Turkey.mpd",
+   "set": "30542-1",
+   "name": "Cute Pug",
+   "url": "https://library.ldraw.org/media/omr_models/607/30542-1_Turkey.mpd",
+   "sha256": "3ed23cd67b2296ad64e949f319afb38172a6fe7928e7b64003b857f79cff3c2d"
+  },
+  {
+   "file": "40142-1.mpd",
+   "set": "40142-1",
+   "name": "Bricktober Train Station",
+   "url": "https://library.ldraw.org/media/omr_models/1035/40142-1.mpd",
+   "sha256": "475c3cbf32064caf54cdb227b26de08e2589b12e59b8de2e2f66cf17434f3b52"
+  },
+  {
+   "file": "40182-1.mpd",
+   "set": "40182-1",
+   "name": "Bricktober Fire Station",
+   "url": "https://library.ldraw.org/media/omr_models/1040/40182-1.mpd",
+   "sha256": "ab46fd2b9d74529e6b7ea1690d8d7c9c4a0c27815f432fff24591452928bec5a"
+  },
+  {
+   "file": "4543-1.mpd",
+   "set": "4543-1",
+   "name": "Railroad Tractor Flatbed",
+   "url": "https://library.ldraw.org/media/omr_models/1653/4543-1.mpd",
+   "sha256": "18638cc480badcff817eab83e3c089d6d05c4630946e4ae61cfe20d6d22433b8"
+  },
+  {
+   "file": "4939-1.mpd",
+   "set": "4939-1",
+   "name": "Cool Cars",
+   "url": "https://library.ldraw.org/media/omr_models/1712/4939-1.mpd",
+   "sha256": "f11f42691f18de00d8e61454cfd855623e5f1a71a1c96fbc7b894ec88ddcfc8f"
+  },
+  {
+   "file": "4939-1_Formula-1.mpd",
+   "set": "4939-1",
+   "name": "Cool Cars",
+   "url": "https://library.ldraw.org/media/omr_models/1713/4939-1_Formula-1.mpd",
+   "sha256": "55e4c0eda281ae66f0567954eea3ac3242ff1c845f36ce6f45f677184415d2a9"
+  },
+  {
+   "file": "4939-1_Truck.mpd",
+   "set": "4939-1",
+   "name": "Cool Cars",
+   "url": "https://library.ldraw.org/media/omr_models/1714/4939-1_Truck.mpd",
+   "sha256": "3f67e60662d2ba2033b5099744ac0831b1d6866e00d03bb0157929d8a3fbd0e7"
+  },
+  {
+   "file": "601-1.mpd",
+   "set": "601-1",
+   "name": "Petrol Pump",
+   "url": "https://library.ldraw.org/media/omr_models/1453/601-1.mpd",
+   "sha256": "aa23c8fd150f1b564773b291eec71d0032080e5e9ef35f88457d52d71491c9f4"
+  },
+  {
+   "file": "6375-1.mpd",
+   "set": "6375-1",
+   "name": "Trans Air Carrier",
+   "url": "https://library.ldraw.org/media/omr_models/469/6375-1.mpd",
+   "sha256": "58fbc1867b8e7eea417b79dccba029d5bde7dc7904d506198c7aa5d445f306ad"
+  },
+  {
+   "file": "6515-1.mpd",
+   "set": "6515-1",
+   "name": "Stunt Copter",
+   "url": "https://library.ldraw.org/media/omr_models/677/6515-1.mpd",
+   "sha256": "bbe6c9f50f7ca7e16499ec119e1f70472ca784576bda0c00319b5be62d9afd8a"
+  },
+  {
+   "file": "6605-1.mpd",
+   "set": "6605-1",
+   "name": "Road Racer",
+   "url": "https://library.ldraw.org/media/omr_models/1133/6605-1.mpd",
+   "sha256": "74b1bd62531f35aabd7dd714e0e6e8e5a3372ac6558c137542f1475f670b884e"
+  },
+  {
+   "file": "6657-1.mpd",
+   "set": "6657-1",
+   "name": "Fire Patrol Copter",
+   "url": "https://library.ldraw.org/media/omr_models/1144/6657-1.mpd",
+   "sha256": "fa718aa33fa4c29fd5b01408f2872c6dc43b25507695d9662bd0151e86dda149"
+  },
+  {
+   "file": "6743-1.mpd",
+   "set": "6743-1",
+   "name": "Street Speeder",
+   "url": "https://library.ldraw.org/media/omr_models/1377/6743-1.mpd",
+   "sha256": "6d70b766d666788ed4e5082ea1612e484ef613fa2e3c88123069ade350adce93"
+  },
+  {
+   "file": "6743-1_SpeedCar.mpd",
+   "set": "6743-1",
+   "name": "Street Speeder",
+   "url": "https://library.ldraw.org/media/omr_models/1378/6743-1_SpeedCar.mpd",
+   "sha256": "ae483a4b68b10c5ef371a497aa12ae4522d4146668db32e3d7e49e59bc22d499"
+  },
+  {
+   "file": "6743-1_Hot-Rod.mpd",
+   "set": "6743-1",
+   "name": "Street Speeder",
+   "url": "https://library.ldraw.org/media/omr_models/1379/6743-1_Hot-Rod.mpd",
+   "sha256": "be453da5a8b035aae47a14ac76efd08880fa6ef0169563ed821bfc84119485ff"
+  },
+  {
+   "file": "6841-1.mpd",
+   "set": "6841-1",
+   "name": "Mineral Detector",
+   "url": "https://library.ldraw.org/media/omr_models/272/6841-1.mpd",
+   "sha256": "e233a839381059c3e34dc6ff345e01d8891b0e9c456a50e413a85c09f3430392"
+  },
+  {
+   "file": "6927-1.mpd",
+   "set": "6927-1",
+   "name": "All-Terrain Vehicle",
+   "url": "https://library.ldraw.org/media/omr_models/277/6927-1.mpd",
+   "sha256": "6d32c8f1247da127995513cf6ae0b91b2f87d2e145e9b948ee0649bd852394ac"
+  },
+  {
+   "file": "7110-1.mpd",
+   "set": "7110-1",
+   "name": "Landspeeder",
+   "url": "https://library.ldraw.org/media/omr_models/123/7110-1.mpd",
+   "sha256": "77686168733ff803ffe5b3d299c6a509700810216222bdb285e1dee096b3ea80"
+  },
+  {
+   "file": "889-1.mpd",
+   "set": "889-1",
+   "name": "Radar Truck",
+   "url": "https://library.ldraw.org/media/omr_models/112/889-1.mpd",
+   "sha256": "cdb984fedfa2d452684cb76777c967ee42beb7630cc69e32799923e93805e3c0"
+  }
+ ]
+}
