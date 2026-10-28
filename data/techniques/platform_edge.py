@@ -11,6 +11,9 @@ plastic track stands 4 plates above the track's bottom or more (the rails are 3 
 from emmet_dsl import Brick, Tile
 from emmet_dsl.core import in_steps, row_actions
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = ["2431", "63864", "3069b", "3070b"]
 
 

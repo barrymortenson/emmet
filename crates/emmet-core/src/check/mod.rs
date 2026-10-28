@@ -414,6 +414,44 @@ pub fn links(index: &Index, lib: &LibFiles, placements: &[Placement]) -> Result<
     Ok(out)
 }
 
+/// One edge of the connection graph, for the technique miner (3C): placements `a` and `b` by index, joined by a
+/// connector pair of `kind` ("cyl", "clip", "finger", "gen") along `axis` (LDraw frame) with a seat of `radius` LDU,
+/// or held one by the other without one (kind "held", no axis).
+#[doc(hidden)]
+#[derive(Debug, Clone)]
+pub struct Joint {
+    pub a: usize,
+    pub b: usize,
+    pub kind: String,
+    pub axis: Option<[f64; 3]>,
+    pub radius: f64,
+}
+
+/// Every edge of the connection graph (see `Joint`), one per mating pair of connectors and one per held pair.
+#[doc(hidden)]
+pub fn joints(index: &Index, lib: &LibFiles, placements: &[Placement]) -> Result<Vec<Joint>> {
+    let model = prepare(index, lib, placements)?;
+    let mut out: Vec<Joint> = model
+        .links
+        .iter()
+        .map(|c| Joint {
+            a: c.a,
+            b: c.b,
+            kind: format!("{:?}", c.kind).to_lowercase(),
+            axis: Some(c.axis.to_array()),
+            radius: c.radius,
+        })
+        .collect();
+    out.extend(model.held.iter().map(|&(a, b)| Joint {
+        a,
+        b,
+        kind: "held".into(),
+        axis: None,
+        radius: 0.0,
+    }));
+    Ok(out)
+}
+
 /// For debugging the connection model: each named placement's connectors in the world, the near misses, every
 /// connection that touches it, and what holds it without a connector pair.
 #[doc(hidden)]

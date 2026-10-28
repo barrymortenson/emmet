@@ -12,6 +12,9 @@ tiles. It brings its own steps, a stage at a time, and returns the z of the roof
 from emmet_dsl import Plate
 from emmet_dsl.core import in_steps, row_actions
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "2453b",
     "3623",

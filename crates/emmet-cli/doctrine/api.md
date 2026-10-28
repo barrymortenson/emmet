@@ -88,8 +88,8 @@ side, the longest pieces first, and a 1-wide strip when the short side is odd. R
 Brick walls, a row at a time from z up. With depth, the four walls of a length × depth rectangle whose
 front-left corner is (x, y), with interlocking corners; without it, one straight wall along x. sides: "all",
 or some of "front", "back", "left", "right", and "sides" (left and right), to build a wall at a time. bond:
-"running" (joints staggered row to row, for a straight wall; a rectangle's corners stagger it anyway) or
-"stacked". openings: (x, y) cells left empty, for doors and
+"running" (no joint on a joint in the course below that a Model.wall laid, so each piece bridges one and the
+course over a door or window spans its edges) or "stacked". openings: (x, y) cells left empty, for doors and
 windows. kind: the piece family (Brick by default). sizes: the piece lengths to use. Returns the Handles.
 
 ### Model.repeat(fn, n: int, dx: float = 0, dy: float = 0, dz: float = 0) -> list

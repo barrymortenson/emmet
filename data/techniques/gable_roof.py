@@ -12,6 +12,9 @@ front" and so on, and returns the z of the ridge's top.
 from emmet_dsl import Brick, Plate, Slope
 from emmet_dsl.core import in_steps
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "3037",
     "3038",

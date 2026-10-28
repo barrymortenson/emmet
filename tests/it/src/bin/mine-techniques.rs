@@ -1,0 +1,358 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//! The technique miner (session 3C, plan section 21): which small sub-assemblies recur across official models, found
+//! on the validator's connection graph (3A). It ranks ideas for the technique library; techniques are written by hand
+//! and aren't derived from the models (D-48, ADR 0003).
+//!
+//!   cargo run -p emmet-it --bin mine-techniques -- <data dir> <out dir> <model files or dirs>…
+//!
+//! The data dir needs the full LDraw library and its parts index. A motif is a connected set of 2–12 parts that has at
+//! least one part or joint beyond plain stacking (a part on its side or upside down, a clip, a hinge, a bar, a part
+//! that isn't a plain brick, plate, or tile). Motifs are keyed by shape: each part's id and its place relative to an
+//! anchor part, colors ignored. They're grown a part at a time from the motifs found in at least MIN_MODELS models,
+//! and ranked by how many models have one, then how many times they appear. Writes `<out dir>/motifs.json` and, for
+//! the top motifs, one example as `<out dir>/examples/<rank>.ldr` (for a render; never committed).
+
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::fmt::Write as _;
+use std::path::{Path, PathBuf};
+
+use emmet_core::data::DataDir;
+use emmet_core::index::Index;
+use emmet_core::ldraw::geometry::LibFiles;
+use emmet_it::corpus::{models_in, placements_of};
+use glam::DMat4;
+use serde_json::json;
+
+/// A motif counts once it's in this many models.
+const MIN_MODELS: usize = 3;
+const MAX_PARTS: usize = 12;
+/// How many instances of a motif per model grow into the next size: enough to find every larger motif, few enough
+/// that a wall of a hundred brackets doesn't swamp the run.
+const GROW_PER_MODEL: usize = 40;
+/// How many motifs of each size go on to grow, the most widespread first.
+const KEEP_PER_SIZE: usize = 4000;
+const EXAMPLES: usize = 400;
+
+/// Plain stacking: parts in these categories, upright, joined by studs straight up, are no technique on their own.
+const PLAIN: [&str; 3] = ["Brick", "Plate", "Tile"];
+/// Words in a plain category's part name that make it more than a plain part.
+const SPECIAL: [&str; 14] = [
+    "Jumper",
+    "Clip",
+    "Handle",
+    "Bar",
+    "Hinge",
+    "Side",
+    "Headlight",
+    "Rail",
+    "Groove",
+    "Click",
+    "Pin",
+    "Hole",
+    "Bracket",
+    "Lock",
+];
+
+struct Model {
+    file: String,
+    title: String,
+    author: String,
+    license: String,
+    parts: Vec<String>,
+    colors: Vec<u32>,
+    matrices: Vec<DMat4>,
+    adj: Vec<Vec<usize>>,
+    /// Placements that make a motif worth having on their own (see SPECIAL), and joints that do.
+    special: Vec<bool>,
+    special_edges: HashSet<(usize, usize)>,
+}
+
+fn header(text: &str, key: &str) -> String {
+    text.lines()
+        .find_map(|l| l.trim().strip_prefix(key).map(|v| v.trim().to_string()))
+        .unwrap_or_default()
+}
+
+fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, (String, String)>) -> Model {
+    let text = String::from_utf8_lossy(&std::fs::read(path).unwrap()).into_owned();
+    let placements = placements_of(path);
+    let joints = emmet_core::check::joints(index, lib, &placements).unwrap();
+    let n = placements.len();
+    let mut keep = vec![false; n];
+    let mut special = vec![false; n];
+    let mut matrices = Vec::with_capacity(n);
+    let mut parts = Vec::with_capacity(n);
+    for (i, p) in placements.iter().enumerate() {
+        let m = DMat4::from_cols_array(&p.matrix);
+        matrices.push(m);
+        // A moved id counts as the part it moved to, so old and new files share motifs.
+        let mut id = p.part.clone();
+        if let Some(part) = index.part(&id).unwrap()
+            && part.name.starts_with("~Moved to")
+            && let Some(to) = part.alias_of
+        {
+            id = to;
+        }
+        parts.push(id.clone());
+        let (name, category) = names
+            .entry(id.clone())
+            .or_insert_with(|| match index.part(&id).unwrap() {
+                Some(part) => (part.name, part.category),
+                None => (String::new(), String::new()),
+            })
+            .clone();
+        // Figures, stickers, and baseplates join everything to everything; unknown and obsolete parts (a `~` name)
+        // can't be judged.
+        if name.is_empty()
+            || name.starts_with('~')
+            || category.starts_with("Minifig")
+            || ["Sticker", "Baseplate"].contains(&category.as_str())
+        {
+            continue;
+        }
+        keep[i] = true;
+        // Upright means the part's own up (LDraw −Y) is the world's.
+        let upright = (m.y_axis.y - 1.0).abs() < 1e-3;
+        let plain = PLAIN.contains(&category.as_str()) && !SPECIAL.iter().any(|w| name.contains(w));
+        special[i] = !upright || !plain;
+    }
+    let mut adj = vec![BTreeSet::new(); n];
+    let mut special_edges = HashSet::new();
+    for j in &joints {
+        if !keep[j.a] || !keep[j.b] || j.a == j.b {
+            continue;
+        }
+        adj[j.a].insert(j.b);
+        adj[j.b].insert(j.a);
+        let vertical = j.axis.is_some_and(|a| a[1].abs() > 0.99);
+        if j.kind != "held" && (j.kind != "cyl" || !vertical) {
+            special_edges.insert((j.a.min(j.b), j.a.max(j.b)));
+        }
+    }
+    Model {
+        file: path.file_name().unwrap().to_string_lossy().into_owned(),
+        title: text
+            .lines()
+            .next()
+            .unwrap_or("")
+            .trim()
+            .trim_start_matches('0')
+            .trim()
+            .to_string(),
+        author: header(&text, "0 Author:"),
+        license: header(&text, "0 !LICENSE"),
+        parts,
+        colors: placements.iter().map(|p| p.color).collect(),
+        matrices,
+        adj: adj.into_iter().map(|s| s.into_iter().collect()).collect(),
+        special,
+        special_edges,
+    }
+}
+
+/// A number rounded for a key: positions to 2 LDU (official files are often 1 LDU off), rotations to 0.01.
+fn q(v: f64, step: f64) -> i64 {
+    (v / step).round() as i64
+}
+
+/// The motif's key: the smallest, over anchors with the first part id, of every other part's id and transform in the
+/// anchor's frame, sorted.
+fn key(m: &Model, set: &[usize]) -> String {
+    let first = set.iter().map(|&i| &m.parts[i]).min().unwrap();
+    let mut best: Option<String> = None;
+    for &a in set.iter().filter(|&&a| &m.parts[a] == first) {
+        let inv = m.matrices[a].inverse();
+        let mut items: Vec<String> = set
+            .iter()
+            .filter(|&&i| i != a)
+            .map(|&i| {
+                let r = inv * m.matrices[i];
+                let c = r.to_cols_array();
+                let mut s = format!("{}@{},{},{}", m.parts[i], q(c[12], 2.0), q(c[13], 2.0), q(c[14], 2.0));
+                for v in [c[0], c[1], c[2], c[4], c[5], c[6], c[8], c[9], c[10]] {
+                    let _ = write!(s, ",{}", q(v, 0.01));
+                }
+                s
+            })
+            .collect();
+        items.sort();
+        let k = format!("{first}|{}", items.join(";"));
+        if best.as_ref().is_none_or(|b| &k < b) {
+            best = Some(k);
+        }
+    }
+    best.unwrap()
+}
+
+fn is_special(m: &Model, set: &[usize]) -> bool {
+    set.iter().any(|&i| m.special[i])
+        || set
+            .iter()
+            .any(|&a| set.iter().any(|&b| a < b && m.special_edges.contains(&(a, b))))
+}
+
+#[derive(Default)]
+struct Motif {
+    /// Per model, its instances (sorted placement indices).
+    by_model: BTreeMap<usize, Vec<Vec<usize>>>,
+}
+
+impl Motif {
+    fn instances(&self) -> usize {
+        self.by_model.values().map(Vec::len).sum()
+    }
+}
+
+fn rank(motifs: HashMap<String, Motif>) -> Vec<(String, Motif)> {
+    let mut out: Vec<(String, Motif)> = motifs
+        .into_iter()
+        .filter(|(_, m)| m.by_model.len() >= MIN_MODELS)
+        .collect();
+    out.sort_by(|a, b| (b.1.by_model.len(), b.1.instances(), &a.0).cmp(&(a.1.by_model.len(), a.1.instances(), &b.0)));
+    out
+}
+
+fn add(
+    motifs: &mut HashMap<String, Motif>,
+    seen: &mut HashSet<(usize, Vec<usize>)>,
+    models: &[Model],
+    mi: usize,
+    set: Vec<usize>,
+) {
+    if !seen.insert((mi, set.clone())) {
+        return;
+    }
+    let k = key(&models[mi], &set);
+    motifs.entry(k).or_default().by_model.entry(mi).or_default().push(set);
+}
+
+fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.len() < 3 {
+        eprintln!("usage: mine-techniques <data dir> <out dir> <model files or dirs>…");
+        std::process::exit(2);
+    }
+    let data = DataDir::at(Path::new(&args[0]));
+    let out = PathBuf::from(&args[1]);
+    let index = Index::ensure(&data).unwrap();
+    let lib = LibFiles::probe(&data.ldraw());
+    let mut files = Vec::new();
+    for a in &args[2..] {
+        let p = PathBuf::from(a);
+        if p.is_dir() {
+            files.extend(models_in(&p));
+        } else {
+            files.push(p);
+        }
+    }
+    let mut names = HashMap::new();
+    let models: Vec<Model> = files
+        .iter()
+        .map(|f| {
+            eprintln!("mine-techniques: reading {}", f.display());
+            load(&index, &lib, f, &mut names)
+        })
+        .collect();
+
+    // Size 2: every joint that's more than plain stacking.
+    let mut level: HashMap<String, Motif> = HashMap::new();
+    let mut seen = HashSet::new();
+    for (mi, m) in models.iter().enumerate() {
+        for a in 0..m.parts.len() {
+            for &b in &m.adj[a] {
+                if a < b && is_special(m, &[a, b]) {
+                    add(&mut level, &mut seen, &models, mi, vec![a, b]);
+                }
+            }
+        }
+    }
+    let mut all: Vec<(usize, String, Motif)> = Vec::new();
+    for size in 2..=MAX_PARTS {
+        let ranked = rank(std::mem::take(&mut level));
+        eprintln!(
+            "mine-techniques: {size} parts: {} motifs in {MIN_MODELS}+ models",
+            ranked.len()
+        );
+        if ranked.is_empty() {
+            break;
+        }
+        if size < MAX_PARTS {
+            let mut seen = HashSet::new();
+            for (_, motif) in ranked.iter().take(KEEP_PER_SIZE) {
+                for (&mi, sets) in &motif.by_model {
+                    let m = &models[mi];
+                    for set in sets.iter().take(GROW_PER_MODEL) {
+                        for &i in set {
+                            for &j in &m.adj[i] {
+                                if set.contains(&j) {
+                                    continue;
+                                }
+                                let mut grown = set.clone();
+                                grown.push(j);
+                                grown.sort_unstable();
+                                add(&mut level, &mut seen, &models, mi, grown);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        all.extend(ranked.into_iter().map(|(k, m)| (size, k, m)));
+    }
+
+    // Widest first, then larger (a bigger motif in as many models says more), then more often.
+    all.sort_by_key(|a| std::cmp::Reverse((a.2.by_model.len(), a.0, a.2.instances())));
+    std::fs::create_dir_all(out.join("examples")).unwrap();
+    let mut rows = Vec::new();
+    for (rank, (size, key, motif)) in all.iter().enumerate() {
+        let (&mi, sets) = motif.by_model.iter().max_by_key(|(_, s)| s.len()).unwrap();
+        let example = &sets[0];
+        let m = &models[mi];
+        let mut parts: BTreeMap<&str, usize> = BTreeMap::new();
+        for &i in example {
+            *parts.entry(&m.parts[i]).or_default() += 1;
+        }
+        let file = if rank < EXAMPLES {
+            let mut ldr = format!("0 Motif {} from {}\n", rank + 1, m.file);
+            for &i in example {
+                let c = m.matrices[i].to_cols_array();
+                let _ = writeln!(
+                    ldr,
+                    "1 {} {} {} {} {} {} {} {} {} {} {} {} {} {}.dat",
+                    m.colors[i], c[12], c[13], c[14], c[0], c[4], c[8], c[1], c[5], c[9], c[2], c[6], c[10], m.parts[i]
+                );
+            }
+            let name = format!("{:04}.ldr", rank + 1);
+            std::fs::write(out.join("examples").join(&name), ldr).unwrap();
+            Some(name)
+        } else {
+            None
+        };
+        rows.push(json!({
+            "rank": rank + 1,
+            "size": size,
+            "key": key,
+            "models": motif.by_model.len(),
+            "instances": motif.instances(),
+            "parts": parts.iter().map(|(id, n)| json!({
+                "id": id, "count": n, "name": names.get(*id).map(|(n, _)| n.as_str()).unwrap_or(""),
+            })).collect::<Vec<_>>(),
+            "found_in": motif.by_model.iter().map(|(&mi, s)| json!({
+                "file": models[mi].file, "count": s.len(),
+            })).collect::<Vec<_>>(),
+            "example": file.map(|f| json!({ "file": m.file, "ldr": f })),
+        }));
+    }
+    let doc = json!({
+        "models": models.iter().map(|m| json!({
+            "file": m.file, "title": m.title, "author": m.author, "license": m.license, "parts": m.parts.len(),
+        })).collect::<Vec<_>>(),
+        "motifs": rows,
+    });
+    std::fs::write(out.join("motifs.json"), serde_json::to_string_pretty(&doc).unwrap()).unwrap();
+    eprintln!(
+        "mine-techniques: {} motifs in {}",
+        all.len(),
+        out.join("motifs.json").display()
+    );
+}

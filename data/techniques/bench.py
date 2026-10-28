@@ -8,6 +8,9 @@ colors is one sub-assembly, built once in its own steps and placed "× n", so pl
 returns the placed copy's Handle.
 """
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = ["3004", "3020", "2431", "3633"]
 
 

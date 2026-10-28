@@ -179,6 +179,10 @@
             },
             "type": "array"
           },
+          "provenance": {
+            "description": "Where the method came from: Emmet's own, the instruction books it was read in (by set number), and how widely\nthe miner found it in official models. Never derived from an OMR model's file (D-48).",
+            "type": "string"
+          },
           "snippet": {
             "description": "The body of its example: model code that uses it.",
             "type": "string"
@@ -192,7 +196,8 @@
           "title",
           "doc",
           "snippet",
-          "parts"
+          "parts",
+          "provenance"
         ],
         "type": "object"
       },

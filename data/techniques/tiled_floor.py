@@ -15,6 +15,9 @@ first for strips along x (left to right for strips along y), and returns the z o
 from emmet_dsl import Plate, Tile
 from emmet_dsl.core import in_steps
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "3022",
     "3021",

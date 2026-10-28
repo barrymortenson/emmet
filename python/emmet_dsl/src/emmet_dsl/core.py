@@ -157,6 +157,8 @@ class Model:
         self._mirrors: list[tuple[str, float]] = []  # the open Model.mirror blocks
         self._allowed: list[tuple] = []  # (rule, ids, reason, file, line)
         self._grounded: list[tuple] = []  # (ids, file, line)
+        # Where Model.wall's pieces meet, by (axis, the line across it, z), so the course above lays them in bond.
+        self._joints: dict[tuple, set] = {}
         self._context = active
 
     # Steps
@@ -418,8 +420,8 @@ class Model:
         """Brick walls, a row at a time from z up. With depth, the four walls of a length × depth rectangle whose
         front-left corner is (x, y), with interlocking corners; without it, one straight wall along x. sides: "all",
         or some of "front", "back", "left", "right", and "sides" (left and right), to build a wall at a time. bond:
-        "running" (joints staggered row to row, for a straight wall; a rectangle's corners stagger it anyway) or
-        "stacked". openings: (x, y) cells left empty, for doors and
+        "running" (no joint on a joint in the course below that a Model.wall laid, so each piece bridges one and the
+        course over a door or window spans its edges) or "stacked". openings: (x, y) cells left empty, for doors and
         windows. kind: the piece family (Brick by default). sizes: the piece lengths to use. Returns the Handles."""
         file, line = caller()
         ctx = self._ctx("Model.wall", file, line)
@@ -442,12 +444,24 @@ class Model:
                     continue
                 cells = [(sx + i, sy) if axis == "x" else (sx, sy + i) for i in range(n)]
                 for (cx, cy), run in _gaps(cells, holes, axis):
-                    first = None
-                    if bond == "running" and course % 2 and depth == 0:
-                        first = max(1, family.longest(run, 1, sizes) // 2)
-                    for size, part in family.split(run, 1, sizes, first, rel, line):
+                    # The joints of this line of wall, where Model.repeat has moved it, a course down and here.
+                    ox, oy, oz = self._offset
+                    across, start = (cy + oy, cx + ox) if axis == "x" else (cx + ox, cy + oy)
+                    below = self._joints.get((axis, across, zr + oz - family.height), set())
+                    here = self._joints.setdefault((axis, across, zr + oz), set())
+                    if bond == "running" and below:
+                        pieces = family.bond(start, run, below, sizes, rel, line)
+                    else:
+                        first = None
+                        if bond == "running" and course % 2 and depth == 0:
+                            first = max(1, family.longest(run, 1, sizes) // 2)
+                        pieces = family.split(run, 1, sizes, first, rel, line)
+                    here.add(start)
+                    for size, part in pieces:
                         handles.append(self.add(part, color, at=(cx, cy, zr), rot=_turn(axis, size, 1)))
                         cx, cy = (cx + size, cy) if axis == "x" else (cx, cy + size)
+                        start += size
+                        here.add(start)
         return handles
 
     # Repetition and symmetry

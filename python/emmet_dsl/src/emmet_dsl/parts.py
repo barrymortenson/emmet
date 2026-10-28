@@ -101,6 +101,34 @@ class Family:
             )
         return out
 
+    def bond(self, start: int, length: int, below, sizes, rel: str, line: int) -> list[tuple[int, str]]:
+        """A run of `length` from `start` as [(length along, part id)], laid in bond over the course below: no joint
+        on a joint in `below` (the positions where pieces meet in the course under it), so every piece bridges one,
+        then as few pieces as can be, then as few 1-long ones and joints a stud from one below as can be. Falls back
+        to Family.split when the run can't avoid them (a run of 1)."""
+        have = self.lengths(1, sizes)
+        end = start + int(length)
+        inside = {j for j in below if start < j < end}
+        if not inside:
+            return self.split(length, 1, sizes, None, rel, line)
+        # best[p]: the cheapest way to cover start..p, as (cost, pieces); cost counts pieces, then weak spots.
+        best: dict[int, tuple[tuple[int, int], list[int]]] = {start: ((0, 0), [])}
+        for p in range(start, end):
+            if p not in best:
+                continue
+            (count, weak), pieces = best[p]
+            for n in sorted(have, reverse=True):
+                q = p + n
+                if q > end or q in inside:
+                    continue
+                near = q < end and (q - 1 in inside or q + 1 in inside)
+                cost = (count + 1, weak + (n == 1) + near)
+                if q not in best or cost < best[q][0]:
+                    best[q] = (cost, pieces + [n])
+        if end not in best:
+            return self.split(length, 1, sizes, None, rel, line)
+        return [(n, have[n]) for n in best[end][1]]
+
     def __repr__(self) -> str:
         return self.kind.title()
 

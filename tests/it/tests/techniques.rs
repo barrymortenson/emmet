@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The technique library (plan section 08, data/techniques/): each technique's example builds on ldraw-mini and
 //! validates with no findings, it has a render, and `emmet technique` gives its doc, an example that uses it through
-//! `m.use`, and its parts.
+//! `m.use`, its parts, and its provenance note.
 
 use emmet_core::python::TECHNIQUES;
 use emmet_it::{check_png, emmet, emmet_in, emmet_json, repo, shared_data, temp_dir, text};
@@ -97,6 +97,11 @@ fn builds_clean(name: &str) {
         "{name}'s example doesn't use it through m.use: {t:#}"
     );
     assert!(!t["parts"].as_array().unwrap().is_empty(), "{name} lists no PARTS");
+    // Every technique says where its method came from (3C, D-48).
+    assert!(
+        !t["provenance"].as_str().unwrap().is_empty(),
+        "{name} has no PROVENANCE note"
+    );
 
     let png = std::fs::read(repo().join(format!("data/techniques/{name}.png")))
         .unwrap_or_else(|_| panic!("{name} has no render; run scripts/render-techniques {name}"));
