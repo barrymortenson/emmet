@@ -183,7 +183,8 @@ fn params_get_set_and_run_overrides() {
             "chimney",
             "roof",
             "weathering",
-            "seed"
+            "seed",
+            "baseplate"
         ]
     );
     let width = &v["data"]["params"][0];

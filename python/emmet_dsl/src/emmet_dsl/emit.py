@@ -69,7 +69,7 @@ class Built:
 
     def steps_of(self, m: Model) -> list:
         if id(m) not in self.steps:
-            self.steps[id(m)] = m.steps()
+            self.steps[id(m)] = m._numbered_steps()
         return self.steps[id(m)]
 
 

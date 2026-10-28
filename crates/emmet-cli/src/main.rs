@@ -737,7 +737,11 @@ fn library_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &
 fn steps_text(s: &emmet_core::steps::Steps) -> String {
     fn lines(steps: &[emmet_core::steps::Step], indent: &str, out: &mut Vec<String>) {
         for st in steps {
-            let mut what: Vec<String> = st.parts.iter().map(|b| format!("{}x {}", b.count, b.part)).collect();
+            let mut what: Vec<String> = st
+                .parts
+                .iter()
+                .map(|b| format!("{}x {} ({})", b.count, b.part, b.color))
+                .collect();
             what.extend(st.submodels.iter().map(|m| format!("{}x {}", m.count, m.name)));
             let title = if st.title.is_empty() {
                 "(untitled)"

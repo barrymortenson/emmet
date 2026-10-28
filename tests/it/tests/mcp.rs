@@ -135,6 +135,8 @@ async fn lists_exactly_the_tools_built_so_far() {
             "run_model",
             "search_parts",
             "set_params",
+            "steps",
+            "technique",
             "validate"
         ]
     );

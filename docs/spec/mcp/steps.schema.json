@@ -1,0 +1,391 @@
+{
+  "name": "steps",
+  "description": "The build steps, like an instruction book: each step's title, the ids of the parts it adds, its parts box\n(part, color, count), and the sub-assemblies it puts on; then each sub-assembly's own steps and how many copies\nthe model has. Runs the model first if build/ is out of date.",
+  "input": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object"
+  },
+  "output": {
+    "$defs": {
+      "BoxLine": {
+        "description": "One part × color in a step's parts box.",
+        "properties": {
+          "color": {
+            "description": "The LDraw color code.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "count": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "part": {
+            "description": "The LDraw part id.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "part",
+          "color",
+          "count"
+        ],
+        "type": "object"
+      },
+      "Details": {
+        "description": "Where an error happened and what else helps fix it. Every field is optional.",
+        "properties": {
+          "excerpt": {
+            "description": "The source line, as written.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "description": "The file: relative to the project root for model errors, otherwise the full path.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line": {
+            "description": "1-based line in `file`.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "suggestions": {
+            "description": "Close matches; part ids for `UNKNOWN_PART` (color and parameter suggestions are in the hint).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Error": {
+        "description": "A failure: what happened, where, and what to try.",
+        "properties": {
+          "code": {
+            "$ref": "#/$defs/ErrorCode"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Details"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hint": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "hint"
+        ],
+        "type": "object"
+      },
+      "ErrorCode": {
+        "description": "The error codes in plan section 09.",
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "PROJECT_UNTRUSTED",
+          "MODEL_EXEC_FAILED",
+          "MODEL_TIMEOUT",
+          "MODEL_TOO_LARGE",
+          "UNKNOWN_PART",
+          "UNKNOWN_COLOR",
+          "PARAM_INVALID",
+          "LIBRARY_MISSING",
+          "LIBRARY_CORRUPT",
+          "PYTHON_MISSING",
+          "RENDER_UNAVAILABLE",
+          "IO_ERROR",
+          "INTERNAL"
+        ],
+        "type": "string"
+      },
+      "Meta": {
+        "description": "Facts about the run that produced a result.",
+        "properties": {
+          "emmet": {
+            "description": "The Emmet version.",
+            "type": "string"
+          },
+          "generation": {
+            "description": "The project's run counter, after a run.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "inputs_hash": {
+            "description": "sha256 of the model's inputs (plan section 07), after a run.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ms": {
+            "description": "Wall time of the command in milliseconds.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project": {
+            "description": "The project root, when the command ran in one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "emmet",
+          "ms"
+        ],
+        "type": "object"
+      },
+      "Placed": {
+        "description": "A sub-assembly a step places.",
+        "properties": {
+          "count": {
+            "description": "Copies placed in this step.",
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "file": {
+            "description": "The submodel's file in model.mpd.",
+            "type": "string"
+          },
+          "ids": {
+            "description": "Those copies' ids; each copy's parts are \"<copy id>/<part id>\".",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "file",
+          "count",
+          "ids"
+        ],
+        "type": "object"
+      },
+      "Step": {
+        "properties": {
+          "group": {
+            "description": "The title before its colon, which groups steps in the steps list (\"Walls, row 2\").",
+            "type": "string"
+          },
+          "n": {
+            "description": "From 1, within the main model or within its sub-assembly.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "part_ids": {
+            "description": "The ids of the parts this step adds (within a sub-assembly, the part's own id, the same in every copy).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "parts": {
+            "description": "The parts box: each new part and color with its count, larger parts first.",
+            "items": {
+              "$ref": "#/$defs/BoxLine"
+            },
+            "type": "array"
+          },
+          "submodels": {
+            "description": "The sub-assemblies this step puts on.",
+            "items": {
+              "$ref": "#/$defs/Placed"
+            },
+            "type": "array"
+          },
+          "title": {
+            "description": "The step's title, or \"\" for an untitled one.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "n",
+          "title",
+          "group",
+          "part_ids",
+          "parts",
+          "submodels"
+        ],
+        "type": "object"
+      },
+      "Steps": {
+        "description": "`build/steps.json`.",
+        "properties": {
+          "steps": {
+            "items": {
+              "$ref": "#/$defs/Step"
+            },
+            "type": "array"
+          },
+          "submodels": {
+            "items": {
+              "$ref": "#/$defs/Submodel"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "steps",
+          "submodels"
+        ],
+        "type": "object"
+      },
+      "Submodel": {
+        "description": "A unit built apart (a door in its frame, a lamp post), once, then placed.",
+        "properties": {
+          "count": {
+            "description": "How many copies the whole model has: the \"× 4\" on its box.",
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "file": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parts": {
+            "description": "Parts in one copy.",
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/$defs/Step"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "file",
+          "count",
+          "parts",
+          "steps"
+        ],
+        "type": "object"
+      },
+      "UserNote": {
+        "description": "A message the user typed while the agent worked, attached to an MCP tool result (D-33, plan section 09). Only\n`emmet mcp --session` (the app's chat) ever sets these.",
+        "properties": {
+          "at": {
+            "description": "When the user sent it, as RFC 3339.",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "at"
+        ],
+        "type": "object"
+      },
+      "Warning": {
+        "description": "A non-fatal note attached to a success.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "data": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Steps"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Error"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "meta": {
+        "$ref": "#/$defs/Meta"
+      },
+      "ok": {
+        "type": "boolean"
+      },
+      "user_notes": {
+        "description": "What the user just said, newest last. It overrides the current plan (the doctrine says how to handle it).",
+        "items": {
+          "$ref": "#/$defs/UserNote"
+        },
+        "type": "array"
+      },
+      "warnings": {
+        "items": {
+          "$ref": "#/$defs/Warning"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "ok",
+      "warnings",
+      "meta"
+    ],
+    "type": "object"
+  }
+}

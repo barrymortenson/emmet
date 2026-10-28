@@ -386,8 +386,19 @@ class EmmetViewer implements Viewer {
     for (const d of bucket.drawables) {
       if (!(d.object instanceof InstancedMesh) || !d.object.instanceColor) continue;
       const mesh = d.object;
-      bucket.ids.forEach((id, i) => mesh.setColorAt(i, !any ? WHITE : this.lit.has(id) ? on : DIM));
+      bucket.ids.forEach((id, i) => mesh.setColorAt(i, !any ? WHITE : this.isLit(id) ? on : DIM));
       mesh.instanceColor!.needsUpdate = true;
+    }
+  }
+
+  /** True when the id, or a submodel copy holding the part (its id up to a "/"), is lit: a copy's id lights all its
+   * parts (towers/2 lights towers/2/wall/3). */
+  private isLit(id: string): boolean {
+    for (let key = id; ; ) {
+      if (this.lit.has(key)) return true;
+      const cut = key.lastIndexOf("/");
+      if (cut <= 0) return false;
+      key = key.slice(0, cut);
     }
   }
 

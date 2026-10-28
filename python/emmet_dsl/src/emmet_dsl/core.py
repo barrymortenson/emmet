@@ -101,7 +101,7 @@ class Rot:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         self.x, self.y, self.z = x, y, z
 
-    def matrix(self) -> frame.Mat3:
+    def _matrix(self) -> frame.Mat3:
         return frame.rotation(self.x, self.y, self.z)
 
     def __repr__(self) -> str:
@@ -182,7 +182,7 @@ class Model:
             else:
                 self._current = None
 
-    def steps(self) -> list[_Step]:
+    def _numbered_steps(self) -> list[_Step]:
         """The steps that have parts, numbered from 1 in the order they began. Parts added outside any step are
         split into steps a layer at a time, bottom up, at most the step target each."""
         out = []
@@ -667,7 +667,9 @@ def _layers(step: _Step, target: int) -> list[_Step]:
         current = current + layer
     if current:
         out.append(current)
-    return [_Step(step.title, step.slug, parts, auto=True) for parts in out]
+    # Layers decide where steps break; within a step, parts stay in the order they were added.
+    order = {id(p): i for i, p in enumerate(step.parts)}
+    return [_Step(step.title, step.slug, sorted(parts, key=lambda p: order[id(p)]), auto=True) for parts in out]
 
 
 def _point(at, rel: str, line: int) -> tuple:
@@ -688,7 +690,7 @@ def _point(at, rel: str, line: int) -> tuple:
 
 def _rotation(rot, rel: str, line: int) -> frame.Mat3:
     if isinstance(rot, Rot):
-        return rot.matrix()
+        return rot._matrix()
     if not isinstance(rot, int) or isinstance(rot, bool):
         raise EmmetError(
             "MODEL_EXEC_FAILED",
