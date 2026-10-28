@@ -100,9 +100,11 @@ impl Fault {
     /// The rules that count as catching it.
     pub fn rules(self) -> &'static [Rule] {
         match self {
-            Fault::Lift | Fault::RemoveSupport => &[Rule::Floating],
+            // A part or group that floats inside a submodel copy is that copy coming off the model: the more specific
+            // rule names it.
+            Fault::Lift | Fault::RemoveSupport => &[Rule::Floating, Rule::DisconnectedSubmodel],
             Fault::Sink | Fault::Slide => &[Rule::Collision],
-            Fault::Turn => &[Rule::Collision, Rule::Floating],
+            Fault::Turn => &[Rule::Collision, Rule::Floating, Rule::DisconnectedSubmodel],
             Fault::Early => &[Rule::StepOrder],
             Fault::Lump => &[Rule::StepSize],
             Fault::OffsetCopy => &[Rule::DisconnectedSubmodel],

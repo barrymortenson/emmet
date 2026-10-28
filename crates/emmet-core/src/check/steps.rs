@@ -10,7 +10,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use glam::DVec3;
 
 use super::connectors::Kind;
-use super::structure::copy_path;
+use super::structure::{self, copy_path};
 use super::{Model, ON_THE_TABLE, Options, Raw, Rule, Severity, UnionFind, dsl_box, holds, name};
 use crate::ldraw::geometry::Aabb;
 
@@ -147,11 +147,15 @@ pub(super) fn step_order(m: &Model, options: &Options, ground: &[bool], skip: &H
             let mut stands = vec![false; es.len()];
             {
                 for (ei, e) in es.iter().enumerate().filter(|(_, e)| e.step <= s) {
+                    // On the table beside the rest: nothing of the model under it, within two plates of the floor.
+                    let parts: Vec<usize> = e.parts.iter().copied().filter(|&i| m.boxes[i].is_some()).collect();
                     let on = e.parts.iter().any(|&i| ground[i])
                         || loose
-                            && e.parts
+                            && !parts.is_empty()
+                            && parts
                                 .iter()
-                                .all(|&i| m.boxes[i].is_none_or(|b| b.max.y >= m.lowest - ON_THE_TABLE));
+                                .all(|&i| m.boxes[i].unwrap().max.y >= m.lowest - ON_THE_TABLE)
+                            && !structure::over_something(m, &parts);
                     if on {
                         let r = sets.root(ei);
                         stands[r] = true;

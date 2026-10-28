@@ -69,7 +69,7 @@ fn bottom(m: &Model, parts: &[usize]) -> f64 {
 }
 
 /// Some part outside `parts` is under one of them (by footprint, a stud's inset inside its sides).
-fn over_something(m: &Model, parts: &[usize]) -> bool {
+pub(super) fn over_something(m: &Model, parts: &[usize]) -> bool {
     let members: HashSet<usize> = parts.iter().copied().collect();
     parts.iter().any(|&i| {
         let a = m.boxes[i].unwrap();

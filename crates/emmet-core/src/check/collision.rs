@@ -186,19 +186,13 @@ fn turned(alo: DVec3, ahi: DVec3, lo: DVec3, hi: DVec3, r: DMat3, t: DVec3) -> O
     let pos12 = Pose::from_parts(pv(cb - ca), rot);
     let ca_box = Cuboid::new(pv((ahi - alo) / 2.0));
     let cb_box = Cuboid::new(pv(half_b));
-    let c = parry3d_f64::query::contact::contact_cuboid_cuboid(&pos12, &ca_box, &cb_box, 0.0)?;
+    // The general query: its points are in the first shape's frame (here a's, centered on its box).
+    let c = parry3d_f64::query::contact(&Pose::IDENTITY, &ca_box, &pos12, &cb_box, 0.0).ok()??;
     if c.dist >= 0.0 {
         return None;
     }
-    let n = DVec3::new(c.normal1.x, c.normal1.y, c.normal1.z);
-    let p1 = DVec3::new(c.point1.x, c.point1.y, c.point1.z) + ca;
-    let p2 = pos12_point(&pos12, c.point2) + ca;
-    Some((-c.dist, n, (p1 + p2) / 2.0))
-}
-
-fn pos12_point(pos12: &parry3d_f64::math::Pose, p: parry3d_f64::math::Vector) -> DVec3 {
-    let w = *pos12 * p;
-    DVec3::new(w.x, w.y, w.z)
+    let v = |p: parry3d_f64::math::Vector| DVec3::new(p.x, p.y, p.z);
+    Some((-c.dist, v(c.normal1), (v(c.point1) + v(c.point2)) / 2.0 + ca))
 }
 
 /// A collision finding between placements `a` and `b`, ordered so the part placed later is the one to move.
@@ -260,4 +254,25 @@ fn collision(placed: &[Placed], a: usize, b: usize, depth: f64, axis: DVec3, wa:
         message,
         hint,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A plate's box and the same box under a matrix with a hair of scale (official files have 1.000007), or turned
+    /// a quarter turn about y, or turned 45°: the overlap's depth, which a seated part a plate low must show.
+    #[test]
+    fn a_turned_box_overlaps_by_its_depth() {
+        let (lo, hi) = (DVec3::new(-20.0, 0.0, -20.0), DVec3::new(20.0, 8.0, 20.0));
+        let scaled = DMat3::from_diagonal(DVec3::new(1.000007, 1.0, 1.000007));
+        let (depth, ..) = turned(lo, hi, lo, hi, scaled, DVec3::new(0.0, 3.0, 0.0)).expect("they overlap");
+        assert!((depth - 5.0).abs() < 1e-3, "{depth}");
+        let turned_45 = DMat3::from_rotation_y(std::f64::consts::FRAC_PI_4);
+        let (depth, ..) = turned(lo, hi, lo, hi, turned_45, DVec3::ZERO).expect("they overlap");
+        assert!(depth > 7.9, "{depth}");
+        // Side by side, touching: no overlap past the scale's hair.
+        let side = turned(lo, hi, lo, hi, scaled, DVec3::new(40.0, 0.0, 0.0)).map_or(0.0, |x| x.0);
+        assert!(side < 0.01, "{side}");
+    }
 }
