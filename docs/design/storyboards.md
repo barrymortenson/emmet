@@ -10,7 +10,7 @@ the cottage template's (163 parts, 31 steps; knobs for weathering, the roof, the
 ```
 Emmet window (one project per window)
 ├── Title: project name and menu · build state ("Built 163 parts in 0.1 s · no problems")
-├── Viewer (the hero, law 1): the model · views (Iso, Front, Top) · frame · screenshot · step scrubber
+├── Viewer (the hero, law 1): the model · views (Iso, Front, Top) · frame · screenshot
 │   └── on the model: a finding's pin and highlight · the build animation and Skip
 ├── The agent
 │   ├── Now: what it's doing, its time, Stop (Esc)              ← note 1: always where the eye is

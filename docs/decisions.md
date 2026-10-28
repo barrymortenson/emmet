@@ -5,6 +5,9 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
 
 ## 2026-10-27, session 2A
 
+- **No step scrubber.** Barry, on B's "◀ Step 31/31 ▶" pill: it isn't needed. The Steps tab picks a step, and the
+  step's number and parts box show over the viewer. Plan sections 13 and 14 and 4C drop the scrubber, and B's title
+  row loses it. A and C keep theirs as the record of the directions.
 - **No code in the app.** Barry, on the Checks card's excerpt and "Show in model.py": the user can't fix anything in
   Python, so the app never shows code or offers to open a code file. A finding is a plain sentence with its parts
   highlighted; a failed build says so in plain words; file-change cards in the chat say what changed, with no diff;

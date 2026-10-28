@@ -17,14 +17,13 @@
   const historyOpen = (s) => (s.history === "open" ? true : s.history === "closed" ? false : HISTORY.has(s.id));
   const tabOf = (s) => s.drawer || S.byId[s.id].drawer || "params";
 
-  // The viewer: the render, with the project at the left of its top row, the views centered, and the scrubber at the right.
+  // The viewer: the render, with the project at the left of its top row and the views centered. No step scrubber: the
+  // Steps tab picks a step, and the step's number shows over the viewer (Barry 2026-10-27).
   function viewer(s, ctx) {
     const b = s.build;
     // Say each thing once (Barry 2026-10-27): a failed build and a read-only project are told by the chat card and the
     // banner, so the viewer only carries the finding's pin, which points at the parts.
     const pin = b.state === "findings" ? `<button type="button" class="b-pin" data-tab="checks"><span class="b-pin-dot">${U.icon("warn")}</span><b>9 parts float</b></button>` : "";
-    const step = s.step || (b.parts ? D.stepOf(b.parts) : undefined);
-    const scrub = b.state === "empty" ? "" : U.scrubber({ ...s, step });
     // Versions (plan section 07): the project menu opens Save version and the list; a version opened from the list
     // takes the viewer, read-only, with a bar to restore it, copy it out, or go back.
     const seen = s.view && D.history.find((v) => String(v.n) === s.view);
@@ -34,7 +33,7 @@
         <button type="button" class="e-btn e-sm" data-act="copy-out" title="Copies this version to a new project, to try another direction">Open as new</button>
         <button type="button" class="e-btn e-quiet e-sm" data-local="view=">Back</button></div>` : "";
     return `<header class="b-title"><div class="b-top-left">${U.lights()}<button type="button" class="b-chip b-project" data-local="menu=${s.menu === "open" ? "closed" : "open"}" aria-haspopup="menu">${ANT}${esc(s.imported ? D.imported.name : D.project.name)} ${U.icon("chev")}</button>${pop}</div>
-      ${U.views()}<div class="b-title-right">${scrub}</div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
+      ${U.views()}<div class="b-title-right"></div></header>${s.banner ? `<div class="b-banner">${U.banner(s.banner)}</div>` : ""}
       <section class="b-viewer" aria-label="3D viewer" data-version="${!!seen}">${U.shot(seen ? seen.render : s.render, ctx.theme)}${seen ? "" : pin + U.stepView(s)}${bar}
       <div class="b-tools">${U.animating(s, { bare: true })}</div></section>`;
   }

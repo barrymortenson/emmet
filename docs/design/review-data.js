@@ -13,7 +13,7 @@ window.REVIEW_NOTES = [
   { note: "3 · Agent picker and Start fresh, like nurb", a: "In the chat header, exactly nurb's place; switching shows a divider.", b: "In the composer's top row and in the history sheet's header.", c: "In the command bar, beside the model chip." },
   { note: "4 · Model and effort picker", a: "The chip beside Send; a popover with the plan note.", b: "The chip beside Send; a card at the bottom right, so it never covers the house.", c: "A chip in the command bar; a popover under it." },
   { note: "5 · Sliders worth having", a: "The drawer's Parameters tab: Size (two across), Colors, Options; help lines from the docstring; \"was 8\" and Keep as default.", b: "The left card, one column, the same groups and words.", c: "Compact rows in the inspector, the same groups and words." },
-  { note: "6 · A step shows the build up to it", a: "The Steps tab and the scrubber; later steps grayed in the tree too.", b: "The left card's Steps list and the scrubber at the top right.", c: "The scrubber names the step (\"step 9/31 Inside: stove\"); the inspector's list highlights it." },
+  { note: "6 · A step shows the build up to it", a: "The Steps tab and the scrubber; later steps grayed in the tree too.", b: "The Steps tab in Options; no scrubber (Barry 2026-10-27).", c: "The scrubber names the step (\"step 9/31 Inside: stove\"); the inspector's list highlights it." },
 ];
 
 const ROW = (screen, title, a, b, c, trade, also) => ({ screen, title, a, b, c, trade, also });
@@ -36,7 +36,7 @@ window.REVIEW_ROWS = [
     "B and A give a long first prompt room; C's one-line bar is cramped for it.", ["thinking"]),
   ROW("building", "Agent status while it builds (and the build animation)",
     "The now strip at the top of the chat, the status bar, and the title pill; parts drop in with \"Placing parts in build order · Skip\" over the viewer.",
-    "The status leads the chat's top row with Stop, the running tool is the chat line under it, and the scrubber reads Step 4/12 on the title row, with Skip at the viewer's top right (\"Step 4/12\").",
+    "The status leads the chat's top row with Stop, the running tool is the chat line under it, and Skip animation at the viewer's top right.",
     "The bar's right end (spinner, line, time, Stop · Esc), the outlined running chip, and Skip with \"step 4/12 Walls, row 3\".",
     "B answers \"what is it doing?\" first; A puts it where the conversation is; C keeps it in one fixed spot that depends on the user glancing up."),
   ROW("question", "Question waiting for an answer",
@@ -66,7 +66,7 @@ window.REVIEW_ROWS = [
     "Settings are about what to build, so they cost an agent turn; tweaks are about this model, so they're instant. Keeping both honest is the point.", ["restyle"]),
   ROW("steps", "Steps: the build up to step 9, the stove going in while the walls are low",
     "The Steps tab lists all 31, grouped by row, with part counts; later steps are grayed in the list and the tree; the viewer shows only what's built.",
-    "The Steps tab in Options, grouped by row, and the scrubber with the views on the title row; the step's parts box and number over the viewer, its new parts outlined in red.",
+    "The Steps tab in Options, grouped by row; the step's parts box and number over the viewer, its new parts outlined in red.",
     "A single-column list in the inspector; the scrubber names the step.",
     "All three show the model up to the step (note 6); A says it in the most places."),
   ROW("step-door", "A step as the instruction books draw it: step 4, the door (B only, new 2026-10-27)",

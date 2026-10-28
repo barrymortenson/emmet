@@ -1189,7 +1189,7 @@ await viewer.update(placements, { animate: "build" | "none" });  // diff by emme
 viewer.replayBuild();                      // the whole model from empty, in build order
 viewer.skipAnimation();                    // jump to the final state
 viewer.highlight(ids, { mode: "issue" | "select" | "hover" });
-viewer.showSteps(upTo?: number);          // build-step scrubber
+viewer.showSteps(upTo?: number);          // the build up to a step
 viewer.frame(ids?);                        // explicit only: the camera never moves on its own
 viewer.setView("iso" | "front" | "top" | …);
 const { png, camera } = await viewer.render({ view, size, highlight, step });   // offscreen, the same scene code
@@ -1212,7 +1212,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
   <li>Renders for the agent always show the final state, never a frame mid-animation.</li>
   <li>Only animating instances get per-frame matrix updates. Everything else stays static in its <code>InstancedMesh</code>.</li>
   </ul></li>
-<li><b>Steps</b> show the build up to the chosen step, from the scrubber or from the steps list, the way section 08's step rules lay it out: earlier steps at full color, the step's new parts outlined in red, later steps hidden, and the step number with its parts box (and any sub-assembly box) over the top left of the viewer.</li>
+<li><b>Steps</b> show the build up to the step chosen in the steps list, the way section 08's step rules lay it out: earlier steps at full color, the step's new parts outlined in red, later steps hidden, and the step number with its parts box (and any sub-assembly box) over the top left of the viewer.</li>
 <li><b>Render mode</b> (D-24): <code>Emmet --render &lt;project&gt; --view … --out …</code> opens a hidden window, renders through the same <code>viewer.render</code>, writes the PNG, and exits. When the app is already running, <code>render</code> goes over the bus to the open window instead. ADR 0005 proves this on both webviews and records the fallback (an off-screen visible window) if a hidden WebGL context is throttled.</li>
 </ul>
 <h3>Performance budgets (checked by <code>just bench</code> and E2E)</h3>
@@ -1346,7 +1346,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <ul>
 <li><b>Left: project tree</b> with the model, submodels (with how many times each is used), and steps, plus a parts summary and a checks summary. Clicking a node highlights its parts.</li>
 <li><b>Versions</b> (section 07): "Save version" (<kbd>⌘S</kbd>) and a versions list with each one's thumbnail, name, time, part count, and who made it ("Before Claude's turn, 14:02"). A version opens read-only in the viewer to compare; Restore and "Open as a new project" sit beside it. "Undo the agent's last turn" restores the automatic version from before it.</li>
-<li><b>Center: viewer</b> with a toolbar for views, the step scrubber, frame, screenshot, and quality. Hovering shows the part name and color and the line in <code>model.py</code>.</li>
+<li><b>Center: viewer</b> with a toolbar for views, frame, screenshot, and quality. Hovering shows the part name and color. No step scrubber: the steps list picks a step.</li>
 <li><b>Right: chat.</b> Streaming text, tool-call cards with plain-language summaries (expand for raw input and output), approval cards, question cards (the question, 2–4 answers with descriptions, recommended first, and Other; keys <kbd>1</kbd>–<kbd>4</kbd> pick while the card has focus), file-change cards (what changed, in words: no diff and no code), a stop button, and the agent and model picker. The composer stays open while the agent works: what you send waits as a pending bubble (Edit, Cancel) until the agent's next step picks it up.</li>
 <li><b>Bottom drawer</b> with tabs: Parameters (sliders, toggles, color pickers limited to colors the parts come in, and "make default"), Checks (findings, click to highlight, "Ask agent to fix"), Parts list (BOM with availability and export), and Steps.</li>
 <li><b>Status bar</b>: run state (building, checking, clean or N issues), part count, agent state (idle, thinking, waiting for approval, waiting for your answer), Claude plan usage meters with a popover and each agent's billing state (D-36, section 10), and the library and parts data versions.</li>
@@ -2301,7 +2301,7 @@ the replay corpus. No scripted eval runs in this session (D-38).</code></pre></d
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li>Materials for every LDraw finish, the studio lighting rig, an optional ground shadow, edge and conditional lines tuned for both themes, stud LOD, and quality presets (auto by GPU).</li>
-<li>Interaction to the design: hover (the part and color), click to select, box select, frame, the views, the step scrubber and the steps list (the build up to the chosen step: earlier steps at full color, its new parts outlined, later steps hidden, with the parts box and sub-assembly boxes of section 08's step rules), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
+<li>Interaction to the design: hover (the part and color), click to select, box select, frame, the views, the steps list (the build up to the chosen step: earlier steps at full color, its new parts outlined, later steps hidden, with the parts box and sub-assembly boxes of section 08's step rules), layer cut-away (hide above z), and screenshot to file or clipboard.</li>
 <li>Build animation to section 13: the drop, fade, and glide motion; Animated, Fast, and Off in Settings; Skip and Replay build in the toolbar; reduced motion; and an E2E spec that proves sliders never animate and the camera never moves.</li>
 <li>Highlight modes (issue, select, hover, agent) that are distinct and accessible (not color alone).</li>
 <li>Performance work to meet section 13 on both OSes, including instancing edge cases, transparent sorting, and geometry disposal. Bench and E2E checks enforce the budgets.</li>
