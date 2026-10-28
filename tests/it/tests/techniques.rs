@@ -39,16 +39,22 @@ techniques!(
     bench,
     brick_built_arch,
     canopy,
+    door_frame,
     fence,
     gable_roof,
+    hinge_roof,
+    hip_roof,
+    jumper_offset,
     lamp_post,
     platform_edge,
+    snot_panel,
     stairs,
     tiled_floor,
     track_curve,
     track_straight_run,
     track_switch,
     tree,
+    window_frame,
 );
 
 fn builds_clean(name: &str) {
