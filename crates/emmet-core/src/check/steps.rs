@@ -11,7 +11,7 @@ use glam::DVec3;
 
 use super::connectors::Kind;
 use super::structure::copy_path;
-use super::{Model, ON_THE_TABLE, Options, Raw, Rule, Severity, UnionFind, dsl_box, name};
+use super::{Model, ON_THE_TABLE, Options, Raw, Rule, Severity, UnionFind, dsl_box, holds, name};
 use crate::ldraw::geometry::Aabb;
 
 /// One element of a scope: its parts, and the step that adds it.
@@ -355,7 +355,15 @@ pub(super) fn step_size(m: &Model, target: usize) -> Vec<Raw> {
             by_step.entry(e.step).or_default().push(e);
         }
         for (s, es) in by_step {
-            if es.len() <= target {
+            // A figure counts as one, as instruction books show it: its parts count as one per torso.
+            let figure = |e: &Element| !e.copy && m.kind(e.parts[0]).is_some_and(holds::figure);
+            let torsos = es
+                .iter()
+                .filter(|e| figure(e) && m.kind(e.parts[0]).is_some_and(|k| k.name.contains("Torso")))
+                .count();
+            let figures = es.iter().filter(|e| figure(e)).count();
+            let count = es.len() - figures + if figures > 0 { torsos.max(1) } else { 0 };
+            if count <= target {
                 continue;
             }
             let parts: Vec<usize> = es.iter().flat_map(|e| e.parts.iter().copied()).collect();
@@ -370,9 +378,8 @@ pub(super) fn step_size(m: &Model, target: usize) -> Vec<Raw> {
                 parts.clone(),
                 dsl_box(&bounds(m, &parts)).min,
                 format!(
-                    "Step {s}{} adds {} parts{counted}: the build's target is {target} a step.",
+                    "Step {s}{} adds {count} parts{counted}: the build's target is {target} a step.",
                     scope_name(m, &scope),
-                    es.len()
                 ),
                 format!("Split it into steps of about {target}: by wall, side, or row, the far side first."),
             ));

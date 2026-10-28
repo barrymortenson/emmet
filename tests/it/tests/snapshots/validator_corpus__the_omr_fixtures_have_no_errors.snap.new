@@ -1,0 +1,22 @@
+---
+source: tests/it/tests/validator_corpus.rs
+assertion_line: 41
+expression: "rest.join(\"\\n\")"
+---
+30542-1_Turkey.mpd F-0001 obsolete_part ["part/17"]: 1 part uses 3023 (~Moved to 3023b), which is obsolete.
+40011-1.mpd F-0001 step_size ["part/45", "part/46", "part/47", "part/48", "part/49", "part/50", "part/51", "part/52", "part/53", "part/54"]: Step 15 of submodel '40011 - Bird.ldr' adds 10 parts: the build's target is 8 a step.
+40011-1.mpd F-0002 obsolete_part ["part/16"]: 1 part uses 43722 (~Moved to 43722a), which is obsolete.
+40011-1.mpd F-0003 obsolete_part ["part/19"]: 1 part uses 43723 (~Moved to 43723a), which is obsolete.
+40011-1.mpd F-0004 obsolete_part ["part/2", "part/3", "part/4", "part/5"]: 4 parts use 3660a (~Slope Brick 45 2 x 2 Inverted without Inner Stopper Ring (Obsolete)), which is obsolete.
+40011-1.mpd F-0005 obsolete_part ["part/24", "part/25", "part/28", "part/29", "part/38", "part/45", "part/54", "part/7"]: 8 parts use 3023 (~Moved to 3023b), which is obsolete.
+544-1_House.mpd F-0001 step_size ["part/30", "part/31", "part/32", "part/33", "part/34", "part/35", "part/36", "part/37", "part/38"]: Step 6 of submodel '544-1 - Building.ldr' adds 9 parts: the build's target is 8 a step.
+544-1_House.mpd F-0002 step_size ["part/39", "part/40", "part/41", "part/42", "part/43", "part/44", "part/45", "part/46", "part/47", "part/48"]: Step 7 of submodel '544-1 - Building.ldr' adds 10 parts: the build's target is 8 a step.
+544-1_House.mpd F-0003 step_size ["part/60", "part/61", "part/62", "part/63", "part/64", "part/65", "part/66", "part/67", "part/68", "part/69", "part/70", "part/71"]: Step 10 of submodel '544-1 - Building.ldr' adds 12 parts: the build's target is 8 a step.
+544-1_Ship.mpd F-0001 step_size ["part/22", "part/23", "part/24", "part/25", "part/26", "part/27", "part/28", "part/29", "part/30"]: Step 4 of submodel '544-1 - Ship.ldr' adds 9 parts: the build's target is 8 a step.
+544-1_Ship.mpd F-0002 step_size ["part/39", "part/40", "part/41", "part/42", "part/43", "part/44", "part/45", "part/46", "part/47", "part/48", "part/49", "part/50"]: Step 6 of submodel '544-1 - Ship.ldr' adds 12 parts: the build's target is 8 a step.
+544-1_Ship.mpd F-0003 step_size ["part/57", "part/58", "part/59", "part/60", "part/61", "part/62", "part/63", "part/64", "part/65", "part/66", "part/67", "part/68", "part/69"]: Step 8 of submodel '544-1 - Ship.ldr' adds 13 parts: the build's target is 8 a step.
+544-1_Ship.mpd F-0004 step_size ["part/90", "part/91", "part/92", "part/93", "part/94", "part/95", "part/96", "part/97", "part/98", "part/99"]: Step 3 of submodel '544-1 - Bridge.ldr' adds 10 parts: the build's target is 8 a step.
+555-2_Farm-Tractor.mpd F-0001 step_size ["part/20", "part/21", "part/22", "part/23", "part/24", "part/25", "part/26", "part/27", "part/28", "part/29"]: Step 1 of submodel '555-2 - Minifig.ldr' adds 10 parts: the build's target is 8 a step.
+555-2_Farm-Tractor.mpd F-0002 obsolete_part ["part/15"]: 1 part uses 3660a (~Slope Brick 45 2 x 2 Inverted without Inner Stopper Ring (Obsolete)), which is obsolete.
+555-2_Farm-Tractor.mpd F-0003 obsolete_part ["part/28"]: 1 part uses 3816b (~Minifig Leg Right (Obsolete)), which is obsolete.
+555-2_Farm-Tractor.mpd F-0004 obsolete_part ["part/29"]: 1 part uses 3817b (~Minifig Leg Left (Obsolete)), which is obsolete.

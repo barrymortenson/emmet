@@ -289,6 +289,8 @@ fn prepare<'p>(index: &Index, lib: &LibFiles, placements: &'p [Placement]) -> Re
     );
     let mut links = graph::connections(&conns);
     links.extend(holds::underside_links(&placed, &world, &conns));
+    let mut held = held;
+    held.extend(holds::wedged_pairs(&world, &conns));
     let ids: Vec<String> = infos
         .iter()
         .filter(|(_, i)| i.is_some())

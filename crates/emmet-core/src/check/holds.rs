@@ -203,3 +203,58 @@ pub(super) fn held_pairs(placed: &[Placed], world: &[Option<Obb>]) -> HashSet<(u
     }
     out
 }
+
+/// A plate wedged between studs (an old technique: a plate on its edge between two rows of studs): a part a plate
+/// thick or less whose two faces both touch the sides of studs, from opposite sides, is held by the studs' parts.
+pub(super) fn wedged_pairs(world: &[Option<Obb>], conns: &[graph::Placed]) -> Vec<(usize, usize)> {
+    use super::connectors::{Gender, Kind};
+    const STUD_RADIUS: f64 = 6.0;
+    const THIN: f64 = 8.5;
+    let studs: Vec<&graph::Placed> = conns
+        .iter()
+        .filter(|w| {
+            let c = &w.c;
+            c.kind == Kind::Cyl
+                && c.gender == Gender::Male
+                && c.secs.len() == 1
+                && (c.secs[0].radius - STUD_RADIUS).abs() <= 0.6
+                && c.len() <= 6.0
+        })
+        .collect();
+    let mut out = Vec::new();
+    for (b, o) in world.iter().enumerate() {
+        let Some(o) = o else { continue };
+        // Its thin axis.
+        let Some(k) = (0..3)
+            .filter(|&k| 2.0 * o.half[k] <= THIN)
+            .min_by(|&i, &j| o.half[i].total_cmp(&o.half[j]))
+        else {
+            continue;
+        };
+        let t = o.axes[k];
+        let mut sides = [Vec::new(), Vec::new()];
+        for w in &studs {
+            if w.part == b || w.c.axis.dot(t).abs() > 0.05 {
+                continue;
+            }
+            let mid = w.c.pos + w.c.axis * w.c.len() / 2.0;
+            let d = (mid - o.center).dot(t);
+            if (d.abs() - (o.half[k] + STUD_RADIUS)).abs() > 0.6 {
+                continue;
+            }
+            // Within the face, across both of its other axes.
+            let inside = (0..3)
+                .filter(|&j| j != k)
+                .all(|j| ((mid - o.center).dot(o.axes[j])).abs() <= o.half[j] + 0.5);
+            if inside {
+                sides[(d > 0.0) as usize].push(w.part);
+            }
+        }
+        if !sides[0].is_empty() && !sides[1].is_empty() {
+            for &a in sides.iter().flatten() {
+                out.push((a.min(b), a.max(b)));
+            }
+        }
+    }
+    out
+}
