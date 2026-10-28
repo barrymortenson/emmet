@@ -405,3 +405,13 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   errors are file faults or rare parts (train magnets, jet engines, the excavator) off the list, each with its reason
   in nightly.json and an issue per gap, replacing them with clean models from the cached OMR pool to keep 20–40; over
   fixing every gap first (several more hours) and over trimming to the clean models alone.
+
+## 2026-10-28, session 3B
+
+- **How the BOM exports were proved against the real sites.** Done when 4 asks for the Rebrickable CSV and the
+  BrickLink XML to import cleanly. Barry chose that Claude drive his signed-in Chrome, over uploading them himself,
+  BrickLink only, or leaving the item open: the rung 2 reference's wanted list went through BrickLink's upload to its
+  verify page, which recognized all 29 lines and saved nothing, and its parts list was imported into a new private
+  Rebrickable part list (29 lines, 154 pieces, no errors; two parts moved to newer molds by Rebrickable's own "Fix
+  Molds" option), which was then deleted. Barry signed in to Rebrickable himself. Screenshots are in
+  `docs/spec/sessions/3B/`.
