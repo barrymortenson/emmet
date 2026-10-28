@@ -209,8 +209,10 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
         }
         (Kind::Finger, Kind::Finger) => {
             let (lo, hi) = along(a, b, dot).ok_or("off the line")?;
+            // Fingers of one named group are made for each other (a window and its glass: LDCad gives them radii 4
+            // and 2); without a group, their radii must match.
             let (ra, rb) = (a.secs[0].radius, b.secs[0].radius);
-            if (ra - rb).abs() > GRIP {
+            if a.group.is_none() && (ra - rb).abs() > GRIP {
                 return fail("radius");
             }
             if hi - lo <= TOLERANCE {
@@ -449,6 +451,23 @@ mod tests {
         };
         assert!(mate(&wheel_pin, &wheel(-5.0)).is_some());
         assert!(mate(&wheel_pin, &wheel(-7.0)).is_none());
+    }
+
+    #[test]
+    fn fingers_of_one_group_mesh_whatever_their_radii() {
+        // 4033, a train window, and 3855b, its glass (2150-1): group win-1-4-3, radii 4 and 2.
+        let window = at(
+            "!LDCAD SNAP_FGR [group=win-1-4-3] [genderOfs=F] [seq=72] [radius=4]",
+            DVec3::ZERO,
+        );
+        let glass = at(
+            "!LDCAD SNAP_FGR [group=win-1-4-3] [genderOfs=M] [seq=72] [radius=2]",
+            DVec3::ZERO,
+        );
+        assert!(mate(&glass, &window).is_some());
+        let plain = at("!LDCAD SNAP_FGR [genderOfs=M] [seq=72] [radius=2]", DVec3::ZERO);
+        let other = at("!LDCAD SNAP_FGR [genderOfs=F] [seq=72] [radius=4]", DVec3::ZERO);
+        assert!(mate(&plain, &other).is_none());
     }
 
     #[test]

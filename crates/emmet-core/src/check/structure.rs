@@ -58,7 +58,33 @@ pub(super) fn floating_groups(m: &Model, options: &Options) -> Vec<Vec<usize>> {
     if loose {
         groups.retain(|_, parts| over_something(m, parts) || bottom(m, parts) < m.lowest - ON_THE_TABLE);
     }
+    // A vehicle stands on its wheels: a group with a tyre or wheel resting on a part below it (a car parked on a
+    // platform) is a separate toy put there, not a floating part of the build.
+    groups.retain(|_, parts| !on_wheels(m, parts));
     groups.into_values().collect()
+}
+
+/// Whether one of `parts` is a tyre or wheel whose bottom rests on the top of a part outside them.
+fn on_wheels(m: &Model, parts: &[usize]) -> bool {
+    let members: HashSet<usize> = parts.iter().copied().collect();
+    parts.iter().any(|&i| {
+        let rolls = m
+            .kind(i)
+            .is_some_and(|k| holds::tyre(k) || k.category == "Wheel" || k.name.contains("Wheel"));
+        let Some(a) = m.boxes[i].filter(|_| rolls) else {
+            return false;
+        };
+        m.boxes.iter().enumerate().any(|(j, b)| {
+            !members.contains(&j)
+                && b.is_some_and(|b| {
+                    (b.min.y - a.max.y).abs() <= 1.0
+                        && a.min.x < b.max.x
+                        && b.min.x < a.max.x
+                        && a.min.z < b.max.z
+                        && b.min.z < a.max.z
+                })
+        })
+    })
 }
 
 fn bottom(m: &Model, parts: &[usize]) -> f64 {

@@ -396,3 +396,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   collisions left on the nightly corpus). Barry chose to report overlaps of more than 1 LDU, past the measurement's own
   resolution, over plan section 11's 0.5 LDU (with the 1 LDU findings chased one at a time) and over 0.5 LDU voxels
   (about four times the build time and cache, and still quantized). Injected faults overlap by 8 LDU or more.
+- **Closing the nightly corpus.** 19 of the 33 nightly models validated clean; the other 14 had verified file faults
+  (21022-1's attic resting on tile edges, 10124-1's rigging drawn with primitives, a hinge stick 2 LDU off its pivot
+  in 4 models) or part-specific data gaps. Barry chose to fix the gaps on parts agents will use (dishes on round
+  bricks, container doors, turntables, steering wheels, antennas) with exact overrides, and to take models whose only
+  errors are file faults or rare parts (train magnets, jet engines, the excavator) off the list, each with its reason
+  in nightly.json and an issue per gap, replacing them with clean models from the cached OMR pool to keep 20–40; over
+  fixing every gap first (several more hours) and over trimming to the clean models alone.

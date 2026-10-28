@@ -102,7 +102,8 @@ fn receives(body: Option<&Aabb>, inv: &DMat4, base: DVec3, dir: DVec3, len: f64)
 /// Window and door frames, and what fills them (glass, panes, shutters, doors): a filler inside its frame isn't a
 /// collision.
 fn frame(p: &Part) -> bool {
-    matches!(p.category.as_str(), "Window" | "Door") && !filler(p) || p.name.contains("Frame")
+    (matches!(p.category.as_str(), "Window" | "Door") || p.name.contains("Window")) && !filler(p)
+        || p.name.contains("Frame")
 }
 
 fn filler(p: &Part) -> bool {
@@ -121,7 +122,7 @@ fn fills(pa: &Part, pb: &Part, wa: &Aabb, wb: &Aabb) -> bool {
     pa.id != pb.id && (frame(pa) && filler(pb) && inside(wb, wa, 2.0) || frame(pb) && filler(pa) && inside(wa, wb, 2.0))
 }
 
-fn tyre(p: &Part) -> bool {
+pub(super) fn tyre(p: &Part) -> bool {
     p.category == "Tyre" || p.name.trim_start_matches('~').starts_with("Tyre")
 }
 
