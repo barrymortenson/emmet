@@ -54,12 +54,34 @@ pub(super) fn collisions(m: &Model) -> Vec<Raw> {
             if let Some((depth, axis)) = deepest(m, *i, j, at_seats)
                 && depth > DEEP + 1e-6
             {
+                // The proxies say whether they collide; the body boxes say by how much, and which way to move.
+                let (depth, axis) = body_overlap(m, *i, j).unwrap_or((depth, axis));
                 let (wa, wb) = (m.boxes[*i].unwrap(), m.boxes[j].unwrap());
                 out.push(collision(&m.placed, *i, j, depth, axis, &wa, &wb));
             }
         }
     }
     out
+}
+
+/// How far placements `a` and `b`'s body boxes (oriented, in the world) overlap, and the axis to separate them along:
+/// the move that undoes the collision.
+fn body_overlap(m: &Model, a: usize, b: usize) -> Option<(f64, DVec3)> {
+    use parry3d_f64::math::{Matrix, Pose, Rotation};
+    let (oa, ob) = (m.world[a]?, m.world[b]?);
+    let pose = |o: &super::boxes::Obb| {
+        let mut ax = o.axes;
+        if ax[0].cross(ax[1]).dot(ax[2]) < 0.0 {
+            ax[2] = -ax[2];
+        }
+        Pose::from_parts(
+            pv(o.center),
+            Rotation::from_mat3(&Matrix::from_cols(pv(ax[0]), pv(ax[1]), pv(ax[2]))),
+        )
+    };
+    let (pa, pb) = (pose(&oa), pose(&ob));
+    let c = parry3d_f64::query::contact(&pa, &Cuboid::new(pv(oa.half)), &pb, &Cuboid::new(pv(ob.half)), 0.0).ok()??;
+    (c.dist < 0.0).then(|| (-c.dist, DVec3::new(c.normal1.x, c.normal1.y, c.normal1.z)))
 }
 
 fn pv(v: DVec3) -> parry3d_f64::math::Vector {

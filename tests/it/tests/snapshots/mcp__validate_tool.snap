@@ -3,5 +3,5 @@ source: tests/it/tests/mcp.rs
 expression: c.text
 ---
 1 findings: 1 floating.
-F-0001 error floating model.py:11 at (0, 0, 5): 2 parts at z=5 aren't held by any stud: they touch nothing below them. They start 1 plate above tower/1 (Brick 2 x 4), which ends at z=4: lower them by 1 plate, or put a part under them.
+F-0001 error floating model.py:11 at (0, 0, 5): 2 parts at z=5 aren't connected to the rest of the model: no stud, clip, pin, or hinge holds them. They start 1 plate above tower/1 (Brick 2 x 4), which ends at z=4: lower them by 1 plate, or put a part under them.
 The full list is in build/validation.json.

@@ -251,11 +251,16 @@
         "type": "object"
       },
       "Rule": {
-        "description": "The rules v0 checks, in the order findings are listed within a severity.",
+        "description": "The rules (plan section 11), in the order findings are listed within a severity.",
         "enum": [
           "unknown_part",
           "collision",
           "floating",
+          "disconnected_submodel",
+          "step_order",
+          "step_size",
+          "weak_connection",
+          "off_grid",
           "obsolete_part",
           "alias_part"
         ],
