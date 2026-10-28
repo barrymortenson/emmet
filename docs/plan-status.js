@@ -109,7 +109,16 @@ window.EMMET_STATUS = {
       ],
       note: "The Steps tab is the model's tree and there's no command palette (docs/decisions.md); the Steps tree's every-copy highlight isn't drawn, since emmet render --highlight drew none for window ids (4C)"
     },
-    "3A": { status: "review", branch: "bmortenson/s3a-validator-connection-model", started: "2026-10-27", pr: 30 },
+    "3A": {
+      status: "done", pr: 30, branch: "bmortenson/s3a-validator-connection-model", started: "2026-10-27",
+      evidence: [
+        "CI ci check green #30 (run 40729470945: mac, plan; windows and nsis paused, D-43); nightly run 40729470833: 33 models, 0 errors",
+        "tests/it/tests/{check,validator_corpus,validator_mutations,validator_bench}.rs; replay in agent_{claude,codex}.rs",
+        "mutation recall 98.2 % (PR gate), 96.0 % (nightly); bench 16 ms for 510 parts, 65 ms for 2,078",
+        "docs/adr/0013-collision-proxies.md, docs/spec/validator.md, D-44 to D-47"
+      ],
+      note: "Open nightly gaps are #25 to #29; Allow.rule and [build] age as enums and copies consistency are left for 3B; floating recall by the rule itself is 88.3 % nightly"
+    },
     "3B": { status: "todo" },
     "3C": { status: "todo" },
     "4A": { status: "todo" },
