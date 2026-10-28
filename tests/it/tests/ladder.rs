@@ -60,7 +60,8 @@ fn rung2_reference() {
             "color" => vec!["White".into()],
             other => panic!("{name} is a {other} param; add it here"),
         };
-        for value in others.into_iter().filter(|o| *o != p["default"].to_string()) {
+        let default = p["default"].to_string();
+        for value in others.into_iter().filter(|o| *o != default) {
             let set = format!("{name}={value}");
             let (v, code) = emmet_in(&dir, &["check", "--params", &set]);
             assert_eq!(code, 0, "{set}: {v}");

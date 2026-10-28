@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Rung 2's reference model (plan section 02): a train station with a loop of track running past it."""
 
 from typing import Annotated, Literal
