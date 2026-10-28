@@ -310,8 +310,6 @@
 .b-msgs { overflow: auto; padding: 4px 4px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .b-active { max-height: 300px; overflow: auto; display: grid; gap: 8px; }
 .b-line { padding: 0 2px; }
-.b-tip { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 2px 6px; color: var(--fg-text); }
-.b-tip .e-ic { color: var(--fg-accent); margin-top: 3px; }
 /* A question lays its answers side by side here, so the card stays short. */
 .b-active .e-q { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; }
 .b-active .e-q-top, .b-active .e-q-head, .b-active .e-q-other { grid-column: 1 / -1; }
@@ -374,7 +372,6 @@
 .b-now .e-now-who { display: none; }
 /* The brand: the ant in the project chip, and the first-run wordmark. */
 .b-project .b-ant { width: 26px; height: 26px; margin: -6px 2px -6px -6px; }
-.b-tip .b-ant { width: 22px; height: 22px; flex: none; margin-top: -1px; }
 .b-wordmark { height: 40px; display: block; margin-bottom: 22px; }
 /* Less text (Barry 2026-10-27): section rows and the user's own style words. */
 .b-sec-row { display: flex; align-items: center; justify-content: space-between; }

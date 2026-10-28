@@ -120,8 +120,8 @@
     const a = U.agentOf(s);
     const open = historyOpen(s);
     const n = s.chat.length;
-    // What the agent is doing (note 1) leads the chat, beside the agent it's about. An untrusted project's banner says
-    // the agent can't run the model until the user trusts it, so the status stays quiet there.
+    // What the agent is doing (note 1) leads the chat, beside the agent it's about. When a banner is up (untrusted,
+    // offline, an old library, an import), it says more than the status would, so the status stays quiet.
     // The status shows only when it says something the screen doesn't: not "Idle", and not when the card under it
     // (a question, an approval, a crash, a sign-in, an error) says it bigger.
     const card = active(s);

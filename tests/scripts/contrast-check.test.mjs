@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // scripts/contrast-check.mjs: the WCAG math against known ratios, the token grammar (text, UI, fills, prefixes), and
 // what it refuses: a translucent surface, a theme missing a token, and a color or fractional opacity outside the tokens.
-// The last test runs it on docs/design as it stands, so a mockup that loses AA fails here.
+// One test runs it on docs/design as it stands, so a mockup that loses AA fails here; the others run it from a path
+// with a space through a symlink, and on files no list names.
 import assert from "node:assert/strict";
-import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { checkCss, checkSource, contrast, parseColor } from "../../scripts/contrast-check.mjs";
@@ -64,18 +65,20 @@ test("the command fails on a bad stylesheet and passes docs/design as it stands"
 });
 
 test("the command still runs from a path with a space that goes through a symlink", () => {
-  // The temp dir is under /var, a symlink to /private/var on macOS; a guard that compares raw paths ran nothing.
-  const dir = join(tempDir(), "my repo");
+  // A guard that compared raw paths ran nothing from such a path. A junction needs no admin rights on Windows.
+  const top = tempDir();
+  const dir = join(top, "my repo");
   mkdirSync(join(dir, "scripts"), { recursive: true });
   copyFileSync(join(ROOT, "scripts/contrast-check.mjs"), join(dir, "scripts/contrast-check.mjs"));
+  symlinkSync(dir, join(top, "my link"), "junction");
   const file = join(dir, "bad.css");
   writeFileSync(file, css("--bg-a: #fff; --fg-t: #ccc;"));
-  const bad = run("node", [join(dir, "scripts/contrast-check.mjs"), file]);
+  const bad = run("node", [join(top, "my link", "scripts/contrast-check.mjs"), file]);
   assert.equal(bad.code, 1, bad.out);
   assert.match(bad.out, /contrast-check: 2 problems/);
 });
 
-test("the command checks every stylesheet under docs/design, and fails when there are none", () => {
+test("the command checks every stylesheet, script, and page under docs/design, and fails when there are none", () => {
   const dir = tempDir();
   mkdirSync(join(dir, "scripts"));
   copyFileSync(join(ROOT, "scripts/contrast-check.mjs"), join(dir, "scripts/contrast-check.mjs"));
@@ -83,10 +86,13 @@ test("the command checks every stylesheet under docs/design, and fails when ther
   const none = run("node", [join(dir, "scripts/contrast-check.mjs")]);
   assert.equal(none.code, 1, none.out);
   assert.match(none.out, /no stylesheets to check/);
-  // A file no list names: a new direction's stylesheet.
-  mkdirSync(join(dir, "docs/design/directions/d"), { recursive: true });
-  writeFileSync(join(dir, "docs/design/directions/d/style.css"), css("--bg-a: #fff; --fg-t: #ccc;"));
+  // Files a fixed list wouldn't name: a stylesheet in a new folder and a module in shared/.
+  mkdirSync(join(dir, "docs/design/extra"), { recursive: true });
+  mkdirSync(join(dir, "docs/design/shared"), { recursive: true });
+  writeFileSync(join(dir, "docs/design/extra/theme.css"), css("--bg-a: #fff; --fg-t: #ccc;"));
+  writeFileSync(join(dir, "docs/design/shared/notes.mjs"), 'const c = "#cccccc";\n');
   const bad = run("node", [join(dir, "scripts/contrast-check.mjs")]);
   assert.equal(bad.code, 1, bad.out);
-  assert.match(bad.out, /FAIL docs\/design\/directions\/d\/style\.css/);
+  assert.match(bad.out, /FAIL docs\/design\/extra\/theme\.css/);
+  assert.match(bad.out, /docs\/design\/shared\/notes\.mjs: a color outside the tokens/);
 });

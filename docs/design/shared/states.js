@@ -6,7 +6,7 @@ window.EMMET_STATES = (() => {
   const S = window.EMMET_DATA.seg;
   const story = (...parts) => parts.flat();
 
-  // Section 14's state list, word for word, its nine key flows, and two flows 2A added (build settings, versions).
+  // Section 14's state list in its words, its nine key flows, and two flows 2A added (build settings, versions).
   const STATES = [
     "Empty", "First run", "Loading library", "Building", "Build failed", "Checks with findings", "Agent thinking",
     "Waiting for approval", "Question waiting for an answer", "Redirect pending", "Stopped by the user",

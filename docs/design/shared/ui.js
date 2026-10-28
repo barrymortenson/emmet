@@ -188,7 +188,7 @@ window.EMMET_UI = (() => {
   }
 
   // Build settings: base, scale, age, detail, pieces, style. They steer the agent, so a change waits for Rebuild instead of
-  // rerunning model.py. A new build starts with each one but Base on Any, so they don't box in the prompt; style takes the
+  // rerunning model.py. A new build starts with each one on Any (Base on 32 x 32, Style unpicked), so they don't box in the prompt; style takes the
   // user's own words as well as the suggestions (Barry 2026-10-27).
   const range = (p) => (p.max ? `${p.min.toLocaleString("en-US")}–${p.max.toLocaleString("en-US")}` : `${p.min.toLocaleString("en-US")}+`);
   function buildSettings(screen, opts = {}) {

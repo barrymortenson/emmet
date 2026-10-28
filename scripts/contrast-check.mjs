@@ -126,8 +126,8 @@ export function checkSource(text, name) {
 function designFiles() {
   const files = readdirSync(DESIGN, { recursive: true }).map((f) => join(DESIGN, f)).sort();
   return {
-    css: files.filter((f) => f.endsWith(".css")),
-    src: files.filter((f) => /\.(js|html)$/.test(f) && f !== join(DESIGN, "shared/data.js")),
+    css: files.filter((f) => /\.css$/i.test(f)),
+    src: files.filter((f) => /\.(m?js|jsx|tsx?|html?)$/i.test(f) && f !== join(DESIGN, "shared/data.js")),
   };
 }
 

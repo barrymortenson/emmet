@@ -216,8 +216,8 @@ def cottage(
             )
 
     walls(1)
-    # The room, furnished while the walls are two bricks high: a stove before the chimney at the back right, a table
-    # at the back left with stools when there's room, and a bed along the left wall when the house is deep enough.
+    # The room, furnished while the walls are two bricks high: a stove in front of the chimney at the back right, a
+    # table at the back left with stools when there's room, and a bed along the left wall when the house is deep enough.
     with m.step("Inside: stove"):
         m.add("3003", "Dark Bluish Gray", at=(x1 - 2, y1 - 2, GROUND), id="stove")
         for i in range(2):

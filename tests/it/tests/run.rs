@@ -249,8 +249,17 @@ fn the_knobs_change_the_build_and_a_seed_reproduces_it() {
         old,
         "another seed builds the same"
     );
-    let (_, roofless) = placements(&["roof=false"]);
+    // The chimney is shorter without a roof too, so the count alone doesn't show the roof came off.
+    let (bytes, roofless) = placements(&["roof=false"]);
     assert!(roofless < parts, "roof=false keeps {roofless} of {parts} parts");
+    let built: Value = serde_json::from_slice(&bytes).unwrap();
+    let roof: Vec<&str> = built["parts"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|p| p["id"].as_str().filter(|id| id.starts_with("roof-")))
+        .collect();
+    assert!(roof.is_empty(), "roof=false keeps the roof: {roof:?}");
 }
 
 #[test]

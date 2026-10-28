@@ -108,8 +108,8 @@ window.EMMET_PROTO = (() => {
     if (e.key === "PageDown" || e.key === "PageUp") document.querySelector(`[data-p=${e.key === "PageDown" ? "next" : "prev"}]`)?.click();
   }
 
-  // #audit: WCAG 2.2 AA contrast of every visible text element, and of every empty field's placeholder, against the
-  // first opaque background behind it. Text whose background search reaches the render first is reported: it has no
+  // #audit: WCAG 2.2 AA contrast of every visible text element, every filled field's value, and every empty field's
+  // placeholder, against the first opaque background behind it. Text whose background search reaches the render first is reported: it has no
   // surface of its own.
   const parseRgb = (s) => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [r, g, b, a]; };
   const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
@@ -123,8 +123,10 @@ window.EMMET_PROTO = (() => {
       local = {};
       render({ s: s.id, t, bare: true });
       for (const el of document.querySelectorAll(".e-window *")) {
-        const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-        const placeholder = el.matches("input, textarea") && el.placeholder && !el.value;
+        // A field draws its value (or its chosen option) itself, so it has no text node of its own.
+        const field = el.matches("input:not([type=range], [type=checkbox], [type=radio], [type=hidden]), textarea, select");
+        const placeholder = field && el.placeholder && !el.value;
+        const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) || (field && !!el.value);
         if ((!own && !placeholder) || !el.getClientRects().length) continue;
         const cs = getComputedStyle(el);
         if (cs.visibility === "hidden" || el.closest("[aria-hidden=true]")) continue;
@@ -147,7 +149,7 @@ window.EMMET_PROTO = (() => {
         let fg = parseRgb(placeholder ? getComputedStyle(el, "::placeholder").color : cs.color);
         fg = bg ? over(fg, bg) : fg;
         const r = hit ? 0 : ratio(fg, bg);
-        if (hit || r < need) results.push({ theme: t, screen: s.id, text: (placeholder ? el.placeholder : el.textContent.trim()).slice(0, 40), ratio: Math.round(r * 100) / 100, need, why: hit || "low contrast" });
+        if (hit || r < need) results.push({ theme: t, screen: s.id, text: (placeholder ? el.placeholder : field ? el.value : el.textContent.trim()).slice(0, 40), ratio: Math.round(r * 100) / 100, need, why: hit || "low contrast" });
       }
     }
     window.EMMET_AUDIT = { direction: dir.id, screens: screens.length, themes: 2, checked, failures: results };
