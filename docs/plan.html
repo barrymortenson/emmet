@@ -1173,7 +1173,7 @@ synonyms(term, expands_to)                     -- data/synonyms.toml ("lbg" → 
   Every <code>img_url</code> column is dropped. Emmet renders parts itself from LDraw and never hotlinks Rebrickable images.</li>
 <li><b>Checked before it ships.</b> The schema matches, row counts are within 10 % of the previous pack, every ldraw-mini and ladder part resolves, and the color table round-trips. A failed check publishes nothing, and the job opens an issue.</li>
 <li><b>Updated in the app.</b> The app checks <code>parts-data.json</code> at most weekly, downloads a newer pack, verifies the signature and sha256, swaps it in atomically, and keeps the previous pack for rollback. Every installer bundles the newest pack, so first run and offline use work. Settings → Data shows the pack date and "Check now".</li>
-<li><b>Credit.</b> "Part, color, and set data from Rebrickable (rebrickable.com)" appears in Settings → Data, About, the Parts list footer, BOM exports (a header line in CSV, a comment in XML), <code>NOTICE</code>, and on the site.</li>
+<li><b>Credit.</b> "Part, color, and set data from Rebrickable (rebrickable.com)" appears in Settings → Data, About, the Parts list footer, BOM exports (a header line in CSV, a comment in XML; not in the Rebrickable parts-list CSV, which goes back into Rebrickable and must stay exactly <code>Part,Color,Quantity</code>, Barry 2026-10-28), <code>NOTICE</code>, and on the site.</li>
 <li><b>Test fixture.</b> <code>scripts/make-rebrickable-mini</code> cuts the rows for the ldraw-mini parts out of a pinned archive into <code>tests/fixtures/rebrickable-mini/</code>, with the credit, so tests never need the network.</li>
 </ul>
 <h4>Ids and names</h4>

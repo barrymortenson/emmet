@@ -415,3 +415,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   Rebrickable part list (29 lines, 154 pieces, no errors; two parts moved to newer molds by Rebrickable's own "Fix
   Molds" option), which was then deleted. Barry signed in to Rebrickable himself. Screenshots are in
   `docs/spec/sessions/3B/`.
+- **No credit line in the Rebrickable parts-list CSV.** Plan section 12 puts Rebrickable's credit in BOM exports as a
+  header line in CSV and a comment in XML. The plain CSV and the BrickLink XML carry it; the Rebrickable import file
+  goes back into Rebrickable, and any line besides `Part,Color,Quantity` and the parts risks breaking its import.
+  Barry chose to leave the credit out of that one file (it's in the other exports, the Parts list, Settings → Data,
+  About, and NOTICE), over adding it and testing the import again, or putting it in the file name. Section 12 says so.
