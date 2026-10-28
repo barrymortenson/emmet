@@ -35,14 +35,20 @@ macro_rules! techniques {
 }
 
 techniques!(
+    baseplate_road,
     bench,
+    brick_built_arch,
     canopy,
+    fence,
     gable_roof,
     lamp_post,
     platform_edge,
+    stairs,
+    tiled_floor,
     track_curve,
     track_straight_run,
     track_switch,
+    tree,
 );
 
 fn builds_clean(name: &str) {
