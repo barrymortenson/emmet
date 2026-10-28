@@ -31,7 +31,7 @@ window.EMMET_C = (() => {
   // disabled, busy, title, show (hover, press, focus: the specimens' still states).
   function button(label, o = {}) {
     const lead = o.busy ? spinner(label) : o.icon ? icon(o.icon) : "";
-    return `<button type="button" class="button${o.cls ? " " + o.cls : ""}" data-c="button"${attrs({ "data-variant": o.variant, "data-size": o.size, "data-act": o.act, "data-local": o.local, "data-busy": o.busy, "data-show": o.show, disabled: o.disabled, title: o.title, "aria-haspopup": o.popup, "aria-expanded": o.expanded })}>${lead}<span>${esc(label)}</span>${o.kbd ? kbd(o.kbd) : ""}${o.chevron ? icon("chevron-down", "sm") : ""}</button>`;
+    return `<button type="button" class="button${o.cls ? " " + o.cls : ""}" data-c="button"${attrs({ "data-variant": o.variant, "data-size": o.size, "data-compact": o.compact, "data-act": o.act, "data-local": o.local, "data-busy": o.busy, "data-show": o.show, disabled: o.disabled, title: o.title || (o.compact ? label : undefined), "aria-haspopup": o.popup, "aria-expanded": o.expanded })}>${lead}<span>${esc(label)}</span>${o.kbd ? kbd(o.kbd) : ""}${o.chevron ? icon("chevron-down", "sm") : ""}</button>`;
   }
   const iconButton = (name, label, o = {}) => `<button type="button" class="icon-button" data-c="icon-button" aria-label="${esc(label)}" title="${esc(label)}"${attrs({ "data-size": o.size, "data-act": o.act, "data-state": o.on ? "on" : undefined, "data-show": o.show, disabled: o.disabled })}>${icon(name)}</button>`;
   const badge = (text, o = {}) => o.act || o.local
@@ -223,7 +223,7 @@ window.EMMET_C = (() => {
   // OpenAI's own UI for Codex on a ChatGPT plan (1E): the approved "Continue with ChatGPT" button (approved.css, not
   // restyled), and Manage usage, which opens ChatGPT's usage settings in the browser.
   const continueChatGpt = () => `<button type="button" class="continue-chatgpt"><img src="${ROOT()}../../apps/desktop/src/assets/openai/chatgpt-logo-white.svg" alt=""><span>Continue with ChatGPT</span></button>`;
-  const manageUsage = (o = {}) => button("Manage usage", { variant: o.primary ? "primary" : "quiet", size: "sm", icon: "external-link", title: "Opens ChatGPT's usage settings in your browser" });
+  const manageUsage = (o = {}) => button("Manage usage", { variant: o.primary ? "primary" : "quiet", size: "sm", icon: "external-link", compact: o.compact, title: "Manage usage: opens ChatGPT's usage settings in your browser" });
   // What the agent is doing (note 1), with Stop and Esc while it works.
   function status(screen) {
     const a = screen.agent || { state: "idle" };

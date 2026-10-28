@@ -158,7 +158,8 @@ window.EMMET_H = (() => {
       const placeholder = field && el.placeholder && !el.value;
       const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) || (field && !!el.value);
       if (!own && !placeholder) continue;
-      if (el.closest("[aria-hidden=true], .visually-hidden")) continue;
+      // Text for screen readers only (clipped to nothing, as .visually-hidden and a compact button's label are).
+      if (el.closest("[aria-hidden=true], .visually-hidden") || cs.clipPath === "inset(50%)") continue;
       // An unwanted cut: text cut off without an ellipsis.
       if (cs.overflow !== "visible" && cs.textOverflow !== "ellipsis" && el.scrollWidth > el.clientWidth + 1 && !field) fail("text cut off");
       const layers = [];

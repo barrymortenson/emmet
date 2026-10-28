@@ -246,7 +246,7 @@ window.EMMET_FROZEN = (() => {
     const card = activeCard(s);
     const says = card && !s.pending;
     const quiet = s.agent.line === "Idle" || says || s.banner;
-    const undo = !quiet && s.agent.state === "idle" && /^Done/.test(s.agent.line || "") ? button("Undo turn", { variant: "quiet", size: "sm", icon: "undo-2", act: "undo-turn", title: "Restore the model from before this turn (version 6)" }) : "";
+    const undo = !quiet && s.agent.state === "idle" && /^Done/.test(s.agent.line || "") ? button("Undo turn", { variant: "quiet", size: "sm", icon: "undo-2", act: "undo-turn", compact: true, title: "Undo turn: restore the model from before this turn (version 6)" }) : "";
     const pct = s.usageAt ?? D.usage[0].pct;
     // Codex on a ChatGPT plan says so in OpenAI's words, with Manage usage, near the composer (1E); Claude's badge
     // carries its usage and opens the meters.
@@ -254,7 +254,7 @@ window.EMMET_FROZEN = (() => {
       : badge(`${a.plan} · ${pct}%`, { act: "usage", tone: pct >= 90 ? "warn" : undefined, title: "Plan usage" });
     const n = s.chat.length;
     const top = `<div class="dock-top"><button type="button" class="agent-picker" data-act="agents" aria-haspopup="menu" aria-expanded="${s.overlay === "agents"}">${esc(a.name)}${icon("chevron-down", "sm")}</button>${plan}${quiet ? `<span class="grow"></span>` : C.status(s)}${undo}
-      ${n ? button(open ? "Hide history" : `History · ${n}`, { variant: "quiet", size: "sm", icon: "messages-square", local: `history=${open ? "closed" : "open"}`, expanded: open }) : ""}${button("Start fresh", { variant: "quiet", size: "sm", icon: "message-square-plus", title: "Clear the context and keep the agent" })}</div>`;
+      ${n ? button(open ? "Hide history" : `History · ${n}`, { variant: "quiet", size: "sm", icon: "messages-square", local: `history=${open ? "closed" : "open"}`, expanded: open, compact: true }) : ""}${button("Start fresh", { variant: "quiet", size: "sm", icon: "message-square-plus", compact: true, title: "Start fresh: clear the context and keep the agent" })}</div>`;
     const mid = open ? `<div class="dock-history" data-scroll="end">${n ? C.chat(s) : ""}${card}</div>` : card ? `<div class="dock-active">${card}</div>` : (() => { const l = latestLine(s); return l ? `<div class="dock-line">${l}</div>` : ""; })();
     let pop = "";
     if (s.overlay === "agents") pop = C.menu([{ text: "Claude", sub: "Max plan", checked: (s.who || "claude") === "claude", act: "pick" }, { text: "Codex", sub: "ChatGPT plan", checked: s.who === "codex", act: "pick" }, { note: "Switching starts a fresh conversation. This one is kept." }], { role: "menu", label: "Agent" });
