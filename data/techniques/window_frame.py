@@ -13,7 +13,21 @@ returns the z of the wall's top.
 
 from emmet_dsl import Brick
 
-PARTS = ["60592", "60601", "60593", "60602"]
+PARTS = [
+    "60592",
+    "60601",
+    "60593",
+    "60602",
+    "3005",
+    "3004",
+    "3622",
+    "3010",
+    "3009",
+    "3008",
+    "6111",
+    "6112",
+    "2465",
+]
 
 # Each window: its frame and glass, its width in studs and height in bricks, and where its glass goes: the glass's
 # footprint corner from the frame's, in a frame placed at rot=0 (its front toward +x). The LDraw glass shares the
@@ -129,14 +143,5 @@ def build(
 
 def example(m):
     """A wall with a 1 x 2 x 3 window (light blue glass, to show it), standing on the ground."""
-    m.use(
-        "window_frame",
-        x=0,
-        y=0,
-        z=0,
-        length=6,
-        rows=5,
-        offset=2,
-        window="1x2x3",
-        glass_color="Trans-Light Blue",
-    )
+    glass = "Trans-Light Blue"
+    m.use("window_frame", x=0, y=0, z=0, length=6, rows=5, offset=2, glass_color=glass)

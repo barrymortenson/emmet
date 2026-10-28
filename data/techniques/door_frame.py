@@ -13,7 +13,19 @@ brings its own steps, a row at a time, titled "<title>, row 1" and so on, and re
 
 from emmet_dsl.techniques.window_frame import wall_with
 
-PARTS = ["60596", "60623"]
+PARTS = [
+    "60596",
+    "60623",
+    "3005",
+    "3004",
+    "3622",
+    "3010",
+    "3009",
+    "3008",
+    "6111",
+    "6112",
+    "2465",
+]
 
 # The door's footprint corner from its frame's, in a frame placed at rot=0 (its front toward +x): the door's hinge
 # pins go in the frame's holes, 32 LDU left of its middle and 5 LDU behind it.
