@@ -293,6 +293,16 @@ def _run(request: dict, ctx: Context) -> dict:
     ctx.model_at = (file, def_line)
     ctx.main_file = f"{fn.__name__}.ldr".lower()
     schema = params_mod.schema(fn, file, def_line)
+    knobs = getattr(fn, "__emmet_knobs__", ())
+    unknown = [k for k in knobs if k not in {p.name for p in schema}]
+    if unknown:
+        raise EmmetError(
+            "PARAM_INVALID",
+            f"@model(knobs=...) names {', '.join(unknown)}, which {fn.__name__}() has no parameter for.",
+            f"Name parameters of {fn.__name__}(): {', '.join(p.name for p in schema) or 'it has none'}.",
+            file,
+            def_line,
+        )
     values = params_mod.check(schema, request.get("params", {}), file, request.get("params_source", "params"))
     for p in schema:
         if p.type == "color":
@@ -301,7 +311,8 @@ def _run(request: dict, ctx: Context) -> dict:
     doc = (fn.__doc__ or "").strip().splitlines()
     title = doc[0] if doc else ""
     if request.get("mode") == "schema":
-        data = {"model": fn.__name__, "doc": title, "file": file, "params": [p.to_json() for p in schema]}
+        params = [{**p.to_json(), "knob": p.name in knobs} for p in schema]
+        data = {"model": fn.__name__, "doc": title, "file": file, "params": params}
         return {"ok": True, "data": {**data, "values": values}}
     started = time.perf_counter()
     result = fn(**values)

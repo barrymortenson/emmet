@@ -12,6 +12,9 @@ import { agentHome } from "../lib/agents.mjs";
 import { dropNext, served } from "../lib/library-server.mjs";
 
 const text = async (sel) => (await $(sel)).getText();
+/** By hand only: the real library and Python, timed (wdio.conf.mjs). */
+const real = process.env.EMMET_E2E_REAL === "1";
+let started = 0;
 const mod = process.platform === "darwin" ? "Meta" : "Control";
 
 describe("first run", () => {
@@ -19,10 +22,17 @@ describe("first run", () => {
     await (await $("#first-run")).waitForDisplayed({ timeout: 30_000 });
     await expect($("#first-run h1")).toHaveText("Build brick models by describing them");
     expect(await browser.execute(() => window.__emmet.project())).toBe(null);
-    await screenshots("fr-welcome", { baseline: true });
+    await screenshots("fr-welcome", { baseline: !real });
   });
 
-  it("says where a dropped download stopped, and Try again picks up there", async () => {
+  it("says where a dropped download stopped, and Try again picks up there", async function () {
+    if (real) {
+      started = Date.now();
+      await (await $("#get-started")).click();
+      await browser.waitUntil(async () => (await text("#python-progress")).includes("Done"), { timeout: 600_000, interval: 1000, timeoutMsg: "the real setup never finished" });
+      console.log(`first run, real: the parts and Python ready ${Math.round((Date.now() - started) / 1000)} s after Get started`);
+      return;
+    }
     // A third of the zip, then the connection drops.
     await dropNext(250_000);
     await (await $("#get-started")).click();
@@ -30,7 +40,7 @@ describe("first run", () => {
     expect(await text("#setup-failed")).toContain("The download stopped");
     expect(await text("#setup-failed")).toContain("Emmet picks up where it stopped.");
     expect(await text("#library-progress")).toContain("Stopped at");
-    await screenshots("fr-library-failed", { baseline: true });
+    await screenshots("fr-library-failed", { baseline: !real });
 
     await (await $("#setup-retry")).click();
     await browser.waitUntil(async () => (await text("#python-progress")).includes("Done"), { timeout: 120_000, timeoutMsg: "Python never finished" });
@@ -39,7 +49,7 @@ describe("first run", () => {
     const starts = (await served()).map((s) => s.start);
     expect(starts[0]).toBe(0);
     expect(starts[1]).toBeGreaterThan(0);
-    await screenshots("fr-library", { baseline: true });
+    await screenshots("fr-library", { baseline: !real });
   });
 
   it("sets the agents up without a terminal, then offers the Cottage or a prompt", async () => {
@@ -47,11 +57,11 @@ describe("first run", () => {
     await (await $("#agents")).waitForDisplayed();
     await expect($("#ready-claude")).toHaveText("Ready");
     await expect($("#agents-continue")).toBeDisplayed();
-    await screenshots("fr-agents", { baseline: true });
+    await screenshots("fr-agents", { baseline: !real });
     await (await $("#agents-continue")).click();
     await expect($("#first-run h1")).toHaveText("What do you want to build?");
     expect(await text("#first-run .lede")).toContain(process.platform === "win32" ? "Documents\\Emmet" : "Documents/Emmet");
-    await screenshots("fr-start", { baseline: true });
+    await screenshots("fr-start", { baseline: !real });
   });
 
   it("builds the Cottage in Documents/Emmet with no dialog", async () => {
@@ -62,6 +72,7 @@ describe("first run", () => {
     expect(readFileSync(join(root, "emmet.toml"), "utf8")).toContain('name = "Cottage"');
     await expect($("#first-run")).not.toBeExisting();
     await browser.waitUntil(async () => (await text("#model-state .panel-head-text")) === "No problems", { timeout: 60_000 });
+    if (real) console.log(`first run, real: the Cottage built ${Math.round((Date.now() - started) / 1000)} s after Get started`);
   });
 
   it("makes a new model from a prompt with ⌘N: an empty baseplate, every build setting on Any", async () => {
@@ -73,6 +84,6 @@ describe("first run", () => {
     await browser.waitUntil(async () => (await text("#model-state .panel-head-text")) === "Empty", { timeout: 60_000 });
     await expect($("#settings-list")).toBeDisplayed();
     await expect($("#export-button")).not.toBeExisting();
-    await screenshots("new-empty", { baseline: true });
+    await screenshots("new-empty", { baseline: !real });
   });
 });

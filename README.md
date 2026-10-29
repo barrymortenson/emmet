@@ -41,6 +41,10 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
   --format csv|rebrickable|bricklink-xml` exports the parts list with Rebrickable ids and availability (part, color,
   and set data from Rebrickable, rebrickable.com); `emmet export --format ldr|mpd|lpub3d` writes the model for other
   LDraw tools; `emmet params --write-default <name>` makes a slider's value the default in `model.py`.
+- The app to the frozen design (session 4A): first run (the parts, Python, your agent, then the Cottage or a new model
+  from a prompt), the options panel's Options, Checks, Parts, and Steps tabs, versions, imports, workspace trust,
+  Settings, About, and the keyboard map. `emmet version save|list|restore|open` keeps versions of a project's sources,
+  and `emmet new <dir> --import <file.ldr|.mpd>` makes a project around an existing LDraw model.
 - CI on macOS and Windows, the license, SPDX, DCO, secret, and supply-chain checks, and the plan tracker check.
 - `just e2e`: end-to-end specs drive the real app through WebdriverIO (`tests/e2e/`): the live viewer, rendering with
   the app open, a killed run, a leak test, and visual baselines.

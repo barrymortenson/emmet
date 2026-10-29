@@ -266,6 +266,9 @@ pub struct ParamSpec {
     pub choices: Option<Vec<Value>>,
     pub help: String,
     pub line: u32,
+    /// One of the model's knobs, which the panel shows (`@model(knobs=...)`).
+    #[serde(default)]
+    pub knob: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]

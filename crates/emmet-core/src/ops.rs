@@ -176,6 +176,9 @@ pub struct ParamSpec {
     pub help: String,
     /// The line in `file` that declares it.
     pub line: u32,
+    /// One of the knobs `@model(knobs=...)` names: the app's panel shows only these.
+    #[serde(default)]
+    pub knob: bool,
 }
 
 /// The model's parameters and their current values.

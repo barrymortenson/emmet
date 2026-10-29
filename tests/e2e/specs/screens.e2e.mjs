@@ -45,9 +45,19 @@ describe("the frozen screens", () => {
     await choose("Detail", "Medium");
     await shot("settings");
     await (await $("#settings-undo")).click();
-    // Radix shows the meaning on keyboard focus after its delay.
-    await browser.execute(() => document.querySelector("#settings-list .setting-name")?.focus());
-    await (await $("[role='tooltip']")).waitForExist({ timeout: 3000 });
+    // Radix shows the meaning on keyboard focus; focus again until it does.
+    await browser.waitUntil(
+      () =>
+        browser.execute(() => {
+          const name = document.querySelector("#settings-list .setting-name");
+          if (!document.querySelector("[role='tooltip']")) {
+            name?.blur();
+            name?.focus();
+          }
+          return !!document.querySelector("[role='tooltip']");
+        }),
+      { timeout: 10_000, interval: 700, timeoutMsg: "the setting's tooltip never showed" },
+    );
     await shot("tooltip");
   });
 

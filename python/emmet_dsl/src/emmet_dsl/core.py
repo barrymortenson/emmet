@@ -39,10 +39,20 @@ registry: list = []
 active = None
 
 
-def model(fn):
-    """Marks the model's entry function. Its signature is the param schema; it returns a Model."""
-    registry.append(fn)
-    return fn
+def model(fn=None, *, knobs=()):
+    """Marks the model's entry function. Its signature is the param schema; it returns a Model.
+
+    `@model(knobs=["weathering", "chimney", "seed"])` names the knobs: the two to five parameters the app's panel shows
+    because they change the model's character (how worn it looks, a feature on or off, a count, another arrangement),
+    never raw dimensions or colors (the prompt and the build settings carry those). The other parameters still work
+    from the CLI and the agent's tools; the panel doesn't show them."""
+
+    def mark(f):
+        f.__emmet_knobs__ = tuple(knobs)
+        registry.append(f)
+        return f
+
+    return mark(fn) if fn is not None else mark
 
 
 @dataclass

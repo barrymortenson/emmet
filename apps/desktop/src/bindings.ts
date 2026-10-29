@@ -52,7 +52,7 @@ export const commands = {
 	openVersionAsNew: (n: number) => typedError<ProjectView, Problem>(__TAURI_INVOKE("open_version_as_new", { n })),
 	/**  Export (⌘E): writes the parts list or the model into Downloads, named for the project ("Cottage parts.csv"). */
 	export: (format: ExportFormat) => typedError<Exported, Problem>(__TAURI_INVOKE("export", { format })),
-	/**  Show in folder: the last export, selected in Finder or File Explorer. */
+	/**  Show in folder: the last export, selected in Finder, or its folder in File Explorer. */
 	revealExport: () => typedError<null, Problem>(__TAURI_INVOKE("reveal_export")),
 	getPrefs: () => __TAURI_INVOKE<PrefsView>("get_prefs"),
 	setPrefs: (prefs: Prefs) => typedError<PrefsView, Problem>(__TAURI_INVOKE("set_prefs", { prefs })),
@@ -500,6 +500,8 @@ export type ParamSpec = {
 	choices?: Value[] | null,
 	help: string,
 	line: number,
+	/**  One of the model's knobs, which the panel shows (`@model(knobs=...)`). */
+	knob?: boolean,
 };
 
 export type ParamsView = {

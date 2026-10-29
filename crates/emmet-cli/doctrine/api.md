@@ -177,6 +177,11 @@ Brings an existing LDraw model (an .ldr or .mpd inside the project) in as fixed 
 with Model.place. Its parts' ids are their line numbers ("L12", or "L4/L12" for line 12 of the submodel that line
 4 places), its `0 STEP` lines are its steps, and findings point at its lines.
 
-## model(fn)
+## model(fn=None, *, knobs=())
 
 Marks the model's entry function. Its signature is the param schema; it returns a Model.
+
+`@model(knobs=["weathering", "chimney", "seed"])` names the knobs: the two to five parameters the app's panel shows
+because they change the model's character (how worn it looks, a feature on or off, a count, another arrangement),
+never raw dimensions or colors (the prompt and the build settings carry those). The other parameters still work
+from the CLI and the agent's tools; the panel doesn't show them.

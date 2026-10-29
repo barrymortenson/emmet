@@ -151,6 +151,11 @@
             "description": "From the model's docstring.",
             "type": "string"
           },
+          "knob": {
+            "default": false,
+            "description": "One of the knobs `@model(knobs=...)` names: the app's panel shows only these.",
+            "type": "boolean"
+          },
           "line": {
             "description": "The line in `file` that declares it.",
             "format": "uint32",

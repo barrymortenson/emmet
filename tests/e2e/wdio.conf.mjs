@@ -58,7 +58,13 @@ export const config = {
       rmSync(fresh, { recursive: true, force: true });
       rmSync(join(agentHome, "Documents", "Emmet"), { recursive: true, force: true });
       mkdirSync(join(fresh, "python"), { recursive: true });
-      cpSync(join(shared, "python", "installs"), join(fresh, "python", "installs"), { recursive: true, verbatimSymlinks: true });
+      // EMMET_E2E_REAL=1 (by hand, never in CI): the real library from library.ldraw.org and uv's real Python
+      // download, to time a first run on a real connection (4A Done when 2).
+      if (process.env.EMMET_E2E_REAL === "1") {
+        for (const k of ["EMMET_LIBRARY_URL", "EMMET_LIBRARY_SHA256", "EMMET_LIBRARY_RELEASE"]) delete process.env[k];
+      } else {
+        cpSync(join(shared, "python", "installs"), join(fresh, "python", "installs"), { recursive: true, verbatimSymlinks: true });
+      }
       process.env.EMMET_DATA_DIR = fresh;
     }
     // The chat specs' fake agents, and the test home with sentinel agent configs (lib/agents.mjs).

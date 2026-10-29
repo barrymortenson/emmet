@@ -28,15 +28,14 @@ describe("the live viewer", () => {
     await screenshots("viewer-open");
   });
 
-  it("dragging the width slider changes the count and keeps the camera", async () => {
+  it("a wider cottage changes the count in place and keeps the camera", async () => {
     const before = await camera();
     const gen = await shown();
     const count = (await stats()).instances;
-    const slider = await $("#param-width-thumb");
     const started = Date.now();
-    // The knob by its keys (Radix Slider): one step wider. The embedded driver sends no pointer events to drag with.
-    await slider.click();
-    await browser.keys("ArrowRight");
+    // Width isn't one of the cottage's knobs (they change its character, @model(knobs=...)), so it's set as the CLI
+    // and the agent set it.
+    await invoke("set_params", { values: { width: 11 } });
     // Sample while the update lands: the old scene stays whole until the new one replaces it (no flicker).
     let lowest = Infinity;
     await browser.waitUntil(
@@ -52,8 +51,7 @@ describe("the live viewer", () => {
     expect(lowest).toBeGreaterThanOrEqual(count);
     expect((await stats()).instances).toBeGreaterThan(count);
     expect(await camera()).toEqual(before);
-    const width = Number(await slider.getAttribute("aria-valuenow"));
-    expect(width).toBeGreaterThan(10);
+    const width = 11;
     expect(JSON.parse(readFileSync(join(project, "params.json"), "utf8")).width).toBe(width);
     // 1B's budget (What good looks like: ≤ 1.0 s on M-series); slower hosted runners only report it.
     if (process.platform === "darwin" && process.env.RUNNER_ENVIRONMENT !== "github-hosted") expect(ms).toBeLessThan(1000);

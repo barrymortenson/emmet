@@ -134,7 +134,9 @@ describe("the keyboard map", () => {
     });
     expect(rings.filter((r) => !r.ring).map((r) => r.el)).toEqual([]);
     const reached = rings.map((r) => r.el);
-    for (const id of ["project-chip", "tab-options", "param-weathering-thumb", "param-chimney-switch", "export-button"]) expect(reached).toContain(id);
+    for (const id of ["project-chip", "param-weathering-thumb", "param-chimney-switch", "export-button"]) expect(reached).toContain(id);
+    // The tab list is one stop in the Tab order: its open tab (arrows move between tabs).
+    expect(reached.some((id) => String(id).startsWith("tab-"))).toBe(true);
     expect(rings.length).toBeGreaterThan(20);
   });
 });

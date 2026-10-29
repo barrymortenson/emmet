@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The Options tab (plan section 14, docs/design/frozen): the build settings, which steer the agent (each Any until
 // set; a change waits in a bar with Undo and Rebuild, and Rebuild asks the agent to rework the model), then the model's
-// knobs (Tweaks), which change it at once: a moved knob is a draft (params.json) until Keep writes it into model.py as
+// knobs (Tweaks: the two to five parameters the model names with @model(knobs=...)), which change it at once: a moved knob is a draft (params.json) until Keep writes it into model.py as
 // its default, and Reset drops it. ⌘Z and ⇧⌘Z undo and redo a draft.
 import { Popover, Slider, Switch, ToggleGroup } from "radix-ui";
 import { useEffect, useRef, useState } from "react";
@@ -338,7 +338,9 @@ export function Knobs({ lastGeneration, onWrite, problemOut }: { lastGeneration:
   });
 
   if (!params) return <p className="muted">{problem ? `The knobs aren't available: ${problem.message}` : "Reading the model's knobs…"}</p>;
-  const drafts = params.params.filter((p) => !same(values[p.name], p.default)).map((p) => p.name);
+  // The panel shows the model's knobs only (@model(knobs=...)): its other parameters are for the CLI and the agent.
+  const knobs = params.params.filter((p) => p.knob);
+  const drafts = knobs.filter((p) => !same(values[p.name], p.default)).map((p) => p.name);
   const finish = async (call: (names: string[]) => ReturnType<typeof commands.keepParams>) => {
     window.clearTimeout(timer.current);
     pending.current = {};
@@ -370,8 +372,8 @@ export function Knobs({ lastGeneration, onWrite, problemOut }: { lastGeneration:
           {problem.message} {problem.hint}
         </p>
       )}
-      {params.params.length === 0 && <p className="muted">This model has no knobs.</p>}
-      {params.params.map((p) => (
+      {knobs.length === 0 && <p className="muted">This model has no knobs yet.</p>}
+      {knobs.map((p) => (
         <Knob key={p.name} spec={p} value={values[p.name] ?? p.default} colors={colors} onChange={change} />
       ))}
     </>
