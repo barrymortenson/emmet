@@ -80,6 +80,8 @@ describe("the frozen screens", () => {
     await (await $("[data-menu='csv']")).click();
     await (await $("#toast")).waitForDisplayed();
     await shot("export-done");
+    await (await $("#toast [aria-label='Dismiss']")).click();
+    await (await $("#toast")).waitForExist({ reverse: true });
     await (await $("#project-chip")).click();
     await browser.keys("Enter");
     await (await $("[data-menu='about']")).click();

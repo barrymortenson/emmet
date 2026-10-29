@@ -15,6 +15,7 @@ silent, or a later session's work isn't in yet, the app does the following. The 
 | About | Licenses button | Licenses shows the attributions: LDraw.org and the part authors, Rebrickable, the LDCad Shadow Library (D-44), Lucide, the provider notice (D-37), Emmet's licenses | Not drawn; 4A's scope lists them |
 | ⌘/ | Not drawn | A dialog listing keyboard.md's shortcuts, from the dialog, data-table, and kbd components | keyboard.md names it |
 | First run, Start | "Or open a folder, or an LDraw file …" as text | The words open Open… | A way in from that screen |
+| First run, Start | "163 parts: a real door, …" | "165 parts: …" | The Cottage template builds 165 parts (since 3B); the first-run E2E checks the card against the build |
 | First run, Your agent | Continue with ChatGPT and Use an API key on Codex's card | Both open Settings, where 1E's sign-in runs | One copy of OpenAI's flow |
 | The dock | 4B's chat | 1C's chat pane, in the dock, in the tokens; the failed-build card above it | 4B rebuilds the chat |
 | Build failed | "The model didn't build" | The same for a model's error; "The build stopped", Emmet's words, and Rebuild when Emmet itself failed (not the model) | The frozen words blame the agent's change |

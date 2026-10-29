@@ -65,6 +65,7 @@ describe("first run", () => {
   });
 
   it("builds the Cottage in Documents/Emmet with no dialog", async () => {
+    const card = await text("#start-cottage");
     await (await $("#start-cottage")).click();
     await browser.waitUntil(() => browser.execute(() => window.__emmet.project() != null && window.__emmet.shown() >= 1), { timeout: 60_000, timeoutMsg: "the Cottage never showed" });
     const root = await browser.execute(() => window.__emmet.project());
@@ -72,6 +73,9 @@ describe("first run", () => {
     expect(readFileSync(join(root, "emmet.toml"), "utf8")).toContain('name = "Cottage"');
     await expect($("#first-run")).not.toBeExisting();
     await browser.waitUntil(async () => (await text("#model-state .panel-head-text")) === "No problems", { timeout: 60_000 });
+    // The card's count is the Cottage's own (content.md: numbers over impressions).
+    const parts = (await browser.execute(() => window.__TAURI_INTERNALS__.invoke("ui_state"))).scene.placements.length;
+    expect(card).toContain(`${parts} parts`);
     if (real) console.log(`first run, real: the Cottage built ${Math.round((Date.now() - started) / 1000)} s after Get started`);
   });
 
