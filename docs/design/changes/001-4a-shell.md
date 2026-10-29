@@ -26,4 +26,5 @@ silent, or a later session's work isn't in yet, the app does the following. The 
 
 ## Barry's yes
 
-(asked before the PR)
+Yes, as written: Barry, through AskUserQuestion, 2026-10-29, after the side-by-sides and the part pictures' fix
+(no background, as the frozen Parts list draws them).
