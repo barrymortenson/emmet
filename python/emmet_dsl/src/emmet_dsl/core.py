@@ -449,7 +449,9 @@ class Model:
                     across, start = (cy + oy, cx + ox) if axis == "x" else (cx + ox, cy + oy)
                     below = self._joints.get((axis, across, zr + oz - family.height), set())
                     here = self._joints.setdefault((axis, across, zr + oz), set())
-                    if bond == "running" and below:
+                    # Over joints inside this run, lay the course in bond over them; over none (a run on one long
+                    # piece, or the first course), a straight wall's odd course starts with a short piece instead.
+                    if bond == "running" and any(start < j < start + run for j in below):
                         pieces = family.bond(start, run, below, sizes, rel, line)
                     else:
                         first = None

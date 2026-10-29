@@ -68,7 +68,7 @@ fn new_then_run_matches_the_golden() {
 
     let (v, code) = emmet_in(&demo, &["run"]);
     assert_eq!(code, 0, "{v}");
-    assert_eq!(v["data"]["parts"], 165);
+    assert_eq!(v["data"]["parts"], 131);
     assert_eq!(v["data"]["steps"], 39);
     assert_eq!(
         v["data"]["bbox"],
