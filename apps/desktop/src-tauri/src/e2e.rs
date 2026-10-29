@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! The E2E build's window on macOS (D-50; only with the `webdriver` feature, which debug builds alone may have). CI's
-//! Mac E2E runs on the Mac Barry works on, so the app stays out of his way: it doesn't take focus at launch, has no Dock
-//! icon or Cmd-Tab entry, and keeps drawing while his windows cover it.
+//! Keeps the E2E build's webview drawing while it's covered on macOS (D-50; only with the `webdriver` feature, which
+//! main.rs refuses in a release build). CI's Mac E2E runs on the Mac Barry works on, so his windows cover the app's.
+//! lib.rs does the rest of D-50: no focus taken at launch, and no Dock icon, Cmd-Tab entry, or menu bar.
 
 use objc2::runtime::AnyObject;
 use objc2::{msg_send, sel};
@@ -9,7 +9,8 @@ use objc2::{msg_send, sel};
 /// Keeps the window's webview drawing while it's covered. WebKit otherwise marks a covered page hidden and stops its
 /// frames, and every E2E wait on the next frame hangs until the window shows. WKWebView's private
 /// `_setWindowOcclusionDetectionEnabled:` turns that off (a covered page kept 60 fps in a test, 2026-10-29). If a
-/// WebKit ever drops it, the app says so and wdio.conf.mjs reports a covered window as before.
+/// WebKit ever drops it, the app warns on stderr (which the E2E run doesn't show), and wdio.conf.mjs's visibility check
+/// fails within seconds whenever the window is covered, with a message that names this file.
 #[allow(unsafe_code)]
 pub fn keep_drawing(window: &tauri::WebviewWindow) -> tauri::Result<()> {
     window.with_webview(|webview| {

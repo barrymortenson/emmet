@@ -104,11 +104,12 @@ export const config = {
   beforeSuite: async () => {
     await browser.tauri.switchWindow("main");
   },
-  // WebKit stops drawing a minimized window (and a covered one, unless the app turned that off, src-tauri/src/e2e.rs),
-  // and every wait on the next frame hangs until it shows: say so in seconds, not one timeout per test.
+  // WebKit stops drawing a minimized window (and a covered one, unless the app turned that off in
+  // apps/desktop/src-tauri/src/e2e.rs), and every wait on the next frame hangs until it shows: say so in seconds, not
+  // one timeout per test.
   async beforeTest() {
     const visible = () => browser.execute(() => document.visibilityState === "visible");
     if (await visible()) return;
-    await browser.waitUntil(visible, { timeout: 15_000, interval: 1000, timeoutMsg: "The app's window is minimized or hidden, so WebKit doesn't draw it: E2E needs the window on screen" });
+    await browser.waitUntil(visible, { timeout: 15_000, interval: 1000, timeoutMsg: "WebKit isn't drawing the app's window: it's minimized or hidden, or covered while the switch that keeps a covered window drawing is missing (apps/desktop/src-tauri/src/e2e.rs). E2E needs the window on screen" });
   },
 };

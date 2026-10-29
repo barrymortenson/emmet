@@ -500,6 +500,6 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   keyboard specs. Barry then chose to keep E2E on his Mac with the E2E build out of his way: no focus at launch, no
   Dock icon, and WKWebView's private `_setWindowOcclusionDetectionEnabled:` so a covered page keeps drawing (60 fps
   covered in a test). The call needs unsafe code: the workspace lint is `deny` instead of `forbid`, `e2e.rs` allows
-  it, and `tests/scripts/gates.test.mjs` keeps every other file free of it. It calls through `objc2`, already in the
+  it, and `scripts/unsafe-check.mjs`, run by `just check`, keeps every other file free of it. It calls through `objc2`, already in the
   tree through tauri and the WebDriver plugin, so no new crate. Rejected: hosted E2E, its own baselines, or a hosted
   PR run with a weekly run on the Mac; and only stopping the app from taking focus.

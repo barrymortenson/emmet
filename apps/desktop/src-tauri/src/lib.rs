@@ -315,7 +315,7 @@ pub fn run() {
             #[cfg(windows)]
             let window = window.decorations(false);
             let window = window.build()?;
-            // E2E on Barry's Mac: no Dock icon or Cmd-Tab entry, and the window draws while covered (D-50).
+            // E2E on Barry's Mac: no Dock icon, Cmd-Tab entry, or menu bar, and the window draws while covered (D-50).
             #[cfg(all(feature = "webdriver", target_os = "macos"))]
             {
                 tauri_app.set_activation_policy(tauri::ActivationPolicy::Accessory);

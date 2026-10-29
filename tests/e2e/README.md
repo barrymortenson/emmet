@@ -10,4 +10,4 @@ service's companion plugin, which Emmet doesn't use).
 
 On macOS the E2E build stays out of the way (D-50, `apps/desktop/src-tauri/src/e2e.rs`): it doesn't take focus at
 launch, has no Dock icon or Cmd-Tab entry, and keeps drawing while other windows cover it. Don't minimize it: WebKit
-still stops drawing a minimized window, and the specs then fail with "the app's window is minimized or hidden".
+still stops drawing a minimized window, and the specs then fail with "WebKit isn't drawing the app's window".

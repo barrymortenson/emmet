@@ -59,8 +59,8 @@ tauri-plugin-wdio-webdriver = "1.5.1"
 objc2 = "0.6.5"
 
 [workspace.lints.rust]
-# deny, not forbid, so the E2E build's one call into WebKit can allow it (D-50); tests/scripts/gates.test.mjs keeps
-# every other file free of unsafe code.
+# deny, not forbid, so the E2E build's one call into WebKit can allow it (D-50); scripts/unsafe-check.mjs (in `just
+# check`) keeps every other file free of unsafe code.
 unsafe_code = "deny"
 
 [workspace.lints.clippy]
