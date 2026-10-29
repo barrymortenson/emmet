@@ -129,7 +129,16 @@ window.EMMET_STATUS = {
       ],
       note: "The macOS E2E app hung intermittently on CI in three runs, cause unknown; holds.rs's filler() matches \"Shutter\" in 60594 (validator follow-up); the LPub3D export hasn't been opened in LPub3D"
     },
-    "3C": { status: "review", pr: 33, branch: "bmortenson/s3c-technique-mining", started: "2026-10-28" },
+    "3C": {
+      status: "done", pr: 33, branch: "bmortenson/s3c-technique-mining", started: "2026-10-28",
+      evidence: [
+        "CI ci check green #33; Phase 3 exit check in the PR description",
+        "tests/it/tests/techniques.rs (120 passed: one per technique, plus the doctrine and coverage tests); dsl.rs::walls_are_laid_in_bond",
+        "98 of 100 candidates accepted (H-22), 118 techniques in all; miner tests/it/src/bin/mine-techniques.rs over 1,318 OMR sets",
+        "docs/adr/0003-licenses-and-reuse.md, D-48, D-49"
+      ],
+      note: "Techniques aren't derived from OMR models (D-48); the click-hinge collision at nonzero angles is a likely validator false positive, unfiled pending Barry's OK; the inputs hash ignores DSL content between dev builds"
+    },
     "4A": { status: "todo" },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
