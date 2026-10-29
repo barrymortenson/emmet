@@ -357,7 +357,11 @@ fn start(app: &AppHandle, root: PathBuf, kind: AgentKind, resume: bool) -> Resul
         } else {
             None
         },
-        model: None,
+        // Settings' model for Claude Code (its own alias: opus, sonnet, or haiku); Codex uses its own default until 4B.
+        model: match kind {
+            AgentKind::Claude => crate::prefs::prefs(&state.data).claude_model,
+            AgentKind::Codex => None,
+        },
         env: state.chat.env().to_vec(),
         hub: state.chat.hub.clone(),
         native_steer: true,

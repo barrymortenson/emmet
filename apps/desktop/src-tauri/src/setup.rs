@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! First run (plan section 14, until 4A designs it): when the LDraw library or Python isn't set up, the window offers
-//! one Set up button, which runs the emmet sidecar's `library install` and `doctor --fix`, so a fresh install works
-//! without a terminal. Then the agents (D-41, ADR 0012): Install runs the provider's own installer and Sign in runs
+//! First run (plan section 14, session 4A): the LDraw library downloads in the host, with its progress in the window
+//! and a resume on Try again, then the emmet sidecar's `doctor --fix` sets Python up, so a fresh install works without
+//! a terminal. "Update the library" (an old library's banner) runs the same download. Then the agents (D-41, ADR 0012): Install runs the provider's own installer and Sign in runs
 //! Claude Code's own `claude auth login`; the window asks for the provider notice (D-37) first, until the user accepts
 //! it.
 
@@ -172,16 +172,85 @@ pub fn open_plans(app: AppHandle, kind: AgentKind) -> Result<(), Box<Problem>> {
     emmet_agent::chatgpt::open_url(app.state::<AppState>().chat.env(), url).map_err(|e| Problem::internal(e.message))
 }
 
-/// Installs the library (when it's missing) and sets Python up, then rebuilds the open project.
+/// What first run is doing: the library download (`done` of `total` bytes), then Python (no amounts).
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+pub struct PartsProgress {
+    /// library or python.
+    pub step: String,
+    pub done: u64,
+    pub total: Option<u64>,
+}
+
+/// The library this Emmet installs: its release, sha256, and URL. A debug build takes E2E's local fixture server from
+/// EMMET_LIBRARY_URL, EMMET_LIBRARY_SHA256, and EMMET_LIBRARY_RELEASE, so a test never downloads the real library; a
+/// release build ignores them.
+pub fn library_pin() -> (String, String, String) {
+    if cfg!(debug_assertions)
+        && let (Ok(url), Ok(sha), Ok(release)) = (
+            std::env::var("EMMET_LIBRARY_URL"),
+            std::env::var("EMMET_LIBRARY_SHA256"),
+            std::env::var("EMMET_LIBRARY_RELEASE"),
+        )
+    {
+        return (release, sha, url);
+    }
+    use emmet_core::library::{RELEASE, SHA256, URL};
+    (RELEASE.into(), SHA256.into(), URL.into())
+}
+
+/// Whether the installed library is an older release than the pinned one (releases are YYYY-MM, so they sort as
+/// text; a test library's name isn't a date and is never old).
+pub fn library_old(installed: &str) -> bool {
+    let (pinned, _, _) = library_pin();
+    let dated =
+        |r: &str| r.len() == 7 && r.as_bytes()[4] == b'-' && r.chars().filter(char::is_ascii_digit).count() == 6;
+    dated(installed) && dated(&pinned) && installed < pinned.as_str()
+}
+
+/// One setup at a time: the first-run screen and the old library's banner share the download.
+static SETTING_UP: Mutex<()> = Mutex::new(());
+
+/// Installs the library when it's missing or older than the pinned one, with its progress as [`PartsProgress`]
+/// events (a stopped download picks up where it stopped next time), sets Python up, then rebuilds the open project.
 #[tauri::command]
 #[specta::specta]
 pub async fn setup(app: AppHandle) -> Result<(), Box<Problem>> {
     let handle = app.clone();
     tauri::async_runtime::spawn_blocking(move || {
+        let Ok(_one) = SETTING_UP.try_lock() else {
+            return Err(Problem::internal("Emmet is already setting up the parts library."));
+        };
         let state = handle.state::<AppState>();
-        if emmet_core::library::require(&state.data).is_err() {
-            sidecar(&state, &["library", "install"])?;
+        let installed = emmet_core::library::require(&state.data).ok();
+        if installed.as_ref().is_none_or(|i| library_old(&i.release)) {
+            let (release, sha, url) = library_pin();
+            let mut last = std::time::Instant::now() - std::time::Duration::from_secs(1);
+            let mut report = |done: u64, total: Option<u64>| {
+                // A few times a second is enough for a progress bar, and the window isn't flooded.
+                if last.elapsed().as_millis() >= 100 || total == Some(done) {
+                    last = std::time::Instant::now();
+                    let _ = PartsProgress {
+                        step: "library".into(),
+                        done,
+                        total,
+                    }
+                    .emit(&handle);
+                }
+            };
+            emmet_core::library::install(
+                &state.data,
+                &release,
+                &sha,
+                emmet_core::library::Source::Url(&url),
+                &mut report,
+            )?;
         }
+        let _ = PartsProgress {
+            step: "python".into(),
+            done: 0,
+            total: None,
+        }
+        .emit(&handle);
         sidecar(&state, &["doctor", "--fix"])?;
         if let Some(root) = state.open_root() {
             state.request_run(&root);

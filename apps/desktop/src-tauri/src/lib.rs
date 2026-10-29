@@ -10,10 +10,14 @@ pub mod app;
 pub mod chat;
 pub mod chatgpt;
 pub mod library;
+pub mod menu;
 pub mod paths;
+pub mod prefs;
+pub mod projects;
 pub mod recent;
 pub mod runs;
 pub mod setup;
+pub mod tools;
 pub mod watcher;
 
 use std::path::PathBuf;
@@ -97,9 +101,29 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
         .commands(tauri_specta::collect_commands![
             app_info,
             ui_state,
-            open_dialog,
-            new_project_dialog,
             open_recent,
+            crate::projects::new_project,
+            crate::projects::open_dialog,
+            crate::projects::trust_project,
+            crate::projects::set_build_settings,
+            crate::projects::allow_finding,
+            crate::projects::unallow_finding,
+            crate::projects::keep_params,
+            crate::projects::reset_params,
+            crate::projects::save_version,
+            crate::projects::list_versions,
+            crate::projects::version_scene,
+            crate::projects::restore_version,
+            crate::projects::open_version_as_new,
+            crate::projects::export,
+            crate::projects::reveal_export,
+            crate::prefs::get_prefs,
+            crate::prefs::set_prefs,
+            crate::prefs::pick_projects_folder,
+            crate::tools::cli_status,
+            crate::tools::install_cli,
+            crate::tools::diagnostics,
+            crate::tools::report_problem,
             get_params,
             set_params,
             list_colors,
@@ -146,7 +170,9 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             BusRender,
             BusHighlight,
             crate::chat::ChatEvent,
-            crate::setup::SetupEvent
+            crate::setup::SetupEvent,
+            crate::setup::PartsProgress,
+            crate::menu::MenuAction
         ])
         .dangerously_cast_bigints_to_number()
         .disable_serde_phases()
@@ -171,6 +197,12 @@ fn sidecar() -> PathBuf {
 }
 
 static RENDER_OUT: OnceLock<PathBuf> = OnceLock::new();
+static STARTED: OnceLock<std::time::Instant> = OnceLock::new();
+
+/// When the app started (the first thing `run` does), for the warm start's timing.
+pub fn started() -> std::time::Instant {
+    *STARTED.get_or_init(std::time::Instant::now)
+}
 
 /// Ends render mode: writes the PNG and camera, or reports the failure, and exits.
 fn finish_render(result: Result<(String, serde_json::Value), String>) {
@@ -192,6 +224,7 @@ fn finish_render(result: Result<(String, serde_json::Value), String>) {
 }
 
 pub fn run() {
+    started();
     let args = match parse_args(std::env::args().skip(1)) {
         Ok(a) => a,
         Err(e) => {
@@ -262,11 +295,22 @@ pub fn run() {
                 return Ok(());
             }
             let dev = tauri_app.config().identifier.ends_with(".dev");
-            WebviewWindowBuilder::new(tauri_app, "main", WebviewUrl::default())
+            // The frozen design's window (docs/design/frozen): 1280 × 800 to start. macOS draws the title row itself
+            // over the traffic lights (tokens.css's --titlebar-height and --titlebar-inset-start); Windows has no
+            // system title bar, and the title row draws the menu bar and the caption buttons.
+            let window = WebviewWindowBuilder::new(tauri_app, "main", WebviewUrl::default())
                 .title(if dev { "Emmet DEV" } else { "Emmet" })
-                .inner_size(1200.0, 800.0)
-                .min_inner_size(800.0, 560.0)
-                .build()?;
+                .inner_size(1280.0, 800.0)
+                .min_inner_size(960.0, 600.0);
+            #[cfg(target_os = "macos")]
+            let window = window
+                .title_bar_style(tauri::TitleBarStyle::Overlay)
+                .hidden_title(true)
+                .traffic_light_position(tauri::LogicalPosition::new(20.0, 22.0));
+            #[cfg(windows)]
+            let window = window.decorations(false);
+            window.build()?;
+            crate::menu::install(&handle)?;
             let state = tauri_app.state::<app::AppState>();
             state.start_runs(&handle);
             // The login shell's environment and the agents' detection, ready before the user picks an agent.
