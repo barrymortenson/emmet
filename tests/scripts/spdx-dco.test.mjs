@@ -40,6 +40,9 @@ test("spdx-check fails on the wrong license for the path", () => {
 
 test("spdx-check wants Apache-2.0 under data/techniques and templates, and AGPL elsewhere in data", () => {
   assert.equal(spdx({ "templates/starter/model.py": APACHE }).code, 0);
+  // A technique's candidate sketch becomes data/techniques/<name>.py when it's accepted (3C).
+  assert.equal(spdx({ "docs/techniques/candidates/batch-1/sill.py": APACHE }).code, 0);
+  assert.match(spdx({ "docs/spec/x.py": APACHE }).out, /docs\/spec\/x.py: has Apache-2.0, needs SPDX-License-Identifier: AGPL-3.0-or-later/);
   assert.match(spdx({ "data/techniques/gable.py": "# SPDX-License-Identifier: AGPL-3.0-or-later\n" }).out, /data\/techniques\/gable.py: has AGPL-3.0-or-later, needs SPDX-License-Identifier: Apache-2.0/);
   assert.match(spdx({ "data/other/x.py": APACHE }).out, /data\/other\/x.py: has Apache-2.0, needs SPDX-License-Identifier: AGPL-3.0-or-later/);
 });
