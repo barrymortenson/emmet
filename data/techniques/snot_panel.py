@@ -14,6 +14,9 @@ a time, titled "<title>, row 1: plates" and so on, then the row's tiles, and ret
 
 from emmet_dsl import Brick, Plate, Rot
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "87087",
     "87079",

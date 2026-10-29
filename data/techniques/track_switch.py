@@ -15,6 +15,9 @@ import math
 
 from emmet_dsl.techniques.track_straight_run import ahead, pose, put
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = ["75541-f1", "75542-f1"]
 
 LENGTH = 32  # the straight way, in studs; the origin is in its middle

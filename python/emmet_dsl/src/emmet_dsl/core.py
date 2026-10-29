@@ -167,6 +167,9 @@ class Model:
         self._mirrors: list[tuple[str, float]] = []  # the open Model.mirror blocks
         self._allowed: list[tuple] = []  # (rule, ids, reason, file, line)
         self._grounded: list[tuple] = []  # (ids, file, line)
+        # Where Model.wall's pieces meet, by (axis, the line across it, the course's top), so the course above lays
+        # them in bond.
+        self._joints: dict[tuple, set] = {}
         self._context = active
 
     # Steps
@@ -428,9 +431,10 @@ class Model:
         """Brick walls, a row at a time from z up. With depth, the four walls of a length × depth rectangle whose
         front-left corner is (x, y), with interlocking corners; without it, one straight wall along x. sides: "all",
         or some of "front", "back", "left", "right", and "sides" (left and right), to build a wall at a time. bond:
-        "running" (joints staggered row to row, for a straight wall; a rectangle's corners stagger it anyway) or
-        "stacked". openings: (x, y) cells left empty, for doors and
-        windows. kind: the piece family (Brick by default). sizes: the piece lengths to use. Returns the Handles."""
+        "running" (no joint on a joint in the course below that a Model.wall laid, when the sizes allow it, so the
+        joints below are bridged and the course over a door or window spans its edges) or "stacked". openings: (x, y)
+        cells left empty, for doors and windows. kind: the piece family (Brick by default). sizes: the piece lengths to
+        use. Returns the Handles."""
         file, line = caller()
         ctx = self._ctx("Model.wall", file, line)
         rel = ctx.rel(file)
@@ -452,12 +456,28 @@ class Model:
                     continue
                 cells = [(sx + i, sy) if axis == "x" else (sx, sy + i) for i in range(n)]
                 for (cx, cy), run in _gaps(cells, holes, axis):
-                    first = None
-                    if bond == "running" and course % 2 and depth == 0:
-                        first = max(1, family.longest(run, 1, sizes) // 2)
-                    for size, part in family.split(run, 1, sizes, first, rel, line):
+                    # The joints of this line of wall, where Model.repeat has moved it: the course whose top is this
+                    # course's bottom (a brick or a plate course), and this one, filed by its top. Keys are rounded,
+                    # so 0.1 + 3 - 3 finds 0.1.
+                    ox, oy, oz = self._offset
+                    across, start = (cy + oy, cx + ox) if axis == "x" else (cx + ox, cy + oy)
+                    below = self._joints.get(_joint_key(axis, across, zr + oz), set())
+                    here = self._joints.setdefault(_joint_key(axis, across, zr + oz + family.height), set())
+                    # Over joints inside this run, lay the course in bond over them; over none (a run on one long
+                    # piece, or the first course), a straight wall's odd course starts with a short piece instead.
+                    if bond == "running" and any(start < j < start + run for j in below):
+                        pieces = family.bond(start, run, below, sizes, rel, line)
+                    else:
+                        first = None
+                        if bond == "running" and course % 2 and depth == 0:
+                            first = max(1, family.longest(run, 1, sizes) // 2)
+                        pieces = family.split(run, 1, sizes, first, rel, line)
+                    here.add(start)
+                    for size, part in pieces:
                         handles.append(self.add(part, color, at=(cx, cy, zr), rot=_turn(axis, size, 1)))
                         cx, cy = (cx + size, cy) if axis == "x" else (cx, cy + size)
+                        start += size
+                        here.add(start)
         return handles
 
     # Repetition and symmetry
@@ -842,6 +862,11 @@ def _runs(x, y, length: int, depth: int, odd: int):
         ("right", (x1, y), depth, "y"),
         ("front", (x + 1, y), length - 2, "x"),
     ]
+
+
+def _joint_key(axis: str, across: float, top: float) -> tuple:
+    """Where Model.wall files a course's joints: its line (the axis and the position across it) and its top."""
+    return (axis, round(across, 6), round(top, 6))
 
 
 def _gaps(cells, holes, axis: str):

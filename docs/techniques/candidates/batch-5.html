@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-5</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-5</h1>
+  <p>20 candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1318 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-5/greeble_strip.png" alt="A sketch of greeble_strip" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>greeble_strip</code></h2>
+    <p>A band of small surface detail (grilles, round plates, tiles, a stud or two) on bricks with side studs, chosen at random from a seed.</p>
+    <p class="why">The busy machine texture on a spaceship hull or a space-station wall, anywhere a flat side looks too plain.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>facing</code>, <code>color</code>, <code>detail</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>8</b> of 1318 official sets (10 times); 123 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 5893 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 21303 - Assemblage.ldr (Christophe Mitillo [Christophe_Mitillo], Redistributable under CCAL version 2.0); FILE 5771 - main.ldr (Takeshi Takahashi [RainbowDolphin], Redistributable under CCAL version 2.0); FILE 4955 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-5/greeble_strip.py"><code>batch-5/greeble_strip.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>30414</code> + <code>2412b</code> + <code>6141</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for greeble_strip">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for greeble_strip">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-5/engine_nozzle.png" alt="A sketch of engine_nozzle" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>engine_nozzle</code></h2>
+    <p>A round engine pointing out of a ship's stern: round plates and bricks built out from a bracket's side studs, ending in a dish with a glowing center.</p>
+    <p class="why">The rear thrusters of any spaceship or rocket.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>facing</code>, <code>color</code>, <code>bell</code>, <code>glow</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 16 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/engine_nozzle.py"><code>batch-5/engine_nozzle.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>99207</code> + <code>3941</code> + <code>87580</code> + <code>4740</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for engine_nozzle">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for engine_nozzle">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-5/wedge_wing.png" alt="A sketch of wedge_wing" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>wedge_wing</code></h2>
+    <p>A pair of swept wings from left- and right-handed wedge plates in two layers whose joints cross, so the wings and the deck between them are one stiff plate.</p>
+    <p class="why">The wings of a starfighter or shuttle, wherever the wings have to be part of the hull and not snap off at a seam.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>span</code>, <code>gap</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>76</b> of 1318 official sets (157 times); 118 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10143 - main.ldr (Jude Parrill [theJudeAbides], Redistributable under CCAL version 2.0); FILE 76042 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-5/wedge_wing.py"><code>batch-5/wedge_wing.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>41769a</code> + <code>41770a</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wedge_wing">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for wedge_wing">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-5/angled_hull_panel.png" alt="A sketch of angled_hull_panel" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>angled_hull_panel</code></h2>
+    <p>A smooth tiled panel hung on click hinge plates along a deck's edge and set at an angle.</p>
+    <p class="why">The sloped side, nose, or belly of a spaceship's hull, at any angle the hinges hold.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>angle</code>, <code>facing</code>, <code>color</code>, <code>hinge_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/angled_hull_panel.py"><code>batch-5/angled_hull_panel.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>44302b</code> + <code>44301b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for angled_hull_panel">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for angled_hull_panel">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-5/hatch_on_hinge.png" alt="A sketch of hatch_on_hinge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>hatch_on_hinge</code></h2>
+    <p>A lid over an opening in a raised floor, on hinge bricks along its back edge, flush when shut or swung open to an angle.</p>
+    <p class="why">A floor or deck hatch on a ship or base: a hold, a ladder well, an engine bay.</p>
+    <p class="note"><b>Note:</b> Uses the same hinge bricks (3937 and 6134) as tilting_hood, as a flush floor lid built apart that opens to any angle.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>depth</code>, <code>angle</code>, <code>color</code>, <code>hinge_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>102</b> of 1318 official sets (298 times); 103 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10143 - main.ldr (Jude Parrill [theJudeAbides], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 76042 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-5/hatch_on_hinge.py"><code>batch-5/hatch_on_hinge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3937</code> + <code>6134</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for hatch_on_hinge">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for hatch_on_hinge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-5/cockpit_canopy.png" alt="A sketch of cockpit_canopy" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>cockpit_canopy</code></h2>
+    <p>A glass canopy hinged at its top to a hinge tile standing on side studs on the wall behind the cockpit, shut or swung up.</p>
+    <p class="why">An opening cockpit for a fighter, a shuttle, or a buggy, where the pilot climbs in under the glass.</p>
+    <p class="note"><b>Note:</b> Uses the older windscreen 4 x 4 x 3 with hinge (2620) on hinge tiles (4625): the modern click-hinge canopies have no usable hinge data in the validator, so they'd never count as connected.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>angle</code>, <code>color</code>, <code>glass</code>, <code>hinge_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/cockpit_canopy.py"><code>batch-5/cockpit_canopy.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>2620</code> + <code>4625</code> + <code>30414</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cockpit_canopy">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for cockpit_canopy">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-5/turret.png" alt="A sketch of turret" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>turret</code></h2>
+    <p>A gun turret on a 2 x 2 turntable, its head built as one sub-assembly placed at any aim, with bar barrels in round plates on side studs.</p>
+    <p class="why">Gun emplacements on a ship, a base, or a walker, turned to face where the scene needs.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>aim</code>, <code>guns</code>, <code>color</code>, <code>gun_color</code>, <code>base_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 8 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/turret.py"><code>batch-5/turret.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3680</code> + <code>3679</code> + <code>87087</code> + <code>87994</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for turret">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for turret">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-5/radar_dish.png" alt="A sketch of radar_dish" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>radar_dish</code></h2>
+    <p>A 4 x 4 dish on a mast of round bricks, its carrier's handle held in a clip at the top so it tilts to any angle.</p>
+    <p class="why">Radar and comms dishes on a station, a base, or a ship's back.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>tilt</code>, <code>height</code>, <code>color</code>, <code>dish_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 10 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/radar_dish.py"><code>batch-5/radar_dish.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>4081b</code> + <code>2540</code> + <code>3960</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for radar_dish">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for radar_dish">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-5/control_console.png" alt="A sketch of control_console" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>control_console</code></h2>
+    <p>A desk of controls: bricks, a course of 45° slopes as screens, and buttons, grilles, and control-stick levers on the studs along the top.</p>
+    <p class="why">The pilot's or crew's consoles inside a cockpit, a bridge, or a control room.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>panel</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/control_console.py"><code>batch-5/control_console.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3040b</code> + <code>4592</code> + <code>4593</code> + <code>98138</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for control_console">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for control_console">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-5/antenna_mast.png" alt="A sketch of antenna_mast" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>antenna_mast</code></h2>
+    <p>A thin mast from a bar standing in a round brick's hollow stud, with side antennas on bar holders clipped to it.</p>
+    <p class="why">The comms array on a spaceship, a station roof, or a base.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>arms</code>, <code>dish</code>, <code>color</code>, <code>bar_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 15 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/antenna_mast.py"><code>batch-5/antenna_mast.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>30374</code> + <code>11090</code> + <code>87994</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for antenna_mast">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for antenna_mast">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-5/solar_panel.png" alt="A sketch of solar_panel" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>solar_panel</code></h2>
+    <p>A pair of mirror-image solar panels clipped onto a bar boom from a side stud, turning together about the boom.</p>
+    <p class="why">Solar arrays on a space station or a satellite.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>tilt</code>, <code>color</code>, <code>cells</code>, <code>boom_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 7 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/solar_panel.py"><code>batch-5/solar_panel.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>63965a</code> + <code>4081b</code> + <code>3062b</code> + <code>3069b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for solar_panel">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for solar_panel">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-5/landing_leg.png" alt="A sketch of landing_leg" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>landing_leg</code></h2>
+    <p>A splayed Technic beam leg pinned under a hull, with a foot pinned to its end that stays level, so the ship stands on its pads.</p>
+    <p class="why">Landing gear for a lander, a shuttle, or a walker that has to stand on its own feet.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>side</code>, <code>splay</code>, <code>length</code>, <code>color</code>, <code>leg_color</code>, <code>pin_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 14 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/landing_leg.py"><code>batch-5/landing_leg.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3700</code> + <code>2780</code> + <code>32316</code> + <code>4032a</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for landing_leg">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for landing_leg">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-5/gear_pair.png" alt="A sketch of gear_pair" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>gear_pair</code></h2>
+    <p>Two meshing Technic gears on axles through a pair of Technic bricks, turned half a tooth so they interlock, in ratios 24:8, 8:24, 16:16, 24:24, or 8:8.</p>
+    <p class="why">Any hand-turned or motorized function that needs a speed change or a reversal.</p>
+    <p class="note"><b>Note:</b> Meshing is set by turning the second gear half a tooth; the spacing is real Technic spacing, but the validator only checks that the teeth don't collide.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>ratio</code>, <code>color</code>, <code>gear_color</code>, <code>axle_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 7 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/gear_pair.py"><code>batch-5/gear_pair.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3701</code> + <code>3705</code> + <code>3648b</code> + <code>3647</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for gear_pair">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for gear_pair">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-5/worm_drive.png" alt="A sketch of worm_drive" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>worm_drive</code></h2>
+    <p>A worm gear on one axle turning a 24-tooth gear on an axle across it, in a frame of Technic bricks and plates that puts the axles 5 plates apart.</p>
+    <p class="why">Slow, self-locking turns: a crane's winch or slewing ring, a drawbridge, a turntable that must hold its place.</p>
+    <p class="note"><b>Note:</b> The worm sits 5 plates from the 24-tooth gear, real Technic spacing; the validator only checks that they don't collide.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>gear_color</code>, <code>worm_color</code>, <code>axle_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 10 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/worm_drive.py"><code>batch-5/worm_drive.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>4716</code> + <code>3648b</code> + <code>3701</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for worm_drive">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for worm_drive">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-5/crank_winch.png" alt="A sketch of crank_winch" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>crank_winch</code></h2>
+    <p>A drum of round plates and a round brick on an axle between two Technic bricks, turned by a thin liftarm crank with an axle pin handle.</p>
+    <p class="why">A hand winch for a crane, a tow truck, a well, or a drawbridge.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>crank</code>, <code>color</code>, <code>drum_color</code>, <code>axle_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 7 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/crank_winch.py"><code>batch-5/crank_winch.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3700</code> + <code>3706</code> + <code>3941</code> + <code>41677</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for crank_winch">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for crank_winch">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-5/technic_pin_hinge.png" alt="A sketch of technic_pin_hinge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>technic_pin_hinge</code></h2>
+    <p>An arm of Technic brick swinging on a friction pin through the hole of a Technic brick beside it, set to any angle.</p>
+    <p class="why">Booms, lids, and gull-wing doors that swing on a pin and stay where they're put.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>angle</code>, <code>color</code>, <code>arm_color</code>, <code>pin_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>28</b> of 1318 official sets (71 times); 67 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 8868-1 - Main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 76161 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-5/technic_pin_hinge.py"><code>batch-5/technic_pin_hinge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521803 p32-35</dd>
+      <dt>Key parts</dt><dd><code>3700</code> + <code>2780</code> + <code>3894</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for technic_pin_hinge">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for technic_pin_hinge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-5/lift_arm_linkage.png" alt="A sketch of lift_arm_linkage" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>lift_arm_linkage</code></h2>
+    <p>Two parallel Technic beams pinned to a post and to a head, a parallelogram, so the head swings up and down and stays upright.</p>
+    <p class="why">A lifting arm that keeps its load level: a forklift-style lift, a cherry picker, a robot arm, a car wash brush.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>angle</code>, <code>color</code>, <code>beam_color</code>, <code>pin_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1318 official sets (3 times); 24 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 75954 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-5/lift_arm_linkage.py"><code>batch-5/lift_arm_linkage.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3700</code> + <code>2780</code> + <code>32524</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lift_arm_linkage">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for lift_arm_linkage">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-5/technic_brace.png" alt="A sketch of technic_brace" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>technic_brace</code></h2>
+    <p>A thin beam pinned across the corner of a Technic brick frame on a 3-4-5 triangle, so both its end holes land on the frame's holes.</p>
+    <p class="why">Stiffening a tall Technic tower, crane boom, or frame so it doesn't rack.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>beam_color</code>, <code>pin_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 4 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-5/technic_brace.py"><code>batch-5/technic_brace.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3894</code> + <code>3700</code> + <code>32063</code> + <code>32002</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for technic_brace">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for technic_brace">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-5/rotating_platform.png" alt="A sketch of rotating_platform" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>rotating_platform</code></h2>
+    <p>A deck of plates and edge tiles built on a 4 x 4 turntable's top as one sub-assembly, placed turned to any angle.</p>
+    <p class="why">A turning base for a crane cab, a radar room, a display stand, or a carousel.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>size</code>, <code>angle</code>, <code>color</code>, <code>base_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>18</b> of 1318 official sets (24 times); 18 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 6286 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 6989 - Mega Core Magnetizer.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 1682 - main.ldr (Robert Paciorek [bercik], Redistributable under CCAL version 2.0); FILE 6279 - Skull Island.ldr (Stan Isachenko [angmarec], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-5/rotating_platform.py"><code>batch-5/rotating_platform.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3403</code> + <code>3404</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rotating_platform">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for rotating_platform">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-5/ball_joint_arm.png" alt="A sketch of ball_joint_arm" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>ball_joint_arm</code></h2>
+    <p>A chain of 1 x 2 plates with a ball on one end and a socket on the other, snapped together and posed in a curve.</p>
+    <p class="why">A posable robot arm, crane jib, tentacle, or cable that bends at every joint.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>segments</code>, <code>rise</code>, <code>bend</code>, <code>color</code>, <code>joint_color</code>, <code>tiles</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1318 official sets (12 times); 2 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-5/ball_joint_arm.py"><code>batch-5/ball_joint_arm.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>22890</code> + <code>14419</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for ball_joint_arm">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for ball_joint_arm">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-5" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

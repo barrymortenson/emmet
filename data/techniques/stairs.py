@@ -15,6 +15,9 @@ a layer at a time, titled "<title>, step 1" and so on, and returns the z of the 
 from emmet_dsl import Brick, Plate, Tile
 from emmet_dsl.core import in_steps
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "3005",
     "3004",

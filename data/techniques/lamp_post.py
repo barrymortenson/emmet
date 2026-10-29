@@ -8,6 +8,9 @@ built once and placed "× n", so place them inside your own step (m.repeat space
 copy's Handle.
 """
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = ["3062b", "2453b", "4589"]
 
 

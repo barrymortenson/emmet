@@ -18,6 +18,9 @@ brings its own steps, a row at a time, titled "<title>, row 1" and so on, and re
 from emmet_dsl import Brick
 from emmet_dsl.core import in_steps
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "3659",
     "3307",

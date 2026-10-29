@@ -1,0 +1,500 @@
+[
+ {
+  "name": "rock_spire",
+  "title": "Pointed rock spires from tall 75\u00b0 slopes, each tip capped with a cheese slope turned another way, side by side at different heights.",
+  "why": "A builder reaches for it to stand sea stacks in the surf or a ragged ridge along a cliff top.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "risers",
+   "color",
+   "cap",
+   "title"
+  ],
+  "books": [
+   "set 21335: 6448880 p83, p157-159"
+  ],
+  "signature": [
+   "4460b",
+   "54200",
+   "3004"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "rock_facet",
+  "title": "A rock face broken into angled planes by cheese slopes pressed onto side studs, pointing up, down, left, or right.",
+  "why": "A builder reaches for it to make any brick rock face look broken instead of flat.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "seed",
+   "color",
+   "facet",
+   "title"
+  ],
+  "books": [
+   "set 21335: 6448880 p157-162, 6448881 p81"
+  ],
+  "signature": [
+   "87087",
+   "54200",
+   "11211",
+   "85984"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "cliff_wall",
+  "title": "A cliff face of ordinary bricks whose courses step in and out by a stud, in mixed grays, with a ragged top.",
+  "why": "A builder reaches for it for any cliff, quarry, or rocky base under a landscape.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "seed",
+   "colors",
+   "cap",
+   "title"
+  ],
+  "books": [
+   "set 21335: 6448880 p157-163"
+  ],
+  "signature": [
+   "3003",
+   "3004",
+   "54200"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "rock_outcrop",
+  "title": "A lump of rock: a brick core leaned on all round by slopes of different steepness, with double-convex corners and cheese chips on top.",
+  "why": "A builder reaches for it to drop a boulder or rocky outcrop anywhere on a baseplate.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "seed",
+   "colors",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3045",
+   "60481a",
+   "4460b",
+   "3003"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "surf_line",
+  "title": "A beach of tan plates on water with a wandering edge and broken white surf of tiles and cheese slopes at the waterline.",
+  "why": "A builder reaches for it to edge any island, lake shore, or coastline.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "sand",
+   "surf",
+   "title"
+  ],
+  "books": [
+   "set 21335: 6448880 p19-48"
+  ],
+  "signature": [
+   "3070b",
+   "54200",
+   "98138"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "river",
+  "title": "A stream of clear tiles over a blue bed, a plate below its banks, whose grass overhangs the water in places.",
+  "why": "A builder reaches for it to run a river or stream across a layout.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "width",
+   "seed",
+   "bed",
+   "water",
+   "mud",
+   "grass",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "2431",
+   "3069b",
+   "3460"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "At large sizes it may use a 2 x 14 plate, made in Blue in only one or two sets."
+ },
+ {
+  "name": "waterfall",
+  "title": "Water pouring over a rock lip and down the face as clear tiles hung on side studs, with white foam at the foot.",
+  "why": "A builder reaches for it to put a waterfall on a cliff or into a river.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "rows",
+   "color",
+   "water",
+   "foam",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "11211",
+   "3069b",
+   "54200"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "pond",
+  "title": "A small sunken pond of clear tiles with rounded corners over a blue bed, with lily pads, rim stones, and reeds.",
+  "why": "A builder reaches for it for a garden or park pond, or a pool in a forest scene.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "bed",
+   "water",
+   "ground",
+   "stone",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "25269",
+   "33291",
+   "15279"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "At large sizes it may use a 2 x 14 plate, made in Blue in only one or two sets."
+ },
+ {
+  "name": "grass_edge",
+  "title": "A grassy top on a cliff whose edge wanders, overhanging in rounded tongues and stopping short in places, locked by a second plate layer.",
+  "why": "A builder reaches for it to finish the top of any cliff or rock wall naturally.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "color",
+   "title"
+  ],
+  "books": [
+   "set 21335: 6448880 p151-156"
+  ],
+  "signature": [
+   "26601",
+   "3020"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "hillside",
+  "title": "Ground rising in terraces two plates high, each front softened by cheese slopes in grass and bare earth.",
+  "why": "A builder reaches for it to make a gentle hill or bank instead of a flat baseplate.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "steps",
+   "tread",
+   "seed",
+   "color",
+   "earth",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "85984",
+   "54200",
+   "3020"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "At large sizes it may use a 2 x 14 plate, made in Green in only one or two sets."
+ },
+ {
+  "name": "flagstone_paving",
+  "title": "Crazy paving of tiles in mixed sizes and two grays laid at random, with a few jumper plates and bare studs.",
+  "why": "A builder reaches for it for courtyards, quays, garden paths, and worn floors.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "colors",
+   "bumps",
+   "title"
+  ],
+  "books": [
+   "set 21335: 6448880 p78, p177-180"
+  ],
+  "signature": [
+   "3068b",
+   "87580",
+   "3794b",
+   "63864"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "dirt_path",
+  "title": "A path two studs wide winding across the grass in tiles, its bends rounded with 1 x 1 corner-round tiles, with pebbles beside it.",
+  "why": "A builder reaches for it to lead a path through a garden, park, or field.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "wander",
+   "seed",
+   "color",
+   "pebbles",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "25269",
+   "3068b",
+   "3070b"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Its bends use 1 x 1 corner-round tiles; the 2 x 2 'corner round' tile in the library is the curved quarter-ring, which left holes."
+ },
+ {
+  "name": "pine_tree",
+  "title": "A conical fir of tiers of slopes on plates, each tier narrower and held clear of the one below by its core, on a round trunk.",
+  "why": "A builder reaches for it for forests and winter scenes where the classic leaf tree looks wrong.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "tiers",
+   "trunk",
+   "color",
+   "trunk_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3045",
+   "3040b",
+   "3942c",
+   "3941"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Uses the same tier method as snow_cap (slopes facing out round a core, each tier two studs narrower); here each tier sits on its own plate, held clear of the one below."
+ },
+ {
+  "name": "bush",
+  "title": "A leafy shrub of round bricks with bamboo leaves on a round plate, turned outward in two greens, crowned with broad leaves.",
+  "why": "A builder reaches for it to dot gardens, parks, and forest floors with low greenery.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "tiers",
+   "colors",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "30176",
+   "4032a",
+   "6255"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "flower_bed",
+  "title": "A bed of soil plates with a tile border, planted with leaf clumps, flowers on stems, and low leaves, spaced so blooms never touch.",
+  "why": "A builder reaches for it to put flowers in front of a house or in a park.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "edge",
+   "soil",
+   "flowers",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "33291",
+   "4727",
+   "6141"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The flower head part (3742) doesn't seat on a plain stud in the validator, so the blooms are round plates with tabs (33291), a stud apart, with low green round plates between."
+ },
+ {
+  "name": "cave_mouth",
+  "title": "A dark cave entrance in a rock face: an arch on rock jambs, black bricks set back inside, buttresses and broken rock over it.",
+  "why": "A builder reaches for it for a cave, a mine, or a sea cave in a cliff.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "dark",
+   "cap",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "15254",
+   "4460b",
+   "3009"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "snow_cap",
+  "title": "A mountain peak of stacked tiers of slopes, gray rock below, white snow above, and a ragged snowline between.",
+  "why": "A builder reaches for it to top a mountain in a winter or alpine scene.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "tiers",
+   "snowline",
+   "seed",
+   "rock",
+   "snow",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3045",
+   "3039",
+   "3040b"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "Uses the same tier method as pine_tree; it stacks the tiers tight and mixes white and gray for the snowline, so it can read as a plain pyramid."
+ },
+ {
+  "name": "footbridge",
+  "title": "A plank bridge over a stream: stringers on stone footings, a deck of tile planks in mixed browns, and handrails on posts.",
+  "why": "A builder reaches for it to cross a stream or ditch in a park, farm, or forest.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "span",
+   "width",
+   "seed",
+   "wood",
+   "stone",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "63864",
+   "3666",
+   "3062b"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "woodpile",
+  "title": "A stack of cut logs seen end on, round tiles in wood colors on side studs, each row shorter so the pile tapers.",
+  "why": "A builder reaches for it beside a cabin, farm, or campsite.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "seed",
+   "wood",
+   "ends",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "11211",
+   "98138",
+   "87087"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "landing_zone",
+  "title": "A field of open studs the exact size of a module built apart, framed by a ring of tiles with triangular cut corners.",
+  "why": "A builder reaches for it whenever a house or tower is built separately and dropped onto the landscape.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seat",
+   "path",
+   "seed",
+   "title"
+  ],
+  "books": [
+   "set 21335: 6448880 p165-180"
+  ],
+  "signature": [
+   "35787",
+   "87079",
+   "3068b"
+  ],
+  "sure": true,
+  "weak": false
+ }
+]

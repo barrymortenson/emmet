@@ -1,0 +1,401 @@
+[
+ {
+  "name": "quoin_corner",
+  "title": "Alternating long and short stone blocks on the side studs of a wall's corner columns; use on cottages and town houses.",
+  "why": "Stone corners in a contrasting color, long and short blocks alternating, on any house corner or door jamb; one of the clearest signs of a designed building.",
+  "params": [
+   "courses",
+   "color",
+   "both_faces",
+   "phase"
+  ],
+  "books": [
+   "set 21335: 6448880 p199-221",
+   "set 10350: p208, p209, p210, p218"
+  ],
+  "signature": [
+   "4733",
+   "3794b"
+  ],
+  "sure": false,
+  "weak": false
+ },
+ {
+  "name": "wall_top_tie",
+  "title": "A course of plates across the tops of the walls, over the corner joints, finished with tiles except a few studs to locate what goes on top.",
+  "why": "A course of plates across the wall tops that overlaps every corner joint, then tiles that leave a few studs: what locks walls together and lets a floor or roof lift off. The cottage needs it.",
+  "params": [
+   "length",
+   "depth",
+   "color",
+   "studs"
+  ],
+  "books": [
+   "set 10350: p141, p142, p143, p144, p145, p146 \u2026"
+  ],
+  "signature": [
+   "3666",
+   "3004"
+  ],
+  "sure": false,
+  "weak": true
+ },
+ {
+  "name": "lift_off_roof_seat",
+  "title": "Tile the wall top smooth except a few jumper studs so a separately built roof locates on them and lifts off; use whenever the interior should be reachable.",
+  "why": "Lets a roof or upper floor lift off to show the inside, which every house in the books does; pairs with wall_top_tie.",
+  "params": [
+   "footprint",
+   "stud_positions",
+   "tile_color"
+  ],
+  "books": [
+   "set 21335: 6448880 p219-220, 6448881 p79-95",
+   "set 60440: 6521802 p56, 6521802 p76, 6521802 p77, 6521802 p78, 6521802 p79, 6521802 p80 \u2026"
+  ],
+  "signature": [
+   "4162",
+   "3794b"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "lift_off_floor",
+  "title": "Lift-off upper floor made of two crossed layers of large plates around a stairwell opening, for every modular story.",
+  "why": "Upper floors as their own units: two layers of plates with crossing seams around a stair opening. For any building of more than one story.",
+  "params": [
+   "footprint",
+   "stair_position",
+   "overhang",
+   "color"
+  ],
+  "books": [
+   "set 10350: p141, p142, p143, p144, p145, p146 \u2026",
+   "set 60440: 6521803 p5, 6521803 p6, 6521803 p7, 6521803 p9, 6521803 p10, 6521803 p11 \u2026"
+  ],
+  "signature": [
+   "4282",
+   "3035",
+   "3032"
+  ],
+  "sure": false,
+  "weak": false
+ },
+ {
+  "name": "jettied_floor",
+  "title": "Upper floor plate that projects one stud past the wall below on the street sides, for overhanging Tudor stories.",
+  "why": "An upper story that overhangs the one below by a stud: an easy way to make a town house look old and real.",
+  "params": [
+   "overhang",
+   "sides"
+  ],
+  "books": [
+   "set 10350: p227, p228, p229, p230, p231, p232 \u2026"
+  ],
+  "signature": [
+   "4282",
+   "4162"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "masonry_wall",
+  "title": "Running-bond wall panel of embossed and plain bricks built flat and attached, for exposed brick, rear walls and chimneys.",
+  "why": "Brick-textured walls in running bond with a few patched bricks; a plain wall made to read as brickwork.",
+  "params": [
+   "length",
+   "height",
+   "bond_offset",
+   "color_mix",
+   "feature_positions"
+  ],
+  "books": [
+   "set 10350: p71, p196, p197, p218, p249, p256 \u2026"
+  ],
+  "signature": [
+   "98283",
+   "15533"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "clapboard_siding",
+  "title": "A sideways siding strip of cheese slopes on a long plate, hung on side studs to give a wall or narrow pier lap-siding in another color.",
+  "why": "Lap siding from slopes on a plate hung on side studs, for wooden houses and barns.",
+  "params": [
+   "length",
+   "slope_color",
+   "backer_color",
+   "layers",
+   "side"
+  ],
+  "books": [
+   "set 43217: p37, p38, p43, p47, p48"
+  ],
+  "signature": [
+   "85984",
+   "3460",
+   "4733"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "half_timber_band",
+  "title": "White plaster wall with black timber posts and diagonal braces built studs-out, for Tudor or half-timbered upper stories.",
+  "why": "White plaster with black timber posts and braces, for Tudor and half-timbered stories.",
+  "params": [
+   "length",
+   "bay_count",
+   "post_spacing",
+   "brace_pattern",
+   "plaster_color",
+   "timber_color"
+  ],
+  "books": [
+   "set 10350: p236, p237, p238, p239, p240, p241 \u2026"
+  ],
+  "signature": [
+   "32952",
+   "3023b"
+  ],
+  "sure": false,
+  "weak": false
+ },
+ {
+  "name": "window_sill",
+  "title": "A deep window sill from a flat 1x4 panel, with a two-stud plate on the base's side studs as a band below it.",
+  "why": "A deep sill under a window, so windows don't sit flat in the wall.",
+  "params": [
+   "sill_width",
+   "colors"
+  ],
+  "books": [
+   "set 43217: p39, p43, p49"
+  ],
+  "signature": [
+   "99206",
+   "3023b"
+  ],
+  "sure": false,
+  "weak": false
+ },
+ {
+  "name": "window_hood",
+  "title": "Small peaked hood over a window from two mirrored slopes on a plate, for upper-floor window trim.",
+  "why": "A small peaked or flat hood over a window; with window_sill it frames a window the way the books do.",
+  "params": [
+   "width",
+   "peak_style"
+  ],
+  "books": [
+   "set 10350: p254, p255, p273, p274",
+   "set 43217: p39, p43, p49, p57"
+  ],
+  "signature": [
+   "54200",
+   "3666"
+  ],
+  "sure": false,
+  "weak": true
+ },
+ {
+  "name": "shuttered_window",
+  "title": "An arched lattice window in a wall gap with shutter mounts on side studs either side; use for cottages and chapels.",
+  "why": "A cottage window with shutters on side studs either side.",
+  "params": [
+   "arched",
+   "shutters",
+   "color"
+  ],
+  "books": [
+   "set 21335: 6448880 p208-209, 6448880 p212, 6448880 p216"
+  ],
+  "signature": [
+   "30044",
+   "30046"
+  ],
+  "sure": false,
+  "weak": false
+ },
+ {
+  "name": "shop_window",
+  "title": "Shop window on a 1x6 plate with small transom frames over taller panes and a bar course between, for ground-floor shopfronts.",
+  "why": "A ground-floor shop window built as a unit on a plate, transoms over tall panes; for stations and town buildings.",
+  "params": [
+   "width",
+   "pane_heights",
+   "frame_color"
+  ],
+  "books": [
+   "set 10350: p109, p110, p116, p117, p118"
+  ],
+  "signature": [
+   "60592",
+   "60593",
+   "3666"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "door_hood",
+  "title": "Cornice over a door from a 1x6 plate with corner plates and jumpers below and a tile on top, overhanging by one stud.",
+  "why": "A projecting cornice over a door, held by jumpers and corner plates.",
+  "params": [
+   "width",
+   "overhang",
+   "pediment"
+  ],
+  "books": [
+   "set 10350: p107, p194"
+  ],
+  "signature": [
+   "3666",
+   "3794b",
+   "6636"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "roof_dormer",
+  "title": "A 45-degree pitched roof with a crossing front gable, a valley filler on a side stud and a rounded ridge; use for houses.",
+  "why": "A small gable crossing a pitched roof, with the valley filled on a side stud; it breaks up a long roof.",
+  "params": [
+   "span",
+   "length",
+   "dormer_position",
+   "roof_color",
+   "ridge_color"
+  ],
+  "books": [
+   "set 21335: 6448881 p79-92",
+   "set 43217: p95, p96",
+   "set 10350: p266, p267, p268, p269, p270, p271 \u2026"
+  ],
+  "signature": [
+   "3659",
+   "87087",
+   "54200"
+  ],
+  "sure": false,
+  "weak": false
+ },
+ {
+  "name": "ridge_cap",
+  "title": "A row of curved-top bricks along a roof's ridge, so the ridge reads as a rounded roll.",
+  "why": "A rounded cap along the ridge of a roof instead of a row of bare double slopes.",
+  "params": [
+   "length",
+   "color"
+  ],
+  "books": [
+   "set 21335: 6448881 p79-92",
+   "set 10350: p293, p294, p303, p304, p305, p306 \u2026"
+  ],
+  "signature": [
+   "3037",
+   "49307"
+  ],
+  "sure": false,
+  "weak": false
+ },
+ {
+  "name": "chimney_stack",
+  "title": "Freestanding embossed-brick chimney with a stepped-out cap and round chimney pots, for rooftops.",
+  "why": "A brick chimney with a stepped-out cap and pots, built on the roof.",
+  "params": [
+   "footprint",
+   "height",
+   "pot_count",
+   "cap_overhang"
+  ],
+  "books": [
+   "set 10350: p323, p324, p330"
+  ],
+  "signature": [
+   "98283",
+   "87580"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "downpipe",
+  "title": "Rainwater downpipe of round 1x1 bricks stacked on a round plate up a wall corner.",
+  "why": "A rainwater downpipe of round bricks up a wall corner; a cheap detail that makes a wall look finished.",
+  "params": [
+   "height",
+   "color"
+  ],
+  "books": [
+   "set 10350: p212, p213, p299"
+  ],
+  "signature": [
+   "6141",
+   "3062b"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "porch_posts",
+  "title": "Porch posts of a round 1x1 under a 1x1x3 brick, plus a balustrade of short spindles on studs capped with a tile rail.",
+  "why": "Porch posts and a low balustrade, for porches, verandas, and station canopies.",
+  "params": [
+   "post_height",
+   "spindle_count",
+   "rail_color"
+  ],
+  "books": [
+   "set 43217: p28, p30, p31, p32, p62, p63"
+  ],
+  "signature": [
+   "3062b",
+   "14716"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "sidewalk",
+  "title": "Street edge of a modular baseplate: light tile curb, dark tile pavement and a few exposed studs for street furniture.",
+  "why": "The street edge: a light tile curb and dark pavement with a few studs for street furniture.",
+  "params": [
+   "curb_width",
+   "depth",
+   "stud_positions"
+  ],
+  "books": [
+   "set 10350: p8, p9, p10, p11, p12, p13 \u2026"
+  ],
+  "signature": [
+   "4162",
+   "3068b"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "wall_vent",
+  "title": "A grille tile on the side studs of a 1x2 brick to make a vent, radiator or grate in a wall course.",
+  "why": "A grille on the side studs of a brick in a wall course: a vent, radiator, or grate.",
+  "params": [
+   "color",
+   "facing"
+  ],
+  "books": [
+   "set 43217: p11, p29"
+  ],
+  "signature": [
+   "11211",
+   "2412b"
+  ],
+  "sure": true,
+  "weak": false
+ }
+]

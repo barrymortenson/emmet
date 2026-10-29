@@ -45,6 +45,28 @@ read.
   of OMR models (such as the rung 3 shortlist in `docs/spec/ladder/`) are not derivative works, and the ladder spec
   credits each model's author anyway.
 
+### Mined techniques: not derived from OMR models (3C, D-48)
+
+- **What 3C reads:** the 10 committed OMR fixtures and 1,669 OMR model files from 1,318 official sets
+  (`docs/techniques/corpus.json`: every set but Brickheadz, Fabuland, Duplo, promotional, Mixels, LEGO Art, and Brick
+  Sketches). On 2026-10-28 every one is CC BY: 1,660 say "Redistributable under CCAL version 2.0", which LDraw's readme
+  reads as CC BY 2.0, and 9 say CC BY 4.0 (one as "CCAL version 4.0"); none has no license line (rerun below).
+- **What the license would allow:** CC BY 2.0 (and 4.0) lets anyone make and distribute derivative works, commercially, under
+  any license, on condition of credit: the author's name, the work's title and URI, and a credit naming the use of
+  the work in the derivative (sections 3(b) and 4(b), https://creativecommons.org/licenses/by/2.0/legalcode). So
+  snippets derived from OMR models could ship under Apache-2.0 with each source model credited.
+- **Decision (Barry 2026-10-28, D-48):** techniques aren't derived from OMR models. The miner runs over the models'
+  connection graphs (3A) only to rank which sub-assemblies recur and how widely; it writes nothing from a model file
+  into the repo. Each technique is written by hand as parametric DSL code from general building knowledge and Barry's
+  own instruction books, read for methods only, and its `PROVENANCE` note says so. The candidate review pages
+  (`docs/techniques/candidates/`) show renders of Emmet's own sketch of each candidate, never of a model, and credit
+  the models the miner found joining its key parts (title, author, license). Rejected: crediting every model a motif
+  was found in, and crediting only the examples a snippet was written from.
+- **Instruction books:** the books (sets 21335, 10350, 43217, 60440, as PDFs on Barry's machine) are the LEGO
+  Group's copyright. Building methods aren't protected, and Emmet takes only methods from them: no page, picture, or
+  text goes into the repo, a fixture, or a render. A technique cites a book by set number only. No technique's name
+  uses a trademark (`TRADEMARKS.md`).
+
 ### LDCad shadow library: CC BY-SA 4.0, shipped as its own data file (Q-01)
 
 - **Source:** https://github.com/RolandMelkert/LDCadShadowLibrary at `9b1131f` (2026-09-10): `LICENSE.md` is the
@@ -130,6 +152,10 @@ curl -fLo /tmp/x/complete.zip https://library.ldraw.org/library/updates/complete
 unzip -p /tmp/x/complete.zip ldraw/CAreadme.txt
 grep -h '^0 !LICENSE' -r tests/fixtures/ldraw-mini --include='*.dat' | sort | uniq -c
 node scripts/ldraw-mini-check.mjs
+
+# OMR: the license lines of the models 3C's miner read (1,660 CCAL 2.0 and 9 CC BY 4.0 on 2026-10-28)
+scripts/omr-corpus /tmp/omr docs/techniques/corpus.json
+for f in /tmp/omr/*.mpd tests/fixtures/omr/*.mpd; do grep -m1 -a '^0 !LICENSE' "$f" || echo none; done | sort | uniq -c
 
 # LDCad shadow library: license, file list, and coverage of ldraw-mini
 gh api repos/RolandMelkert/LDCadShadowLibrary/contents/LICENSE.md -H "Accept: application/vnd.github.raw" | head -1

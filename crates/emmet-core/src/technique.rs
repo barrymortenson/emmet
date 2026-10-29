@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The technique library (plan section 08, data/techniques/): `emmet technique` and the MCP `technique` tool. Each
 //! technique is a Python module that `m.use(name, …)` applies. Its docstring is its doc, its `PARTS` list names the
-//! parts it uses, and its `example(m)` function, which builds it on its own for its render and its test, is the
-//! snippet an agent copies.
+//! parts it uses, its `PROVENANCE` note says where the method came from (plan section 21, 3C; D-48), and its
+//! `example(m)` function, which builds it on its own for its render and its test, is the snippet an agent copies.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -28,6 +28,9 @@ pub struct Technique {
     pub snippet: String,
     /// The LDraw ids of the parts it uses (part helpers in it may pick other sizes for other arguments).
     pub parts: Vec<String>,
+    /// Where its method came from: Emmet's own, and the instruction books it was read in, by set number. Never derived
+    /// from an OMR model's file (D-48).
+    pub provenance: String,
 }
 
 /// The list (no name), or one technique.
@@ -74,6 +77,7 @@ pub fn techniques(name: Option<&str>) -> Result<Techniques> {
             title: doc.lines().next().unwrap_or("").to_string(),
             snippet: snippet(text),
             parts: parts(text),
+            provenance: provenance(text),
             doc,
         }),
     })
@@ -86,6 +90,17 @@ fn doc(text: &str) -> String {
     };
     let rest = &text[start + 3..];
     rest[..rest.find("\"\"\"").unwrap_or(rest.len())].trim().to_string()
+}
+
+/// `PROVENANCE = """..."""`, its lines joined.
+fn provenance(text: &str) -> String {
+    const OPEN: &str = "\nPROVENANCE = \"\"\"";
+    let Some(start) = text.find(OPEN) else {
+        return String::new();
+    };
+    let rest = &text[start + OPEN.len()..];
+    let note = &rest[..rest.find("\"\"\"").unwrap_or(rest.len())];
+    note.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 /// The quoted ids in `PARTS = [...]`.

@@ -480,6 +480,8 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-45</td><td>Connector match tolerance</td><td>A connector pair seats within 1 LDU across its axis for round joints (pins, axles, bars, clips, hinge fingers, generic plugs) and within 0.5 LDU for studs. Official files place round joints by hand, often 1 LDU off; injected faults are 4 LDU or more. LDCad data found wrong for a part gets an exact override, never a looser rule (3A).</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
 <tr><td class="id">D-46</td><td>Collision threshold</td><td>A collision is an overlap of more than 1 LDU between collision proxies, which are 1 LDU voxels: past the measurement's own resolution, so touching slopes and hand-placement slop don't read as collisions. Injected faults overlap by 8 LDU or more (3A).</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
 <tr><td class="id">D-47</td><td>Nightly corpus upkeep</td><td>A nightly model with a false error gets the gap fixed when the part is one agents will use (an exact override or a rule fix, with a test). A model whose only errors are file faults or rare parts comes off <code>tests/fixtures/omr/nightly.json</code> with its reason and an issue for the gap, and a clean model from the cached OMR pool replaces it to keep 20–40. A rule is never suppressed to make a model pass (3A).</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
+<tr><td class="id">D-48</td><td>Mined techniques and OMR models</td><td>Techniques aren't derived from OMR models. The mining over the OMR corpus only ranks which sub-assemblies recur; each technique is written from general building knowledge and Barry's own instruction books (read for methods, never copied into the repo), and its provenance note says so (ADR 0003, 3C).</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
+<tr><td class="id">D-49</td><td>3C's eval check</td><td>No rung 2 eval exists before 5A, so 3C proves "no regression" with the rung 1 dry-run eval on both fake agents, the replay suites, and the rung 2 reference model clean at every param. The real rung 2 scores are 5A's and G2's.</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
 </table></div>
 </section>
 
@@ -2161,16 +2163,16 @@ the PR if it has merged.</code></pre></details>
 <p class="goal"><b>Goal:</b> The technique library grows from sub-assemblies that recur in official models (SNOT, hinges, jumper offsets, and more), each with provenance, so agents build the way official designers do.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li><b>License first:</b> extend ADR 0003's answer on OMR models (Q-09) to derived snippets and their attribution. If the license doesn't allow it, stop and ask.</li>
+<li><b>License first:</b> extend ADR 0003's answer on OMR models (Q-09) to derived snippets and their attribution. If the license doesn't allow it, stop and ask. Settled: the license would allow it, but techniques aren't derived from OMR models; the mining only ranks ideas (D-48).</li>
 <li><b>Mining:</b> motif search over the OMR corpus on 3A's connection graph: recurring connected sub-graphs of 2–12 parts across models, clustered by shape and ranked by how often and how widely they appear.</li>
 <li><b>Review pages:</b> <code>docs/techniques/candidates/&lt;batch&gt;.html</code>, 20 candidates per batch, each with renders, frequency, example models, and a proposed name and parameters. Barry accepts or rejects (H-22).</li>
-<li><b>Techniques:</b> each accepted motif becomes a 3B-format technique: a parametric snippet, docs, a render, a validator-clean test, and a provenance note (source models and their attribution). <code>technique</code> and <code>emmet technique</code> list them.</li>
+<li><b>Techniques:</b> each accepted motif becomes a 3B-format technique: a parametric snippet, docs, a render, a validator-clean test, and a provenance note (where the method came from: the mining's rank and the instruction books it was read in, by set number; D-48). <code>technique</code> and <code>emmet technique</code> list them.</li>
 <li><b>Doctrine:</b> when to reach for which technique, in plain words.</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
 <li>At least 30 techniques accepted by Barry, each with a passing test and a provenance note.</li>
-<li>Rung 2 replay and dry-run eval scores don't regress (the live check is part of G2).</li>
+<li>Rung 2 replay and dry-run eval scores don't regress (the live check is part of G2). Until 5A builds rung 2's eval, the rung 1 dry-run on both fake agents, the replay suites, and the rung 2 reference model clean at every param stand in (D-49).</li>
 </ul>
 <div class="s-dh">What good looks like</div>
 <ul class="good">

@@ -1,0 +1,413 @@
+[
+ {
+  "name": "wheel_axle",
+  "title": "A pair of wheels on a plate with two wheel pins, built into the bottom layer of a chassis.",
+  "why": "Every small car, truck, or trailer stands on these; the wheels sit on pins, not on loose axles.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "wheel"
+  ],
+  "books": [
+   "set 60440: 6521801 p17, 6521801 p18, 6521801 p19, 6521801 p27, 6521802 p3, 6521802 p4 \u2026"
+  ],
+  "signature": [
+   "4870",
+   "4624c01"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "wheel_arch",
+  "title": "A mudguard over a pair of wheels, so the body clears them and the arch shows round over each wheel.",
+  "why": "A mudguard over each axle lets the body sit low with the wheels showing, the way town cars are built.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3788",
+   "4870"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "headlights",
+  "title": "A vehicle's lights in its front face, headlight bricks with round clear tiles on their front studs.",
+  "why": "Lights in the front face of a car or truck, recessed in headlight bricks.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color",
+   "lens"
+  ],
+  "books": [
+   "set 60440: 6521802 p68, 6521802 p69, 6521802 p70"
+  ],
+  "signature": [
+   "4070",
+   "98138"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "left"
+ },
+ {
+  "name": "tail_lights",
+  "title": "Red lights in a vehicle's back face, on bricks with a stud on one side, with tiles flush between them.",
+  "why": "A smooth back with red lights at its corners, all on studs that face backward.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color",
+   "lens"
+  ],
+  "books": [],
+  "signature": [
+   "87087",
+   "3070b"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "windscreen",
+  "title": "A sloped windscreen on a vehicle's cab, with a roof of tiles over it.",
+  "why": "The sloped windscreen and roof of a car's or truck's cab.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "roof"
+  ],
+  "books": [],
+  "signature": [
+   "3823",
+   "3031"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "left"
+ },
+ {
+  "name": "curved_hood",
+  "title": "A vehicle's hood that rounds down to the front, curved slopes on a plate.",
+  "why": "A hood that rounds down to the front instead of ending in a step.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "length",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "15068",
+   "3022"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "front"
+ },
+ {
+  "name": "trailer_hitch",
+  "title": "A tow ball under the back of a vehicle and a socket on a trailer's drawbar, so the trailer swings.",
+  "why": "Lets a trailer or caravan swing behind the car that tows it.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3731",
+   "3730"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "front_bumper",
+  "title": "A bumper that stands out across a vehicle's front, a plate under the front edge with a tile on top and round indicator lights at its ends.",
+  "why": "A bumper that stands out from the front with indicator lights at its ends.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color",
+   "light"
+  ],
+  "books": [],
+  "signature": [
+   "3020",
+   "6141"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "left"
+ },
+ {
+  "name": "bracket_side_panel",
+  "title": "A vehicle's smooth side, a panel of plate and tiles built lying flat and pressed onto brackets whose studs face out.",
+  "why": "Smooth, flush sides on a vehicle: the truck book's most-used method.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "panel"
+  ],
+  "books": [
+   "set 60440: 6521802 p16, 6521802 p22, 6521802 p23, 6521802 p24, 6521802 p25, 6521802 p26 \u2026"
+  ],
+  "signature": [
+   "99207",
+   "3020"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "cab_seat",
+  "title": "A driver's seat with a steering wheel in front of it, on a cab's floor.",
+  "why": "A driver's seat and steering wheel for any cab or car.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "30640",
+   "4079"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "light_bar",
+  "title": "A row of lamps along a vehicle's roof edge, round plates on a bracket whose face hangs over the edge.",
+  "why": "Lamps along a roof's edge for emergency vehicles, buses, and trucks.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "lamps"
+  ],
+  "books": [
+   "set 60440: 6521801 p18, 6521802 p17, 6521802 p62, 6521802 p63, 6521802 p64, 6521802 p65 \u2026"
+  ],
+  "signature": [
+   "2436b",
+   "6141"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "left"
+ },
+ {
+  "name": "front_grille",
+  "title": "A truck's grille, grille tiles on bricks whose studs face the front, between the headlights.",
+  "why": "A truck's grille, smooth and ribbed, between its headlights.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "rows",
+   "color",
+   "grille"
+  ],
+  "books": [
+   "set 60440: 6521802 p68, 6521802 p69, 6521802 p70"
+  ],
+  "signature": [
+   "11211",
+   "2412b"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "left"
+ },
+ {
+  "name": "tilting_hood",
+  "title": "A hood on hinge bricks, so the whole nose of a vehicle tips up to show the engine.",
+  "why": "A nose that tips up on hinges to show the engine, a favorite play feature.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color"
+  ],
+  "books": [
+   "set 60440: 6521802 p37, 6521802 p69, 6521802 p70, 6521802 p71, 6521802 p72, 6521802 p73 \u2026"
+  ],
+  "signature": [
+   "3937",
+   "6134"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "spliced_chassis",
+  "title": "A long chassis from two plates butted end to end, locked by plates across the seam.",
+  "why": "A chassis longer than any single plate, locked across the joint so it doesn't bend.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "width",
+   "color"
+  ],
+  "books": [
+   "set 60440: 6521803 p5, 6521803 p6, 6521803 p7, 6521803 p9, 6521803 p10, 6521803 p11 \u2026"
+  ],
+  "signature": [
+   "3028",
+   "3020"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "rear_spoiler",
+  "title": "A wing over the back of a car, a tile on a plate held up on two small posts.",
+  "why": "A wing over the back of a sports or race car.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3062b",
+   "3710"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "exhaust_stack",
+  "title": "A truck's upright exhaust pipe beside its cab, round bricks on a bracket with a cone on top.",
+  "why": "A truck's upright exhaust pipe beside the cab.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "rows",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3062b",
+   "4589"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "cargo_pallet",
+  "title": "A pallet with slots underneath for a forklift's forks, with crates stacked on it.",
+  "why": "Loads for trucks, forklifts, warehouses, and station platforms.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "crate"
+  ],
+  "books": [
+   "set 60440: 6521803 p106, 6521803 p107, 6521803 p109, 6521803 p110"
+  ],
+  "signature": [
+   "3710",
+   "3031"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "train_carriage",
+  "title": "A 6-wide passenger carriage's body on a train base, window bands along both sides, doors at the ends, and a roof that curves down at its edges.",
+  "why": "A passenger carriage for a train set, with window bands and a round roof.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "window",
+   "roof"
+  ],
+  "books": [],
+  "signature": [
+   "60592",
+   "24309"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "hinged_tailgate",
+  "title": "A truck bed's tailgate on hinge bricks, so it folds down.",
+  "why": "A pickup's or trailer's tailgate that folds down.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3937",
+   "6134"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "technic_spine",
+  "title": "A long, stiff beam of two rows of Technic bricks side by side, their joints offset, pinned together through their holes, so it can't bend at a joint.",
+  "why": "A long beam that doesn't bend, under trailers, cranes, and long floors.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color"
+  ],
+  "books": [
+   "set 60440: 6521803 p64, 6521803 p65, 6521803 p66"
+  ],
+  "signature": [
+   "3702",
+   "2780"
+  ],
+  "sure": true,
+  "weak": false
+ }
+]

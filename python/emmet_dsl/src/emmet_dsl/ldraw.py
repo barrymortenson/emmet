@@ -37,7 +37,8 @@ def import_ldraw(path: str) -> Submodel:
             rel,
             line,
         )
-    with open(full, encoding="utf-8", errors="replace") as f:
+    # utf-8-sig drops the byte order mark editors on Windows often save before the first line.
+    with open(full, encoding="utf-8-sig", errors="replace") as f:
         files = _split(f.read())
     src = os.path.relpath(full, ctx.root).replace(os.sep, "/")
     m = Model()
@@ -118,6 +119,8 @@ def _split(text: str) -> dict[str, list[tuple[int, str]]]:
     current: list = []
     name = ""
     for n, raw in enumerate(text.splitlines(), 1):
+        # A byte order mark before a line (an .mpd pieced together from files a Windows editor saved) isn't text.
+        raw = raw.lstrip("\ufeff")
         words = raw.split()
         if words[:2] == ["0", "FILE"]:
             name = " ".join(words[2:]).replace("\\", "/").lower()

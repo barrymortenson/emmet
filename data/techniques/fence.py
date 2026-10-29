@@ -18,6 +18,9 @@ from emmet_dsl.core import in_steps
 PANELS = {"lattice": ("3185", 6), "spindled": ("30055", 6), "low": ("3633", 3)}
 POST = "3062b"
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "3185",
     "30055",

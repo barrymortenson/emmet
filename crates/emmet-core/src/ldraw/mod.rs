@@ -129,7 +129,9 @@ pub fn parse(text: &str) -> Result<Document, ParseError> {
 
 /// Parses one line of LDraw text.
 pub fn parse_line(raw: &str) -> Result<Line, String> {
-    let text = raw.trim();
+    // Editors on Windows often save a byte order mark before a file's first line, and an .mpd pieced together from
+    // such files has one before a later line too.
+    let text = raw.trim_start_matches('\u{feff}').trim();
     let mut tokens = text.split_whitespace();
     let Some(kind) = tokens.next() else {
         return Ok(Line::Blank);

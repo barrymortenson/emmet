@@ -1,0 +1,169 @@
+#!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Builds a technique review page (session 3C, H-22): docs/techniques/candidates/<batch>.html from the batch's
+// candidates (docs/techniques/candidates/<batch>.json, written by hand from the research), each candidate's sketch
+// (docs/techniques/candidates/<batch>/<name>.py, a technique module whose example() is rendered), and the miner's
+// matches (tests/it/src/bin/mine-techniques.rs --query): how widely official sets join its key parts. Barry marks
+// each accept or reject on the page and copies his answers back; accepted sketches become techniques. Each sketch is
+// checked (it must validate with no findings, or the page isn't built) and rendered again when it's newer than its
+// picture; matches.json must have been made from the batch's signatures.
+//
+//   cargo run --release -p emmet-it --bin mine-techniques -- --query docs/techniques/candidates/<batch>.json \
+//     <data dir> <mine dir> <models>…
+//   scripts/technique-candidates <batch> <mine dir> <data dir>
+//
+// The pictures are of Emmet's own sketches, never of official models (D-48, ADR 0003). Needs a debug build and the
+// app for render mode (cargo build -p emmet-cli; just build-app).
+
+import { execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+const ROOT = join(import.meta.dirname, "..");
+const [batch, mine, data] = process.argv.slice(2);
+if (!batch || !mine || !data || !/^[a-z0-9-]+$/.test(batch)) {
+  console.error("usage: scripts/technique-candidates <batch> <mine dir> <data dir>");
+  process.exit(2);
+}
+const DIR = join(ROOT, "docs/techniques/candidates");
+const candidates = JSON.parse(readFileSync(join(DIR, `${batch}.json`), "utf8"));
+const matches = JSON.parse(readFileSync(join(mine, "matches.json"), "utf8"));
+const { models, sets: setCount } = JSON.parse(readFileSync(join(mine, "motifs.json"), "utf8"));
+const byFile = new Map(models.map((m) => [m.file, m]));
+const emmet = join(ROOT, "target/debug/emmet");
+const run = (...args) => execFileSync(emmet, ["--data-dir", data, ...args], { stdio: ["ignore", "pipe", "inherit"] });
+
+const shots = join(DIR, batch);
+mkdirSync(shots, { recursive: true });
+const work = mkdtempSync(join(tmpdir(), "emmet-candidates-"));
+try {
+  for (const c of candidates) {
+    const sketch = join(shots, `${c.name}.py`);
+    const png = join(shots, `${c.name}.png`);
+    if (!existsSync(sketch)) continue;
+    const dir = join(work, c.name);
+    run("new", dir, "--template", "empty");
+    // The sketch, and a model that runs its example; m.use of the sketch's own name runs its build.
+    writeFileSync(
+      join(dir, "model.py"),
+      readFileSync(sketch, "utf8") +
+        `\n\nfrom emmet_dsl import Model as _Model, model as _model\n\n\n@_model\ndef sketch():\n    """The sketch."""\n` +
+        `    m = _Model()\n    _use = m.use\n    m.use = lambda name, **kw: build(m, **kw) if name == "${c.name}" else _use(name, **kw)\n` +
+        `    example(m)\n    return m\n`,
+    );
+    run("trust", "--project", dir);
+    // The page says every sketch validates with no findings: hold it to that.
+    const checked = JSON.parse(run("--json", "check", "--project", dir).toString());
+    const findings = checked.data?.findings ?? [];
+    if (!checked.ok || findings.length) {
+      console.error(`technique-candidates: ${c.name}'s sketch doesn't validate clean:`);
+      for (const f of findings) console.error(`  ${f.id} ${f.rule}: ${f.message}`);
+      process.exit(1);
+    }
+    if (existsSync(png) && statSync(png).mtimeMs >= statSync(sketch).mtimeMs) continue;
+    // A candidate whose face is to the front of a vehicle (-x) names the view that shows it.
+    run("render", "--project", dir, "--view", c.view || "iso", "--size", "320", "--out", png);
+  }
+} finally {
+  rmSync(work, { recursive: true, force: true });
+}
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+const card = (c, i) => {
+  const m = matches[c.name];
+  if (!m || JSON.stringify(m.signature) !== JSON.stringify(c.signature)) {
+    console.error(`technique-candidates: matches.json is stale for ${c.name}; run mine-techniques --query again`);
+    process.exit(1);
+  }
+  let seen = m.not_counted
+    ? `Not counted: its key parts ${m.not_counted.join(", ")} are ones the miner leaves out (figures, stickers, baseplates).`
+    : m.joined_sets
+    ? `Joined in <b>${m.joined_sets}</b> of ${setCount} official sets (${m.joined} times); ${m.used_sets} sets use the parts.`
+    : `Not found joined in the ${setCount} mined sets; ${m.used_sets} sets use the parts.`;
+  if (c.weak) seen += " The key parts are common, so this count overstates it.";
+  const examples = (m.found_in || [])
+    .map((f) => byFile.get(f))
+    .sort((a, b) => b.parts - a.parts)
+    .slice(0, 4)
+    .map((model) => `${esc(model.title)} (${esc(model.author)}, ${esc(model.license.replace(/ : see CAreadme.txt$/, ""))})`)
+    .join("; ");
+  const shot = existsSync(join(shots, `${c.name}.png`))
+    ? `<img src="${batch}/${c.name}.png" alt="A sketch of ${esc(c.name)}" width="320" height="320">`
+    : "<p>No sketch yet</p>";
+  return `<section class="card" data-n="${i + 1}">
+  <div class="shot">${shot}</div>
+  <div class="body">
+    <h2><span class="n">${i + 1}</span> <code>${esc(c.name)}</code></h2>
+    <p>${esc(c.title)}</p>
+    <p class="why">${esc(c.why)}</p>
+    ${c.note ? `<p class="note"><b>Note:</b> ${esc(c.note)}</p>` : ""}
+    <dl>
+      <dt>Parameters</dt><dd>${c.params.map((p) => `<code>${esc(p)}</code>`).join(", ")}</dd>
+      <dt>Official models</dt><dd>${seen}</dd>
+      ${examples ? `<dt>Sets that join them</dt><dd>${examples}</dd>` : ""}
+      <dt>Sketch</dt><dd><a href="${batch}/${c.name}.py"><code>${batch}/${c.name}.py</code></a></dd>
+      <dt>Instruction books</dt><dd>${esc(c.books.join("; ") || "none")}</dd>
+      <dt>Key parts</dt><dd>${c.signature.map((p) => `<code>${esc(p)}</code>`).join(" + ")}${
+        c.sure ? "" : " (some of its parts weren't confirmed from the book; I'd pin them when writing it)"
+      }</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for ${esc(c.name)}">
+      <label><input type="radio" name="d${i + 1}" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d${i + 1}" value="reject"> Reject</label>
+      <input type="text" name="note${i + 1}" placeholder="Note (optional)" aria-label="Note for ${esc(c.name)}">
+    </div>
+  </div>
+</section>`;
+};
+
+const html = `<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: ${esc(batch)}</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: ${esc(batch)}</h1>
+  <p>${candidates.length} candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (${setCount} sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+${candidates.map(card).join("\n")}
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText(${JSON.stringify(batch)} + "\\n" + lines.join("\\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>
+`;
+writeFileSync(join(DIR, `${batch}.html`), html);
+console.log(`technique-candidates: ${candidates.length} candidates → docs/techniques/candidates/${batch}.html`);

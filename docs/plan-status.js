@@ -129,7 +129,16 @@ window.EMMET_STATUS = {
       ],
       note: "The macOS E2E app hung intermittently on CI in three runs, cause unknown; holds.rs's filler() matches \"Shutter\" in 60594 (validator follow-up); the LPub3D export hasn't been opened in LPub3D"
     },
-    "3C": { status: "todo" },
+    "3C": {
+      status: "done", pr: 33, branch: "bmortenson/s3c-technique-mining", started: "2026-10-28",
+      evidence: [
+        "CI ci check green #33; Phase 3 exit check in the PR description",
+        "tests/it/tests/techniques.rs (120 passed: one per technique, plus the doctrine and coverage tests); dsl.rs::walls_are_laid_in_bond",
+        "98 of 100 candidates accepted (H-22), 118 techniques in all; miner tests/it/src/bin/mine-techniques.rs over 1,318 OMR sets",
+        "docs/adr/0003-licenses-and-reuse.md, D-48, D-49"
+      ],
+      note: "Techniques aren't derived from OMR models (D-48); the click-hinge collision at nonzero angles is a likely validator false positive, unfiled pending Barry's OK; the inputs hash ignores DSL content between dev builds"
+    },
     "4A": { status: "in-progress", branch: "bmortenson/s4a-shell-first-run", started: "2026-10-28" },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
@@ -171,7 +180,7 @@ window.EMMET_STATUS = {
     "H-19": { status: "todo" },
     "H-20": { status: "done", date: "2026-10-24", note: "Commercial Terms accepted through the Console account; legal page read 2026-10-24. No description to Anthropic (Barry 2026-10-25, D-37)" },
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
-    "H-22": { status: "todo" },
+    "H-22": { status: "done", date: "2026-10-28", note: "98 of 100 candidates accepted on five review pages (docs/techniques/candidates/batch-1 to 5); rejected: wheel_axle, wheel_arch; docs/decisions.md" },
     "H-23": { status: "todo" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
     "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
