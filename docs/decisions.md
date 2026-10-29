@@ -442,3 +442,7 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   rendered, so the picture is what Emmet would build; accepted sketches become the techniques and rejected ones are
   dropped. Rejected: the crops labeled as "may not be this technique", and pages with no pictures. The miner still
   gives each candidate how widely official sets join its key parts.
+- **H-22, batch 1: all 20 accepted** (Barry, 2026-10-28, on `docs/techniques/candidates/batch-1.html`): quoin_corner,
+  wall_top_tie, lift_off_roof_seat, lift_off_floor, jettied_floor, masonry_wall, clapboard_siding, half_timber_band,
+  window_sill, window_hood, shuttered_window, shop_window, door_hood, roof_dormer, ridge_cap, chimney_stack, downpipe,
+  porch_posts, sidewalk, wall_vent. Barry asked for techniques for every kind of build, not only houses.

@@ -51,7 +51,8 @@ try {
         `    example(m)\n    return m\n`,
     );
     run("trust", "--project", dir);
-    run("render", "--project", dir, "--view", "iso", "--size", "320", "--out", png);
+    // A candidate whose face is to the front of a vehicle (-x) names the view that shows it.
+    run("render", "--project", dir, "--view", c.view || "iso", "--size", "320", "--out", png);
   }
 } finally {
   rmSync(work, { recursive: true, force: true });

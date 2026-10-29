@@ -1,0 +1,466 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-2</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-2</h1>
+  <p>20 candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (715 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-2/wheel_axle.png" alt="A sketch of wheel_axle" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>wheel_axle</code></h2>
+    <p>A pair of wheels on a plate with two wheel pins, built into the bottom layer of a chassis.</p>
+    <p class="why">Every small car, truck, or trailer stands on these; the wheels sit on pins, not on loose axles.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>wheel</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 715 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-2/wheel_axle.py"><code>batch-2/wheel_axle.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521801 p17, 6521801 p18, 6521801 p19, 6521801 p27, 6521802 p3, 6521802 p4 …</dd>
+      <dt>Key parts</dt><dd><code>4870</code> + <code>4624c01</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wheel_axle">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for wheel_axle">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-2/wheel_arch.png" alt="A sketch of wheel_arch" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>wheel_arch</code></h2>
+    <p>A mudguard over a pair of wheels, so the body clears them and the arch shows round over each wheel.</p>
+    <p class="why">A mudguard over each axle lets the body sit low with the wheels showing, the way town cars are built.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 715 mined sets; 2 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-2/wheel_arch.py"><code>batch-2/wheel_arch.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3788</code> + <code>4870</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wheel_arch">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for wheel_arch">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-2/headlights.png" alt="A sketch of headlights" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>headlights</code></h2>
+    <p>A vehicle's lights in its front face, headlight bricks with round clear tiles on their front studs.</p>
+    <p class="why">Lights in the front face of a car or truck, recessed in headlight bricks.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code>, <code>lens</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>14</b> of 715 official sets (21 times); 58 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 21311 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/headlights.py"><code>batch-2/headlights.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521802 p68, 6521802 p69, 6521802 p70</dd>
+      <dt>Key parts</dt><dd><code>4070</code> + <code>98138</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for headlights">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for headlights">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-2/tail_lights.png" alt="A sketch of tail_lights" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>tail_lights</code></h2>
+    <p>Red lights in a vehicle's back face, on bricks with a stud on one side, with tiles flush between them.</p>
+    <p class="why">A smooth back with red lights at its corners, all on studs that face backward.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code>, <code>lens</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>30</b> of 715 official sets (70 times); 88 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/tail_lights.py"><code>batch-2/tail_lights.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>87087</code> + <code>3070b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tail_lights">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for tail_lights">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-2/windscreen.png" alt="A sketch of windscreen" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>windscreen</code></h2>
+    <p>A sloped windscreen on a vehicle's cab, with a roof of tiles over it.</p>
+    <p class="why">The sloped windscreen and roof of a car's or truck's cab.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>roof</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 715 official sets (1 times); 23 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10184 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/windscreen.py"><code>batch-2/windscreen.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3823</code> + <code>3031</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for windscreen">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for windscreen">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-2/curved_hood.png" alt="A sketch of curved_hood" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>curved_hood</code></h2>
+    <p>A vehicle's hood that rounds down to the front, curved slopes on a plate.</p>
+    <p class="why">A hood that rounds down to the front instead of ending in a step.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>length</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>27</b> of 715 official sets (63 times); 73 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 42069 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 42078 - Mack Anthem.mpd (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10283 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/curved_hood.py"><code>batch-2/curved_hood.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>15068</code> + <code>3022</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curved_hood">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for curved_hood">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-2/trailer_hitch.png" alt="A sketch of trailer_hitch" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>trailer_hitch</code></h2>
+    <p>A tow ball under the back of a vehicle and a socket on a trailer's drawbar, so the trailer swings.</p>
+    <p class="why">Lets a trailer or caravan swing behind the car that tows it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 715 official sets (4 times); 6 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 1682 - main.ldr (Robert Paciorek [bercik], Redistributable under CCAL version 2.0); FILE 2150 - main.ldr (Robert Paciorek [bercik], Redistributable under CCAL version 2.0); FILE 722-1 - main.ldr (Takeshi Takahashi [RainbowDolphin], Redistributable under CCAL version 2.0); FILE 4837-1 - Mini Trains - Locomotive.ldr (Ken Drew [Ken], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/trailer_hitch.py"><code>batch-2/trailer_hitch.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3731</code> + <code>3730</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for trailer_hitch">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for trailer_hitch">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-2/front_bumper.png" alt="A sketch of front_bumper" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>front_bumper</code></h2>
+    <p>A bumper that stands out across a vehicle's front, a plate under the front edge with a tile on top and round indicator lights at its ends.</p>
+    <p class="why">A bumper that stands out from the front with indicator lights at its ends.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code>, <code>light</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>150</b> of 715 official sets (387 times); 366 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/front_bumper.py"><code>batch-2/front_bumper.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3020</code> + <code>6141</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for front_bumper">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for front_bumper">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-2/bracket_side_panel.png" alt="A sketch of bracket_side_panel" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>bracket_side_panel</code></h2>
+    <p>A vehicle's smooth side, a panel of plate and tiles built lying flat and pressed onto brackets whose studs face out.</p>
+    <p class="why">Smooth, flush sides on a vehicle: the truck book's most-used method.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>panel</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>35</b> of 715 official sets (109 times); 64 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 42083 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/bracket_side_panel.py"><code>batch-2/bracket_side_panel.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521802 p16, 6521802 p22, 6521802 p23, 6521802 p24, 6521802 p25, 6521802 p26 …</dd>
+      <dt>Key parts</dt><dd><code>99207</code> + <code>3020</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bracket_side_panel">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for bracket_side_panel">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-2/cab_seat.png" alt="A sketch of cab_seat" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>cab_seat</code></h2>
+    <p>A driver's seat with a steering wheel in front of it, on a cab's floor.</p>
+    <p class="why">A driver's seat and steering wheel for any cab or car.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 715 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-2/cab_seat.py"><code>batch-2/cab_seat.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>30640</code> + <code>4079</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cab_seat">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for cab_seat">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-2/light_bar.png" alt="A sketch of light_bar" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>light_bar</code></h2>
+    <p>A row of lamps along a vehicle's roof edge, round plates on a bracket whose face hangs over the edge.</p>
+    <p class="why">Lamps along a roof's edge for emergency vehicles, buses, and trucks.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>lamps</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>15</b> of 715 official sets (20 times); 35 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10212 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10218 - main.ldr (Stefan Frenz (smf), Redistributable under CCAL version 2.0); FILE 10241 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/light_bar.py"><code>batch-2/light_bar.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521801 p18, 6521802 p17, 6521802 p62, 6521802 p63, 6521802 p64, 6521802 p65 …</dd>
+      <dt>Key parts</dt><dd><code>2436b</code> + <code>6141</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for light_bar">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for light_bar">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-2/front_grille.png" alt="A sketch of front_grille" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>front_grille</code></h2>
+    <p>A truck's grille, grille tiles on bricks whose studs face the front, between the headlights.</p>
+    <p class="why">A truck's grille, smooth and ribbed, between its headlights.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>rows</code>, <code>color</code>, <code>grille</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>18</b> of 715 official sets (52 times); 55 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 60216 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21046 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/front_grille.py"><code>batch-2/front_grille.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521802 p68, 6521802 p69, 6521802 p70</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>2412b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for front_grille">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for front_grille">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-2/tilting_hood.png" alt="A sketch of tilting_hood" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>tilting_hood</code></h2>
+    <p>A hood on hinge bricks, so the whole nose of a vehicle tips up to show the engine.</p>
+    <p class="why">A nose that tips up on hinges to show the engine, a favorite play feature.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>65</b> of 715 official sets (200 times); 66 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10143 - main.ldr (Jude Parrill [theJudeAbides], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10030 - main.ldr (Roland Dahl [rolandd], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/tilting_hood.py"><code>batch-2/tilting_hood.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521802 p37, 6521802 p69, 6521802 p70, 6521802 p71, 6521802 p72, 6521802 p73 …</dd>
+      <dt>Key parts</dt><dd><code>3937</code> + <code>6134</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tilting_hood">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for tilting_hood">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-2/spliced_chassis.png" alt="A sketch of spliced_chassis" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>spliced_chassis</code></h2>
+    <p>A long chassis from two plates butted end to end, locked by plates across the seam.</p>
+    <p class="why">A chassis longer than any single plate, locked across the joint so it doesn't bend.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>27</b> of 715 official sets (32 times); 52 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10243 - Main model.ldr (Willy Tschager [Holly Wood], Redistributable under CCAL version 2.0); FILE 10270 - Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/spliced_chassis.py"><code>batch-2/spliced_chassis.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521803 p5, 6521803 p6, 6521803 p7, 6521803 p9, 6521803 p10, 6521803 p11 …</dd>
+      <dt>Key parts</dt><dd><code>3028</code> + <code>3020</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for spliced_chassis">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for spliced_chassis">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-2/rear_spoiler.png" alt="A sketch of rear_spoiler" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>rear_spoiler</code></h2>
+    <p>A wing over the back of a car, a tile on a plate held up on two small posts.</p>
+    <p class="why">A wing over the back of a sports or race car.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>75</b> of 715 official sets (151 times); 204 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10030 - main.ldr (Roland Dahl [rolandd], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/rear_spoiler.py"><code>batch-2/rear_spoiler.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>3710</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rear_spoiler">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for rear_spoiler">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-2/exhaust_stack.png" alt="A sketch of exhaust_stack" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>exhaust_stack</code></h2>
+    <p>A truck's upright exhaust pipe beside its cab, round bricks on a bracket with a cone on top.</p>
+    <p class="why">A truck's upright exhaust pipe beside the cab.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>18</b> of 715 official sets (33 times); 43 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10030 - main.ldr (Roland Dahl [rolandd], Redistributable under CCAL version 2.0); FILE 10184 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 10190 - Main model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10129 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/exhaust_stack.py"><code>batch-2/exhaust_stack.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>4589</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for exhaust_stack">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for exhaust_stack">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-2/cargo_pallet.png" alt="A sketch of cargo_pallet" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>cargo_pallet</code></h2>
+    <p>A pallet with slots underneath for a forklift's forks, with crates stacked on it.</p>
+    <p class="why">Loads for trucks, forklifts, warehouses, and station platforms.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>crate</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>96</b> of 715 official sets (176 times); 168 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/cargo_pallet.py"><code>batch-2/cargo_pallet.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521803 p106, 6521803 p107, 6521803 p109, 6521803 p110</dd>
+      <dt>Key parts</dt><dd><code>3710</code> + <code>3031</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cargo_pallet">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for cargo_pallet">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-2/train_carriage.png" alt="A sketch of train_carriage" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>train_carriage</code></h2>
+    <p>A 6-wide passenger carriage's body on a train base, window bands along both sides, doors at the ends, and a roof that curves down at its edges.</p>
+    <p class="why">A passenger carriage for a train set, with window bands and a round roof.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>window</code>, <code>roof</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 715 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-2/train_carriage.py"><code>batch-2/train_carriage.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>60592</code> + <code>24309</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for train_carriage">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for train_carriage">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-2/hinged_tailgate.png" alt="A sketch of hinged_tailgate" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>hinged_tailgate</code></h2>
+    <p>A truck bed's tailgate on hinge bricks, so it folds down.</p>
+    <p class="why">A pickup's or trailer's tailgate that folds down.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>65</b> of 715 official sets (200 times); 66 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10143 - main.ldr (Jude Parrill [theJudeAbides], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10030 - main.ldr (Roland Dahl [rolandd], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/hinged_tailgate.py"><code>batch-2/hinged_tailgate.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3937</code> + <code>6134</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for hinged_tailgate">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for hinged_tailgate">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-2/technic_spine.png" alt="A sketch of technic_spine" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>technic_spine</code></h2>
+    <p>A long, stiff beam of two rows of Technic bricks side by side, their joints offset, pinned together through their holes, so it can't bend at a joint.</p>
+    <p class="why">A long beam that doesn't bend, under trailers, cranes, and long floors.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>23</b> of 715 official sets (43 times); 32 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10030 - main.ldr (Roland Dahl [rolandd], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-2/technic_spine.py"><code>batch-2/technic_spine.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521803 p64, 6521803 p65, 6521803 p66</dd>
+      <dt>Key parts</dt><dd><code>3702</code> + <code>2780</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for technic_spine">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for technic_spine">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-2" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

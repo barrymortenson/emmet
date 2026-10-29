@@ -1,173 +1,216 @@
 [
  {
-  "name": "bracket_panel",
-  "title": "A flat panel of plates, tiles and curved slopes is built lying down and pressed sideways onto outward-facing bracket studs; use it for smooth or sloped vehicle sides, side skirts, cab fairings and box walls.",
-  "why": "A finished panel built lying down and pressed onto bracket studs: the most-used method in the truck book, for smooth sides of anything.",
+  "name": "wheel_axle",
+  "title": "A pair of wheels on a plate with two wheel pins, built into the bottom layer of a chassis.",
+  "why": "Every small car, truck, or trailer stands on these; the wheels sit on pins, not on loose axles.",
   "params": [
-   "length",
-   "height",
-   "face_finish",
+   "x",
+   "y",
+   "z",
    "color",
-   "mirror"
+   "wheel"
+  ],
+  "books": [
+   "set 60440: 6521801 p17, 6521801 p18, 6521801 p19, 6521801 p27, 6521802 p3, 6521802 p4 \u2026"
+  ],
+  "signature": [
+   "4870",
+   "4624c01"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "wheel_arch",
+  "title": "A mudguard over a pair of wheels, so the body clears them and the arch shows round over each wheel.",
+  "why": "A mudguard over each axle lets the body sit low with the wheels showing, the way town cars are built.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3788",
+   "4870"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "headlights",
+  "title": "A vehicle's lights in its front face, headlight bricks with round clear tiles on their front studs.",
+  "why": "Lights in the front face of a car or truck, recessed in headlight bricks.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color",
+   "lens"
+  ],
+  "books": [
+   "set 60440: 6521802 p68, 6521802 p69, 6521802 p70"
+  ],
+  "signature": [
+   "4070",
+   "98138"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "left"
+ },
+ {
+  "name": "tail_lights",
+  "title": "Red lights in a vehicle's back face, on bricks with a stud on one side, with tiles flush between them.",
+  "why": "A smooth back with red lights at its corners, all on studs that face backward.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color",
+   "lens"
+  ],
+  "books": [],
+  "signature": [
+   "87087",
+   "3070b"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "windscreen",
+  "title": "A sloped windscreen on a vehicle's cab, with a roof of tiles over it.",
+  "why": "The sloped windscreen and roof of a car's or truck's cab.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "roof"
+  ],
+  "books": [],
+  "signature": [
+   "3823",
+   "3031"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "left"
+ },
+ {
+  "name": "curved_hood",
+  "title": "A vehicle's hood that rounds down to the front, curved slopes on a plate.",
+  "why": "A hood that rounds down to the front instead of ending in a step.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "length",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "15068",
+   "3022"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "front"
+ },
+ {
+  "name": "trailer_hitch",
+  "title": "A tow ball under the back of a vehicle and a socket on a trailer's drawbar, so the trailer swings.",
+  "why": "Lets a trailer or caravan swing behind the car that tows it.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3731",
+   "3730"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "front_bumper",
+  "title": "A bumper that stands out across a vehicle's front, a plate under the front edge with a tile on top and round indicator lights at its ends.",
+  "why": "A bumper that stands out from the front with indicator lights at its ends.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color",
+   "light"
+  ],
+  "books": [],
+  "signature": [
+   "3020",
+   "6141"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "left"
+ },
+ {
+  "name": "bracket_side_panel",
+  "title": "A vehicle's smooth side, a panel of plate and tiles built lying flat and pressed onto brackets whose studs face out.",
+  "why": "Smooth, flush sides on a vehicle: the truck book's most-used method.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "panel"
   ],
   "books": [
    "set 60440: 6521802 p16, 6521802 p22, 6521802 p23, 6521802 p24, 6521802 p25, 6521802 p26 \u2026"
   ],
   "signature": [
    "99207",
-   "3460"
+   "3020"
   ],
   "sure": true,
   "weak": false
  },
  {
-  "name": "plate_wall",
-  "title": "Two long plates stacked and stood on edge on a plate with side studs to make a thin strong upright wall; use for slots, cradles and fins.",
-  "why": "A thin, strong wall from two plates stood on edge, for partitions and thin facades.",
+  "name": "cab_seat",
+  "title": "A driver's seat with a steering wheel in front of it, on a cab's floor.",
+  "why": "A driver's seat and steering wheel for any cab or car.",
   "params": [
-   "length",
-   "layers",
-   "gap"
-  ],
-  "books": [
-   "set 21335: 6448880 p50-56, 6448880 p59"
-  ],
-  "signature": [
-   "99206",
-   "4477"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "round_tower_skin",
-  "title": "Long flat panels of plates topped with curved slopes, mounted sideways on a square side-stud core so it reads as a round tower; use for lighthouses, silos, turrets.",
-  "why": "A round tower without round parts: curved-slope panels on a side-stud core. For towers, silos, lighthouses.",
-  "params": [
-   "panel_length",
-   "panels_around",
-   "courses",
-   "skin_color",
-   "tab_color",
-   "window_openings"
-  ],
-  "books": [
-   "set 21335: 6448881 p39-47, 6448881 p47-56, 6448881 p58-60, 6448881 p64-66, 6448881 p71-72, 6448881 p77 \u2026"
-  ],
-  "signature": [
-   "60479",
-   "15068",
-   "11211"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "side_stud_column",
-  "title": "A column or wall corner stacked from bricks with side studs so siding, trim or skin panels can attach sideways later; the base of most SNOT work.",
-  "why": "A column of bricks with studs on their sides, the core that SNOT details attach to.",
-  "params": [
-   "height",
-   "stud_faces",
-   "band_interval",
+   "x",
+   "y",
+   "z",
    "color"
   ],
-  "books": [
-   "set 21335: 6448880 p177-183, 6448880 p199-221, 6448881 p9-32, 6448881 p105-108"
-  ],
+  "books": [],
   "signature": [
-   "4733",
-   "11211"
+   "30640",
+   "4079"
   ],
   "sure": true,
   "weak": false
  },
  {
-  "name": "rounded_corner",
-  "title": "Shopfront corner post with studs-out core and strips of cheese slopes down both edges, for a softened vertical corner.",
-  "why": "A softened building corner from slope strips down both edges of a studs-out column.",
+  "name": "light_bar",
+  "title": "A row of lamps along a vehicle's roof edge, round plates on a bracket whose face hangs over the edge.",
+  "why": "Lamps along a roof's edge for emergency vehicles, buses, and trucks.",
   "params": [
-   "height",
+   "x",
+   "y",
+   "z",
    "color",
-   "face_content"
-  ],
-  "books": [
-   "set 10350: p122, p123, p124"
-  ],
-  "signature": [
-   "47905",
-   "54200"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "pilaster",
-  "title": "Masonry bricks and plates stacked lying down with brackets for side studs, then stood up as a stone pilaster or chimney breast.",
-  "why": "A flat stone pilaster built lying down and stood up, to divide a facade into bays.",
-  "params": [
-   "height",
-   "face_color",
-   "cornice"
-  ],
-  "books": [
-   "set 10350: p179, p180, p181, p182, p183, p184 \u2026",
-   "set 10350: p102, p103, p104, p116, p117, p118 \u2026"
-  ],
-  "signature": [
-   "98283",
-   "18986"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "side_slope_facet",
-  "title": "A slope pressed onto a side stud so its face points sideways, filling angled gaps or faceting rock faces.",
-  "why": "A slope pressed onto a side stud to fill an angled gap or facet a rock.",
-  "params": [
-   "slope_type",
-   "direction",
-   "color"
-  ],
-  "books": [
-   "set 21335: 6448880 p113, 6448880 p119, 6448880 p121, 6448880 p157-162, 6448881 p81"
-  ],
-  "signature": [
-   "87087",
-   "54200"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "snot_end_cap",
-  "title": "A wall built with forward-facing studs-on-side bricks takes a separately built rounded cap pressed onto those studs, giving a smooth front with rounded corners.",
-  "why": "A rounded cap pressed onto a wall of forward-facing studs, for the front of a box, a cab, or a wagon.",
-  "params": [
-   "wall_width",
-   "wall_height",
-   "corner_radius",
-   "color"
-  ],
-  "books": [
-   "set 60440: 6521803 p22, 6521803 p23, 6521803 p55, 6521803 p56, 6521803 p57"
-  ],
-  "signature": [
-   "30414",
-   "87087"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "lamp_row",
-  "title": "A row of round 1x1 lamps sits on forward- or rear-facing studs of a bracket or plate; use it for roof light bars and rear lamp clusters.",
-  "why": "A row of round lamps on forward-facing studs, for light bars, signal lights, and signs.",
-  "params": [
-   "lamp_count",
-   "lamp_color",
-   "facing"
+   "lamps"
   ],
   "books": [
    "set 60440: 6521801 p18, 6521802 p17, 6521802 p62, 6521802 p63, 6521802 p64, 6521802 p65 \u2026"
@@ -177,221 +220,194 @@
    "6141"
   ],
   "sure": true,
-  "weak": false
+  "weak": false,
+  "view": "left"
  },
  {
-  "name": "window_pier_panel",
-  "title": "A 2-stud-wide wall panel with a 1x2x3 window and side-stud bricks above and below, built standalone so siding, sill and window head can hang on it; use for bay facets or narrow decorated walls.",
-  "why": "A narrow wall panel with a window, built on its own so trim attaches to its side studs.",
+  "name": "front_grille",
+  "title": "A truck's grille, grille tiles on bricks whose studs face the front, between the headlights.",
+  "why": "A truck's grille, smooth and ribbed, between its headlights.",
   "params": [
-   "window_height",
-   "colors",
-   "siding_sides",
-   "cap"
-  ],
-  "books": [
-   "set 43217: p35, p36, p37, p38, p39, p40 \u2026"
-  ],
-  "signature": [
-   "99206",
-   "60593"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "angled_corner_facade",
-  "title": "Facade section built on a long wing plate and set across a corner at an angle, one end a round-brick column on a single stud.",
-  "why": "A facade set across a corner at an angle on a long wing plate, for corner buildings.",
-  "params": [
-   "length",
-   "angle",
-   "pivot_height"
-  ],
-  "books": [
-   "set 10350: p98, p99, p100, p101, p102, p103 \u2026"
-  ],
-  "signature": [
-   "47397",
-   "47398"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "stone_arched_window",
-  "title": "Window unit with log-brick stone jambs, a 2x2 grid of frames, a center column and a raised arch head, for grand upper windows.",
-  "why": "A grand window with stone jambs and an arch head, for town halls and stations.",
-  "params": [
-   "columns",
+   "x",
+   "y",
+   "z",
+   "width",
    "rows",
-   "jamb_height",
-   "arch",
-   "stone_color"
+   "color",
+   "grille"
   ],
   "books": [
-   "set 10350: p215, p216, p217"
-  ],
-  "signature": [
-   "30136",
-   "92950"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "flared_gable",
-  "title": "A steep flared gable or turret top: side-stud brick columns beside a window carry plates with low slopes, topped by tall 75-degree slopes.",
-  "why": "A steep flared gable or turret top on side-stud columns beside a window.",
-  "params": [
-   "height",
-   "slope_lengths",
-   "colors"
-  ],
-  "books": [
-   "set 43217: p56, p57, p58, p59"
+   "set 60440: 6521802 p68, 6521802 p69, 6521802 p70"
   ],
   "signature": [
    "11211",
-   "60477"
+   "2412b"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "left"
+ },
+ {
+  "name": "tilting_hood",
+  "title": "A hood on hinge bricks, so the whole nose of a vehicle tips up to show the engine.",
+  "why": "A nose that tips up on hinges to show the engine, a favorite play feature.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color"
+  ],
+  "books": [
+   "set 60440: 6521802 p37, 6521802 p69, 6521802 p70, 6521802 p71, 6521802 p72, 6521802 p73 \u2026"
+  ],
+  "signature": [
+   "3937",
+   "6134"
   ],
   "sure": true,
   "weak": false
  },
  {
-  "name": "pent_roof",
-  "title": "A short sloped roof skirt of 45-degree slopes with convex corner slopes on a plate strip, set on a floor edge to cap a bay or separate floors.",
-  "why": "A short sloped roof skirt between floors, over a bay or along a facade.",
+  "name": "spliced_chassis",
+  "title": "A long chassis from two plates butted end to end, locked by plates across the seam.",
+  "why": "A chassis longer than any single plate, locked across the joint so it doesn't bend.",
   "params": [
-   "run_length",
-   "corner_type",
-   "colors"
+   "x",
+   "y",
+   "z",
+   "length",
+   "width",
+   "color"
   ],
   "books": [
-   "set 43217: p52, p54, p55"
+   "set 60440: 6521803 p5, 6521803 p6, 6521803 p7, 6521803 p9, 6521803 p10, 6521803 p11 \u2026"
   ],
   "signature": [
-   "3039",
-   "3045"
+   "3028",
+   "3020"
   ],
-  "sure": false,
-  "weak": false
+  "sure": true,
+  "weak": true
  },
  {
-  "name": "flagstone_paving",
-  "title": "Irregular flagstones from mixed tile sizes and two grays with a few jumpers or bare studs; use for quays, paths and floors.",
-  "why": "Irregular flagstones from mixed tiles and a few jumpers, for quays, paths, and platforms.",
+  "name": "rear_spoiler",
+  "title": "A wing over the back of a car, a tile on a plate held up on two small posts.",
+  "why": "A wing over the back of a sports or race car.",
   "params": [
-   "area",
-   "palette",
-   "stud_ratio"
+   "x",
+   "y",
+   "z",
+   "width",
+   "color"
   ],
-  "books": [
-   "set 21335: 6448880 p78, 6448880 p177-180, 6448880 p195"
-  ],
+  "books": [],
   "signature": [
-   "3070b",
-   "3068b",
-   "87580"
+   "3062b",
+   "3710"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "exhaust_stack",
+  "title": "A truck's upright exhaust pipe beside its cab, round bricks on a bracket with a cone on top.",
+  "why": "A truck's upright exhaust pipe beside the cab.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "rows",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3062b",
+   "4589"
   ],
   "sure": true,
   "weak": false
  },
  {
-  "name": "modular_joint",
-  "title": "Technic bricks at the baseplate edge with friction pins sticking out to join the neighboring modular building.",
-  "why": "Technic bricks and pins at the baseplate edge so buildings join their neighbors.",
+  "name": "cargo_pallet",
+  "title": "A pallet with slots underneath for a forklift's forks, with crates stacked on it.",
+  "why": "Loads for trucks, forklifts, warehouses, and station platforms.",
   "params": [
-   "positions",
-   "sides"
+   "x",
+   "y",
+   "z",
+   "color",
+   "crate"
   ],
   "books": [
-   "set 10350: p20"
+   "set 60440: 6521803 p106, 6521803 p107, 6521803 p109, 6521803 p110"
   ],
   "signature": [
-   "3700",
+   "3710",
+   "3031"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "train_carriage",
+  "title": "A 6-wide passenger carriage's body on a train base, window bands along both sides, doors at the ends, and a roof that curves down at its edges.",
+  "why": "A passenger carriage for a train set, with window bands and a round roof.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "window",
+   "roof"
+  ],
+  "books": [],
+  "signature": [
+   "60592",
+   "24309"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "hinged_tailgate",
+  "title": "A truck bed's tailgate on hinge bricks, so it folds down.",
+  "why": "A pickup's or trailer's tailgate that folds down.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color"
+  ],
+  "books": [],
+  "signature": [
+   "3937",
+   "6134"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "technic_spine",
+  "title": "A long, stiff beam of two rows of Technic bricks side by side, their joints offset, pinned together through their holes, so it can't bend at a joint.",
+  "why": "A long beam that doesn't bend, under trailers, cranes, and long floors.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color"
+  ],
+  "books": [
+   "set 60440: 6521803 p64, 6521803 p65, 6521803 p66"
+  ],
+  "signature": [
+   "3702",
    "2780"
   ],
   "sure": true,
   "weak": false
- },
- {
-  "name": "cliff_wall",
-  "title": "A cliff face of gray bricks whose courses shift in and out, with slope buttresses, sideways facets and a ragged top, built as a panel and attached; use for cliffs and caves.",
-  "why": "A cliff face from gray bricks whose courses shift in and out, with slope buttresses.",
-  "params": [
-   "width",
-   "height",
-   "offset_frequency",
-   "gray_mix",
-   "buttresses"
-  ],
-  "books": [
-   "set 21335: 6448880 p99-163, 6448880 p157-163"
-  ],
-  "signature": [
-   "2357",
-   "4460b"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "rock_spire",
-  "title": "A tall 75-degree slope capped with a small slope at an odd angle to make a pointed rock; use for any rocky landscape.",
-  "why": "A pointed rock from a tall slope and a small cap at an odd angle.",
-  "params": [
-   "height",
-   "cap_type",
-   "color"
-  ],
-  "books": [
-   "set 21335: 6448880 p40-48, 6448880 p83, 6448880 p118, 6448880 p126, 6448880 p157-159"
-  ],
-  "signature": [
-   "4460b",
-   "54200"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "bracket_stairs",
-  "title": "Repeating stair step with a riser tile on a bracket, a 2-deep tread and inverted slopes underneath, for straight flights.",
-  "why": "Stairs from a repeating module with riser tiles on brackets: lighter and smoother than the brick-built stairs we have.",
-  "params": [
-   "steps",
-   "width",
-   "tread_color",
-   "riser_color"
-  ],
-  "books": [
-   "set 10350: p158, p159, p160, p161, p162, p163 \u2026"
-  ],
-  "signature": [
-   "99780",
-   "2431"
-  ],
-  "sure": true,
-  "weak": false
- },
- {
-  "name": "drop_in_footprint",
-  "title": "A tiled ring framing an open studded footprint where a separately built house or tower drops in; use when a model splits into removable modules.",
-  "why": "A tiled frame around a studded footprint where a separately built building drops in.",
-  "params": [
-   "footprint",
-   "ring_width",
-   "tile_palette"
-  ],
-  "books": [
-   "set 21335: 6448880 p165-180, 6448880 p195, 6448880 p226"
-  ],
-  "signature": [
-   "87079",
-   "3068b"
-  ],
-  "sure": true,
-  "weak": true
  }
 ]
