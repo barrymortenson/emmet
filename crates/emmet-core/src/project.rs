@@ -25,7 +25,7 @@ pub struct Config {
     pub library: String,
     #[serde(default)]
     pub agent: AgentConfig,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "RunConfig::is_default")]
     pub run: RunConfig,
     #[serde(default, skip_serializing_if = "CheckConfig::is_empty")]
     pub check: CheckConfig,
@@ -33,17 +33,33 @@ pub struct Config {
     pub build: BuildConfig,
 }
 
-/// `[build]`: the build settings the validator reads (plan section 14's Options tab; each is Any until set).
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+/// `[build]`: the build settings (plan section 14's Options tab), which steer the agent; each is Any until set. The
+/// app writes them, a change asks the agent to rework the model, and the validator reads the Age.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct BuildConfig {
+    /// What it stands on: "None", "16 × 16", "32 × 32", or "48 × 48".
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base: Option<String>,
+    /// What the details are sized for: "Micro", "Micropolis", "Midi", "Figure scale", "Large", or "Car 1:8".
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scale: Option<String>,
     /// The Age build setting: "4+", "6+", "9+", "13+", or "18+" (plan section 08's step rules).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub age: Option<String>,
+    /// How much the agent adds beyond the shape: "Low", "Medium", or "High".
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
+    /// How many pieces: "Small" (50–250), "Medium" (250–1,000), "Large" (1,000–2,500), or "Huge" (2,500+).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pieces: Option<String>,
+    /// The look: one of the suggestions ("Town", "Medieval", …) or the user's own words.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub style: Option<String>,
 }
 
 impl BuildConfig {
     fn is_empty(&self) -> bool {
-        self.age.is_none()
+        *self == Self::default()
     }
 
     /// The most parts a step should add for the Age setting: 4 for 4+, 12 for 18+, and 8 for 6+ or Any.
@@ -83,6 +99,12 @@ pub struct RunConfig {
     pub timeout: f64,
 }
 
+impl RunConfig {
+    fn is_default(&self) -> bool {
+        self.timeout == default_timeout()
+    }
+}
+
 impl Default for RunConfig {
     fn default() -> Self {
         Self {
@@ -104,6 +126,17 @@ pub struct Project {
 pub enum Template {
     Cottage,
     Empty,
+    /// An existing LDraw file (.ldr or .mpd), copied into the project and brought in with import_ldraw (plan
+    /// section 07's imports).
+    Import(PathBuf),
+}
+
+/// An imported project's model.py: the file as fixed geometry, which the agent can make parametric.
+fn import_model(file: &str) -> String {
+    format!(
+        "# SPDX-License-Identifier: Apache-2.0\nfrom emmet_dsl import Model, import_ldraw, model\n\n\n@model\ndef imported():\n    \"\"\"{file}, opened in Emmet: a fixed model with no parameters yet.\"\"\"\n    m = Model()\n    m.place(import_ldraw({}), at=(0, 0, 0))\n    return m\n",
+        serde_json::to_string(file).expect("json")
+    )
 }
 
 const COTTAGE: &str = include_str!("../templates/cottage/model.py");
@@ -204,12 +237,23 @@ impl Project {
             "# The Emmet project file (docs/spec/project-format.md).\nschema = {SCHEMA}\nname = {}\ncreated_by = \"{machine}\"\nlibrary = \"{library}\"\n\n[agent]\npreferred = \"claude\"\n",
             toml::Value::String(name.clone())
         );
-        let (model, what) = match template {
+        let imported;
+        let (model, what) = match &template {
             Template::Cottage => (
                 COTTAGE,
                 "A small cottage on a green 32 x 32 baseplate: stone-based walls with a real door and glazed windows, a\ngable roof, a chimney, a path with flowers, and a room inside (a bed, a table, and a stove).",
             ),
             Template::Empty => (EMPTY, "A green 32 x 32 baseplate, ready for a model."),
+            Template::Import(file) => {
+                let name = import_name(file)?;
+                let bytes = std::fs::read(file).map_err(|e| Error::io(file, e))?;
+                write_atomic(&dir.join(&name), &bytes)?;
+                imported = import_model(&name);
+                (
+                    imported.as_str(),
+                    "An LDraw model opened in Emmet: fixed geometry, with no parameters yet.",
+                )
+            }
         };
         let w = |rel: &str, text: &str| write_atomic(&dir.join(rel), text.as_bytes());
         w(MANIFEST_FILE, &toml)?;
@@ -222,6 +266,23 @@ impl Project {
         let project = Self::find(Some(dir))?;
         project.trust(data)?;
         Ok(project)
+    }
+
+    /// Writes emmet.toml from `config` (the UI's build settings and allowed findings), atomically.
+    pub fn write_config(&self) -> Result<()> {
+        let body = toml::to_string(&self.config).map_err(|e| Error::internal(format!("emmet.toml: {e}")))?;
+        let text = format!("# The Emmet project file (docs/spec/project-format.md).\n{body}");
+        write_atomic(&self.root.join(MANIFEST_FILE), text.as_bytes())
+    }
+
+    /// The LDraw file an imported project brings in, while model.py is still the one Emmet wrote for it (once the
+    /// agent makes it parametric, it's a model like any other).
+    pub fn imported_file(&self) -> Option<String> {
+        let text = std::fs::read_to_string(self.root.join("model.py")).ok()?;
+        let at = text.find("import_ldraw(")? + "import_ldraw(".len();
+        let end = text[at..].find(')')?;
+        let name: String = serde_json::from_str(&text[at..at + end]).ok()?;
+        (text.replace("\r\n", "\n") == import_model(&name)).then_some(name)
     }
 
     pub fn rel(&self, path: &Path) -> String {
@@ -376,6 +437,29 @@ impl Project {
         write_atomic(&path, format!("{n}\n").as_bytes())?;
         Ok(n)
     }
+}
+
+/// The file name an import keeps: the original's, if it's a plain .ldr or .mpd name.
+fn import_name(file: &Path) -> Result<String> {
+    let name = file
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let ext = Path::new(&name).extension().map(|e| e.to_string_lossy().to_lowercase());
+    if !matches!(ext.as_deref(), Some("ldr" | "mpd")) {
+        return Err(Error::new(
+            ErrorCode::IoError,
+            format!("{name} isn't an LDraw model file."),
+            "Open an .ldr or .mpd file, like the ones Studio, LDCad, and LeoCAD save.",
+        )
+        .at_file(file.display().to_string()));
+    }
+    let bad = |c: char| c.is_control() || matches!(c, '/' | '\\' | '"' | '\'');
+    Ok(if name.chars().any(bad) {
+        format!("model.{}", ext.unwrap_or_default())
+    } else {
+        name
+    })
 }
 
 /// This install's machine hash for `created_by`: `m:` plus 16 hex digits of sha256 of a random secret kept in app

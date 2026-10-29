@@ -50,6 +50,10 @@ enum Command {
         dir: PathBuf,
         #[arg(long, value_enum, default_value_t = TemplateArg::Cottage)]
         template: TemplateArg,
+        /// Make the project from an existing LDraw model (.ldr or .mpd): the file is copied in, and model.py brings
+        /// it in with import_ldraw, so the agent can make it parametric.
+        #[arg(long, value_name = "FILE", conflicts_with = "template")]
+        import: Option<PathBuf>,
     },
     /// Run the model and write build/model.mpd, placements.json, and manifest.json.
     Run {
@@ -131,6 +135,12 @@ enum Command {
     Colors {
         #[arg(long)]
         part: Option<String>,
+    },
+    /// Saved versions (history/): save one, list them, restore one (the current state is saved first), or open one
+    /// as a new project.
+    Version {
+        #[command(subcommand)]
+        action: VersionAction,
     },
     /// Manage the LDraw library.
     Library {
@@ -273,6 +283,22 @@ enum TemplateArg {
 }
 
 #[derive(Subcommand)]
+enum VersionAction {
+    /// Save the sources as a new version.
+    Save {
+        name: String,
+        #[arg(long)]
+        note: Option<String>,
+    },
+    /// The versions, newest first.
+    List,
+    /// Put version N's sources back, after saving the current state as a version.
+    Restore { n: u32 },
+    /// Copy version N out to a new project in DIR (missing or empty).
+    Open { n: u32, dir: PathBuf },
+}
+
+#[derive(Subcommand)]
 enum LibraryAction {
     /// Show what's installed and what this Emmet pins.
     Status,
@@ -348,10 +374,11 @@ fn main() -> ExitCode {
     };
     let data = DataDir::resolve(cli.data_dir.as_deref());
     match command {
-        Command::New { dir, template } => {
-            let template = match template {
-                TemplateArg::Cottage => Template::Cottage,
-                TemplateArg::Empty => Template::Empty,
+        Command::New { dir, template, import } => {
+            let template = match (template, import) {
+                (_, Some(file)) => Template::Import(file.clone()),
+                (TemplateArg::Cottage, None) => Template::Cottage,
+                (TemplateArg::Empty, None) => Template::Empty,
             };
             let out = data.and_then(|d| ops::new_project(&d, dir, template));
             let project = out.as_ref().ok().map(|c| c.project.clone());
@@ -631,6 +658,7 @@ fn main() -> ExitCode {
             })
         }
         Command::Library { action } => library_command(&cli, started, data, action),
+        Command::Version { action } => version_command(&cli, started, data, action),
         Command::Rules => finish(&cli, started, Output::from(Ok(mcp::DOCTRINE)), |d| {
             d.trim_end().to_string()
         }),
@@ -741,6 +769,48 @@ fn main() -> ExitCode {
                 Ok(()) => ExitCode::SUCCESS,
                 Err(e) => finish::<()>(&cli, started, Err(e).into(), |_| String::new()),
             }
+        }
+    }
+}
+
+fn version_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &VersionAction) -> ExitCode {
+    use emmet_core::versions;
+    let project = || Project::find(cli.project.as_deref());
+    let line = |v: &versions::Version| {
+        let parts = v.parts.map(|p| format!(" · {p} parts")).unwrap_or_default();
+        let by = if v.auto { " · saved by Emmet" } else { "" };
+        format!("{}. {}{parts}{by}", v.n, v.name)
+    };
+    match action {
+        VersionAction::Save { name, note } => {
+            let out = data.and_then(|d| versions::save(&d, &project()?, name, note.as_deref(), false, None));
+            finish(cli, started, out.into(), |v| format!("Saved version {}", line(v)))
+        }
+        VersionAction::List => finish(cli, started, project().and_then(|p| versions::list(&p)).into(), |l| {
+            if l.is_empty() {
+                "No versions yet. Save one with emmet version save <name>.".into()
+            } else {
+                l.iter().map(line).collect::<Vec<_>>().join("\n")
+            }
+        }),
+        VersionAction::Restore { n } => {
+            let out = data.and_then(|d| versions::restore(&d, &project()?, *n));
+            finish(cli, started, out.into(), |r| {
+                format!(
+                    "Restored version {}. The state before is version {}.",
+                    line(&r.restored),
+                    r.saved.n
+                )
+            })
+        }
+        VersionAction::Open { n, dir } => {
+            let out = data.and_then(|d| {
+                let p = versions::open_as_new(&d, &project()?, *n, dir)?;
+                Ok(serde_json::json!({ "project": p.root.display().to_string(), "name": p.config.name }))
+            });
+            finish(cli, started, out.into(), |o| {
+                format!("Opened version {n} as {}", o["project"].as_str().unwrap_or(""))
+            })
         }
     }
 }

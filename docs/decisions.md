@@ -3,6 +3,15 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-28, session 4A
+
+- **Install command line tool asks for an admin password on macOS.** Neither the plan nor the frozen design said how
+  Settings puts the bundled `emmet` on PATH (D-08). Asked through AskUserQuestion, Barry chose VS Code's way: on
+  macOS a link at `/usr/local/bin/emmet` to the copy inside the app, made after macOS's own administrator prompt; on
+  Windows the app's folder on the user's PATH, with no admin. No shell file is edited, and it works in every new
+  terminal. Over a link in `~/.local/bin` with a line added to `~/.zprofile`, the same link with the line left for
+  the user to add, or leaving it a stub.
+
 ## 2026-10-27, session 2B
 
 - **The Steps tab is the model's tree.** B has no project tree, and section 14 and 4A still listed one. Asked where

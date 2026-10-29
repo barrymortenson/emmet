@@ -49,6 +49,7 @@ update merges when CI is green, and a major update gets its own PR with a note (
 | notify (the project watcher, 1B) | 8.2.0 |
 | interprocess (emmet-bus, 1B) | 2.4.6 |
 | pixelmatch (visual baselines, 1B) | 8.0.0 |
+| radix-ui (the Radix primitives in one package, D-29 and section 06; 4A) | 1.8.1 |
 | tauri-plugin-wdio-webdriver (E2E only, behind the `webdriver` feature; ADR 0002) | 1.5.1 |
 | @wdio/tauri-service | 1.5.1 |
 | @wdio/cli, @wdio/local-runner, @wdio/mocha-framework, @wdio/spec-reporter | 9.32.0 |
