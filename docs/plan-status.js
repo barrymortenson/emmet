@@ -139,7 +139,16 @@ window.EMMET_STATUS = {
       ],
       note: "Techniques aren't derived from OMR models (D-48); the click-hinge collision at nonzero angles is a likely validator false positive, unfiled pending Barry's OK; the inputs hash ignores DSL content between dev builds"
     },
-    "4A": { status: "review", pr: 34, branch: "bmortenson/s4a-shell-first-run", started: "2026-10-28" },
+    "4A": {
+      status: "done", pr: 34, branch: "bmortenson/s4a-shell-first-run", started: "2026-10-28",
+      evidence: [
+        "CI ci check green #34 (run 40925871399: mac with the full E2E suite, plan; windows and nsis paused, D-43)",
+        "tests/e2e/specs/{screens,first-run,trust,import,panel,versions,keyboard}.e2e.mjs; tests/it/tests/versions.rs",
+        "52 macOS side-by-sides in docs/spec/sessions/4A/side-by-side/; design change note 001 approved 2026-10-29",
+        "first run 15 s to the built Cottage on library.ldraw.org; warm start interactive at 420 ms; style-lint: ok"
+      ],
+      note: "Barry 2026-10-29 (D-43): merged with the 'both OSes' items met on macOS; the Windows pass checks first run, trust, import, panel, the side-by-sides, and the title-row menus. A version without build placements can't be restored from the app yet (a design question)"
+    },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
     "4D": { status: "todo" },
