@@ -103,7 +103,8 @@ export function actionFor(e: KeyboardEvent): Action | null {
   const mod = windows ? e.ctrlKey : e.metaKey;
   for (const row of KEYS) {
     for (const k of row.keys) {
-      const key = e.code ? e.code === code(k.key) : e.key.toLowerCase() === k.key.toLowerCase();
+      // The physical key, or (without Option, which changes it) the character: some drivers give "," for Comma's code.
+      const key = e.code === code(k.key) || (!e.altKey && e.key.toLowerCase() === k.key.toLowerCase());
       if (!key || !!k.mod !== mod || !!k.alt !== e.altKey || !!k.shift !== e.shiftKey) continue;
       if (k.plain && typing(e.target)) continue;
       return row.action;

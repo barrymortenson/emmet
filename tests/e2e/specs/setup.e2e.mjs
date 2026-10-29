@@ -53,7 +53,7 @@ describe("agent setup without a terminal", () => {
     rmSync(join(fakeDir, "opened.txt"), { force: true });
     await open(projectDir("setup"));
     // Detect again: the CLIs are gone.
-    await browser.execute(() => [...document.querySelectorAll(".picker > button")].find((b) => b.textContent === "Look again")?.click());
+    await browser.execute(() => [...document.querySelectorAll(".picker > button")].find((b) => b.textContent === "Check agents again")?.click());
     await (await $("#install-claude")).waitForExist({ timeout: 30_000 });
   });
 

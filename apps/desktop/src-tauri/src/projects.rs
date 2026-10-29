@@ -181,6 +181,9 @@ pub async fn new_project(app: AppHandle, kind: NewKind) -> Result<ProjectView, B
 pub async fn open_dialog(app: AppHandle) -> Result<Option<ProjectView>, Box<Problem>> {
     let dialog = app.dialog().clone();
     let picked = blocking(move || {
+        if let Some(path) = e2e_pick() {
+            return Ok(Some(tauri_plugin_dialog::FilePath::Path(path)));
+        }
         Ok(dialog
             .file()
             .set_title("Open a project or an LDraw file")
@@ -212,6 +215,18 @@ pub async fn open_dialog(app: AppHandle) -> Result<Option<ProjectView>, Box<Prob
         format!("Emmet can't open {name}."),
         "Pick a project's emmet.toml, or an LDraw .ldr or .mpd file.",
     ))
+}
+
+/// E2E can't drive the system's file dialog: a debug build takes the path written in the file EMMET_E2E_PICK_FILE
+/// names, once, instead of showing it. A release build never reads it.
+fn e2e_pick() -> Option<PathBuf> {
+    if !cfg!(debug_assertions) {
+        return None;
+    }
+    let file = PathBuf::from(std::env::var_os("EMMET_E2E_PICK_FILE")?);
+    let path = std::fs::read_to_string(&file).ok()?;
+    let _ = std::fs::remove_file(&file);
+    Some(PathBuf::from(path.trim()))
 }
 
 /// Trust this project (D-27): writes the trust marker for the open project, opens it again (no longer read-only),

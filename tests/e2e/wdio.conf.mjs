@@ -47,6 +47,11 @@ export const config = {
     const shared = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
     process.env.EMMET_DATA_DIR = shared;
     process.env.EMMET_E2E_OUT = out;
+    // Open… reads its pick from here in a debug build (src-tauri/src/projects.rs), since WebDriver can't drive the
+    // system's file dialog.
+    process.env.EMMET_E2E_PICK_FILE = join(out, "pick.txt");
+    // The app reopens its last project at launch; the run starts from none, as hello expects.
+    rmSync(join(shared, "recent.json"), { force: true });
     // Old-library checks and Update the library download ldraw-mini from here too.
     await startLibrary(shared);
     if (firstRun) {
@@ -73,7 +78,10 @@ export const config = {
   },
   // Before each spec file: its fresh project, on the recents list.
   onWorkerStart(_cid, _caps, specs) {
-    if (!firstRun) prepareProject(basename(specs[0] ?? "", ".e2e.mjs"));
+    if (firstRun) return;
+    // New, import, and Export write into the test home's Documents/Emmet and Downloads: each spec starts with neither.
+    for (const d of ["Documents", "Downloads"]) rmSync(join(agentHome, d), { recursive: true, force: true });
+    prepareProject(basename(specs[0] ?? "", ".e2e.mjs"));
   },
   // A failed test's window, for the CI artifact.
   async afterTest(test, _context, { passed }) {

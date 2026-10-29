@@ -94,3 +94,6 @@ body { position: relative; overflow: hidden; }
 .setup-card-text > p + p { margin-top: var(--space-2xs); }
 dialog.settings { padding: var(--space-xl); border: var(--line-width) solid var(--line); border-radius: var(--radius-xl); background: var(--bg-surface); color: var(--fg-text); box-shadow: var(--elevation-3); }
 dialog.settings::backdrop { background: var(--scrim); }
+
+/* Radix keeps a closed tab's content with the hidden attribute, which the frozen .panel-body's display would undo. */
+.panel-body[hidden] { display: none; }

@@ -290,7 +290,8 @@ export function App() {
   }, [compare, step]);
 
   const openVersions = async () => {
-    setPop("versions");
+    // After a menu that chose it has closed, so the popover isn't dismissed as the menu goes.
+    setTimeout(() => setPop("versions"), 0);
     setVersions(await act(commands.listVersions()));
   };
   const saveVersion = async (name: string) => {
@@ -349,7 +350,7 @@ export function App() {
           void act(commands.openDialog());
           break;
         case "save":
-          setPop("save");
+          setTimeout(() => setPop("save"), 0);
           break;
         case "versions":
           void openVersions();
@@ -471,7 +472,7 @@ export function App() {
         <Banner
           kind="imported"
           icon="file-up"
-          title={`Opened ${project.imported}: ${scene.parts} parts in ${scene.tree?.steps.length ?? scene.steps} steps.`}
+          title={`Opened ${project.imported}: ${count(scene.parts, "part")} in ${count(scene.tree?.steps.length ?? scene.steps, "step")}.`}
           actions={<Button label="Make it parametric" variant="primary" size="sm" id="make-parametric" onClick={() => sendToAgent(`Make this model parametric: rebuild ${project.imported} in model.py with emmet_dsl, keeping its parts, colors, and steps, with two to five knobs that change its character.`)} />}
         />
       );
@@ -559,17 +560,29 @@ export function App() {
             </section>
             {project && (
               <section className="dock" data-c="dock" aria-label="Chat" id="dock" tabIndex={-1}>
-                {ui.error && (
-                  <AlertCard
-                    tone="bad"
-                    icon="octagon-alert"
-                    id="build-failed"
-                    title="The model didn't build"
-                    text="The agent's last change has a mistake in it, so the new model couldn't be built."
-                    foot={scene ? "The last good model is still shown." : undefined}
-                    actions={<Button label="Ask agent to fix" variant="primary" id="ask-fix-build" onClick={() => sendToAgent(buildFixRequest(ui.error!))} />}
-                  />
-                )}
+                {ui.error &&
+                  (ui.error.code.startsWith("MODEL_") || ui.error.code === "PARAM_INVALID" ? (
+                    <AlertCard
+                      tone="bad"
+                      icon="octagon-alert"
+                      id="build-failed"
+                      title="The model didn't build"
+                      text="The agent's last change has a mistake in it, so the new model couldn't be built."
+                      foot={scene ? "The last good model is still shown." : undefined}
+                      actions={<Button label="Ask agent to fix" variant="primary" id="ask-fix-build" onClick={() => sendToAgent(buildFixRequest(ui.error!))} />}
+                    />
+                  ) : (
+                    // Emmet's own trouble, not the model's: what happened, and Rebuild.
+                    <AlertCard
+                      tone="bad"
+                      icon="octagon-alert"
+                      id="build-failed"
+                      title="The build stopped"
+                      text={`${ui.error.message} ${ui.error.hint}`.trim()}
+                      foot={scene ? "The last good model is still shown." : undefined}
+                      actions={<Button label="Rebuild" variant="primary" icon="refresh-cw" id="rebuild" onClick={() => void act(commands.rebuild())} />}
+                    />
+                  ))}
                 <ChatPane project={project} ask={ask} agentsChanged={agentsChanged} warning={limitWarning(limits ?? usage)} onTurnEnd={onTurnEnd} onLimits={setLimits} onStatus={noop} onAgent={setChatKind} onSettings={() => setDialog("settings")} />
                 <UsageBar kind={chatKind} live={limits} turns={turns} onSnapshot={setUsage} />
               </section>
@@ -666,6 +679,8 @@ export function App() {
 }
 
 const noop = () => {};
+/** A count with its noun: "1 step", "31 steps". */
+const count = (n: number, noun: string) => `${n.toLocaleString("en-US")} ${noun}${n === 1 ? "" : "s"}`;
 
 /** What the failed build's "Ask agent to fix" sends: the error as emmet reported it, with its file and line (the agent
  * sees them; the screen doesn't, law 2). */

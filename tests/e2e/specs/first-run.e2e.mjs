@@ -19,7 +19,7 @@ describe("first run", () => {
     await (await $("#first-run")).waitForDisplayed({ timeout: 30_000 });
     await expect($("#first-run h1")).toHaveText("Build brick models by describing them");
     expect(await browser.execute(() => window.__emmet.project())).toBe(null);
-    await screenshots("fr-welcome");
+    await screenshots("fr-welcome", { baseline: true });
   });
 
   it("says where a dropped download stopped, and Try again picks up there", async () => {
@@ -30,7 +30,7 @@ describe("first run", () => {
     expect(await text("#setup-failed")).toContain("The download stopped");
     expect(await text("#setup-failed")).toContain("Emmet picks up where it stopped.");
     expect(await text("#library-progress")).toContain("Stopped at");
-    await screenshots("fr-library-failed");
+    await screenshots("fr-library-failed", { baseline: true });
 
     await (await $("#setup-retry")).click();
     await browser.waitUntil(async () => (await text("#python-progress")).includes("Done"), { timeout: 120_000, timeoutMsg: "Python never finished" });
@@ -39,7 +39,7 @@ describe("first run", () => {
     const starts = (await served()).map((s) => s.start);
     expect(starts[0]).toBe(0);
     expect(starts[1]).toBeGreaterThan(0);
-    await screenshots("fr-library");
+    await screenshots("fr-library", { baseline: true });
   });
 
   it("sets the agents up without a terminal, then offers the Cottage or a prompt", async () => {
@@ -47,11 +47,11 @@ describe("first run", () => {
     await (await $("#agents")).waitForDisplayed();
     await expect($("#ready-claude")).toHaveText("Ready");
     await expect($("#agents-continue")).toBeDisplayed();
-    await screenshots("fr-agents");
+    await screenshots("fr-agents", { baseline: true });
     await (await $("#agents-continue")).click();
     await expect($("#first-run h1")).toHaveText("What do you want to build?");
     expect(await text("#first-run .lede")).toContain(process.platform === "win32" ? "Documents\\Emmet" : "Documents/Emmet");
-    await screenshots("fr-start");
+    await screenshots("fr-start", { baseline: true });
   });
 
   it("builds the Cottage in Documents/Emmet with no dialog", async () => {
@@ -73,6 +73,6 @@ describe("first run", () => {
     await browser.waitUntil(async () => (await text("#model-state .panel-head-text")) === "Empty", { timeout: 60_000 });
     await expect($("#settings-list")).toBeDisplayed();
     await expect($("#export-button")).not.toBeExisting();
-    await screenshots("new-empty");
+    await screenshots("new-empty", { baseline: true });
   });
 });

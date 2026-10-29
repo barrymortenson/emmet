@@ -5,7 +5,7 @@
 // row is the window's drag region.
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { DropdownMenu, Menubar, Popover, ToggleGroup } from "radix-ui";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ant from "./assets/brand/mark-ant.svg";
 import type { VersionView } from "./bindings";
 import { type Action, keysFor, windows } from "./keys";
@@ -133,6 +133,8 @@ export function Titlebar({
   onOpenVersion: (v: VersionView) => void;
 }) {
   const [menu, setMenu] = useState(false);
+  /** A menu item that opens a popover on the chip was chosen: focus mustn't go back to the chip, which would close it. */
+  const popping = useRef(false);
   const [maximized, setMaximized] = useState(false);
   useEffect(() => {
     if (!windows) return;
@@ -141,7 +143,17 @@ export function Titlebar({
     const off = w.onResized(() => void w.isMaximized().then(setMaximized));
     return () => void off.then((f) => f());
   }, []);
-  const entry = (id: Action, text: string, icon: Parameters<typeof Icon>[0]["name"]): MenuEntry => ({ id, text, icon, keys: keysFor(id), disabled: !can(id), onSelect: () => run(id) });
+  const entry = (id: Action, text: string, icon: Parameters<typeof Icon>[0]["name"]): MenuEntry => ({
+    id,
+    text,
+    icon,
+    keys: keysFor(id),
+    disabled: !can(id),
+    onSelect: () => {
+      popping.current = id === "save" || id === "versions";
+      run(id);
+    },
+  });
   return (
     <header className="titlebar" data-c="titlebar" data-tauri-drag-region>
       <div className="titlebar-start" data-tauri-drag-region>
@@ -155,7 +167,18 @@ export function Titlebar({
               </DropdownMenu.Trigger>
             </Popover.Anchor>
             <DropdownMenu.Portal>
-              <DropdownMenu.Content className="menu" data-c="menu" aria-label="Project" align="start" sideOffset={6} id="project-menu">
+              <DropdownMenu.Content
+                className="menu"
+                data-c="menu"
+                aria-label="Project"
+                align="start"
+                sideOffset={6}
+                id="project-menu"
+                onCloseAutoFocus={(e) => {
+                  if (popping.current) e.preventDefault();
+                  popping.current = false;
+                }}
+              >
                 <MenuItems
                   items={[
                     entry("new", "New", "plus"),
