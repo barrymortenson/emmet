@@ -18,6 +18,15 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
   terminal. Over a link in `~/.local/bin` with a line added to `~/.zprofile`, the same link with the line left for
   the user to add, or leaving it a stub.
 
+- **The model names its knobs.** The first build of the Tweaks section showed every parameter the cottage has
+  (width, depth, wall rows, colors, the baseplate), where the design session had ruled out a panel of raw
+  parameters: Tweaks are a few character knobs, and the baseplate is the Base build setting. Barry pointed it out,
+  and asked through AskUserQuestion, chose that the model marks its knobs: `@model(knobs=[...])` in emmet_dsl, which
+  `get_params` reports per parameter and the panel shows alone, with a model that names none showing "This model has
+  no knobs yet." The other parameters stay for the CLI, rung 1, and the tests. The doctrine (EMMET.md) tells the
+  agent to name two to five. Over cutting the templates' parameters down to the knobs, and over the panel guessing
+  which parameters are knobs from their names or types. No design change: the frozen Tweaks already draw only knobs.
+
 ## 2026-10-27, session 2B
 
 - **The Steps tab is the model's tree.** B has no project tree, and section 14 and 4A still listed one. Asked where
