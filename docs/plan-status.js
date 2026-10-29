@@ -171,7 +171,7 @@ window.EMMET_STATUS = {
     "H-19": { status: "todo" },
     "H-20": { status: "done", date: "2026-10-24", note: "Commercial Terms accepted through the Console account; legal page read 2026-10-24. No description to Anthropic (Barry 2026-10-25, D-37)" },
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
-    "H-22": { status: "waiting", note: "batch 1: all 20 accepted 2026-10-28; more batches to come" },
+    "H-22": { status: "waiting", note: "38 accepted so far (batch 1: 20 of 20, batch 2: 18 of 20, 2026-10-28); batches 3 to 5 to come" },
     "H-23": { status: "todo" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
     "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }

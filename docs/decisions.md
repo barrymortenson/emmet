@@ -446,3 +446,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   wall_top_tie, lift_off_roof_seat, lift_off_floor, jettied_floor, masonry_wall, clapboard_siding, half_timber_band,
   window_sill, window_hood, shuttered_window, shop_window, door_hood, roof_dormer, ridge_cap, chimney_stack, downpipe,
   porch_posts, sidewalk, wall_vent. Barry asked for techniques for every kind of build, not only houses.
+- **H-22, batch 2 (vehicles and trains): 18 accepted, 2 rejected** (Barry, 2026-10-28, on
+  `docs/techniques/candidates/batch-2.html`). Rejected: wheel_axle and wheel_arch, because the wheel on the 2 x 2 plate
+  with wheel pins (4870, 4624c01) reads as aircraft landing gear, not a car's wheels. Accepted: headlights,
+  tail_lights, windscreen, curved_hood, trailer_hitch, front_bumper, bracket_side_panel, cab_seat, light_bar,
+  front_grille, tilting_hood, spliced_chassis, rear_spoiler, exhaust_stack, cargo_pallet, train_carriage,
+  hinged_tailgate, technic_spine. That makes 38 accepted, past Done when 1's 30.
