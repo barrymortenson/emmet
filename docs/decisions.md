@@ -452,3 +452,7 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   tail_lights, windscreen, curved_hood, trailer_hitch, front_bumper, bracket_side_panel, cab_seat, light_bar,
   front_grille, tilting_hood, spliced_chassis, rear_spoiler, exhaust_stack, cargo_pallet, train_carriage,
   hinged_tailgate, technic_spine. That makes 38 accepted, past Done when 1's 30.
+- **H-22, batch 3 (landscape and nature): all 20 accepted** (Barry, 2026-10-28, on
+  `docs/techniques/candidates/batch-3.html`): rock_spire, rock_facet, cliff_wall, rock_outcrop, surf_line, river,
+  waterfall, pond, grass_edge, hillside, flagstone_paving, dirt_path, pine_tree, bush, flower_bed, cave_mouth, snow_cap,
+  footbridge, woodpile, landing_zone. 58 accepted in all.
