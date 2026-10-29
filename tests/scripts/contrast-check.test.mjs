@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // scripts/contrast-check.mjs: the WCAG math against known ratios, the token grammar (text, UI, fills, prefixes), and
-// what it refuses: a translucent surface, a theme missing a token, and a color or fractional opacity outside the tokens.
+// what it refuses: a translucent surface, a theme missing a token, and a color or fractional opacity outside the tokens
+// (an inactive control's rule may dim).
 // One test runs it on docs/design as it stands, so a mockup that loses AA fails here; the others run it from a path
 // with a space through a symlink, and on files no list names.
 import assert from "node:assert/strict";
@@ -42,7 +43,7 @@ test("a fill pairs with its on-color, and prefixes keep sets apart", () => {
 
 test("it refuses a translucent surface, a token in one theme only, and colors outside the tokens", () => {
   const r = checkCss(css("--bg-a: #ffffff80; --fg-t: #000;", "--bg-a: #000; --fg-t: #fff; --fg-extra: #fff;",
-    ".x { color: #123456; }\n.y { background: rgb(1, 2, 3); }\n.z { opacity: 0.6; }\n.w { opacity: 0; border-color: transparent; }"), "t");
+    ".x { color: #123456; }\n.y { background: rgb(1, 2, 3); }\n.z { opacity: 0.6; }\n.w { opacity: 0; border-color: transparent; }\n.v:disabled { opacity: 0.6; }\n.u[data-disabled] .label { opacity: 0.5; }"), "t");
   const all = r.errors.join("\n");
   assert.match(all, /--bg-a must be opaque/);
   assert.match(all, /--fg-extra is in dark but not light/);
@@ -50,6 +51,8 @@ test("it refuses a translucent surface, a token in one theme only, and colors ou
   assert.match(all, /a color outside the tokens: \.y/);
   assert.match(all, /opacity 0\.6 dims text/);
   assert.doesNotMatch(all, /\.w/);
+  // An inactive control may dim (WCAG 1.4.3 exempts it).
+  assert.doesNotMatch(all, /\.v|\.u/);
   assert.deepEqual(checkSource('const a = "#fff";\n// #000 in a comment\nel.style.width = "10%";\n<p>Orange is <code>#E8590C</code>.</p>', "s.js").length, 1);
 });
 

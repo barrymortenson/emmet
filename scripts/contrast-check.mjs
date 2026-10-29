@@ -104,12 +104,15 @@ export function checkCss(css, name = "stylesheet") {
     for (const k of a.filter((k) => !b.includes(k))) errors.push(`${name}: ${k} is in light but not dark`);
     for (const k of b.filter((k) => !a.includes(k))) errors.push(`${name}: ${k} is in dark but not light`);
   }
-  // Outside the token blocks: no color literals, and no fractional opacity (it would dim text past the check).
+  // Outside the token blocks: no color literals, and no fractional opacity (it would dim text past the check), except
+  // on a disabled control's own rule: WCAG 1.4.3 exempts an inactive control, and OpenAI's approved Continue with
+  // ChatGPT button (approved.css, kept as 1E built it) dims that way.
   const rest = css.replace(BLOCK, "").replace(/\/\*[\s\S]*?\*\//g, "");
   rest.split("\n").forEach((line) => {
     if (COLOR_LITERAL.test(line)) errors.push(`${name}: a color outside the tokens: ${line.trim().slice(0, 90)}`);
     const o = line.match(/(?:^|[;{\s])opacity\s*:\s*([\d.]+)/);
-    if (o && Number(o[1]) > 0 && Number(o[1]) < 1) errors.push(`${name}: opacity ${o[1]} dims text past the check: ${line.trim().slice(0, 90)}`);
+    const disabled = /:disabled|\[data-disabled\]|\[aria-disabled="true"\]/.test(line.split("{")[0]);
+    if (o && Number(o[1]) > 0 && Number(o[1]) < 1 && !disabled) errors.push(`${name}: opacity ${o[1]} dims text past the check: ${line.trim().slice(0, 90)}`);
   });
   return { themes: counts, worst, errors };
 }

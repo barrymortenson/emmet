@@ -198,7 +198,7 @@ export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCop
         <div className="panel-section-head">Emmet</div>
         <Row label="Updates">
           <span className="small" id="updates">
-            {info?.version ?? ""} · Update checks start with the first release
+            {__EMMET_VERSION__} · Update checks start with the first release
           </span>
         </Row>
         <Row label="Parts data" id="parts-data">
@@ -286,7 +286,7 @@ export function About({ info, theme, onClose }: { info: AppInfo | null; theme: "
           <img className="about-icon" src={windows ? iconWin : iconMac} alt="" />
           <img className="about-wordmark" src={theme === "dark" ? antDark : antLight} alt="Emmet Builder" />
           <p id="about-versions">
-            Version {info?.version ?? ""} · LDraw library {info?.library ?? "not installed"} · Parts data {info?.parts_data ?? "none"}
+            Version {__EMMET_VERSION__} · LDraw library {info?.library ?? "not installed"} · Parts data {info?.parts_data ?? "none"}
           </p>
           <p>Free and open source under the AGPL-3.0. Your models and chats stay on this computer; Emmet has no accounts and no tracking.</p>
           <p className="small" id="about-connects">
