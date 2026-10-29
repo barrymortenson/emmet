@@ -2,8 +2,8 @@
 // The options panel (plan section 14, docs/design/frozen): the model's state in a word with its icon (No problems,
 // 1 problem, Building, Build failed, Read-only, Empty) and Export, then the four tabs (Radix Tabs; ⌘1–⌘4 jump to one):
 // Options, Checks, Parts, and Steps.
-import type { Theme } from "@emmet/viewer";
 import { DropdownMenu, Tabs } from "radix-ui";
+import { useEffect } from "react";
 import type { AllowedView, BomLine, BuildSettings, Finding, Problem, ProjectView, Scene } from "./bindings";
 import { Checks, checksCount } from "./Checks";
 import { keysFor } from "./keys";
@@ -49,7 +49,6 @@ export type PanelProps = {
   scene: Scene | null;
   running: boolean;
   error: Problem | null;
-  theme: Theme;
   tab: Tab;
   onTab: (t: Tab) => void;
   selected: string | null;
@@ -81,12 +80,18 @@ export function Panel(p: PanelProps) {
   };
   const readonly = !p.project.trusted;
   const fresh = state === "empty";
+  const exportable = state !== "empty" && (p.scene?.parts ?? 0) > 0;
+  // ⌘E with no Export button leaves nothing to open later, when the button comes.
+  const { exportOpen, onExportOpen } = p;
+  useEffect(() => {
+    if (exportOpen && !exportable) onExportOpen(false);
+  }, [exportOpen, exportable, onExportOpen]);
   return (
     <aside className="panel" data-c="panel" aria-label="Options" id="panel" tabIndex={-1}>
       <div className="panel-head" data-tone={head.tone} id="model-state">
         {head.tone === "busy" ? <Spinner label="Building" /> : <Icon name={head.icon!} />}
         <span className="panel-head-text">{stateWords(state, n)}</span>
-        {state !== "empty" && (p.scene?.parts ?? 0) > 0 && (
+        {exportable && (
           <DropdownMenu.Root open={p.exportOpen} onOpenChange={p.onExportOpen}>
             <DropdownMenu.Trigger asChild>
               <Button label="Export" size="sm" icon="download" title={`Export (${keysFor("export")})`} id="export-button" />
@@ -143,7 +148,7 @@ export function Panel(p: PanelProps) {
           <Checks checks={p.scene?.checks} selected={p.selected?.startsWith("finding:") ? p.selected.slice(8) : null} readonly={readonly} onPick={p.onPickFinding} onAsk={p.onAsk} onAllow={p.onAllow} onUnallow={p.onUnallow} />
         </Tabs.Content>
         <Tabs.Content value="parts" className="panel-body" id="parts">
-          <Parts bom={p.scene?.bom} theme={p.theme} selected={p.selected?.startsWith("part:") ? p.selected.slice(5) : null} onPick={p.onPickPart} />
+          <Parts bom={p.scene?.bom} selected={p.selected?.startsWith("part:") ? p.selected.slice(5) : null} onPick={p.onPickPart} />
         </Tabs.Content>
         <Tabs.Content value="steps" className="panel-body" id="steps">
           <Steps tree={p.scene?.tree} step={p.step} sub={p.sub} onStep={p.onStep} onSub={p.onSub} />

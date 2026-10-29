@@ -283,6 +283,7 @@ pub fn set_build_settings(app: AppHandle, settings: BuildSettings) -> Result<Bui
         style: style.map(String::from),
     };
     project.write_config()?;
+    app.state::<AppState>().refresh_view(&project);
     Ok(BuildSettings::from(&project.config.build))
 }
 
@@ -360,11 +361,11 @@ pub async fn reset_params(app: AppHandle, names: Vec<String>) -> Result<ParamsVi
 }
 
 fn version_view(project: &Project, v: &versions::Version) -> VersionView {
-    let dir = project.root.join("history").join(&v.dir);
     let thumbnail = v
         .thumbnail
-        .then(|| std::fs::read(dir.join("thumbnail.png")).ok())
+        .then(|| versions::file(project, v, "thumbnail.png"))
         .flatten()
+        .and_then(|path| std::fs::read(path).ok())
         .map(|png| format!("data:image/png;base64,{}", emmet_core::base64::encode(&png)));
     VersionView {
         n: v.n,
@@ -417,8 +418,9 @@ pub async fn list_versions(app: AppHandle) -> Result<Vec<VersionView>, Box<Probl
 pub async fn version_scene(app: AppHandle, n: u32) -> Result<Scene, Box<Problem>> {
     let project = app.state::<AppState>().project()?;
     blocking(move || {
-        let dir = versions::folder(&project, n)?;
-        crate::app::scene_at(&dir.join("placements.json")).ok_or_else(|| {
+        let v = versions::get(&project, n)?;
+        let placements = versions::file(&project, &v, "placements.json");
+        placements.and_then(|path| crate::app::scene_at(&path)).ok_or_else(|| {
             bad(
                 format!("Version {n} has no build to show."),
                 "Restore it to build it again.",
@@ -428,17 +430,20 @@ pub async fn version_scene(app: AppHandle, n: u32) -> Result<Scene, Box<Problem>
     .await
 }
 
-/// Restore: saves the current state as a version first, then puts version `n`'s sources back. The watcher builds it.
+/// Restore: saves the current state as a version first, then puts version `n`'s sources back. The watcher builds it;
+/// the open project's view (ui_state) has the restored build settings.
 #[tauri::command]
 #[specta::specta]
 pub async fn restore_version(app: AppHandle, n: u32) -> Result<VersionView, Box<Problem>> {
     let state = app.state::<AppState>();
     let (data, project) = (state.data.clone(), state.project()?);
-    blocking(move || {
+    let (saved, restored) = blocking(move || {
         let r = versions::restore(&data, &project, n)?;
-        Ok(version_view(&project, &r.saved))
+        Ok((version_view(&project, &r.saved), Project::find(Some(&project.root))?))
     })
-    .await
+    .await?;
+    state.refresh_view(&restored);
+    Ok(saved)
 }
 
 /// Open as new project: copies version `n` into the projects folder as "<name> version <n>" and opens it.

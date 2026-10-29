@@ -5,7 +5,7 @@
 import { $, $$, expect } from "@wdio/globals";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { nextScene, open, screenshots, shown, stats } from "../lib/app.mjs";
+import { invoke, nextScene, open, screenshots, shown, stats } from "../lib/app.mjs";
 import { agentHome } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
@@ -52,11 +52,18 @@ describe("versions", () => {
     await browser.waitUntil(async () => (await stats()).instances > changed, { timeout: 10_000, timeoutMsg: "the version's model never showed" });
     await screenshots("version-view", { baseline: true });
 
+    // A build setting changed since: the restore puts the version's back, and the open project says so (the panel
+    // would otherwise write the changed one over it).
+    const any = { base: null, scale: null, age: null, detail: null, pieces: null, style: null };
+    await invoke("set_build_settings", { settings: { ...any, style: "Medieval" } });
+    expect((await invoke("ui_state")).project.build.style).toBe("Medieval");
+
     const restoring = await shown();
     await (await $("#version-restore")).click();
     await expect($("#toast")).toHaveText(expect.stringContaining("Restored version 1. The model before is version 2."));
     await nextScene(restoring);
     expect(sources()).toEqual(saved);
+    expect((await invoke("ui_state")).project.build.style).toBe(null);
     await menu("versions");
     const auto = await $("#versions-list [data-n='2']");
     await expect(auto).toHaveText(expect.stringContaining("Before restoring version 1"));

@@ -2,8 +2,8 @@
 //! macOS's menu bar (docs/design/keyboard.md, session 4A). Each item's click goes to the window as a [`MenuAction`]
 //! with the same id the window's keys and its Windows menu bar use, so every action has one handler. Keys that type a
 //! character (1–6, F, [ and ]) and Esc aren't menu accelerators: a menu would take them from a text field, so the
-//! window handles them. Open Recent's items open their project here, so the window never names a path. Windows draws
-//! the same menus in its title row (Menubar.tsx).
+//! window handles them. Open Recent's items go by their place in the recent list ("recent:0"), which the window opens
+//! with open_recent. Windows draws its menus in its title row (windowsMenus in Titlebar.tsx).
 
 use tauri::menu::{Menu, MenuBuilder, MenuItemBuilder, PredefinedMenuItem, Submenu, SubmenuBuilder};
 use tauri::{AppHandle, Manager, Runtime};
@@ -18,7 +18,7 @@ pub struct MenuAction {
 }
 
 /// The items 4A can't act on yet (the chat's own, 4B; the guide, 6B), shown but not enabled.
-const LATER: [&str; 3] = ["agent:switch", "agent:model", "help:guide"];
+const LATER: [&str; 4] = ["agent:switch", "agent:model", "undo-turn", "help:guide"];
 
 fn item<R: Runtime>(
     app: &AppHandle<R>,
@@ -161,20 +161,12 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
         return Ok(());
     }
     app.set_menu(build(app)?)?;
+    // Open Recent's items ("recent:<i>") go to the window too, which opens the project and says why when it can't.
     app.on_menu_event(|app, event| {
-        let id = event.id().as_ref().to_string();
-        if let Some(i) = id.strip_prefix("recent:").and_then(|i| i.parse::<usize>().ok()) {
-            let list = crate::recent::list(&app.state::<AppState>().data);
-            if let Some(r) = list.get(i) {
-                let path = std::path::PathBuf::from(&r.path);
-                if let Err(e) = crate::app::open(app, &path) {
-                    app.state::<AppState>()
-                        .notify(format!("Couldn't open {}: {} {}", r.name, e.message, e.hint));
-                }
-            }
-            return;
+        let _ = MenuAction {
+            id: event.id().as_ref().to_string(),
         }
-        let _ = MenuAction { id }.emit(app);
+        .emit(app);
     });
     Ok(())
 }

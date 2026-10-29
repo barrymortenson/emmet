@@ -36,6 +36,14 @@ const BACKDROP: Record<Step, keyof (typeof RENDERS)["light"]> = { welcome: "cott
 /** The pinned library's size, for the lede before the download knows it. */
 const LIBRARY_MB = 150;
 
+/** Why the library didn't set up, in words: a dropped connection resumes; anything else is said as it is. */
+export function libraryFailure(problem: Problem, done: number, total: number | null): string {
+  if (problem.code === "LIBRARY_MISSING") return `The connection dropped at ${mb(done)} of ${mb(total ?? LIBRARY_MB * 1_000_000)} MB. Emmet picks up where it stopped.`;
+  if (problem.code === "LIBRARY_CORRUPT") return "The download didn't match the parts library this Emmet expects, so Emmet set it aside. Try again; if it happens again, Emmet needs an update.";
+  if (problem.code === "IO_ERROR") return "Emmet couldn't save the parts library on this computer. Check there's space for about 700 MB, then try again.";
+  return `${problem.message} ${problem.hint}`.trim();
+}
+
 /** What setup is doing: not started, the library (bytes so far), Python, done, or where it stopped. */
 type Setup =
   | { at: "idle" }
@@ -102,6 +110,18 @@ export function FirstRun({
 }) {
   const at = STEPS.findIndex(([id]) => id === step);
   const r = RENDERS[theme];
+  // A setup that stops after Continue says so on whichever step the user is on, with Try again there.
+  const failed = setup.at === "failed" ? setup : null;
+  const failure = failed && (
+    <AlertCard
+      tone="bad"
+      icon={failed.python || failed.problem.code !== "LIBRARY_MISSING" ? "octagon-alert" : "wifi-off"}
+      id="setup-failed"
+      title={failed.python ? "Python didn't set up" : failed.problem.code === "LIBRARY_MISSING" ? "The download stopped" : "The parts library didn't set up"}
+      text={failed.python ? `${failed.problem.message} The parts library is ready, and Try again sets Python up.` : libraryFailure(failed.problem, failed.done, failed.total)}
+      actions={<Button label="Try again" variant="primary" icon="refresh-cw" id="setup-retry" onClick={onSetup} />}
+    />
+  );
   let body: React.ReactNode;
   if (step === "welcome") {
     body = (
@@ -141,7 +161,6 @@ export function FirstRun({
       </>
     );
   } else if (step === "library") {
-    const failed = setup.at === "failed" ? setup : null;
     const lib = setup.at === "library" || failed ? (setup as { done: number; total: number | null }) : null;
     const total = lib?.total ?? LIBRARY_MB * 1_000_000;
     const libDone = ready || setup.at === "python" || setup.at === "done" || (failed?.python ?? false);
@@ -158,20 +177,7 @@ export function FirstRun({
         </p>
         <Progress label="LDraw parts library" pct={pct} amount={amount} error={!!failed && !failed.python} id="library-progress" />
         <Progress label="Python for models" pct={python} amount={pythonWords} error={!!failed?.python} id="python-progress" />
-        {failed && (
-          <AlertCard
-            tone="bad"
-            icon="wifi-off"
-            id="setup-failed"
-            title={failed.python ? "Python didn't set up" : "The download stopped"}
-            text={
-              failed.python
-                ? `${failed.problem.message} The parts library is ready, and Try again sets Python up.`
-                : `The connection dropped at ${mb(failed.done)} of ${mb(failed.total ?? LIBRARY_MB * 1_000_000)} MB. Emmet picks up where it stopped.`
-            }
-            actions={<Button label="Try again" variant="primary" icon="refresh-cw" id="setup-retry" onClick={onSetup} />}
-          />
-        )}
+        {failure}
         {!failed && (
           <>
             <p className="small">While you wait: set up your agent on the next screen. Everything keeps downloading.</p>
@@ -187,6 +193,7 @@ export function FirstRun({
       <>
         <h1>Set up your agent</h1>
         <p className="lede">Emmet builds with your own Claude Code or Codex. Set up either one here, no terminal needed.</p>
+        {failure}
         <AgentSetup agents={agents} onChanged={onAgentsChanged} onSettings={onSettings} cards />
         <div className="notice">
           <Icon name="info" />
@@ -205,6 +212,7 @@ export function FirstRun({
   } else {
     const folder = windows ? projectsFolder.replaceAll("/", "\\") : projectsFolder;
     const waiting = !ready && setup.at !== "done";
+    const stuck = waiting && failed != null;
     body = (
       <>
         <h1>What do you want to build?</h1>
@@ -225,7 +233,9 @@ export function FirstRun({
             <span className="small">An empty baseplate and your agent</span>
           </button>
         </div>
-        {waiting ? (
+        {stuck ? (
+          failure
+        ) : waiting ? (
           <p className="small" role="status">
             The parts are still getting ready. These start as soon as they are.
           </p>

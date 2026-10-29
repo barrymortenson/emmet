@@ -39,9 +39,10 @@ viewer.highlighted();                                  // the highlighted ids
 viewer.frame(ids?);                                    // fit the ids (or everything), keeping the view direction
 viewer.setView("iso" | "front" | "back" | "left" | "right" | "top");
 viewer.setTheme("light" | "dark");
+viewer.setQuality("auto" | "low");                     // the device pixel ratio up to 2, or 1
 const { png, camera } = await viewer.render({ view: "iso", size: 768, highlight }); // offscreen; the window's camera stays
 viewer.stats();        // drawCalls, triangles, frameMs, heap (WebView2 only), instances, buckets, parts, geometries,
-                       // textures, programs, highlighted, animating, failed, lastDiff
+                       // textures, programs, highlighted, animating, failed, lastDiff, quality
 viewer.cameraMatrix(); // the camera's world matrix (tests check it doesn't move)
 viewer.orbit(radians); // turn around the target, as a drag would (bench)
 await viewer.nextFrame();

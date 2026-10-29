@@ -14,7 +14,8 @@ import { Badge, Button, IconButton, Icon, MenuItems, type MenuEntry, when } from
 export type Pop = "save" | "versions" | null;
 type View = "iso" | "front" | "top";
 
-/** Windows' menus: the same as macOS's menu bar (keyboard.md), in sentence case. */
+/** Windows' menus: macOS's menu bar's actions (keyboard.md), in sentence case, with Settings under File and Updates,
+ * the command line tool, and About under Help. */
 function windowsMenus(run: (a: Action) => void, can: (a: Action) => boolean): [string, MenuEntry[]][] {
   const item = (id: Action, text: string): MenuEntry => ({ id, text, keys: keysFor(id), disabled: !can(id), onSelect: () => run(id) });
   return [
@@ -225,7 +226,7 @@ export function Titlebar({
                 <Menubar.Trigger className="menubar-trigger">{title}</Menubar.Trigger>
                 <Menubar.Portal>
                   <Menubar.Content className="menu" data-c="menu" align="start" sideOffset={4}>
-                    <MenuItems items={items} />
+                    <MenuItems items={items} menubar />
                   </Menubar.Content>
                 </Menubar.Portal>
               </Menubar.Menu>

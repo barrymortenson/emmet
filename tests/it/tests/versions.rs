@@ -240,21 +240,133 @@ fn a_linked_models_folder_or_source_is_refused() {
     assert!(v["error"]["message"].as_str().unwrap().contains("is a link"), "{v}");
     std::fs::remove_file(dir.join("models")).unwrap();
 
-    // A version with a models/ file, restored into a project whose models/ became a link: nothing is written through it.
+    // A version with a models/ file, restored into a project whose models/ became a link to an empty folder (so the
+    // save before the restore has nothing to refuse): the write is what's refused, and nothing lands outside.
     std::fs::create_dir_all(dir.join("models")).unwrap();
     std::fs::write(dir.join("models/trim.py"), "WIDTH = 2\n").unwrap();
     let (v, code) = emmet_in(&dir, &["version", "save", "With trim"]);
     ok(&v, code);
+    let empty = dir.parent().unwrap().join("empty");
+    std::fs::create_dir_all(&empty).unwrap();
     std::fs::remove_dir_all(dir.join("models")).unwrap();
-    std::os::unix::fs::symlink(&outside, dir.join("models")).unwrap();
+    std::os::unix::fs::symlink(&empty, dir.join("models")).unwrap();
     let (v, code) = emmet_in(&dir, &["version", "restore", "1"]);
     assert_ne!(code, 0, "{v}");
     assert!(
-        !outside.join("trim.py").exists(),
+        v["error"]["message"]
+            .as_str()
+            .unwrap()
+            .starts_with("models/trim.py is a link"),
+        "{v}"
+    );
+    assert_eq!(
+        std::fs::read_dir(&empty).unwrap().count(),
+        0,
         "the restore wrote nothing outside the project"
     );
     assert_eq!(
         std::fs::read_to_string(outside.join("secret.py")).unwrap(),
         "SECRET = 1\n"
+    );
+
+    // A version whose own model.py is a link (a shared project's crafted history/) is refused before anything is
+    // saved or written.
+    std::fs::remove_file(dir.join("models")).unwrap();
+    let version = dir.join("history/1-with-trim/model.py");
+    std::fs::remove_file(&version).unwrap();
+    std::os::unix::fs::symlink(outside.join("secret.py"), &version).unwrap();
+    let folders = std::fs::read_dir(dir.join("history")).unwrap().count();
+    let model = std::fs::read(dir.join("model.py")).unwrap();
+    let (v, code) = emmet_in(&dir, &["version", "restore", "1"]);
+    assert_ne!(code, 0, "{v}");
+    assert!(
+        v["error"]["message"]
+            .as_str()
+            .unwrap()
+            .starts_with("model.py is a link"),
+        "{v}"
+    );
+    assert_eq!(
+        std::fs::read_dir(dir.join("history")).unwrap().count(),
+        folders,
+        "nothing saved"
+    );
+    assert_eq!(std::fs::read(dir.join("model.py")).unwrap(), model, "nothing written");
+}
+
+#[cfg(unix)]
+#[test]
+fn a_restore_that_failed_can_be_tried_again() {
+    let dir = new_cottage("versions-retry");
+    let (v, code) = emmet_in(&dir, &["version", "save", "Mine"]);
+    ok(&v, code);
+    // The save before the restore stops partway, at a linked models/ file.
+    let outside = dir.parent().unwrap().join("outside");
+    std::fs::create_dir_all(&outside).unwrap();
+    std::fs::write(outside.join("secret.py"), "SECRET = 1\n").unwrap();
+    std::os::unix::fs::symlink(&outside, dir.join("models")).unwrap();
+    let (v, code) = emmet_in(&dir, &["version", "restore", "1"]);
+    assert_ne!(code, 0, "{v}");
+    // With the link gone, the same restore (and its save of the same name) works.
+    std::fs::remove_file(dir.join("models")).unwrap();
+    let (v, code) = emmet_in(&dir, &["version", "restore", "1"]);
+    ok(&v, code);
+    let (v, code) = emmet_in(&dir, &["version", "list"]);
+    assert_eq!(
+        ok(&v, code).as_array().unwrap().len(),
+        2,
+        "Mine and one save before the restore"
+    );
+}
+
+#[test]
+fn restoring_the_oldest_of_emmets_own_versions_works() {
+    let dir = new_cottage("versions-oldest");
+    let (v, code) = emmet_in(&dir, &["version", "save", "Mine"]);
+    ok(&v, code);
+    // Versions 2 to 21: Emmet's own, as many as it keeps.
+    for _ in 0..20 {
+        let (v, code) = emmet_in(&dir, &["version", "restore", "1"]);
+        ok(&v, code);
+    }
+    // Version 2 is the oldest kept; the save before restoring it would make it the 21st.
+    let (v, code) = emmet_in(&dir, &["version", "restore", "2"]);
+    let data = ok(&v, code);
+    assert_eq!(data["restored"]["n"], 2, "{v}");
+    let (v, code) = emmet_in(&dir, &["version", "list"]);
+    let list = ok(&v, code).as_array().unwrap().clone();
+    assert_eq!(
+        list.iter().filter(|v| v["auto"] == true).count(),
+        20,
+        "pruned after the restore"
+    );
+}
+
+#[test]
+fn an_imported_projects_version_keeps_its_ldraw_file() {
+    let dir = temp_dir("versions-import").join("Wagon");
+    let file = emmet_it::fixture("projects/dsl-v1/wagon.ldr");
+    let (v, code) = emmet_json(&["new", dir.to_str().unwrap(), "--import", file.to_str().unwrap()]);
+    ok(&v, code);
+    let (v, code) = emmet_in(&dir, &["version", "save", "As imported"]);
+    ok(&v, code);
+    assert!(dir.join("history/1-as-imported/wagon.ldr").is_file());
+    let dest = dir.parent().unwrap().join("Wagon version 1");
+    let (v, code) = emmet_in(&dir, &["version", "open", "1", dest.to_str().unwrap()]);
+    ok(&v, code);
+    // The copy's model.py brings in wagon.ldr, so the copy has it, and builds.
+    assert_eq!(
+        std::fs::read(dest.join("wagon.ldr")).unwrap(),
+        std::fs::read(&file).unwrap()
+    );
+    let (v, code) = emmet_in(&dest, &["run"]);
+    ok(&v, code);
+    // An edited LDraw file comes back on restore.
+    std::fs::write(dir.join("wagon.ldr"), "0 edited\n").unwrap();
+    let (v, code) = emmet_in(&dir, &["version", "restore", "1"]);
+    ok(&v, code);
+    assert_eq!(
+        std::fs::read(dir.join("wagon.ldr")).unwrap(),
+        std::fs::read(&file).unwrap()
     );
 }

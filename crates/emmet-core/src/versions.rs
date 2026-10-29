@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! Saved versions (plan section 07, docs/spec/project-format.md): a copy of the sources (model.py, models/,
-//! params.json, emmet.toml, CARD.md), plus that build's model.mpd and placements.json when the build is current and a
+//! params.json, emmet.toml, CARD.md, and the LDraw files at the top level, which an imported model brings in), plus that build's model.mpd and placements.json when the build is current and a
 //! thumbnail when the app has one, in `history/<n>-<slug>/` with a version.json. A restore first saves the current
 //! state as a version, then writes the sources back atomically, so it never loses anything. "Open as a new project"
 //! copies a version out to a new folder.
@@ -30,7 +30,7 @@ pub struct Version {
     pub note: Option<String>,
     /// When it was saved, in seconds since 1970 (UTC).
     pub time: u64,
-    /// Saved by Emmet (before an agent's turn, or before a restore) rather than by the user.
+    /// Saved by Emmet (before a restore; from 4B, before an agent's turn too) rather than by the user.
     pub auto: bool,
     /// The build's part count, when the build was current.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -40,9 +40,10 @@ pub struct Version {
     pub inputs_hash: Option<String>,
     /// Its folder in history/.
     pub dir: String,
-    /// Whether it has a thumbnail.png and a placements.json to show.
+    /// Whether it has a thumbnail.png.
     #[serde(default)]
     pub thumbnail: bool,
+    /// Whether it has its build's placements.json, to show it without running it.
     #[serde(default)]
     pub placements: bool,
 }
@@ -52,7 +53,8 @@ pub struct Version {
 pub struct Restored {
     pub saved: Version,
     pub restored: Version,
-    /// The sources it wrote and the ones it removed (models/ files the version doesn't have), relative to the project.
+    /// The sources it wrote and the ones it removed (models/ files and CARD.md the version doesn't have), relative to
+    /// the project.
     pub written: Vec<String>,
     pub removed: Vec<String>,
 }
@@ -124,13 +126,34 @@ pub fn folder(project: &Project, n: u32) -> Result<PathBuf> {
     Ok(project.root.join("history").join(get(project, n)?.dir))
 }
 
-/// The project's sources, relative to its root: the top-level files that exist, then models/**/*.py.
+/// The .ldr and .mpd files at the top of `dir`, sorted: an imported model's file, which its model.py brings in with
+/// import_ldraw.
+fn ldraw_at_top(dir: &Path) -> Vec<String> {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return Vec::new();
+    };
+    let mut out: Vec<String> = entries
+        .flatten()
+        .filter(|e| e.file_type().is_ok_and(|t| t.is_file()))
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .filter(|name| {
+            Path::new(name)
+                .extension()
+                .is_some_and(|x| x.eq_ignore_ascii_case("ldr") || x.eq_ignore_ascii_case("mpd"))
+        })
+        .collect();
+    out.sort();
+    out
+}
+
+/// The project's sources, relative to its root: the top-level files that exist, its LDraw files, then models/**/*.py.
 fn sources(project: &Project) -> Vec<String> {
     let mut out: Vec<String> = TOP
         .iter()
         .filter(|f| project.root.join(f).is_file())
         .map(|f| f.to_string())
         .collect();
+    out.extend(ldraw_at_top(&project.root));
     for p in project.sources() {
         let rel = project.rel(&p);
         if !out.contains(&rel) {
@@ -147,6 +170,7 @@ fn version_sources(dir: &Path) -> Vec<String> {
         .filter(|f| dir.join(f).is_file())
         .map(|f| f.to_string())
         .collect();
+    out.extend(ldraw_at_top(dir));
     let mut stack = vec![dir.join("models")];
     let mut models = Vec::new();
     while let Some(d) = stack.pop() {
@@ -196,6 +220,14 @@ fn plain(root: &Path, rel: &str) -> Result<PathBuf> {
     Ok(path)
 }
 
+/// A file in version `v`'s folder, like its thumbnail.png or placements.json, when it's a plain file there and not
+/// over 64 MB: a shared project can't link one to a file elsewhere for the window to read, or to an endless one.
+pub fn file(project: &Project, v: &Version, name: &str) -> Option<PathBuf> {
+    let path = plain(&project.root, &format!("history/{}/{name}", v.dir)).ok()?;
+    let meta = std::fs::symlink_metadata(&path).ok()?;
+    (meta.is_file() && meta.len() <= 64 << 20).then_some(path)
+}
+
 /// Copies `rel` from one folder to the same place in another, through [`plain`] paths on both sides.
 fn copy(from: &Path, to: &Path, rel: &str) -> Result<()> {
     let src = plain(from, rel)?;
@@ -203,7 +235,8 @@ fn copy(from: &Path, to: &Path, rel: &str) -> Result<()> {
     write_atomic(&plain(to, rel)?, &bytes)
 }
 
-/// The build's model.mpd, placements.json, and part count, when build/ matches the sources as they are now.
+/// The build's inputs hash and part count, when build/ matches the sources as they are now (save copies its model.mpd
+/// and placements.json).
 fn current_build(data: &DataDir, project: &Project) -> Option<(String, u32)> {
     let manifest: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(project.root.join("build/manifest.json")).ok()?).ok()?;
@@ -229,6 +262,18 @@ pub fn save(
     auto: bool,
     thumbnail: Option<&[u8]>,
 ) -> Result<Version> {
+    save_as(data, project, name, note, auto, thumbnail, true)
+}
+
+fn save_as(
+    data: &DataDir,
+    project: &Project,
+    name: &str,
+    note: Option<&str>,
+    auto: bool,
+    thumbnail: Option<&[u8]>,
+    prune_auto: bool,
+) -> Result<Version> {
     let name = name.trim();
     if name.is_empty() {
         return Err(Error::new(
@@ -238,7 +283,9 @@ pub fn save(
         ));
     }
     let history = history(project)?;
-    let n = list(project)?.first().map_or(0, |v| v.n) + 1;
+    // Past every numbered folder, not only the versions: a save that stopped partway left a folder with no
+    // version.json, and its number stays taken.
+    let n = list(project)?.first().map_or(0, |v| v.n).max(highest_folder(&history)) + 1;
     let dir_name = slug(n, name);
     let dir = history.join(&dir_name);
     if dir.exists() {
@@ -248,18 +295,25 @@ pub fn save(
             "Move it out of history/ and save again.",
         ));
     }
-    for rel in sources(project) {
-        copy(&project.root, &dir, &rel)?;
-    }
-    let built = current_build(data, project);
-    if built.is_some() {
-        let build = project.build_dir()?;
-        copy(&build, &dir, "model.mpd")?;
-        copy(&build, &dir, "placements.json")?;
-    }
-    if let Some(png) = thumbnail {
-        write_atomic(&dir.join("thumbnail.png"), png)?;
-    }
+    let copied = (|| {
+        for rel in sources(project) {
+            copy(&project.root, &dir, &rel)?;
+        }
+        let built = current_build(data, project);
+        if built.is_some() {
+            let build = project.build_dir()?;
+            copy(&build, &dir, "model.mpd")?;
+            copy(&build, &dir, "placements.json")?;
+        }
+        if let Some(png) = thumbnail {
+            write_atomic(&dir.join("thumbnail.png"), png)?;
+        }
+        Ok(built)
+    })();
+    // A save that can't finish leaves nothing behind (it's this save's own new folder).
+    let built = copied.inspect_err(|_| {
+        let _ = std::fs::remove_dir_all(&dir);
+    })?;
     let version = Version {
         n,
         name: name.to_string(),
@@ -275,10 +329,26 @@ pub fn save(
     let mut text = serde_json::to_string_pretty(&version).expect("json");
     text.push('\n');
     write_atomic(&dir.join("version.json"), text.as_bytes())?;
-    if auto {
+    if auto && prune_auto {
         prune(project)?;
     }
     Ok(version)
+}
+
+/// The highest number a folder in history/ starts with ("12-steeper-roof" is 12), or 0.
+fn highest_folder(history: &Path) -> u32 {
+    std::fs::read_dir(history)
+        .map(|entries| {
+            entries
+                .flatten()
+                .filter_map(|e| {
+                    let name = e.file_name().to_string_lossy().into_owned();
+                    name.split('-').next()?.parse::<u32>().ok()
+                })
+                .max()
+                .unwrap_or(0)
+        })
+        .unwrap_or(0)
 }
 
 /// Removes Emmet's own versions past the newest [`KEEP_AUTO`].
@@ -310,13 +380,16 @@ pub fn restore(data: &DataDir, project: &Project, n: u32) -> Result<Restored> {
     for rel in &theirs {
         plain(&dir, rel)?;
     }
-    let saved = save(
+    // Not pruned yet: the version being restored may be the oldest of Emmet's own that are kept, which this save
+    // would push out before it's read.
+    let saved = save_as(
         data,
         project,
         &format!("Before restoring version {n}"),
         None,
         true,
         None,
+        false,
     )?;
     let mine = sources(project);
     let mut written = Vec::new();
@@ -325,9 +398,12 @@ pub fn restore(data: &DataDir, project: &Project, n: u32) -> Result<Restored> {
         .iter()
         .map(|rel| Ok((rel, plain(&dir, rel)?, plain(&project.root, rel)?)))
         .collect::<Result<Vec<_>>>()?;
+    // An LDraw file at the top stays too: a project may keep one that a later model.py doesn't bring in.
     let gone = mine
         .iter()
-        .filter(|m| !theirs.contains(m) && *m != "emmet.toml" && *m != "params.json")
+        .filter(|m| {
+            !theirs.contains(m) && *m != "emmet.toml" && *m != "params.json" && !ldraw_at_top(&project.root).contains(m)
+        })
         .map(|rel| Ok((rel, plain(&project.root, rel)?)))
         .collect::<Result<Vec<_>>>()?;
     for (rel, from, to) in targets {
@@ -343,6 +419,9 @@ pub fn restore(data: &DataDir, project: &Project, n: u32) -> Result<Restored> {
         std::fs::remove_file(&path).map_err(|e| Error::io(&path, e))?;
         removed.push(rel.clone());
     }
+    // The restore is done; what's past the newest KEEP_AUTO goes now, and a folder that can't be removed yet goes on
+    // the next save of Emmet's own.
+    let _ = prune(project);
     Ok(Restored {
         saved,
         restored: version,

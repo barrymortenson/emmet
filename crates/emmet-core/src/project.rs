@@ -280,8 +280,11 @@ impl Project {
     pub fn imported_file(&self) -> Option<String> {
         let text = std::fs::read_to_string(self.root.join("model.py")).ok()?;
         let at = text.find("import_ldraw(")? + "import_ldraw(".len();
-        let end = text[at..].find(')')?;
-        let name: String = serde_json::from_str(&text[at..at + end]).ok()?;
+        // The name is a JSON string, which can hold a ")" ("house (1).ldr"): read just that string.
+        let name: String = serde_json::Deserializer::from_str(&text[at..])
+            .into_iter()
+            .next()?
+            .ok()?;
         (text.replace("\r\n", "\n") == import_model(&name)).then_some(name)
     }
 

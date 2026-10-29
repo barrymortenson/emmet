@@ -46,7 +46,10 @@ export const commands = {
 	listVersions: () => typedError<VersionView[], Problem>(__TAURI_INVOKE("list_versions")),
 	/**  A version opened read-only to compare: its build's placements as a scene. Nothing runs. */
 	versionScene: (n: number) => typedError<Scene, Problem>(__TAURI_INVOKE("version_scene", { n })),
-	/**  Restore: saves the current state as a version first, then puts version `n`'s sources back. The watcher builds it. */
+	/**
+	 *  Restore: saves the current state as a version first, then puts version `n`'s sources back. The watcher builds it;
+	 *  the open project's view (ui_state) has the restored build settings.
+	 */
 	restoreVersion: (n: number) => typedError<VersionView, Problem>(__TAURI_INVOKE("restore_version", { n })),
 	/**  Open as new project: copies version `n` into the projects folder as "<name> version <n>" and opens it. */
 	openVersionAsNew: (n: number) => typedError<ProjectView, Problem>(__TAURI_INVOKE("open_version_as_new", { n })),
@@ -260,7 +263,10 @@ export type AppInfo = {
 	python: boolean,
 	/**  Emmet's version. */
 	version: string,
-	/**  Milliseconds since the app's process started (the warm start's timing, plan section 14's budget). */
+	/**
+	 *  Milliseconds since the app started, from the first thing run() does (the warm start's timing, plan section 14's
+	 *  budget).
+	 */
 	uptime_ms: number,
 };
 

@@ -77,7 +77,7 @@ function Choose({ label, value, items, onChange, id }: { label: string; value: s
 const LAST = "last";
 const DEFAULT = "default";
 
-export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCopied }: { info: AppInfo | null; prefs: PrefsView | null; onPrefs: (p: PrefsView) => void; onClose: () => void; onAgentsChanged: () => void; onCopied: (text: string) => void }) {
+export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCopied }: { info: AppInfo | null; prefs: PrefsView | null; onPrefs: (p: PrefsView) => void; onClose: () => void; onAgentsChanged: () => void; onCopied: (copied: boolean) => void }) {
   const [cli, setCli] = useState<CliStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [key, setKey] = useState("");
@@ -237,8 +237,7 @@ export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCop
             id="copy-diagnostics"
             onClick={async () => {
               const text = await commands.diagnostics();
-              await navigator.clipboard.writeText(text).catch(() => {});
-              onCopied(text);
+              onCopied(await navigator.clipboard.writeText(text).then(() => true, () => false));
             }}
           />
         </Row>

@@ -65,6 +65,15 @@ fn applescript(s: &str) -> String {
     format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
+/// The AppleScript that links `/usr/local/bin/emmet` to `emmet` as root: the path goes to the shell only through
+/// AppleScript's `quoted form of`, so no character in it can run anything.
+fn mac_install(emmet: &str) -> String {
+    format!(
+        "do shell script \"mkdir -p /usr/local/bin && ln -sfn \" & quoted form of {} & \" {MAC_LINK}\" with administrator privileges",
+        applescript(emmet)
+    )
+}
+
 /// Puts `emmet` on PATH. Null when the user cancels macOS's password prompt.
 #[tauri::command]
 #[specta::specta]
@@ -89,10 +98,7 @@ pub async fn install_cli(app: AppHandle) -> Result<Option<CliStatus>, Box<Proble
             cmd.output()
         } else {
             // macOS asks for the password itself; Emmet never sees it.
-            let script = format!(
-                "do shell script \"mkdir -p /usr/local/bin && ln -sfn \" & quoted form of {} & \" {MAC_LINK}\" with administrator privileges",
-                applescript(&emmet.display().to_string())
-            );
+            let script = mac_install(&emmet.display().to_string());
             std::process::Command::new("osascript").args(["-e", &script]).output()
         }
         .map_err(|e| Problem::internal(format!("Couldn't run the installer: {e}")))?;
@@ -176,4 +182,43 @@ pub async fn diagnostics(app: AppHandle) -> String {
 #[specta::specta]
 pub fn report_problem(state: tauri::State<'_, AppState>) -> Result<(), Box<Problem>> {
     emmet_agent::chatgpt::open_url(state.chat.env(), ISSUES).map_err(|e| Problem::internal(e.message))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The app's path, whatever it holds, reaches the root shell as one quoted word.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn the_install_path_reaches_the_shell_as_one_word() {
+        let script = mac_install("/x");
+        assert!(script.starts_with("do shell script "), "{script}");
+        assert!(script.contains("& quoted form of \"/x\" &"), "{script}");
+        assert!(script.ends_with("with administrator privileges"), "{script}");
+        for path in [
+            "/Apps/Emmet \"x\".app",
+            "/a\\b",
+            "/it's $(touch /tmp/no) `id`.app",
+            "/a;b|c&d",
+        ] {
+            // AppleScript's own literal and quoting, run without the shell: what the shell would get for the path.
+            let probe = format!("return quoted form of {}", applescript(path));
+            let out = std::process::Command::new("osascript")
+                .args(["-e", &probe])
+                .output()
+                .unwrap();
+            assert!(
+                out.status.success(),
+                "{path:?}: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+            let quoted = String::from_utf8(out.stdout).unwrap();
+            let word = std::process::Command::new("/bin/sh")
+                .args(["-c", &format!("printf %s {}", quoted.trim_end_matches('\n'))])
+                .output()
+                .unwrap();
+            assert_eq!(String::from_utf8(word.stdout).unwrap(), path, "{path:?} → {quoted:?}");
+        }
+    }
 }

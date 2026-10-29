@@ -2,7 +2,6 @@
 // The Parts tab (plan section 14, docs/design/frozen): the parts list, each part's picture in its color, its name with
 // the color and part number under it, and the count, most first. A part never made in its color says so; unknown stays
 // unknown (bom v1, the parts data pack). Clicking a row highlights its parts. Rebrickable's credit under it (section 12).
-import type { Theme } from "@emmet/viewer";
 import { useEffect, useState } from "react";
 import type { Bom, BomLine } from "./bindings";
 import { partPicture } from "./pictures";
@@ -19,19 +18,19 @@ export function availabilityLabel(status: string): string | null {
   return AVAILABILITY[status] ?? null;
 }
 
-function Picture({ line, theme }: { line: BomLine; theme: Theme }) {
+function Picture({ line }: { line: BomLine }) {
   const [src, setSrc] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    void partPicture(line.part, line.color, theme).then((s) => live && setSrc(s));
+    void partPicture(line.part, line.color).then((s) => live && setSrc(s));
     return () => {
       live = false;
     };
-  }, [line.part, line.color, theme]);
+  }, [line.part, line.color]);
   return src ? <img src={src} alt="" /> : <span className="part-pic-empty" aria-hidden="true" />;
 }
 
-export function Parts({ bom, theme, selected, onPick }: { bom: Bom | null | undefined; theme: Theme; selected: string | null; onPick: (line: BomLine) => void }) {
+export function Parts({ bom, selected, onPick }: { bom: Bom | null | undefined; selected: string | null; onPick: (line: BomLine) => void }) {
   if (!bom) return <p className="muted">The parts list is made after each build.</p>;
   if (bom.problem)
     return (
@@ -66,7 +65,7 @@ export function Parts({ bom, theme, selected, onPick }: { bom: Bom | null | unde
             return (
               <tr key={key} aria-selected={selected === key ? "true" : undefined} onClick={() => onPick(l)} data-part={l.part}>
                 <td className="col-pic">
-                  <Picture line={l} theme={theme} />
+                  <Picture line={l} />
                 </td>
                 <td title={`${l.name}, ${l.color_name}`}>
                   <span className="cell-name">{l.name}</span>

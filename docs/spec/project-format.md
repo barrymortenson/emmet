@@ -51,7 +51,8 @@ reason = "held by hand in photos"
 ```
 
 The app writes `[build]` and `[[check.allow]]` (Options' build settings, and It's fine in Checks); a build setting
-changes nothing on its own: Rebuild asks the agent to rework the model for it. `[build] age` sets the step_size target: 4 parts a step for 4+, 12 for 18+, and 8 otherwise. Each `[[check.allow]]`
+doesn't change the model on its own: Rebuild asks the agent to rework the model for it. The one thing a setting does
+by itself is `[build] age`, which sets the step_size target: 4 parts a step for 4+, 12 for 18+, and 8 otherwise. Each `[[check.allow]]`
 moves each finding of that rule whose parts are all in `parts` from the findings to `allowed`, as `m.allow` does from
 the model (`docs/spec/validator.md`).
 
@@ -68,20 +69,22 @@ parts data versions. A run whose hash differs from the manifest's is out of date
 ## Versions
 
 `history/<n>-<slug>/` holds version `n` (from 1; the slug is its name in lowercase words, `3-roof-and-chimney`): a copy
-of the sources (`model.py`, `models/`, `params.json`, `emmet.toml`, `CARD.md`), that build's `model.mpd` and
+of the sources (`model.py`, `models/`, `params.json`, `emmet.toml`, `CARD.md`, and the `.ldr` and `.mpd` files at the
+top, which an imported model brings in), that build's `model.mpd` and
 `placements.json` when the build was current (so the app can show the version to compare without running it), a
 `thumbnail.png` when the app saved it, and `version.json`:
 
 ```json
-{ "n": 3, "name": "Roof and chimney", "time": 1793232393, "auto": false, "parts": 163, "inputs_hash": "…",
+{ "n": 3, "name": "Roof and chimney", "time": 1793232393, "auto": false, "parts": 147, "inputs_hash": "…",
   "dir": "3-roof-and-chimney", "thumbnail": true, "placements": true }
 ```
 
 `emmet version save <name> [--note …]` saves one; `emmet version list` lists them, newest first; `emmet version restore
 <n>` first saves the current state as Emmet's own version ("Before restoring version n", `auto`), then writes the
-version's sources back atomically and removes the `models/` files and `CARD.md` it doesn't have, so a restore never
-loses anything; `emmet version open <n> <dir>` copies one out as a new project, named after its folder and trusted on
-this machine. Emmet keeps its last 20 automatic versions; named ones stay. A version never reads or writes through a
+version's sources back atomically and removes the `models/` files and `CARD.md` it doesn't have (an LDraw file at the
+top stays), so a restore never loses anything; `emmet version open <n> <dir>` copies one out as a new project, named after its folder and trusted on
+this machine. Emmet keeps its last 20 automatic versions (a restore prunes after it has read the version it restores);
+named ones stay. A save that can't finish leaves no folder behind. A version never reads or writes through a
 link, and an untrusted project's versions can't be restored or copied out (they're as untrusted as its `model.py`).
 
 ## Who writes what
@@ -89,7 +92,7 @@ link, and an untrusted project's versions can't be restored or copied out (they'
 - The agent and the user edit `model.py`, `models/`, and `CARD.md`.
 - `emmet params --set` (and the app) write `params.json`, always atomically.
 - Only emmet writes `build/`, `history/`, and `.emmet/`. Every write goes to a temp file in the same folder, is synced, then
-  renamed. emmet refuses to write through a `build/` or `.emmet/` that is a link or a file.
+  renamed. emmet refuses to write through a `build/`, `history/`, or `.emmet/` that is a link or a file.
 
 ## Trust (D-27)
 

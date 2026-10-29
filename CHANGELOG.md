@@ -143,7 +143,7 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   Export, and the Options (build settings and knobs with Keep and Reset), Checks (findings in plain words, It's fine,
   Check it again), Parts (each part's picture), and Steps (the model's tree: a step shows the build up to it, a
   sub-assembly highlights every copy) tabs. macOS gets its native menus and Windows a menu bar in the title row; every
-  shortcut in the keyboard map works. Banners for a read-only project (Trust this project), offline, an old library,
+  shortcut in the keyboard map that works without an agent works (the chat's own come with 4B). Banners for a read-only project (Trust this project), offline, an old library,
   and an imported file. Settings and About (with the licenses and attributions) are dialogs.
 - First run: welcome, the parts library download with its progress (a stopped download picks up where it stopped),
   Python, your agent, and the Cottage or a new model from a prompt. New makes a project in Documents/Emmet with no

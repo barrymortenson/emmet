@@ -292,7 +292,8 @@ export function Knobs({ lastGeneration, onWrite, problemOut }: { lastGeneration:
     void reload();
   }, [lastGeneration]);
   useEffect(() => {
-    void commands.listColors().then((r) => r.status === "ok" && setColors(r.data));
+    // A color knob without its own choices offers these; with none, it says why.
+    void commands.listColors().then((r) => (r.status === "ok" ? setColors(r.data) : setProblem(r.error)));
   }, []);
 
   const write = (name: string, value: Value) => {

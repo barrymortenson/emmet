@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Agent setup without a terminal (D-41, session 1F; 4A restyled it to the frozen setup-card): for each agent, which plans work, with the
 // provider's page; Install, which runs the provider's own installer in the host, with its progress, Cancel, and one
-// Try again; and Sign in: Claude Code's own sign-in in the browser, or Settings → Agents for Codex (1E's Continue with
+// Try again; and Sign in: Claude Code's own sign-in in the browser, or Settings → Agent for Codex (1E's Continue with
 // ChatGPT and API key live there, so the window never has two copies of them). The provider notice (D-37) comes before
 // an install or sign-in until the user clicks Continue.
 import { Dialog } from "radix-ui";

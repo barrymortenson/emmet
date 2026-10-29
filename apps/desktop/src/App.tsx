@@ -29,7 +29,7 @@ import {
 import { ChatPane } from "./Chat";
 import { fixRequest } from "./Checks";
 import { About, Settings, Shortcuts } from "./Dialogs";
-import { FirstRun, type Step, useSetup } from "./FirstRun";
+import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
 import { type Action, actionFor, windows } from "./keys";
 import { base64, json, library, placements } from "./library";
 import { rebuildRequest } from "./Options";
@@ -42,6 +42,8 @@ type Dialog = "settings" | "about" | "shortcuts" | null;
 const PANEL = { min: 320, max: 520, start: 384 };
 /** A menu click and its key press can both arrive for one action: the second within this long is the same one. */
 const SAME_ACTION_MS = 250;
+/** What works while first run covers the window: its own ways out, and the dialogs over it. */
+const COVERED_OK: Action[] = ["new", "open", "settings", "updates", "cli", "about", "shortcuts", "diagnostics", "help:report", "escape"];
 
 /** The system appearance, unless Settings pins one or a test forces one. */
 function useTheme(pinned: string | undefined): [Theme, (t: Theme | null) => void] {
@@ -70,6 +72,8 @@ export function App() {
   const viewer = useRef<Viewer | null>(null);
   const shown = useRef(-1);
   const framed = useRef<string | null>(null);
+  /** A version is open to compare (show() leaves it on screen). */
+  const comparing = useRef(false);
   const root = useRef<string | null>(null);
   /** When the last scene finished updating in the viewer (performance.now()), for the bench. */
   const drawnAt = useRef(0);
@@ -85,6 +89,7 @@ export function App() {
   const [exportOpen, setExportOpen] = useState(false);
   const [versions, setVersions] = useState<VersionView[] | null>(null);
   const [compare, setCompare] = useState<{ v: VersionView; scene: Scene } | null>(null);
+  comparing.current = compare != null;
   const [toast, setToast] = useState<{ text: string; action?: { label: string; run: () => void }; n: number } | null>(null);
   const [online, setOnline] = useState(navigator.onLine);
   const [libraryLater, setLibraryLater] = useState(false);
@@ -116,7 +121,7 @@ export function App() {
   // The viewer lives as long as the window.
   useEffect(() => {
     if (!canvas.current) return;
-    const v = createViewer(canvas.current, { partSource: library, theme, quality: prefs?.prefs.viewer_quality === "fast" ? "low" : "auto" });
+    const v = createViewer(canvas.current, { partSource: library, theme });
     viewer.current = v;
     if (__EMMET_TEST_HOOKS__) {
       // Merged: the chat pane adds its own hooks, and a child's effects run first.
@@ -138,6 +143,8 @@ export function App() {
         },
         theme: (t: Theme | null) => forceTheme(t),
         offline: (off: boolean | null) => setOnline(off == null ? navigator.onLine : !off),
+        // First run's step, for a spec to come back to one the rail has passed.
+        firstRun: (step: Step) => setFirstRun(step),
       };
     }
     return () => {
@@ -154,6 +161,14 @@ export function App() {
     viewer.current?.setTheme(theme);
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+  // First run covers the window: Tab and clicks can't reach what's behind it (the title row, viewer, chat, and panel).
+  useEffect(() => {
+    for (const el of document.querySelectorAll(".app > .app-main, .app > .resizable, .app > .panel, .app > .titlebar")) el.toggleAttribute("inert", firstRun != null);
+  }, [firstRun, ui.project]);
+  const quality = prefs?.prefs.viewer_quality;
+  useEffect(() => {
+    if (quality) viewer.current?.setQuality(quality === "fast" ? "low" : "auto");
+  }, [quality]);
 
   /** Shows a scene if it's newer than the one on screen (the generation check), framing a project's first one. A
    * project's first scene and a knob's runs appear at once; other runs (the agent's, an edit) build up part by part
@@ -162,6 +177,8 @@ export function App() {
     const v = viewer.current;
     if (!v || !scene || scene.generation < shown.current) return;
     shown.current = scene.generation;
+    // A version open to compare stays on screen; the newest build shows when it closes.
+    if (comparing.current) return;
     const first = at != null && framed.current !== at;
     try {
       await v.update(placements(scene), { animate: first ? "none" : animate });
@@ -184,7 +201,9 @@ export function App() {
       events.projectOpened.listen(({ payload }) => {
         shown.current = -1;
         framed.current = null;
+        comparing.current = false;
         root.current = payload.project.root;
+        setViewerError(null);
         setSelected(null);
         setStep(null);
         setSub(null);
@@ -224,6 +243,8 @@ export function App() {
           if (payload.scene && payload.scene.generation > shown.current) {
             const scene = payload.scene;
             setUi((u) => ({ ...u, scene, error: null }));
+            // As a run's new build does, the agent's shows whole.
+            setStep(null);
             await show(scene, null, "build");
           }
           // Only the ids the request names are highlighted in the render, whatever the window shows.
@@ -233,7 +254,15 @@ export function App() {
           await commands.busReply(payload.id, null, null, e instanceof Error ? e.message : String(e));
         }
       }),
-      events.menuAction.listen(({ payload }) => run(payload.id as Action, "menu")),
+      events.menuAction.listen(({ payload }) => {
+        // Open Recent's items name their place in the list; a project that can't open says why.
+        const recent = /^recent:(\d+)$/.exec(payload.id);
+        if (!recent) return run(payload.id as Action, "menu");
+        void commands.appInfo().then((i) => {
+          const r = i.recent[Number(recent[1])];
+          if (r) void act(commands.openRecent(r.path));
+        });
+      }),
     ];
     void commands.getPrefs().then(setPrefs);
     void Promise.all([commands.appInfo(), commands.uiState()]).then(([i, s]) => {
@@ -243,7 +272,8 @@ export function App() {
       void show(s.scene ?? null, root.current);
       // With no project open: first run, or Start once the parts and Python are set up; else the last project.
       if (!s.project) {
-        if (i.library && i.python && i.recent[0]) void commands.openRecent(i.recent[0].path).then((r) => r.status === "error" && setFirstRun("start"));
+        // A last project that can't open says why over Start.
+        if (i.library && i.python && i.recent[0]) void act(commands.openRecent(i.recent[0].path)).then((p) => p == null && setFirstRun("start"));
         else setFirstRun(i.library && i.python ? "start" : "welcome");
       }
       // Interactive: the first frame after this one has drawn with its handlers in place.
@@ -318,6 +348,8 @@ export function App() {
 
   const can = (a: Action): boolean => {
     if (["help:guide", "agent:switch", "agent:model", "undo-turn"].includes(a)) return false;
+    // First run covers the window: what's behind it (the viewer, the panel, the chat) takes no keys.
+    if (firstRun && !COVERED_OK.includes(a)) return false;
     if (["save", "versions", "export", "frame", "step:prev", "step:next"].includes(a) || a.startsWith("view:") || a.startsWith("tab:")) return !!project;
     return true;
   };
@@ -371,7 +403,13 @@ export function App() {
           setDialog("shortcuts");
           break;
         case "diagnostics":
-          void commands.diagnostics().then((t) => navigator.clipboard.writeText(t).then(() => say("Copied the diagnostics")));
+          void commands
+            .diagnostics()
+            .then((t) => navigator.clipboard.writeText(t))
+            .then(
+              () => say("Copied the diagnostics"),
+              () => say("Emmet couldn't copy the diagnostics. Try Copy diagnostics in Settings."),
+            );
           break;
         case "help:report":
           void commands.reportProblem();
@@ -452,21 +490,26 @@ export function App() {
       );
     if (!online)
       return <Banner kind="offline" icon="wifi-off" title="You're offline." actions={<Button label="Try again" variant="quiet" size="sm" onClick={() => setOnline(navigator.onLine)} />} />;
-    if (info?.library_old && !libraryLater)
+    if (info?.library_old && !libraryLater) {
+      const updating = setup.at === "library" || setup.at === "python";
+      // An update that stops says why, and Try again picks up where it stopped.
+      const stopped = setup.at === "failed" ? setup : null;
+      const why = stopped && (stopped.python ? `${stopped.problem.message} ${stopped.problem.hint}`.trim() : libraryFailure(stopped.problem, stopped.done, stopped.total));
       return (
         <Banner
           kind="old-library"
           icon="download"
           title={`Your parts library is ${info.library}. This Emmet expects ${info.pinned}.`}
-          text="Some parts may be missing or renamed until you update (about 150 MB, a minute or two)."
+          text={why ?? "Some parts may be missing or renamed until you update (about 150 MB, a minute or two)."}
           actions={
             <>
               <Button label="Later" variant="quiet" size="sm" onClick={() => setLibraryLater(true)} />
-              <Button label={setup.at === "library" || setup.at === "python" ? "Updating" : "Update the library"} variant="primary" size="sm" id="update-library" busy={setup.at === "library" || setup.at === "python"} onClick={() => void startSetup()} />
+              <Button label={updating ? "Updating" : stopped ? "Try again" : "Update the library"} variant="primary" size="sm" id="update-library" busy={updating} onClick={() => void startSetup()} />
             </>
           }
         />
       );
+    }
     if (project.imported && scene)
       return (
         <Banner
@@ -511,6 +554,9 @@ export function App() {
                       if (saved) {
                         say(`Restored version ${compare.v.n}. The model before is version ${saved.n}.`);
                         setCompare(null);
+                        // The version's build settings, so the panel doesn't write the ones before over them.
+                        const now = await commands.uiState();
+                        setUi((u) => ({ ...u, project: now.project }));
                       }
                     }}
                   />
@@ -606,7 +652,6 @@ export function App() {
               scene={scene}
               running={ui.running}
               error={ui.error}
-              theme={theme}
               tab={tab}
               onTab={setTab}
               selected={selected}
@@ -669,7 +714,7 @@ export function App() {
               )}
             </div>
           )}
-          {dialog === "settings" && <Settings info={info} prefs={prefs} onPrefs={setPrefs} onClose={() => setDialog(null)} onAgentsChanged={() => setAgentsChanged((n) => n + 1)} onCopied={() => say("Copied the diagnostics")} />}
+          {dialog === "settings" && <Settings info={info} prefs={prefs} onPrefs={setPrefs} onClose={() => setDialog(null)} onAgentsChanged={() => setAgentsChanged((n) => n + 1)} onCopied={(copied) => say(copied ? "Copied the diagnostics" : "Emmet couldn't copy the diagnostics to the clipboard.")} />}
           {dialog === "about" && <About info={info} theme={theme} onClose={() => setDialog(null)} />}
           {dialog === "shortcuts" && <Shortcuts onClose={() => setDialog(null)} />}
         </div>

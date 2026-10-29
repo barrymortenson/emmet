@@ -48,7 +48,26 @@ fn read(data: &DataDir) -> Map<String, Value> {
         .unwrap_or_default()
 }
 
-fn write(data: &DataDir, settings: &Map<String, Value>) -> Result<(), Box<Problem>> {
+/// settings.json to change and write back: empty when there's none yet, and a problem when it can't be read or isn't
+/// JSON, so a change never writes over the projects folder and color naming it couldn't see.
+pub(crate) fn settings_to_change(data: &DataDir) -> Result<Map<String, Value>, Box<Problem>> {
+    let path = data.settings();
+    let text = match std::fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Map::new()),
+        Err(e) => return Err(emmet_core::envelope::Error::io(&path, e).into()),
+    };
+    serde_json::from_str(&text).map_err(|_| {
+        Box::new(Problem {
+            code: "IO_ERROR".into(),
+            message: "Emmet's settings file isn't readable, so Emmet didn't change it.".into(),
+            hint: format!("Fix or remove {}, then try again.", path.display()),
+            ..*Problem::internal("")
+        })
+    })
+}
+
+pub(crate) fn write(data: &DataDir, settings: &Map<String, Value>) -> Result<(), Box<Problem>> {
     let text = serde_json::to_string_pretty(settings).expect("json") + "\n";
     Ok(emmet_core::fsx::write_atomic(&data.settings(), text.as_bytes())?)
 }
@@ -81,8 +100,13 @@ pub fn projects_folder(app: &AppHandle) -> PathBuf {
     {
         return PathBuf::from(dir);
     }
-    let docs = app.path().document_dir().unwrap_or_else(|_| std::env::temp_dir());
-    docs.join("Emmet")
+    // Never the temp folder, which the system empties: Documents in the home folder when the system can't say where
+    // Documents is.
+    let docs = app
+        .path()
+        .document_dir()
+        .or_else(|_| app.path().home_dir().map(|h| h.join("Documents")));
+    docs.unwrap_or_else(|_| PathBuf::from("Documents")).join("Emmet")
 }
 
 /// A folder in words, with the home folder left out: "Documents/Emmet".
@@ -133,7 +157,7 @@ pub fn set_prefs(app: AppHandle, prefs: Prefs) -> Result<PrefsView, Box<Problem>
         return Err(bad("Claude model", m));
     }
     let data = &app.state::<AppState>().data;
-    let mut s = read(data);
+    let mut s = settings_to_change(data)?;
     s.insert("appearance".into(), prefs.appearance.into());
     s.insert("viewer_quality".into(), prefs.viewer_quality.into());
     s.insert("start_with".into(), prefs.start_with.map_or(Value::Null, Value::String));
@@ -164,8 +188,28 @@ pub async fn pick_projects_folder(app: AppHandle) -> Result<Option<PrefsView>, B
         return Ok(None);
     };
     let data = &app.state::<AppState>().data;
-    let mut s = read(data);
+    let mut s = settings_to_change(data)?;
     s.insert("projects_folder".into(), dir.display().to_string().into());
     write(data, &s)?;
     Ok(Some(view(&app)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A settings file Emmet can't read is left as it is, not written over with only what changed.
+    #[test]
+    fn a_settings_file_that_isnt_json_isnt_written_over() {
+        let dir = std::env::temp_dir().join(format!("emmet-prefs-{}", std::process::id()));
+        let data = DataDir::at(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        assert!(settings_to_change(&data).unwrap().is_empty(), "none yet is empty");
+        std::fs::write(data.settings(), "{\"projects_folder\": \"/p\",").unwrap();
+        let e = settings_to_change(&data).unwrap_err();
+        assert!(e.message.contains("isn't readable"), "{}", e.message);
+        std::fs::write(data.settings(), "{\"projects_folder\": \"/p\"}").unwrap();
+        assert_eq!(settings_to_change(&data).unwrap()["projects_folder"], "/p");
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
 }

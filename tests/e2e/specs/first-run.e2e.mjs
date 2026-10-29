@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // First run (plan section 14's key flow, session 4A Done when 2), on a fresh data dir (wdio.conf.mjs's first-run mode)
 // against lib/library-server.mjs: welcome → the library download, which drops partway and picks up where it stopped
-// on Try again → Python → the agents (the fake CLIs, ready) → Start → the Cottage, built from Documents/Emmet with no
-// dialog. Then ⌘N makes a new model from a prompt: an empty baseplate. Each screen in both themes goes to
-// tests/e2e/out/screens/.
+// on Try again, then drops again after the user has gone on to Start, which says so with its own Try again → Python →
+// the agents (the fake CLIs, ready) → Start → the Cottage, built from Documents/Emmet with no dialog. Then ⌘N makes a
+// new model from a prompt: an empty baseplate. Each screen in both themes goes to tests/e2e/out/screens/.
 import { $, expect } from "@wdio/globals";
-import { existsSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { screenshots } from "../lib/app.mjs";
 import { agentHome } from "../lib/agents.mjs";
-import { dropNext, served } from "../lib/library-server.mjs";
+import { dropNext, releaseDrop, served } from "../lib/library-server.mjs";
 
 const text = async (sel) => (await $(sel)).getText();
 /** By hand only: the real library and Python, timed (wdio.conf.mjs). */
@@ -33,7 +33,7 @@ describe("first run", () => {
       console.log(`first run, real: the parts and Python ready ${Math.round((Date.now() - started) / 1000)} s after Get started`);
       return;
     }
-    // A third of the zip, then the connection drops.
+    // A quarter of the zip, then the connection drops.
     await dropNext(250_000);
     await (await $("#get-started")).click();
     await (await $("#setup-failed")).waitForDisplayed({ timeout: 60_000 });
@@ -42,13 +42,28 @@ describe("first run", () => {
     expect(await text("#library-progress")).toContain("Stopped at");
     await screenshots("fr-library-failed", { baseline: !real });
 
+    // Try again; the download stops again once the user has gone on to Start, which says so, with Try again there.
+    await dropNext(500_000, { hold: true });
     await (await $("#setup-retry")).click();
-    await browser.waitUntil(async () => (await text("#python-progress")).includes("Done"), { timeout: 120_000, timeoutMsg: "Python never finished" });
-    expect(await text("#library-progress")).toContain("Done");
-    // The second request asked for the rest, from where the first stopped.
+    await (await $("#library-continue")).click();
+    await (await $("#agents-continue")).click();
+    await expect($("#first-run h1")).toHaveText("What do you want to build?");
+    await expect($("#start-cottage")).toBeDisabled();
+    await releaseDrop();
+    await (await $("#setup-failed")).waitForDisplayed({ timeout: 60_000, timeoutMsg: "Start never said the download stopped" });
+    expect(await text("#setup-failed")).toContain("The download stopped");
+    await expect($("#start-cottage")).toBeDisabled();
+    await (await $("#setup-retry")).click();
+    await browser.waitUntil(() => $("#start-cottage").isEnabled(), { timeout: 120_000, timeoutMsg: "the parts and Python never finished" });
+    // Each request asked for the rest, from where the one before stopped.
     const starts = (await served()).map((s) => s.start);
     expect(starts[0]).toBe(0);
     expect(starts[1]).toBeGreaterThan(0);
+    expect(starts[2]).toBeGreaterThan(starts[1]);
+    // Back to the library step (the rail has passed it), both done.
+    await browser.execute(() => window.__emmet.firstRun("library"));
+    expect(await text("#library-progress")).toContain("Done");
+    expect(await text("#python-progress")).toContain("Done");
     await screenshots("fr-library", { baseline: !real });
   });
 
@@ -89,5 +104,15 @@ describe("first run", () => {
     await expect($("#settings-list")).toBeDisplayed();
     await expect($("#export-button")).not.toBeExisting();
     await screenshots("new-empty", { baseline: !real });
+  });
+
+  it("⌘E with nothing to export yet doesn't open Export later, when the model has parts", async () => {
+    await browser.keys([mod, "e"]);
+    await expect($("#export-button")).not.toBeExisting();
+    const dir = join(agentHome, "Documents", "Emmet");
+    copyFileSync(join(dir, "Cottage", "model.py"), join(dir, "New model", "model.py"));
+    await (await $("#export-button")).waitForDisplayed({ timeout: 60_000, timeoutMsg: "the model never built" });
+    await browser.pause(500);
+    await expect($("[data-menu='csv']")).not.toBeExisting();
   });
 });

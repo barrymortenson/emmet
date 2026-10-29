@@ -105,6 +105,15 @@ describe("the keyboard map", () => {
     expect(await browser.execute(() => window.__emmet.project())).toMatch(/keyboard$/);
   });
 
+  it("Windows: the title row's menus open, with the same actions", async function () {
+    if (process.platform !== "win32") this.skip();
+    // Radix opens a menu on pointerdown, which the embedded driver doesn't send: focus, then Enter.
+    await browser.execute(() => [...document.querySelectorAll(".menubar-trigger")].find((t) => t.textContent === "File").focus());
+    await browser.keys("Enter");
+    await (await $("[data-menu='new']")).waitForDisplayed({ timeoutMsg: "File didn't open" });
+    await browser.keys("Escape");
+  });
+
   it("F6 moves between the viewer, the chat, and the panel", async () => {
     await browser.execute(() => document.getElementById("viewer").focus());
     await browser.keys("F6");

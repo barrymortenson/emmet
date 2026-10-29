@@ -245,7 +245,8 @@ pub struct AppInfo {
     pub python: bool,
     /// Emmet's version.
     pub version: String,
-    /// Milliseconds since the app's process started (the warm start's timing, plan section 14's budget).
+    /// Milliseconds since the app started, from the first thing run() does (the warm start's timing, plan section 14's
+    /// budget).
     pub uptime_ms: u64,
 }
 
@@ -422,7 +423,6 @@ impl AppState {
             .map(|o| o.root.clone())
     }
 
-    /// Records something to tell the user that isn't a run's error (see [`UiState::notice`]).
     /// Marks the project at `root` open, as [`open`] does, without a window, a watcher, or a run: for the run tests.
     #[doc(hidden)]
     pub fn open_without_window(&self, root: &Path) {
@@ -440,6 +440,17 @@ impl AppState {
         });
     }
 
+    /// The open project's view as its files say now, when `project` is the open one: a restore wrote back its
+    /// emmet.toml (the build settings) and model.py (whether it's still an import).
+    pub fn refresh_view(&self, project: &Project) -> Option<ProjectView> {
+        let mut inner = self.inner.lock().expect("state");
+        let open = inner.project.as_mut().filter(|o| o.root == project.root)?;
+        open.view.imported = project.imported_file();
+        open.view.build = crate::projects::BuildSettings::from(&project.config.build);
+        Some(open.view.clone())
+    }
+
+    /// Records something to tell the user that isn't a run's error (see [`UiState::notice`]).
     pub fn notify(&self, notice: impl Into<String>) {
         self.inner.lock().expect("state").notice = Some(notice.into());
     }
@@ -994,14 +1005,9 @@ pub fn set_color_names(state: State<'_, AppState>, names: String) -> Result<(), 
             excerpt: None,
         })
     })?;
-    let path = state.data.settings();
-    let mut settings: serde_json::Map<String, Value> = std::fs::read_to_string(&path)
-        .ok()
-        .and_then(|t| serde_json::from_str(&t).ok())
-        .unwrap_or_default();
+    let mut settings = crate::prefs::settings_to_change(&state.data)?;
     settings.insert("color_names".into(), serde_json::to_value(value).expect("json"));
-    let text = serde_json::to_string_pretty(&settings).expect("json") + "\n";
-    emmet_core::fsx::write_atomic(&path, text.as_bytes())?;
+    crate::prefs::write(&state.data, &settings)?;
     if let Some(root) = state.open_root() {
         state.request_run(&root);
     }

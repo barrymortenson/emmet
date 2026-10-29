@@ -42,7 +42,7 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-import { DropdownMenu, Progress as RadixProgress, Tooltip as RadixTooltip } from "radix-ui";
+import { DropdownMenu, Menubar, Progress as RadixProgress, Tooltip as RadixTooltip } from "radix-ui";
 import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from "react";
 import brick from "./assets/glyphs/brick.svg?raw";
 import floating from "./assets/glyphs/floating.svg?raw";
@@ -129,10 +129,12 @@ type ButtonProps = Omit<ComponentProps<"button">, "children"> & {
 };
 
 /** A button: primary (one per surface), secondary, or quiet; busy shows a spinner and says what's happening. */
-export function Button({ label, variant, size, icon, kbd, chevron, busy, compact, className, title, ...rest }: ButtonProps) {
+export function Button({ label, variant, size, icon, kbd, chevron, busy, compact, className, title, disabled, ...rest }: ButtonProps) {
   return (
     <button
       type="button"
+      // Busy can't be pressed again (a second install, a second download).
+      disabled={disabled || busy}
       className={`button${className ? ` ${className}` : ""}`}
       data-c="button"
       data-variant={variant}
@@ -198,17 +200,19 @@ export type MenuEntry =
   | { note: string }
   | { id: string; text: string; icon?: IconName; sub?: string; keys?: string; checked?: boolean; disabled?: boolean; onSelect: () => void };
 
-/** A menu's items (inside Radix DropdownMenu.Content, or a Menubar's content: the same parts). */
-export function MenuItems({ items }: { items: MenuEntry[] }) {
+/** A menu's items, in a Radix DropdownMenu.Content or (`menubar`) a Menubar.Content: each has its own menu parts, and
+ * an item from the other one throws. */
+export function MenuItems({ items, menubar }: { items: MenuEntry[]; menubar?: boolean }) {
+  const M = menubar ? Menubar : DropdownMenu;
   return (
     <>
       {items.map((it, i) => {
-        if (it === "-") return <DropdownMenu.Separator key={i} className="menu-separator" />;
+        if (it === "-") return <M.Separator key={i} className="menu-separator" />;
         if ("label" in it)
           return (
-            <DropdownMenu.Label key={i} className="menu-label">
+            <M.Label key={i} className="menu-label">
               {it.label}
-            </DropdownMenu.Label>
+            </M.Label>
           );
         if ("note" in it)
           return (
@@ -217,7 +221,7 @@ export function MenuItems({ items }: { items: MenuEntry[] }) {
             </p>
           );
         return (
-          <DropdownMenu.Item
+          <M.Item
             key={it.id}
             className="menu-item"
             data-menu={it.id}
@@ -230,7 +234,7 @@ export function MenuItems({ items }: { items: MenuEntry[] }) {
             {it.sub && <span className="small">{it.sub}</span>}
             {it.keys && <span className="menu-key">{it.keys}</span>}
             {it.checked && <Icon name="check" size="sm" />}
-          </DropdownMenu.Item>
+          </M.Item>
         );
       })}
     </>
@@ -347,7 +351,7 @@ export function Resizable({ orientation, label, value, min, max, onChange, inver
   );
 }
 
-/** A time of day as the system writes it, with "Today" or the date: "Today 14:31". */
+/** A time of day as the system writes it, with "Today", "Yesterday", or the date: "Today 14:31". */
 export function when(seconds: number, now = new Date()): string {
   const d = new Date(seconds * 1000);
   const time = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
@@ -359,5 +363,5 @@ export function when(seconds: number, now = new Date()): string {
   return `${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })} ${time}`;
 }
 
-/** Megabytes in words: "96 of 150 MB". */
+/** Bytes as megabytes, rounded for words like "96 of 150 MB". */
 export const mb = (bytes: number) => Math.round(bytes / 1_000_000);

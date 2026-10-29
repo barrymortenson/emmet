@@ -3,7 +3,8 @@
 // is (the shared data dir's ldraw-mini.zip, which the integration tests made), served over plain HTTP to 127.0.0.1
 // with Range requests, so the app's download resumes as it would from library.ldraw.org. A debug build reads
 // EMMET_LIBRARY_URL, EMMET_LIBRARY_SHA256, and EMMET_LIBRARY_RELEASE (src-tauri/src/setup.rs), so E2E never downloads
-// the real library. `POST /control?drop=N` makes the next download stop after N bytes, as a dropped connection does.
+// the real library. `POST /control?drop=N` makes the next download stop after N bytes, as a dropped connection does;
+// with `&hold=1` it waits there, sending nothing, until `POST /control?release=1` drops it (the user has moved on).
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
@@ -15,11 +16,20 @@ let server = null;
 export async function startLibrary(dataDir) {
   const zip = readFileSync(join(dataDir, "ldraw-mini.zip"));
   let drop = null;
+  let hold = false;
+  let held = null;
   const served = [];
   server = createServer((req, res) => {
     const url = new URL(req.url, "http://127.0.0.1");
     if (url.pathname === "/control") {
+      if (url.searchParams.has("release")) {
+        held?.();
+        held = null;
+        res.end(JSON.stringify({ served }));
+        return;
+      }
       drop = url.searchParams.has("drop") ? Number(url.searchParams.get("drop")) : null;
+      hold = url.searchParams.get("hold") === "1";
       res.end(JSON.stringify({ served }));
       return;
     }
@@ -40,10 +50,11 @@ export async function startLibrary(dataDir) {
       ...(range ? { "Content-Range": `bytes ${start}-${zip.length - 1}/${zip.length}` } : {}),
     });
     if (drop != null) {
-      const n = drop;
-      drop = null;
+      const [n, waits] = [drop, hold];
+      [drop, hold] = [null, false];
       // The connection drops partway: what was sent stays, and the client sees a short read.
-      res.write(body.subarray(0, n), () => res.socket.destroy());
+      const cut = () => res.socket.destroy();
+      res.write(body.subarray(0, n), () => (waits ? (held = cut) : cut()));
       return;
     }
     res.end(body);
@@ -65,9 +76,14 @@ export function stopLibrary() {
   server = null;
 }
 
-/** From a spec (the worker): the next download stops after `bytes`. */
-export async function dropNext(bytes) {
-  await fetch(`${process.env.EMMET_E2E_LIBRARY_SERVER}/control?drop=${bytes}`, { method: "POST" });
+/** From a spec (the worker): the next download stops after `bytes`; held, it waits there until releaseDrop(). */
+export async function dropNext(bytes, { hold = false } = {}) {
+  await fetch(`${process.env.EMMET_E2E_LIBRARY_SERVER}/control?drop=${bytes}${hold ? "&hold=1" : ""}`, { method: "POST" });
+}
+
+/** From a spec: the held download drops now. */
+export async function releaseDrop() {
+  await fetch(`${process.env.EMMET_E2E_LIBRARY_SERVER}/control?release=1`, { method: "POST" });
 }
 
 /** From a spec: the Range starts of each download the server has answered. */

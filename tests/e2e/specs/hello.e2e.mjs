@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The E2E hello-world (ADR 0002), on 4A's window: with the parts and Python set up and no project, the real app starts
 // at first run's Start (the Cottage or a new model from a prompt), and it's interactive within section 14's budget
-// (4A What good looks like 2; the bench's table prints the time on every run).
+// (4A What good looks like 2; this spec logs the time on every run, "startup: interactive N ms").
 import { $, expect } from "@wdio/globals";
 
 describe("the app window", () => {

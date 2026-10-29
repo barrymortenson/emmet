@@ -48,3 +48,22 @@ fn a_file_that_isnt_ldraw_is_refused() {
     assert_eq!(v["error"]["message"], "notes.txt isn't an LDraw model file.");
     assert!(!dir.join("model.py").exists(), "nothing is made");
 }
+
+#[test]
+fn an_imported_file_with_brackets_in_its_name_is_still_known_as_imported() {
+    // Downloads names a second copy "wagon (1).ldr": the app's Make it parametric banner reads it from model.py.
+    let tmp = temp_dir("import-brackets");
+    let file = tmp.join("wagon (1).ldr");
+    std::fs::copy(fixture("projects/dsl-v1/wagon.ldr"), &file).unwrap();
+    let dir = tmp.join("Wagon");
+    let (v, code) = emmet_json(&["new", dir.to_str().unwrap(), "--import", file.to_str().unwrap()]);
+    assert_eq!(code, 0, "{v}");
+    let project = emmet_core::project::Project::find(Some(&dir)).unwrap();
+    assert_eq!(project.imported_file().as_deref(), Some("wagon (1).ldr"));
+    // Once model.py is the agent's own, it's a model like any other.
+    std::fs::write(dir.join("model.py"), "# edited\n").unwrap();
+    assert_eq!(
+        emmet_core::project::Project::find(Some(&dir)).unwrap().imported_file(),
+        None
+    );
+}

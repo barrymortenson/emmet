@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The Steps tab (Barry 2026-10-27, docs/design/frozen): the model's tree. Built apart first, each sub-assembly with how
-// many times it's used and its own sub-steps; then the steps, grouped by their titles' first words. Clicking a step
+// many times it's used and its own sub-steps; then the steps, grouped by the words before a title's ": " (else the step's group). Clicking a step
 // shows the build up to it (later steps are hidden); clicking a sub-assembly highlights every copy. The WAI-ARIA tree
 // pattern: up and down move, right and left open and close, Enter picks.
 import { useRef, useState } from "react";
