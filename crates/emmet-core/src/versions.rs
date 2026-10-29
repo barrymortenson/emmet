@@ -171,9 +171,36 @@ fn now() -> u64 {
         .map_or(0, |d| d.as_secs())
 }
 
-fn copy(from: &Path, to: &Path) -> Result<()> {
-    let bytes = std::fs::read(from).map_err(|e| Error::io(from, e))?;
-    write_atomic(to, &bytes)
+/// `root/rel`, refused unless `rel` is a plain relative path and nothing along it is a link: a version only ever reads
+/// and writes real files in real folders inside the project, so a linked models/ or source can't send a restore's
+/// writes, or a save's reads, anywhere else.
+fn plain(root: &Path, rel: &str) -> Result<PathBuf> {
+    let refuse = || {
+        Error::new(
+            ErrorCode::IoError,
+            format!("{rel} is a link, or isn't a plain file inside the project, so Emmet won't copy it."),
+            "Replace the link with the file itself, then try again.",
+        )
+        .at_file(rel)
+    };
+    let mut path = root.to_path_buf();
+    for part in Path::new(rel).components() {
+        let std::path::Component::Normal(name) = part else {
+            return Err(refuse());
+        };
+        path.push(name);
+        if std::fs::symlink_metadata(&path).is_ok_and(|m| m.file_type().is_symlink()) {
+            return Err(refuse());
+        }
+    }
+    Ok(path)
+}
+
+/// Copies `rel` from one folder to the same place in another, through [`plain`] paths on both sides.
+fn copy(from: &Path, to: &Path, rel: &str) -> Result<()> {
+    let src = plain(from, rel)?;
+    let bytes = std::fs::read(&src).map_err(|e| Error::io(&src, e))?;
+    write_atomic(&plain(to, rel)?, &bytes)
 }
 
 /// The build's model.mpd, placements.json, and part count, when build/ matches the sources as they are now.
@@ -222,15 +249,13 @@ pub fn save(
         ));
     }
     for rel in sources(project) {
-        copy(&project.root.join(&rel), &dir.join(&rel))?;
+        copy(&project.root, &dir, &rel)?;
     }
     let built = current_build(data, project);
     if built.is_some() {
-        copy(&project.root.join("build/model.mpd"), &dir.join("model.mpd"))?;
-        copy(
-            &project.root.join("build/placements.json"),
-            &dir.join("placements.json"),
-        )?;
+        let build = project.build_dir()?;
+        copy(&build, &dir, "model.mpd")?;
+        copy(&build, &dir, "placements.json")?;
     }
     if let Some(png) = thumbnail {
         write_atomic(&dir.join("thumbnail.png"), png)?;
@@ -269,6 +294,8 @@ fn prune(project: &Project) -> Result<()> {
 /// Puts version `n`'s sources back: first saves the current state as Emmet's own version, then writes each of the
 /// version's sources atomically and removes the models/ files and CARD.md it doesn't have.
 pub fn restore(data: &DataDir, project: &Project, n: u32) -> Result<Restored> {
+    // A read-only project's history is as untrusted as its model.py: it can be looked at, not put back.
+    project.require_trusted(data)?;
     let version = get(project, n)?;
     let dir = project.root.join("history").join(&version.dir);
     let theirs = version_sources(&dir);
@@ -278,6 +305,10 @@ pub fn restore(data: &DataDir, project: &Project, n: u32) -> Result<Restored> {
             format!("Version {n} has no model.py, so Emmet won't restore it."),
             "Its folder in history/ is incomplete; pick another version.",
         ));
+    }
+    // The version's own files are checked before the save, so a version that can't be restored changes nothing.
+    for rel in &theirs {
+        plain(&dir, rel)?;
     }
     let saved = save(
         data,
@@ -289,21 +320,26 @@ pub fn restore(data: &DataDir, project: &Project, n: u32) -> Result<Restored> {
     )?;
     let mine = sources(project);
     let mut written = Vec::new();
-    for rel in &theirs {
-        let to = project.root.join(rel);
-        let bytes = std::fs::read(dir.join(rel)).map_err(|e| Error::io(&dir.join(rel), e))?;
+    // Every path is checked before anything is written, so a link found halfway doesn't leave a half-restored project.
+    let targets = theirs
+        .iter()
+        .map(|rel| Ok((rel, plain(&dir, rel)?, plain(&project.root, rel)?)))
+        .collect::<Result<Vec<_>>>()?;
+    let gone = mine
+        .iter()
+        .filter(|m| !theirs.contains(m) && *m != "emmet.toml" && *m != "params.json")
+        .map(|rel| Ok((rel, plain(&project.root, rel)?)))
+        .collect::<Result<Vec<_>>>()?;
+    for (rel, from, to) in targets {
+        let bytes = std::fs::read(&from).map_err(|e| Error::io(&from, e))?;
         if std::fs::read(&to).ok().as_deref() != Some(bytes.as_slice()) {
             write_atomic(&to, &bytes)?;
             written.push(rel.clone());
         }
     }
+    // emmet.toml and params.json stay: a project needs them, and a version always has them.
     let mut removed = Vec::new();
-    for rel in mine.iter().filter(|m| !theirs.contains(m)) {
-        // emmet.toml and params.json stay: a project needs them, and a version always has them.
-        if rel == "emmet.toml" || rel == "params.json" {
-            continue;
-        }
-        let path = project.root.join(rel);
+    for (rel, path) in gone {
         std::fs::remove_file(&path).map_err(|e| Error::io(&path, e))?;
         removed.push(rel.clone());
     }
@@ -318,6 +354,9 @@ pub fn restore(data: &DataDir, project: &Project, n: u32) -> Result<Restored> {
 /// Copies version `n`'s sources into `dest` (missing or empty) as a new project, named after the folder and trusted
 /// on this machine.
 pub fn open_as_new(data: &DataDir, project: &Project, n: u32, dest: &Path) -> Result<Project> {
+    // The new project is trusted, so its sources must come from a project that already is: an untrusted project's
+    // history/ could hold any code.
+    project.require_trusted(data)?;
     let version = get(project, n)?;
     let dir = project.root.join("history").join(&version.dir);
     // A fresh project first (the folder checks, the machine hash, the trust marker), then the version's sources over it.
@@ -327,7 +366,7 @@ pub fn open_as_new(data: &DataDir, project: &Project, n: u32, dest: &Path) -> Re
         if rel == "emmet.toml" {
             continue;
         }
-        copy(&dir.join(&rel), &new.root.join(&rel))?;
+        copy(&dir, &new.root, &rel)?;
     }
     // The version's settings and allowed findings, under the new project's own name and machine.
     let mut config: crate::project::Config =

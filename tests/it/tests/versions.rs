@@ -206,3 +206,55 @@ fn a_missing_version_or_name_says_so() {
     let (v, code) = emmet_in(&dir, &["version", "list"]);
     assert_eq!(ok(&v, code).as_array().unwrap().len(), 0);
 }
+
+#[test]
+fn an_untrusted_projects_versions_cant_be_restored_or_opened() {
+    let dir = new_cottage("versions-untrusted");
+    let (v, code) = emmet_in(&dir, &["version", "save", "Mine"]);
+    ok(&v, code);
+    // Moved, so no longer trusted: its history/ is as untrusted as its model.py.
+    let moved = dir.parent().unwrap().join("moved");
+    std::fs::rename(&dir, &moved).unwrap();
+    let (v, code) = emmet_in(&moved, &["version", "restore", "1"]);
+    assert_ne!(code, 0);
+    assert_eq!(v["error"]["code"], "PROJECT_UNTRUSTED");
+    let dest = moved.parent().unwrap().join("copy");
+    let (v, code) = emmet_in(&moved, &["version", "open", "1", dest.to_str().unwrap()]);
+    assert_eq!(v["error"]["code"], "PROJECT_UNTRUSTED", "{v}");
+    assert_ne!(code, 0);
+    assert!(!dest.exists(), "no trusted copy of untrusted code is made");
+}
+
+#[cfg(unix)]
+#[test]
+fn a_linked_models_folder_or_source_is_refused() {
+    let dir = new_cottage("versions-links");
+    let outside = dir.parent().unwrap().join("outside");
+    std::fs::create_dir_all(&outside).unwrap();
+    std::fs::write(outside.join("secret.py"), "SECRET = 1\n").unwrap();
+
+    // A save won't read a source through a link.
+    std::os::unix::fs::symlink(&outside, dir.join("models")).unwrap();
+    let (v, code) = emmet_in(&dir, &["version", "save", "Linked"]);
+    assert_ne!(code, 0, "{v}");
+    assert!(v["error"]["message"].as_str().unwrap().contains("is a link"), "{v}");
+    std::fs::remove_file(dir.join("models")).unwrap();
+
+    // A version with a models/ file, restored into a project whose models/ became a link: nothing is written through it.
+    std::fs::create_dir_all(dir.join("models")).unwrap();
+    std::fs::write(dir.join("models/trim.py"), "WIDTH = 2\n").unwrap();
+    let (v, code) = emmet_in(&dir, &["version", "save", "With trim"]);
+    ok(&v, code);
+    std::fs::remove_dir_all(dir.join("models")).unwrap();
+    std::os::unix::fs::symlink(&outside, dir.join("models")).unwrap();
+    let (v, code) = emmet_in(&dir, &["version", "restore", "1"]);
+    assert_ne!(code, 0, "{v}");
+    assert!(
+        !outside.join("trim.py").exists(),
+        "the restore wrote nothing outside the project"
+    );
+    assert_eq!(
+        std::fs::read_to_string(outside.join("secret.py")).unwrap(),
+        "SECRET = 1\n"
+    );
+}

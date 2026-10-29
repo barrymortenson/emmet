@@ -5,6 +5,12 @@ Barry's answers, newest first, each with its date. Section 03 of the plan holds 
 
 ## 2026-10-28, session 4A
 
+- **Open… is one file picker.** keyboard.md says ⌘O opens "a project or an LDraw file", but the system's open dialogs
+  (tauri-plugin-dialog) pick folders or files, never both in one panel. Asked through AskUserQuestion, Barry chose
+  one file picker: Open… takes an LDraw `.ldr` or `.mpd` (which becomes an imported project) or a project's
+  `emmet.toml` (which opens its folder). No design change. Over a second menu item, "Open LDraw File…" (a design
+  change note), and over a new AppKit binding crate for a panel that takes either on macOS only.
+
 - **Install command line tool asks for an admin password on macOS.** Neither the plan nor the frozen design said how
   Settings puts the bundled `emmet` on PATH (D-08). Asked through AskUserQuestion, Barry chose VS Code's way: on
   macOS a link at `/usr/local/bin/emmet` to the copy inside the app, made after macOS's own administrator prompt; on
