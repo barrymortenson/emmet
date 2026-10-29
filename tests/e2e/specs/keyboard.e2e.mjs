@@ -116,20 +116,36 @@ describe("the keyboard map", () => {
   });
 
   it("every control Tab reaches shows a visible focus ring", async () => {
-    // A synthetic Tab doesn't move a webview's focus, and the driver's keys don't count as keyboard use for
-    // :focus-visible, so each control in the Tab order is focused the way Tab would (focusVisible) and its ring read.
+    // A synthetic Tab doesn't move a webview's focus, so each control in the Tab order is focused the way Tab would.
+    // WebKit matches :focus only while the window is the active one, which an E2E run beside other work (or a CI
+    // desktop) can't count on, so the rings are read from the window's own CSS: each :focus and :focus-visible rule
+    // gets a copy right after it that matches [data-e2e-focus], and the control focus lands on is marked in turn.
     await press(mod, "1");
     const rings = await browser.execute(() => {
+      const focus = /:focus(-visible)?(?![-\w])/g;
+      const copy = (owner) => {
+        const rules = owner.cssRules;
+        for (let i = rules.length - 1; i >= 0; i--) {
+          const r = rules[i];
+          if (r instanceof CSSStyleRule && focus.test(r.selectorText)) owner.insertRule(`${r.selectorText.replace(focus, "[data-e2e-focus]")} { ${r.style.cssText} }`, i + 1);
+          else if (!(r instanceof CSSStyleRule) && r.cssRules) copy(r);
+          focus.lastIndex = 0;
+        }
+      };
+      for (const sheet of document.styleSheets) copy(sheet);
       const tabbable = [...document.querySelectorAll('button, input, textarea, select, [tabindex]:not([tabindex="-1"]), a[href]')].filter(
         (el) => el.tabIndex >= 0 && !el.disabled && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden",
       );
       return tabbable.flatMap((el) => {
-        el.focus({ focusVisible: true });
+        el.focus();
         // Radix's tab list hands focus to its open tab, where Tab lands: that's the control whose ring shows.
         const at = document.activeElement;
         if (!at || (at !== el && !el.contains(at))) return [];
+        at.setAttribute("data-e2e-focus", "");
         const s = getComputedStyle(at);
-        return [{ el: at.id || at.getAttribute("aria-label") || at.textContent?.trim().slice(0, 30), ring: s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2 }];
+        const ring = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2;
+        at.removeAttribute("data-e2e-focus");
+        return [{ el: at.id || at.getAttribute("aria-label") || at.textContent?.trim().slice(0, 30), ring }];
       });
     });
     expect(rings.filter((r) => !r.ring).map((r) => r.el)).toEqual([]);
