@@ -180,7 +180,7 @@
             "type": "array"
           },
           "provenance": {
-            "description": "Where the method came from: Emmet's own, the instruction books it was read in (by set number), and how widely\nthe miner found it in official models. Never derived from an OMR model's file (D-48).",
+            "description": "Where its method came from: Emmet's own, and the instruction books it was read in, by set number. Never derived\nfrom an OMR model's file (D-48).",
             "type": "string"
           },
           "snippet": {

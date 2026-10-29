@@ -422,8 +422,9 @@ class Model:
         front-left corner is (x, y), with interlocking corners; without it, one straight wall along x. sides: "all",
         or some of "front", "back", "left", "right", and "sides" (left and right), to build a wall at a time. bond:
         "running" (no joint on a joint in the course below that a Model.wall laid, when the sizes allow it, so the
-        joints below are bridged and the course over a door or window spans its edges) or "stacked". openings: (x, y) cells left empty, for doors and
-        windows. kind: the piece family (Brick by default). sizes: the piece lengths to use. Returns the Handles."""
+        joints below are bridged and the course over a door or window spans its edges) or "stacked". openings: (x, y)
+        cells left empty, for doors and windows. kind: the piece family (Brick by default). sizes: the piece lengths to
+        use. Returns the Handles."""
         file, line = caller()
         ctx = self._ctx("Model.wall", file, line)
         rel = ctx.rel(file)
