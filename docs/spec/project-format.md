@@ -14,10 +14,13 @@ cottage/
 ├─ .gitignore        build/ and .emmet/
 ├─ build/            derived: model.mpd, placements.json, steps.json, manifest.json, validation.json, bom.json,
 │                    part-geometry.json, colors.json, export/, run.log
+├─ history/          saved versions, one folder each (below)
 └─ .emmet/           local only: trust, generation
 ```
 
-`emmet new <dir> [--template cottage|empty]` makes one. The folder must be new or empty.
+`emmet new <dir> [--template cottage|empty]` makes one. The folder must be new or empty. `emmet new <dir> --import
+<file>` makes one around an existing LDraw model (an `.ldr` or `.mpd`): the file is copied in, and `model.py` places
+`import_ldraw("<file>")`, so it builds, checks, and has steps like any model, until the agent makes it parametric.
 
 ## emmet.toml
 
@@ -33,8 +36,13 @@ preferred = "claude"
 [run]
 timeout = 30                        # seconds a model may run, more than 0 and at most 3600; optional
 
-[build]
-age = "6+"                          # the Age build setting: "4+", "6+", "9+", "13+", or "18+"; optional
+[build]                             # the build settings, which steer the agent; each optional ("Any" until set)
+base = "32 × 32"                    # "None", "16 × 16", "32 × 32", or "48 × 48"
+scale = "Figure scale"              # "Micro", "Micropolis", "Midi", "Figure scale", "Large", or "Car 1:8"
+age = "6+"                          # "4+", "6+", "9+", "13+", or "18+"
+detail = "Low"                      # "Low", "Medium", or "High"
+pieces = "Small"                    # "Small" (50–250), "Medium" (250–1,000), "Large" (1,000–2,500), "Huge" (2,500+)
+style = "Town"                      # a suggestion ("Town", "Medieval", …) or the user's own words
 
 [[check.allow]]                     # a finding the user has decided to allow; optional, any number
 rule = "floating"
@@ -42,7 +50,9 @@ parts = ["flag/1"]
 reason = "held by hand in photos"
 ```
 
-`[build] age` sets the step_size target: 4 parts a step for 4+, 12 for 18+, and 8 otherwise. Each `[[check.allow]]`
+The app writes `[build]` and `[[check.allow]]` (Options' build settings, and It's fine in Checks); a build setting
+doesn't change the model on its own: Rebuild asks the agent to rework the model for it. The one thing a setting does
+by itself is `[build] age`, which sets the step_size target: 4 parts a step for 4+, 12 for 18+, and 8 otherwise. Each `[[check.allow]]`
 moves each finding of that rule whose parts are all in `parts` from the findings to `allowed`, as `m.allow` does from
 the model (`docs/spec/validator.md`).
 
@@ -56,12 +66,33 @@ The sources are `model.py`, `models/**/*.py`, `params.json`, and `emmet.toml`. `
 the sha256 of the sources (line ends normalized to LF), the run's `--params` overrides, and the Emmet, library, and
 parts data versions. A run whose hash differs from the manifest's is out of date.
 
+## Versions
+
+`history/<n>-<slug>/` holds version `n` (from 1; the slug is its name in lowercase words, `3-roof-and-chimney`): a copy
+of the sources (`model.py`, `models/`, `params.json`, `emmet.toml`, `CARD.md`, and the `.ldr` and `.mpd` files at the
+top, which an imported model brings in), that build's `model.mpd` and
+`placements.json` when the build was current (so the app can show the version to compare without running it), a
+`thumbnail.png` when the app saved it, and `version.json`:
+
+```json
+{ "n": 3, "name": "Roof and chimney", "time": 1793232393, "auto": false, "parts": 147, "inputs_hash": "…",
+  "dir": "3-roof-and-chimney", "thumbnail": true, "placements": true }
+```
+
+`emmet version save <name> [--note …]` saves one; `emmet version list` lists them, newest first; `emmet version restore
+<n>` first saves the current state as Emmet's own version ("Before restoring version n", `auto`), then writes the
+version's sources back atomically and removes the `models/` files and `CARD.md` it doesn't have (an LDraw file at the
+top stays), so a restore never loses anything; `emmet version open <n> <dir>` copies one out as a new project, named after its folder and trusted on
+this machine. Emmet keeps its last 20 automatic versions (a restore prunes after it has read the version it restores);
+named ones stay. A save that can't finish leaves no folder behind. A version never reads or writes through a
+link, and an untrusted project's versions can't be restored or copied out (they're as untrusted as its `model.py`).
+
 ## Who writes what
 
 - The agent and the user edit `model.py`, `models/`, and `CARD.md`.
 - `emmet params --set` (and the app) write `params.json`, always atomically.
-- Only emmet writes `build/` and `.emmet/`. Every write goes to a temp file in the same folder, is synced, then
-  renamed. emmet refuses to write through a `build/` or `.emmet/` that is a link or a file.
+- Only emmet writes `build/`, `history/`, and `.emmet/`. Every write goes to a temp file in the same folder, is synced, then
+  renamed. emmet refuses to write through a `build/`, `history/`, or `.emmet/` that is a link or a file.
 
 ## Trust (D-27)
 

@@ -4,7 +4,8 @@
 // the ChatGPT logo appears), the one-time "You're using your ChatGPT plan" notice, "Using ChatGPT plan · Manage usage"
 // near the composer, the usage-limit card with Manage usage first, the banner inviting API-key users, and Settings'
 // account picker. The host opens ChatGPT's usage page; the window never sees a token.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Dialog } from "radix-ui";
+import { useCallback, useEffect, useState } from "react";
 import logo from "./assets/openai/chatgpt-logo-white.svg";
 import { type AccountView, type CodexBilling, commands } from "./bindings";
 
@@ -54,34 +55,29 @@ export function LimitCard() {
 
 /** The welcome notice, shown once per account: the first sign-in with plan use on. */
 export function PlanNotice({ account, onDone }: { account: string; onDone: () => void }) {
-  const dialog = useRef<HTMLDialogElement | null>(null);
-  useEffect(() => {
-    dialog.current?.showModal();
-  }, []);
   const done = () => {
     void commands.chatgptNoticeSeen(account);
     onDone();
   };
+  // OpenAI's words, in the frozen dialog (docs/design/frozen's chatgpt-notice), over Settings when it opens there.
   return (
-    <dialog
-      ref={dialog}
-      className="settings plan-notice"
-      id="plan-notice"
-      aria-labelledby="plan-notice-title"
-      // React passes a dialog's close up to the dialogs around it; this one closing mustn't close Settings.
-      onClose={(e) => {
-        e.stopPropagation();
-        done();
-      }}
-    >
-      <h2 id="plan-notice-title">You're using your ChatGPT plan</h2>
-      <p>Eligible usage in this app uses your ChatGPT plan. Manage usage in your ChatGPT settings.</p>
-      <form method="dialog">
-        <button type="submit" className="primary" id="plan-notice-ok">
-          Got it
-        </button>
-      </form>
-    </dialog>
+    <Dialog.Root open onOpenChange={(o) => !o && done()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="dialog-overlay" data-c="dialog">
+          <Dialog.Content className="dialog plan-notice" id="plan-notice" aria-describedby={undefined}>
+            <Dialog.Title className="dialog-title">You're using your ChatGPT plan</Dialog.Title>
+            <p>Eligible usage in this app uses your ChatGPT plan. Manage usage in your ChatGPT settings.</p>
+            <div className="dialog-actions">
+              <Dialog.Close asChild>
+                <button type="button" className="button" data-c="button" data-variant="primary" data-size="sm" id="plan-notice-ok">
+                  <span>Got it</span>
+                </button>
+              </Dialog.Close>
+            </div>
+          </Dialog.Content>
+        </Dialog.Overlay>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 

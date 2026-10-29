@@ -7,19 +7,32 @@
 // dir is the one the integration tests share (ldraw-mini and Python, from target/debug/prepare-data). Screenshots,
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
-import { basename } from "node:path";
-import { prepareAgents, startOpenAi, stopOpenAi } from "./lib/agents.mjs";
+import { cpSync, mkdirSync, rmSync } from "node:fs";
+import { basename, join } from "node:path";
+import { agentHome, prepareAgents, startOpenAi, stopOpenAi } from "./lib/agents.mjs";
 import { webContentPids } from "./lib/memory.mjs";
+import { startLibrary, stopLibrary } from "./lib/library-server.mjs";
 import { appBinary, bin, out } from "./lib/paths.mjs";
 import { prepareProject } from "./lib/projects.mjs";
 
 const bench = process.env.EMMET_BENCH === "1";
+// First run (EMMET_E2E_FIRST_RUN=1, session 4A) starts the app on its own fresh data dir: no library and no Python
+// environment, only the Python interpreter the shared one downloaded (uv would download the same), and the library
+// from lib/library-server.mjs. `just e2e` runs it after the shared run.
+const firstRun = process.env.EMMET_E2E_FIRST_RUN === "1";
+const fresh = join(out, "first-run-data");
+
+/** The specs this run takes. */
+function specs() {
+  if (bench) return { specs: ["./specs/bench.e2e.mjs"], exclude: [] };
+  if (firstRun) return { specs: ["./specs/first-run.e2e.mjs"], exclude: [] };
+  return { specs: ["./specs/hello.e2e.mjs", "./specs/**/*.e2e.mjs"], exclude: ["./specs/bench.e2e.mjs", "./specs/first-run.e2e.mjs"] };
+}
 
 export const config = {
   runner: "local",
   // hello checks the app's first window (no project open), so it runs first; the app is shared by every spec file.
-  specs: bench ? ["./specs/bench.e2e.mjs"] : ["./specs/hello.e2e.mjs", "./specs/**/*.e2e.mjs"],
-  exclude: bench ? [] : ["./specs/bench.e2e.mjs"],
+  ...specs(),
   maxInstances: 1,
   capabilities: [{ browserName: "tauri", "tauri:options": { application: appBinary } }],
   services: [["@wdio/tauri-service", { driverProvider: "embedded" }]],
@@ -27,11 +40,33 @@ export const config = {
   reporters: ["spec"],
   logLevel: "warn",
   // One retry is allowed in E2E only (plan section 16).
-  specFileRetries: bench ? 0 : 1,
+  // First run can't be tried again on the data dir its first try set up.
+  specFileRetries: bench || firstRun ? 0 : 1,
   mochaOpts: { timeout: bench ? 600_000 : 120_000 },
   async onPrepare() {
-    process.env.EMMET_DATA_DIR = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
+    const shared = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
+    process.env.EMMET_DATA_DIR = shared;
     process.env.EMMET_E2E_OUT = out;
+    // Open… reads its pick from here in a debug build (src-tauri/src/projects.rs), since WebDriver can't drive the
+    // system's file dialog.
+    process.env.EMMET_E2E_PICK_FILE = join(out, "pick.txt");
+    // The app reopens its last project at launch; the run starts from none, as hello expects.
+    rmSync(join(shared, "recent.json"), { force: true });
+    // Old-library checks and Update the library download ldraw-mini from here too.
+    await startLibrary(shared);
+    if (firstRun) {
+      rmSync(fresh, { recursive: true, force: true });
+      rmSync(join(agentHome, "Documents", "Emmet"), { recursive: true, force: true });
+      mkdirSync(join(fresh, "python"), { recursive: true });
+      // EMMET_E2E_REAL=1 (by hand, never in CI): the real library from library.ldraw.org and uv's real Python
+      // download, to time a first run on a real connection (4A Done when 2).
+      if (process.env.EMMET_E2E_REAL === "1") {
+        for (const k of ["EMMET_LIBRARY_URL", "EMMET_LIBRARY_SHA256", "EMMET_LIBRARY_RELEASE"]) delete process.env[k];
+      } else {
+        cpSync(join(shared, "python", "installs"), join(fresh, "python", "installs"), { recursive: true, verbatimSymlinks: true });
+      }
+      process.env.EMMET_DATA_DIR = fresh;
+    }
     // The chat specs' fake agents, and the test home with sentinel agent configs (lib/agents.mjs).
     prepareAgents();
     await startOpenAi();
@@ -45,14 +80,35 @@ export const config = {
   },
   onComplete() {
     stopOpenAi();
+    stopLibrary();
   },
   // Before each spec file: its fresh project, on the recents list.
   onWorkerStart(_cid, _caps, specs) {
+    if (firstRun) return;
+    // Each spec starts from the same agents (a spec may sign one out, or leave a ChatGPT account in the data dir) and
+    // a test home with no Documents/Emmet or Downloads (New, import, and Export write there), so a spec, and the
+    // screens it takes, don't depend on the order.
+    prepareAgents();
+    rmSync(join(process.env.EMMET_DATA_DIR, "chatgpt"), { recursive: true, force: true });
     prepareProject(basename(specs[0] ?? "", ".e2e.mjs"));
+  },
+  // A failed test's window, for the CI artifact.
+  async afterTest(test, _context, { passed }) {
+    if (passed) return;
+    const dir = join(out, "failures");
+    mkdirSync(dir, { recursive: true });
+    await browser.saveScreenshot(join(dir, `${test.parent} ${test.title}`.replace(/[^\w.-]+/g, "-").slice(0, 120) + ".png")).catch(() => {});
   },
   // The app has one window. Choosing it explicitly turns off the service's per-command focus check, which needs the
   // service's companion plugin (tauri-plugin-wdio) and waits 5 s on every command without it (ADR 0002).
   beforeSuite: async () => {
     await browser.tauri.switchWindow("main");
+  },
+  // WebKit stops drawing a window that's covered or minimized, and every wait on the next frame hangs until it shows:
+  // say so in seconds, not one timeout per test.
+  async beforeTest() {
+    const visible = () => browser.execute(() => document.visibilityState === "visible");
+    if (await visible()) return;
+    await browser.waitUntil(visible, { timeout: 15_000, interval: 1000, timeoutMsg: "The app's window is covered or minimized, so WebKit doesn't draw it: E2E needs the window showing" });
   },
 };

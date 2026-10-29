@@ -1,0 +1,101 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* The app's own few rules beside the frozen components.css (session 4A): the window filling its frame, the viewer's
+   canvas, where Radix's wrappers meet the frozen markup, and 1C's chat in the dock until 4B rebuilds it. Tokens only
+   (scripts/style-lint.mjs): no raw colors, no pixel sizes. */
+
+html, body, #root { height: 100%; margin: 0; }
+body { position: relative; overflow: hidden; }
+
+/* The viewer's canvas fills it; its overlays sit above. */
+.viewer > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; }
+.app > .panel:empty { visibility: hidden; }
+.viewer-notes { position: absolute; left: var(--space-md); right: var(--space-md); bottom: var(--space-md); z-index: 2; display: grid; gap: var(--space-xs); }
+.viewer:focus-visible, .dock:focus-visible, .panel:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: calc(-1 * var(--focus-width)); }
+
+/* Radix Tabs: its root holds the tab list and the open tab's content, which the panel's grid lays out as rows. */
+.panel-tabs { display: contents; }
+.panel-body:focus-visible { outline-offset: calc(-1 * var(--focus-width)); }
+
+/* Radix places floating content in a wrapper of its own, so the frozen tooltip sits in the flow inside it. */
+[data-radix-popper-content-wrapper] > .tooltip { position: static; }
+[data-radix-popper-content-wrapper] { z-index: 30 !important; }
+
+/* Radix Slider wraps the thumb in a span it positions along the track; the frozen thumb centers on that point. */
+.slider-root > span:has(> .slider-thumb) { top: 50%; }
+
+/* A link inside a sentence. */
+.link-button { display: inline; padding: 0; border: 0; background: none; color: var(--fg-accent); font: inherit; text-decoration: underline; text-underline-offset: var(--space-3xs); cursor: pointer; }
+
+/* First run is one layer over the whole window. */
+.first-run-layer { position: absolute; inset: 0; z-index: 15; }
+.first-run-drag { position: absolute; top: 0; left: 0; right: 0; height: var(--titlebar-height); }
+.first-run-card { z-index: 1; }
+.first-run-problem { position: absolute; left: var(--space-3xl); bottom: var(--space-lg); max-width: var(--first-run-width); }
+.start-card:disabled { cursor: default; background: var(--bg-sunken); color: var(--fg-muted); }
+.start-card:disabled:hover { border-color: var(--line); }
+
+/* Pictures that haven't drawn yet keep their place. */
+.part-pic-empty { display: block; width: var(--part-pic); height: var(--part-pic); border-radius: var(--radius-sm); background: var(--bg-sunken); }
+.version-thumb-empty { width: var(--thumb-width); height: var(--thumb-height); flex: none; border-radius: var(--radius-sm); background: var(--bg-canvas); }
+.version-row:disabled { cursor: default; }
+.versions-list { display: grid; gap: var(--space-3xs); max-height: calc(var(--dock-active-max) + var(--control-lg)); overflow: auto; }
+.color-popover { max-width: var(--menu-wide); }
+.color-popover .swatch-grid { max-height: var(--dock-active-max); overflow: auto; }
+.data-table tbody tr { cursor: pointer; }
+
+/* Settings and About. */
+.settings-dialog { width: calc(var(--dialog-width) + var(--space-3xl)); }
+.settings-dialog .setting[data-inline] > .setting-name { font-weight: var(--weight-regular); }
+.settings-codex { display: grid; gap: var(--space-xs); }
+.settings-codex .settings, .settings-codex fieldset { display: grid; gap: var(--space-xs); padding: 0; margin: 0; border: 0; }
+.licenses { display: grid; gap: var(--space-sm); text-align: left; font-size: var(--text-sm); }
+.shortcuts td { cursor: default; }
+.shortcuts .kbd + .kbd { margin-left: var(--space-2xs); }
+
+/* 1C's chat pane in the dock, in the tokens, until 4B rebuilds it as the frozen dock. */
+.dock { max-height: calc(var(--dock-history) * 100cqh); overflow: auto; }
+.dock > .alert-card { margin: 0 var(--space-3xs); }
+.chat { display: grid; gap: var(--space-xs); min-width: 0; }
+.chat-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); padding: 0 var(--space-3xs); }
+.chat-head h2 { margin: 0; font-size: var(--text-sm); font-weight: var(--weight-strong); color: var(--fg-muted); }
+.chat button:not([class]), .usage button:not([class]), .picker button:not([class]) { min-height: var(--control-sm); padding: 0 var(--space-md); border: var(--line-width) solid var(--ui-control); border-radius: var(--radius-full); background: var(--bg-surface); font-size: var(--text-sm); font-weight: var(--weight-strong); }
+.chat button:not([class]):hover { background: var(--bg-raised); }
+.chat button:not([class]):disabled { background: var(--bg-sunken); border-color: var(--bg-sunken); color: var(--fg-muted); cursor: default; }
+.chat button.primary, .codex-billing button.primary { min-height: var(--control-sm); padding: 0 var(--space-md); border: var(--line-width) solid var(--fill-accent); border-radius: var(--radius-full); background: var(--fill-accent); color: var(--on-accent); font-size: var(--text-sm); font-weight: var(--weight-strong); }
+.chat button.link, .codex-billing button.link, .plan-label button.link { padding: 0; border: 0; background: none; color: var(--fg-accent); text-decoration: underline; font-size: var(--text-sm); }
+.picker { display: grid; justify-items: start; gap: var(--space-sm); }
+.picker > .agent { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); }
+.agent-setup { display: grid; gap: var(--space-sm); }
+.messages { display: flex; flex-direction: column; gap: var(--space-sm); max-height: var(--dock-active-max); overflow: auto; padding: var(--space-2xs); }
+.messages:empty { display: none; }
+.msg { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.user { align-self: flex-end; max-width: 86%; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-lg) var(--radius-lg) var(--radius-xs) var(--radius-lg); background: var(--bg-accent); }
+.msg.user.pending { border: var(--line-width-strong) dashed var(--ui-control); background: var(--bg-surface); }
+.msg.reasoning { color: var(--fg-muted); }
+.card { padding: var(--space-xs) var(--space-md); border: var(--line-width) solid var(--line); border-radius: var(--radius-lg); background: var(--bg-surface); font-size: var(--text-sm); }
+.card.failed, .card.error-card { background: var(--bg-bad); }
+.card pre { margin: var(--space-xs) 0 0; padding: var(--space-xs); border-radius: var(--radius-md); background: var(--bg-raised); font: var(--text-xs) / var(--leading) var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.card.approval, .card.question { border: var(--line-width-strong) solid var(--fill-accent); }
+.card .options, .card .actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-xs); }
+.working { display: flex; align-items: center; gap: var(--space-sm); margin: 0; padding: 0 var(--space-md); min-height: var(--control-md); border-radius: var(--radius-full); background: var(--bg-accent); }
+.working .spinner { color: var(--fg-accent); }
+.warning { margin: 0; color: var(--fg-warn); font-size: var(--text-xs); }
+.plan-label { margin: 0; font-size: var(--text-xs); color: var(--fg-muted); }
+.usage { position: relative; display: flex; justify-content: flex-end; }
+.usage > button { font-size: var(--text-xs) !important; }
+.usage > .popover { position: absolute; right: 0; bottom: calc(100% + var(--space-xs)); z-index: 10; }
+.usage table { border-collapse: collapse; font-size: var(--text-sm); }
+.usage th, .usage td { padding: var(--space-3xs) var(--space-xs); text-align: left; }
+.limit-card .limit-who { margin: 0; font-size: var(--text-xs); font-weight: var(--weight-strong); color: var(--fg-muted); }
+.limit-card p { margin: 0 0 var(--space-xs); }
+.codex-billing .account, .codex-billing .add-account, .codex-billing .invite { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); margin: var(--space-xs) 0; }
+.plan-notice h2 { font-size: var(--text-lg); color: var(--fg-text); }
+.job, .failed, .terminal-sign-in { display: grid; gap: var(--space-xs); margin-top: var(--space-xs); justify-items: start; }
+.failed > p:first-child { color: var(--fg-bad); }
+.failed pre { margin: 0; font: var(--text-xs) / var(--leading) var(--font-mono); white-space: pre-wrap; }
+.setup-card-text > p + p { margin-top: var(--space-2xs); }
+dialog.settings { padding: var(--space-xl); border: var(--line-width) solid var(--line); border-radius: var(--radius-xl); background: var(--bg-surface); color: var(--fg-text); box-shadow: var(--elevation-3); }
+dialog.settings::backdrop { background: var(--scrim); }
+
+/* Radix keeps a closed tab's content with the hidden attribute, which the frozen .panel-body's display would undo. */
+.panel-body[hidden] { display: none; }

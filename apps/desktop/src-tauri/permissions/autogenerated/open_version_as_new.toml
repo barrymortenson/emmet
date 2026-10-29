@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-open-version-as-new"
+description = "Enables the open_version_as_new command without any pre-configured scope."
+commands.allow = ["open_version_as_new"]
+
+[[permission]]
+identifier = "deny-open-version-as-new"
+description = "Denies the open_version_as_new command without any pre-configured scope."
+commands.deny = ["open_version_as_new"]

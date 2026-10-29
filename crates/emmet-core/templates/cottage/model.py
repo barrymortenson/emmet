@@ -114,7 +114,7 @@ def runs(cells, axis):
     return out
 
 
-@model
+@model(knobs=["weathering", "chimney", "roof", "seed"])
 def cottage(
     width: Annotated[int, Range(6, 16)] = 10,
     depth: Annotated[int, Range(4, 12), Step(2)] = 8,

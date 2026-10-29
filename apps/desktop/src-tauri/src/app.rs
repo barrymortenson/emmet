@@ -10,11 +10,10 @@ use std::time::Duration;
 
 use emmet_core::data::DataDir;
 use emmet_core::envelope::Error;
-use emmet_core::project::{Project, Template};
+use emmet_core::project::Project;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Manager, State};
-use tauri_plugin_dialog::DialogExt;
 use tauri_specta::Event;
 
 use crate::recent::{self, Recent};
@@ -31,6 +30,11 @@ pub struct ProjectView {
     pub trusted: bool,
     /// Whether the watcher is running; when it isn't, edits don't rebuild on their own (use Rebuild).
     pub watching: bool,
+    /// The LDraw file an imported project brings in, while its model.py is still the one Emmet wrote (the banner's
+    /// Make it parametric).
+    pub imported: Option<String>,
+    /// The build settings in emmet.toml's [build].
+    pub build: crate::projects::BuildSettings,
 }
 
 /// An error for the UI: emmet's error envelope, with the user's file and line when there is one.
@@ -106,6 +110,9 @@ pub struct Scene {
     /// The parts list (the Parts drawer), or null when it couldn't be made.
     #[serde(default)]
     pub bom: Option<Bom>,
+    /// The Steps tab's tree, or null when build/ has no steps.json.
+    #[serde(default)]
+    pub tree: Option<StepsTree>,
 }
 
 /// A line of the model's source that placed a finding's parts, with its text.
@@ -133,11 +140,49 @@ pub struct Finding {
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct Checks {
     pub findings: Vec<Finding>,
+    /// Findings the user allowed (It's fine) or the model did (m.allow): Check it again brings one back.
+    #[serde(default)]
+    pub allowed: Vec<AllowedView>,
     pub errors: u32,
     /// No errors and no warnings.
     pub clean: bool,
     /// Why the validator couldn't run, when it couldn't.
     pub problem: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct AllowedView {
+    pub rule: String,
+    pub parts: Vec<String>,
+    pub reason: String,
+}
+
+/// The Steps tab's tree (build/steps.json): the sub-assemblies, each with its uses and sub-steps, then the steps.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct StepsTree {
+    pub steps: Vec<StepView>,
+    pub submodels: Vec<SubmodelView>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct StepView {
+    pub n: u32,
+    pub title: String,
+    pub group: String,
+    /// The parts this step adds, and the copies of sub-assemblies it puts on.
+    pub parts: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct SubmodelView {
+    pub name: String,
+    /// Its file in model.mpd, which placements name in their submodel path.
+    pub file: String,
+    /// The "× 5" on its row.
+    pub count: u32,
+    /// Parts in one copy.
+    pub parts: u32,
+    pub steps: Vec<StepView>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -191,8 +236,18 @@ pub struct AppInfo {
     pub recent: Vec<Recent>,
     /// The library release, or null when none is installed.
     pub library: Option<String>,
+    /// The release this Emmet installs, and whether the installed one is older (the old library's banner).
+    pub pinned: String,
+    pub library_old: bool,
+    /// The parts data pack's date, or null.
+    pub parts_data: Option<String>,
     /// Whether Python and emmet_dsl are set up for models (`emmet doctor --fix` does it).
     pub python: bool,
+    /// Emmet's version.
+    pub version: String,
+    /// Milliseconds since the app started, from the first thing run() does (the warm start's timing, plan section 14's
+    /// budget).
+    pub uptime_ms: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -212,6 +267,9 @@ pub struct ParamSpec {
     pub choices: Option<Vec<Value>>,
     pub help: String,
     pub line: u32,
+    /// One of the model's knobs, which the panel shows (`@model(knobs=...)`).
+    #[serde(default)]
+    pub knob: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -365,12 +423,44 @@ impl AppState {
             .map(|o| o.root.clone())
     }
 
+    /// Marks the project at `root` open, as [`open`] does, without a window, a watcher, or a run: for the run tests.
+    #[doc(hidden)]
+    pub fn open_without_window(&self, root: &Path) {
+        self.inner.lock().expect("state").project = Some(Open {
+            root: root.to_path_buf(),
+            view: ProjectView {
+                root: root.display().to_string(),
+                name: String::new(),
+                trusted: true,
+                watching: false,
+                imported: None,
+                build: crate::projects::BuildSettings::default(),
+            },
+            _watcher: None,
+        });
+    }
+
+    /// The open project's view as its files say now, when `project` is the open one: a restore wrote back its
+    /// emmet.toml (the build settings) and model.py (whether it's still an import).
+    pub fn refresh_view(&self, project: &Project) -> Option<ProjectView> {
+        let mut inner = self.inner.lock().expect("state");
+        let open = inner.project.as_mut().filter(|o| o.root == project.root)?;
+        open.view.imported = project.imported_file();
+        open.view.build = crate::projects::BuildSettings::from(&project.config.build);
+        Some(open.view.clone())
+    }
+
     /// Records something to tell the user that isn't a run's error (see [`UiState::notice`]).
     pub fn notify(&self, notice: impl Into<String>) {
         self.inner.lock().expect("state").notice = Some(notice.into());
     }
 
-    fn project(&self) -> Result<Project, Box<Problem>> {
+    /// One params.json write at a time (see [`AppState::params`]).
+    pub(crate) fn lock_params(&self) -> std::sync::MutexGuard<'_, ()> {
+        self.params.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    pub(crate) fn project(&self) -> Result<Project, Box<Problem>> {
         let root = self
             .open_root()
             .ok_or_else(|| Problem::internal("No project is open."))?;
@@ -400,6 +490,43 @@ fn scene_from(placements: &Value, manifest: &Value, ms: Option<u64>) -> Option<S
         ms,
         checks: None,
         bom: None,
+        tree: None,
+    })
+}
+
+/// A scene from a placements.json alone: a saved version's build, opened to compare.
+pub(crate) fn scene_at(placements: &Path) -> Option<Scene> {
+    let v: Value = serde_json::from_str(&std::fs::read_to_string(placements).ok()?).ok()?;
+    scene_from(&v, &Value::Null, None)
+}
+
+/// The Steps tab's tree from build/steps.json.
+fn steps_tree(root: &Path) -> Option<StepsTree> {
+    let text = std::fs::read_to_string(root.join("build/steps.json")).ok()?;
+    let steps: emmet_core::steps::Steps = serde_json::from_str(&text).ok()?;
+    let view = |list: &[emmet_core::steps::Step]| {
+        list.iter()
+            .map(|s| StepView {
+                n: s.n,
+                title: s.title.clone(),
+                group: s.group.clone(),
+                parts: (s.part_ids.len() + s.submodels.iter().map(|p| p.count).sum::<usize>()) as u32,
+            })
+            .collect::<Vec<_>>()
+    };
+    Some(StepsTree {
+        steps: view(&steps.steps),
+        submodels: steps
+            .submodels
+            .iter()
+            .map(|m| SubmodelView {
+                name: m.name.clone(),
+                file: m.file.clone(),
+                count: m.count as u32,
+                parts: m.parts as u32,
+                steps: view(&m.steps),
+            })
+            .collect(),
     })
 }
 
@@ -411,6 +538,7 @@ fn annotate(data: &DataDir, root: &Path, scene: &mut Scene) {
         Err(e) => {
             scene.checks = Some(Checks {
                 findings: vec![],
+                allowed: vec![],
                 errors: 0,
                 clean: false,
                 problem: Some(e.message),
@@ -418,8 +546,18 @@ fn annotate(data: &DataDir, root: &Path, scene: &mut Scene) {
             return;
         }
     };
+    scene.tree = steps_tree(root);
     scene.checks = Some(match emmet_core::ops::check_build(data, &project, &[]) {
         Ok(v) => Checks {
+            allowed: v
+                .allowed
+                .iter()
+                .map(|a| AllowedView {
+                    rule: a.rule.clone(),
+                    parts: a.parts.clone(),
+                    reason: a.reason.clone(),
+                })
+                .collect(),
             errors: v.errors() as u32,
             clean: v.clean,
             findings: v
@@ -450,6 +588,7 @@ fn annotate(data: &DataDir, root: &Path, scene: &mut Scene) {
         },
         Err(e) => Checks {
             findings: vec![],
+            allowed: vec![],
             errors: 0,
             clean: false,
             problem: Some(format!("{} {}", e.message, e.hint)),
@@ -506,24 +645,29 @@ fn on_run_event(app: &AppHandle, ev: RunEvent) {
     let state = app.state::<AppState>();
     match ev {
         RunEvent::Started { project } => {
-            if state.open_root().as_deref() != Some(project.as_path()) {
-                return;
+            {
+                let mut inner = state.inner.lock().expect("state");
+                if inner.project.as_ref().map(|p| p.root.as_path()) != Some(project.as_path()) {
+                    return;
+                }
+                inner.running = true;
             }
-            state.inner.lock().expect("state").running = true;
             let _ = RunStarted {}.emit(app);
         }
         RunEvent::Finished(o) => {
-            if o.canceled || state.open_root().as_deref() != Some(o.project.as_path()) {
+            if o.canceled {
                 return;
             }
-            let _ = finish(&state, &o).emit(app);
+            if let Some(finished) = finish(&state, &o) {
+                let _ = finished.emit(app);
+            }
         }
     }
 }
 
-/// Applies a run's outcome to the state and says what the window should show. A run always ends with one, so the
-/// window never stays on "rebuilding".
-pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
+/// Applies a run's outcome to the state and says what the window should show. A run of the open project always ends
+/// with one, so the window never stays on "rebuilding"; a run of a project that's no longer open ends with none.
+pub fn finish(state: &AppState, o: &Outcome) -> Option<RunFinished> {
     // The scene, checks, and parts list are made before the state is locked: the validator takes a few tens of ms.
     let built = match (&o.envelope, &o.placements) {
         (Some(env), Some(Ok(placements))) if env["ok"] == true => {
@@ -540,6 +684,11 @@ pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
         _ => None,
     };
     let mut inner = state.inner.lock().expect("state");
+    // Checked under the lock that applies the result: another project can open while the scene above is made, and
+    // its window would take this one's scene as its own.
+    if inner.project.as_ref().map(|p| p.root.as_path()) != Some(o.project.as_path()) {
+        return None;
+    }
     inner.running = false;
     let failed = |inner: &mut Inner, error: Problem| {
         inner.error = Some(error.clone());
@@ -552,23 +701,23 @@ pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
     let error = match (&o.envelope, &o.placements) {
         (Some(env), Some(Ok(_))) if env["ok"] == true => {
             let Some(Some(scene)) = built else {
-                return failed(
+                return Some(failed(
                     &mut inner,
                     *Problem::internal("build/placements.json isn't a list of placements this app can read."),
-                );
+                ));
             };
             if !inner.accept(scene.clone()) {
-                return RunFinished {
+                return Some(RunFinished {
                     scene: None,
                     error: None,
                     stale: true,
-                };
+                });
             }
-            return RunFinished {
+            return Some(RunFinished {
                 scene: Some(scene),
                 error: None,
                 stale: false,
-            };
+            });
         }
         (Some(env), Some(Err(why))) if env["ok"] == true => {
             *Problem::internal(format!("The run finished, but the app can't use its result: {why}."))
@@ -589,7 +738,7 @@ pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
             }
         }
     };
-    failed(&mut inner, error)
+    Some(failed(&mut inner, error))
 }
 
 /// Opens the project at `dir`: watches it, shows its last build, and runs it if that's stale or missing.
@@ -609,6 +758,8 @@ pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
         name: project.config.name.clone(),
         trusted: project.is_trusted(&state.data),
         watching: watcher.is_some(),
+        imported: project.imported_file(),
+        build: crate::projects::BuildSettings::from(&project.config.build),
     };
     let scene = read_scene(&root).map(|mut s| {
         annotate(&state.data, &root, &mut s);
@@ -640,6 +791,7 @@ pub fn open(app: &AppHandle, dir: &Path) -> Result<ProjectView, Box<Problem>> {
         inner.running = false;
     }
     recent::touch(&state.data, &root, &view.name);
+    crate::menu::refresh(app);
     let _ = ProjectOpened {
         project: view.clone(),
         scene,
@@ -727,10 +879,16 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
 #[tauri::command]
 #[specta::specta]
 pub fn app_info(state: State<'_, AppState>) -> AppInfo {
+    let library = emmet_core::library::require(&state.data).ok().map(|i| i.release);
     AppInfo {
         recent: recent::list(&state.data),
-        library: emmet_core::library::require(&state.data).ok().map(|i| i.release),
+        library_old: library.as_deref().is_some_and(crate::setup::library_old),
+        library,
+        pinned: crate::setup::library_pin().0,
+        parts_data: emmet_core::parts_data::version(&state.data).ok().flatten(),
         python: emmet_core::python::status(&state.data).ready,
+        version: env!("CARGO_PKG_VERSION").into(),
+        uptime_ms: crate::started().elapsed().as_millis() as u64,
     }
 }
 
@@ -745,47 +903,6 @@ pub fn ui_state(state: State<'_, AppState>) -> UiState {
         error: inner.error.clone(),
         notice: inner.notice.clone(),
     }
-}
-
-/// Opens a project folder picked in the system dialog.
-#[tauri::command]
-#[specta::specta]
-pub async fn open_dialog(app: AppHandle) -> Result<Option<ProjectView>, Box<Problem>> {
-    let dialog = app.dialog().clone();
-    let picked =
-        tauri::async_runtime::spawn_blocking(move || dialog.file().set_title("Open a project").blocking_pick_folder())
-            .await
-            .map_err(|e| Problem::internal(e.to_string()))?;
-    match picked.and_then(|p| p.into_path().ok()) {
-        Some(dir) => open(&app, &dir).map(Some),
-        None => Ok(None),
-    }
-}
-
-/// Creates a cottage project where the system save dialog says, and opens it.
-#[tauri::command]
-#[specta::specta]
-pub async fn new_project_dialog(app: AppHandle) -> Result<Option<ProjectView>, Box<Problem>> {
-    let dialog = app.dialog().clone();
-    let picked = tauri::async_runtime::spawn_blocking(move || {
-        dialog
-            .file()
-            .set_title("New project")
-            .set_file_name("cottage")
-            .blocking_save_file()
-    })
-    .await
-    .map_err(|e| Problem::internal(e.to_string()))?;
-    let Some(dir) = picked.and_then(|p| p.into_path().ok()) else {
-        return Ok(None);
-    };
-    let data = app.state::<AppState>().data.clone();
-    let created = tauri::async_runtime::spawn_blocking(move || {
-        emmet_core::ops::new_project(&data, &dir, Template::Cottage).map(|c| PathBuf::from(c.project))
-    })
-    .await
-    .map_err(|e| Problem::internal(e.to_string()))??;
-    open(&app, &created).map(Some)
 }
 
 /// Opens a project from the recents list. Any other path is refused.
@@ -832,7 +949,7 @@ pub async fn set_params(app: AppHandle, values: BTreeMap<String, Value>) -> Resu
     params_view(params)
 }
 
-fn params_view(p: emmet_core::ops::Params) -> Result<ParamsView, Box<Problem>> {
+pub(crate) fn params_view(p: emmet_core::ops::Params) -> Result<ParamsView, Box<Problem>> {
     serde_json::to_value(p)
         .and_then(serde_json::from_value)
         .map_err(|e| Problem::internal(format!("the params reply: {e}")))
@@ -888,14 +1005,9 @@ pub fn set_color_names(state: State<'_, AppState>, names: String) -> Result<(), 
             excerpt: None,
         })
     })?;
-    let path = state.data.settings();
-    let mut settings: serde_json::Map<String, Value> = std::fs::read_to_string(&path)
-        .ok()
-        .and_then(|t| serde_json::from_str(&t).ok())
-        .unwrap_or_default();
+    let mut settings = crate::prefs::settings_to_change(&state.data)?;
     settings.insert("color_names".into(), serde_json::to_value(value).expect("json"));
-    let text = serde_json::to_string_pretty(&settings).expect("json") + "\n";
-    emmet_core::fsx::write_atomic(&path, text.as_bytes())?;
+    crate::prefs::write(&state.data, &settings)?;
     if let Some(root) = state.open_root() {
         state.request_run(&root);
     }

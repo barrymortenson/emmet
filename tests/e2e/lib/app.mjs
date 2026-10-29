@@ -1,9 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // What the specs ask the running app, through the E2E hooks (window.__emmet, only in EMMET_E2E builds) and the
 // app's own typed commands. Viewer assertions read viewer.stats() and ids, not pixels (plan section 16).
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { os, out } from "./paths.mjs";
+import pixelmatch from "pixelmatch";
+import { os, out, repo } from "./paths.mjs";
+import { decode, encode, shrink } from "./png.mjs";
+
+/** Window baselines are kept an eighth the size each way: small to commit, and a moved or restyled control still
+ * changes far more than the tolerance. */
+const SHRINK = 8;
+/** At most this share of a window's pixels may differ: room for the antialiasing of text, not for a layout change. */
+const WINDOW_TOLERANCE = 0.01;
+const update = process.env.EMMET_UPDATE_BASELINES === "1";
 
 export const stats = () => browser.execute(() => window.__emmet.viewer().stats());
 export const camera = () => browser.execute(() => window.__emmet.viewer().cameraMatrix());
@@ -44,16 +53,85 @@ export async function instances(count, timeout = 30_000) {
     });
 }
 
-/** Saves a window screenshot in the light and dark themes as tests/e2e/out/screens/<os>/<name>-<theme>.png. */
-export async function screenshots(name) {
+/** Saves a window screenshot in the light and dark themes as tests/e2e/out/screens/<os>/<name>-<theme>.png. With
+ * `baseline`, each is compared with tests/e2e/baselines/<os>/screens/<name>-<theme>.png (a frozen screen's id, session
+ * 4A): a missing one is written and fails until it's committed; EMMET_UPDATE_BASELINES=1 rewrites them. */
+export async function screenshots(name, { baseline = false } = {}) {
   const dir = join(out, "screens", os);
   mkdirSync(dir, { recursive: true });
+  const failed = [];
+  // A screen is still: no build running, the knobs read, the part pictures drawn.
+  await browser.waitUntil(
+    () =>
+      browser.execute(
+        () =>
+          !document.querySelector("#model-state .spinner") &&
+          !document.body.innerText.includes("Reading the model's knobs") &&
+          !document.querySelector(".part-pic-empty"),
+      ),
+    { timeout: 20_000, timeoutMsg: `${name}: the window never settled` },
+  );
+  await browser.pause(300);
+  if (baseline) await freshAgents();
   for (const theme of ["light", "dark"]) {
     await browser.execute((t) => window.__emmet.theme(t), theme);
     await browser.execute(() => window.__emmet.viewer().nextFrame());
-    await browser.saveScreenshot(join(dir, `${name}-${theme}.png`));
+    // The controls fade to the theme's colors: a screen taken mid-fade has the other theme's chips.
+    await browser.waitUntil(() => browser.execute(() => !document.getAnimations().some((a) => a instanceof CSSTransition)), {
+      timeout: 5000,
+      timeoutMsg: `${name}-${theme}: the theme's transitions never finished`,
+    });
+    // A focus ring isn't part of a screen, unless a menu, popover, or dialog is open (moving focus would close it).
+    await browser.execute(() => document.querySelector('[role="menu"], [role="dialog"], [role="listbox"], [role="tooltip"]') || document.activeElement?.blur?.());
+    const file = join(dir, `${name}-${theme}.png`);
+    await browser.saveScreenshot(file);
+    if (baseline) {
+      const why = compare(`${name}-${theme}`, readFileSync(file));
+      if (why) failed.push(why);
+    }
   }
   await browser.execute(() => window.__emmet.theme(null));
+  if (failed.length) throw new Error(failed.join("\n"));
+}
+
+/** The chat's agents as they're detected now. The specs share one app, and the dock keeps the list it last read, so
+ * an agent an earlier spec signed out would still show signed out: the dock checks again (a script click, which leaves
+ * an open menu or dialog open) and shows each agent as detected. */
+async function freshAgents() {
+  const agents = await invoke("agents", { refresh: true });
+  const again = await browser.execute(() => {
+    const button = document.getElementById("agents-again");
+    button?.click();
+    return !!button;
+  });
+  if (!again) return;
+  const ready = Object.fromEntries(agents.map((a) => [a.kind, a.detection.path != null && a.detection.signed_in]));
+  await browser.waitUntil(
+    () => browser.execute((r) => Object.entries(r).every(([kind, ok]) => document.getElementById(`agent-${kind}`)?.disabled === !ok), ready),
+    { timeout: 10_000, timeoutMsg: `the chat never showed the agents as detected: ${JSON.stringify(ready)}` },
+  );
+}
+
+/** Compares a window screenshot with its baseline; a reason when it doesn't match. */
+function compare(name, png) {
+  const small = shrink(decode(png), SHRINK);
+  const base = join(repo, "tests", "e2e", "baselines", os, "screens", `${name}.png`);
+  if (update || !existsSync(base)) {
+    mkdirSync(join(base, ".."), { recursive: true });
+    writeFileSync(base, encode(small));
+    return update ? null : `wrote a new baseline, ${base}; check it and commit it`;
+  }
+  const want = decode(readFileSync(base));
+  if (want.width !== small.width || want.height !== small.height) return `${name}: the window is ${small.width * SHRINK} × ${small.height * SHRINK}, the baseline ${want.width * SHRINK} × ${want.height * SHRINK}`;
+  const diff = { width: small.width, height: small.height, data: Buffer.alloc(small.data.length) };
+  const bad = pixelmatch(want.data, small.data, diff.data, small.width, small.height, { threshold: 0.1 });
+  const share = bad / (small.width * small.height);
+  console.log(`${name}: ${bad} pixels differ (${(share * 100).toFixed(2)} %)`);
+  if (share <= WINDOW_TOLERANCE) return null;
+  const dir = join(out, "visual", os);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}-diff.png`), encode(diff));
+  return `${name}: ${(share * 100).toFixed(2)} % of the window differs from its baseline (diff in ${dir})`;
 }
 
 /** The viewer's render of the scene on screen, as PNG bytes. */

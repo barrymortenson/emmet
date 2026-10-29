@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-reset-params"
+description = "Enables the reset_params command without any pre-configured scope."
+commands.allow = ["reset_params"]
+
+[[permission]]
+identifier = "deny-reset-params"
+description = "Denies the reset_params command without any pre-configured scope."
+commands.deny = ["reset_params"]

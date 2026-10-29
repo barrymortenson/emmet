@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-version-scene"
+description = "Enables the version_scene command without any pre-configured scope."
+commands.allow = ["version_scene"]
+
+[[permission]]
+identifier = "deny-version-scene"
+description = "Denies the version_scene command without any pre-configured scope."
+commands.deny = ["version_scene"]

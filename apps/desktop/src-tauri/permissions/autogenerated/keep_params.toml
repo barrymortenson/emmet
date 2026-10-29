@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-keep-params"
+description = "Enables the keep_params command without any pre-configured scope."
+commands.allow = ["keep_params"]
+
+[[permission]]
+identifier = "deny-keep-params"
+description = "Denies the keep_params command without any pre-configured scope."
+commands.deny = ["keep_params"]

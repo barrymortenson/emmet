@@ -50,6 +50,8 @@ export interface RenderOptions {
   /** Width and height in pixels (default 768). */
   size?: number;
   highlight?: string[];
+  /** No background: the picture's pixels around the model are transparent (the Parts list's pictures). */
+  transparent?: boolean;
 }
 
 /** Where a render's camera was, in the viewer's frame (Y up, LDraw units). */
@@ -86,6 +88,7 @@ export interface Stats {
   failed: Record<string, string>;
   /** Placements on screen per diff kind in the last update. */
   lastDiff: { added: number; removed: number; moved: number; recolored: number; unchanged: number };
+  quality: "auto" | "low";
 }
 
 export interface Viewer {
@@ -100,6 +103,8 @@ export interface Viewer {
   frame(ids?: string[]): void;
   setView(view: View): void;
   setTheme(theme: Theme): void;
+  /** Draws at the device's pixel ratio ("auto") or at 1 ("low"), from the next frame. */
+  setQuality(quality: "auto" | "low"): void;
   /** A PNG of the whole model from `view`, drawn offscreen with only `highlight` highlighted: the window's camera,
    * canvas, and highlight don't change. Refuses when a part the scene uses failed or the last update failed. */
   render(options?: RenderOptions): Promise<Rendered>;
@@ -494,6 +499,14 @@ class EmmetViewer implements Viewer {
     this.invalidate();
   }
 
+  setQuality(quality: "auto" | "low"): void {
+    if (quality === this.quality) return;
+    this.quality = quality;
+    this.renderer.setPixelRatio(this.pixelRatio());
+    this.fit();
+    this.dirty = true;
+  }
+
   setTheme(theme: Theme): void {
     this.theme = theme;
     this.scene.background = new Color(BACKGROUND[theme]);
@@ -514,7 +527,7 @@ class EmmetViewer implements Viewer {
     if (!view) throw new Error(`there's no view '${String(name)}'`);
     // A second renderer on a detached canvas: the window's canvas, camera, and size stay as they are.
     const canvas = document.createElement("canvas");
-    this.offscreen ??= new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+    this.offscreen ??= new WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
     const r = this.offscreen;
     r.setPixelRatio(1);
     r.setSize(size, size, false);
@@ -531,7 +544,7 @@ class EmmetViewer implements Viewer {
     this.lit = new Set(options.highlight ?? []);
     this.mode = "select";
     for (const b of this.buckets.values()) this.paint(b);
-    this.scene.background = RENDER_BACKGROUND;
+    this.scene.background = options.transparent ? null : RENDER_BACKGROUND;
     // A render shows the finished model, never a frame of the build animation, which carries on in the window.
     const falling = this.falling;
     if (falling) for (const part of falling.parts) this.setInstance(part.bucket, part.index, part.home);
@@ -580,6 +593,7 @@ class EmmetViewer implements Viewer {
       animating: this.falling ? this.falling.parts.filter((p) => !p.done).length : 0,
       failed: Object.fromEntries(this.failedHere()),
       lastDiff: { ...this.lastDiff },
+      quality: this.quality,
     };
   }
 
@@ -607,8 +621,11 @@ class EmmetViewer implements Viewer {
     this.controls.dispose();
     for (const b of [...this.buckets.values()]) this.dropBucket(b);
     this.cache.dispose();
+    // Its WebGL contexts go now, not when they're collected: a webview keeps only so many.
     this.renderer.dispose();
+    this.renderer.forceContextLoss();
     this.offscreen?.dispose();
+    this.offscreen?.forceContextLoss();
   }
 
   private invalidate(): void {

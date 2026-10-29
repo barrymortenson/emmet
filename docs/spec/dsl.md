@@ -61,7 +61,7 @@ def street(
 
 | Call | Does |
 |---|---|
-| `@model` | Marks the entry function in model.py. Its signature is the parameter schema; it returns a `Model`. |
+| `@model` | Marks the entry function in model.py. Its signature is the parameter schema; it returns a `Model`. `@model(knobs=["weathering", "seed"])` names the knobs: the two to five parameters the app's panel shows, the ones that change the model's character, never raw dimensions or colors. A knob that isn't a parameter is `PARAM_INVALID`. |
 | `Model()` | An empty model. |
 | `m.add(part, color, at=(0, 0, 0), rot=0, id=None)` | Places one part and returns a `Handle` (`.id`, `.min`, `.max`: the box it covers). `part` is an LDraw id (`"3001"`, `"3001.dat"`, any case) or a part helper. `color` is a name or an LDraw code. Without `id`, the id is `<step slug>/<n>`, numbered per slug across the model, so steps that share a title still get distinct ids. An `id` given twice is an error. The call's file and line are recorded. |
 | `m.add_raw(part, color, matrix, id=None)` | The escape hatch above. |
@@ -130,8 +130,9 @@ way, `{"straight", "branch"}`), so `p = m.use("track_curve", at=p, …)` chains 
 
 ## Parameters
 
-Every parameter of the `@model` function needs a default; each becomes a slider, a switch, a choice, or a color
-picker in the app.
+Every parameter of the `@model` function needs a default. The ones `@model(knobs=...)` names show in the app's panel,
+each as a slider, a switch, a choice, a color picker, or Shuffle (an int named `seed`); the rest work from the CLI
+and the agent's tools.
 
 | Annotation | Type | Notes |
 |---|---|---|

@@ -427,6 +427,39 @@ fn part_helpers_pick_the_plain_current_part() {
     );
 }
 
+/// The panel shows only the knobs a model names (`@model(knobs=...)`, session 4A, the 2A decision on character knobs):
+/// the cottage's four, not its dimensions, colors, or baseplate; and a knob that isn't a parameter is refused at the
+/// `@model(knobs=...)` line.
+#[test]
+fn a_model_names_its_knobs() {
+    let dir = temp_dir("knobs").join("cottage");
+    let (v, code) = emmet_json(&["new", dir.to_str().unwrap()]);
+    assert_eq!(code, 0, "{v}");
+    let (v, code) = emmet_in(&dir, &["params"]);
+    assert_eq!(code, 0, "{v}");
+    let knobs: Vec<&str> = v["data"]["params"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|p| p["knob"] == true)
+        .map(|p| p["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(knobs, ["chimney", "roof", "weathering", "seed"]);
+
+    let model = std::fs::read_to_string(dir.join("model.py")).unwrap();
+    std::fs::write(
+        dir.join("model.py"),
+        model.replace(r#"knobs=["weathering","#, r#"knobs=["height", "weathering","#),
+    )
+    .unwrap();
+    let (v, code) = emmet_in(&dir, &["params"]);
+    assert_ne!(code, 0);
+    assert_eq!(v["error"]["code"], "PARAM_INVALID");
+    assert!(v["error"]["message"].as_str().unwrap().contains("height"), "{v}");
+    let line = model.lines().position(|l| l.starts_with("@model(")).unwrap() + 1;
+    assert_eq!(v["error"]["details"]["line"], line as u64, "{v}");
+}
+
 /// `m.wall` lays each course in bond over the one below (3C): no joint between two pieces sits on a joint in the course
 /// under it, except where this course's own opening makes one, so the course over a window spans its edges. Checked on
 /// what `emmet run` places, for a straight wall built a course a call from a base of 1/3 plate (where (1/3 + 3) + 3

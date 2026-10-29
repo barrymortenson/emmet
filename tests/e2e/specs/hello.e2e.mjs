@@ -1,21 +1,24 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The E2E hello-world (ADR 0002), on 1B's window: the real app starts with no project, says so, and shows its version.
-// The start screen also sets up the agents (1F); with both fake CLIs there, each says it's ready.
+// The E2E hello-world (ADR 0002), on 4A's window: with the parts and Python set up and no project, the real app starts
+// at first run's Start (the Cottage or a new model from a prompt), and it's interactive within section 14's budget
+// (4A What good looks like 2; this spec logs the time on every run, "startup: interactive N ms").
 import { $, expect } from "@wdio/globals";
-import { screenshots } from "../lib/app.mjs";
 
 describe("the app window", () => {
-  it("starts with no project and shows its version", async () => {
-    await expect($("h1")).toHaveText("Emmet");
-    await expect($("#status")).toHaveText("No project open");
-    await expect($(".versions")).toHaveText(expect.stringContaining("Emmet 0.1.0"));
-    await expect($(".empty")).toBeDisplayed();
+  it("starts at Start with no project", async () => {
+    await (await $("#first-run")).waitForDisplayed({ timeout: 30_000 });
+    await expect($("#first-run h1")).toHaveText("What do you want to build?");
+    await expect($("#start-cottage")).toBeEnabled();
+    await expect($("#start-prompt")).toBeEnabled();
+    expect(await browser.execute(() => window.__emmet.project())).toBe(null);
   });
 
-  it("offers agent setup on the start screen", async () => {
-    await expect($("#agents")).toBeDisplayed();
-    await expect($("#ready-claude")).toHaveText(expect.stringContaining("Ready"));
-    await expect($("#ready-codex")).toHaveText(expect.stringContaining("Ready"));
-    await screenshots("start");
+  it("was interactive soon after it started", async () => {
+    let ms = null;
+    await browser.waitUntil(async () => (ms = await browser.execute(() => window.__emmet.startup())) != null, { timeout: 10_000 });
+    // The E2E app is a debug build and this is its first, cold start; the budget is for a warm release build, timed by
+    // hand on this Mac for the PR. This catches a startup that has gone badly wrong.
+    console.log(`startup: interactive ${ms} ms after the process started`);
+    expect(ms).toBeLessThan(10_000);
   });
 });

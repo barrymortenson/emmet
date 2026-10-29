@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import vm from "node:vm";
 import { makeIcons, SOURCES } from "../../scripts/app-icon.mjs";
-import { componentTokens, generate } from "../../scripts/design-frozen.mjs";
+import { appCss, componentTokens, generate } from "../../scripts/design-frozen.mjs";
 import { ROOT, tempDir } from "./helpers.mjs";
 
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -124,8 +124,9 @@ test("every component has an inventory entry and a specimen, and the plan's list
   for (const name of listed) assert.ok(ids.includes(plan2B[name]), `the plan's "${name}" has no component`);
 });
 
-test("generated.js is current", async () => {
+test("generated.js and the app's components.css are current", async () => {
   assert.equal(await generate(), read(`${FROZEN}/generated.js`), "run node scripts/design-frozen.mjs");
+  assert.equal(appCss(), read("apps/desktop/src/styles/components.css"), "run node scripts/design-frozen.mjs");
 });
 
 /** What an icon file holds: a PNG's size, an .ico's sizes, an .icns's entry types. */

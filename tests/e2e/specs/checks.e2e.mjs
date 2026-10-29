@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The Checks and Parts drawers on the real app (session 1D): a project with a collision lists the finding; a click
-// highlights exactly its parts as an issue and shows the model.py lines that placed them (design law 2); "Ask agent to
-// fix" with no chat says to start one; fixing the model clears the finding. The flow logs no console errors.
+// The Checks and Parts tabs on the real app (session 1D, to the frozen design in 4A): a project with a collision lists
+// the finding in plain words, with no ids, file names, or lines on screen (law 2: they go to the agent); a click
+// highlights exactly its parts as an issue; "Ask agent to fix" with no chat says to start one; fixing the model clears
+// the finding. The flow logs no console errors.
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { $, $$, expect } from "@wdio/globals";
-import { nextScene, open, screenshots, shown, stats } from "../lib/app.mjs";
+import { nextScene, open, shown, stats } from "../lib/app.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const project = projectDir("checks");
@@ -14,59 +15,49 @@ const highlighted = () => browser.execute(() => window.__emmet.viewer().highligh
 const errors = () => browser.execute(() => window.__emmetErrors.slice());
 
 describe("checks", () => {
-  it("lists the collision the validator found", async () => {
+  it("lists the collision the validator found, in plain words", async () => {
     await open(project);
-    await expect($("#tab-checks")).toHaveText("Checks · 1 error");
+    await expect($("#tab-checks")).toHaveText("Checks1");
     await $("#tab-checks").click();
     const finding = await $('[data-finding="F-0001"]');
-    await expect(finding).toHaveText(expect.stringContaining("wall/a (Brick 2 x 4) and wall/b (Brick 2 x 4) overlap by 1 stud."));
-    await expect(finding).toHaveText(expect.stringContaining("model.py:10"));
+    await expect(finding).toHaveText(expect.stringContaining("2 parts overlap"));
+    await expect(finding).toHaveText(expect.stringContaining("Collision"));
+    await expect(finding).toHaveText(expect.stringContaining("Brick 2 x 4 and Brick 2 x 4 overlap by 1 stud."));
+    expect(await finding.getText()).not.toMatch(/model\.py|wall\/a|F-0001/);
   });
 
-  it("clicking the finding highlights its parts and shows the lines that placed them", async () => {
+  it("clicking the finding highlights its parts, and again clears them", async () => {
     await $('[data-finding="F-0001"]').click();
     await browser.waitUntil(async () => (await stats()).highlighted === 2, { timeoutMsg: "the parts weren't highlighted" });
     expect(await highlighted()).toEqual(["wall/a", "wall/b"]);
-    const detail = await $("#finding-detail");
-    await expect(detail).toHaveText(expect.stringContaining("model.py:11"));
-    await expect(detail).toHaveText(expect.stringContaining('11 |     m.add("3001", "Blue", at=(1, 0, 1), id="wall/b")'));
-    await expect(detail).toHaveText(expect.stringContaining("Move wall/b by 1 stud"));
-    await screenshots("checks-finding");
-    // A second click clears it.
+    await expect($('[data-finding="F-0001"]')).toHaveAttribute("aria-selected", "true");
     await $('[data-finding="F-0001"]').click();
     await browser.waitUntil(async () => (await stats()).highlighted === 0, { timeoutMsg: "the highlight stayed" });
-    await $('[data-finding="F-0001"]').click();
   });
 
   it("asking the agent to fix it with no chat open says to start one", async () => {
-    await $("#ask-fix").click();
+    await $("#fix-F-0001").click();
     await expect($("#chat-error")).toHaveText(expect.stringContaining("Start a chat with an agent first"));
   });
 
-  it("the Parts drawer lists part, color, quantity, and availability", async () => {
+  it("the Parts tab lists each part and color with its count", async () => {
     await $("#tab-parts").click();
-    await expect($("#parts-total")).toHaveText(expect.stringContaining("3 pieces"));
-    const rows = await $$(".bom tbody tr");
+    await expect($("#parts-total")).toHaveText(expect.stringMatching(/^3 parts · \d+ kinds$/));
+    const rows = await $$("#parts-list tbody tr");
     expect(rows.length).toBe(3);
-    // No parts data pack in the E2E data dir: availability is Unknown, never "Not made" (3B), and with no Rebrickable
+    // No parts data pack in the E2E data dir: availability is unknown, never "Not made" (3B), and with no Rebrickable
     // data shown there's no credit line. tests/it/tests/parts_data.rs covers a pack.
-    await expect($(".bom thead")).toHaveText(expect.stringContaining("Availability"));
-    for (const row of rows) await expect(row.$("td:last-child")).toHaveText("Unknown");
+    for (const row of rows) expect(await row.getText()).not.toContain("Not made");
     expect(await (await $("#parts-credit")).isExisting()).toBe(false);
-    await screenshots("parts-list");
     await $("#tab-checks").click();
   });
 
-  it("Settings → Data says what the parts data is and credits Rebrickable", async () => {
-    await $("#settings-button").click();
-    await expect($("#parts-data-status")).toHaveText("No parts data yet: availability shows as Unknown.");
-    await expect($("dialog.settings[open]")).toHaveText(
-      expect.stringContaining("Part, color, and set data from Rebrickable (rebrickable.com)"),
-    );
-    await expect($("#color-names")).toBeEnabled();
-    await screenshots("settings-data");
+  it("Settings says what the parts data is, and changes the color names", async () => {
+    await browser.keys([process.platform === "darwin" ? "Meta" : "Control", ","]);
+    await expect($("#parts-data-status")).toHaveText("None yet: availability shows as unknown");
+    await expect($("#color-names")).toBeDisplayed();
     await browser.keys("Escape");
-    await browser.waitUntil(async () => !(await (await $("dialog.settings[open]")).isExisting()));
+    await (await $("#settings")).waitForExist({ reverse: true });
   });
 
   it("fixing the model clears the finding and its highlight", async () => {
@@ -74,7 +65,7 @@ describe("checks", () => {
     writeFileSync(modelPy, readFileSync(modelPy, "utf8").replace("at=(1, 0, 1)", "at=(2, 0, 1)"));
     await nextScene(gen);
     await expect($("#checks-clean")).toBeDisplayed();
-    await expect($("#tab-checks")).toHaveText("Checks · clean");
+    await expect($("#tab-checks")).toHaveText("Checks");
     await browser.waitUntil(async () => (await stats()).highlighted === 0, { timeoutMsg: "the old finding's highlight stayed" });
     // An edit's run builds up part by part (D-34), and lands.
     await browser.waitUntil(async () => (await stats()).animating === 0, { timeout: 10_000, timeoutMsg: "the build animation never ended" });

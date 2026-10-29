@@ -138,6 +138,20 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   exports to CSV, Rebrickable's parts list CSV, and a BrickLink wanted list; `emmet export` writes a flat .ldr, an
   .mpd, and an LPub3D-ready .mpd. The Parts list shows availability and Rebrickable's credit, and Settings has a Data
   section.
+- The window to the frozen design (session 4A): the viewer with its title row (the project chip and its menu, the view
+  switch), the chat docked along its bottom, and the options panel behind a resizable separator: the model's state,
+  Export, and the Options (build settings and knobs with Keep and Reset), Checks (findings in plain words, It's fine,
+  Check it again), Parts (each part's picture), and Steps (the model's tree: a step shows the build up to it, a
+  sub-assembly highlights every copy) tabs. macOS gets its native menus and Windows a menu bar in the title row; every
+  shortcut in the keyboard map that works without an agent works (the chat's own come with 4B). Banners for a read-only project (Trust this project), offline, an old library,
+  and an imported file. Settings and About (with the licenses and attributions) are dialogs.
+- First run: welcome, the parts library download with its progress (a stopped download picks up where it stopped),
+  Python, your agent, and the Cottage or a new model from a prompt. New makes a project in Documents/Emmet with no
+  dialog; Open… takes a project's emmet.toml or an LDraw .ldr or .mpd, which becomes an imported project.
+- Versions: `emmet version save|list|restore|open`, and in the app Save version (⌘S), the versions list, a version
+  opened to compare, Restore (which saves the current state first), and Open as new project.
+- `emmet new --import <file>`, Install command line tool (`/usr/local/bin/emmet` on macOS, the user PATH on Windows),
+  Copy diagnostics, and `scripts/style-lint.mjs` (no raw colors or pixel sizes outside the tokens).
 - Technique mining (session 3C): `tests/it/src/bin/mine-techniques.rs` finds the sub-assemblies official OMR models
   share on the validator's connection graph and ranks ideas by how widely sets use them; techniques aren't derived from
   the models (D-48, ADR 0003). Candidates are reviewed in batches of 20 on `docs/techniques/candidates/<batch>.html`
@@ -159,6 +173,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Fixed
 
+- Versions never read or write through a link, and an untrusted project's versions can't be restored or copied out as
+  a trusted project. An export's file name can't leave Downloads, whatever the project calls itself (4A).
 - The cottage template at an odd width (7, 9, …): the ceiling left one stud unplated, and the roof above it floated.
 - Sign in with ChatGPT on Windows: the credential record (three tokens) is longer than the 2,560 bytes a Windows
   credential holds, so the sign-in failed after OpenAI's page. Long secrets are now split across credentials on

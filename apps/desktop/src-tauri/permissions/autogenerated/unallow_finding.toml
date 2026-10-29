@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-unallow-finding"
+description = "Enables the unallow_finding command without any pre-configured scope."
+commands.allow = ["unallow_finding"]
+
+[[permission]]
+identifier = "deny-unallow-finding"
+description = "Denies the unallow_finding command without any pre-configured scope."
+commands.deny = ["unallow_finding"]

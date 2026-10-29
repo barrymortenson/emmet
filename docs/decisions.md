@@ -3,6 +3,30 @@
 Barry's answers, newest first, each with its date. Section 03 of the plan holds the decisions of record; ADRs in
 `docs/adr/` change them. Sessions add an entry for every question they ask (plan section 19, rule 9).
 
+## 2026-10-28, session 4A
+
+- **Open… is one file picker.** keyboard.md says ⌘O opens "a project or an LDraw file", but the system's open dialogs
+  (tauri-plugin-dialog) pick folders or files, never both in one panel. Asked through AskUserQuestion, Barry chose
+  one file picker: Open… takes an LDraw `.ldr` or `.mpd` (which becomes an imported project) or a project's
+  `emmet.toml` (which opens its folder). No design change. Over a second menu item, "Open LDraw File…" (a design
+  change note), and over a new AppKit binding crate for a panel that takes either on macOS only.
+
+- **Install command line tool asks for an admin password on macOS.** Neither the plan nor the frozen design said how
+  Settings puts the bundled `emmet` on PATH (D-08). Asked through AskUserQuestion, Barry chose VS Code's way: on
+  macOS a link at `/usr/local/bin/emmet` to the copy inside the app, made after macOS's own administrator prompt; on
+  Windows the app's folder on the user's PATH, with no admin. No shell file is edited, and it works in every new
+  terminal. Over a link in `~/.local/bin` with a line added to `~/.zprofile`, the same link with the line left for
+  the user to add, or leaving it a stub.
+
+- **The model names its knobs.** The first build of the Tweaks section showed every parameter the cottage has
+  (width, depth, wall rows, colors, the baseplate), where the design session had ruled out a panel of raw
+  parameters: Tweaks are a few character knobs, and the baseplate is the Base build setting. Barry pointed it out,
+  and asked through AskUserQuestion, chose that the model marks its knobs: `@model(knobs=[...])` in emmet_dsl, which
+  `get_params` reports per parameter and the panel shows alone, with a model that names none showing "This model has
+  no knobs yet." The other parameters stay for the CLI, rung 1, and the tests. The doctrine (EMMET.md) tells the
+  agent to name two to five. Over cutting the templates' parameters down to the knobs, and over the panel guessing
+  which parameters are knobs from their names or types. No design change: the frozen Tweaks already draw only knobs.
+
 ## 2026-10-27, session 2B
 
 - **The Steps tab is the model's tree.** B has no project tree, and section 14 and 4A still listed one. Asked where

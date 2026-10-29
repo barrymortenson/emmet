@@ -18,13 +18,15 @@ async function waitFor(what, test, timeout = 30_000) {
   await browser.waitUntil(test, { timeout, interval: 25, timeoutMsg: what });
 }
 
+const mod = process.platform === "darwin" ? "Meta" : "Control";
+
 async function settings() {
-  if (!(await (await $("dialog.settings[open]")).isExisting())) await (await $("#settings-button")).click();
+  if (!(await (await $("#settings")).isExisting())) await browser.keys([mod, ","]);
   await (await $("#codex-billing")).waitForExist({ timeout: 10_000 });
 }
 
 async function closeSettings() {
-  await browser.execute(() => document.querySelectorAll("dialog[open]").forEach((d) => d.close()));
+  if (await (await $("#settings")).isExisting()) await (await $("#settings-done")).click();
 }
 
 /** Text into a field the way typing does (see chat.e2e.mjs). */

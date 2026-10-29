@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The viewer bench (plan section 13's budgets), run by `just bench`, not by `just e2e`. For the cottage (~160 parts)
+// The viewer bench (plan section 13's budgets), run by `just bench`, not by `just e2e`. For the cottage (147 parts)
 // and the grid at 500 and 2,000 parts: first load into a viewer with an empty part cache (the host's library cache
 // is cold for each scene's parts the first time), slider → updated viewer (set_params, the watcher, the run, the
 // diff), and orbit frame time. Writes tests/e2e/out/bench-<os>.{json,md} and the CI job summary.

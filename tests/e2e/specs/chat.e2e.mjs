@@ -82,12 +82,12 @@ for (const kind of ["claude", "codex"]) {
       if (kind === "claude") {
         // A key in the user's environment bills instead of the plan (ADR 0001): the picker says so before a chat.
         writeFileSync(join(fakeDir, "claude-auth.json"), '{"loggedIn":true,"authMethod":"api_key","apiKeySource":"ANTHROPIC_API_KEY"}');
-        await press(".picker", "Look again");
+        await press(".picker", "Check agents again");
         await waitFor("the picker didn't show the key", async () =>
           (await browser.execute(() => document.querySelector(".picker")?.innerText ?? "")).includes("will bill the API key in ANTHROPIC_API_KEY"),
         );
         rmSync(join(fakeDir, "claude-auth.json"));
-        await press(".picker", "Look again");
+        await press(".picker", "Check agents again");
         await waitFor("the picker didn't go back to the plan", async () =>
           (await browser.execute(() => document.getElementById("agent-claude")?.nextElementSibling?.textContent)) === "Claude · Max plan",
         );
@@ -139,7 +139,7 @@ for (const kind of ["claude", "codex"]) {
       await start(kind, "derived-ask-user");
       await say("Build a wall.");
       await (await $("[data-question]")).waitForExist({ timeout: 30_000 });
-      await expect($("#status")).toHaveText("Waiting for your answer");
+      await expect($("#chat-working")).toHaveText("Waiting for your answer");
       await press("[data-question]", "6 bricks");
       await waitFor("the question wasn't answered", async () => (await log()).includes("Answered"));
       await waitFor("the agent didn't carry on", async () => (await log()).includes("Six bricks tall"));

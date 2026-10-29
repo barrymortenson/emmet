@@ -20,7 +20,10 @@ Run → validate → render → fix, every time:
 1. Find parts with `search_parts` ("brick 1x4", "slope 45 2 x 2"), all a stage needs in one call (`more` takes the
    other queries). Each result gives the part's size in studs and plates, which is enough to place it; call
    `part_info` only when you need what search doesn't say.
-2. Write `model.py`: one `@model` function whose parameters are the user's knobs.
+2. Write `model.py`: one `@model` function. Name two to five of its parameters as knobs, `@model(knobs=[...])`: the
+   ones that change the model's character (how worn it looks, a feature on or off, a count of floors or windows, a
+   `seed` for another arrangement). The app's panel shows only those. Never make raw dimensions or colors knobs:
+   size, style, and the base are the build settings in `emmet.toml`'s `[build]`, and colors go through the prompt.
 3. Call `run_model`. It answers with the part count, or an error with the file, line, and a hint: fix that line and
    run again.
 4. Call `validate`. It lists findings (parts that collide or float, a submodel placed off the model, a part in a step
@@ -32,7 +35,7 @@ Run → validate → render → fix, every time:
 
 `highlight` with a finding id (`finding: "F-0003"`) shows the user the parts you're talking about.
 
-`params.json` holds the user's slider settings: never write it. To check other values of your params (the widest,
+`params.json` holds the user's knob settings: never write it. To check other values of your params (the widest,
 the smallest), call `validate` with `params`: it runs the model with them and checks that build in one call, and
 leaves `params.json` alone. Check the extremes once, together, at the end.
 

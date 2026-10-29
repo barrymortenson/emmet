@@ -10,12 +10,64 @@ import * as __TAURI_EVENT from "@tauri-apps/api/event";
 export const commands = {
 	appInfo: () => __TAURI_INVOKE<AppInfo>("app_info"),
 	uiState: () => __TAURI_INVOKE<UiState>("ui_state"),
-	/**  Opens a project folder picked in the system dialog. */
-	openDialog: () => typedError<ProjectView | null, Problem>(__TAURI_INVOKE("open_dialog")),
-	/**  Creates a cottage project where the system save dialog says, and opens it. */
-	newProjectDialog: () => typedError<ProjectView | null, Problem>(__TAURI_INVOKE("new_project_dialog")),
 	/**  Opens a project from the recents list. Any other path is refused. */
 	openRecent: (path: string) => typedError<ProjectView, Problem>(__TAURI_INVOKE("open_recent", { path })),
+	/**  New (⌘N): the Cottage example or an empty baseplate, in the projects folder, with no dialog (Barry's note 7). */
+	newProject: (kind: NewKind) => typedError<ProjectView, Problem>(__TAURI_INVOKE("new_project", { kind })),
+	/**
+	 *  Open… (⌘O): one file picker (docs/decisions.md, 2026-10-28). A project's emmet.toml opens its folder; an .ldr or
+	 *  .mpd becomes an imported project in the projects folder. Null when the user cancels.
+	 */
+	openDialog: () => typedError<ProjectView | null, Problem>(__TAURI_INVOKE("open_dialog")),
+	/**
+	 *  Trust this project (D-27): writes the trust marker for the open project, opens it again (no longer read-only),
+	 *  and builds it.
+	 */
+	trustProject: () => typedError<ProjectView, Problem>(__TAURI_INVOKE("trust_project")),
+	/**
+	 *  Saves the build settings in emmet.toml's [build]. The agent reworks the model when the user presses Rebuild (the
+	 *  window sends it the settings), so nothing runs here but the watcher's rebuild of the changed emmet.toml.
+	 */
+	setBuildSettings: (settings: BuildSettings) => typedError<BuildSettings, Problem>(__TAURI_INVOKE("set_build_settings", { settings })),
+	/**  It's fine: allows a finding of the build on screen (its rule and parts) in emmet.toml's [[check.allow]]. */
+	allowFinding: (rule: string, parts: string[]) => typedError<null, Problem>(__TAURI_INVOKE("allow_finding", { rule, parts })),
+	/**  Check it again: takes an allowed finding (its rule and parts) out of emmet.toml's [[check.allow]]. */
+	unallowFinding: (rule: string, parts: string[]) => typedError<null, Problem>(__TAURI_INVOKE("unallow_finding", { rule, parts })),
+	/**
+	 *  Keep: writes each knob's current value into model.py as its default (`emmet params --write-default`), so the
+	 *  change is the model's own.
+	 */
+	keepParams: (names: string[]) => typedError<ParamsView, Problem>(__TAURI_INVOKE("keep_params", { names })),
+	/**  Reset: drops the knobs' drafts from params.json, so the model's defaults apply again. */
+	resetParams: (names: string[]) => typedError<ParamsView, Problem>(__TAURI_INVOKE("reset_params", { names })),
+	/**  Save version (⌘S): the sources as a version named `name`, with the window's render of the model (a base64 PNG). */
+	saveVersion: (name: string, thumbnail: string | null) => typedError<VersionView, Problem>(__TAURI_INVOKE("save_version", { name, thumbnail })),
+	/**  The versions list, newest first. */
+	listVersions: () => typedError<VersionView[], Problem>(__TAURI_INVOKE("list_versions")),
+	/**  A version opened read-only to compare: its build's placements as a scene. Nothing runs. */
+	versionScene: (n: number) => typedError<Scene, Problem>(__TAURI_INVOKE("version_scene", { n })),
+	/**
+	 *  Restore: saves the current state as a version first, then puts version `n`'s sources back. The watcher builds it;
+	 *  the open project's view (ui_state) has the restored build settings.
+	 */
+	restoreVersion: (n: number) => typedError<VersionView, Problem>(__TAURI_INVOKE("restore_version", { n })),
+	/**  Open as new project: copies version `n` into the projects folder as "<name> version <n>" and opens it. */
+	openVersionAsNew: (n: number) => typedError<ProjectView, Problem>(__TAURI_INVOKE("open_version_as_new", { n })),
+	/**  Export (⌘E): writes the parts list or the model into Downloads, named for the project ("Cottage parts.csv"). */
+	export: (format: ExportFormat) => typedError<Exported, Problem>(__TAURI_INVOKE("export", { format })),
+	/**  Show in folder: the last export, selected in Finder, or its folder in File Explorer. */
+	revealExport: () => typedError<null, Problem>(__TAURI_INVOKE("reveal_export")),
+	getPrefs: () => __TAURI_INVOKE<PrefsView>("get_prefs"),
+	setPrefs: (prefs: Prefs) => typedError<PrefsView, Problem>(__TAURI_INVOKE("set_prefs", { prefs })),
+	/**  Settings → Projects → Change…: the host's folder dialog; null when the user cancels. */
+	pickProjectsFolder: () => typedError<PrefsView | null, Problem>(__TAURI_INVOKE("pick_projects_folder")),
+	cliStatus: () => __TAURI_INVOKE<CliStatus>("cli_status"),
+	/**  Puts `emmet` on PATH. Null when the user cancels macOS's password prompt. */
+	installCli: () => typedError<CliStatus | null, Problem>(__TAURI_INVOKE("install_cli")),
+	/**  The facts a bug report needs, as plain text for the clipboard. */
+	diagnostics: () => __TAURI_INVOKE<string>("diagnostics"),
+	/**  Report a problem…: the repo's new-issue page in the browser. */
+	reportProblem: () => typedError<null, Problem>(__TAURI_INVOKE("report_problem")),
 	getParams: () => typedError<ParamsView, Problem>(__TAURI_INVOKE("get_params")),
 	/**  Checks the values against the model's schema and writes params.json; the watcher then runs the model. */
 	setParams: (values: { [key in string]: Value }) => typedError<ParamsView, Problem>(__TAURI_INVOKE("set_params", { values })),
@@ -37,7 +89,10 @@ export const commands = {
 	renderDone: (png: string, camera: Value) => __TAURI_INVOKE<void>("render_done", { png, camera }),
 	/**  Render mode: why the render failed. Exits with an error. */
 	renderFailed: (message: string) => __TAURI_INVOKE<void>("render_failed", { message }),
-	/**  Installs the library (when it's missing) and sets Python up, then rebuilds the open project. */
+	/**
+	 *  Installs the library when it's missing or older than the pinned one, with its progress as [`PartsProgress`]
+	 *  events (a stopped download picks up where it stopped next time), sets Python up, then rebuilds the open project.
+	 */
 	setup: () => typedError<null, Problem>(__TAURI_INVOKE("setup")),
 	/**  Installs Claude Code or Codex with the provider's official installer (D-41), streaming its lines as SetupEvents. */
 	agentInstall: (kind: AgentKind) => typedError<null, SetupError>(__TAURI_INVOKE("agent_install", { kind })),
@@ -114,6 +169,8 @@ export const events = {
 	busHighlight: makeEvent<BusHighlight, BusHighlight>("bus-highlight"),
 	busRender: makeEvent<BusRender, BusRender>("bus-render"),
 	chatEvent: makeEvent<ChatEvent, ChatEvent>("chat-event"),
+	menuAction: makeEvent<MenuAction, MenuAction>("menu-action"),
+	partsProgress: makeEvent<PartsProgress, PartsProgress>("parts-progress"),
 	projectOpened: makeEvent<ProjectOpened, ProjectOpened>("project-opened"),
 	runFinished: makeEvent<RunFinished, RunFinished>("run-finished"),
 	runStarted: makeEvent<RunStarted, RunStarted>("run-started"),
@@ -180,6 +237,12 @@ export type AgentView = {
 	warning: string | null,
 };
 
+export type AllowedView = {
+	rule: string,
+	parts: string[],
+	reason: string,
+};
+
 /**  The user's answer to a question card. */
 export type Answer = {
 	choices: string[],
@@ -191,8 +254,20 @@ export type AppInfo = {
 	recent: Recent[],
 	/**  The library release, or null when none is installed. */
 	library: string | null,
+	/**  The release this Emmet installs, and whether the installed one is older (the old library's banner). */
+	pinned: string,
+	library_old: boolean,
+	/**  The parts data pack's date, or null. */
+	parts_data: string | null,
 	/**  Whether Python and emmet_dsl are set up for models (`emmet doctor --fix` does it). */
 	python: boolean,
+	/**  Emmet's version. */
+	version: string,
+	/**
+	 *  Milliseconds since the app started, from the first thing run() does (the warm start's timing, plan section 14's
+	 *  budget).
+	 */
+	uptime_ms: number,
 };
 
 export type ApprovalKind = 
@@ -232,6 +307,16 @@ export type BomLine = {
 	qty: number,
 	/**  available, color_unavailable, part_unavailable, or unknown (never read as unavailable). */
 	availability: string,
+};
+
+/**  The build settings (plan section 14), each null until set ("Any"). */
+export type BuildSettings = {
+	base: string | null,
+	scale: string | null,
+	age: string | null,
+	detail: string | null,
+	pieces: string | null,
+	style: string | null,
 };
 
 export type BusHighlight = {
@@ -279,6 +364,8 @@ export type ChatState = {
 
 export type Checks = {
 	findings: Finding[],
+	/**  Findings the user allowed (It's fine) or the model did (m.allow): Check it again brings one back. */
+	allowed?: AllowedView[],
 	errors: number,
 	/**  No errors and no warnings. */
 	clean: boolean,
@@ -288,6 +375,13 @@ export type Checks = {
 
 /**  Which way Codex pays, as the user chose it. */
 export type Choice = "chatgpt" | "api_key";
+
+export type CliStatus = {
+	/**  `emmet` on PATH points at this app's copy. */
+	installed: boolean,
+	/**  Where it goes, in words: "/usr/local/bin" or "your PATH". */
+	place: string,
+};
 
 /**  What Settings → Agents shows for Codex. */
 export type CodexBilling = {
@@ -346,6 +440,14 @@ export type DoneReason = "completed" |
 /**  The CLI exited mid-turn. */
 "crashed";
 
+export type ExportFormat = "csv" | "rebrickable" | "bricklink-xml" | "mpd" | "lpub3d";
+
+/**  What an export wrote: the file's name and where, in words ("Downloads"). */
+export type Exported = {
+	file: string,
+	folder: string,
+};
+
 /**  What went wrong, for the UI's one retry and its words. */
 export type Failure = 
 /**  The provider's servers couldn't be reached. */
@@ -382,6 +484,17 @@ export type LiveSession = {
 	kind: AgentKind,
 };
 
+/**  A menu item the window acts on: "new", "open", "save", "view:iso", "tab:checks", … */
+export type MenuAction = {
+	id: string,
+};
+
+export type NewKind = 
+/**  The Cottage example. */
+"cottage" | 
+/**  An empty baseplate, for a new model from a prompt. */
+"empty";
+
 export type ParamSpec = {
 	name: string,
 	/**  int, float, bool, choice, or color. */
@@ -393,6 +506,8 @@ export type ParamSpec = {
 	choices?: Value[] | null,
 	help: string,
 	line: number,
+	/**  One of the model's knobs, which the panel shows (`@model(knobs=...)`). */
+	knob?: boolean,
 };
 
 export type ParamsView = {
@@ -401,6 +516,14 @@ export type ParamsView = {
 	file: string,
 	params: ParamSpec[],
 	values: { [key in string]: Value },
+};
+
+/**  What first run is doing: the library download (`done` of `total` bytes), then Python (no amounts). */
+export type PartsProgress = {
+	/**  library or python. */
+	step: string,
+	done: number,
+	total: number | null,
 };
 
 /**  One placed part, as build/placements.json lists it. */
@@ -412,6 +535,28 @@ export type Placement = {
 	step: number,
 	submodel: string[],
 	src?: string | null,
+};
+
+/**  What the window may set. Each is checked against its choices. */
+export type Prefs = {
+	/**  system, light, or dark. */
+	appearance: string,
+	/**  fast, balanced, or best. */
+	viewer_quality: string,
+	/**  The agent the chat starts with: claude or codex, or null for the last one used. */
+	start_with: string | null,
+	/**  Claude Code's model: null for its own default, or opus, sonnet, or haiku. */
+	claude_model: string | null,
+};
+
+/**
+ *  Settings as the window shows them: the prefs, where new projects go (in words: "Documents/Emmet"), and the BOM's
+ *  color naming.
+ */
+export type PrefsView = {
+	prefs: Prefs,
+	projects_folder: string,
+	color_names: string,
 };
 
 /**  An error for the UI: emmet's error envelope, with the user's file and line when there is one. */
@@ -435,6 +580,13 @@ export type ProjectView = {
 	trusted: boolean,
 	/**  Whether the watcher is running; when it isn't, edits don't rebuild on their own (use Rebuild). */
 	watching: boolean,
+	/**
+	 *  The LDraw file an imported project brings in, while its model.py is still the one Emmet wrote (the banner's
+	 *  Make it parametric).
+	 */
+	imported: string | null,
+	/**  The build settings in emmet.toml's [build]. */
+	build: BuildSettings,
 };
 
 /**  A question from `emmet_host ask_user` (D-32). */
@@ -489,6 +641,8 @@ export type Scene = {
 	checks?: Checks | null,
 	/**  The parts list (the Parts drawer), or null when it couldn't be made. */
 	bom?: Bom | null,
+	/**  The Steps tab's tree, or null when build/ has no steps.json. */
+	tree?: StepsTree | null,
 };
 
 /**  A failed install or sign-in, in plain words; `detail` is the tool's own last line, when it said something useful. */
@@ -537,6 +691,31 @@ export type SteerPath =
 "queued" | 
 /**  Sent as the next turn, because the turn ended (or was stopped) first. */
 "next_turn";
+
+export type StepView = {
+	n: number,
+	title: string,
+	group: string,
+	/**  The parts this step adds, and the copies of sub-assemblies it puts on. */
+	parts: number,
+};
+
+/**  The Steps tab's tree (build/steps.json): the sub-assemblies, each with its uses and sub-steps, then the steps. */
+export type StepsTree = {
+	steps: StepView[],
+	submodels: SubmodelView[],
+};
+
+export type SubmodelView = {
+	name: string,
+	/**  Its file in model.mpd, which placements name in their submodel path. */
+	file: string,
+	/**  The "× 5" on its row. */
+	count: number,
+	/**  Parts in one copy. */
+	parts: number,
+	steps: StepView[],
+};
 
 export type UiState = {
 	project: ProjectView | null,
@@ -600,6 +779,19 @@ export type UserNote = {
 };
 
 export type Value = null | boolean | number | string | Value[] | { [key in string]: Value };
+
+export type VersionView = {
+	n: number,
+	name: string,
+	/**  Seconds since 1970, UTC. */
+	time: number,
+	auto: boolean,
+	parts: number | null,
+	/**  A data: URL of its thumbnail, when it has one. */
+	thumbnail: string | null,
+	/**  Whether it can be opened to compare (it has the build's placements). */
+	viewable: boolean,
+};
 
 /* Tauri Specta runtime */
 async function typedError<T, E>(result: Promise<T>): Promise<{ status: "ok"; data: T } | { status: "error"; error: E }> {

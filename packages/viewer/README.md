@@ -20,7 +20,8 @@ use this same code, so an agent's render is what the window shows.
   `render()` refuses to render while any are. The next update tries a failed part again (a dropped fetch, or a library
   installed since).
 - **Renders are their own.** `render()` draws offscreen with only its `highlight` (none by default), queued behind
-  updates, so the window's camera and highlight never leak into a render and two renders never mix.
+  updates, so the window's camera and highlight never leak into a render and two renders never mix. A render has a
+  light gray background, or none with `transparent` (the Parts list's pictures).
 - **On demand.** The scene draws when something changed (a diff, the camera, the size, orbit damping), not every
   frame.
 
@@ -38,9 +39,10 @@ viewer.highlighted();                                  // the highlighted ids
 viewer.frame(ids?);                                    // fit the ids (or everything), keeping the view direction
 viewer.setView("iso" | "front" | "back" | "left" | "right" | "top");
 viewer.setTheme("light" | "dark");
+viewer.setQuality("auto" | "low");                     // the device pixel ratio up to 2, or 1
 const { png, camera } = await viewer.render({ view: "iso", size: 768, highlight }); // offscreen; the window's camera stays
 viewer.stats();        // drawCalls, triangles, frameMs, heap (WebView2 only), instances, buckets, parts, geometries,
-                       // textures, programs, highlighted, animating, failed, lastDiff
+                       // textures, programs, highlighted, animating, failed, lastDiff, quality
 viewer.cameraMatrix(); // the camera's world matrix (tests check it doesn't move)
 viewer.orbit(radians); // turn around the target, as a drag would (bench)
 await viewer.nextFrame();

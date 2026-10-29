@@ -22,6 +22,7 @@ pub mod run;
 pub mod steps;
 pub mod technique;
 pub mod text;
+pub mod versions;
 
 /// The workspace version, which the CLI reports. The desktop app and emmet_dsl keep their own copies until
 /// `just release` (6A) bumps them together.

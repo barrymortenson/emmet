@@ -128,4 +128,4 @@ as the change: what changes and why, the screens and components it touches, befo
 frozen screen's link), and Barry's yes with its date. The frozen files are updated in that PR, and the note is listed
 here.
 
-(No changes yet.)
+- [001: What session 4A's build adds to the frozen screens](changes/001-4a-shell.md)

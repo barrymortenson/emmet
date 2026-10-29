@@ -23,13 +23,14 @@ describe("a run killed mid-way", () => {
     const root = await open(project);
     await instances(500);
     await invoke("set_params", { values: { delay: 20 } });
-    await $("#status").waitUntil(async function () {
-      return (await this.getText()).includes("rebuilding");
+    await $("#model-state .panel-head-text").waitUntil(async function () {
+      return (await this.getText()) === "Building";
     }, { timeout: 20_000, timeoutMsg: "the slow run never started" });
     await browser.pause(500);
     killRun(root);
-    await $("#error-panel").waitForDisplayed({ timeout: 20_000 });
-    await expect($("#error-panel .message")).toHaveText(expect.stringContaining("emmet stopped before it finished"));
+    await $("#build-failed").waitForDisplayed({ timeout: 20_000 });
+    await expect($("#build-failed")).toHaveText(expect.stringContaining("emmet stopped before it finished"));
+    await expect($("#build-failed")).toHaveText(expect.stringContaining("The last good model is still shown."));
     expect((await stats()).instances).toBe(500);
   });
 
@@ -37,21 +38,21 @@ describe("a run killed mid-way", () => {
     const gen = await shown();
     await invoke("set_params", { values: { delay: 0, count: 120 } });
     await nextScene(gen);
-    await expect($("#error-panel")).not.toBeExisting();
+    await expect($("#build-failed")).not.toBeExisting();
     await instances(120);
   });
 
   it("a change while a run is going cancels it quietly and the newer one shows", async () => {
     await invoke("set_params", { values: { delay: 5, count: 100 } });
-    await $("#status").waitUntil(async function () {
-      return (await this.getText()).includes("rebuilding");
+    await $("#model-state .panel-head-text").waitUntil(async function () {
+      return (await this.getText()) === "Building";
     }, { timeout: 20_000, timeoutMsg: "the slow run never started" });
     await invoke("set_params", { values: { delay: 0, count: 60 } });
     // Sampled until the newer scene is drawn: the canceled run never shows as an error.
     let sawError = false;
     await browser.waitUntil(
       async () => {
-        sawError ||= await $("#error-panel").isExisting();
+        sawError ||= await $("#build-failed").isExisting();
         return (await stats()).instances === 60;
       },
       { timeout: 30_000, interval: 100, timeoutMsg: "the newer run never showed" },

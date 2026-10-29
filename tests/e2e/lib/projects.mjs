@@ -20,6 +20,12 @@ const PROJECTS = {
   chatgpt: [["", "agent"]],
   checks: [["", "broken-collision"]],
   setup: [["", "agent"]],
+  panel: [["", "cottage"], ["floating", "broken-floating"]],
+  trust: [["", "cottage-untrusted"]],
+  import: [["", "cottage"]],
+  versions: [["", "cottage"]],
+  keyboard: [["", "cottage"]],
+  screens: [["", "cottage"], ["floating", "broken-floating"], ["untrusted", "cottage-untrusted"]],
 };
 
 export function emmet(args, options = {}) {
@@ -42,13 +48,20 @@ function clear(dir) {
 
 function make(fixture, dir, params) {
   clear(dir);
-  if (fixture === "cottage") {
+  if (fixture === "cottage" || fixture === "cottage-untrusted") {
     emmet(["new", dir]);
+    // Made here but not trusted, as a project from another computer is (D-27).
+    if (fixture === "cottage-untrusted") rmSync(join(dir, ".emmet", "trust"), { force: true });
   } else {
     cpSync(join(repo, "tests", "fixtures", "projects", fixture), dir, { recursive: true });
     emmet(["--project", dir, "trust"]);
   }
   if (params) writeFileSync(join(dir, "params.json"), JSON.stringify(params));
+}
+
+/** The path Open… picks next (src-tauri/src/projects.rs's E2E seam). */
+export function pickNext(path) {
+  writeFileSync(process.env.EMMET_E2E_PICK_FILE, path);
 }
 
 /** Makes the spec's projects and lists them as its recents. */

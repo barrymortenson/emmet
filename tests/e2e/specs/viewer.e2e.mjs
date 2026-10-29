@@ -11,7 +11,8 @@ import { projectDir } from "../lib/projects.mjs";
 const project = projectDir("viewer");
 const modelPy = join(project, "model.py");
 const original = readFileSync(modelPy, "utf8");
-const partCount = async () => Number(await $("#part-count").getText());
+/** The part count of the build on screen, as the host has it. */
+const partCount = async () => (await invoke("ui_state")).scene.parts;
 
 describe("the live viewer", () => {
   it("opens the fixture project and draws every part", async () => {
@@ -22,28 +23,19 @@ describe("the live viewer", () => {
     const s = await stats();
     expect(s.failed).toEqual({});
     expect(s.drawCalls).toBeGreaterThan(0);
-    await expect($("#status")).toHaveText(expect.stringContaining(`Built ${parts} parts`));
+    await expect($("#model-state .panel-head-text")).toHaveText("No problems");
+    await expect($("#tab-parts")).toHaveText(`Parts${parts}`);
     await screenshots("viewer-open");
   });
 
-  it("dragging the width slider changes the count and keeps the camera", async () => {
+  it("a wider cottage changes the count in place and keeps the camera", async () => {
     const before = await camera();
     const gen = await shown();
     const count = (await stats()).instances;
-    const slider = await $("#param-width");
     const started = Date.now();
-    if (process.platform === "darwin") {
-      // A real drag, from the middle of the track to the right (the embedded driver doesn't send keys to a range).
-      await browser.action("pointer").move({ origin: slider }).down().move({ origin: slider, x: 40, y: 0 }).up().perform();
-    } else {
-      // On WebView2 the embedded driver synthesizes pointer actions as DOM events, which never move a native range
-      // (ADR 0002). Set the value the way a drag does: the native setter, then input and change.
-      await browser.execute((el) => {
-        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(el, "11");
-        el.dispatchEvent(new Event("input", { bubbles: true }));
-        el.dispatchEvent(new Event("change", { bubbles: true }));
-      }, slider);
-    }
+    // Width isn't one of the cottage's knobs (they change its character, @model(knobs=...)), so it's set as the CLI
+    // and the agent set it.
+    await invoke("set_params", { values: { width: 11 } });
     // Sample while the update lands: the old scene stays whole until the new one replaces it (no flicker).
     let lowest = Infinity;
     await browser.waitUntil(
@@ -59,8 +51,7 @@ describe("the live viewer", () => {
     expect(lowest).toBeGreaterThanOrEqual(count);
     expect((await stats()).instances).toBeGreaterThan(count);
     expect(await camera()).toEqual(before);
-    const width = Number(await slider.getValue());
-    expect(width).toBeGreaterThan(10);
+    const width = 11;
     expect(JSON.parse(readFileSync(join(project, "params.json"), "utf8")).width).toBe(width);
     // 1B's budget (What good looks like: ≤ 1.0 s on M-series); slower hosted runners only report it.
     if (process.platform === "darwin" && process.env.RUNNER_ENVIRONMENT !== "github-hosted") expect(ms).toBeLessThan(1000);
@@ -74,20 +65,27 @@ describe("the live viewer", () => {
     await nextScene(gen);
     await browser.waitUntil(async () => (await stats()).instances < count, { timeoutMsg: "the chimney didn't go" });
     expect(await camera()).toEqual(before);
-    // The params drawer reads the schema again: the chimney's new default.
-    await browser.waitUntil(async () => !(await $("#param-chimney").isSelected()), { timeoutMsg: "the chimney toggle kept the old default" });
+    // The knobs read the schema again: the chimney's new default.
+    await browser.waitUntil(async () => (await $("#param-chimney-switch").getAttribute("aria-checked")) === "false", { timeoutMsg: "the chimney switch kept the old default" });
   });
 
-  it("a broken model.py shows the error and its line, and the last good model stays", async () => {
+  it("a broken model.py says the model didn't build, with its line for the agent, and the last good model stays", async () => {
     const count = (await stats()).instances;
     const lines = original.split("\n");
     const at = lines.findIndex((l) => l.includes("m = Model()"));
     lines.splice(at + 1, 0, "    print(widht)");
     writeFileSync(modelPy, lines.join("\n"));
-    await $("#error-panel").waitForDisplayed({ timeout: 20_000 });
-    await expect($("#error-location")).toHaveText(`model.py:${at + 2}`);
-    await expect($("#error-panel .message")).toHaveText(expect.stringContaining("widht"));
-    await expect($("#status")).toHaveText(expect.stringContaining("showing the last good model"));
+    await $("#build-failed").waitForDisplayed({ timeout: 20_000 });
+    await expect($("#build-failed")).toHaveText(expect.stringContaining("The model didn't build"));
+    await expect($("#build-failed")).toHaveText(expect.stringContaining("The last good model is still shown."));
+    // The file, line, and Python's words go to the agent with Ask agent to fix, not to the screen (law 2).
+    expect(await (await $("#build-failed")).getText()).not.toMatch(/widht|model\.py/);
+    const error = await browser.execute(async () => {
+      const { error: e } = await window.__TAURI_INTERNALS__.invoke("ui_state");
+      return { file: e.file, line: e.line, message: e.message };
+    });
+    expect([error.file, error.line]).toEqual(["model.py", at + 2]);
+    expect(error.message).toContain("widht");
     expect((await stats()).instances).toBe(count);
     await screenshots("viewer-error");
   });
@@ -96,16 +94,18 @@ describe("the live viewer", () => {
     const gen = await shown();
     writeFileSync(modelPy, original);
     await nextScene(gen);
-    await expect($("#error-panel")).not.toBeExisting();
+    await expect($("#build-failed")).not.toBeExisting();
     await instances(await partCount());
   });
 
-  it("clicking a part in the tree highlights it", async () => {
-    const button = await $("button*=3004 ×");
-    await button.click();
-    await expect(button).toHaveAttribute("aria-pressed", "true");
-    await button.click();
-    await expect(button).toHaveAttribute("aria-pressed", "false");
+  it("clicking a part in the Parts list highlights it", async () => {
+    await $("#tab-parts").click();
+    const row = await $("#parts-list tr[data-part='3004']");
+    await row.click();
+    await expect(row).toHaveAttribute("aria-selected", "true");
+    await row.click();
+    expect(await row.getAttribute("aria-selected")).toBe(null);
+    await $("#tab-options").click();
   });
 
   it("emmet-lib serves the library and refuses paths outside it", async () => {
@@ -132,7 +132,7 @@ describe("the live viewer", () => {
     rmSync(join(project, "build"), { recursive: true, force: true });
     await browser.pause(500);
     expect((await stats()).instances).toBe(count);
-    await expect($("#error-panel")).not.toBeExisting();
+    await expect($("#build-failed")).not.toBeExisting();
     const gen = await shown();
     await invoke("set_params", { values: { width: 8 } });
     await nextScene(gen);

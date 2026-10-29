@@ -43,7 +43,7 @@ deps:
 dev *project:
     cd apps/desktop && pnpm tauri dev --config src-tauri/tauri.dev.conf.json -- --no-default-features -- {{ project }}
 
-# Format, lint, and typecheck across Rust, TS, and Python, plus the SPDX headers.
+# Format, lint, and typecheck across Rust, TS, and Python, plus the SPDX headers and the app's tokens-only styles.
 check:
     cargo fmt --all --check
     cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -52,6 +52,7 @@ check:
     uv run --project {{ dsl }} --frozen ruff check {{ dsl }}
     uv run --project {{ dsl }} --frozen ruff format --check {{ dsl }}
     node scripts/spdx-check.mjs
+    node scripts/style-lint.mjs
 
 # Build the JS packages, then the Rust workspace (the desktop crate embeds apps/desktop/dist).
 build:
@@ -120,7 +121,15 @@ test *args:
 # WebdriverIO. `just e2e viewer` runs one spec file from tests/e2e/specs/. The app is built inside the workspace build
 # (it embeds the frontend by default), so after `just test` only the webdriver feature's crates and the app build again.
 e2e *spec: e2e-build
-    pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs {{ if spec == "" { "" } else { "--spec specs/" + spec + ".e2e.mjs" } }}
+    #!/usr/bin/env bash
+    set -euo pipefail
+    run() { pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs "$@"; }
+    # First run starts the app on its own fresh data dir (wdio.conf.mjs), so it's a second run of the app.
+    case "{{ spec }}" in
+      "") run; EMMET_E2E_FIRST_RUN=1 run ;;
+      first-run) EMMET_E2E_FIRST_RUN=1 run ;;
+      *) run --spec "specs/{{ spec }}.e2e.mjs" ;;
+    esac
 
 # The E2E build: the frontend with EMMET_E2E=1, then the workspace with emmet-desktop's `webdriver` feature (never in
 # a release build; main.rs refuses it without debug assertions).
