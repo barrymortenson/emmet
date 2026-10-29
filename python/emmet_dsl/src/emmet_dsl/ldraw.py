@@ -119,6 +119,8 @@ def _split(text: str) -> dict[str, list[tuple[int, str]]]:
     current: list = []
     name = ""
     for n, raw in enumerate(text.splitlines(), 1):
+        # A byte order mark before a line (an .mpd pieced together from files a Windows editor saved) isn't text.
+        raw = raw.lstrip("\ufeff")
         words = raw.split()
         if words[:2] == ["0", "FILE"]:
             name = " ".join(words[2:]).replace("\\", "/").lower()

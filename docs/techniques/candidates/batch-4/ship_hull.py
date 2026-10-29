@@ -4,11 +4,11 @@ plates that tie the courses together.
 
 m.use("ship_hull", x, y, z, length=6, rows=2, color="Dark Red", deck="Tan", title="Hull") builds a hull from (x, y, z),
 its stern at x and its bow toward +x, 6 studs wide (y to y + 6). Each course is a side of 1 x n bricks along each edge
-for `length` studs, a transom across the stern, and the bow: Wedge 4 x 2 Right and Left (41767, 41768) on the two edges
-with a 2 x 4 brick between, which close the hull in from 6 studs to 4, then Wedge 3 x 2 Right and Left (6564, 6565),
-which close it to a 2-stud stem; the bow adds 7 studs to the length. On top, a deck of plates: two strips along the
-sides of the hull and a middle strip that runs on out over the bow, tying it to the hull, and Wing 2 x 4 plates (41769a,
-41770a) that match the first wedges. Returns the z of the deck's top.
+for `length` studs (2 to 15), a transom across the stern, and the bow: Wedge 4 x 2 Right and Left (41767, 41768) on the
+two edges with a 2 x 4 brick between, which close the hull in from 6 studs to 4, then Wedge 3 x 2 Right and Left (6564,
+6565), which close it to a 2-stud stem; the bow adds 7 studs to the length. On top, a deck of plates: two strips along
+the sides of the hull and a middle strip that runs on out over the bow, tying it to the hull, and Wing 2 x 4 plates
+(41769a, 41770a) that match the first wedges. Returns the z of the deck's top.
 """
 
 from emmet_dsl import Brick, Plate
@@ -46,11 +46,16 @@ PARTS = [
 ]
 
 
+# The sides' brick lengths: up to 1 x 8, which come in the hull colors (a 1 x 14 never came in Dark Red).
+SIDES = [1, 2, 3, 4, 6, 8]
+
+
 def build(m, x, y, z, length=6, rows=2, color="Dark Red", deck="Tan", title="Hull"):
     """The courses, stern to bow, and the deck; returns the z of the deck's top."""
-    if length < 2 or rows < 1:
+    # From 16 the deck strip's first plate (a 2 x 16 at most) ends where the bow starts, and nothing ties the bow on.
+    if not 2 <= length <= 15 or rows < 1:
         raise ValueError(
-            f"ship_hull needs a length of 2 or more and 1 row or more, not {length}, {rows}"
+            f"ship_hull needs a length of 2 to 15 and 1 row or more, not {length}, {rows}"
         )
     b = x + length  # where the bow starts
     for r in range(rows):
@@ -59,7 +64,13 @@ def build(m, x, y, z, length=6, rows=2, color="Dark Red", deck="Tan", title="Hul
             # The transom and the sides take the stern's corners in turn, course by course.
             own = r % 2 == 0
             for row in (y, y + 5):
-                m.row(Brick, color, at=(x + own, row, zr), length=length - own)
+                m.row(
+                    Brick,
+                    color,
+                    at=(x + own, row, zr),
+                    length=length - own,
+                    sizes=SIDES,
+                )
             m.row(Brick, color, at=(x, y + 1 - own, zr), length=4 + 2 * own, axis="y")
         with m.step(f"{title}, row {r + 1}: bow"):
             m.add("41767", color, at=(b, y, zr))

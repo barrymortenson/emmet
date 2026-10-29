@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Worm drive: a worm gear on one axle turning a 24-tooth gear on an axle across it, a 24 to 1 reduction that holds
-its load when you let go, for winches, cranes, and slow turntables.
+"""Worm drive: a worm gear on one axle turning a 24-tooth gear on an axle across it, a 24 to 1 reduction that holds its
+load when you let go, for winches, cranes, and slow turntables.
 
 m.use("worm_drive", x, y, z, color="Light Bluish Gray", gear_color="Dark Bluish Gray", worm_color="Light Bluish Gray",
-axle_color="Black", title="Worm drive") builds a frame on the 4 × 4 studs whose front-left corner is (x, y - 1), from
-z: two Technic bricks 1 x 4 (3701) along y at x and x + 3, two plates on each end row between them, and two more
-Technic bricks 1 x 4 along x on those rows, a brick and two plates up. The input axle (6L, along x) runs through the
-lower bricks' middle holes, 1.75 plates above z, with a bush on each end to turn it by and the worm (4716) on it
-between the bricks. The output axle (5L, along y) runs through the upper bricks' middle holes, 5 plates higher,
-sticking a stud out the back, with the 24-tooth gear on it over the worm, centered by a half bush each side. It brings
-its own steps and returns the (x, y, z) of the output axle's back end, where a drum, an arm, or a gear goes on.
+axle_color="Black", title="Worm drive") builds a frame on the 4 × 4 studs whose front-left corner is (x, y - 1), from z:
+two Technic bricks 1 x 4 (3701) along y at x and x + 3, a plate 1 x 4 along each end row, on the lower bricks' end
+studs, and two more Technic bricks 1 x 4 along x on those rows, a brick and two plates up. The input axle (6L, along x)
+runs through the lower bricks' middle holes, 1.75 plates above z, with a bush on each end to turn it by and the worm
+(4716) on it between the bricks. The output axle (5L, along y) runs through the upper bricks' middle holes, 5 plates
+higher, sticking a stud out the back, with the 24-tooth gear on it over the worm, centered by a half bush each side. It
+brings its own steps and returns the (x, y, z) of the output axle's back end, where a drum, an arm, or a gear goes on.
 """
 
 from emmet_dsl import frame

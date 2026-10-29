@@ -3,8 +3,8 @@
 
 m.use("hinged_tailgate", x, y, z, width=4, color="Light Bluish Gray", title="Tailgate") puts a hinge brick 1 x 2 base
 (3937) at each end of a bed's back edge, `width` studs along y from (x, y, z), with a hinge 2 x 2 top (6134) closed on
-each, and a 1 x width plate and tiles across the tops as the tailgate's top. Built closed; it folds down on the
-hinges. Returns the z of its top.
+each, and a 2 x width plate across the tops with two 1 x width tiles on it as the tailgate's top. Built closed; it folds
+down on the hinges. Returns the z of its top.
 """
 
 PROVENANCE = """Emmet's own (session 3C), written from general building knowledge. Not derived from any model file."""

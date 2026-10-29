@@ -4,7 +4,9 @@
 // candidates (docs/techniques/candidates/<batch>.json, written by hand from the research), each candidate's sketch
 // (docs/techniques/candidates/<batch>/<name>.py, a technique module whose example() is rendered), and the miner's
 // matches (tests/it/src/bin/mine-techniques.rs --query): how widely official sets join its key parts. Barry marks
-// each accept or reject on the page and copies his answers back; accepted sketches become techniques.
+// each accept or reject on the page and copies his answers back; accepted sketches become techniques. Each sketch is
+// checked (it must validate with no findings, or the page isn't built) and rendered again when it's newer than its
+// picture; matches.json must have been made from the batch's signatures.
 //
 //   cargo run --release -p emmet-it --bin mine-techniques -- --query docs/techniques/candidates/<batch>.json \
 //     <data dir> <mine dir> <models>…
@@ -14,7 +16,7 @@
 // app for render mode (cargo build -p emmet-cli; just build-app).
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -39,7 +41,7 @@ try {
   for (const c of candidates) {
     const sketch = join(shots, `${c.name}.py`);
     const png = join(shots, `${c.name}.png`);
-    if (!existsSync(sketch) || existsSync(png)) continue;
+    if (!existsSync(sketch)) continue;
     const dir = join(work, c.name);
     run("new", dir, "--template", "empty");
     // The sketch, and a model that runs its example; m.use of the sketch's own name runs its build.
@@ -51,6 +53,15 @@ try {
         `    example(m)\n    return m\n`,
     );
     run("trust", "--project", dir);
+    // The page says every sketch validates with no findings: hold it to that.
+    const checked = JSON.parse(run("--json", "check", "--project", dir).toString());
+    const findings = checked.data?.findings ?? [];
+    if (!checked.ok || findings.length) {
+      console.error(`technique-candidates: ${c.name}'s sketch doesn't validate clean:`);
+      for (const f of findings) console.error(`  ${f.id} ${f.rule}: ${f.message}`);
+      process.exit(1);
+    }
+    if (existsSync(png) && statSync(png).mtimeMs >= statSync(sketch).mtimeMs) continue;
     // A candidate whose face is to the front of a vehicle (-x) names the view that shows it.
     run("render", "--project", dir, "--view", c.view || "iso", "--size", "320", "--out", png);
   }
@@ -61,7 +72,13 @@ try {
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
 const card = (c, i) => {
   const m = matches[c.name];
-  let seen = m.joined_sets
+  if (!m || JSON.stringify(m.signature) !== JSON.stringify(c.signature)) {
+    console.error(`technique-candidates: matches.json is stale for ${c.name}; run mine-techniques --query again`);
+    process.exit(1);
+  }
+  let seen = m.not_counted
+    ? `Not counted: its key parts ${m.not_counted.join(", ")} are ones the miner leaves out (figures, stickers, baseplates).`
+    : m.joined_sets
     ? `Joined in <b>${m.joined_sets}</b> of ${setCount} official sets (${m.joined} times); ${m.used_sets} sets use the parts.`
     : `Not found joined in the ${setCount} mined sets; ${m.used_sets} sets use the parts.`;
   if (c.weak) seen += " The key parts are common, so this count overstates it.";

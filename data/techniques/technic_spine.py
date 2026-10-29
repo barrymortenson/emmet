@@ -8,6 +8,8 @@ so its joints fall between the first row's, with a Technic pin pushed into the f
 joint before the second row presses on over them. Lengths are multiples of 4 from 8. Returns the z of its top.
 """
 
+from emmet_dsl.core import in_steps
+
 PROVENANCE = """Emmet's own (session 3C), written from general building knowledge; the method is in the instruction
 book of set 60440. Not derived from any model file."""
 
@@ -48,12 +50,22 @@ def build(m, x, y, z, length=16, color="Light Bluish Gray", title="Spine"):
                 a += n
 
     lay(0)
-    with m.step(f"{title}: pins"):
-        # A hole sits between each pair of studs; pin the holes either side of every joint, into the first row, so
-        # the second row presses on over them.
-        for j in sorted(joints):
-            for hx in (j - 1, j + 1):
-                m.add("2780", "Black", at=(hx - 0.4, y, z + 0.775), rot=0)
+    # A hole sits between each pair of studs; pin the holes either side of every joint, into the first row, so the
+    # second row presses on over them.
+    in_steps(
+        m,
+        f"{title}: pins",
+        [
+            (
+                1,
+                lambda hx=hx: m.add(
+                    "2780", "Black", at=(hx - 0.4, y, z + 0.775), rot=0
+                ),
+            )
+            for j in sorted(joints)
+            for hx in (j - 1, j + 1)
+        ],
+    )
     lay(1)
     return z + 3
 

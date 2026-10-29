@@ -7,7 +7,7 @@
 //
 //   scripts/omr-corpus <cache dir> [list.json]
 //
-// The files are only read and hashed here; the validator parses them as LDraw text.
+// The files are only read and hashed here; the validator and the technique miner parse them as LDraw text.
 
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -33,7 +33,7 @@ for (const m of models) {
   const path = join(dir, m.file);
   if (existsSync(path) && sha(readFileSync(path)) === m.sha256) continue;
   if (fetched++) await new Promise((r) => setTimeout(r, 1000));
-  const res = await fetch(m.url, { headers: { "user-agent": "emmet-ci (nightly validator corpus)" } });
+  const res = await fetch(m.url, { headers: { "user-agent": "emmet (OMR corpus for tests and technique research)" } });
   if (!res.ok) {
     console.error(`omr-corpus: ${m.url}: HTTP ${res.status}`);
     process.exit(1);

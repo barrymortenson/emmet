@@ -36,7 +36,8 @@ def build(
         zr = z + 3 * r
         with m.step(f"{title}, row {r + 1}"):
             m.add("4733", color, at=(x, y, zr))
-            # The walls each side, laid so their joints don't line up course to course.
+            # The walls each side, their joints along the wall staggered course to course (the joint beside the corner
+            # column repeats, as it does on a real quoined corner).
             first = 2 if r % 2 else 1
             for axis, at in (("x", (x + 1, y, zr)), ("y", (x, y + 1, zr))):
                 m.row(

@@ -113,7 +113,8 @@ def build(
 
 
 def _tiles(length, first):
-    """A row of clear tiles: [(offset, part)], 1 x 4s with a 1 x 2 to start every other row and 1 x 1s to fill."""
+    """A row of clear tiles: [(offset, part)], 1 x 4s with a 1 x 2 to start every other row, and 1 x 2s and 1 x 1s
+    to fill."""
     out, k = [], 0
     sizes = {4: "2431", 2: "3069b", 1: "3070b"}
     if first:

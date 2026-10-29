@@ -73,6 +73,14 @@ fn a_byte_order_mark_is_ignored() {
     let without = ldraw::parse(text).unwrap();
     assert_eq!(placements(&with), placements(&without));
     assert_eq!(placements(&with).len(), 1);
+    // An .mpd pieced together from such files has one before a later line, too.
+    let pieced = "0 FILE car.ldr\n1 4 0 0 0 1 0 0 0 1 0 0 0 1 wheel.ldr\n0 NOFILE\n\u{feff}0 FILE wheel.ldr\n\u{feff}1 0 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat\n";
+    let doc = ldraw::parse(pieced).expect("a BOM before a later line parses");
+    assert_eq!(
+        placements(&doc).len(),
+        1,
+        "the part in the second file, through the first"
+    );
 }
 
 #[test]

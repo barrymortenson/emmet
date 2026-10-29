@@ -100,9 +100,19 @@ def build(
     )
     for half, (sy, turn) in (("left", (y, 3)), ("right", (y + 3, 1))):
         # Curved 3 x 2 slopes, 3 long across the roof, falling to its edge: two meet in the middle.
-        with m.step(f"{title}: roof, {half} half"):
-            for a in range(0, length, 2):
-                m.add("24309", roof, at=(x + a, sy, z + 11), rot=turn)
+        in_steps(
+            m,
+            f"{title}: roof, {half} half",
+            [
+                (
+                    1,
+                    lambda a=a, sy=sy, turn=turn: m.add(
+                        "24309", roof, at=(x + a, sy, z + 11), rot=turn
+                    ),
+                )
+                for a in range(0, length, 2)
+            ],
+        )
     return z + 14
 
 

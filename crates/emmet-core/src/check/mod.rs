@@ -416,7 +416,7 @@ pub fn links(index: &Index, lib: &LibFiles, placements: &[Placement]) -> Result<
 
 /// One edge of the connection graph, for the technique miner (3C): placements `a` and `b` by index, joined by a
 /// connector pair of `kind` ("cyl", "clip", "finger", "gen") along `axis` (LDraw frame) with a seat of `radius` LDU,
-/// or held one by the other without one (kind "held", no axis).
+/// or held one by the other without one (kind "held", no axis, radius 0).
 #[doc(hidden)]
 #[derive(Debug, Clone)]
 pub struct Joint {

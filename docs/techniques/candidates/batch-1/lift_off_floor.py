@@ -1,28 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Lift-off floor: an upper floor built on its own, two layers of plates with their seams crossed, with an opening for
-the stairs, which sets on the walls below and lifts off.
+"""Lift-off floor: an upper floor built on its own, two layers of plates whose seams cross, with an opening for the
+stairs, which sets on the walls below and lifts off.
 
 m.use("lift_off_floor", length=8, depth=8, opening=(2, 4), color="Dark Bluish Gray", title="Floor") returns a submodel:
-a length x depth floor whose lower layer runs its plates along x and upper layer along y, so no seam crosses another,
-and which leaves an opening (w, d) studs at its back-right corner for the stairs. Place it on the walls with m.place.
+a length x depth floor whose lower layer runs its plates along x and upper layer along y, so each layer's seams cross
+the other's (up to 8 long: past that, a plate's end in one layer can meet a seam in the other), and which leaves an
+opening (w, d) studs at its back-right corner for the stairs. Place it on the walls with m.place.
 """
 
 PROVENANCE = """Emmet's own (session 3C), from a method in the instruction books of set 10350, set 60440. Not derived
 from any model file."""
 
-PARTS = [
-    "3034",
-    "3832",
-    "3795",
-    "3020",
-    "3022",
-    "3021",
-    "3710",
-    "3666",
-    "3460",
-    "3623",
-    "3023b",
-]
+PARTS = ["3034", "3795", "3020", "3022"]
 
 PLATES = {8: "3034", 6: "3795", 4: "3020", 2: "3022"}  # Plate 2 x n
 

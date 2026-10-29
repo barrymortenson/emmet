@@ -28,8 +28,8 @@ pub struct Technique {
     pub snippet: String,
     /// The LDraw ids of the parts it uses (part helpers in it may pick other sizes for other arguments).
     pub parts: Vec<String>,
-    /// Where the method came from: Emmet's own, the instruction books it was read in (by set number), and how widely
-    /// the miner found it in official models. Never derived from an OMR model's file (D-48).
+    /// Where its method came from: Emmet's own, and the instruction books it was read in, by set number. Never derived
+    /// from an OMR model's file (D-48).
     pub provenance: String,
 }
 

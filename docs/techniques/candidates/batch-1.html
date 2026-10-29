@@ -13,7 +13,7 @@
   .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
   .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
   h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
-  .why { color: var(--muted); } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
   dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
   .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
   footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
@@ -24,7 +24,7 @@
 <header>
   <h1>Technique candidates: batch-1</h1>
   <p>20 candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
-  books and ranked by how widely official models in the LDraw OMR join its key parts (483 sets mined). Each
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1318 sets mined). Each
   picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
   the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
   the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
@@ -36,10 +36,11 @@
     <h2><span class="n">1</span> <code>quoin_corner</code></h2>
     <p>Alternating long and short stone blocks on the side studs of a wall's corner columns; use on cottages and town houses.</p>
     <p class="why">Stone corners in a contrasting color, long and short blocks alternating, on any house corner or door jamb; one of the clearest signs of a designed building.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>courses</code>, <code>color</code>, <code>both_faces</code>, <code>phase</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>2</b> of 483 official sets (2 times); 6 sets use the parts.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 21024 - Louvre.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 1318 official sets (5 times); 17 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10129 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 21024 - Louvre.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 75010 - Main.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/quoin_corner.py"><code>batch-1/quoin_corner.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 21335: 6448880 p199-221; set 10350: p208, p209, p210, p218</dd>
       <dt>Key parts</dt><dd><code>4733</code> + <code>3794b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
@@ -57,10 +58,11 @@
     <h2><span class="n">2</span> <code>wall_top_tie</code></h2>
     <p>A course of plates across the tops of the walls, over the corner joints, finished with tiles except a few studs to locate what goes on top.</p>
     <p class="why">A course of plates across the wall tops that overlaps every corner joint, then tiles that leave a few studs: what locks walls together and lets a floor or roof lift off. The cottage needs it.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>length</code>, <code>depth</code>, <code>color</code>, <code>studs</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>134</b> of 483 official sets (357 times); 217 sets use the parts. The key parts are common, so this count overstates it.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>253</b> of 1318 official sets (599 times); 461 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/wall_top_tie.py"><code>batch-1/wall_top_tie.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p141, p142, p143, p144, p145, p146 …</dd>
       <dt>Key parts</dt><dd><code>3666</code> + <code>3004</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
@@ -78,10 +80,11 @@
     <h2><span class="n">3</span> <code>lift_off_roof_seat</code></h2>
     <p>Tile the wall top smooth except a few jumper studs so a separately built roof locates on them and lifts off; use whenever the interior should be reachable.</p>
     <p class="why">Lets a roof or upper floor lift off to show the inside, which every house in the books does; pairs with wall_top_tie.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>footprint</code>, <code>stud_positions</code>, <code>tile_color</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>7</b> of 483 official sets (13 times); 36 sets use the parts.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); Robie House (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 21017 - Imperial Hotel.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 21051 - Tokyo - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>11</b> of 1318 official sets (26 times); 67 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); Robie House (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 10134 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/lift_off_roof_seat.py"><code>batch-1/lift_off_roof_seat.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 21335: 6448880 p219-220, 6448881 p79-95; set 60440: 6521802 p56, 6521802 p76, 6521802 p77, 6521802 p78, 6521802 p79, 6521802 p80 …</dd>
       <dt>Key parts</dt><dd><code>4162</code> + <code>3794b</code></dd>
@@ -99,10 +102,11 @@
     <h2><span class="n">4</span> <code>lift_off_floor</code></h2>
     <p>Lift-off upper floor made of two crossed layers of large plates around a stairwell opening, for every modular story.</p>
     <p class="why">Upper floors as their own units: two layers of plates with crossing seams around a stair opening. For any building of more than one story.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>footprint</code>, <code>stair_position</code>, <code>overhang</code>, <code>color</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>3</b> of 483 official sets (3 times); 28 sets use the parts.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); Robie House (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 1318 official sets (6 times); 48 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); Robie House (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/lift_off_floor.py"><code>batch-1/lift_off_floor.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p141, p142, p143, p144, p145, p146 …; set 60440: 6521803 p5, 6521803 p6, 6521803 p7, 6521803 p9, 6521803 p10, 6521803 p11 …</dd>
       <dt>Key parts</dt><dd><code>4282</code> + <code>3035</code> + <code>3032</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
@@ -120,10 +124,11 @@
     <h2><span class="n">5</span> <code>jettied_floor</code></h2>
     <p>Upper floor plate that projects one stud past the wall below on the street sides, for overhanging Tudor stories.</p>
     <p class="why">An upper story that overhangs the one below by a stud: an easy way to make a town house look old and real.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>overhang</code>, <code>sides</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>23</b> of 483 official sets (25 times); 68 sets use the parts. The key parts are common, so this count overstates it.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10185 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>37</b> of 1318 official sets (54 times); 118 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10030 - main.ldr (Roland Dahl [rolandd], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/jettied_floor.py"><code>batch-1/jettied_floor.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p227, p228, p229, p230, p231, p232 …</dd>
       <dt>Key parts</dt><dd><code>4282</code> + <code>4162</code></dd>
@@ -141,9 +146,10 @@
     <h2><span class="n">6</span> <code>masonry_wall</code></h2>
     <p>Running-bond wall panel of embossed and plain bricks built flat and attached, for exposed brick, rear walls and chimneys.</p>
     <p class="why">Brick-textured walls in running bond with a few patched bricks; a plain wall made to read as brickwork.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>length</code>, <code>height</code>, <code>bond_offset</code>, <code>color_mix</code>, <code>feature_positions</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>6</b> of 483 official sets (20 times); 8 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1318 official sets (20 times); 8 sets use the parts.</dd>
       <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10246 - Main model.ldr (Willy Tschager [Holly-Wood], Redistributable under CCAL version 2.0); FILE 10267 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 75954 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/masonry_wall.py"><code>batch-1/masonry_wall.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p71, p196, p197, p218, p249, p256 …</dd>
@@ -162,9 +168,10 @@
     <h2><span class="n">7</span> <code>clapboard_siding</code></h2>
     <p>A sideways siding strip of cheese slopes on a long plate, hung on side studs to give a wall or narrow pier lap-siding in another color.</p>
     <p class="why">Lap siding from slopes on a plate hung on side studs, for wooden houses and barns.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>length</code>, <code>slope_color</code>, <code>backer_color</code>, <code>layers</code>, <code>side</code></dd>
-      <dt>Official models</dt><dd>Not found joined in the 483 mined sets; 19 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 23 sets use the parts.</dd>
       
       <dt>Sketch</dt><dd><a href="batch-1/clapboard_siding.py"><code>batch-1/clapboard_siding.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 43217: p37, p38, p43, p47, p48</dd>
@@ -183,9 +190,10 @@
     <h2><span class="n">8</span> <code>half_timber_band</code></h2>
     <p>White plaster wall with black timber posts and diagonal braces built studs-out, for Tudor or half-timbered upper stories.</p>
     <p class="why">White plaster with black timber posts and braces, for Tudor and half-timbered stories.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>length</code>, <code>bay_count</code>, <code>post_spacing</code>, <code>brace_pattern</code>, <code>plaster_color</code>, <code>timber_color</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>24</b> of 483 official sets (77 times); 28 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Joined in <b>28</b> of 1318 official sets (84 times); 34 sets use the parts.</dd>
       <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/half_timber_band.py"><code>batch-1/half_timber_band.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p236, p237, p238, p239, p240, p241 …</dd>
@@ -204,9 +212,10 @@
     <h2><span class="n">9</span> <code>window_sill</code></h2>
     <p>A deep window sill from a flat 1x4 panel, with a two-stud plate on the base's side studs as a band below it.</p>
     <p class="why">A deep sill under a window, so windows don't sit flat in the wall.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>sill_width</code>, <code>colors</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>55</b> of 483 official sets (142 times); 67 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Joined in <b>71</b> of 1318 official sets (190 times); 86 sets use the parts.</dd>
       <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/window_sill.py"><code>batch-1/window_sill.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 43217: p39, p43, p49</dd>
@@ -225,10 +234,11 @@
     <h2><span class="n">10</span> <code>window_hood</code></h2>
     <p>Small peaked hood over a window from two mirrored slopes on a plate, for upper-floor window trim.</p>
     <p class="why">A small peaked or flat hood over a window; with window_sill it frames a window the way the books do.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>width</code>, <code>peak_style</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>69</b> of 483 official sets (175 times); 151 sets use the parts. The key parts are common, so this count overstates it.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>90</b> of 1318 official sets (219 times); 219 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/window_hood.py"><code>batch-1/window_hood.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p254, p255, p273, p274; set 43217: p39, p43, p49, p57</dd>
       <dt>Key parts</dt><dd><code>54200</code> + <code>3666</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
@@ -246,9 +256,10 @@
     <h2><span class="n">11</span> <code>shuttered_window</code></h2>
     <p>An arched lattice window in a wall gap with shutter mounts on side studs either side; use for cottages and chapels.</p>
     <p class="why">A cottage window with shutters on side studs either side.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>arched</code>, <code>shutters</code>, <code>color</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>11</b> of 483 official sets (40 times); 11 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Joined in <b>15</b> of 1318 official sets (46 times); 15 sets use the parts.</dd>
       <dt>Sets that join them</dt><dd>FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10243 - Main model.ldr (Willy Tschager [Holly Wood], Redistributable under CCAL version 2.0); FILE 10182 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10185 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/shuttered_window.py"><code>batch-1/shuttered_window.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 21335: 6448880 p208-209, 6448880 p212, 6448880 p216</dd>
@@ -267,9 +278,10 @@
     <h2><span class="n">12</span> <code>shop_window</code></h2>
     <p>Shop window on a 1x6 plate with small transom frames over taller panes and a bar course between, for ground-floor shopfronts.</p>
     <p class="why">A ground-floor shop window built as a unit on a plate, transoms over tall panes; for stations and town buildings.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>width</code>, <code>pane_heights</code>, <code>frame_color</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>2</b> of 483 official sets (3 times); 14 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1318 official sets (3 times); 15 sets use the parts.</dd>
       <dt>Sets that join them</dt><dd>FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/shop_window.py"><code>batch-1/shop_window.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p109, p110, p116, p117, p118</dd>
@@ -288,10 +300,11 @@
     <h2><span class="n">13</span> <code>door_hood</code></h2>
     <p>Cornice over a door from a 1x6 plate with corner plates and jumpers below and a tile on top, overhanging by one stud.</p>
     <p class="why">A projecting cornice over a door, held by jumpers and corner plates.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>width</code>, <code>overhang</code>, <code>pediment</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>3</b> of 483 official sets (4 times); 30 sets use the parts.</dd>
-      <dt>Sets that join them</dt><dd>FILE 21017 - Imperial Hotel.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 21018 - United Nations Headquarters.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 76897 - Main.ldr (Adrien Pennamen [Adrien Pennamen], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>8</b> of 1318 official sets (13 times); 53 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10018 - main.ldr (Faramond Florent [Makou], Redistributable under CCAL version 2.0); FILE 10240 - subModel-32.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10134 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/door_hood.py"><code>batch-1/door_hood.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p107, p194</dd>
       <dt>Key parts</dt><dd><code>3666</code> + <code>3794b</code> + <code>6636</code></dd>
@@ -309,9 +322,10 @@
     <h2><span class="n">14</span> <code>roof_dormer</code></h2>
     <p>A 45-degree pitched roof with a crossing front gable, a valley filler on a side stud and a rounded ridge; use for houses.</p>
     <p class="why">A small gable crossing a pitched roof, with the valley filled on a side stud; it breaks up a long roof.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>span</code>, <code>length</code>, <code>dormer_position</code>, <code>roof_color</code>, <code>ridge_color</code></dd>
-      <dt>Official models</dt><dd>Not found joined in the 483 mined sets; 25 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 29 sets use the parts.</dd>
       
       <dt>Sketch</dt><dd><a href="batch-1/roof_dormer.py"><code>batch-1/roof_dormer.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 21335: 6448881 p79-92; set 43217: p95, p96; set 10350: p266, p267, p268, p269, p270, p271 …</dd>
@@ -330,9 +344,10 @@
     <h2><span class="n">15</span> <code>ridge_cap</code></h2>
     <p>A row of curved-top bricks along a roof's ridge, so the ridge reads as a rounded roll.</p>
     <p class="why">A rounded cap along the ridge of a roof instead of a row of bare double slopes.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>length</code>, <code>color</code></dd>
-      <dt>Official models</dt><dd>Not found joined in the 483 mined sets; 4 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Not found joined in the 1318 mined sets; 5 sets use the parts.</dd>
       
       <dt>Sketch</dt><dd><a href="batch-1/ridge_cap.py"><code>batch-1/ridge_cap.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 21335: 6448881 p79-92; set 10350: p293, p294, p303, p304, p305, p306 …</dd>
@@ -351,9 +366,10 @@
     <h2><span class="n">16</span> <code>chimney_stack</code></h2>
     <p>Freestanding embossed-brick chimney with a stepped-out cap and round chimney pots, for rooftops.</p>
     <p class="why">A brick chimney with a stepped-out cap and pots, built on the roof.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>footprint</code>, <code>height</code>, <code>pot_count</code>, <code>cap_overhang</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>5</b> of 483 official sets (8 times); 26 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 1318 official sets (8 times); 30 sets use the parts.</dd>
       <dt>Sets that join them</dt><dd>FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 75969 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/chimney_stack.py"><code>batch-1/chimney_stack.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p323, p324, p330</dd>
@@ -372,10 +388,11 @@
     <h2><span class="n">17</span> <code>downpipe</code></h2>
     <p>Rainwater downpipe of round 1x1 bricks stacked on a round plate up a wall corner.</p>
     <p class="why">A rainwater downpipe of round bricks up a wall corner; a cheap detail that makes a wall look finished.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>height</code>, <code>color</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>97</b> of 483 official sets (350 times); 185 sets use the parts. The key parts are common, so this count overstates it.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>155</b> of 1318 official sets (446 times); 331 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10030 - main.ldr (Roland Dahl [rolandd], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/downpipe.py"><code>batch-1/downpipe.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p212, p213, p299</dd>
       <dt>Key parts</dt><dd><code>6141</code> + <code>3062b</code></dd>
@@ -393,9 +410,10 @@
     <h2><span class="n">18</span> <code>porch_posts</code></h2>
     <p>Porch posts of a round 1x1 under a 1x1x3 brick, plus a balustrade of short spindles on studs capped with a tile rail.</p>
     <p class="why">Porch posts and a low balustrade, for porches, verandas, and station canopies.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>post_height</code>, <code>spindle_count</code>, <code>rail_color</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>3</b> of 483 official sets (4 times); 18 sets use the parts.</dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1318 official sets (4 times); 19 sets use the parts.</dd>
       <dt>Sets that join them</dt><dd>FILE 75980 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 75948 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 31063 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/porch_posts.py"><code>batch-1/porch_posts.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 43217: p28, p30, p31, p32, p62, p63</dd>
@@ -414,10 +432,11 @@
     <h2><span class="n">19</span> <code>sidewalk</code></h2>
     <p>Street edge of a modular baseplate: light tile curb, dark tile pavement and a few exposed studs for street furniture.</p>
     <p class="why">The street edge: a light tile curb and dark pavement with a few studs for street furniture.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>curb_width</code>, <code>depth</code>, <code>stud_positions</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>29</b> of 483 official sets (49 times); 122 sets use the parts. The key parts are common, so this count overstates it.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>44</b> of 1318 official sets (87 times); 215 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/sidewalk.py"><code>batch-1/sidewalk.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 10350: p8, p9, p10, p11, p12, p13 …</dd>
       <dt>Key parts</dt><dd><code>4162</code> + <code>3068b</code></dd>
@@ -435,10 +454,11 @@
     <h2><span class="n">20</span> <code>wall_vent</code></h2>
     <p>A grille tile on the side studs of a 1x2 brick to make a vent, radiator or grate in a wall course.</p>
     <p class="why">A grille on the side studs of a brick in a wall course: a vent, radiator, or grate.</p>
+    
     <dl>
       <dt>Parameters</dt><dd><code>color</code>, <code>facing</code></dd>
-      <dt>Official models</dt><dd>Joined in <b>18</b> of 483 official sets (52 times); 51 sets use the parts.</dd>
-      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 60216 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21046 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Official models</dt><dd>Joined in <b>22</b> of 1318 official sets (59 times); 67 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 60216 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
       <dt>Sketch</dt><dd><a href="batch-1/wall_vent.py"><code>batch-1/wall_vent.py</code></a></dd>
       <dt>Instruction books</dt><dd>set 43217: p11, p29</dd>
       <dt>Key parts</dt><dd><code>11211</code> + <code>2412b</code></dd>

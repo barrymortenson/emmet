@@ -30,12 +30,16 @@ def lengths(n, sizes):
 
 
 def staggered(n, sizes, course):
-    """Like lengths, but every other course starts with a 2-long piece, so its joints fall between the course
-    below's instead of on them (a roof's slopes, its bricks, the ceiling's plates)."""
+    """Like lengths, but every other course (or row) starts with a 2-long piece, so its joints mostly fall between
+    the ones before it instead of on them (a roof's slopes and its bricks course to course, the ceiling's plates row to
+    row). An odd length ends both ways with a 1-long piece, so that last joint lines up."""
     if course % 2 and n > 2 and 2 in sizes:
         return [2] + lengths(n - 2, sizes)
     return lengths(n, sizes)
 
+
+# The walls' brick lengths: 1 x 4 and shorter come in the most colors.
+WALL_BRICKS = [1, 2, 3, 4]
 
 # A step adds at most this many parts: the 6+ target (plan section 08's step rules).
 STEP = 8
@@ -193,22 +197,35 @@ def cottage(
     def put_window(name, at, turn, z):
         m.place(window_unit, at=(*at, z), rot=turn, id=f"window/{name}")
 
+    below = {"holes": set()}  # the course below's openings and old bricks
+
     def walls(row):
         """One row of the walls: the back, then the two sides, then the front, a step each (or more, at most STEP
         parts a step), so each step's bricks are in view. m.wall lays each course in bond over the one below, its
-        corners interlocking with the next wall's; old bricks patch cells it leaves open."""
+        corners interlocking with the next wall's; old bricks fill the weathered cells it leaves open."""
         z = ground + 3 * row
         gaps = (door if row < 6 else set()) | (windows if 2 <= row < 4 else set())
         corners = {(x0, y0), (x1, y0), (x0, y1), (x1, y1)}
-        # Old brick showing through: single cells of this course, never a corner, a door, or a window.
+        # Old brick showing through: single cells of this course, never a corner, a door, or a window, and never over
+        # or beside another old brick or an opening (in this course or the one below), so the joints around it are
+        # bridged like any other.
         cells = {(x, y) for x in range(x0, x1 + 1) for y in (y0, y1)} | {
             (x, y) for y in range(y0 + 1, y1) for x in (x0, x1)
         }
-        old = {
-            c
-            for c in sorted(cells - corners - gaps)
-            if row > 0 and rng.random() * 100 < weathering
-        }
+        busy = gaps | below["holes"]
+        old = set()
+        for c in sorted(cells - corners - gaps):
+            chance = rng.random() * 100
+            around = {
+                c,
+                (c[0] - 1, c[1]),
+                (c[0] + 1, c[1]),
+                (c[0], c[1] - 1),
+                (c[0], c[1] + 1),
+            }
+            if row > 0 and chance < weathering and not around & (busy | old):
+                old.add(c)
+        below["holes"] = gaps | old
         color = "Dark Bluish Gray" if row == 0 else wall_color  # a stone base course
         for title, wall in (
             ("back wall", "back"),
@@ -235,6 +252,7 @@ def cottage(
                         sides=wall,
                         color=color,
                         openings=gaps | old,
+                        sizes=WALL_BRICKS,
                     ),
                 )
             ]
@@ -329,7 +347,8 @@ def cottage(
 
         def plate_row(y):
             x = x0
-            # Each row of plates starts differently from the one before it, so no seam runs straight across.
+            # Each row of plates starts differently from the one before it, so the rows' joints don't line up front to
+            # back.
             for size in staggered(width, PLATES, (y - y0) // 2):
                 # rot=1 lays a 2 x n plate along x; the 1 x 2 is already 1 along x.
                 m.add(
@@ -393,7 +412,7 @@ def cottage(
                 in_steps(m, f"Roof, course {k + 1}: {title}", actions)
         with m.step("Roof, ridge"):
             x = x0
-            for size in staggered(width, RIDGES, courses):
+            for size in lengths(width, RIDGES):
                 m.add(
                     RIDGES[size],
                     roof_color,

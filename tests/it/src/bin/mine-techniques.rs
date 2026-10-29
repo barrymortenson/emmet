@@ -12,8 +12,11 @@
 //! motifs found in at least MIN_SETS sets (a set's alternate models count once), and ranked by how many sets have one,
 //! then size, then how many times they appear. Writes `<out dir>/motifs.json` (the top TOP) with an example of each of
 //! the first EXAMPLES as `<out dir>/examples/<rank>.ldr`, for a render. With --query, a list of candidates, each
-//! `{"name", "signature": [part ids]}`, it also writes `matches.json`: per candidate, the widest motif that has every
-//! signature part, and its example as `matches/<name>.ldr`. The examples are never committed (D-48).
+//! `{"name", "signature": [part ids]}`, it also writes `matches.json`: per candidate, the signature it was asked for,
+//! how many sets use those parts and how many join them (directly or through one part), the widest motif that has them
+//! all, and `matches/<name>.ldr`: one joined group, from the set with the most, and the parts around it. A signature
+//! with a part the miner leaves out (a figure, a sticker, a baseplate) is marked `not_counted`. The examples are never
+//! committed (D-48).
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write as _;
@@ -29,8 +32,8 @@ use serde_json::json;
 /// A motif counts once it's in this many sets.
 const MIN_SETS: usize = 3;
 const MAX_PARTS: usize = 12;
-/// How many instances of a motif per set grow into the next size: enough to find every larger motif, few enough
-/// that a wall of a hundred brackets doesn't swamp the run.
+/// How many instances of a motif per set grow into the next size: enough to find most larger motifs, few enough that
+/// a wall of a hundred brackets doesn't swamp the run.
 const GROW_PER_SET: usize = 40;
 /// How many motifs of each size go on to grow, the most widespread first.
 const KEEP_PER_SIZE: usize = 4000;
@@ -76,6 +79,23 @@ struct Model {
     /// Placements that make a motif worth having on their own (see SPECIAL), and joints that do.
     special: Vec<bool>,
     special_edges: HashSet<(usize, usize)>,
+}
+
+/// Parts the miner leaves out of the graph: figures, stickers, and baseplates join everything to everything, and
+/// unknown and obsolete parts (a `~` name) can't be judged.
+fn left_out(name: &str, category: &str) -> bool {
+    name.is_empty()
+        || name.starts_with('~')
+        || category.starts_with("Minifig")
+        || ["Sticker", "Baseplate"].contains(&category)
+}
+
+/// A part id as the miner keys it: a moved id (`~Moved to 3023b`) is the part it moved to.
+fn current_id(index: &Index, id: &str) -> String {
+    match index.part(id).unwrap() {
+        Some(part) if part.name.starts_with("~Moved to") => part.alias_of.unwrap_or_else(|| id.to_string()),
+        _ => id.to_string(),
+    }
 }
 
 fn header(text: &str, key: &str) -> String {
@@ -135,11 +155,7 @@ fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, 
         known[i] = !name.is_empty();
         // Figures, stickers, and baseplates join everything to everything; unknown and obsolete parts (a `~` name)
         // can't be judged.
-        if name.is_empty()
-            || name.starts_with('~')
-            || category.starts_with("Minifig")
-            || ["Sticker", "Baseplate"].contains(&category.as_str())
-        {
+        if left_out(&name, &category) {
             continue;
         }
         keep[i] = true;
@@ -184,7 +200,8 @@ fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, 
     })
 }
 
-/// A number rounded for a key: positions to 2 LDU (official files are often 1 LDU off), rotations to 0.01.
+/// A number rounded for a key: positions to 2 LDU, rotations to 0.01. Official files are often 1 LDU off; rounding
+/// to 2 LDU merges some of those placements and not others, so a motif can be split across two keys.
 fn q(v: f64, step: f64) -> i64 {
     (v / step).round() as i64
 }
@@ -370,8 +387,15 @@ fn main() {
             Some(m)
         })
         .collect();
+    if models.len() < files.len() {
+        eprintln!(
+            "mine-techniques: skipped {} of {} models (see above)",
+            files.len() - models.len(),
+            files.len()
+        );
+    }
 
-    // Size 2: every joint that's more than plain stacking.
+    // Size 2: every joined pair that's more than plain stacking: a special joint, or a special part in it.
     let mut level: HashMap<String, Motif> = HashMap::new();
     let mut seen = HashSet::new();
     for (mi, m) in models.iter().enumerate() {
@@ -460,12 +484,28 @@ fn main() {
     let mut matches = serde_json::Map::new();
     for w in &wanted {
         let name = w["name"].as_str().unwrap();
-        let signature: Vec<String> = w["signature"]
+        let asked: Vec<String> = w["signature"]
             .as_array()
-            .unwrap()
+            .unwrap_or_else(|| panic!("{name}: no signature list"))
             .iter()
             .map(|v| v.as_str().unwrap().to_string())
             .collect();
+        let signature: Vec<String> = asked.iter().map(|id| current_id(&index, id)).collect();
+        // A part the miner leaves out of the graph can't be found joined: say so, rather than count 0.
+        let not_counted: Vec<&String> = signature
+            .iter()
+            .filter(|id| match index.part(id).unwrap() {
+                Some(part) => left_out(&part.name, &part.category),
+                None => true,
+            })
+            .collect();
+        if !not_counted.is_empty() {
+            matches.insert(
+                name.to_string(),
+                json!({ "signature": asked, "not_counted": not_counted }),
+            );
+            continue;
+        }
         let with: Vec<&(usize, Motif)> = all
             .iter()
             .filter(|(_, motif)| {
@@ -527,6 +567,7 @@ fn main() {
                 }
             }
         }
+        value["signature"] = json!(asked);
         value["used_sets"] = json!(used.len());
         value["joined_sets"] = json!(joined.len());
         value["joined"] = json!(times);

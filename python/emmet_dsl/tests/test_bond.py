@@ -62,9 +62,15 @@ class BondTest(unittest.TestCase):
         pieces = Brick.bond(0.5, 6, {2.5, 4.5}, None, "model.py", 1)
         self.assertFalse({2.5, 4.5} & set(joints(0.5, pieces)), pieces)
 
-    def test_a_run_that_cant_avoid_them_falls_back_to_longest_first(self):
-        # 1 x 1s everywhere below: every joint is taken, so it lays the run as it would with nothing below.
-        self.assertEqual(Brick.bond(0, 3, {1, 2}, None, "model.py", 1), [(3, "1x3")])
+    def test_a_run_that_cant_avoid_them_lands_on_as_few_as_it_can(self):
+        # A 5-stud run over 1 x 1s (joints at every stud) has no 1 x 5 to bridge them: one joint must land on one,
+        # and only one. It used to fall back to longest-first without a word.
+        pieces = Brick.bond(0, 5, {1, 2, 3, 4}, [1, 2, 3, 4], "model.py", 1)
+        self.assertEqual(sum(n for n, _ in pieces), 5)
+        self.assertEqual(len(set(joints(0, pieces)) & {1, 2, 3, 4}), 1, pieces)
+        # With only 2s, a 4-stud run over a joint at 2 has to put its joint there.
+        self.assertEqual(Brick.bond(0, 4, {2}, [2], "model.py", 1), [(2, "1x2"), (2, "1x2")])
+        # Nothing inside the run to avoid: longest first.
         self.assertEqual(Brick.bond(0, 1, {0, 1}, None, "model.py", 1), [(1, "1x1")])
 
 

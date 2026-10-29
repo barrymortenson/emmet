@@ -318,6 +318,13 @@ fn import_ldraw_reads_direct_colors_and_refuses_a_broken_line() {
     let (v, code) = emmet_in(&dir, &["run"]);
     assert_eq!(code, 0, "{v}");
     assert_eq!(placements(&dir).len(), 1, "{v}");
+    // An .mpd pieced together from such files has one before a later file and part, too.
+    let pieced = "0 FILE wagon.ldr\n1 16 0 0 0 1 0 0 0 1 0 0 0 1 body.ldr\n0 NOFILE\n\u{feff}0 FILE body.ldr\n\
+                  \u{feff}1 0x2FF0000 0 -24 0 1 0 0 0 1 0 0 0 1 3001.dat\n0 NOFILE\n";
+    std::fs::write(dir.join("wagon.mpd"), pieced).unwrap();
+    let (v, code) = emmet_in(&dir, &["run"]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(placements(&dir).len(), 1, "{v}");
     assert_eq!(placements(&dir)[0]["color"], 0x2FF_0000);
 
     // A part line LDraw can't read is an error at its line, never a part quietly left out.
@@ -418,4 +425,117 @@ fn part_helpers_pick_the_plain_current_part() {
         "{:?}",
         missing.near
     );
+}
+
+/// `m.wall` lays each course in bond over the one below (3C): no joint between two pieces sits on a joint in the course
+/// under it, except where this course's own opening makes one, so the course over a window spans its edges. Checked on
+/// what `emmet run` places, for a straight wall built a course a call from a base of 1/3 plate (where (1/3 + 3) + 3
+/// isn't 1/3 + 6 in floating point: joint keys that didn't round missed the course below) and a rectangle built a
+/// side a call, as the cottage builds it.
+#[test]
+fn walls_are_laid_in_bond() {
+    let model = "from emmet_dsl import Model, model\n\n\n@model\ndef walls():\n    \"\"\"Walls in bond.\"\"\"\n    \
+                 m = Model()\n    with m.step(\"Straight\"):\n        for r in range(4):\n            \
+                 m.wall(0, 0, 1 / 3 + 3 * r, length=14, color=\"Red\", openings=[(5, 0), (6, 0)] if r in (1, 2) else [])\n            \
+                 m.wall(0, -3, 1 / 3 + 3 * r, length=8, color=\"Red\", sizes=[1, 2, 3, 4], openings=[(4, -3)] if r == 1 else [])\n    \
+                 with m.step(\"Rectangle\"):\n        for r in range(4):\n            \
+                 for side in (\"back\", \"left\", \"right\", \"front\"):\n                \
+                 window = [(3, 4), (4, 4)] if r in (1, 2) and side == \"front\" else []\n                \
+                 m.wall(0, 4, 3 * r, length=9, depth=6, sides=side, color=\"Tan\", openings=window)\n    return m\n";
+    let dir = model_project("walls-in-bond", model, &[]);
+    let (v, code) = emmet_in(&dir, &["run"]);
+    assert_eq!(code, 0, "{v}");
+
+    // Each brick's extent in studs along its line: 1 x n bricks, their LDraw origin the middle of their top.
+    let length = |part: &str| match part {
+        "3005" => 1.0,
+        "3004" => 2.0,
+        "3622" => 3.0,
+        "3010" => 4.0,
+        "3009" => 6.0,
+        "3008" => 8.0,
+        "6111" => 10.0,
+        "6112" => 12.0,
+        "4217" => 14.0,
+        "2465" => 16.0,
+        other => panic!("m.wall laid {other}, not a 1 x n brick"),
+    };
+    // (the line, its course) → the pieces on it as (from, to) studs; a line is ("x", y) or ("y", x).
+    let mut lines: std::collections::BTreeMap<(String, i64, i64), Vec<(f64, f64)>> = Default::default();
+    for p in placements(&dir) {
+        let m: Vec<f64> = p["matrix"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_f64().unwrap())
+            .collect();
+        let (x, y, z) = (-m[14] / 20.0, m[12] / 20.0, -m[13] / 8.0);
+        let n = length(p["part"].as_str().unwrap());
+        let course = (z * 100.0).round() as i64;
+        // A brick lies along x when its local x (LDraw's long axis for 1 x n) maps to world z; along y otherwise.
+        let along_x = m[2].abs() > 0.5;
+        let along_y = m[0].abs() > 0.5;
+        if along_x || n == 1.0 {
+            lines
+                .entry(("x".into(), (y - 0.5).round() as i64, course))
+                .or_default()
+                .push((x - n / 2.0, x + n / 2.0));
+        }
+        if along_y || n == 1.0 {
+            lines
+                .entry(("y".into(), (x - 0.5).round() as i64, course))
+                .or_default()
+                .push((y - n / 2.0, y + n / 2.0));
+        }
+    }
+    let joints = |pieces: &[(f64, f64)]| -> (std::collections::BTreeSet<i64>, std::collections::BTreeSet<i64>) {
+        // Where pieces meet (both sides covered), and the ends of runs (an opening or the wall's end beside it).
+        let ends: Vec<i64> = pieces
+            .iter()
+            .flat_map(|(a, b)| [(*a * 2.0).round() as i64, (*b * 2.0).round() as i64])
+            .collect();
+        let mut meet = std::collections::BTreeSet::new();
+        let mut edge = std::collections::BTreeSet::new();
+        for e in ends {
+            if pieces
+                .iter()
+                .filter(|(a, b)| ((*a * 2.0).round() as i64 == e) || ((*b * 2.0).round() as i64 == e))
+                .count()
+                >= 2
+            {
+                meet.insert(e);
+            } else {
+                edge.insert(e);
+            }
+        }
+        (meet, edge)
+    };
+    let mut checked = 0;
+    for ((axis, at, course), pieces) in &lines {
+        let Some((_, below)) = lines
+            .range(..(axis.clone(), *at, *course))
+            .next_back()
+            .filter(|((a, t, _), _)| a == axis && t == at)
+        else {
+            continue;
+        };
+        let (meet, edge) = joints(pieces);
+        let (meet_below, edge_below) = joints(below);
+        let stacked: Vec<f64> = meet
+            .iter()
+            .filter(|j| (meet_below.contains(j) || edge_below.contains(j)) && !edge.contains(j))
+            .map(|j| *j as f64 / 2.0)
+            .collect();
+        assert!(
+            stacked.is_empty(),
+            "{axis} line {at}, course at z {course}: joints {stacked:?} sit on the course below's"
+        );
+        // Over an opening below: its edges are spanned, not met.
+        assert!(
+            edge_below.iter().filter(|j| meet.contains(j)).count() == 0,
+            "{axis} line {at}, course at z {course}: a joint sits on an opening's edge below"
+        );
+        checked += 1;
+    }
+    assert!(checked >= 12, "only {checked} courses checked");
 }

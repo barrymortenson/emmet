@@ -155,20 +155,29 @@ techniques!(
     worm_drive,
 );
 
-/// The doctrine (`emmet rules`) names every technique, by when to reach for it, so agents use the library without
-/// being told to (session 3C's What good looks like).
+/// The doctrine (`emmet rules`) names every technique in its "Build with the library" section, as a whole name (so
+/// pine_tree doesn't count for tree), by when to reach for it, so agents use the library without being told to
+/// (session 3C's What good looks like).
 #[test]
 fn the_doctrine_names_every_technique() {
     let out = emmet().arg("rules").output().unwrap();
     let doctrine = String::from_utf8_lossy(&out.stdout);
+    let start = doctrine
+        .find("## Build with the library")
+        .expect("the doctrine has a library section");
+    let section = &doctrine[start + 3..];
+    let section = &section[..section.find("\n## ").unwrap_or(section.len())];
+    let words: std::collections::HashSet<&str> = section
+        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+        .collect();
     let missing: Vec<&str> = TECHNIQUES
         .iter()
         .map(|(n, _)| *n)
-        .filter(|n| !doctrine.contains(n))
+        .filter(|n| !words.contains(n))
         .collect();
     assert!(
         missing.is_empty(),
-        "crates/emmet-cli/doctrine/EMMET.md doesn't name {missing:?}"
+        "crates/emmet-cli/doctrine/EMMET.md's library section doesn't name {missing:?}"
     );
 }
 
@@ -212,10 +221,13 @@ fn builds_clean(name: &str) {
         "{name}'s example doesn't use it through m.use: {t:#}"
     );
     assert!(!t["parts"].as_array().unwrap().is_empty(), "{name} lists no PARTS");
-    // Every technique says where its method came from (3C, D-48).
+    // Every technique says where its method came from (3C, D-48), and none is derived from a model's file.
+    let provenance = t["provenance"].as_str().unwrap();
+    assert!(!provenance.is_empty(), "{name} has no PROVENANCE note");
+    let lower = provenance.to_lowercase();
     assert!(
-        !t["provenance"].as_str().unwrap().is_empty(),
-        "{name} has no PROVENANCE note"
+        !lower.contains(".mpd") && !lower.contains(".ldr") && !lower.contains("omr_models"),
+        "{name}'s provenance names a model file: {provenance}"
     );
 
     let png = std::fs::read(repo().join(format!("data/techniques/{name}.png")))

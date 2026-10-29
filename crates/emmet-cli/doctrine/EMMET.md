@@ -47,8 +47,8 @@ your reply instead of running them.
 
 Official sets are built so they hold together and look finished. Do what they do:
 
-- No joint on a joint. Each course of a wall starts differently from the one below, so every brick bridges a joint,
-  and corners interlock: `m.wall` does both. When you lay runs yourself (a roof's slopes, a ceiling's plates), start
+- No joint on a joint. Each course of a wall is laid so its joints miss the ones below, so every joint is bridged by
+  a brick over it, and corners interlock: `m.wall` does both. When you lay runs yourself (a roof's slopes, a ceiling's plates), start
   every other course with a shorter piece.
 - Tie the layers. A course of plates over the wall tops crosses the corner joints (wall_top_tie); a floor is two
   layers of plates with their seams crossed (lift_off_floor); a long chassis is locked across its joint
