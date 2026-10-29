@@ -85,8 +85,9 @@ export const config = {
   // Before each spec file: its fresh project, on the recents list.
   onWorkerStart(_cid, _caps, specs) {
     if (firstRun) return;
-    // New, import, and Export write into the test home's Documents/Emmet and Downloads: each spec starts with neither.
-    for (const d of ["Documents", "Downloads"]) rmSync(join(agentHome, d), { recursive: true, force: true });
+    // Each spec starts from the same agents (a spec may sign one out) and a test home with no Documents/Emmet or
+    // Downloads (New, import, and Export write there), so a spec, and the screens it takes, don't depend on the order.
+    prepareAgents();
     prepareProject(basename(specs[0] ?? "", ".e2e.mjs"));
   },
   // A failed test's window, for the CI artifact.

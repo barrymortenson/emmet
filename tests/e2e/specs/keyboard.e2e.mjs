@@ -116,20 +116,20 @@ describe("the keyboard map", () => {
   });
 
   it("every control Tab reaches shows a visible focus ring", async () => {
-    // A synthetic Tab doesn't move a webview's focus, so each control in the Tab order is focused the way Tab would
-    // (after a key press, so :focus-visible applies) and its ring is read.
+    // A synthetic Tab doesn't move a webview's focus, and the driver's keys don't count as keyboard use for
+    // :focus-visible, so each control in the Tab order is focused the way Tab would (focusVisible) and its ring read.
     await press(mod, "1");
     const rings = await browser.execute(() => {
       const tabbable = [...document.querySelectorAll('button, input, textarea, select, [tabindex]:not([tabindex="-1"]), a[href]')].filter(
         (el) => el.tabIndex >= 0 && !el.disabled && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden",
       );
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Shift" }));
       return tabbable.flatMap((el) => {
-        el.focus();
-        // Radix's tab list hands focus to its active tab: that tab is in the list too.
-        if (document.activeElement !== el) return [];
-        const s = getComputedStyle(el);
-        return [{ el: el.id || el.getAttribute("aria-label") || el.textContent?.trim().slice(0, 30), ring: s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2 }];
+        el.focus({ focusVisible: true });
+        // Radix's tab list hands focus to its open tab, where Tab lands: that's the control whose ring shows.
+        const at = document.activeElement;
+        if (!at || (at !== el && !el.contains(at))) return [];
+        const s = getComputedStyle(at);
+        return [{ el: at.id || at.getAttribute("aria-label") || at.textContent?.trim().slice(0, 30), ring: s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2 }];
       });
     });
     expect(rings.filter((r) => !r.ring).map((r) => r.el)).toEqual([]);
@@ -137,6 +137,7 @@ describe("the keyboard map", () => {
     for (const id of ["project-chip", "param-weathering-thumb", "param-chimney-switch", "export-button"]) expect(reached).toContain(id);
     // The tab list is one stop in the Tab order: its open tab (arrows move between tabs).
     expect(reached.some((id) => String(id).startsWith("tab-"))).toBe(true);
-    expect(rings.length).toBeGreaterThan(20);
+    // The window's controls: the title row, the chat's agent cards (more when an earlier spec chose Codex), the panel.
+    expect(rings.length).toBeGreaterThanOrEqual(18);
   });
 });

@@ -54,7 +54,8 @@ describe("the options panel", () => {
     const kept = await shown();
     await click("#knobs-keep");
     await browser.waitUntil(() => /weathering[^\n]*= 2\b/.test(read("model.py")), { timeout: 20_000, timeoutMsg: "Keep didn't write model.py" });
-    expect(JSON.parse(read("params.json")).weathering).toBe(undefined);
+    // Keep writes model.py, then drops the draft from params.json.
+    await browser.waitUntil(() => JSON.parse(read("params.json")).weathering === undefined, { timeout: 10_000, timeoutMsg: "Keep left the draft in params.json" });
     await expect($("#knobs-bar")).not.toBeExisting();
     await nextScene(kept);
 

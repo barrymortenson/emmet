@@ -75,6 +75,11 @@ export async function screenshots(name, { baseline = false } = {}) {
   for (const theme of ["light", "dark"]) {
     await browser.execute((t) => window.__emmet.theme(t), theme);
     await browser.execute(() => window.__emmet.viewer().nextFrame());
+    // The controls fade to the theme's colors: a screen taken mid-fade has the other theme's chips.
+    await browser.waitUntil(() => browser.execute(() => !document.getAnimations().some((a) => a instanceof CSSTransition)), {
+      timeout: 5000,
+      timeoutMsg: `${name}-${theme}: the theme's transitions never finished`,
+    });
     // A focus ring isn't part of a screen, unless a menu, popover, or dialog is open (moving focus would close it).
     await browser.execute(() => document.querySelector('[role="menu"], [role="dialog"], [role="listbox"], [role="tooltip"]') || document.activeElement?.blur?.());
     const file = join(dir, `${name}-${theme}.png`);
