@@ -456,3 +456,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   `docs/techniques/candidates/batch-3.html`): rock_spire, rock_facet, cliff_wall, rock_outcrop, surf_line, river,
   waterfall, pond, grass_edge, hillside, flagstone_paving, dirt_path, pine_tree, bush, flower_bed, cave_mouth, snow_cap,
   footbridge, woodpile, landing_zone. 58 accepted in all.
+- **H-22, batch 4 (castles and ships): all 20 accepted** (Barry, 2026-10-28, on
+  `docs/techniques/candidates/batch-4.html`): battlements, machicolation, arrow_slit, buttress, round_tower, portcullis,
+  drawbridge, torch_sconce, wall_banner, wooden_hoarding, bartizan, thick_wall, ship_hull, mast_and_yard, crows_nest,
+  cannon_port, rudder_hinge, oars, dock_pier, portholes, with the cards' notes as written (round_tower's seams line up;
+  ship_hull's bow wedges are tied only by the deck). 78 accepted in all.

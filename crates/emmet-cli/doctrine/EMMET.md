@@ -75,6 +75,13 @@ steps; its example validates clean in the library's tests, and you validate your
   exhaust_stack, trailer_hitch, hinged_tailgate, cargo_pallet; spliced_chassis or technic_spine for a long base.
   A train: train_carriage on a train base.
 - Stations and track: track_straight_run, track_curve, track_switch, platform_edge, canopy, bench, lamp_post.
+- Landscape and nature. Rock: rock_outcrop, rock_spire, rock_facet (a slope on a side stud), cliff_wall, cave_mouth,
+  snow_cap. Water: river, pond, waterfall, surf_line (a shore), footbridge. Ground: hillside (rising in steps),
+  grass_edge (an uneven overhang), flagstone_paving, dirt_path, landing_zone (a frame a building drops into). Plants:
+  tree, pine_tree, bush, flower_bed, woodpile.
+- Castles: thick_wall, battlements (with the wall walk), machicolation, wooden_hoarding, buttress, arrow_slit,
+  round_tower, bartizan (a corner turret), portcullis, drawbridge, torch_sconce, wall_banner.
+- Ships and harbors: ship_hull, mast_and_yard, crows_nest, cannon_port, portholes, oars, rudder_hinge, dock_pier.
 - Small tricks: jumper_offset (half a stud over).
 - Let the helpers do the counting: `m.wall` for walls with openings and interlocking corners, `m.row` and `m.fill`
   for runs and floors of the longest pieces, `m.stack`, `m.grid`, `m.repeat`, and `m.mirror`. `Brick(2, 4)`,
