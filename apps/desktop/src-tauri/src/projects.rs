@@ -110,9 +110,10 @@ fn bad(message: impl Into<String>, hint: impl Into<String>) -> Box<Problem> {
     })
 }
 
-/// A folder in `parent` named `base`, or "`base` 2", "`base` 3", … when that's taken.
-fn unique(parent: &Path, base: &str) -> PathBuf {
-    let clean: String = base
+/// A name as one plain file or folder name: no separators, no characters Windows refuses, no control characters, and
+/// no leading dots (so never "." or ".."). A project's name comes from its emmet.toml, which a shared project writes.
+fn file_name(name: &str) -> String {
+    let clean: String = name
         .chars()
         .map(|c| {
             if c.is_control() || "/\\:*?\"<>|".contains(c) {
@@ -122,16 +123,20 @@ fn unique(parent: &Path, base: &str) -> PathBuf {
             }
         })
         .collect();
-    let clean = clean.trim();
-    let clean = if clean.is_empty() { "Model" } else { clean };
+    let words = clean.split_whitespace().collect::<Vec<_>>().join(" ");
+    let clean = words.trim_start_matches(['.', ' ']);
+    if clean.is_empty() {
+        "Model".into()
+    } else {
+        clean.to_string()
+    }
+}
+
+/// A folder in `parent` named `base`, or "`base` 2", "`base` 3", … when that's taken.
+fn unique(parent: &Path, base: &str) -> PathBuf {
+    let clean = file_name(base);
     (1..)
-        .map(|n| {
-            parent.join(if n == 1 {
-                clean.to_string()
-            } else {
-                format!("{clean} {n}")
-            })
-        })
+        .map(|n| parent.join(if n == 1 { clean.clone() } else { format!("{clean} {n}") }))
         .find(|p| !p.exists())
         .expect("a free name")
 }
@@ -458,7 +463,7 @@ pub async fn export(app: AppHandle, format: ExportFormat) -> Result<Exported, Bo
         .download_dir()
         .map_err(|e| Problem::internal(e.to_string()))?;
     let folder = crate::prefs::in_words(&app, &downloads);
-    let name = project.config.name.clone();
+    let name = file_name(&project.config.name);
     let file = match format {
         ExportFormat::Csv => format!("{name} parts.csv"),
         ExportFormat::Rebrickable => format!("{name} Rebrickable.csv"),
@@ -467,6 +472,12 @@ pub async fn export(app: AppHandle, format: ExportFormat) -> Result<Exported, Bo
         ExportFormat::Lpub3d => format!("{name} LPub3D.mpd"),
     };
     let path = unique_file(&downloads, &file);
+    if path.parent() != Some(downloads.as_path()) {
+        return Err(Problem::internal(format!(
+            "Emmet won't write {} outside Downloads.",
+            path.display()
+        )));
+    }
     let out = path.clone();
     blocking(move || {
         let names = emmet_core::bom::ColorNames::preferred(&data);
@@ -527,16 +538,17 @@ fn unique_file(dir: &Path, file: &str) -> PathBuf {
         .expect("a free name")
 }
 
-/// Show in folder: the last export, selected in Finder or File Explorer.
+/// Show in folder: the last export, selected in Finder, or its folder in File Explorer.
 #[tauri::command]
 #[specta::specta]
 pub fn reveal_export() -> Result<(), Box<Problem>> {
     let Some(path) = LAST_EXPORT.lock().expect("export").clone() else {
         return Err(Problem::internal("Nothing has been exported yet."));
     };
+    // File Explorer gets the folder, not /select, whose comma-separated argument a file name could bend.
     let mut cmd = if cfg!(windows) {
         let mut c = std::process::Command::new("explorer");
-        c.arg(format!("/select,{}", path.display()));
+        c.arg(path.parent().unwrap_or(&path));
         c
     } else {
         let mut c = std::process::Command::new("open");
@@ -546,4 +558,31 @@ pub fn reveal_export() -> Result<(), Box<Problem>> {
     cmd.spawn()
         .map_err(|e| Problem::internal(format!("Couldn't show the folder: {e}")))?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A shared project names itself in emmet.toml, and the host makes files and folders from that name.
+    #[test]
+    fn a_name_becomes_one_plain_file_name() {
+        for (name, want) in [
+            ("Cottage", "Cottage"),
+            ("../../Library/x", "Library x"),
+            ("..", "Model"),
+            (".hidden", "hidden"),
+            ("a\\b:c*d?\"e<f>g|h", "a b c d e f g h"),
+            ("tab\there\nand", "tab here and"),
+            ("   ", "Model"),
+        ] {
+            let got = file_name(name);
+            assert_eq!(got, want, "{name:?}");
+            assert_eq!(
+                Path::new(&got).components().count(),
+                1,
+                "{name:?} → {got:?} is one component"
+            );
+        }
+    }
 }
