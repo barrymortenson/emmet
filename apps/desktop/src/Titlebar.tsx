@@ -107,6 +107,30 @@ function VersionsPopover({ versions, onSave, onView }: { versions: VersionView[]
   );
 }
 
+/** Windows' minimize, maximize, and close: the title row's, and first run's (which covers the title row). */
+export function CaptionButtons() {
+  const [maximized, setMaximized] = useState(false);
+  useEffect(() => {
+    const w = getCurrentWindow();
+    void w.isMaximized().then(setMaximized);
+    const off = w.onResized(() => void w.isMaximized().then(setMaximized));
+    return () => void off.then((f) => f());
+  }, []);
+  return (
+    <div className="caption-buttons" data-c="caption-buttons">
+      <button type="button" className="caption-button" data-kind="minimize" aria-label="Minimize" onClick={() => void getCurrentWindow().minimize()}>
+        <Icon name="minus" size="sm" />
+      </button>
+      <button type="button" className="caption-button" data-kind="maximize" aria-label={maximized ? "Restore" : "Maximize"} onClick={() => void getCurrentWindow().toggleMaximize()}>
+        <Icon name="square" size="sm" />
+      </button>
+      <button type="button" className="caption-button" data-kind="close" aria-label="Close" onClick={() => void getCurrentWindow().close()}>
+        <Icon name="x" size="sm" />
+      </button>
+    </div>
+  );
+}
+
 export function Titlebar({
   name,
   hasProject,
@@ -135,14 +159,6 @@ export function Titlebar({
   const [menu, setMenu] = useState(false);
   /** A menu item that opens a popover on the chip was chosen: focus mustn't go back to the chip, which would close it. */
   const popping = useRef(false);
-  const [maximized, setMaximized] = useState(false);
-  useEffect(() => {
-    if (!windows) return;
-    const w = getCurrentWindow();
-    void w.isMaximized().then(setMaximized);
-    const off = w.onResized(() => void w.isMaximized().then(setMaximized));
-    return () => void off.then((f) => f());
-  }, []);
   const entry = (id: Action, text: string, icon: Parameters<typeof Icon>[0]["name"]): MenuEntry => ({
     id,
     text,
@@ -228,20 +244,8 @@ export function Titlebar({
         <IconButton icon="scan" label="Frame the model (F)" size="sm" onClick={() => run("frame")} disabled={!hasProject} id="frame" />
         <IconButton icon="camera" label="Screenshot" size="sm" disabled id="screenshot" />
       </div>
-      <span />
-      {windows && (
-        <div className="caption-buttons" data-c="caption-buttons">
-          <button type="button" className="caption-button" data-kind="minimize" aria-label="Minimize" onClick={() => void getCurrentWindow().minimize()}>
-            <Icon name="minus" size="sm" />
-          </button>
-          <button type="button" className="caption-button" data-kind="maximize" aria-label={maximized ? "Restore" : "Maximize"} onClick={() => void getCurrentWindow().toggleMaximize()}>
-            <Icon name="square" size="sm" />
-          </button>
-          <button type="button" className="caption-button" data-kind="close" aria-label="Close" onClick={() => void getCurrentWindow().close()}>
-            <Icon name="x" size="sm" />
-          </button>
-        </div>
-      )}
+      <span data-tauri-drag-region />
+      {windows && <CaptionButtons />}
     </header>
   );
 }

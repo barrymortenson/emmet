@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { AgentSetup } from "./Agents";
 import { type AgentView, commands, events, type NewKind, type Problem } from "./bindings";
 import { windows } from "./keys";
+import { CaptionButtons } from "./Titlebar";
 import { AlertCard, Button, Icon, mb, Progress } from "./ui";
 import antDark from "./assets/brand/wordmark-emmet-builder-ant-dark.svg";
 import antLight from "./assets/brand/wordmark-emmet-builder-ant-light.svg";
@@ -242,9 +243,12 @@ export function FirstRun({
   }
   return (
     <div className="first-run" data-c="first-run" id="first-run">
-      <section className="viewer" data-c="viewer" aria-hidden="true">
+      {/* The window moves by its top edge and the model behind the card, as by the title row it covers. */}
+      <section className="viewer" data-c="viewer" aria-hidden="true" data-tauri-drag-region>
         <img className="viewer-render" src={r[BACKDROP[step]]} alt="" />
       </section>
+      <div className="first-run-drag" data-tauri-drag-region />
+      {windows && <CaptionButtons />}
       <section className="first-run-card" aria-label="Set up Emmet">
         <img className="wordmark" src={theme === "dark" ? antDark : antLight} alt="Emmet Builder" />
         <ol className="rail" aria-label="Setup">
