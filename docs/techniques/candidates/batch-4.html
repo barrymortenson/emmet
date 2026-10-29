@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-4</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-4</h1>
+  <p>20 candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1243 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-4/battlements.png" alt="A sketch of battlements" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>battlements</code></h2>
+    <p>A parapet of merlons and crenels along the front edge of a thick wall's top, with a tiled wall walk behind.</p>
+    <p class="why">Crowning any castle wall or tower top.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>merlon</code>, <code>crenel</code>, <code>tie</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>76</b> of 1243 official sets (126 times); 368 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/battlements.py"><code>batch-4/battlements.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3004</code> + <code>3069b</code> + <code>3020</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for battlements">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for battlements">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-4/machicolation.png" alt="A sketch of machicolation" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>machicolation</code></h2>
+    <p>A wall's top course of inverted-slope corbels that carry a slab a stud out over the face, with drop holes between them.</p>
+    <p class="why">Giving a castle wall or gatehouse an overhanging parapet.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>spacing</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>9</b> of 1243 official sets (10 times); 26 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10246 - Main model.ldr (Willy Tschager [Holly-Wood], Redistributable under CCAL version 2.0); FILE 3185 - main.ldr (Takeshi Takahashi [RainbowDolphin], Redistributable under CCAL version 2.0); FILE 6085 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 5771 - main.ldr (Takeshi Takahashi [RainbowDolphin], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/machicolation.py"><code>batch-4/machicolation.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3665b</code> + <code>3020</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for machicolation">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for machicolation">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-4/arrow_slit.png" alt="A sketch of arrow_slit" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>arrow_slit</code></h2>
+    <p>A thick wall with a narrow round-headed slit on the outside that opens into a wide corbel-headed embrasure inside.</p>
+    <p class="why">Putting loopholes in curtain walls and towers.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>offset</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1243 official sets (1 times); 5 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 3934 - main.ldr (Takeshi Takahashi [RainbowDolphin], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/arrow_slit.py"><code>batch-4/arrow_slit.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>4490</code> + <code>3665b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for arrow_slit">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for arrow_slit">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-4/buttress.png" alt="A sketch of buttress" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>buttress</code></h2>
+    <p>A stepped pier bonded into the face of a wall, its two set-backs weathered with 2 x 2 slopes.</p>
+    <p class="why">Stiffening and breaking up a long castle or church wall.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>offsets</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>23</b> of 1243 official sets (35 times); 105 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 76042 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 6753 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 4954 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/buttress.py"><code>batch-4/buttress.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3002</code> + <code>3039</code> + <code>3003</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for buttress">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for buttress">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-4/round_tower.png" alt="A sketch of round_tower" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>round_tower</code></h2>
+    <p>A hollow round tower 8 studs across, rings of four curved bricks tied by round plate floors, with merlons over the seams.</p>
+    <p class="why">Building a castle's round corner or keep tower.</p>
+    <p class="note"><b>Note:</b> Its curved pieces' joints line up course after course; only the round floor plates and the merlons on top tie the four quarters together. That's against our no-joint-on-a-joint rule, so it may want rework.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>floor_every</code>, <code>color</code>, <code>floor_color</code>, <code>merlons</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-4/round_tower.py"><code>batch-4/round_tower.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>48092</code> + <code>74611</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for round_tower">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for round_tower">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-4/portcullis.png" alt="A sketch of portcullis" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>portcullis</code></h2>
+    <p>A gate grille of spindled fences that slides in a slot between the leaves of a 3-stud wall, behind arched gateways.</p>
+    <p class="why">Building a gatehouse whose grille can be raised.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>grilles</code>, <code>color</code>, <code>grille</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 7 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-4/portcullis.py"><code>batch-4/portcullis.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>30055</code> + <code>3659</code> + <code>3710</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for portcullis">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for portcullis">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-4/drawbridge.png" alt="A sketch of drawbridge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>drawbridge</code></h2>
+    <p>A plank deck on a pair of locking hinges at a gateway's threshold that lies across the moat or swings up.</p>
+    <p class="why">Bridging a moat in front of a castle gate.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>length</code>, <code>color</code>, <code>hinge</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>32</b> of 1243 official sets (87 times); 37 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10143 - main.ldr (Jude Parrill [theJudeAbides], Redistributable under CCAL version 2.0); FILE 10182 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 21311 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/drawbridge.py"><code>batch-4/drawbridge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>44302a</code> + <code>44301a</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for drawbridge">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for drawbridge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-4/torch_sconce.png" alt="A sketch of torch_sconce" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>torch_sconce</code></h2>
+    <p>Torches standing in clip bricks laid in a wall's course, with flames in their heads.</p>
+    <p class="why">Lighting castle walls, gateways, and dungeons.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>at</code>, <code>color</code>, <code>torch</code>, <code>flame</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-4/torch_sconce.py"><code>batch-4/torch_sconce.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>60475b</code> + <code>3959</code> + <code>64647</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for torch_sconce">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for torch_sconce">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-4/wall_banner.png" alt="A sketch of wall_banner" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>wall_banner</code></h2>
+    <p>A flag turned on its side hanging down a wall's face from a bar held in two clip plates on the wall top.</p>
+    <p class="why">Hanging heraldic banners on castle walls and halls.</p>
+    <p class="note"><b>Note:</b> The banner is a 2 x 2 flag on a clip.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>at</code>, <code>color</code>, <code>bar</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1243 official sets (2 times); 8 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 7181 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/wall_banner.py"><code>batch-4/wall_banner.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>4081b</code> + <code>30374</code> + <code>2335</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wall_banner">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for wall_banner">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-4/wooden_hoarding.png" alt="A sketch of wooden_hoarding" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>wooden_hoarding</code></h2>
+    <p>A covered timber gallery on beams through a wall's top course, with a log front, loopholes, and a sloped roof.</p>
+    <p class="why">Adding a wooden fighting gallery to a castle wall top.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>timber</code>, <code>roof</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1243 official sets (5 times); 30 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 70816 - 70816.ldr (Christophe Mitillo [Christophe_Mitillo], Redistributable under CCAL version 2.0); FILE 75948 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 5766 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/wooden_hoarding.py"><code>batch-4/wooden_hoarding.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3622</code> + <code>30136</code> + <code>3039</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wooden_hoarding">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for wooden_hoarding">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-4/bartizan.png" alt="A sketch of bartizan" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>bartizan</code></h2>
+    <p>A small round turret on a round plate over the outside corner of two walls, on an inverted-slope corbel, with a cone roof.</p>
+    <p class="why">Dressing the corners of castle walls and towers.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>corner</code>, <code>rows</code>, <code>color</code>, <code>roof</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-4/bartizan.py"><code>batch-4/bartizan.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>60474</code> + <code>3676</code> + <code>3063b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bartizan">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for bartizan">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-4/thick_wall.png" alt="A sketch of thick_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>thick_wall</code></h2>
+    <p>A wall 2 studs thick in alternating header and two-leaf courses, with darker stones scattered through it.</p>
+    <p class="why">Building solid castle curtain walls and keeps.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>stone</code>, <code>stones</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>124</b> of 1243 official sets (183 times); 287 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/thick_wall.py"><code>batch-4/thick_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3001</code> + <code>3010</code> + <code>3004</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for thick_wall">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for thick_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-4/ship_hull.png" alt="A sketch of ship_hull" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>ship_hull</code></h2>
+    <p>A hull 6 studs wide whose sides close in to a pointed bow on paired wedge bricks, decked with plates and matching wings.</p>
+    <p class="why">Starting any minifig-scale boat or ship.</p>
+    <p class="note"><b>Note:</b> The bow ends in a blunt 2-stud nose (the wedges taper 2 to 1). The bow wedges are tied only by the deck; lower down each just stacks on the one below, so it passes the validator but would be loose in real bricks.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>deck</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1243 official sets (4 times); 7 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 4955 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 4953 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/ship_hull.py"><code>batch-4/ship_hull.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>41767</code> + <code>41768</code> + <code>6564</code> + <code>6565</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for ship_hull">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for ship_hull">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-4/mast_and_yard.png" alt="A sketch of mast_and_yard" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>mast_and_yard</code></h2>
+    <p>A mast of round bricks with a bar yard held in two clip plates and flag sails hung from it.</p>
+    <p class="why">Rigging a ship's mast.</p>
+    <p class="note"><b>Note:</b> The sails are 2 x 2 flags on the yard, so they're small.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>yard_at</code>, <code>color</code>, <code>sail</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-4/mast_and_yard.py"><code>batch-4/mast_and_yard.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3941</code> + <code>4081b</code> + <code>63965a</code> + <code>2335</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for mast_and_yard">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for mast_and_yard">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-4/crows_nest.png" alt="A sketch of crows_nest" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>crows_nest</code></h2>
+    <p>A round lookout on a mast's top: an 8 x 8 round plate, a ring of curved bricks for its rail, and a topmast with a pennant.</p>
+    <p class="why">Topping a ship's mast or a lookout post.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>top</code>, <code>color</code>, <code>flag</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-4/crows_nest.py"><code>batch-4/crows_nest.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>74611</code> + <code>48092</code> + <code>3941</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for crows_nest">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for crows_nest">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-4/cannon_port.png" alt="A sketch of cannon_port" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>cannon_port</code></h2>
+    <p>A gun port in a hull side with a lid of handle plates and a plate, hinged on clips along its sill.</p>
+    <p class="why">Arming a ship's hull with opening gun ports.</p>
+    <p class="note"><b>Note:</b> The lid sits half a stud off the hull's grid, so each handle centers on its clip. It's the same clip-and-handle hinge as hinge_roof.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>ports</code>, <code>rows</code>, <code>color</code>, <code>lid</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1243 official sets (6 times); 88 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 6397 - main.ldr (Robert Paciorek [bercik], Redistributable under CCAL version 2.0); FILE 6472 - main.ldr (Zoltán Kéri [Zoltank82], Redistributable under CCAL version 2.0); FILE 75102 - Poe's X-Wing Fighter - main.ldr (Evert Jan Boer [ejboer], Redistributable under CCAL version 2.0); FILE 5972 - 5972.ldr (Massimo Maso [Sirio], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/cannon_port.py"><code>batch-4/cannon_port.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>4081b</code> + <code>2540</code> + <code>3710</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cannon_port">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for cannon_port">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-4/rudder_hinge.png" alt="A sketch of rudder_hinge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>rudder_hinge</code></h2>
+    <p>A flag rudder blade swinging on a vertical bar held by two clip bricks laid in the stern.</p>
+    <p class="why">Giving a boat a rudder that turns.</p>
+    <p class="note"><b>Note:</b> The rudder blade is a 2 x 2 flag on clips, so it's small.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>fitting</code>, <code>rudder</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-4/rudder_hinge.py"><code>batch-4/rudder_hinge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>60475b</code> + <code>30374</code> + <code>2335</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rudder_hinge">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for rudder_hinge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-4/oars.png" alt="A sketch of oars" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>oars</code></h2>
+    <p>Oars lying in clip-plate rowlocks beside notches in a boat's gunwale course, blades out past the side.</p>
+    <p class="why">Fitting a rowing boat or galley with oars.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>spacing</code>, <code>color</code>, <code>oar</code>, <code>lock</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-4/oars.py"><code>batch-4/oars.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>4081b</code> + <code>2542</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for oars">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for oars">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-4/dock_pier.png" alt="A sketch of dock_pier" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>dock_pier</code></h2>
+    <p>A timber pier on round 1 x 1 piles with cross beams, side stringers, and tile planks laid across.</p>
+    <p class="why">Building docks, jetties, and boardwalks over water.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>height</code>, <code>color</code>, <code>deck</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>14</b> of 1243 official sets (19 times); 205 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10182 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10185 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10184 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/dock_pier.py"><code>batch-4/dock_pier.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>3710</code> + <code>2431</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for dock_pier">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for dock_pier">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-4/portholes.png" alt="A sketch of portholes" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>portholes</code></h2>
+    <p>A hull course with Technic bricks with a hole every few studs, which read as round portholes.</p>
+    <p class="why">Adding portholes to ship hulls, submarines, and the like.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>spacing</code>, <code>color</code>, <code>rim</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>73</b> of 1243 official sets (129 times); 197 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-4/portholes.py"><code>batch-4/portholes.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3700</code> + <code>3010</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for portholes">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for portholes">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-4" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

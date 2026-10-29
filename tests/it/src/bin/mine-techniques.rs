@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 use emmet_core::data::DataDir;
 use emmet_core::index::Index;
 use emmet_core::ldraw::geometry::LibFiles;
-use emmet_it::corpus::{models_in, placements_of};
+use emmet_it::corpus::models_in;
 use glam::DMat4;
 use serde_json::json;
 
@@ -84,9 +84,28 @@ fn header(text: &str, key: &str) -> String {
         .unwrap_or_default()
 }
 
-fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, (String, String)>) -> Model {
+/// A model's placements, or None (with a note) for a file that doesn't parse or places nothing: the OMR has a few
+/// (an empty main file), and one bad file shouldn't stop a run over hundreds.
+fn placements_or_skip(path: &Path, text: &str) -> Option<Vec<emmet_core::ldraw::placements::Placement>> {
+    match emmet_core::ldraw::parse(text) {
+        Ok(doc) => {
+            let p = emmet_core::ldraw::placements::placements(&doc);
+            if p.is_empty() {
+                eprintln!("mine-techniques: skipping {}: it places no parts", path.display());
+                return None;
+            }
+            Some(p)
+        }
+        Err(e) => {
+            eprintln!("mine-techniques: skipping {}: {e}", path.display());
+            None
+        }
+    }
+}
+
+fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, (String, String)>) -> Option<Model> {
     let text = String::from_utf8_lossy(&std::fs::read(path).unwrap()).into_owned();
-    let placements = placements_of(path);
+    let placements = placements_or_skip(path, &text)?;
     let joints = emmet_core::check::joints(index, lib, &placements).unwrap();
     let n = placements.len();
     let mut keep = vec![false; n];
@@ -142,7 +161,7 @@ fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, 
             special_edges.insert((j.a.min(j.b), j.a.max(j.b)));
         }
     }
-    Model {
+    Some(Model {
         set: 0,
         known,
         file: path.file_name().unwrap().to_string_lossy().into_owned(),
@@ -162,7 +181,7 @@ fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, 
         adj: adj.into_iter().map(|s| s.into_iter().collect()).collect(),
         special,
         special_edges,
-    }
+    })
 }
 
 /// A number rounded for a key: positions to 2 LDU (official files are often 1 LDU off), rotations to 0.01.
@@ -332,9 +351,9 @@ fn main() {
     let mut set_ids: Vec<String> = Vec::new();
     let models: Vec<Model> = files
         .iter()
-        .map(|f| {
+        .filter_map(|f| {
             eprintln!("mine-techniques: reading {}", f.display());
-            let mut m = load(&index, &lib, f, &mut names);
+            let mut m = load(&index, &lib, f, &mut names)?;
             // 10001-1_B-Model.mpd and 10001-1.mpd are one set.
             let set = m
                 .file
@@ -348,7 +367,7 @@ fn main() {
                 set_ids.push(set);
                 set_ids.len() - 1
             });
-            m
+            Some(m)
         })
         .collect();
 

@@ -80,6 +80,7 @@ const card = (c, i) => {
     <h2><span class="n">${i + 1}</span> <code>${esc(c.name)}</code></h2>
     <p>${esc(c.title)}</p>
     <p class="why">${esc(c.why)}</p>
+    ${c.note ? `<p class="note"><b>Note:</b> ${esc(c.note)}</p>` : ""}
     <dl>
       <dt>Parameters</dt><dd>${c.params.map((p) => `<code>${esc(p)}</code>`).join(", ")}</dd>
       <dt>Official models</dt><dd>${seen}</dd>
@@ -114,7 +115,7 @@ const html = `<!doctype html>
   .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
   .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
   h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
-  .why { color: var(--muted); } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
   dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
   .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
   footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }

@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-3</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-3</h1>
+  <p>20 candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1243 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-3/rock_spire.png" alt="A sketch of rock_spire" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>rock_spire</code></h2>
+    <p>Pointed rock spires from tall 75° slopes, each tip capped with a cheese slope turned another way, side by side at different heights.</p>
+    <p class="why">A builder reaches for it to stand sea stacks in the surf or a ragged ridge along a cliff top.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>risers</code>, <code>color</code>, <code>cap</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1243 official sets (6 times); 34 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10243 - Main model.ldr (Willy Tschager [Holly Wood], Redistributable under CCAL version 2.0); FILE 10270 - Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0); FILE 10230 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 75953 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/rock_spire.py"><code>batch-3/rock_spire.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p83, p157-159</dd>
+      <dt>Key parts</dt><dd><code>4460b</code> + <code>54200</code> + <code>3004</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rock_spire">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for rock_spire">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-3/rock_facet.png" alt="A sketch of rock_facet" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>rock_facet</code></h2>
+    <p>A rock face broken into angled planes by cheese slopes pressed onto side studs, pointing up, down, left, or right.</p>
+    <p class="why">A builder reaches for it to make any brick rock face look broken instead of flat.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>seed</code>, <code>color</code>, <code>facet</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1243 official sets (2 times); 42 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 21042 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/rock_facet.py"><code>batch-3/rock_facet.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p157-162, 6448881 p81</dd>
+      <dt>Key parts</dt><dd><code>87087</code> + <code>54200</code> + <code>11211</code> + <code>85984</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rock_facet">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for rock_facet">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-3/cliff_wall.png" alt="A sketch of cliff_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>cliff_wall</code></h2>
+    <p>A cliff face of ordinary bricks whose courses step in and out by a stud, in mixed grays, with a ragged top.</p>
+    <p class="why">A builder reaches for it for any cliff, quarry, or rocky base under a landscape.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>seed</code>, <code>colors</code>, <code>cap</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>16</b> of 1243 official sets (23 times); 132 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10270 - Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0); FILE 10185 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 8169 - 8169.ldr (Magnus Forsberg, Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/cliff_wall.py"><code>batch-3/cliff_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p157-163</dd>
+      <dt>Key parts</dt><dd><code>3003</code> + <code>3004</code> + <code>54200</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cliff_wall">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for cliff_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-3/rock_outcrop.png" alt="A sketch of rock_outcrop" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>rock_outcrop</code></h2>
+    <p>A lump of rock: a brick core leaned on all round by slopes of different steepness, with double-convex corners and cheese chips on top.</p>
+    <p class="why">A builder reaches for it to drop a boulder or rocky outcrop anywhere on a baseplate.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>seed</code>, <code>colors</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-3/rock_outcrop.py"><code>batch-3/rock_outcrop.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3045</code> + <code>60481a</code> + <code>4460b</code> + <code>3003</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rock_outcrop">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for rock_outcrop">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-3/surf_line.png" alt="A sketch of surf_line" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>surf_line</code></h2>
+    <p>A beach of tan plates on water with a wandering edge and broken white surf of tiles and cheese slopes at the waterline.</p>
+    <p class="why">A builder reaches for it to edge any island, lake shore, or coastline.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>sand</code>, <code>surf</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 68 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-3/surf_line.py"><code>batch-3/surf_line.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p19-48</dd>
+      <dt>Key parts</dt><dd><code>3070b</code> + <code>54200</code> + <code>98138</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for surf_line">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for surf_line">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-3/river.png" alt="A sketch of river" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>river</code></h2>
+    <p>A stream of clear tiles over a blue bed, a plate below its banks, whose grass overhangs the water in places.</p>
+    <p class="why">A builder reaches for it to run a river or stream across a layout.</p>
+    <p class="note"><b>Note:</b> At large sizes it may use a 2 x 14 plate, made in Blue in only one or two sets.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>seed</code>, <code>bed</code>, <code>water</code>, <code>mud</code>, <code>grass</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>38</b> of 1243 official sets (56 times); 249 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10264 - main.ldr (Jaco van der Molen [Jaco van der Molen], Redistributable under CCAL version 2.0); FILE 10246 - Main model.ldr (Willy Tschager [Holly-Wood], Redistributable under CCAL version 2.0); FILE 10232 - Main-model.ldr (Orion Pobursky [OrionP], Licensed under CC BY 4.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/river.py"><code>batch-3/river.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>2431</code> + <code>3069b</code> + <code>3460</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for river">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for river">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-3/waterfall.png" alt="A sketch of waterfall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>waterfall</code></h2>
+    <p>Water pouring over a rock lip and down the face as clear tiles hung on side studs, with white foam at the foot.</p>
+    <p class="why">A builder reaches for it to put a waterfall on a cliff or into a river.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>color</code>, <code>water</code>, <code>foam</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1243 official sets (2 times); 63 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 60216 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/waterfall.py"><code>batch-3/waterfall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>3069b</code> + <code>54200</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for waterfall">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for waterfall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-3/pond.png" alt="A sketch of pond" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>pond</code></h2>
+    <p>A small sunken pond of clear tiles with rounded corners over a blue bed, with lily pads, rim stones, and reeds.</p>
+    <p class="why">A builder reaches for it for a garden or park pond, or a pool in a forest scene.</p>
+    <p class="note"><b>Note:</b> At large sizes it may use a 2 x 14 plate, made in Blue in only one or two sets.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>bed</code>, <code>water</code>, <code>ground</code>, <code>stone</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-3/pond.py"><code>batch-3/pond.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>25269</code> + <code>33291</code> + <code>15279</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for pond">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for pond">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-3/grass_edge.png" alt="A sketch of grass_edge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>grass_edge</code></h2>
+    <p>A grassy top on a cliff whose edge wanders, overhanging in rounded tongues and stopping short in places, locked by a second plate layer.</p>
+    <p class="why">A builder reaches for it to finish the top of any cliff or rock wall naturally.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>10</b> of 1243 official sets (14 times); 36 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 76161 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/grass_edge.py"><code>batch-3/grass_edge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p151-156</dd>
+      <dt>Key parts</dt><dd><code>26601</code> + <code>3020</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for grass_edge">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for grass_edge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-3/hillside.png" alt="A sketch of hillside" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>hillside</code></h2>
+    <p>Ground rising in terraces two plates high, each front softened by cheese slopes in grass and bare earth.</p>
+    <p class="why">A builder reaches for it to make a gentle hill or bank instead of a flat baseplate.</p>
+    <p class="note"><b>Note:</b> At large sizes it may use a 2 x 14 plate, made in Green in only one or two sets.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>steps</code>, <code>tread</code>, <code>seed</code>, <code>color</code>, <code>earth</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>18</b> of 1243 official sets (32 times); 124 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10283 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21311 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/hillside.py"><code>batch-3/hillside.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>85984</code> + <code>54200</code> + <code>3020</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for hillside">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for hillside">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-3/flagstone_paving.png" alt="A sketch of flagstone_paving" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>flagstone_paving</code></h2>
+    <p>Crazy paving of tiles in mixed sizes and two grays laid at random, with a few jumper plates and bare studs.</p>
+    <p class="why">A builder reaches for it for courtyards, quays, garden paths, and worn floors.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>colors</code>, <code>bumps</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 16 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-3/flagstone_paving.py"><code>batch-3/flagstone_paving.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p78, p177-180</dd>
+      <dt>Key parts</dt><dd><code>3068b</code> + <code>87580</code> + <code>3794b</code> + <code>63864</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for flagstone_paving">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for flagstone_paving">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-3/dirt_path.png" alt="A sketch of dirt_path" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>dirt_path</code></h2>
+    <p>A path two studs wide winding across the grass in tiles, its bends rounded with 1 x 1 corner-round tiles, with pebbles beside it.</p>
+    <p class="why">A builder reaches for it to lead a path through a garden, park, or field.</p>
+    <p class="note"><b>Note:</b> Its bends use 1 x 1 corner-round tiles; the 2 x 2 'corner round' tile in the library is the curved quarter-ring, which left holes.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>wander</code>, <code>seed</code>, <code>color</code>, <code>pebbles</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 25 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-3/dirt_path.py"><code>batch-3/dirt_path.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>25269</code> + <code>3068b</code> + <code>3070b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for dirt_path">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for dirt_path">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-3/pine_tree.png" alt="A sketch of pine_tree" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>pine_tree</code></h2>
+    <p>A conical fir of tiers of slopes on plates, each tier narrower and held clear of the one below by its core, on a round trunk.</p>
+    <p class="why">A builder reaches for it for forests and winter scenes where the classic leaf tree looks wrong.</p>
+    <p class="note"><b>Note:</b> Uses the same tier method as snow_cap (slopes facing out round a core, each tier two studs narrower); here each tier sits on its own plate, held clear of the one below.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>tiers</code>, <code>trunk</code>, <code>color</code>, <code>trunk_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-3/pine_tree.py"><code>batch-3/pine_tree.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3045</code> + <code>3040b</code> + <code>3942c</code> + <code>3941</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for pine_tree">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for pine_tree">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-3/bush.png" alt="A sketch of bush" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>bush</code></h2>
+    <p>A leafy shrub of round bricks with bamboo leaves on a round plate, turned outward in two greens, crowned with broad leaves.</p>
+    <p class="why">A builder reaches for it to dot gardens, parks, and forest floors with low greenery.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>tiers</code>, <code>colors</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-3/bush.py"><code>batch-3/bush.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>30176</code> + <code>4032a</code> + <code>6255</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bush">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for bush">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-3/flower_bed.png" alt="A sketch of flower_bed" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>flower_bed</code></h2>
+    <p>A bed of soil plates with a tile border, planted with leaf clumps, flowers on stems, and low leaves, spaced so blooms never touch.</p>
+    <p class="why">A builder reaches for it to put flowers in front of a house or in a park.</p>
+    <p class="note"><b>Note:</b> The flower head part (3742) doesn't seat on a plain stud in the validator, so the blooms are round plates with tabs (33291), a stud apart, with low green round plates between.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>edge</code>, <code>soil</code>, <code>flowers</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1243 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-3/flower_bed.py"><code>batch-3/flower_bed.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>33291</code> + <code>4727</code> + <code>6141</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for flower_bed">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for flower_bed">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-3/cave_mouth.png" alt="A sketch of cave_mouth" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>cave_mouth</code></h2>
+    <p>A dark cave entrance in a rock face: an arch on rock jambs, black bricks set back inside, buttresses and broken rock over it.</p>
+    <p class="why">A builder reaches for it for a cave, a mine, or a sea cave in a cliff.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>dark</code>, <code>cap</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1243 official sets (1 times); 7 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10298 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/cave_mouth.py"><code>batch-3/cave_mouth.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>15254</code> + <code>4460b</code> + <code>3009</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cave_mouth">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for cave_mouth">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-3/snow_cap.png" alt="A sketch of snow_cap" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>snow_cap</code></h2>
+    <p>A mountain peak of stacked tiers of slopes, gray rock below, white snow above, and a ragged snowline between.</p>
+    <p class="why">A builder reaches for it to top a mountain in a winter or alpine scene.</p>
+    <p class="note"><b>Note:</b> Uses the same tier method as pine_tree; it stacks the tiers tight and mixes white and gray for the snowline, so it can read as a plain pyramid.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>tiers</code>, <code>snowline</code>, <code>seed</code>, <code>rock</code>, <code>snow</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>9</b> of 1243 official sets (15 times); 30 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 4954 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 75980 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 7327 - Scorpion Pyramid (Christian Neumann [Wesley], Redistributable under CCAL version 2.0); FILE 6074 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/snow_cap.py"><code>batch-3/snow_cap.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>3045</code> + <code>3039</code> + <code>3040b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for snow_cap">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for snow_cap">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-3/footbridge.png" alt="A sketch of footbridge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>footbridge</code></h2>
+    <p>A plank bridge over a stream: stringers on stone footings, a deck of tile planks in mixed browns, and handrails on posts.</p>
+    <p class="why">A builder reaches for it to cross a stream or ditch in a park, farm, or forest.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>span</code>, <code>width</code>, <code>seed</code>, <code>wood</code>, <code>stone</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 1243 official sets (9 times); 76 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10246 - Main model.ldr (Willy Tschager [Holly-Wood], Redistributable under CCAL version 2.0); FILE 75055 - Main.ldr (Roland Dahl [Papacharly], Redistributable under CCAL version 2.0); FILE 10295 - Porsche 911 Targa Complete.ldr (Ulrich Röder {UR}, Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/footbridge.py"><code>batch-3/footbridge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>63864</code> + <code>3666</code> + <code>3062b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for footbridge">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for footbridge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-3/woodpile.png" alt="A sketch of woodpile" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>woodpile</code></h2>
+    <p>A stack of cut logs seen end on, round tiles in wood colors on side studs, each row shorter so the pile tapers.</p>
+    <p class="why">A builder reaches for it beside a cabin, farm, or campsite.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>seed</code>, <code>wood</code>, <code>ends</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1243 official sets (1 times); 44 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/woodpile.py"><code>batch-3/woodpile.py</code></a></dd>
+      <dt>Instruction books</dt><dd>none</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>98138</code> + <code>87087</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for woodpile">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for woodpile">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-3/landing_zone.png" alt="A sketch of landing_zone" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>landing_zone</code></h2>
+    <p>A field of open studs the exact size of a module built apart, framed by a ring of tiles with triangular cut corners.</p>
+    <p class="why">A builder reaches for it whenever a house or tower is built separately and dropped onto the landscape.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seat</code>, <code>path</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1243 official sets (9 times); 16 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-3/landing_zone.py"><code>batch-3/landing_zone.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p165-180</dd>
+      <dt>Key parts</dt><dd><code>35787</code> + <code>87079</code> + <code>3068b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for landing_zone">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for landing_zone">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-3" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>
