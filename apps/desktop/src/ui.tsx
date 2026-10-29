@@ -28,7 +28,7 @@ import {
   OctagonAlert,
   Plus,
   RefreshCw,
-  RotateCcw,
+  RotateCcwClock,
   Save,
   Scan,
   Send,
@@ -72,8 +72,7 @@ const LUCIDE: Record<string, LucideIcon> = {
   "octagon-alert": OctagonAlert,
   plus: Plus,
   "refresh-cw": RefreshCw,
-  // lucide 1.x names the clock-and-arrow icon rotate-ccw-clock; its drawing is rotate-ccw's with a clock face.
-  "rotate-ccw-clock": RotateCcw,
+  "rotate-ccw-clock": RotateCcwClock,
   save: Save,
   scan: Scan,
   send: Send,

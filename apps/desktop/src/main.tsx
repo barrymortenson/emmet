@@ -3,8 +3,17 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { windows } from "./keys";
 import { renderMode } from "./render";
-import "./styles.css";
+import "./styles/tokens.css";
+import "./styles/components.css";
+import "./styles/approved.css";
+import "./styles/app.css";
+
+// The frozen design's window: the tokens' theme and platform on <html>, the base styles on <body> (components.md).
+document.documentElement.dataset.platform = windows ? "windows" : "macos";
+document.documentElement.dataset.theme ??= window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+document.body.classList.add("window");
 
 // E2E builds keep every console error and uncaught error, so a spec can check the app logged none (plan section 21,
 // 1D: "no console errors").

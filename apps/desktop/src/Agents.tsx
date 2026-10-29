@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Agent setup without a terminal (D-41, session 1F; 4A restyles it): for each agent, which plans work, with the
+// Agent setup without a terminal (D-41, session 1F; 4A restyled it to the frozen setup-card): for each agent, which plans work, with the
 // provider's page; Install, which runs the provider's own installer in the host, with its progress, Cancel, and one
 // Try again; and Sign in: Claude Code's own sign-in in the browser, or Settings → Agents for Codex (1E's Continue with
 // ChatGPT and API key live there, so the window never has two copies of them). The provider notice (D-37) comes before
 // an install or sign-in until the user clicks Continue.
-import { useEffect, useRef, useState } from "react";
+import { Dialog } from "radix-ui";
+import { useEffect, useState } from "react";
 import { type AgentKind, type AgentView, commands, events, type SetupError } from "./bindings";
+import { ContinueButton } from "./ChatGpt";
+import { Badge, Button, SetupCard } from "./ui";
 
 const windows = navigator.userAgent.includes("Windows");
 const terminal = windows ? "PowerShell" : "Terminal";
@@ -29,11 +32,14 @@ export function AgentSetup({
   onChanged,
   onSettings,
   only,
+  cards,
 }: {
   agents: AgentView[] | null;
   onChanged: () => void;
   onSettings: () => void;
   only?: "unready";
+  /** First run: Claude's plans once under the cards, as the frozen screen says them. */
+  cards?: boolean;
 }) {
   const [pending, setPending] = useState<(() => void) | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +54,11 @@ export function AgentSetup({
   const shown = (agents ?? []).filter((a) => only !== "unready" || !(a.detection.path != null && a.detection.signed_in));
   if (!agents) return <p className="muted">Looking for Claude Code and Codex…</p>;
   return (
-    <div className="agent-setup" role="group" aria-label="Agent setup">
+    <div className="agent-setup" role="group" aria-label="Agent setup" id={cards ? "agents" : undefined}>
       {shown.map((a) => (
         <AgentCard key={a.kind} view={a} gate={gate} onChanged={onChanged} onSettings={onSettings} />
       ))}
+      {cards && <p className="small">{PLANS.claude}</p>}
       {pending && (
         <ProviderNotice
           onContinue={async () => {
@@ -77,28 +84,30 @@ export function AgentSetup({
 
 /** D-37's notice, in plain words, before an install or sign-in until the user clicks Continue (Not now records nothing). */
 function ProviderNotice({ onContinue, onCancel }: { onContinue: () => void; onCancel: () => void }) {
-  const dialog = useRef<HTMLDialogElement | null>(null);
-  useEffect(() => dialog.current?.showModal(), []);
   return (
-    <dialog ref={dialog} className="settings" id="provider-notice" aria-labelledby="provider-notice-title" onCancel={onCancel}>
-      <h2 id="provider-notice-title">Before you set up an agent</h2>
-      <p>
-        Emmet runs your own Claude Code or Codex on your own account. Installing runs the provider's own installer, and
-        you sign in on the provider's own page, so Emmet never sees your password. Claude Code keeps its own sign-in; for
-        Codex, Emmet keeps your ChatGPT sign-in or API key only in your system's keychain.
-      </p>
-      <p>
-        Emmet follows each provider's policies as we read them, but Anthropic, OpenAI, and Google set and change their
-        own terms and can act on accounts in ways Emmet doesn't control, so use is at your own risk. How your agent
-        handles your data is between you and its provider.
-      </p>
-      <button type="button" className="primary" id="provider-notice-ok" onClick={onContinue}>
-        Continue
-      </button>{" "}
-      <button type="button" onClick={onCancel}>
-        Not now
-      </button>
-    </dialog>
+    <Dialog.Root open onOpenChange={(o) => !o && onCancel()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="dialog-overlay" data-c="dialog">
+          <Dialog.Content className="dialog" id="provider-notice" aria-describedby={undefined}>
+            <Dialog.Title className="dialog-title">Before you set up an agent</Dialog.Title>
+            <p>
+              Emmet runs your own Claude Code or Codex on your own account. Installing runs the provider's own installer, and
+              you sign in on the provider's own page, so Emmet never sees your password. Claude Code keeps its own sign-in;
+              for Codex, Emmet keeps your ChatGPT sign-in or API key only in your system's keychain.
+            </p>
+            <p>
+              Emmet follows each provider's policies as we read them, but Anthropic, OpenAI, and Google set and change their
+              own terms and can act on accounts in ways Emmet doesn't control, so use is at your own risk. How your agent
+              handles your data is between you and its provider.
+            </p>
+            <div className="dialog-actions">
+              <Button label="Not now" variant="quiet" size="sm" onClick={onCancel} />
+              <Button label="Continue" variant="primary" size="sm" id="provider-notice-ok" onClick={onContinue} />
+            </div>
+          </Dialog.Content>
+        </Dialog.Overlay>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
@@ -161,25 +170,55 @@ function AgentCard({
   const seconds = job ? Math.floor((Date.now() - job.started) / 1000) : 0;
   const elapsed = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
+  const plan = view.badge.split(" · ")[1];
+  const text = ready
+    ? `Signed in${plan ? ` · ${plan}` : ""}`
+    : !installed
+      ? PLANS[kind]
+      : kind === "codex"
+        ? "Installed · not signed in. Sign in with ChatGPT to use your plan, or use an OpenAI API key."
+        : `Installed · not signed in. ${PLANS.claude}`;
+  const idle = !job && !failed;
+  let action: React.ReactNode = null;
+  if (ready) action = <Badge text="Ready" id={`ready-${kind}`} />;
+  else if (!installed && idle) action = <Button label={`Install ${name}`} variant="primary" id={`install-${kind}`} onClick={() => run("install")} />;
+  else if (installed && idle && kind === "claude") action = <Button label="Sign in to Claude" variant="primary" id="sign-in-claude" onClick={() => run("sign-in")} />;
+  else if (installed && idle && kind === "codex")
+    // Codex's sign-in is 1E's, in Settings: these open it there (Continue with ChatGPT, or a place for an API key).
+    action = (
+      <span className="row">
+        <ContinueButton id="sign-in-codex" onClick={() => gate(onSettings)} />
+        <Button label="Use an API key" variant="quiet" size="sm" id="codex-api-key" onClick={() => gate(onSettings)} />
+      </span>
+    );
+  else if (job)
+    action = <Button label={job.what === "install" ? "Installing" : "Signing in"} busy disabled />;
+
   return (
-    <section className="agent-card" id={`setup-${kind}`} aria-labelledby={`setup-${kind}-title`}>
-      <h3 id={`setup-${kind}-title`}>{name}</h3>
-      {ready && (
-        <p className="ready" id={`ready-${kind}`}>
-          Ready · {view.badge}
-        </p>
-      )}
-      {!ready && !job && (
-        <p className="muted plans">
-          {PLANS[kind]}{" "}
-          <button type="button" className="link" id={`plans-${kind}`} onClick={() => open(() => commands.openPlans(kind))}>
+    <SetupCard
+      id={`setup-${kind}`}
+      ready={ready}
+      icon={ready ? "circle-check" : installed ? "log-in" : "download"}
+      title={installed && detection.version ? `${name} ${detection.version}` : name}
+      text={text}
+      action={action}
+    >
+      {!ready && idle && (
+        <p>
+          <button type="button" className="link-button" id={`plans-${kind}`} onClick={() => open(() => commands.openPlans(kind))}>
             Which plans work
           </button>
+          {installed && kind === "claude" && (
+            <>
+              {" · "}
+              <button type="button" className="link-button" id="sign-in-console" onClick={() => run("sign-in", true)}>
+                Use a Claude Console account instead
+              </button>
+            </>
+          )}
         </p>
       )}
-      {!installed && !job && kind === "claude" && windows && (
-        <p className="muted">On Windows, Claude Code runs its commands in PowerShell, so nothing else is needed.</p>
-      )}
+      {!installed && idle && kind === "claude" && windows && <p>On Windows, Claude Code runs its commands in PowerShell, so nothing else is needed.</p>}
 
       {job && (
         <div className="job" role="status" id={`job-${kind}`}>
@@ -190,10 +229,8 @@ function AgentCard({
           ) : (
             <p>Finish signing in in your browser. Emmet is waiting for Claude Code… {elapsed}</p>
           )}
-          {job.line && <p className="muted job-line">{job.line}</p>}
-          <button type="button" id={`cancel-${kind}`} onClick={() => void commands.agentCancel(kind)}>
-            Cancel
-          </button>
+          {job.line && <p className="job-line">{job.line}</p>}
+          <Button label="Cancel" size="sm" id={`cancel-${kind}`} onClick={() => void commands.agentCancel(kind)} />
           {job.what === "sign-in" && <TerminalSignIn open={open} />}
         </div>
       )}
@@ -209,53 +246,30 @@ function AgentCard({
           )}
           {failed.error.failure === "busy" ? (
             <>
-              <button type="button" id={`cancel-${kind}`} onClick={() => void commands.agentCancel(kind)}>
-                Cancel it
-              </button>{" "}
-              <button type="button" id={`retry-${kind}`} onClick={() => { setFailed(null); onChanged(); }}>
-                Look again
-              </button>
+              <Button label="Cancel it" size="sm" id={`cancel-${kind}`} onClick={() => void commands.agentCancel(kind)} />{" "}
+              <Button
+                label="Check again"
+                size="sm"
+                id={`retry-${kind}`}
+                onClick={() => {
+                  setFailed(null);
+                  onChanged();
+                }}
+              />
             </>
           ) : (
-            <button type="button" className="primary" id={`retry-${kind}`} onClick={() => run(failed.job.what, failed.job.console)}>
-              Try again
-            </button>
+            <Button label="Try again" variant="primary" size="sm" id={`retry-${kind}`} onClick={() => run(failed.job.what, failed.job.console)} />
           )}
           {failed.job.what === "sign-in" && <TerminalSignIn open={open} />}
         </div>
       )}
-
-      {!installed && !job && !failed && (
-        <button type="button" className="primary" id={`install-${kind}`} onClick={() => run("install")}>
-          Install {name}
-        </button>
-      )}
-
-      {installed && !ready && !job && !failed && kind === "claude" && (
-        <>
-          <button type="button" className="primary" id="sign-in-claude" onClick={() => run("sign-in")}>
-            Sign in to Claude
-          </button>{" "}
-          <button type="button" className="link" id="sign-in-console" onClick={() => run("sign-in", true)}>
-            Use a Claude Console account instead
-          </button>
-        </>
-      )}
-      {installed && !ready && !job && !failed && kind === "codex" && (
-        <>
-          <button type="button" className="primary" id="sign-in-codex" onClick={() => gate(onSettings)}>
-            Sign in to Codex
-          </button>
-          <p className="muted">Settings opens with Continue with ChatGPT, or a place for an OpenAI API key.</p>
-        </>
-      )}
-      {detection.note && <p className="muted">{detection.note}</p>}
+      {detection.note && <p>{detection.note}</p>}
       {note && (
         <p className="notice" role="alert">
           {note}
         </p>
       )}
-    </section>
+    </SetupCard>
   );
 }
 
@@ -263,13 +277,11 @@ function AgentCard({
 function TerminalSignIn({ open }: { open: (call: () => ReturnType<typeof commands.openTerminal>) => void }) {
   return (
     <div className="terminal-sign-in" id="terminal-sign-in">
-      <p className="muted">
+      <p>
         Does your browser show a code to paste? Emmet can't take it. Cancel here, then sign in from {terminal}: type{" "}
         <code>claude</code> and press Enter, then type <code>/login</code> and follow the steps.
       </p>
-      <button type="button" id="open-terminal" onClick={() => open(() => commands.openTerminal())}>
-        Open {terminal}
-      </button>
+      <Button label={`Open ${terminal}`} size="sm" icon="terminal" id="open-terminal" onClick={() => open(() => commands.openTerminal())} />
     </div>
   );
 }

@@ -11,3 +11,14 @@ declare module "*.svg" {
   const url: string;
   export default url;
 }
+
+declare module "*.webp" {
+  const url: string;
+  export default url;
+}
+
+/** A file's text, bundled (Emmet's own glyphs). */
+declare module "*.svg?raw" {
+  const text: string;
+  export default text;
+}

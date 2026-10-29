@@ -396,7 +396,7 @@ export function ChatPane({ project, ask, agentsChanged, warning, onTurnEnd, onLi
     if (!ask || ask.n === asked.current) return;
     asked.current = ask.n;
     if (!live) {
-      setError("Start a chat with an agent first, then ask it to fix the finding.");
+      setError("Start a chat with an agent first, then ask again.");
       return;
     }
     void send(ask.text);
@@ -558,8 +558,8 @@ function Picker({
         );
       })}
       <AgentSetup agents={agents} only="unready" onChanged={onRefresh} onSettings={onSettings} />
-      <button type="button" onClick={onRefresh}>
-        Look again
+      <button type="button" id="agents-again" onClick={onRefresh}>
+        Check agents again
       </button>
     </div>
   );
