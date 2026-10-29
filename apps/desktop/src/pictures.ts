@@ -30,7 +30,7 @@ export function partPicture(part: string, color: number, theme: Theme): Promise<
       try {
         const v = hidden(theme);
         await v.update([{ id: "p", part, color, matrix: IDENTITY, step: 1, submodel: [] }]);
-        const { png } = await v.render({ view: "iso", size: SIZE });
+        const { png } = await v.render({ view: "iso", size: SIZE, transparent: true });
         let s = "";
         for (let i = 0; i < png.length; i += 0x8000) s += String.fromCharCode(...png.subarray(i, i + 0x8000));
         return `data:image/png;base64,${btoa(s)}`;

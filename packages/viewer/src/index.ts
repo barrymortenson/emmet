@@ -50,6 +50,8 @@ export interface RenderOptions {
   /** Width and height in pixels (default 768). */
   size?: number;
   highlight?: string[];
+  /** No background: the picture's pixels around the model are transparent (the Parts list's pictures). */
+  transparent?: boolean;
 }
 
 /** Where a render's camera was, in the viewer's frame (Y up, LDraw units). */
@@ -514,7 +516,7 @@ class EmmetViewer implements Viewer {
     if (!view) throw new Error(`there's no view '${String(name)}'`);
     // A second renderer on a detached canvas: the window's canvas, camera, and size stay as they are.
     const canvas = document.createElement("canvas");
-    this.offscreen ??= new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+    this.offscreen ??= new WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
     const r = this.offscreen;
     r.setPixelRatio(1);
     r.setSize(size, size, false);
@@ -531,7 +533,7 @@ class EmmetViewer implements Viewer {
     this.lit = new Set(options.highlight ?? []);
     this.mode = "select";
     for (const b of this.buckets.values()) this.paint(b);
-    this.scene.background = RENDER_BACKGROUND;
+    this.scene.background = options.transparent ? null : RENDER_BACKGROUND;
     // A render shows the finished model, never a frame of the build animation, which carries on in the window.
     const falling = this.falling;
     if (falling) for (const part of falling.parts) this.setInstance(part.bucket, part.index, part.home);

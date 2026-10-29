@@ -75,6 +75,18 @@ describe("the options panel", () => {
     expect(rows.length).toBe(scene.scene.bom.lines.length);
     expect(await text("#parts-total")).toMatch(/^\d+ parts · \d+ kinds$/);
     await browser.waitUntil(() => browser.execute(() => document.querySelector("#parts-list tbody img")?.src.startsWith("data:image/png")), { timeout: 30_000, timeoutMsg: "no part picture drew" });
+    // A picture is the part alone: around it the table's own surface shows, in either theme.
+    const corner = await browser.execute(async () => {
+      const img = document.querySelector("#parts-list tbody img");
+      await img.decode();
+      const c = document.createElement("canvas");
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      const g = c.getContext("2d");
+      g.drawImage(img, 0, 0);
+      return g.getImageData(0, 0, 1, 1).data[3];
+    });
+    expect(corner).toBe(0);
     await rows[0].click();
     expect((await browser.execute(() => window.__emmet.viewer().highlighted())).length).toBe(scene.scene.bom.lines[0].qty);
   });
