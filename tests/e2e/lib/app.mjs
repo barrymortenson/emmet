@@ -72,6 +72,7 @@ export async function screenshots(name, { baseline = false } = {}) {
     { timeout: 20_000, timeoutMsg: `${name}: the window never settled` },
   );
   await browser.pause(300);
+  if (baseline) await freshAgents();
   for (const theme of ["light", "dark"]) {
     await browser.execute((t) => window.__emmet.theme(t), theme);
     await browser.execute(() => window.__emmet.viewer().nextFrame());
@@ -91,6 +92,24 @@ export async function screenshots(name, { baseline = false } = {}) {
   }
   await browser.execute(() => window.__emmet.theme(null));
   if (failed.length) throw new Error(failed.join("\n"));
+}
+
+/** The chat's agents as they're detected now. The specs share one app, and the dock keeps the list it last read, so
+ * an agent an earlier spec signed out would still show signed out: the dock checks again (a script click, which leaves
+ * an open menu or dialog open) and shows each agent as detected. */
+async function freshAgents() {
+  const agents = await invoke("agents", { refresh: true });
+  const again = await browser.execute(() => {
+    const button = document.getElementById("agents-again");
+    button?.click();
+    return !!button;
+  });
+  if (!again) return;
+  const ready = Object.fromEntries(agents.map((a) => [a.kind, a.detection.path != null && a.detection.signed_in]));
+  await browser.waitUntil(
+    () => browser.execute((r) => Object.entries(r).every(([kind, ok]) => document.getElementById(`agent-${kind}`)?.disabled === !ok), ready),
+    { timeout: 10_000, timeoutMsg: `the chat never showed the agents as detected: ${JSON.stringify(ready)}` },
+  );
 }
 
 /** Compares a window screenshot with its baseline; a reason when it doesn't match. */

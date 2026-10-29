@@ -196,7 +196,7 @@ export function FirstRun({
           </p>
         </div>
         <div className="row">
-          <Button label="Check agents again" variant="quiet" icon="refresh-cw" id="agents-again" onClick={onAgentsChanged} />
+          <Button label="Check agents again" variant="quiet" icon="refresh-cw" id="first-run-agents-again" onClick={onAgentsChanged} />
           <span className="grow" />
           <Button label="Continue" variant="primary" size="lg" id="agents-continue" onClick={() => onStep("start")} />
         </div>
