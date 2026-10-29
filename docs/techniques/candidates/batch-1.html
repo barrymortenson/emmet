@@ -1,0 +1,466 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-1</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-1</h1>
+  <p>20 candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (483 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-1/quoin_corner.png" alt="A sketch of quoin_corner" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>quoin_corner</code></h2>
+    <p>Alternating long and short stone blocks on the side studs of a wall's corner columns; use on cottages and town houses.</p>
+    <p class="why">Stone corners in a contrasting color, long and short blocks alternating, on any house corner or door jamb; one of the clearest signs of a designed building.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>courses</code>, <code>color</code>, <code>both_faces</code>, <code>phase</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 483 official sets (2 times); 6 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 21024 - Louvre.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/quoin_corner.py"><code>batch-1/quoin_corner.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p199-221; set 10350: p208, p209, p210, p218</dd>
+      <dt>Key parts</dt><dd><code>4733</code> + <code>3794b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for quoin_corner">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for quoin_corner">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-1/wall_top_tie.png" alt="A sketch of wall_top_tie" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>wall_top_tie</code></h2>
+    <p>A course of plates across the tops of the walls, over the corner joints, finished with tiles except a few studs to locate what goes on top.</p>
+    <p class="why">A course of plates across the wall tops that overlaps every corner joint, then tiles that leave a few studs: what locks walls together and lets a floor or roof lift off. The cottage needs it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>length</code>, <code>depth</code>, <code>color</code>, <code>studs</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>134</b> of 483 official sets (357 times); 217 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/wall_top_tie.py"><code>batch-1/wall_top_tie.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p141, p142, p143, p144, p145, p146 …</dd>
+      <dt>Key parts</dt><dd><code>3666</code> + <code>3004</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wall_top_tie">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for wall_top_tie">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-1/lift_off_roof_seat.png" alt="A sketch of lift_off_roof_seat" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>lift_off_roof_seat</code></h2>
+    <p>Tile the wall top smooth except a few jumper studs so a separately built roof locates on them and lifts off; use whenever the interior should be reachable.</p>
+    <p class="why">Lets a roof or upper floor lift off to show the inside, which every house in the books does; pairs with wall_top_tie.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>footprint</code>, <code>stud_positions</code>, <code>tile_color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>7</b> of 483 official sets (13 times); 36 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); Robie House (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 21017 - Imperial Hotel.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 21051 - Tokyo - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/lift_off_roof_seat.py"><code>batch-1/lift_off_roof_seat.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p219-220, 6448881 p79-95; set 60440: 6521802 p56, 6521802 p76, 6521802 p77, 6521802 p78, 6521802 p79, 6521802 p80 …</dd>
+      <dt>Key parts</dt><dd><code>4162</code> + <code>3794b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lift_off_roof_seat">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for lift_off_roof_seat">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-1/lift_off_floor.png" alt="A sketch of lift_off_floor" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>lift_off_floor</code></h2>
+    <p>Lift-off upper floor made of two crossed layers of large plates around a stairwell opening, for every modular story.</p>
+    <p class="why">Upper floors as their own units: two layers of plates with crossing seams around a stair opening. For any building of more than one story.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>footprint</code>, <code>stair_position</code>, <code>overhang</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 483 official sets (3 times); 28 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); Robie House (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/lift_off_floor.py"><code>batch-1/lift_off_floor.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p141, p142, p143, p144, p145, p146 …; set 60440: 6521803 p5, 6521803 p6, 6521803 p7, 6521803 p9, 6521803 p10, 6521803 p11 …</dd>
+      <dt>Key parts</dt><dd><code>4282</code> + <code>3035</code> + <code>3032</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lift_off_floor">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for lift_off_floor">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-1/jettied_floor.png" alt="A sketch of jettied_floor" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>jettied_floor</code></h2>
+    <p>Upper floor plate that projects one stud past the wall below on the street sides, for overhanging Tudor stories.</p>
+    <p class="why">An upper story that overhangs the one below by a stud: an easy way to make a town house look old and real.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>overhang</code>, <code>sides</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>23</b> of 483 official sets (25 times); 68 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10185 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/jettied_floor.py"><code>batch-1/jettied_floor.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p227, p228, p229, p230, p231, p232 …</dd>
+      <dt>Key parts</dt><dd><code>4282</code> + <code>4162</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for jettied_floor">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for jettied_floor">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-1/masonry_wall.png" alt="A sketch of masonry_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>masonry_wall</code></h2>
+    <p>Running-bond wall panel of embossed and plain bricks built flat and attached, for exposed brick, rear walls and chimneys.</p>
+    <p class="why">Brick-textured walls in running bond with a few patched bricks; a plain wall made to read as brickwork.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>length</code>, <code>height</code>, <code>bond_offset</code>, <code>color_mix</code>, <code>feature_positions</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 483 official sets (20 times); 8 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10246 - Main model.ldr (Willy Tschager [Holly-Wood], Redistributable under CCAL version 2.0); FILE 10267 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 75954 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/masonry_wall.py"><code>batch-1/masonry_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p71, p196, p197, p218, p249, p256 …</dd>
+      <dt>Key parts</dt><dd><code>98283</code> + <code>15533</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for masonry_wall">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for masonry_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-1/clapboard_siding.png" alt="A sketch of clapboard_siding" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>clapboard_siding</code></h2>
+    <p>A sideways siding strip of cheese slopes on a long plate, hung on side studs to give a wall or narrow pier lap-siding in another color.</p>
+    <p class="why">Lap siding from slopes on a plate hung on side studs, for wooden houses and barns.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>length</code>, <code>slope_color</code>, <code>backer_color</code>, <code>layers</code>, <code>side</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 483 mined sets; 19 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-1/clapboard_siding.py"><code>batch-1/clapboard_siding.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: p37, p38, p43, p47, p48</dd>
+      <dt>Key parts</dt><dd><code>85984</code> + <code>3460</code> + <code>4733</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for clapboard_siding">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for clapboard_siding">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-1/half_timber_band.png" alt="A sketch of half_timber_band" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>half_timber_band</code></h2>
+    <p>White plaster wall with black timber posts and diagonal braces built studs-out, for Tudor or half-timbered upper stories.</p>
+    <p class="why">White plaster with black timber posts and braces, for Tudor and half-timbered stories.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>length</code>, <code>bay_count</code>, <code>post_spacing</code>, <code>brace_pattern</code>, <code>plaster_color</code>, <code>timber_color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>24</b> of 483 official sets (77 times); 28 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/half_timber_band.py"><code>batch-1/half_timber_band.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p236, p237, p238, p239, p240, p241 …</dd>
+      <dt>Key parts</dt><dd><code>32952</code> + <code>3023b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for half_timber_band">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for half_timber_band">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-1/window_sill.png" alt="A sketch of window_sill" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>window_sill</code></h2>
+    <p>A deep window sill from a flat 1x4 panel, with a two-stud plate on the base's side studs as a band below it.</p>
+    <p class="why">A deep sill under a window, so windows don't sit flat in the wall.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>sill_width</code>, <code>colors</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>55</b> of 483 official sets (142 times); 67 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/window_sill.py"><code>batch-1/window_sill.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: p39, p43, p49</dd>
+      <dt>Key parts</dt><dd><code>99206</code> + <code>3023b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for window_sill">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for window_sill">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-1/window_hood.png" alt="A sketch of window_hood" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>window_hood</code></h2>
+    <p>Small peaked hood over a window from two mirrored slopes on a plate, for upper-floor window trim.</p>
+    <p class="why">A small peaked or flat hood over a window; with window_sill it frames a window the way the books do.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>width</code>, <code>peak_style</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>69</b> of 483 official sets (175 times); 151 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/window_hood.py"><code>batch-1/window_hood.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p254, p255, p273, p274; set 43217: p39, p43, p49, p57</dd>
+      <dt>Key parts</dt><dd><code>54200</code> + <code>3666</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for window_hood">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for window_hood">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-1/shuttered_window.png" alt="A sketch of shuttered_window" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>shuttered_window</code></h2>
+    <p>An arched lattice window in a wall gap with shutter mounts on side studs either side; use for cottages and chapels.</p>
+    <p class="why">A cottage window with shutters on side studs either side.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>arched</code>, <code>shutters</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>11</b> of 483 official sets (40 times); 11 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10243 - Main model.ldr (Willy Tschager [Holly Wood], Redistributable under CCAL version 2.0); FILE 10182 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10185 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/shuttered_window.py"><code>batch-1/shuttered_window.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p208-209, 6448880 p212, 6448880 p216</dd>
+      <dt>Key parts</dt><dd><code>30044</code> + <code>30046</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for shuttered_window">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for shuttered_window">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-1/shop_window.png" alt="A sketch of shop_window" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>shop_window</code></h2>
+    <p>Shop window on a 1x6 plate with small transom frames over taller panes and a bar course between, for ground-floor shopfronts.</p>
+    <p class="why">A ground-floor shop window built as a unit on a plate, transoms over tall panes; for stations and town buildings.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>width</code>, <code>pane_heights</code>, <code>frame_color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 483 official sets (3 times); 14 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/shop_window.py"><code>batch-1/shop_window.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p109, p110, p116, p117, p118</dd>
+      <dt>Key parts</dt><dd><code>60592</code> + <code>60593</code> + <code>3666</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for shop_window">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for shop_window">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-1/door_hood.png" alt="A sketch of door_hood" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>door_hood</code></h2>
+    <p>Cornice over a door from a 1x6 plate with corner plates and jumpers below and a tile on top, overhanging by one stud.</p>
+    <p class="why">A projecting cornice over a door, held by jumpers and corner plates.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>width</code>, <code>overhang</code>, <code>pediment</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 483 official sets (4 times); 30 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21017 - Imperial Hotel.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 21018 - United Nations Headquarters.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 76897 - Main.ldr (Adrien Pennamen [Adrien Pennamen], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/door_hood.py"><code>batch-1/door_hood.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p107, p194</dd>
+      <dt>Key parts</dt><dd><code>3666</code> + <code>3794b</code> + <code>6636</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for door_hood">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for door_hood">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-1/roof_dormer.png" alt="A sketch of roof_dormer" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>roof_dormer</code></h2>
+    <p>A 45-degree pitched roof with a crossing front gable, a valley filler on a side stud and a rounded ridge; use for houses.</p>
+    <p class="why">A small gable crossing a pitched roof, with the valley filled on a side stud; it breaks up a long roof.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>span</code>, <code>length</code>, <code>dormer_position</code>, <code>roof_color</code>, <code>ridge_color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 483 mined sets; 25 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-1/roof_dormer.py"><code>batch-1/roof_dormer.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448881 p79-92; set 43217: p95, p96; set 10350: p266, p267, p268, p269, p270, p271 …</dd>
+      <dt>Key parts</dt><dd><code>3659</code> + <code>87087</code> + <code>54200</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for roof_dormer">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for roof_dormer">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-1/ridge_cap.png" alt="A sketch of ridge_cap" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>ridge_cap</code></h2>
+    <p>A row of curved-top bricks along a roof's ridge, so the ridge reads as a rounded roll.</p>
+    <p class="why">A rounded cap along the ridge of a roof instead of a row of bare double slopes.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>length</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 483 mined sets; 4 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-1/ridge_cap.py"><code>batch-1/ridge_cap.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448881 p79-92; set 10350: p293, p294, p303, p304, p305, p306 …</dd>
+      <dt>Key parts</dt><dd><code>3037</code> + <code>49307</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for ridge_cap">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for ridge_cap">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-1/chimney_stack.png" alt="A sketch of chimney_stack" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>chimney_stack</code></h2>
+    <p>Freestanding embossed-brick chimney with a stepped-out cap and round chimney pots, for rooftops.</p>
+    <p class="why">A brick chimney with a stepped-out cap and pots, built on the roof.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>footprint</code>, <code>height</code>, <code>pot_count</code>, <code>cap_overhang</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 483 official sets (8 times); 26 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 75969 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/chimney_stack.py"><code>batch-1/chimney_stack.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p323, p324, p330</dd>
+      <dt>Key parts</dt><dd><code>98283</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for chimney_stack">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for chimney_stack">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-1/downpipe.png" alt="A sketch of downpipe" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>downpipe</code></h2>
+    <p>Rainwater downpipe of round 1x1 bricks stacked on a round plate up a wall corner.</p>
+    <p class="why">A rainwater downpipe of round bricks up a wall corner; a cheap detail that makes a wall look finished.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>height</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>97</b> of 483 official sets (350 times); 185 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/downpipe.py"><code>batch-1/downpipe.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p212, p213, p299</dd>
+      <dt>Key parts</dt><dd><code>6141</code> + <code>3062b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for downpipe">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for downpipe">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-1/porch_posts.png" alt="A sketch of porch_posts" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>porch_posts</code></h2>
+    <p>Porch posts of a round 1x1 under a 1x1x3 brick, plus a balustrade of short spindles on studs capped with a tile rail.</p>
+    <p class="why">Porch posts and a low balustrade, for porches, verandas, and station canopies.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>post_height</code>, <code>spindle_count</code>, <code>rail_color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 483 official sets (4 times); 18 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 75980 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 75948 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 31063 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/porch_posts.py"><code>batch-1/porch_posts.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: p28, p30, p31, p32, p62, p63</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>14716</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for porch_posts">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for porch_posts">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-1/sidewalk.png" alt="A sketch of sidewalk" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>sidewalk</code></h2>
+    <p>Street edge of a modular baseplate: light tile curb, dark tile pavement and a few exposed studs for street furniture.</p>
+    <p class="why">The street edge: a light tile curb and dark pavement with a few studs for street furniture.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>curb_width</code>, <code>depth</code>, <code>stud_positions</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>29</b> of 483 official sets (49 times); 122 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/sidewalk.py"><code>batch-1/sidewalk.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: p8, p9, p10, p11, p12, p13 …</dd>
+      <dt>Key parts</dt><dd><code>4162</code> + <code>3068b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for sidewalk">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for sidewalk">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-1/wall_vent.png" alt="A sketch of wall_vent" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>wall_vent</code></h2>
+    <p>A grille tile on the side studs of a 1x2 brick to make a vent, radiator or grate in a wall course.</p>
+    <p class="why">A grille on the side studs of a brick in a wall course: a vent, radiator, or grate.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>color</code>, <code>facing</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>18</b> of 483 official sets (52 times); 51 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 60216 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21046 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-1/wall_vent.py"><code>batch-1/wall_vent.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: p11, p29</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>2412b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wall_vent">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for wall_vent">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-1" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

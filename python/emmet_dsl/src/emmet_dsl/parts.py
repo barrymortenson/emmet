@@ -107,13 +107,14 @@ class Family:
         then as few pieces as can be, then as few 1-long ones and joints a stud from one below as can be. Falls back
         to Family.split when the run can't avoid them (a run of 1)."""
         have = self.lengths(1, sizes)
-        end = start + int(length)
-        inside = {j for j in below if start < j < end}
+        end = int(length)
+        # The joints below as offsets from the run's start (positions may be floats, or off the whole-stud grid).
+        inside = {round(j - start) for j in below if 0 < j - start < end and abs(j - start - round(j - start)) < 1e-6}
         if not inside:
             return self.split(length, 1, sizes, None, rel, line)
-        # best[p]: the cheapest way to cover start..p, as (cost, pieces); cost counts pieces, then weak spots.
-        best: dict[int, tuple[tuple[int, int], list[int]]] = {start: ((0, 0), [])}
-        for p in range(start, end):
+        # best[p]: the cheapest way to cover 0..p, as (cost, pieces); cost counts pieces, then weak spots.
+        best: dict[int, tuple[tuple[int, int], list[int]]] = {0: ((0, 0), [])}
+        for p in range(end):
             if p not in best:
                 continue
             (count, weak), pieces = best[p]

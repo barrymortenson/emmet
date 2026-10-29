@@ -35,6 +35,8 @@ const GROW_PER_SET: usize = 40;
 /// How many motifs of each size go on to grow, the most widespread first.
 const KEEP_PER_SIZE: usize = 4000;
 const EXAMPLES: usize = 400;
+/// How many parts a candidate's picture shows at most.
+const CROP: usize = 60;
 /// How many motifs motifs.json lists.
 const TOP: usize = 3000;
 
@@ -62,6 +64,8 @@ struct Model {
     file: String,
     /// The set it's from, an index into the run's sets.
     set: usize,
+    /// Placements whose part the library has (current or moved), which a picture may show.
+    known: Vec<bool>,
     title: String,
     author: String,
     license: String,
@@ -89,6 +93,7 @@ fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, 
     let mut special = vec![false; n];
     let mut matrices = Vec::with_capacity(n);
     let mut parts = Vec::with_capacity(n);
+    let mut known = vec![false; n];
     for (i, p) in placements.iter().enumerate() {
         let m = DMat4::from_cols_array(&p.matrix);
         matrices.push(m);
@@ -108,6 +113,7 @@ fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, 
                 None => (String::new(), String::new()),
             })
             .clone();
+        known[i] = !name.is_empty();
         // Figures, stickers, and baseplates join everything to everything; unknown and obsolete parts (a `~` name)
         // can't be judged.
         if name.is_empty()
@@ -138,6 +144,7 @@ fn load(index: &Index, lib: &LibFiles, path: &Path, names: &mut HashMap<String, 
     }
     Model {
         set: 0,
+        known,
         file: path.file_name().unwrap().to_string_lossy().into_owned(),
         title: text
             .lines()
@@ -253,6 +260,27 @@ fn example_ldr(models: &[Model], (mi, set): &(usize, Vec<usize>), title: &str) -
         );
     }
     ldr
+}
+
+/// The group and every part whose origin is within two studs of it across and a brick above or below, the nearest
+/// first, up to CROP parts: the technique in place, for a picture.
+fn around(m: &Model, group: &[usize]) -> Vec<usize> {
+    let at = |i: usize| m.matrices[i].w_axis.truncate();
+    let (mut lo, mut hi) = (at(group[0]), at(group[0]));
+    for &i in group {
+        lo = lo.min(at(i));
+        hi = hi.max(at(i));
+    }
+    let pad = glam::DVec3::new(40.0, 24.0, 40.0);
+    let (lo, hi) = (lo - pad, hi + pad);
+    let mid = (lo + hi) / 2.0;
+    let mut rest: Vec<usize> = (0..m.parts.len())
+        .filter(|&i| m.known[i] && !group.contains(&i) && at(i).cmpge(lo).all() && at(i).cmple(hi).all())
+        .collect();
+    rest.sort_by(|&a, &b| at(a).distance(mid).total_cmp(&at(b).distance(mid)));
+    let mut out = group.to_vec();
+    out.extend(rest.into_iter().take(CROP.saturating_sub(group.len())));
+    out
 }
 
 fn row(models: &[Model], names: &HashMap<String, (String, String)>, size: usize, motif: &Motif) -> serde_json::Value {
@@ -431,27 +459,79 @@ fn main() {
         // How widely: the widest motif with the signature (the smallest, usually). What it looks like in a build: the
         // largest one still in a quarter as many sets.
         let best = with.iter().max_by_key(|(size, m)| m.rank(*size));
-        let value = match best {
-            Some((size, motif)) => {
-                let mut r = row(&models, &names, *size, motif);
-                let floor = MIN_SETS.max(motif.sets().div_ceil(4));
-                let (big_size, big) = with
-                    .iter()
-                    .filter(|(_, m)| m.sets() >= floor)
-                    .max_by_key(|(size, m)| (*size, m.sets(), m.instances()))
-                    .unwrap();
-                r["context"] = row(&models, &names, *big_size, big);
-                let example = &big.by_set.values().max_by_key(|s| s.len()).unwrap()[0];
-                std::fs::write(
-                    out.join("matches").join(format!("{name}.ldr")),
-                    example_ldr(&models, example, name),
-                )
+        let mut value = json!({});
+        // The picture: one joined group, from the set that has the most, and the parts around it.
+        let mut firsts: BTreeMap<usize, (usize, Vec<usize>)> = BTreeMap::new();
+        if let Some((size, motif)) = best {
+            value["motif"] = row(&models, &names, *size, motif);
+            let floor = MIN_SETS.max(motif.sets().div_ceil(4));
+            let (big_size, big) = with
+                .iter()
+                .filter(|(_, m)| m.sets() >= floor)
+                .max_by_key(|(size, m)| (*size, m.sets(), m.instances()))
                 .unwrap();
-                r["example"] = json!(format!("{name}.ldr"));
-                r
+            value["context"] = row(&models, &names, *big_size, big);
+        }
+        // However each set shapes it: the sets with the signature parts joined to each other (a group of them joined
+        // directly or through one part), and the sets that use them all at all. No minimum, so a rare one counts.
+        let (mut used, mut joined, mut times) = (BTreeSet::new(), BTreeMap::new(), 0);
+        for (mi, m) in models.iter().enumerate() {
+            let nodes: Vec<usize> = (0..m.parts.len())
+                .filter(|&i| signature.contains(&m.parts[i]) && !m.adj[i].is_empty())
+                .collect();
+            if !signature.iter().all(|id| nodes.iter().any(|&i| &m.parts[i] == id)) {
+                continue;
             }
-            None => json!(null),
-        };
+            used.insert(m.set);
+            let mut done = HashSet::new();
+            for &start in &nodes {
+                if !done.insert(start) {
+                    continue;
+                }
+                let mut group = vec![start];
+                let mut k = 0;
+                // Joined directly or through one part between (two tiles on one plate).
+                while k < group.len() {
+                    for &j in &m.adj[group[k]] {
+                        for &h in std::iter::once(&j).chain(&m.adj[j]) {
+                            if signature.contains(&m.parts[h]) && done.insert(h) {
+                                group.push(h);
+                            }
+                        }
+                    }
+                    k += 1;
+                }
+                if signature.iter().all(|id| group.iter().any(|&i| &m.parts[i] == id)) {
+                    times += 1;
+                    *joined.entry(m.set).or_insert(0) += 1;
+                    firsts.entry(m.set).or_insert((mi, group));
+                }
+            }
+        }
+        value["used_sets"] = json!(used.len());
+        value["joined_sets"] = json!(joined.len());
+        value["joined"] = json!(times);
+        value["found_in"] = json!(
+            joined
+                .keys()
+                .map(|&s| models.iter().find(|m| m.set == s).unwrap().file.clone())
+                .collect::<Vec<_>>()
+        );
+        let example = joined
+            .iter()
+            .max_by_key(|(_, n)| **n)
+            .map(|(s, _)| firsts.remove(s).unwrap());
+        if let Some((mi, group)) = example {
+            let crop = around(&models[mi], &group);
+            std::fs::write(
+                out.join("matches").join(format!("{name}.ldr")),
+                example_ldr(&models, &(mi, crop), name),
+            )
+            .unwrap();
+            value["example"] = json!(format!("{name}.ldr"));
+            // The example's first lines are the group, for a render that highlights it.
+            value["highlight"] = json!(group.len());
+        }
         matches.insert(name.to_string(), value);
     }
     std::fs::write(

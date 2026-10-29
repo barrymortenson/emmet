@@ -53,9 +53,14 @@ class BondTest(unittest.TestCase):
         pieces = Brick.bond(0, 8, {3, 5}, None, "model.py", 1)
         self.assertFalse({3, 5} & set(joints(0, pieces)), pieces)
 
-    def test_positions_are_absolute(self):
+    def test_positions_are_absolute_and_may_be_floats(self):
         pieces = Brick.bond(10, 6, {12, 14}, None, "model.py", 1)
         self.assertFalse({12, 14} & set(joints(10, pieces)), pieces)
+        # Model.repeat's offsets make a run's start a float, and a wall may start half a stud over.
+        pieces = Brick.bond(10.0, 6, {12.0, 14.0}, None, "model.py", 1)
+        self.assertFalse({12, 14} & set(joints(10, pieces)), pieces)
+        pieces = Brick.bond(0.5, 6, {2.5, 4.5}, None, "model.py", 1)
+        self.assertFalse({2.5, 4.5} & set(joints(0.5, pieces)), pieces)
 
     def test_a_run_that_cant_avoid_them_falls_back_to_longest_first(self):
         # 1 x 1s everywhere below: every joint is taken, so it lays the run as it would with nothing below.

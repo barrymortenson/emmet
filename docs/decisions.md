@@ -436,3 +436,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   exists (the rung 1 dry-run eval with both fake agents, every replay test, and the rung 2 reference model clean at
   each of its params), with the real rung 2 scores moving to 5A and G2, over building a rung 2 dry-run in this
   session and over leaving the item unticked.
+- **Review pages show our own sketches.** Cropped renders of official models where a candidate's key parts meet
+  often showed those parts used for something else (the window hood's match was a tower's siding), and pages of the
+  instruction books can't be shown. Barry chose that each candidate gets a quick sketch written in the DSL and
+  rendered, so the picture is what Emmet would build; accepted sketches become the techniques and rejected ones are
+  dropped. Rejected: the crops labeled as "may not be this technique", and pages with no pictures. The miner still
+  gives each candidate how widely official sets join its key parts.
