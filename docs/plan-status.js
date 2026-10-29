@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-28",
+  updated: "2026-10-29",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -139,7 +139,7 @@ window.EMMET_STATUS = {
       ],
       note: "Techniques aren't derived from OMR models (D-48); the click-hinge collision at nonzero angles is a likely validator false positive, unfiled pending Barry's OK; the inputs hash ignores DSL content between dev builds"
     },
-    "4A": { status: "in-progress", branch: "bmortenson/s4a-shell-first-run", started: "2026-10-28" },
+    "4A": { status: "review", pr: 34, branch: "bmortenson/s4a-shell-first-run", started: "2026-10-28" },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
     "4D": { status: "todo" },
