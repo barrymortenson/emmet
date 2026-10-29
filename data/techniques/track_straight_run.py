@@ -18,6 +18,9 @@ import math
 from emmet_dsl import frame
 from emmet_dsl.core import in_steps
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = ["53401"]
 
 STRAIGHT = 16  # a straight's length, in studs

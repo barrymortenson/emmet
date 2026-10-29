@@ -101,6 +101,37 @@ class Family:
             )
         return out
 
+    def bond(self, start: int, length: int, below, sizes, rel: str, line: int) -> list[tuple[int, str]]:
+        """A run of `length` from `start` as [(length along, part id)], laid in bond over the course below: as few
+        joints as can be on a joint in `below` (the positions where pieces meet in the course under it), so every joint
+        below is bridged when the sizes allow it; then as few pieces as can be; then as few 1-long ones and joints a
+        stud from one below as can be. Joints at every stud below, or `sizes` too few, can leave one joint on a joint:
+        the fewest the run allows."""
+        have = self.lengths(1, sizes)
+        end = int(length)
+        # The joints below as offsets from the run's start (positions may be floats, or off the whole-stud grid).
+        inside = {round(j - start) for j in below if 0 < j - start < end and abs(j - start - round(j - start)) < 1e-6}
+        if not inside or not have:
+            return self.split(length, 1, sizes, None, rel, line)
+        # best[p]: the cheapest way to cover 0..p, as (cost, pieces); cost counts joints on a joint below first, then
+        # pieces, then weak spots.
+        best: dict[int, tuple[tuple[int, int, int], list[int]]] = {0: ((0, 0, 0), [])}
+        for p in range(end):
+            if p not in best:
+                continue
+            (stacked, count, weak), pieces = best[p]
+            for n in sorted(have, reverse=True):
+                q = p + n
+                if q > end:
+                    continue
+                near = q < end and (q - 1 in inside or q + 1 in inside)
+                cost = (stacked + (q in inside), count + 1, weak + (n == 1) + near)
+                if q not in best or cost < best[q][0]:
+                    best[q] = (cost, pieces + [n])
+        if end not in best:  # no pieces make the length at all (sizes with no 1): split says so
+            return self.split(length, 1, sizes, None, rel, line)
+        return [(n, have[n]) for n in best[end][1]]
+
     def __repr__(self) -> str:
         return self.kind.title()
 

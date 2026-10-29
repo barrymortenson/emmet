@@ -198,6 +198,14 @@ fn the_cottage_validates_clean_at_every_corner() {
         // An odd width once left a stud of ceiling unplated, and the roof above it floated.
         &["width=9", "depth=8", "wall_rows=6", "chimney=true"],
         &["width=7", "depth=6", "roof=false", "weathering=30", "seed=7"],
+        // Walls in another color, heavily weathered (old bricks never over or beside each other or an opening).
+        &[
+            "width=12",
+            "depth=8",
+            "wall_color=Bright Light Orange",
+            "weathering=30",
+            "seed=3",
+        ],
         &["width=16", "depth=12", "wall_rows=9", "chimney=true", "roof=false"],
     ];
     for set in corners {

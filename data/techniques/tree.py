@@ -15,6 +15,9 @@ whose .max[2] is the top of the tree.
 
 from emmet_dsl import frame
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = ["3062b", "3941", "3794b", "2423", "6255"]
 
 # Each plant part's body box in LDU, and how far its origin is above the bottom of the part, in plates: the origin is

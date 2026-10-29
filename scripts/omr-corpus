@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Fetches the nightly validator corpus (tests/fixtures/omr/nightly.json, plan section 11) into a cache directory,
-// one request a second, and checks each file's sha256. Files already cached with the right sha256 aren't fetched
-// again, so the runner downloads each model once.
+// Fetches a list of OMR models into a cache directory, one request a second, and checks each file's sha256: the
+// nightly validator corpus (tests/fixtures/omr/nightly.json, plan section 11) by default, or another list in the same
+// shape, such as the technique miner's (docs/techniques/corpus.json, 3C). Files already cached with the right sha256
+// aren't fetched again, so the runner downloads each model once.
 //
-//   scripts/omr-corpus <cache dir>
+//   scripts/omr-corpus <cache dir> [list.json]
 //
-// The files are only read and hashed here; the validator parses them as LDraw text.
+// The files are only read and hashed here; the validator and the technique miner parse them as LDraw text.
 
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -16,10 +17,11 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dir = process.argv[2];
 if (!dir || dir.startsWith("-")) {
-  console.error("usage: scripts/omr-corpus <cache dir>");
+  console.error("usage: scripts/omr-corpus <cache dir> [list.json]");
   process.exit(2);
 }
-const { models } = JSON.parse(readFileSync(join(ROOT, "tests/fixtures/omr/nightly.json"), "utf8"));
+const list = process.argv[3] || join(ROOT, "tests/fixtures/omr/nightly.json");
+const { models } = JSON.parse(readFileSync(list, "utf8"));
 const sha = (buf) => createHash("sha256").update(buf).digest("hex");
 mkdirSync(dir, { recursive: true });
 let fetched = 0;
@@ -31,14 +33,14 @@ for (const m of models) {
   const path = join(dir, m.file);
   if (existsSync(path) && sha(readFileSync(path)) === m.sha256) continue;
   if (fetched++) await new Promise((r) => setTimeout(r, 1000));
-  const res = await fetch(m.url, { headers: { "user-agent": "emmet-ci (nightly validator corpus)" } });
+  const res = await fetch(m.url, { headers: { "user-agent": "emmet (OMR corpus for tests and technique research)" } });
   if (!res.ok) {
     console.error(`omr-corpus: ${m.url}: HTTP ${res.status}`);
     process.exit(1);
   }
   const buf = Buffer.from(await res.arrayBuffer());
   if (sha(buf) !== m.sha256) {
-    console.error(`omr-corpus: ${m.file} has sha256 ${sha(buf)}, not ${m.sha256}: the OMR file changed; review it and update nightly.json`);
+    console.error(`omr-corpus: ${m.file} has sha256 ${sha(buf)}, not ${m.sha256}: the OMR file changed; review it and update ${basename(list)}`);
     process.exit(1);
   }
   writeFileSync(`${path}.tmp`, buf);

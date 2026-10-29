@@ -420,3 +420,49 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   goes back into Rebrickable, and any line besides `Part,Color,Quantity` and the parts risks breaking its import.
   Barry chose to leave the credit out of that one file (it's in the other exports, the Parts list, Settings → Data,
   About, and NOTICE), over adding it and testing the import again, or putting it in the file name. Section 12 says so.
+
+## 2026-10-28, session 3C
+
+- **Mined techniques aren't derived from OMR models (D-48).** Every model the miner reads (the 10 committed
+  fixtures and the 33 nightly ones) is "Redistributable under CCAL version 2.0", which LDraw reads as CC BY 2.0: that
+  would allow snippets derived from them under our Apache-2.0, with each model's author, title, and URL credited.
+  Barry chose not to derive from them at all, over crediting every model a motif was found in and over crediting
+  only the examples a snippet was written from. The mining ranks ideas (which sub-assemblies recur, and how widely),
+  and each technique is written from general building knowledge and Barry's own instruction books (sets 21335,
+  10350, 43217, and 60440), which are read for methods only: no page, picture, or text from them goes into the repo.
+  Each technique's provenance note says that, citing the books by set number. ADR 0003 records it.
+- **What proves 3C's Done when 2 (D-49).** It asks that rung 2's replay and dry-run eval scores don't regress, but no
+  rung 2 eval exists yet: `emmet eval` runs rung 1, and rung 2 arrives with 5A. Barry chose to prove it with what
+  exists (the rung 1 dry-run eval with both fake agents, every replay test, and the rung 2 reference model clean at
+  each of its params), with the real rung 2 scores moving to 5A and G2, over building a rung 2 dry-run in this
+  session and over leaving the item unticked.
+- **Review pages show our own sketches.** Cropped renders of official models where a candidate's key parts meet
+  often showed those parts used for something else (the window hood's match was a tower's siding), and pages of the
+  instruction books can't be shown. Barry chose that each candidate gets a quick sketch written in the DSL and
+  rendered, so the picture is what Emmet would build; accepted sketches become the techniques and rejected ones are
+  dropped. Rejected: the crops labeled as "may not be this technique", and pages with no pictures. The miner still
+  gives each candidate how widely official sets join its key parts.
+- **H-22, batch 1: all 20 accepted** (Barry, 2026-10-28, on `docs/techniques/candidates/batch-1.html`): quoin_corner,
+  wall_top_tie, lift_off_roof_seat, lift_off_floor, jettied_floor, masonry_wall, clapboard_siding, half_timber_band,
+  window_sill, window_hood, shuttered_window, shop_window, door_hood, roof_dormer, ridge_cap, chimney_stack, downpipe,
+  porch_posts, sidewalk, wall_vent. Barry asked for techniques for every kind of build, not only houses.
+- **H-22, batch 2 (vehicles and trains): 18 accepted, 2 rejected** (Barry, 2026-10-28, on
+  `docs/techniques/candidates/batch-2.html`). Rejected: wheel_axle and wheel_arch, because the wheel on the 2 x 2 plate
+  with wheel pins (4870, 4624c01) reads as aircraft landing gear, not a car's wheels. Accepted: headlights,
+  tail_lights, windscreen, curved_hood, trailer_hitch, front_bumper, bracket_side_panel, cab_seat, light_bar,
+  front_grille, tilting_hood, spliced_chassis, rear_spoiler, exhaust_stack, cargo_pallet, train_carriage,
+  hinged_tailgate, technic_spine. That makes 38 accepted, past Done when 1's 30.
+- **H-22, batch 3 (landscape and nature): all 20 accepted** (Barry, 2026-10-28, on
+  `docs/techniques/candidates/batch-3.html`): rock_spire, rock_facet, cliff_wall, rock_outcrop, surf_line, river,
+  waterfall, pond, grass_edge, hillside, flagstone_paving, dirt_path, pine_tree, bush, flower_bed, cave_mouth, snow_cap,
+  footbridge, woodpile, landing_zone. 58 accepted in all.
+- **H-22, batch 4 (castles and ships): all 20 accepted** (Barry, 2026-10-28, on
+  `docs/techniques/candidates/batch-4.html`): battlements, machicolation, arrow_slit, buttress, round_tower, portcullis,
+  drawbridge, torch_sconce, wall_banner, wooden_hoarding, bartizan, thick_wall, ship_hull, mast_and_yard, crows_nest,
+  cannon_port, rudder_hinge, oars, dock_pier, portholes, with the cards' notes as written (round_tower's seams line up;
+  ship_hull's bow wedges are tied only by the deck). 78 accepted in all.
+- **H-22, batch 5 (sci-fi and mechanisms): all 20 accepted** (Barry, 2026-10-28, on
+  `docs/techniques/candidates/batch-5.html`): greeble_strip, engine_nozzle, wedge_wing, angled_hull_panel,
+  hatch_on_hinge, cockpit_canopy, turret, radar_dish, control_console, antenna_mast, solar_panel, landing_leg, gear_pair,
+  worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace, rotating_platform, ball_joint_arm.
+  98 accepted in all, of 100 candidates in five batches.

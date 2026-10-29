@@ -7,7 +7,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const SOURCE = /\.(rs|ts|tsx|js|mjs|cjs|py|sh|css)$|^(scripts|\.githooks)\/[^/.]+$|(^|\/)justfile$/;
-const APACHE = /^(python\/emmet_dsl|data\/techniques)\/|(^|\/)templates\//;
+// Apache-2.0: the DSL, the techniques (data/techniques/ and their candidate sketches in docs/techniques/), and the
+// templates (agent rule 1).
+const APACHE = /^(python\/emmet_dsl|data\/techniques|docs\/techniques)\/|(^|\/)templates\//;
 
 const root = process.argv[2] || ".";
 const files = execFileSync("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" }).split("\0").filter(Boolean);

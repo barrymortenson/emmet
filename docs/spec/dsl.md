@@ -70,7 +70,7 @@ def street(
 | `m.grid(part, color, at, nx, ny, rot=0, id=None)` | nx × ny copies side by side. |
 | `m.row(kind, color, at, length, axis="x", width=1, first=None, sizes=None, id=None)` | A run of `length` studs along `axis` in the longest pieces of a family (`Brick`, `Plate`, `Tile`), `width` studs across; `first` sets the first piece (for a running bond), `sizes` limits the lengths. |
 | `m.fill(kind, color, at, size=(x, y), id=None)` | Covers a rectangle with plates or tiles: 2-wide strips along its long side, the longest pieces first. |
-| `m.wall(x, y, z, length, depth=0, color, sides="all", rows=1, bond="running", openings=(), kind=Brick, sizes=None)` | Brick walls a course at a time. With `depth`, the four walls of a rectangle with interlocking corners (the front and back own the corners on even courses, the sides on odd ones); without it, one straight wall along x, its joints staggered row to row. `sides` builds a wall at a time ("front", "back", "left", "right", "sides"); `openings` are (x, y) cells left empty. `bond` applies to a straight wall; a rectangle's courses alternate at the corners whatever the bond. |
+| `m.wall(x, y, z, length, depth=0, color, sides="all", rows=1, bond="running", openings=(), kind=Brick, sizes=None)` | Brick walls a course at a time. With `depth`, the four walls of a rectangle with interlocking corners (the front and back own the corners on even courses, the sides on odd ones); without it, one straight wall along x. `sides` builds a wall at a time ("front", "back", "left", "right", "sides"); `openings` are (x, y) cells left empty. `bond="running"` lays each course over the joints of the course below that a `m.wall` laid (the model remembers them across calls, by each course's top): as few joints on a joint as can be (none, when the sizes allow), then the fewest pieces, then the fewest 1-long pieces and joints a stud from one below, so the course over a door or window bridges its edges. Over a run with no joint inside it, a straight wall's odd course starts with a short piece. `bond="stacked"` lines the joints up. |
 | `m.repeat(fn, n, dx=0, dy=0, dz=0)` | Calls `fn(i)` (or `fn()`) for i in 0 … n−1 with every position it places moved by (i·dx, i·dy, i·dz). |
 | `with m.mirror(axis, about):` | Everything placed inside is placed again across the plane x = about (or y = about), moved with `m.repeat` like any position, and turned to face the other way, with "-mirror-x" (or "-y") on its id. Parts are turned, not reflected: a left-handed part stays left-handed. |
 | `sub = m.submodel(name, fn, **params)` | A unit built once by `fn(m, **params)` on its own Model, with its own steps. The same name, function, and params return the same submodel. |
@@ -115,13 +115,16 @@ and the step that places its copies shows it as one sub-assembly "× n".
 ## Techniques
 
 `m.use(name, **kw)` applies a technique from `data/techniques/` (installed with emmet_dsl as
-`emmet_dsl.techniques`). Each is a module with a doc, its `PARTS`, `build(m, …)`, and `example(m)`, which builds it
-on its own; `emmet technique` lists them, and `emmet technique <name>` gives the doc, the example, and the parts.
+`emmet_dsl.techniques`). Each is a module with a doc, its `PARTS`, a `PROVENANCE` note (where its method came from:
+Emmet's own, and the instruction books it was read in, by set number; never an OMR model's file, D-48), `build(m, …)`,
+and `example(m)`, which builds it on its own; `emmet technique` lists them, and `emmet technique <name>` gives the doc,
+the example, the parts, and the provenance.
 Each has a render (`data/techniques/<name>.png`, from `scripts/render-techniques`) and a test that its example
 validates with no findings (`tests/it/tests/techniques.rs`). Most techniques bring their own small steps, titled
 after their `title` argument; bench, lamp_post, and tree are sub-assemblies, placed in the step you call them in. The library (v0): gable_roof, hip_roof, hinge_roof, snot_panel, jumper_offset, window_frame,
 door_frame, stairs, fence, tree, bench, lamp_post, platform_edge, canopy, track_straight_run, track_curve,
-track_switch, baseplate_road, brick_built_arch, tiled_floor. The track techniques take a pose and return
+track_switch, baseplate_road, brick_built_arch, tiled_floor; session 3C added the techniques Barry accepted from the
+candidate batches (`docs/techniques/candidates/`), and the doctrine lists them all by what they're for. The track techniques take a pose and return
 one, `(x, y, z, heading)`: where the track's center line ends and the way it runs (track_switch returns one for each
 way, `{"straight", "branch"}`), so `p = m.use("track_curve", at=p, …)` chains pieces and a loop closes exactly.
 

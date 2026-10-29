@@ -9,6 +9,9 @@ one already has a center stud). It brings its own step, titled "<title>", and re
 part at so it stands on the centered stud: m.add("3062b", "White", at=m.use("jumper_offset", ...)).
 """
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = ["3794b", "15573"]
 
 

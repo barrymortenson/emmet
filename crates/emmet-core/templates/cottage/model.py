@@ -29,6 +29,18 @@ def lengths(n, sizes):
     return out
 
 
+def staggered(n, sizes, course):
+    """Like lengths, but every other course (or row) starts with a 2-long piece, so its joints mostly fall between
+    the ones before it instead of on them (a roof's slopes and its bricks course to course, the ceiling's plates row to
+    row). An odd length ends both ways with a 1-long piece, so that last joint lines up."""
+    if course % 2 and n > 2 and 2 in sizes:
+        return [2] + lengths(n - 2, sizes)
+    return lengths(n, sizes)
+
+
+# The walls' brick lengths: 1 x 4 and shorter come in the most colors.
+WALL_BRICKS = [1, 2, 3, 4]
+
 # A step adds at most this many parts: the 6+ target (plan section 08's step rules).
 STEP = 8
 
@@ -185,50 +197,69 @@ def cottage(
     def put_window(name, at, turn, z):
         m.place(window_unit, at=(*at, z), rot=turn, id=f"window/{name}")
 
+    below = {"holes": set()}  # the course below's openings and old bricks
+
     def walls(row):
         """One row of the walls: the back, then the two sides, then the front, a step each (or more, at most STEP
-        parts a step), so each step's bricks are in view."""
+        parts a step), so each step's bricks are in view. m.wall lays each course in bond over the one below, its
+        corners interlocking with the next wall's; old bricks fill the weathered cells it leaves open."""
         z = ground + 3 * row
-        # Corners alternate between the front and back walls and the side walls, so the joints overlap row to row.
-        if row % 2 == 0:
-            spans = [("front", (x0, y0), width, "x"), ("back", (x0, y1), width, "x")]
-            spans += [
-                ("left", (x0, y0 + 1), depth - 2, "y"),
-                ("right", (x1, y0 + 1), depth - 2, "y"),
-            ]
-        else:
-            spans = [("left", (x0, y0), depth, "y"), ("right", (x1, y0), depth, "y")]
-            spans += [
-                ("front", (x0 + 1, y0), width - 2, "x"),
-                ("back", (x0 + 1, y1), width - 2, "x"),
-            ]
         gaps = (door if row < 6 else set()) | (windows if 2 <= row < 4 else set())
-        bricks = {}
-        for wall, (sx, sy), n, axis in spans:
-            bricks[wall] = []
-            cells = [(sx + i, sy) if axis == "x" else (sx, sy + i) for i in range(n)]
-            for (x, y), run in runs([c for c in cells if c not in gaps], axis):
-                for size in lengths(run, [2, 1]):
-                    # A stone base course, then the walls, with some old brick showing through.
-                    old = rng.random() * 100 < weathering
-                    color = (
-                        "Dark Bluish Gray"
-                        if row == 0
-                        else "Reddish Brown"
-                        if old
-                        else wall_color
-                    )
-                    bricks[wall].append(
-                        (BRICKS[size], color, (x, y, z), 1 if axis == "x" else 0)
-                    )
-                    x, y = (x + size, y) if axis == "x" else (x, y + size)
+        corners = {(x0, y0), (x1, y0), (x0, y1), (x1, y1)}
+        # Old brick showing through: single cells of this course, never a corner, a door, or a window, and never over
+        # or beside another old brick or an opening (in this course or the one below), so the joints around it are
+        # bridged like any other.
+        cells = {(x, y) for x in range(x0, x1 + 1) for y in (y0, y1)} | {
+            (x, y) for y in range(y0 + 1, y1) for x in (x0, x1)
+        }
+        busy = gaps | below["holes"]
+        old = set()
+        for c in sorted(cells - corners - gaps):
+            chance = rng.random() * 100
+            around = {
+                c,
+                (c[0] - 1, c[1]),
+                (c[0] + 1, c[1]),
+                (c[0], c[1] - 1),
+                (c[0], c[1] + 1),
+            }
+            if row > 0 and chance < weathering and not around & (busy | old):
+                old.add(c)
+        below["holes"] = gaps | old
+        color = "Dark Bluish Gray" if row == 0 else wall_color  # a stone base course
         for title, wall in (
             ("back wall", "back"),
             ("left wall", "left"),
             ("right wall", "right"),
             ("front wall", "front"),
         ):
-            actions = []
+            on_wall = {
+                "back": lambda c: c[1] == y1,
+                "front": lambda c: c[1] == y0,
+                "left": lambda c: c[0] == x0 and y0 < c[1] < y1,
+                "right": lambda c: c[0] == x1 and y0 < c[1] < y1,
+            }[wall]
+            actions = [
+                (
+                    # About how many bricks it lays: m.wall uses long ones.
+                    max(1, (width if wall in ("back", "front") else depth) // 3),
+                    lambda wall=wall: m.wall(
+                        x0,
+                        y0,
+                        z,
+                        length=width,
+                        depth=depth,
+                        sides=wall,
+                        color=color,
+                        openings=gaps | old,
+                        sizes=WALL_BRICKS,
+                    ),
+                )
+            ]
+            for c in sorted(filter(on_wall, old)):
+                actions += [
+                    (1, lambda c=c: m.add(BRICKS[1], "Reddish Brown", at=(*c, z)))
+                ]
             if wall == "back":
                 actions += [
                     (
@@ -249,15 +280,6 @@ def cottage(
                                 ),
                             )
                         ]
-            for part, color, at, turn in bricks[wall]:
-                actions += [
-                    (
-                        1,
-                        lambda part=part, color=color, at=at, turn=turn: m.add(
-                            part, color, at=at, rot=turn
-                        ),
-                    )
-                ]
             in_steps(m, f"Walls, row {row + 1}: {title}", actions)
 
     # Built the way an instruction book builds it: a few parts a step, from the baseplate up.
@@ -325,27 +347,34 @@ def cottage(
 
         def plate_row(y):
             x = x0
-            for size in lengths(width, PLATES):
+            # Each row of plates starts differently from the one before it, so the rows' joints don't line up front to
+            # back.
+            for size in staggered(width, PLATES, (y - y0) // 2):
                 # rot=1 lays a 2 x n plate along x; the 1 x 2 is already 1 along x.
                 m.add(
                     PLATES[size], wall_color, at=(x, y, top), rot=0 if size == 1 else 1
                 )
                 x += size
 
-        plates = len(lengths(width, PLATES))
         in_steps(
             m,
             "Ceiling",
-            [(plates, lambda y=y: plate_row(y)) for y in range(y0, y0 + depth, 2)],
+            [
+                (len(staggered(width, PLATES, (y - y0) // 2)), lambda y=y: plate_row(y))
+                for y in range(y0, y0 + depth, 2)
+            ],
         )
 
         # A gable roof: each course steps in one stud from the front and the back, until the two sides meet under a
         # ridge of double slopes. Each side of a course is its slopes, then the bricks behind them up to the middle,
         # at most STEP parts a step.
-        slopes, bricks = lengths(width, SLOPES), lengths(width, BRICKS)
         for k in range(courses):
             z = top + 1 + 3 * k
-            # The rows of bricks under the next course, split between the two sides.
+            # Each course's slopes and bricks start differently from the course below, so no seam runs straight up
+            # the roof.
+            slopes = staggered(width, SLOPES, k)
+            # The rows of bricks under the next course, split between the two sides. Their ends are the gable walls,
+            # in the wall color; the rest is hidden under the next course.
             inner = list(range(y0 + k + 2, y1 - 1 - k))
             half = (len(inner) + 1) // 2
             for title, y, turn, rows in (
@@ -360,11 +389,23 @@ def cottage(
                         m.add(SLOPES[size], roof_color, at=(x, y, z), rot=turn)
                         x += size
 
+                def gable_row(ry, z=z):
+                    m.add(BRICKS[1], wall_color, at=(x0, ry, z))
+                    brick_row(
+                        m,
+                        staggered(width - 2, BRICKS, k + 1),
+                        x0 + 1,
+                        ry,
+                        z,
+                        roof_color,
+                    )
+                    m.add(BRICKS[1], wall_color, at=(x1, ry, z))
+
                 actions = [(len(slopes), slope_row)]
                 actions += [
                     (
-                        len(bricks),
-                        lambda ry=ry, z=z: brick_row(m, bricks, x0, ry, z, roof_color),
+                        len(staggered(width - 2, BRICKS, k + 1)) + 2,
+                        lambda ry=ry: gable_row(ry),
                     )
                     for ry in rows
                 ]

@@ -13,6 +13,9 @@ returns the z of the wall's top.
 
 from emmet_dsl import Brick
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "60592",
     "60601",

@@ -1,0 +1,472 @@
+[
+ {
+  "name": "battlements",
+  "title": "A parapet of merlons and crenels along the front edge of a thick wall's top, with a tiled wall walk behind.",
+  "why": "Crowning any castle wall or tower top.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "merlon",
+   "crenel",
+   "tie",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3004",
+   "3069b",
+   "3020"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "machicolation",
+  "title": "A wall's top course of inverted-slope corbels that carry a slab a stud out over the face, with drop holes between them.",
+  "why": "Giving a castle wall or gatehouse an overhanging parapet.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "color",
+   "spacing",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3665b",
+   "3020"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "front"
+ },
+ {
+  "name": "arrow_slit",
+  "title": "A thick wall with a narrow round-headed slit on the outside that opens into a wide corbel-headed embrasure inside.",
+  "why": "Putting loopholes in curtain walls and towers.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "offset",
+   "color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "4490",
+   "3665b"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "buttress",
+  "title": "A stepped pier bonded into the face of a wall, its two set-backs weathered with 2 x 2 slopes.",
+  "why": "Stiffening and breaking up a long castle or church wall.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "offsets",
+   "color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3002",
+   "3039",
+   "3003"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "round_tower",
+  "title": "A hollow round tower 8 studs across, rings of four curved bricks tied by round plate floors, with merlons over the seams.",
+  "why": "Building a castle's round corner or keep tower.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "rows",
+   "floor_every",
+   "color",
+   "floor_color",
+   "merlons",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "48092",
+   "74611"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Its curved pieces' joints line up course after course; only the round floor plates and the merlons on top tie the four quarters together. That's against our no-joint-on-a-joint rule, so it may want rework."
+ },
+ {
+  "name": "portcullis",
+  "title": "A gate grille of spindled fences that slides in a slot between the leaves of a 3-stud wall, behind arched gateways.",
+  "why": "Building a gatehouse whose grille can be raised.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "width",
+   "grilles",
+   "color",
+   "grille",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "30055",
+   "3659",
+   "3710"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "front"
+ },
+ {
+  "name": "drawbridge",
+  "title": "A plank deck on a pair of locking hinges at a gateway's threshold that lies across the moat or swings up.",
+  "why": "Bridging a moat in front of a castle gate.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "length",
+   "color",
+   "hinge",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "44302a",
+   "44301a"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "torch_sconce",
+  "title": "Torches standing in clip bricks laid in a wall's course, with flames in their heads.",
+  "why": "Lighting castle walls, gateways, and dungeons.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "at",
+   "color",
+   "torch",
+   "flame",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "60475b",
+   "3959",
+   "64647"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "wall_banner",
+  "title": "A flag turned on its side hanging down a wall's face from a bar held in two clip plates on the wall top.",
+  "why": "Hanging heraldic banners on castle walls and halls.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "at",
+   "color",
+   "bar",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "4081b",
+   "30374",
+   "2335"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The banner is a 2 x 2 flag on a clip."
+ },
+ {
+  "name": "wooden_hoarding",
+  "title": "A covered timber gallery on beams through a wall's top course, with a log front, loopholes, and a sloped roof.",
+  "why": "Adding a wooden fighting gallery to a castle wall top.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "timber",
+   "roof",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3622",
+   "30136",
+   "3039"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "bartizan",
+  "title": "A small round turret on a round plate over the outside corner of two walls, on an inverted-slope corbel, with a cone roof.",
+  "why": "Dressing the corners of castle walls and towers.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "corner",
+   "rows",
+   "color",
+   "roof",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "60474",
+   "3676",
+   "3063b"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "thick_wall",
+  "title": "A wall 2 studs thick in alternating header and two-leaf courses, with darker stones scattered through it.",
+  "why": "Building solid castle curtain walls and keeps.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "stone",
+   "stones",
+   "seed",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3001",
+   "3010",
+   "3004"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "ship_hull",
+  "title": "A hull 6 studs wide whose sides close in to a pointed bow on paired wedge bricks, decked with plates and matching wings.",
+  "why": "Starting any minifig-scale boat or ship.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "deck",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "41767",
+   "41768",
+   "6564",
+   "6565"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The bow ends in a blunt 2-stud nose (the wedges taper 2 to 1). The bow wedges are tied only by the deck; lower down each just stacks on the one below, so it passes the validator but would be loose in real bricks."
+ },
+ {
+  "name": "mast_and_yard",
+  "title": "A mast of round bricks with a bar yard held in two clip plates and flag sails hung from it.",
+  "why": "Rigging a ship's mast.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "yard_at",
+   "color",
+   "sail",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3941",
+   "4081b",
+   "63965a",
+   "2335"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The sails are 2 x 2 flags on the yard, so they're small.",
+  "view": "left"
+ },
+ {
+  "name": "crows_nest",
+  "title": "A round lookout on a mast's top: an 8 x 8 round plate, a ring of curved bricks for its rail, and a topmast with a pennant.",
+  "why": "Topping a ship's mast or a lookout post.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "top",
+   "color",
+   "flag",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "74611",
+   "48092",
+   "3941"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "cannon_port",
+  "title": "A gun port in a hull side with a lid of handle plates and a plate, hinged on clips along its sill.",
+  "why": "Arming a ship's hull with opening gun ports.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "ports",
+   "rows",
+   "color",
+   "lid",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "4081b",
+   "2540",
+   "3710"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The lid sits half a stud off the hull's grid, so each handle centers on its clip. It's the same clip-and-handle hinge as hinge_roof."
+ },
+ {
+  "name": "rudder_hinge",
+  "title": "A flag rudder blade swinging on a vertical bar held by two clip bricks laid in the stern.",
+  "why": "Giving a boat a rudder that turns.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "fitting",
+   "rudder",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "60475b",
+   "30374",
+   "2335"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The rudder blade is a 2 x 2 flag on clips, so it's small.",
+  "view": "front"
+ },
+ {
+  "name": "oars",
+  "title": "Oars lying in clip-plate rowlocks beside notches in a boat's gunwale course, blades out past the side.",
+  "why": "Fitting a rowing boat or galley with oars.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "spacing",
+   "color",
+   "oar",
+   "lock",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "4081b",
+   "2542"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "dock_pier",
+  "title": "A timber pier on round 1 x 1 piles with cross beams, side stringers, and tile planks laid across.",
+  "why": "Building docks, jetties, and boardwalks over water.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "width",
+   "height",
+   "color",
+   "deck",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3062b",
+   "3710",
+   "2431"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "portholes",
+  "title": "A hull course with Technic bricks with a hole every few studs, which read as round portholes.",
+  "why": "Adding portholes to ship hulls, submarines, and the like.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "spacing",
+   "color",
+   "rim",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3700",
+   "3010"
+  ],
+  "sure": true,
+  "weak": true
+ }
+]

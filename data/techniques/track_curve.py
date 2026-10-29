@@ -14,6 +14,9 @@ import math
 from emmet_dsl.core import in_steps
 from emmet_dsl.techniques.track_straight_run import pose, put
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = ["53400"]
 
 RADIUS = 40  # the center line's radius, in studs

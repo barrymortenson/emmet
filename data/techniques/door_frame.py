@@ -13,6 +13,9 @@ brings its own steps, a row at a time, titled "<title>, row 1" and so on, and re
 
 from emmet_dsl.techniques.window_frame import wall_with
 
+PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
+file."""
+
 PARTS = [
     "60596",
     "60623",
