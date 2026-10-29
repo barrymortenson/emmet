@@ -42,4 +42,4 @@ def example(m):
                     first=None if r == 0 else 1,
                 )
         if r == 1:
-            build(m, x=2, y=0, z=3)
+            m.use("wall_vent", x=2, y=0, z=3)

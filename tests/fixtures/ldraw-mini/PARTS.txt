@@ -99,3 +99,6 @@
 
 # Parts the connector overrides' test models use (data/connections/, tests/fixtures/validator/connections/)
 4592 4593   # hinge control stick base and stick
+
+# The techniques mined in 3C (data/techniques/, docs/techniques/candidates/)
+11211 14716 15068 15533 22885 24309 2436b 2780 3027 30640 30663 32952 3701 3702 3730 3731 3823 3937 4733 49307 6134 6584 85984 87580 98283 99207

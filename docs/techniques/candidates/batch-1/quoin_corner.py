@@ -57,4 +57,4 @@ def build(
 
 def example(m):
     """A corner four bricks tall."""
-    build(m, x=0, y=0, z=0, rows=4)
+    m.use("quoin_corner", x=0, y=0, z=0, rows=4)
