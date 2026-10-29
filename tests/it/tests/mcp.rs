@@ -542,6 +542,7 @@ async fn rules_and_api_return_the_doctrine_and_the_dsl() {
         "Show a draft in the first minute",
         "Keep it lean",
         "Real parts for real things",
+        "Build like a designer",
         "Sized for the figure",
         "never write it",
         "Say numbers",

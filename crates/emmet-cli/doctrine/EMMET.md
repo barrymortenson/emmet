@@ -43,13 +43,39 @@ validated once: about 30 tool calls. Search for what you'll need in a few calls 
 edit, and render only when the picture would tell you something the numbers don't. Offer more checks or details in
 your reply instead of running them.
 
+## Build like a designer
+
+Official sets are built so they hold together and look finished. Do what they do:
+
+- No joint on a joint. Each course of a wall starts differently from the one below, so every brick bridges a joint,
+  and corners interlock: `m.wall` does both. When you lay runs yourself (a roof's slopes, a ceiling's plates), start
+  every other course with a shorter piece.
+- Tie the layers. A course of plates over the wall tops crosses the corner joints (wall_top_tie); a floor is two
+  layers of plates with their seams crossed (lift_off_floor); a long chassis is locked across its joint
+  (spliced_chassis).
+- Smooth faces come from studs on the side: build a face on bricks or brackets whose studs point out, then cover it
+  (snot_panel, clapboard_siding, half_timber_band, bracket_side_panel, wall_vent, front_grille, headlights).
+- Details make it real: a sill and a hood round a window, shutters, a downpipe, a chimney with a cap, stone corners.
+- Make it open: a roof or upper floor that lifts off (lift_off_roof_seat, lift_off_floor) and parts on hinges
+  (tilting_hood, hinged_tailgate) let the user see and play with the inside.
+
 ## Build with the library
 
-- Call `technique` before you build something common: a roof (gable_roof, hip_roof, hinge_roof), a window or a door
-  in a wall, stairs, a fence, a tree, a bench, a lamp post, a platform edge, a canopy, track (track_straight_run,
-  track_curve, track_switch), a road, an arch, a tiled floor, studs on the side (snot_panel), a half-stud offset
-  (jumper_offset). `m.use(name, …)` applies one, with its own steps; its example validates clean in the library's tests, and
-  you validate your use of it like anything else.
+Call `technique` before you build something common, and use what fits. `m.use(name, …)` applies one, with its own
+steps; its example validates clean in the library's tests, and you validate your use of it like anything else.
+
+- Houses and town buildings. Walls: masonry_wall (brick texture), clapboard_siding (lap siding), half_timber_band
+  (Tudor), quoin_corner (stone corners), jettied_floor (an upper story that overhangs), snot_panel (tiled faces).
+  Windows and doors: window_frame, door_frame, window_sill, window_hood, shuttered_window, shop_window, door_hood,
+  brick_built_arch, wall_vent. Roofs: gable_roof, hip_roof, hinge_roof, roof_dormer, ridge_cap, chimney_stack,
+  downpipe. Tops and floors: wall_top_tie, lift_off_roof_seat, lift_off_floor, tiled_floor. Outside: porch_posts,
+  sidewalk, stairs, fence, tree, bench, lamp_post, canopy, baseplate_road.
+- Vehicles and trains. A car or truck: windscreen and cab_seat for the cab, curved_hood or tilting_hood for the nose,
+  headlights, front_grille, front_bumper, tail_lights, bracket_side_panel for flush sides, light_bar, rear_spoiler,
+  exhaust_stack, trailer_hitch, hinged_tailgate, cargo_pallet; spliced_chassis or technic_spine for a long base.
+  A train: train_carriage on a train base.
+- Stations and track: track_straight_run, track_curve, track_switch, platform_edge, canopy, bench, lamp_post.
+- Small tricks: jumper_offset (half a stud over).
 - Let the helpers do the counting: `m.wall` for walls with openings and interlocking corners, `m.row` and `m.fill`
   for runs and floors of the longest pieces, `m.stack`, `m.grid`, `m.repeat`, and `m.mirror`. `Brick(2, 4)`,
   `Plate(1, 6)`, `Tile(2, 2)`, and `Slope(45, 2, 1)` name plain parts by size.

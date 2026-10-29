@@ -95,6 +95,23 @@ techniques!(
     windscreen,
 );
 
+/// The doctrine (`emmet rules`) names every technique, by when to reach for it, so agents use the library without
+/// being told to (session 3C's What good looks like).
+#[test]
+fn the_doctrine_names_every_technique() {
+    let out = emmet().arg("rules").output().unwrap();
+    let doctrine = String::from_utf8_lossy(&out.stdout);
+    let missing: Vec<&str> = TECHNIQUES
+        .iter()
+        .map(|(n, _)| *n)
+        .filter(|n| !doctrine.contains(n))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "crates/emmet-cli/doctrine/EMMET.md doesn't name {missing:?}"
+    );
+}
+
 fn builds_clean(name: &str) {
     let dir = temp_dir(&format!("technique-{name}")).join(name);
     let out = emmet()
