@@ -55,9 +55,13 @@ specta = { version = "=2.0.0-rc.26", features = ["derive", "serde_json"] }
 specta-typescript = "=0.0.13"
 # E2E only: the embedded WebDriver server, behind emmet-desktop's `webdriver` feature (ADR 0002).
 tauri-plugin-wdio-webdriver = "1.5.1"
+# The E2E build's call into WebKit (D-50; macOS only). Already in the tree through tauri and the WebDriver plugin.
+objc2 = "0.6.5"
 
 [workspace.lints.rust]
-unsafe_code = "forbid"
+# deny, not forbid, so the E2E build's one call into WebKit can allow it (D-50); tests/scripts/gates.test.mjs keeps
+# every other file free of unsafe code.
+unsafe_code = "deny"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }

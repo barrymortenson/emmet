@@ -490,3 +490,16 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   hatch_on_hinge, cockpit_canopy, turret, radar_dish, control_console, antenna_mast, solar_panel, landing_leg, gear_pair,
   worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace, rotating_platform, ball_joint_arm.
   98 accepted in all, of 100 candidates in five batches.
+
+## 2026-10-29, CI
+
+- **E2E beside Barry's work (D-50).** WebKit stops drawing a covered window, so E2E on the self-hosted Mac failed with
+  "the app's window is covered" whenever Barry worked over it. Barry first chose hosted `macos-latest` for E2E; a
+  trial run (40950731531) passed but shrank the window to 1024 × 674, so the 52 window baselines couldn't be shared
+  with his Mac (the renders matched), took 7.5 minutes of specs to the Mac's 4, and needed retries in the chat and
+  keyboard specs. Barry then chose to keep E2E on his Mac with the E2E build out of his way: no focus at launch, no
+  Dock icon, and WKWebView's private `_setWindowOcclusionDetectionEnabled:` so a covered page keeps drawing (60 fps
+  covered in a test). The call needs unsafe code: the workspace lint is `deny` instead of `forbid`, `e2e.rs` allows
+  it, and `tests/scripts/gates.test.mjs` keeps every other file free of it. It calls through `objc2`, already in the
+  tree through tauri and the WebDriver plugin, so no new crate. Rejected: hosted E2E, its own baselines, or a hosted
+  PR run with a weekly run on the Mac; and only stopping the app from taking focus.

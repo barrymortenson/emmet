@@ -32,6 +32,9 @@ tauri-plugin-dialog.workspace = true
 tauri-specta.workspace = true
 tauri-plugin-wdio-webdriver = { workspace = true, optional = true }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = { workspace = true, optional = true }
+
 [dev-dependencies]
 emmet-it = { path = "../../../tests/it" }
 
@@ -41,7 +44,7 @@ emmet-it = { path = "../../../tests/it" }
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
 # The embedded WebDriver server for E2E tests (ADR 0002). Only `just e2e` turns it on, and only in debug builds.
-webdriver = ["dep:tauri-plugin-wdio-webdriver"]
+webdriver = ["dep:tauri-plugin-wdio-webdriver", "dep:objc2"]
 
 [lints]
 workspace = true

@@ -80,3 +80,10 @@ test("the pre-push hook refuses main and allows a branch", () => {
   const toBranch = run("bash", [hook, "origin", "url"], { input: `refs/heads/x ${sha} refs/heads/bmortenson/x ${sha}\n` });
   assert.equal(toBranch.code, 0, toBranch.out);
 });
+
+// The workspace denies unsafe code rather than forbidding it, so the E2E build's one call into WebKit can allow it
+// (D-50). This keeps every other Rust file free of it, as forbid did.
+test("only the E2E build's WebKit call uses unsafe code", () => {
+  const r = run("git", ["grep", "-l", "--untracked", "-w", "-e", "unsafe", "-e", "unsafe_code", "--", "*.rs"], { cwd: ROOT });
+  assert.deepEqual(r.out.trim().split("\n"), ["apps/desktop/src-tauri/src/e2e.rs"]);
+});

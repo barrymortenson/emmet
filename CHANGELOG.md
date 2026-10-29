@@ -187,6 +187,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   in bond, interlocking corners, a roof and ceiling whose seams step across, and gable ends in the wall color (147
   parts instead of 165).
 - The cottage template splits its walls, ceiling, and roof into steps of 8 parts or fewer.
+- The E2E app stays out of the way on the Mac running it (D-50): it doesn't take focus or show in the Dock, and it
+  keeps drawing while other windows cover it, so CI's Mac E2E runs while Barry works.
 - The Mac app comes first (D-43): CI's Windows jobs are paused (a manual run's "windows" box runs them), and
   Antigravity, Cursor, and Grok wait until after the MVP.
 - CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push
