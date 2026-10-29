@@ -311,6 +311,15 @@ fn import_ldraw_reads_direct_colors_and_refuses_a_broken_line() {
     assert_eq!(code, 0, "{v}");
     assert_eq!(placements(&dir)[0]["color"], 0x2FF_0000);
 
+    // A byte order mark before the first line (Windows editors save one) changes nothing, even when that line is a
+    // part: it used to read as "\u{feff}1", not a part line, and the part was quietly left out.
+    let bom = "\u{feff}1 0x2FF0000 0 -24 0 1 0 0 0 1 0 0 0 1 3001.dat\n";
+    std::fs::write(dir.join("wagon.mpd"), bom).unwrap();
+    let (v, code) = emmet_in(&dir, &["run"]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(placements(&dir).len(), 1, "{v}");
+    assert_eq!(placements(&dir)[0]["color"], 0x2FF_0000);
+
     // A part line LDraw can't read is an error at its line, never a part quietly left out.
     std::fs::write(dir.join("wagon.mpd"), wagon.replace(" 3001.dat", "")).unwrap();
     let (v, code) = emmet_in(&dir, &["run"]);

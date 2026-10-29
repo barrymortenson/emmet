@@ -37,7 +37,8 @@ def import_ldraw(path: str) -> Submodel:
             rel,
             line,
         )
-    with open(full, encoding="utf-8", errors="replace") as f:
+    # utf-8-sig drops the byte order mark editors on Windows often save before the first line.
+    with open(full, encoding="utf-8-sig", errors="replace") as f:
         files = _split(f.read())
     src = os.path.relpath(full, ctx.root).replace(os.sep, "/")
     m = Model()

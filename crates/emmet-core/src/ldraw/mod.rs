@@ -94,6 +94,8 @@ impl Document {
 
 /// Parses LDraw text. Lines before the first `0 FILE` belong to an unnamed first file; `0 NOFILE` closes a file.
 pub fn parse(text: &str) -> Result<Document, ParseError> {
+    // Editors on Windows often save a byte order mark before the first line.
+    let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let mut doc = Document::default();
     let mut current = File::default();
     let mut open = false; // the current file has content or a name

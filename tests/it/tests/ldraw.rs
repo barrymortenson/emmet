@@ -65,6 +65,16 @@ fn body_boxes_leave_out_studs() {
     assert_eq!(m.body_box("nope.dat"), None);
 }
 
+/// A file saved with a byte order mark (common from Windows editors, and in some OMR files) parses like one without.
+#[test]
+fn a_byte_order_mark_is_ignored() {
+    let text = "0 FILE car.ldr\n1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat\n0 NOFILE\n";
+    let with = ldraw::parse(&format!("\u{feff}{text}")).expect("a BOM before the first line parses");
+    let without = ldraw::parse(text).unwrap();
+    assert_eq!(placements(&with), placements(&without));
+    assert_eq!(placements(&with).len(), 1);
+}
+
 #[test]
 fn references_are_case_insensitive_with_either_separator() {
     assert_eq!(normalize_ref(" S\\3001S01.DAT "), "s/3001s01.dat");
