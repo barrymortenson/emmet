@@ -1,0 +1,489 @@
+[
+ {
+  "name": "greeble_strip",
+  "title": "A band of small surface detail (grilles, round plates, tiles, a stud or two) on bricks with side studs, chosen at random from a seed.",
+  "why": "The busy machine texture on a spaceship hull or a space-station wall, anywhere a flat side looks too plain.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "facing",
+   "color",
+   "detail",
+   "seed",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "30414",
+   "2412b",
+   "6141"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "engine_nozzle",
+  "title": "A round engine pointing out of a ship's stern: round plates and bricks built out from a bracket's side studs, ending in a dish with a glowing center.",
+  "why": "The rear thrusters of any spaceship or rocket.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "facing",
+   "color",
+   "bell",
+   "glow",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "99207",
+   "3941",
+   "87580",
+   "4740"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "wedge_wing",
+  "title": "A pair of swept wings from left- and right-handed wedge plates in two layers whose joints cross, so the wings and the deck between them are one stiff plate.",
+  "why": "The wings of a starfighter or shuttle, wherever the wings have to be part of the hull and not snap off at a seam.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "span",
+   "gap",
+   "color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "41769a",
+   "41770a"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "angled_hull_panel",
+  "title": "A smooth tiled panel hung on click hinge plates along a deck's edge and set at an angle.",
+  "why": "The sloped side, nose, or belly of a spaceship's hull, at any angle the hinges hold.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "angle",
+   "facing",
+   "color",
+   "hinge_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "44302b",
+   "44301b"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "hatch_on_hinge",
+  "title": "A lid over an opening in a raised floor, on hinge bricks along its back edge, flush when shut or swung open to an angle.",
+  "why": "A floor or deck hatch on a ship or base: a hold, a ladder well, an engine bay.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "depth",
+   "angle",
+   "color",
+   "hinge_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3937",
+   "6134"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Uses the same hinge bricks (3937 and 6134) as tilting_hood, as a flush floor lid built apart that opens to any angle."
+ },
+ {
+  "name": "cockpit_canopy",
+  "title": "A glass canopy hinged at its top to a hinge tile standing on side studs on the wall behind the cockpit, shut or swung up.",
+  "why": "An opening cockpit for a fighter, a shuttle, or a buggy, where the pilot climbs in under the glass.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "angle",
+   "color",
+   "glass",
+   "hinge_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "2620",
+   "4625",
+   "30414"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Uses the older windscreen 4 x 4 x 3 with hinge (2620) on hinge tiles (4625): the modern click-hinge canopies have no usable hinge data in the validator, so they'd never count as connected."
+ },
+ {
+  "name": "turret",
+  "title": "A gun turret on a 2 x 2 turntable, its head built as one sub-assembly placed at any aim, with bar barrels in round plates on side studs.",
+  "why": "Gun emplacements on a ship, a base, or a walker, turned to face where the scene needs.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "aim",
+   "guns",
+   "color",
+   "gun_color",
+   "base_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3680",
+   "3679",
+   "87087",
+   "87994"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "radar_dish",
+  "title": "A 4 x 4 dish on a mast of round bricks, its carrier's handle held in a clip at the top so it tilts to any angle.",
+  "why": "Radar and comms dishes on a station, a base, or a ship's back.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "tilt",
+   "height",
+   "color",
+   "dish_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "4081b",
+   "2540",
+   "3960"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "control_console",
+  "title": "A desk of controls: bricks, a course of 45\u00b0 slopes as screens, and buttons, grilles, and control-stick levers on the studs along the top.",
+  "why": "The pilot's or crew's consoles inside a cockpit, a bridge, or a control room.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "panel",
+   "seed",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3040b",
+   "4592",
+   "4593",
+   "98138"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "antenna_mast",
+  "title": "A thin mast from a bar standing in a round brick's hollow stud, with side antennas on bar holders clipped to it.",
+  "why": "The comms array on a spaceship, a station roof, or a base.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "arms",
+   "dish",
+   "color",
+   "bar_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3062b",
+   "30374",
+   "11090",
+   "87994"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "solar_panel",
+  "title": "A pair of mirror-image solar panels clipped onto a bar boom from a side stud, turning together about the boom.",
+  "why": "Solar arrays on a space station or a satellite.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "tilt",
+   "color",
+   "cells",
+   "boom_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "63965a",
+   "4081b",
+   "3062b",
+   "3069b"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "landing_leg",
+  "title": "A splayed Technic beam leg pinned under a hull, with a foot pinned to its end that stays level, so the ship stands on its pads.",
+  "why": "Landing gear for a lander, a shuttle, or a walker that has to stand on its own feet.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "side",
+   "splay",
+   "length",
+   "color",
+   "leg_color",
+   "pin_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3700",
+   "2780",
+   "32316",
+   "4032a"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "front"
+ },
+ {
+  "name": "gear_pair",
+  "title": "Two meshing Technic gears on axles through a pair of Technic bricks, turned half a tooth so they interlock, in ratios 24:8, 8:24, 16:16, 24:24, or 8:8.",
+  "why": "Any hand-turned or motorized function that needs a speed change or a reversal.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "ratio",
+   "color",
+   "gear_color",
+   "axle_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3701",
+   "3705",
+   "3648b",
+   "3647"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Meshing is set by turning the second gear half a tooth; the spacing is real Technic spacing, but the validator only checks that the teeth don't collide."
+ },
+ {
+  "name": "worm_drive",
+  "title": "A worm gear on one axle turning a 24-tooth gear on an axle across it, in a frame of Technic bricks and plates that puts the axles 5 plates apart.",
+  "why": "Slow, self-locking turns: a crane's winch or slewing ring, a drawbridge, a turntable that must hold its place.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "gear_color",
+   "worm_color",
+   "axle_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "4716",
+   "3648b",
+   "3701"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The worm sits 5 plates from the 24-tooth gear, real Technic spacing; the validator only checks that they don't collide."
+ },
+ {
+  "name": "crank_winch",
+  "title": "A drum of round plates and a round brick on an axle between two Technic bricks, turned by a thin liftarm crank with an axle pin handle.",
+  "why": "A hand winch for a crane, a tow truck, a well, or a drawbridge.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "crank",
+   "color",
+   "drum_color",
+   "axle_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3700",
+   "3706",
+   "3941",
+   "41677"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "technic_pin_hinge",
+  "title": "An arm of Technic brick swinging on a friction pin through the hole of a Technic brick beside it, set to any angle.",
+  "why": "Booms, lids, and gull-wing doors that swing on a pin and stay where they're put.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "angle",
+   "color",
+   "arm_color",
+   "pin_color",
+   "title"
+  ],
+  "books": [
+   "set 60440: 6521803 p32-35"
+  ],
+  "signature": [
+   "3700",
+   "2780",
+   "3894"
+  ],
+  "sure": true,
+  "weak": true
+ },
+ {
+  "name": "lift_arm_linkage",
+  "title": "Two parallel Technic beams pinned to a post and to a head, a parallelogram, so the head swings up and down and stays upright.",
+  "why": "A lifting arm that keeps its load level: a forklift-style lift, a cherry picker, a robot arm, a car wash brush.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "angle",
+   "color",
+   "beam_color",
+   "pin_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3700",
+   "2780",
+   "32524"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "front"
+ },
+ {
+  "name": "technic_brace",
+  "title": "A thin beam pinned across the corner of a Technic brick frame on a 3-4-5 triangle, so both its end holes land on the frame's holes.",
+  "why": "Stiffening a tall Technic tower, crane boom, or frame so it doesn't rack.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "beam_color",
+   "pin_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3894",
+   "3700",
+   "32063",
+   "32002"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "front"
+ },
+ {
+  "name": "rotating_platform",
+  "title": "A deck of plates and edge tiles built on a 4 x 4 turntable's top as one sub-assembly, placed turned to any angle.",
+  "why": "A turning base for a crane cab, a radar room, a display stand, or a carousel.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "size",
+   "angle",
+   "color",
+   "base_color",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "3403",
+   "3404"
+  ],
+  "sure": true,
+  "weak": false
+ },
+ {
+  "name": "ball_joint_arm",
+  "title": "A chain of 1 x 2 plates with a ball on one end and a socket on the other, snapped together and posed in a curve.",
+  "why": "A posable robot arm, crane jib, tentacle, or cable that bends at every joint.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "segments",
+   "rise",
+   "bend",
+   "color",
+   "joint_color",
+   "tiles",
+   "title"
+  ],
+  "books": [],
+  "signature": [
+   "22890",
+   "14419"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "front"
+ }
+]
