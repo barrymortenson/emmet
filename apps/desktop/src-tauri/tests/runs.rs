@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The run queue against the real emmet sidecar and Python (plan sections 04 and 07): the latest request wins, a run
 //! it replaces is canceled, requests that pile up collapse, a run killed from outside ends with no envelope, and the
-//! app drops a result older than the scene it shows (the generation check).
+//! app drops a result older than the scene it shows (the generation check) or from a project that's no longer open.
 
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
@@ -161,19 +161,41 @@ fn a_result_older_than_the_scene_on_screen_is_dropped_but_still_ends_the_run() {
     let (q, rx) = queue();
     q.request(&dir);
     let newer = finished(&rx);
-    let state = state();
-    let shown = finish(&state, &newer);
+    let state = state(&dir);
+    let shown = finish(&state, &newer).expect("the open project's run");
     let generation = shown.scene.expect("the first scene is shown").generation;
     let older = Outcome {
         generation: Some(generation - 1),
         ..newer.clone()
     };
     // The window still hears the run ended, so it never stays on "rebuilding".
-    let stale = finish(&state, &older);
+    let stale = finish(&state, &older).expect("the open project's run");
     assert!(
         stale.stale && stale.scene.is_none() && stale.error.is_none(),
         "{stale:?}"
     );
+}
+
+/// A run that ends after another project opened (its scene and checks take a few tens of ms to make) shows nothing in
+/// the project that's open now: the E2E once caught the cottage's scene under the next project's name.
+#[test]
+fn a_run_of_a_project_no_longer_open_shows_nothing() {
+    let dir = grid(r#"{"count": 5}"#);
+    let (q, rx) = queue();
+    q.request(&dir);
+    let o = finished(&rx);
+    assert!(o.ok(), "{:?}", o.envelope);
+    let other = emmet_it::project("scene-grid");
+    let state = state(&other);
+    assert!(finish(&state, &o).is_none());
+    let shown = finish(
+        &state,
+        &Outcome {
+            project: other.clone(),
+            ..o
+        },
+    );
+    assert!(shown.is_some_and(|f| f.scene.is_some()));
 }
 
 #[test]
@@ -182,12 +204,12 @@ fn a_result_the_app_cant_read_is_an_error_not_silence() {
     let (q, rx) = queue();
     q.request(&dir);
     let ok = finished(&rx);
-    let state = state();
+    let state = state(&dir);
     let unreadable = Outcome {
         placements: Some(Err("build/placements.json doesn't parse: EOF".into())),
         ..ok.clone()
     };
-    let f = finish(&state, &unreadable);
+    let f = finish(&state, &unreadable).expect("the open project's run");
     assert!(
         f.error.as_ref().is_some_and(|e| e.message.contains("doesn't parse")),
         "{f:?}"
@@ -196,7 +218,7 @@ fn a_result_the_app_cant_read_is_an_error_not_silence() {
         placements: Some(Ok(serde_json::json!({ "parts": "nope" }))),
         ..ok
     };
-    let f = finish(&state, &wrong_shape);
+    let f = finish(&state, &wrong_shape).expect("the open project's run");
     assert!(f.error.is_some() && !f.stale, "{f:?}");
 }
 
@@ -231,7 +253,7 @@ fn a_crash_reports_what_emmet_printed() {
     assert!(o.envelope.is_none());
     assert_eq!(o.exit, "exit code 3");
     assert!(o.stderr.contains("panicked at boom"), "{:?}", o.stderr);
-    let e = finish(&state(), &o).error.expect("an error");
+    let e = finish(&state(&dir), &o).and_then(|f| f.error).expect("an error");
     assert!(
         e.message.contains("exit code 3") && e.message.contains("panicked at boom"),
         "{}",
@@ -239,10 +261,13 @@ fn a_crash_reports_what_emmet_printed() {
     );
 }
 
-fn state() -> AppState {
-    AppState::new(
+/// The app's state with the project at `dir` open.
+fn state(dir: &Path) -> AppState {
+    let state = AppState::new(
         emmet_core::data::DataDir::at(emmet_it::shared_data()),
         emmet_it::emmet_bin(),
         None,
-    )
+    );
+    state.open_without_window(dir);
+    state
 }

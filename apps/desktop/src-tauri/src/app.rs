@@ -423,6 +423,23 @@ impl AppState {
     }
 
     /// Records something to tell the user that isn't a run's error (see [`UiState::notice`]).
+    /// Marks the project at `root` open, as [`open`] does, without a window, a watcher, or a run: for the run tests.
+    #[doc(hidden)]
+    pub fn open_without_window(&self, root: &Path) {
+        self.inner.lock().expect("state").project = Some(Open {
+            root: root.to_path_buf(),
+            view: ProjectView {
+                root: root.display().to_string(),
+                name: String::new(),
+                trusted: true,
+                watching: false,
+                imported: None,
+                build: crate::projects::BuildSettings::default(),
+            },
+            _watcher: None,
+        });
+    }
+
     pub fn notify(&self, notice: impl Into<String>) {
         self.inner.lock().expect("state").notice = Some(notice.into());
     }
@@ -617,24 +634,29 @@ fn on_run_event(app: &AppHandle, ev: RunEvent) {
     let state = app.state::<AppState>();
     match ev {
         RunEvent::Started { project } => {
-            if state.open_root().as_deref() != Some(project.as_path()) {
-                return;
+            {
+                let mut inner = state.inner.lock().expect("state");
+                if inner.project.as_ref().map(|p| p.root.as_path()) != Some(project.as_path()) {
+                    return;
+                }
+                inner.running = true;
             }
-            state.inner.lock().expect("state").running = true;
             let _ = RunStarted {}.emit(app);
         }
         RunEvent::Finished(o) => {
-            if o.canceled || state.open_root().as_deref() != Some(o.project.as_path()) {
+            if o.canceled {
                 return;
             }
-            let _ = finish(&state, &o).emit(app);
+            if let Some(finished) = finish(&state, &o) {
+                let _ = finished.emit(app);
+            }
         }
     }
 }
 
-/// Applies a run's outcome to the state and says what the window should show. A run always ends with one, so the
-/// window never stays on "rebuilding".
-pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
+/// Applies a run's outcome to the state and says what the window should show. A run of the open project always ends
+/// with one, so the window never stays on "rebuilding"; a run of a project that's no longer open ends with none.
+pub fn finish(state: &AppState, o: &Outcome) -> Option<RunFinished> {
     // The scene, checks, and parts list are made before the state is locked: the validator takes a few tens of ms.
     let built = match (&o.envelope, &o.placements) {
         (Some(env), Some(Ok(placements))) if env["ok"] == true => {
@@ -651,6 +673,11 @@ pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
         _ => None,
     };
     let mut inner = state.inner.lock().expect("state");
+    // Checked under the lock that applies the result: another project can open while the scene above is made, and
+    // its window would take this one's scene as its own.
+    if inner.project.as_ref().map(|p| p.root.as_path()) != Some(o.project.as_path()) {
+        return None;
+    }
     inner.running = false;
     let failed = |inner: &mut Inner, error: Problem| {
         inner.error = Some(error.clone());
@@ -663,23 +690,23 @@ pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
     let error = match (&o.envelope, &o.placements) {
         (Some(env), Some(Ok(_))) if env["ok"] == true => {
             let Some(Some(scene)) = built else {
-                return failed(
+                return Some(failed(
                     &mut inner,
                     *Problem::internal("build/placements.json isn't a list of placements this app can read."),
-                );
+                ));
             };
             if !inner.accept(scene.clone()) {
-                return RunFinished {
+                return Some(RunFinished {
                     scene: None,
                     error: None,
                     stale: true,
-                };
+                });
             }
-            return RunFinished {
+            return Some(RunFinished {
                 scene: Some(scene),
                 error: None,
                 stale: false,
-            };
+            });
         }
         (Some(env), Some(Err(why))) if env["ok"] == true => {
             *Problem::internal(format!("The run finished, but the app can't use its result: {why}."))
@@ -700,7 +727,7 @@ pub fn finish(state: &AppState, o: &Outcome) -> RunFinished {
             }
         }
     };
-    failed(&mut inner, error)
+    Some(failed(&mut inner, error))
 }
 
 /// Opens the project at `dir`: watches it, shows its last build, and runs it if that's stale or missing.
