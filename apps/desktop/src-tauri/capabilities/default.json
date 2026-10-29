@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "The main window: its typed commands by name (the project, the viewer, first-run setup with the agents' install and sign-in, and the chat), and listening for the host's events. Its window's own title row may minimize, maximize, close, and drag it (Windows draws the caption buttons, D-29). No fs, shell, or dialog permissions; the host opens dialogs and runs the agents itself.",
+  "description": "The main window: its typed commands by name (the project, the viewer, first-run setup with the agents' install and sign-in, and the chat), and listening for the host's events. Its window's own title row may minimize, maximize, close, and drag it, and read whether it's maximized (Windows draws the caption buttons, D-29). No fs, shell, or dialog permissions; the host opens dialogs and runs the agents itself.",
   "windows": [
     "main"
   ],
@@ -12,6 +12,7 @@
     "core:window:allow-close",
     "core:window:allow-toggle-maximize",
     "core:window:allow-minimize",
+    "core:window:allow-is-maximized",
     "allow-app-info",
     "allow-ui-state",
     "allow-open-dialog",
