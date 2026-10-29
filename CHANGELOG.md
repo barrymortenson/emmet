@@ -138,6 +138,15 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   exports to CSV, Rebrickable's parts list CSV, and a BrickLink wanted list; `emmet export` writes a flat .ldr, an
   .mpd, and an LPub3D-ready .mpd. The Parts list shows availability and Rebrickable's credit, and Settings has a Data
   section.
+- Technique mining (session 3C): `tests/it/src/bin/mine-techniques.rs` finds the sub-assemblies official OMR models
+  share on the validator's connection graph and ranks ideas by how widely sets use them; techniques aren't derived from
+  the models (D-48, ADR 0003). Candidates are reviewed in batches of 20 on `docs/techniques/candidates/<batch>.html`
+  (`scripts/technique-candidates`), each a sketch in the DSL with its render. 38 accepted techniques join the library
+  (58 in all), for houses and town buildings (stone corners, siding, half-timbering, sills, hoods, shutters, dormers,
+  chimneys, lift-off roofs and floors) and vehicles and trains (headlights, grilles, cabs, hinged hoods and tailgates,
+  a hitch, a carriage). Each technique has a `PROVENANCE` note, which `emmet technique` and MCP `technique` return.
+- The doctrine says how official sets are built (no joint on a joint, tie the layers, smooth faces on side studs) and
+  names every technique under what it's for.
 
 ### Security
 
@@ -155,6 +164,10 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
+- `m.wall` lays each course in bond over the joints of the course below that a `m.wall` laid, so no joint sits on a
+  joint and the course over a door or a window bridges its edges. The cottage template is rebuilt to it: long bricks
+  in bond, interlocking corners, a roof and ceiling whose seams step across, and gable ends in the wall color (131
+  parts instead of 165).
 - The cottage template splits its walls, ceiling, and roof into steps of 8 parts or fewer.
 - The Mac app comes first (D-43): CI's Windows jobs are paused (a manual run's "windows" box runs them), and
   Antigravity, Cursor, and Grok wait until after the MVP.
