@@ -86,7 +86,7 @@ export function Panel(p: PanelProps) {
       <div className="panel-head" data-tone={head.tone} id="model-state">
         {head.tone === "busy" ? <Spinner label="Building" /> : <Icon name={head.icon!} />}
         <span className="panel-head-text">{stateWords(state, n)}</span>
-        {(p.scene?.parts ?? 0) > 0 && (
+        {state !== "empty" && (p.scene?.parts ?? 0) > 0 && (
           <DropdownMenu.Root open={p.exportOpen} onOpenChange={p.onExportOpen}>
             <DropdownMenu.Trigger asChild>
               <Button label="Export" size="sm" icon="download" title={`Export (${keysFor("export")})`} id="export-button" />

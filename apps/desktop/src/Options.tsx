@@ -435,13 +435,13 @@ function Knob({ spec, value, colors, onChange }: { spec: ParamSpec; value: Value
 
 function ColorKnob({ spec, value, colors, onChange, ...props }: { name: string; help: string; moved: boolean; id: string; spec: ParamSpec; value: string; colors: ColorView[]; onChange: (name: string, v: Value) => void }) {
   const choices = spec.choices?.map(String) ?? colors.map((c) => c.name);
-  const rgb = (name: string) => colors.find((c) => c.name === name)?.rgb;
+  const colorOf = (name: string) => colors.find((c) => c.name === name)?.rgb;
   return (
     <Setting {...props} inline was={props.moved ? String(spec.default) : undefined}>
       <Popover.Root>
         <span className="color-picker" data-c="color-picker">
           <Popover.Trigger className="select-trigger" id={`${props.id}-color`}>
-            <i className="swatch" aria-hidden="true" style={{ background: rgb(value) }} />
+            <i className="swatch" aria-hidden="true" style={{ background: colorOf(value) }} />
             <span>{value}</span>
             <Icon name="chevron-down" size="sm" />
           </Popover.Trigger>
@@ -453,7 +453,7 @@ function ColorKnob({ spec, value, colors, onChange, ...props }: { name: string; 
               {choices.map((c) => (
                 <Popover.Close asChild key={c}>
                   <button type="button" className="swatch-item" role="radio" aria-checked={c === value} data-state={c === value ? "checked" : "unchecked"} title={c} onClick={() => onChange(spec.name, c)}>
-                    <i className="swatch" aria-hidden="true" style={{ background: rgb(c) }} />
+                    <i className="swatch" aria-hidden="true" style={{ background: colorOf(c) }} />
                   </button>
                 </Popover.Close>
               ))}

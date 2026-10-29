@@ -166,8 +166,8 @@ export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCop
             id="projects-folder-change"
             onClick={async () => {
               const r = await commands.pickProjectsFolder();
-              if (r.status === "ok") r.data && onPrefs(r.data);
-              else say(r);
+              if (r.status !== "ok") say(r);
+              else if (r.data) onPrefs(r.data);
             }}
           />
         </Row>
@@ -223,8 +223,8 @@ export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCop
                 setInstalling(true);
                 const r = await commands.installCli();
                 setInstalling(false);
-                if (r.status === "ok") r.data && setCli(r.data);
-                else say(r);
+                if (r.status !== "ok") say(r);
+                else if (r.data) setCli(r.data);
               }}
             />
           )}
