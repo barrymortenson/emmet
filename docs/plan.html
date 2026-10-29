@@ -482,6 +482,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-47</td><td>Nightly corpus upkeep</td><td>A nightly model with a false error gets the gap fixed when the part is one agents will use (an exact override or a rule fix, with a test). A model whose only errors are file faults or rare parts comes off <code>tests/fixtures/omr/nightly.json</code> with its reason and an issue for the gap, and a clean model from the cached OMR pool replaces it to keep 20–40. A rule is never suppressed to make a model pass (3A).</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
 <tr><td class="id">D-48</td><td>Mined techniques and OMR models</td><td>Techniques aren't derived from OMR models. The mining over the OMR corpus only ranks which sub-assemblies recur; each technique is written from general building knowledge and Barry's own instruction books (read for methods, never copied into the repo), and its provenance note says so (ADR 0003, 3C).</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
 <tr><td class="id">D-49</td><td>3C's eval check</td><td>No rung 2 eval exists before 5A, so 3C proves "no regression" with the rung 1 dry-run eval on both fake agents, the replay suites, and the rung 2 reference model clean at every param. The real rung 2 scores are 5A's and G2's.</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
+<tr><td class="id">D-50</td><td>Technique sources for 6C</td><td>Beyond D-48's ideas from the mining and Barry's own instruction books, 6C reads LEGO's online building instructions (if their terms allow it) and the forums, blogs, and videos where builders explain their methods. All of them are read for methods only: no text, picture, model file, or author's name goes into the repo, and each technique cites its sources by set number or URL. The aim is every distinct way builders do a job, not only the most common.</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
 </table></div>
 </section>
 
@@ -1634,7 +1635,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <!-- ============================================================ 21 -->
 <section id="s21">
 <h2><span class="num">21</span>Phases and sessions</h2>
-<p class="lede">Nine phases and twenty-five sessions to the public launch (twenty-four while 4F is skipped, D-43), plus a post-launch backlog. Each session is large and coherent on purpose: one prompt carries a whole slice (the engine skeleton, the agent bridge, the validator), so you're running about twenty sessions, not hundreds of tasks. Sizes are rough agent effort: M is about a day, L two to three, XL up to a week. While D-43 holds (the Mac app first), a Done when item that says "both OSes" or "macOS and Windows" is met on macOS, and its Windows half waits for the one Windows pass that comes back once the Mac app works, with the Windows CI jobs and H-10.</p>
+<p class="lede">Nine phases and twenty-six sessions to the public launch (twenty-five while 4F is skipped, D-43), plus a post-launch backlog. Each session is large and coherent on purpose: one prompt carries a whole slice (the engine skeleton, the agent bridge, the validator), so you're running about twenty sessions, not hundreds of tasks. Sizes are rough agent effort: M is about a day, L two to three, XL up to a week. While D-43 holds (the Mac app first), a Done when item that says "both OSes" or "macOS and Windows" is met on macOS, and its Windows half waits for the one Windows pass that comes back once the Mac app works, with the Windows CI jobs and H-10.</p>
 
 <div class="callout ok"><span class="label">Fast start: this week</span>
 <ol>
@@ -1653,7 +1654,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <tr><td><a href="#phase-3">3 · Engine MVP</a></td><td>Validator v1 that meets its precision, recall, and speed targets; DSL v1, steps, BOM, colors and availability, techniques; a hand-written rung 2 reference model that validates clean; a technique library mined from official models.</td><td><a href="#session-3a">3A</a> <a href="#session-3b">3B</a> <a href="#session-3c">3C</a></td></tr>
 <tr><td><a href="#phase-4">4 · App MVP</a></td><td>The full app to the frozen design: shell and first run, the full chat and agent UX, and a polished viewer within budget; photo to model; native PDF instructions. Rung 2 passes in replay and in Barry's hand session; its live run is part of G2.</td><td><a href="#session-4a">4A</a> <a href="#session-4b">4B</a> <a href="#session-4c">4C</a> <a href="#session-4d">4D</a> <a href="#session-4e">4E</a> <a href="#session-4f">4F</a></td></tr>
 <tr><td><a href="#phase-5">5 · Quality gate: working proof of concept</a></td><td>The integration, E2E, and eval suites are complete; Windows, performance, and security are hardened; rung 3 and the photo rung pass; Barry's Windows pass; <span class="pill gate">G2</span>: the POC works, and the MVP exit criteria in section 02 hold.</td><td><a href="#session-5a">5A</a> <a href="#session-5b">5B</a></td></tr>
-<tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing GitHub Releases; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a></td></tr>
+<tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing GitHub Releases; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes; technique library v2, with many ways to build each thing and builds that don't look alike.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a> <a href="#session-6c">6C</a></td></tr>
 <tr><td><a href="#phase-7">7 · Website and public launch</a></td><td>emmetbuilder.com live on Cloudflare; the provider terms re-checked; 1.0 released; launch posts.</td><td><a href="#session-7a">7A</a> <a href="#session-7b">7B</a></td></tr>
 <tr><td><a href="#phase-8">8 · After launch (backlog)</a></td><td>Build from owned inventory, BrickLink pricing, third-party MCP hosting, Studio files, DUPLO, big builds.</td><td>8D–8I</td></tr>
 </table></div>
@@ -2451,19 +2452,22 @@ pass in about an hour, then wait for my results and fix what I find before openi
 <div class="phase" id="phase-6" data-phase="6">
 <div class="ph-top"><span class="pnum">Phase 6</span><h3>Release and beta</h3></div>
 <div class="pbar"><i></i></div>
-<p>Ship it to a few people. 6A builds the signed, auto-updating release pipeline. 6B makes the app ready for strangers (a guide, diagnostics, polished exports) and runs a small beta, including at least one Windows x64 tester to cover what the ARM VM can't.</p>
+<p>Ship it to a few people. 6A builds the signed, auto-updating release pipeline. 6B makes the app ready for strangers (a guide, diagnostics, polished exports) and runs a small beta, including at least one Windows x64 tester to cover what the ARM VM can't. 6C grows the technique library from many more sources, with several ways to build each common thing, so two builds of the same subject don't look alike; it measures that with 5A's eval.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> <b>H-13</b>: back up the updater signing key and its password in your password manager (<a href="#g-h13">guide</a>).</li>
 <li><span class="pill you">YOU</span> <b>H-12</b>: recruit 3–5 beta testers, at least one on Windows x64, and publish the beta release to them.</li>
+<li><span class="pill you">YOU</span> <b>H-26</b>: before 6C, list the sets whose instruction books you own beyond 3C's four, and the videos, forums, and blogs you've learned techniques from.</li>
+<li><span class="pill you">YOU</span> <b>H-27</b>: accept or reject 6C's technique candidates in batches of 20, and judge its variety page.</li>
 </ul></div>
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
-<tr data-session="6A"><td><a href="#session-6a">6A</a></td><td>Release pipeline and updates</td><td>5A, 5B</td><td>6B</td><td>M</td></tr>
-<tr data-session="6B"><td><a href="#session-6b">6B</a></td><td>Beta readiness and the beta</td><td>5A, 5B</td><td>6A</td><td>M</td></tr>
+<tr data-session="6A"><td><a href="#session-6a">6A</a></td><td>Release pipeline and updates</td><td>5A, 5B</td><td>6B, 6C</td><td>M</td></tr>
+<tr data-session="6B"><td><a href="#session-6b">6B</a></td><td>Beta readiness and the beta</td><td>5A, 5B</td><td>6A, 6C</td><td>M</td></tr>
+<tr data-session="6C"><td><a href="#session-6c">6C</a></td><td>Technique library v2: more ways to build</td><td>5A</td><td>6A, 6B</td><td>XL</td></tr>
 </table></div>
 
 <div class="session" id="session-6a" data-session="6A" data-phase="6" data-title="Release pipeline and updates" data-after="5A 5B" data-waits="H-09" data-waits-merge="H-13" data-read="15, 17">
-<h4><span class="s-id">6A</span> Release pipeline and updates<span class="s-meta">after 5A, 5B · alongside 6B · size M · YOU: G2 (H-09) before start, H-13 before merge</span></h4>
+<h4><span class="s-id">6A</span> Release pipeline and updates<span class="s-meta">after 5A, 5B · alongside 6B, 6C · size M · YOU: G2 (H-09) before start, H-13 before merge</span></h4>
 <p class="goal"><b>Goal:</b> One tag produces signed, notarized, auto-updating builds for both platforms in a draft release that Barry publishes. Rollback is rehearsed.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2495,7 +2499,7 @@ the rc drafts afterwards with my approval.</code></pre></details>
 </div>
 
 <div class="session" id="session-6b" data-session="6B" data-phase="6" data-title="Beta readiness and the beta" data-after="5A 5B" data-waits="H-09" data-waits-merge="H-12" data-read="02, 14, 15">
-<h4><span class="s-id">6B</span> Beta readiness and the beta<span class="s-meta">after 5A, 5B · alongside 6A · size M · YOU: G2 (H-09) before start, H-12 before merge</span></h4>
+<h4><span class="s-id">6B</span> Beta readiness and the beta<span class="s-meta">after 5A, 5B · alongside 6A, 6C · size M · YOU: G2 (H-09) before start, H-12 before merge</span></h4>
 <p class="goal"><b>Goal:</b> A stranger can install Emmet, connect their agent, and build their first model without help, and the beta shows where they still get stuck.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2521,6 +2525,44 @@ the rc drafts afterwards with my approval.</code></pre></details>
 Draft the tester welcome and the issue templates, then tell me when a beta build is ready for H-12. Triage
 feedback into issues as it arrives; fix blockers first, and keep the fix pass to what testers actually hit.</code></pre></details>
 </div>
+<div class="session" id="session-6c" data-session="6C" data-phase="6" data-title="Technique library v2: more ways to build" data-after="5A" data-waits="H-26" data-waits-merge="H-27" data-read="03, 07, 08, 09, 16, 21">
+<h4><span class="s-id">6C</span> Technique library v2: more ways to build<span class="s-meta">after 5A · alongside 6A, 6B · size XL · YOU: H-26 before start, H-27 before merge</span></h4>
+<p class="goal"><b>Goal:</b> Emmet knows many ways to build each common thing, collected from official sets and from how builders explain their methods online, and treats them as starting points, not templates: it varies them, combines them, and designs its own, so two builds of the same subject don't look alike. The eval shows the library is used and helps.</p>
+<div class="s-dh">What gets built</div>
+<ul class="build">
+<li><b>Measure first:</b> <code>emmet eval</code> reports which techniques each run used and which it built by hand. The baseline is 5A's G2 runs, scored again from their transcripts, before any technique is added.</li>
+<li><b>Sources (D-50):</b> ADR 0003 extended for the new sources, and <code>docs/techniques/sources.json</code>: each source by set number or URL, its title, and the methods read in it, never its text, pictures, model files, or authors' names. The sources: the miner's open ranking over the 1,318 sets (<code>motifs.json</code>; agents say what each top motif is for, as ideas only, D-48); Barry's instruction books (3C's four and H-26's); LEGO's online building instructions, once their terms are read and allow it (stop and ask if not); and forums, blogs, and videos where builders explain how they build roads, dress track, and the rest, read where the page, a video's captions, or its description give the method in words, with no new tool (rule 6). Barry's notes on what he learned from videos (H-26) cover the rest. Collect every distinct way of doing a job, not only the most common: builders solve the same job differently, and that range is the point.</li>
+<li><b>Many ways for each job:</b> a list of the 25 jobs that come up most (walls, roofs, windows, doors, floors, roads, track dressing, trees, rock, water, hulls, and more), each with at least 3 approaches that look different, as separate techniques or as a style argument.</li>
+<li><b>Variety built in:</b> techniques take style arguments (pattern, texture, trim, color scheme), not only colors. The 19 with a <code>seed</code> (masonry_wall, rock_outcrop, flower_bed, …), and every new one with a random texture, take their default seed from the project, recorded in its files, so a project rebuilds the same and two projects differ.</li>
+<li><b>Families 3C didn't reach:</b> angles and geometry (hinge plates, wedge plates, bracing), curves and organic shapes, other scales (microscale, and 18+ detail), interiors and furniture, brick-built creatures and characters, color and texture (dithering, color blocking, weathering), and strength for big models. Plus what 3C couldn't validate: connector data for sliding doors, train bogies, buffer beams, car doors, mudflaps, and racks, and the click-hinge collision false positive (30540/30541) fixed, each with a test.</li>
+<li><b>Principles and assemblies:</b> the doctrine's "Build like a designer" grows into the principles behind the techniques (how angles, texture, proportion, and strength work), so an agent can design what no technique covers. About 10 assemblies built from techniques: a gatehouse, a storefront, a station, a rocky shore.</li>
+<li><b>Emmet's own designs:</b> a "Make it yours" doctrine section: a technique is a starting point; vary it, combine it, or design your own, and validate it like anything else. Don't build every house the same way: choose among the approaches for the look this build wants, unless the user asks for a particular one. A project can keep its own techniques in <code>techniques/</code>: <code>m.use</code> looks there first, the path checked against the project root. The agent saves one there when it designs one the user keeps. A design from Barry's own projects can become a library candidate.</li>
+<li><b>Finding techniques at scale:</b> each technique's module says its job, family, scale, and style. <code>technique</code> and <code>emmet technique</code> search by words and filters and return all the approaches for a job together. The doctrine names jobs and families instead of every technique; its test checks that every technique is in a family. Ask before changing the tool's shape (section 09).</li>
+<li><b>Review:</b> batches of 20 on 3C's review pages, grouped by job so Barry sees the approaches side by side, each with its sketch, its sources, and how widely official sets use its key parts (H-27).</li>
+<li><b>Variety eval:</b> the same three prompts (a house, a car, a castle), each built 3 times by each agent, on a page that shows them side by side, with a score from their technique, style, and color choices: two builds that share more than half their choices count as alike. Live runs come out of D-38's budget, and each is asked for first.</li>
+</ul>
+<div class="s-dh">Done when</div>
+<ul class="done">
+<li>At least 100 new techniques accepted by Barry (H-27), each with a passing test, a family, and a provenance note that cites its sources; each of the 25 jobs has at least 3 approaches.</li>
+<li>Every technique with a random texture varies with the project's seed, and a project rebuilds identically (test).</li>
+<li><code>m.use</code> runs a project's own technique and refuses a path outside the project (test).</li>
+<li><code>technique</code> search finds each technique by its job and by words from its doc (test over the whole library), and the doctrine's technique section is no longer than 3C's.</li>
+<li>Rung 2 and rung 3 scores don't regress from 5A's G2 runs, and the report lists technique use per run.</li>
+<li>On the variety eval no two builds of a prompt count as alike, and Barry judges the page (H-27).</li>
+</ul>
+<div class="s-dh">What good looks like</div>
+<ul class="good">
+<li>Agents pick different approaches in different builds, and design their own when nothing fits (transcripts).</li>
+<li>A builder who knows the hobby recognizes the techniques and finds a few they didn't know.</li>
+<li>Every technique says where its method came from, and nothing is copied from any source.</li>
+</ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 6C. Measure first: score technique use from 5A's G2 transcripts before adding anything. Read
+LEGO's terms for its building instructions before using them, and stop if they don't allow it. Collect from every
+source in D-50 and record each in sources.json without copying text, pictures, or names; ask me before any new
+tool for videos. Present candidates in batches of 20 grouped by job, and turn only the accepted ones into
+techniques. Ask before changing the technique tool's shape, and before each live variety run (show the run count
+and cost).</code></pre></details>
+</div>
 </div>
 
 <!-- ======================= PHASE 7 -->
@@ -2535,7 +2577,7 @@ feedback into issues as it arrives; fix blockers first, and keep the fix pass to
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
 <tr data-session="7A"><td><a href="#session-7a">7A</a></td><td>emmetbuilder.com</td><td>6A, 6B</td><td>&nbsp;</td><td>M</td></tr>
-<tr data-session="7B"><td><a href="#session-7b">7B</a></td><td>Public launch</td><td>7A</td><td>&nbsp;</td><td>M</td></tr>
+<tr data-session="7B"><td><a href="#session-7b">7B</a></td><td>Public launch</td><td>7A, 6C</td><td>&nbsp;</td><td>M</td></tr>
 </table></div>
 
 <div class="session" id="session-7a" data-session="7A" data-phase="7" data-title="emmetbuilder.com" data-after="6A 6B" data-waits="H-15" data-waits-merge="" data-read="02, 03, 14, 15, 17">
@@ -2566,8 +2608,8 @@ Write the copy from docs/design/content.md and the guide; no claim the app can't
 the Workers project or any DNS record (show exact commands), and ask Q-10 (analytics) with AskUserQuestion.</code></pre></details>
 </div>
 
-<div class="session" id="session-7b" data-session="7B" data-phase="7" data-title="Public launch" data-after="7A" data-waits="" data-waits-merge="" data-read="03, 10, 15, 17, 22">
-<h4><span class="s-id">7B</span> Public launch<span class="s-meta">after 7A · size M · YOU: H-19 after merge</span></h4>
+<div class="session" id="session-7b" data-session="7B" data-phase="7" data-title="Public launch" data-after="7A 6C" data-waits="" data-waits-merge="" data-read="03, 10, 15, 17, 22">
+<h4><span class="s-id">7B</span> Public launch<span class="s-meta">after 7A, 6C · size M · YOU: H-19 after merge</span></h4>
 <p class="goal"><b>Goal:</b> 1.0.0 ships with the site, the posts, and the demo ready, and the terms, notices, and settings are current.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2705,6 +2747,8 @@ misses section 13's budgets. Ask me to pick the rung 4 subject, and ask before e
 <tr data-h="H-23"><td>H-23</td><td>Photograph three subjects for the photo rung, two angles each (six photos): two brick models and one real building, your own photos with no people in them</td><td>4D start</td><td>Any phone camera; Emmet strips EXIF</td></tr>
 <tr data-h="H-25"><td>H-25</td><td>Install the Antigravity CLI on this Mac and sign in with your Google account (not needed for the MVP, D-43)</td><td>after the MVP</td><td><a href="#g-h25">guide</a></td></tr>
 <tr data-h="H-24"><td>H-24</td><td>Not needed: no note to Rebrickable. Its downloads terms allow the pack with credit, and Q-14 is settled by reading its Terms (Barry 2026-10-24)</td><td>—</td><td>—</td></tr>
+<tr data-h="H-26"><td>H-26</td><td>List the sets whose instruction books you own beyond 3C's four, and the videos, forums, and blogs you've learned building techniques from (roads, track dressing, …)</td><td>6C start</td><td>A list in chat: set numbers and links</td></tr>
+<tr data-h="H-27"><td>H-27</td><td>Accept or reject 6C's technique candidates, in batches of 20 grouped by job, and judge its variety page</td><td>6C merge</td><td>Review pages in <code>docs/techniques/candidates/</code></td></tr>
 </table></div>
 
 <h3>Guides</h3>
@@ -2831,6 +2875,7 @@ misses section 13's budgets. Ask me to pick the rung 4 subject, and ask before e
 <tr><td>A fast-moving niche: someone polishes an existing tool first</td><td>Medium</td><td>G1 at the end of week 3 checks the loop works, with the UX and validator as the differentiators.</td><td>Phase 1</td></tr>
 <tr><td>Narrow audience (hobbyists who also pay for Claude or Codex)</td><td>Medium</td><td>G1's community response decides further investment.</td><td>G1</td></tr>
 <tr><td>Photo input, native PDF, and technique mining in the MVP push G2 later</td><td>Medium</td><td>Each is its own session in a parallel lane (3C beside Phase 4; 4D beside 4C and 4E), the gates stay objective, and none blocks G1.</td><td>3C, 4D, 4E</td></tr>
+<tr><td>The technique library makes every build look alike</td><td>Medium</td><td>Several approaches for each job, style arguments and a per-project seed, the "Make it yours" doctrine, project techniques, and a variety eval Barry judges.</td><td>6C</td></tr>
 <tr><td>Scope creep and dev-experience bloat</td><td>Medium</td><td>Rule 6 (no new tools without approval), CI time budgets, and Phase 8 holding the deferred features.</td><td>All</td></tr>
 </table></div>
 </section>

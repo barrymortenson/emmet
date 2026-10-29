@@ -140,6 +140,7 @@ window.EMMET_STATUS = {
     "5B": { status: "todo" },
     "6A": { status: "todo" },
     "6B": { status: "todo" },
+    "6C": { status: "todo" },
     "7A": { status: "todo" },
     "7B": { status: "todo" },
     "8D": { status: "backlog" },
@@ -174,7 +175,9 @@ window.EMMET_STATUS = {
     "H-22": { status: "done", date: "2026-10-28", note: "98 of 100 candidates accepted on five review pages (docs/techniques/candidates/batch-1 to 5); rejected: wheel_axle, wheel_arch; docs/decisions.md" },
     "H-23": { status: "todo" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
-    "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
+    "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" },
+    "H-26": { status: "todo" },
+    "H-27": { status: "todo" }
   },
   blockers: [],
   gates: {

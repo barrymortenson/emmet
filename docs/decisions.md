@@ -466,3 +466,19 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   hatch_on_hinge, cockpit_canopy, turret, radar_dish, control_console, antenna_mast, solar_panel, landing_leg, gear_pair,
   worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace, rotating_platform, ball_joint_arm.
   98 accepted in all, of 100 candidates in five batches.
+
+## 2026-10-28, planning session 6C
+
+- **Technique library v2 is session 6C, after 5A.** Asked where the next technique session goes, now that 3C's
+  library is in: it needs 5A's eval to measure whether agents use techniques and whether builds vary. Barry chose
+  a Phase 6 session after 5A, beside 6A and 6B, over a third Phase 5 session before G2 and over a backlog session
+  after launch. 7B comes after it, so 1.0 ships with it. He added that Emmet must stay creative: it comes up with
+  its own wall designs, or has many options, so its builds don't look alike. That is 6C's variety work and its
+  variety eval.
+- **Technique sources for 6C (D-50).** Asked where v2 may take its methods from, Barry chose the miner's top
+  motifs as ideas (D-48 stands), more of his own instruction books (H-26), and LEGO's online building
+  instructions, and added forums, blogs, and videos where builders explain how they build (roads and track
+  dressing are methods he learned that way): "many people do things different but that is what we want to
+  collect." All are read for methods only, and each technique cites its sources by set number or URL; no text,
+  picture, model file, or author's name goes into the repo. He didn't choose deriving techniques from OMR models
+  with credit, so D-48 holds.
