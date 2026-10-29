@@ -82,6 +82,10 @@ steps; its example validates clean in the library's tests, and you validate your
 - Castles: thick_wall, battlements (with the wall walk), machicolation, wooden_hoarding, buttress, arrow_slit,
   round_tower, bartizan (a corner turret), portcullis, drawbridge, torch_sconce, wall_banner.
 - Ships and harbors: ship_hull, mast_and_yard, crows_nest, cannon_port, portholes, oars, rudder_hinge, dock_pier.
+- Sci-fi: angled_hull_panel and wedge_wing for a hull's shape, greeble_strip for surface detail, engine_nozzle,
+  cockpit_canopy, hatch_on_hinge, landing_leg, turret, radar_dish, antenna_mast, solar_panel, control_console.
+- Mechanisms that move: gear_pair, worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace,
+  rotating_platform, ball_joint_arm.
 - Small tricks: jumper_offset (half a stud over).
 - Let the helpers do the counting: `m.wall` for walls with openings and interlocking corners, `m.row` and `m.fill`
   for runs and floors of the longest pieces, `m.stack`, `m.grid`, `m.repeat`, and `m.mirror`. `Brick(2, 4)`,

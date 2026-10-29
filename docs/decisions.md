@@ -461,3 +461,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   drawbridge, torch_sconce, wall_banner, wooden_hoarding, bartizan, thick_wall, ship_hull, mast_and_yard, crows_nest,
   cannon_port, rudder_hinge, oars, dock_pier, portholes, with the cards' notes as written (round_tower's seams line up;
   ship_hull's bow wedges are tied only by the deck). 78 accepted in all.
+- **H-22, batch 5 (sci-fi and mechanisms): all 20 accepted** (Barry, 2026-10-28, on
+  `docs/techniques/candidates/batch-5.html`): greeble_strip, engine_nozzle, wedge_wing, angled_hull_panel,
+  hatch_on_hinge, cockpit_canopy, turret, radar_dish, control_console, antenna_mast, solar_panel, landing_leg, gear_pair,
+  worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace, rotating_platform, ball_joint_arm.
+  98 accepted in all, of 100 candidates in five batches.
