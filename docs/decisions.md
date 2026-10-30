@@ -573,3 +573,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   flared_exhaust, steering_rack, removable_soft_top, engine_bay_greebles. removable_soft_top and engine_bay_greebles
   stand in for a wishbone suspension and a V engine, whose parts (5294, 2909/2910, 2853a/2854) have no connector data
   yet; front_hinged_hood was "front_hinged_bonnet" until the US English sweep.
+- **H-26, batch 15 (micro and micropolis): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-15.html`): micropolis_block, micro_tower, tower_setback_plinth, tower_crown,
+  tower_side_fins, floor_band_bricks, stepped_tower_setbacks, bar_spire, paired_colonnade, spiral_dish_stack,
+  micro_tree_cluster, micro_traffic, micro_boat, water_tile_field, statuette_group, micro_house_on_wall,
+  raked_seating_panel, mowed_pitch, curtain_wall_glazing, skyline_depth_rows.

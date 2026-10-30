@@ -223,3 +223,14 @@
 64179    # liftarm_ladder_frame
 6558    # beam_spine_floor
 6630    # steering_rack
+
+# Session 3D, batch-15's techniques
+2432    # mowed_pitch
+2877    # raked_seating_panel
+30162    # paired_colonnade
+37352    # micro_tower
+47905    # tower_side_fins
+6254    # micro_tree_cluster
+7826    # tower_setback_plinth
+90398    # statuette_group
+91405    # micropolis_block
