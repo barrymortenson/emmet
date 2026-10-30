@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 312 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 317 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -272,6 +272,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/box3u4p.dat | Box with  3 Faces without  4 Parallel Edges | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/box3u5p.dat | Box with  3 Faces without  5 Edges | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/box3u6.dat | Box with  3 Faces without  6 Edges | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/box3u6a.dat | Box with 3 Faces without 4 Adjacent and 2 Parallel Edges | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/box3u7a.dat | Box with 3 Faces without 7 Adjacent Edges | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/box3u8p.dat | Box with 3 Faces and 4 Parallel Edges | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/box4-1.dat | Box with 4 Faces without 1 Edge | Tore Eriksson [Tore_Eriksson] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -327,6 +328,8 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/rect3.dat | Rectangle with 3 Edges | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/recte3.dat | Rectangle Empty with 3 Edges | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/recte4.dat | Rectangle Empty with 4 Edges | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/ridgea.dat | Underside Stud Holder Ridge without Base Edges | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/ridges.dat | Underside Stud Holder Ridge Slope | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/ring3.dat | ~Moved to 4-4ring3 | [PTadmin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stud.dat | Stud | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stud10.dat | Stud Truncated Laterally Curved 40D for Round  2 x  2 Parts | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -404,6 +407,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/11477.dat | Slope Brick Curved  2 x  1 | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/14419.dat | Plate  1 x  2 with Socket Joint-8 with Friction and Ball Joint-8 | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/14716.dat | Brick  1 x  1 x  3 | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/14719.dat | Tile  2 x  2 Corner | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/14769.dat | Tile  2 x  2 Round with Round Underside Stud | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/15068.dat | Slope Brick Curved  2 x  2 x  0.667 | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/15254.dat | Arch  1 x  6 x  2 with Thin Top | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -418,6 +422,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/2335.dat | Flag  2 x  2 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2357.dat | Brick  2 x  2 Corner | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2412b.dat | Tile  1 x  2 Grille with Groove | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/2420.dat | Plate  2 x  2 Corner | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/24201.dat | Slope Brick Curved  2 x  1 Inverted | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2423.dat | Plant Leaves  4 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2429.dat | Hinge Plate  1 x  4 Base | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -426,6 +431,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/2431.dat | Tile  1 x  4 with Groove | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2436b.dat | Bracket  1 x  2 -  1 x  4 with Rounded Corners | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2445.dat | Plate  2 x 12 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/2449.dat | Slope Brick 75  2 x  1 x  3 Inverted | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2453b.dat | Brick  1 x  1 x  5 with Solid Stud | Merlijn Wissink [legolijntje] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/2454b.dat | Brick  1 x  2 x  5 with Blocked Open Studs and Symmetric Inner Ridges | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2456.dat | Brick  2 x  6 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -435,6 +441,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/2542.dat | Minifig Tool Oar | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/26047.dat | Plate  1 x  1 Round with Horizontal Handle on Side | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2620.dat | Windscreen  4 x  4 x  3 with Hinge | Lutz Uhlmann [El-Lutzo] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/2653.dat | Brick  1 x  4 with Groove | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/26601.dat | Plate  2 x  2 without Corner | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/26603.dat | Tile  2 x  3 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/26604.dat | Brick  1 x  1 with Studs on Two Adjacent Sides | Niklas Buchmann [NiklasB] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
@@ -630,6 +637,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/4864b.dat | Panel  1 x  2 x  2 with Hollow Studs | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4865b.dat | Panel  1 x  2 x  1 with Rounded Corners | Rolf Osterthun [Rolf] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/49307.dat | Brick  1 x  1 x  0.667 with Curved Top | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/50950.dat | Slope Brick Curved  3 x  1 | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/52501.dat | Slope Brick 45  6 x  1 Double Inverted with Open Centre | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/53400.dat | Train Track 6 Studs Wide Curved | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/53401.dat | Train Track 6 Studs Wide Straight | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -691,6 +699,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/99781.dat | Bracket  1 x  2 -  1 x  2 Down | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/11477s01.dat | ~Slope Brick Curved  2 x  1 without Top Surface | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/14418s01.dat | ~Plate  1 x  2 with Socket Joint-8 with Friction | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/14719s01.dat | ~Tile  2 x  2 Corner without Top Face | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/14769s01.dat | ~Tile  2 x  2 Round with Round Underside Stud without Top Face | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/15068s01.dat | ~Slope Brick Curved  2 x  2 x  0.667 without Top Surface | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/15279s01.dat | ~Plant Grass Stem Half | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -811,6 +820,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/4740s01.dat | ~Dish  2 x  2 Inverted without Convex Surface | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4864s01.dat | ~Panel  1 x  2 x  2 without Front Face and Studs | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4865bs01.dat | ~Panel  1 x  2 x  1 with Rounded Corners without Front Face | Damien Roux [Darats] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/50950s01.dat | ~Slope Brick Curved  3 x  1 without Top Surface | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/53400s01.dat | ~Train Track 6 Studs Wide Curved - Middle Sleeper | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/53400s02.dat | ~Train Track 6 Studs Wide Curved - Interlocking Track End | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/53400s03.dat | ~Train Track 6 Studs Wide Curved - Anticlockwise End Sleeper | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |

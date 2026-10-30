@@ -518,3 +518,15 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   name, the guides for the project's `[build]` scale and style. Rejected: putting every style's rules in the
   doctrine, which every session reads in full. No trademark appears in a guide's names: the doctrine tells the agent
   to map a game or brand the user names to the guide for its look.
+- **H-26, batch 6 (house walls and facades): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-6.html`): wainscot_split_wall, plaster_with_exposed_stones, two_tone_masonry,
+  string_course, dentil_band, timber_frame_panels, panel_pilaster, rusticated_stone_pilaster, color_block_facade,
+  wall_top_cornice, lattice_skirt_foundation, curved_wall_end, rough_stone_ledge, two_story_color_split,
+  white_ashlar_wall, exposed_stud_stonework, irregular_stone_wall, balustrade_parapet, bermed_wall_reveal,
+  corbelled_balcony. Barry's note on wall_top_cornice: the stud left for the roof to grip should stand at the tiles'
+  height; each lug is now a 1 x 1 plate flush with the tiles, its stud up.
+- **Technique examples are checked standing on their lowest level.** Loose on the table, the validator lets a group of
+  parts that floats beside something pass as a separate toy, which hid floating parts in three accepted techniques
+  (headlights' lenses 0.2 studs too far out, bracket_side_panel's brackets turned the wrong way, grass_edge's example
+  cliff on nothing) and two candidates. The technique tests, `scripts/technique-candidates`, and the sketch checks now
+  mark the example's lowest parts as ground, as a baseplate would.

@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
 """Wall-top cornice: a band of light stone round the tops of four walls, corner plates tying the corners under smooth
-tiles, with a stud left open midway along each wall for the roof to grip.
+tiles, with a stud standing up midway along each wall for the roof to grip.
 
 m.use("wall_top_cornice", x, y, z, length, depth, color="Tan", lugs=True, title="Cornice") caps the walls (1 stud
 thick) of a length x depth rectangle whose front-left corner is (x, y), at the z of the wall tops: an L-shaped 2 x 2
 corner plate (2420) on each corner, which crosses the corner joint below, and 1-wide plates between them, then an
-L-shaped 2 x 2 corner tile (14719) over each corner plate and tiles over the runs. With lugs, the stud in the middle
-of each wall stays open, where a lift-off roof frame locates; without, the top is smooth all round. Returns the z of
-the top.
+L-shaped 2 x 2 corner tile (14719) over each corner plate and tiles over the runs. With lugs, a 1 x 1 plate takes the
+tiles' place in the middle of each wall, flush with them, its stud standing up where a lift-off roof frame locates;
+without, the top is smooth all round. Returns the z of the top (the tiles', under the lugs' studs).
 """
 
 from emmet_dsl import Plate, Tile
@@ -27,6 +27,7 @@ PARTS = [
     "6636",
     "3070b",
     "63864",
+    "3024",
 ]
 
 
@@ -55,15 +56,24 @@ def build(m, x, y, z, length, depth, color="Tan", lugs=True, title="Cornice"):
     with m.step(f"{title}: corner tiles"):
         for at, rot in corners:
             m.add("14719", color, at=(*at, z + 1), rot=rot)
-    with m.step(f"{title}: tiles"):
-        for (sx, sy), n, axis in runs:
-            # The lug: the run's middle stud, left open.
-            gap = n // 2 if lugs else n
-            for start, k in ((0, gap), (gap + 1 if lugs else n, n - gap - 1)):
-                if k > 0:
-                    at = (sx + start, sy) if axis == "x" else (sx, sy + start)
-                    m.row(Tile, color, at=(*at, z + 1), length=k, axis=axis)
+    for side, part in (("front and back", runs[:2]), ("sides", runs[2:])):
+        with m.step(f"{title}: tiles, {side}"):
+            _tiles(m, part, color, lugs, z)
     return z + 2
+
+
+def _tiles(m, runs, color, lugs, z):
+    """Tiles along runs of the plates, and with lugs a 1 x 1 plate in each run's middle."""
+    for (sx, sy), n, axis in runs:
+        # The lug: a 1 x 1 plate in the run's middle, flush with the tiles, its stud up for the roof to grip.
+        gap = n // 2 if lugs else n
+        for start, k in ((0, gap), (gap + 1 if lugs else n, n - gap - 1)):
+            if k > 0:
+                at = (sx + start, sy) if axis == "x" else (sx, sy + start)
+                m.row(Tile, color, at=(*at, z + 1), length=k, axis=axis)
+        if lugs:
+            at = (sx + gap, sy) if axis == "x" else (sx, sy + gap)
+            m.add("3024", color, at=(*at, z + 1))
 
 
 def example(m):

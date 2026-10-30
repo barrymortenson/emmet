@@ -19,6 +19,9 @@ as a real one with character, not a box with holes in it.
 - Steep, overhanging roofs. A cottage roof is 45° and as tall as its walls; it overhangs a stud at the eaves and its
   edge is finished (`eaves_fascia`). A shallow roof reads as modern or Mediterranean.
 - A chimney, always taller than the ridge by 1 to 2 bricks, with pots (`chimney_stack`, `banded_chimney`).
+- Stories read as stories: a different color or texture per story (`two_story_color_split`), a ledge of rough stone
+  under a jettied or set-back story (`rough_stone_ledge`), a balcony on corbels (`corbelled_balcony`). A storybook or
+  cartoon house paints its wall in blocks of bright color, each with its own window (`color_block_facade`).
 - About one small detail every 2 to 3 studs of face: a lamp, a window box, a downpipe, a sign, a planter
   (`window_box`, `wall_lamp_bracket`, `downpipe`, `hanging_planter`, `blade_sign`).
 

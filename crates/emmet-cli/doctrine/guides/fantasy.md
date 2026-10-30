@@ -11,6 +11,8 @@ but with curves where they'd have corners and color where they'd be plain.
 - No straight base edge longer than 6 studs: break it with a round-corner plate or a step.
 - Buildings sit in the land, not on it: a hill or rock pushes the floor up 1 to 2 bricks, turf rolls over the roof
   (`contour_terraces`, `hillside`, `bermed_wall_reveal`, `grass_edge`).
+- Old stone shows its studs: rough walls of plates, tiles, and bare studs mixed (`exposed_stud_stonework`,
+  `irregular_stone_wall`), on a ledge of rough stone (`rough_stone_ledge`).
 - An earth palette with one strong accent per area: greens, tan and dark tan, reddish brown, two grays for rock, then a
   dark green door, a red rug, a lavender roof.
 - Plants climb everything: vines and flowers on walls and rocks, one twisted tree as the centerpiece (`gnarled_tree`,
