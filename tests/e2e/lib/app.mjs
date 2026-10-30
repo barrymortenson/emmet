@@ -23,13 +23,29 @@ export const shown = () => browser.execute(() => window.__emmet.shown());
 export const invoke = (cmd, args = {}) =>
   browser.execute((c, a) => window.__TAURI_INTERNALS__.invoke(c, a), cmd, args);
 
-/** Opens a project from the recents list (lib/projects.mjs put it there) and waits for its first scene. */
+/** Opens a project from the recents list (lib/projects.mjs put it there) and waits for its first scene: drawn, framed,
+ * and the camera still. shown() counts a scene as soon as the viewer takes it, before its parts load and the camera
+ * frames it, and the orbit controls round the framed camera off over the next frames (a last-digit change). */
 export async function open(dir) {
+  const drawn = await browser.execute(() => window.__emmet.drawnAt());
   const { root } = await invoke("open_recent", { path: dir });
   await browser.waitUntil(
-    () => browser.execute((r) => window.__emmet.project() === r && window.__emmet.shown() >= 1, root),
+    () => browser.execute((r, d) => window.__emmet.project() === r && window.__emmet.shown() >= 1 && window.__emmet.drawnAt() > d, root, drawn),
     { timeout: 30_000, timeoutMsg: `${dir} never showed a scene` },
   );
+  const still = await browser.execute(async () => {
+    const v = window.__emmet.viewer();
+    let last = JSON.stringify(v.cameraMatrix());
+    let same = 0;
+    for (let i = 0; i < 300 && same < 5; i++) {
+      await v.nextFrame();
+      const now = JSON.stringify(v.cameraMatrix());
+      same = now === last ? same + 1 : 0;
+      last = now;
+    }
+    return same >= 5;
+  });
+  if (!still) throw new Error(`${dir}: the camera never came to rest`);
   return root;
 }
 

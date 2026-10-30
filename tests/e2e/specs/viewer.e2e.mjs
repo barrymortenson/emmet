@@ -61,12 +61,12 @@ describe("the live viewer", () => {
     const before = await camera();
     const gen = await shown();
     const count = (await stats()).instances;
-    writeFileSync(modelPy, original.replace("chimney: bool = True", "chimney: bool = False"));
+    writeFileSync(modelPy, original.replace("roof: bool = True", "roof: bool = False"));
     await nextScene(gen);
-    await browser.waitUntil(async () => (await stats()).instances < count, { timeoutMsg: "the chimney didn't go" });
+    await browser.waitUntil(async () => (await stats()).instances < count, { timeoutMsg: "the roof didn't come off" });
     expect(await camera()).toEqual(before);
-    // The knobs read the schema again: the chimney's new default.
-    await browser.waitUntil(async () => (await $("#param-chimney-switch").getAttribute("aria-checked")) === "false", { timeoutMsg: "the chimney switch kept the old default" });
+    // The knobs read the schema again: the roof's new default.
+    await browser.waitUntil(async () => (await $("#param-roof-switch").getAttribute("aria-checked")) === "false", { timeoutMsg: "the roof switch kept the old default" });
   });
 
   it("a broken model.py says the model didn't build, with its line for the agent, and the last good model stays", async () => {
@@ -156,13 +156,13 @@ describe("the live viewer", () => {
     const gen = await shown();
     await browser.execute(() =>
       Promise.all([
-        window.__TAURI_INTERNALS__.invoke("set_params", { values: { depth: 10 } }),
-        window.__TAURI_INTERNALS__.invoke("set_params", { values: { wall_rows: 7 } }),
+        window.__TAURI_INTERNALS__.invoke("set_params", { values: { depth: 12 } }),
+        window.__TAURI_INTERNALS__.invoke("set_params", { values: { weathering: 7 } }),
       ]),
     );
     await nextScene(gen);
     const saved = JSON.parse(readFileSync(join(project, "params.json"), "utf8"));
-    expect([saved.depth, saved.wall_rows]).toEqual([10, 7]);
+    expect([saved.depth, saved.weathering]).toEqual([12, 7]);
   });
 
   it("reopening a project whose build lost its placements builds it again", async () => {
