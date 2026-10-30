@@ -503,3 +503,18 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   it, and `scripts/unsafe-check.mjs`, run by `just check`, keeps every other file free of it. It calls through `objc2`, already in the
   tree through tauri and the WebDriver plugin, so no new crate. Rejected: hosted E2E, its own baselines, or a hosted
   PR run with a weekly run on the Mac; and only stopping the app from taking focus.
+
+## 2026-10-29, session 3D
+
+- **Session 3D before 4B (D-51).** Barry asked, before 4B, for detailed technique mining from all his instruction
+  books (92 booklets in his Dropbox, about 55 sets: houses and town buildings, a voxel village, game playsets, cars
+  at every width and scale, architecture and micro models, display ships, and sculptures), so Emmet has many wall,
+  roof, and interior treatments for a house, and knows the blocky and video-game styles, cars at each scale, and
+  micro and micropolis; then how the agent should use them, practiced on the Cottage. The final Cottage for the MVP
+  is a detailed figure-scale building with character, landscaping, a detailed interior, and a removable roof. The
+  books are read for methods only, under D-48: no page, picture, or text in the repo; techniques cite set numbers.
+- **The agent reads guides for its build settings.** One guide per scale, style, and subject (vehicles, interiors,
+  landscaping), in `crates/emmet-cli/doctrine/guides/`, served by `emmet guide` and the MCP `guide` tool: with no
+  name, the guides for the project's `[build]` scale and style. Rejected: putting every style's rules in the
+  doctrine, which every session reads in full. No trademark appears in a guide's names: the doctrine tells the agent
+  to map a game or brand the user names to the guide for its look.

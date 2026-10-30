@@ -65,6 +65,14 @@ pub struct TechniqueArgs {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct GuideArgs {
+    /// A scale, style, or subject, like "micro", "blocky", or "vehicles"; leave it out for the guides for the
+    /// project's build settings.
+    #[serde(default)]
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct SetParamsArgs {
     /// Parameter values to keep in params.json. A value equal to its default is dropped from the file.
     pub values: BTreeMap<String, Value>,
@@ -577,6 +585,20 @@ impl EmmetMcp {
         let started = Instant::now();
         let out = emmet_core::technique::techniques(args.name.as_deref());
         result(started, out, RunMeta::default(), None, technique_text)
+    }
+
+    /// The build guide: the rules for a scale (micro, figure scale, car 1:8, …) or a style (town, blocky, video game,
+    /// …): proportions, parts, and which techniques to use. With no name, the guides for the project's build settings.
+    /// Read it before the first draft, and again when the build settings change.
+    #[tool(output_schema = schema_for_output::<Envelope<crate::guide::Guides>>())]
+    async fn guide(&self, Parameters(args): Parameters<GuideArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let out = match args.name.as_deref() {
+            Some(name) => crate::guide::guides(Some(name), None),
+            // Outside a project there are no build settings: the list, and what to do.
+            None => crate::guide::guides(None, self.find_project().ok().map(|p| p.config.build).as_ref()),
+        };
+        result(started, out, RunMeta::default(), None, crate::guide::text)
     }
 
     /// LDraw colors: code, name, RGB, finish, other accepted spellings, and whether any part was made in it. With

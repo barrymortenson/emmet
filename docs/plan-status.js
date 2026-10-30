@@ -149,6 +149,7 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-10-29 (D-43): merged with the 'both OSes' items met on macOS; the Windows pass checks first run, trust, import, panel, the side-by-sides, and the title-row menus. A version without build placements can't be restored from the app yet (a design question)"
     },
+    "3D": { status: "in-progress", branch: "bmortenson/s3d-book-techniques-cottage", started: "2026-10-29" },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
     "4D": { status: "todo" },
@@ -191,6 +192,7 @@ window.EMMET_STATUS = {
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
     "H-22": { status: "done", date: "2026-10-28", note: "98 of 100 candidates accepted on five review pages (docs/techniques/candidates/batch-1 to 5); rejected: wheel_axle, wheel_arch; docs/decisions.md" },
     "H-23": { status: "todo" },
+    "H-26": { status: "todo" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
     "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
   },
