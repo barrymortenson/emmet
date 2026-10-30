@@ -94,7 +94,7 @@ const words = (k: Key, v: string | null | undefined) => (v == null ? null : k ==
 export function rebuildRequest(before: BuildSettings, after: BuildSettings): string {
   const changes = ORDER.filter((k) => (before[k] ?? null) !== (after[k] ?? null)).map((k) => `${BRIEF[k].label}: ${said(after[k])}`);
   const all = ORDER.map((k) => `${BRIEF[k].label} ${said(after[k])}`).join(", ");
-  return `Rework the model for the new build settings (${changes.join("; ")}). All of them now: ${all}. They're in emmet.toml's [build].`;
+  return `Rework the model for the new build settings (${changes.join("; ")}). All of them now: ${all}. They're in emmet.toml's [build]; the guide tool gives their rules.`;
 }
 
 /** One build setting or knob: its name (its meaning is the name's tooltip), "was …" when changed, then its control. */

@@ -127,6 +127,7 @@ async fn lists_exactly_the_tools_built_so_far() {
             "api",
             "bom",
             "get_params",
+            "guide",
             "highlight",
             "list_colors",
             "part_info",
@@ -474,6 +475,33 @@ async fn technique_tool() {
     assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
     assert!(
         c.envelope["error"]["hint"].as_str().unwrap().contains("'gable_roof'"),
+        "{}",
+        c.envelope
+    );
+}
+
+#[tokio::test]
+async fn guide_tool() {
+    let client = connect(None).await;
+    assert_matches_committed(&client, "guide");
+    // Outside a project there are no build settings: the list, and what to do.
+    let c = client.call("guide", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert!(
+        c.envelope["data"]["list"].as_array().unwrap().len() >= 19,
+        "{}",
+        c.envelope
+    );
+    assert!(c.text.contains("No scale or style is set"), "{}", c.text);
+    let c = client.call("guide", json!({ "name": "Voxel" })).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["guides"][0]["name"], "blocky");
+    assert!(c.text.starts_with("# Blocky"), "{}", c.text);
+    let c = client.call("guide", json!({ "name": "blockey" })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+    assert!(
+        c.envelope["error"]["hint"].as_str().unwrap().contains("'blocky'"),
         "{}",
         c.envelope
     );

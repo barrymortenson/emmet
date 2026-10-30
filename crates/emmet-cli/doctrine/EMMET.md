@@ -15,8 +15,15 @@ in Emmet's viewer while you work. Call the `api` tool for the DSL vocabulary.
 
 ## The loop
 
-Run → validate → render → fix, every time:
+Read the guide, then run → validate → render → fix, every time:
 
+0. Call `guide` once before the first draft. With no name it gives the rules for the project's scale and style (the
+   build settings in `emmet.toml`'s `[build]`): proportions, palette, parts, and which techniques to use. When the
+   prompt names a scale, style, or subject the settings don't ("a micro city", "a blocky house", "a sports car",
+   "a statue of my dog", "furnish it"), call `guide` with that name too (`micro`, `blocky`, `vehicles`, `sculpture`,
+   `interiors`, `landscaping`). A game, film, or brand the user names maps to the guide for its look (a voxel game is
+   `blocky`, a platformer `video-game`); never put the name itself in the model. Call it again when the build settings
+   change. Where the prompt and a guide disagree, the prompt wins.
 1. Find parts with `search_parts` ("brick 1x4", "slope 45 2 x 2"), all a stage needs in one call (`more` takes the
    other queries). Each result gives the part's size in studs and plates, which is enough to place it; call
    `part_info` only when you need what search doesn't say.
@@ -64,7 +71,8 @@ Official sets are built so they hold together and look finished. Do what they do
 
 ## Build with the library
 
-Call `technique` before you build something common, and use what fits. `m.use(name, …)` applies one, with its own
+Call `technique` before you build something common, and use what fits. The guides name more techniques, by scale,
+style, and subject, with when to reach for each: the list below is the common ones. `m.use(name, …)` applies one, with its own
 steps; its example validates clean in the library's tests, and you validate your use of it like anything else.
 
 - Houses and town buildings. Walls: masonry_wall (brick texture), clapboard_siding (lap siding), half_timber_band
@@ -106,6 +114,16 @@ search again with other words before you settle.
 Real colors too: `validate` warns with `color_unavailable` when a part was never made in its color, and
 `part_unavailable` when it was never made at all. Change the color (the hint names the closest ones it was made in)
 or the part; "availability unknown" is not a problem.
+
+## The build settings
+
+The app's Options write `emmet.toml`'s `[build]`, and each setting is Any until the user picks one. Scale and Style:
+the guides. Age: the step size (4 parts a step for 4+, 12 for 18+, 8 otherwise) and how fiddly the techniques may be
+(for 4+ and 6+, no sideways building and nothing on hinges at an angle). Detail: Low is bricks, plates, and slopes
+with real doors and windows; Medium adds tiles on tops, sills and hoods, and furniture; High adds sideways textures,
+trim, clutter, and landscaping. Pieces: stay inside its range (Small 50–250, Medium 250–1,000, Large 1,000–2,500,
+Huge 2,500+). Base: what the model stands on. When the user changes them and presses Rebuild, call `guide` again and
+rework the model for the new settings, keeping what they still allow.
 
 ## Sized for the figure, not to the ratio
 

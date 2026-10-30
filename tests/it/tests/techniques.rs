@@ -155,21 +155,28 @@ techniques!(
     worm_drive,
 );
 
-/// The doctrine (`emmet rules`) names every technique in its "Build with the library" section, as a whole name (so
-/// pine_tree doesn't count for tree), by when to reach for it, so agents use the library without being told to
-/// (session 3C's What good looks like).
+/// Every technique is named, as a whole word (so pine_tree doesn't count for tree), by when to reach for it: in the
+/// doctrine's (`emmet rules`) "Build with the library" section, or in a build guide (`emmet guide`, session 3D), so
+/// agents use the library without being told to (session 3C's What good looks like). The doctrine keeps the common
+/// ones; the guides name the rest by scale, style, and subject, so the doctrine every session reads stays short.
 #[test]
-fn the_doctrine_names_every_technique() {
+fn the_doctrine_or_a_guide_names_every_technique() {
     let out = emmet().arg("rules").output().unwrap();
     let doctrine = String::from_utf8_lossy(&out.stdout);
     let start = doctrine
         .find("## Build with the library")
         .expect("the doctrine has a library section");
     let section = &doctrine[start + 3..];
-    let section = &section[..section.find("\n## ").unwrap_or(section.len())];
-    let words: std::collections::HashSet<&str> = section
-        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
-        .collect();
+    let mut text = section[..section.find("\n## ").unwrap_or(section.len())].to_string();
+    let (list, code) = emmet_json(&["guide"]);
+    assert_eq!(code, 0, "{list}");
+    for g in list["data"]["list"].as_array().unwrap() {
+        let (v, code) = emmet_json(&["guide", g["name"].as_str().unwrap()]);
+        assert_eq!(code, 0, "{v}");
+        text.push_str(v["data"]["guides"][0]["text"].as_str().unwrap());
+    }
+    let words: std::collections::HashSet<&str> =
+        text.split(|c: char| !(c.is_ascii_alphanumeric() || c == '_')).collect();
     let missing: Vec<&str> = TECHNIQUES
         .iter()
         .map(|(n, _)| *n)
@@ -177,7 +184,8 @@ fn the_doctrine_names_every_technique() {
         .collect();
     assert!(
         missing.is_empty(),
-        "crates/emmet-cli/doctrine/EMMET.md's library section doesn't name {missing:?}"
+        "neither the library section of crates/emmet-cli/doctrine/EMMET.md nor a guide in \
+         crates/emmet-cli/doctrine/guides/ names {missing:?}"
     );
 }
 
