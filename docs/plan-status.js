@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-29",
+  updated: "2026-10-30",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -149,7 +149,7 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-10-29 (D-43): merged with the 'both OSes' items met on macOS; the Windows pass checks first run, trust, import, panel, the side-by-sides, and the title-row menus. A version without build placements can't be restored from the app yet (a design question)"
     },
-    "3D": { status: "in-progress", branch: "bmortenson/s3d-book-techniques-cottage", started: "2026-10-29" },
+    "3D": { status: "review", pr: 43, branch: "bmortenson/s3d-book-techniques-cottage", started: "2026-10-29" },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
     "4D": { status: "todo" },
