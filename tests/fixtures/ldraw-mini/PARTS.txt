@@ -252,3 +252,9 @@
 6143    # round_bastion
 64448    # ribbed_side_panel
 92947    # pipe_column_cluster
+
+# Session 3D, batch-18's techniques
+27925    # rounded_pier_nose
+3044b    # rose_window_ring
+36752a    # pinnacle_stack
+78329    # pointed_buttress_strip

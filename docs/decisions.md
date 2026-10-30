@@ -588,3 +588,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   lit_window_panel, checker_light_wall, glow_trim_edge, pipe_column_cluster, ribbed_side_panel, lattice_tower,
   bar_truss_brace, round_deck_dome, clamshell_pod, plank_deck, davit_lifeboat, round_funnel, rock_mosaic_panel,
   double_arch_colonnade, fin_merlon_crenels, round_bastion, fountain_court.
+- **H-26, batch 18 (midi: display ships and architecture): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-18.html`): stave_cylinder, stepped_curve_hull, bare_stud_greeble, porthole_band,
+  saucer_petal_panels, radial_spoke_saucer, axle_round_stack, angled_display_stand, lancet_window, rose_window_ring,
+  flying_buttress_arch, pinnacle_stack, pointed_buttress_strip, belfry_louvers, steep_nave_roof, slender_column_capital,
+  triangle_tile_floor, banded_round_turret, architecture_base, rounded_pier_nose. 260 accepted in all, of 260
+  candidates in thirteen batches; the library has 378 techniques.

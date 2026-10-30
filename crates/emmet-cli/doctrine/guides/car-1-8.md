@@ -11,7 +11,7 @@ function it shows is real and connected.
 - Function first: the steering wheel turns the front wheels through a rack (`steering_rack`); the wheels hang on
   suspension; the rear wheels turn the engine's pistons through gears (`gear_pair`, `worm_drive`). If you can't
   connect a function, leave it out rather than fake it. The parts data doesn't yet seat suspension arms, shock
-  absorber ends, ball joints, or crankshafts, so `validate` reports them floating: build the engine bay as detail
+  absorber ends, ball joints, or crankshafts, so the validator reports them floating: build the engine bay as detail
   (`engine_bay_greebles`) and say so.
 - The body is Technic panels pinned at three or more points each, the frame showing below; body lines come from the
   panels' edges. Gaps between panels are normal.

@@ -35,7 +35,7 @@ Use `car_wheels` for the wheels and arches at each width, and `four_wide_car` fo
 - Chassis: `truck_spine_chassis`, `spliced_chassis` for long ones, `racing_scale_base` for 8 wide, `vintage_chassis`
   with a `vintage_radiator` at its front. A cab whose windows and roof lift off as one: `lift_off_window_cab`. A cart
   or a stall on wheels: `street_cart`.
-- Trains: `train_carriage` on a train base, `window_band`, `flat_wagon`, `shipping_container`; body 6 wide, 8 to 9
+- Trains: `train_carriage` on a train base, `window_band`, `shipping_container`; body 6 wide, 8 to 9
   bricks to the roof from the rail, roof in lift-off sections.
 
 ## Other scales

@@ -29,7 +29,7 @@ Rooms a figure can live in, furnished from few parts, in a building that opens t
 - Pub or diner: `bar_counter`, stools (a 1 x 1 round brick under a 2 x 2 round tile), `curved_booth`, a stove hood.
 - Music room or parlor: `upright_piano`, `armchair_and_sofa`, a clock.
 - Two rooms in a small house: a partition wall with an `interior_arch_doorway`; an upper room on a `loft_half_floor`
-  reached by `bracket_tread_stair` or `stairs`.
+  reached by `stairs`.
 - Sci-fi rooms: dark tiled floors and smooth panel walls, a `control_console`, a `chamfered_door_portal`, lit panels
   (`guide space`).
 

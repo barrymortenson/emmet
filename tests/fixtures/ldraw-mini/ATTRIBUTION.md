@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 440 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 444 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -49,6 +49,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/1-4ering.dat | Adapter Ring Triangles to Normal 0.25 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ndis.dat | Disc Negative 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring1.dat | Ring  1 x 0.25 | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-4ring20.dat | Ring 20 x 0.25 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring3.dat | Ring  3 x 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring4.dat | Ring  4 x 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring6.dat | Ring  6 x 0.25 | Franklin W. Cain [fwcain] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -449,6 +450,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/stug-1x2.dat | Stud Group  1 x  2 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug-1x3.dat | Stud Group  1 x  3 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug-1x4.dat | Stud Group  1 x  4 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/stug-1x5.dat | Stud Group  1 x  5 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug-1x6.dat | Stud Group  1 x  6 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug-1x7.dat | Stud Group  1 x  7 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug-1x8.dat | Stud Group  1 x  8 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -470,6 +472,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/stug2.dat | ~Moved to stug-2x2 | [PTadmin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug3-1x2.dat | Stud Tube Solid Group  1 x  2 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug3-1x3.dat | Stud Tube Solid Group  1 x  3 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/stug3-1x4.dat | Stud Tube Solid Group  1 x  4 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug3-1x5.dat | Stud Tube Solid Group  1 x  5 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug3-1x7.dat | Stud Tube Solid Group  1 x  7 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug4-1x2.dat | Stud Tube Open Group  1 x  2 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -583,6 +586,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/2730.dat | Technic Brick  1 x 10 with Holes | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/27507.dat | Tile  4 x  4 Corner Round | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2780.dat | Technic Pin with Friction and Slots | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/27925.dat | Tile  2 x  2 Corner Round | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2819.dat | Technic Steering Wheel Small | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2859.dat | ~Train Track  9V Switch Right - Plastic Part | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/2859c00.dat | ~Train Track  9V Switch Right - Plastic Part with Underside Cover Plate and Metal Elements | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -647,6 +651,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/30413.dat | Panel  1 x  4 x  1 with Rounded Corners, Thick Wall | R. M. Rodinsky [dublar] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/30414.dat | Brick  1 x  4 with Studs on Side | R. M. Rodinsky [dublar] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/3043.dat | Slope Brick 45  2 x  2 Double | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/3044b.dat | Slope Brick 45  2 x  1 Double | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3044c.dat | Slope Brick 45  2 x  1 Double with Bottom Stud Holder | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3045.dat | Slope Brick 45  2 x  2 Double Convex | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3046.dat | Slope Brick 45  2 x  2 Double Concave | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -715,6 +720,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/3665b.dat | Slope Brick 45  2 x  1 Inverted with Inner Stopper Ring | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3666.dat | Plate  1 x  6 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3675.dat | Slope Brick 33  3 x  3 Double Convex | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/36752a.dat | Minifig Tool Wand | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3676.dat | Slope Brick 45  2 x  2 Inverted Double Convex | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3679.dat | Turntable  2 x  2 Plate Top | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3680.dat | Turntable  2 x  2 Plate Base | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -901,6 +907,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/75542-f2.dat | Train Track  9V Switch Left Branching | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/76797.dat | Brick 3 x 3 x 1 Quarter Circle with Curved Top | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/7826.dat | Slope Brick 31  1 x  1 x  0.667 Double Convex | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/78329.dat | Plate  1 x  5 | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/7904.dat | Plate  2 x  2 Quarter Circle | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/79393.dat | Tile  3 x  3 Corner Round | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/79491.dat | Plate  2 x  2 with Corner Round | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -961,6 +968,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/25269s01.dat | ~Tile  1 x  1 Corner Round without Top Surface | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/26603s01.dat | ~Tile  2 x  3 without Top | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/27507s01.dat | ~Tile  4 x  4 Corner Round without Top Surface | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/27925s01.dat | ~Tile  2 x  2 Corner Round without Top Surface | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/2859s02.dat | ~Train Track  9V Switch Right - Plastic Part, Common Part Without Studs | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/2859s03.dat | ~Train Track  9V Switch Right - Plastic Part, Common Rail Side Clamp Cutout, Common Area | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/2859s04.dat | ~Train Track  9V Switch Right - Plastic Part, Common Rail Side Clamp Cutout | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1003,6 +1011,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/3039s01.dat | ~Slope Brick 45  2 x  2 without Front Face | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3040s01.dat | ~Slope Brick 45  2 x  1 without Front Face | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3041s01.dat | ~Slope Brick 45  2 x  4 Double without Top Faces | Imre Papp [ampi] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/s/3044bs01.dat | ~Slope Brick 45  2 x  1 Double Without Front Faces | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/30565s01.dat | ~Plate  4 x  4 Round 1/8 | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3062bs01.dat | ~Brick  1 x  1 Round with Hollow Stud without Outer Surface | Takeshi Takahashi [RainbowDolphin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3065s01.dat | ~Brick  1 x  2 without Centre Stud without Front | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
