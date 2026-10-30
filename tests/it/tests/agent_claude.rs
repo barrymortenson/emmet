@@ -754,3 +754,24 @@ fn the_model_and_effort_reach_the_cli() {
         }
     }
 }
+
+/// A project that carries `.emmet/transcripts` as a link elsewhere (it may be someone else's) gets no transcript
+/// written through it, and the chat goes on (4B's review; the chat's own `.emmet/chat/` uses the same check).
+#[cfg(unix)]
+#[test]
+fn a_linked_transcripts_folder_isnt_written_through() {
+    let rig = Rig::new("claude-linked-transcripts", "claude", "plain-turn");
+    let elsewhere = emmet_it::temp_dir("linked-transcripts-target");
+    std::fs::create_dir_all(rig.project.join(".emmet")).unwrap();
+    std::os::unix::fs::symlink(&elsewhere, rig.project.join(".emmet/transcripts")).unwrap();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    s.close();
+    assert!(events.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })));
+    assert_eq!(
+        std::fs::read_dir(&elsewhere).unwrap().count(),
+        0,
+        "nothing went through the link"
+    );
+}

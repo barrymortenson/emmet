@@ -4,12 +4,30 @@
 use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, Hasher};
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use sha2::{Digest, Sha256};
 
 use crate::envelope::{Error, Result};
+
+/// `root/<dirs…>/<name>` for Emmet to write, with each folder made if it's missing; None when a folder on the way or the
+/// file is a link (or not what it should be). A project may be someone else's, so Emmet never writes through a link
+/// it carries.
+pub fn own_file(root: &Path, dirs: &[&str], name: &str) -> Option<PathBuf> {
+    let mut dir = root.to_path_buf();
+    for part in dirs {
+        dir.push(part);
+        match std::fs::symlink_metadata(&dir) {
+            Ok(m) if m.is_dir() && !m.file_type().is_symlink() => {}
+            Ok(_) => return None,
+            Err(_) => std::fs::create_dir(&dir).ok()?,
+        }
+    }
+    let path = dir.join(name);
+    let linked = std::fs::symlink_metadata(&path).is_ok_and(|m| !m.is_file());
+    (!linked).then_some(path)
+}
 
 /// Writes `bytes` to `path` so readers never see half a file: a temp file in the same directory, fsync, rename.
 pub fn write_atomic(path: &Path, bytes: &[u8]) -> Result<()> {

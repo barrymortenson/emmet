@@ -314,21 +314,17 @@ fn view(d: Detection) -> AgentView {
     }
 }
 
-fn chat_dir(project: &Path) -> PathBuf {
-    project.join(".emmet").join("chat")
+/// A file in the project's `.emmet/chat/`, unless the project carries a link there.
+fn chat_file(project: &Path, name: &str) -> Option<PathBuf> {
+    emmet_core::fsx::own_file(project, &[".emmet", "chat"], name)
 }
 
 fn append(project: &Path, session: &str, record: &ChatRecord) {
     use std::io::Write;
-    let dir = chat_dir(project);
-    if std::fs::create_dir_all(&dir).is_err() {
+    let Some(path) = chat_file(project, &format!("{session}.jsonl")) else {
         return;
-    }
-    if let Ok(mut f) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(dir.join(format!("{session}.jsonl")))
-    {
+    };
+    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
         let _ = writeln!(f, "{}", serde_json::to_string(record).expect("record"));
     }
 }
@@ -347,7 +343,7 @@ fn new_id() -> String {
 /// session) is read when there's no store yet.
 fn store(project: &Project) -> Store {
     let read = |p: PathBuf| std::fs::read_to_string(p).ok();
-    let mut s: Store = match read(chat_dir(&project.root).join("sessions.json")) {
+    let mut s: Store = match chat_file(&project.root, "sessions.json").and_then(read) {
         Some(text) => serde_json::from_str(&text).unwrap_or_default(),
         None => read(project.root.join(".emmet").join("chat.json"))
             .and_then(|t| serde_json::from_str::<SessionInfo>(&t).ok())
@@ -365,12 +361,10 @@ fn store(project: &Project) -> Store {
 }
 
 fn save_store(project: &Project, s: &Store) -> Result<(), Box<Problem>> {
-    let dir = project.own_dir(".emmet")?.join("chat");
-    std::fs::create_dir_all(&dir).map_err(|e| problem(e.to_string()))?;
-    emmet_core::fsx::write_atomic(
-        &dir.join("sessions.json"),
-        serde_json::to_string_pretty(s).expect("json").as_bytes(),
-    )?;
+    let path = chat_file(&project.root, "sessions.json").ok_or_else(|| {
+        problem(".emmet/chat in this project is a link or a file, not a folder; Emmet won't write through it.")
+    })?;
+    emmet_core::fsx::write_atomic(&path, serde_json::to_string_pretty(s).expect("json").as_bytes())?;
     Ok(())
 }
 
@@ -387,7 +381,8 @@ fn update_session(project: &Project, id: &str, f: impl FnOnce(&mut SessionInfo))
 /// them by the end.
 fn history(project: &Path, session: &str) -> Vec<ChatRecord> {
     let mut out: Vec<ChatRecord> = Vec::new();
-    for line in std::fs::read_to_string(chat_dir(project).join(format!("{session}.jsonl")))
+    for line in chat_file(project, &format!("{session}.jsonl"))
+        .and_then(|p| std::fs::read_to_string(p).ok())
         .unwrap_or_default()
         .lines()
     {
