@@ -32,7 +32,9 @@ Use `car_wheels` for the wheels and arches at each width, and `four_wide_car` fo
 - City trucks show some studs (the bed, the roof); racing-scale cars show almost none (tiles and curved slopes:
   `curved_wedge_nose`, `tapered_hood_wedges`, `snot_side_skirt`, `rounded_car_end`, `bracket_side_panel`).
 - Use plain, grille, and mosaic tiles where the real set uses stickers; never fake a sticker with many tiny parts.
-- Chassis: `truck_spine_chassis`, `spliced_chassis` for long ones, `racing_scale_base` for 8 wide, `vintage_chassis`.
+- Chassis: `truck_spine_chassis`, `spliced_chassis` for long ones, `racing_scale_base` for 8 wide, `vintage_chassis`
+  with a `vintage_radiator` at its front. A cab whose windows and roof lift off as one: `lift_off_window_cab`. A cart
+  or a stall on wheels: `street_cart`.
 - Trains: `train_carriage` on a train base, `window_band`, `flat_wagon`, `shipping_container`; body 6 wide, 8 to 9
   bricks to the roof from the rail, roof in lift-off sections.
 

@@ -186,3 +186,26 @@
 69754    # item_launcher
 69755    # item_launcher
 87081    # game_pipe
+
+# Session 3D, batch-13's techniques
+11208    # car_wheels
+11209    # car_wheels
+23405    # shipping_container
+32064b    # racing_scale_base
+3707    # racing_scale_base
+4033c01    # lift_off_window_cab
+4035c01    # lift_off_window_cab
+4176    # six_wide_truck_cab
+4488    # truck_spine_chassis
+4600    # car_wheels
+54383    # tapered_hood_wedges
+54384    # tapered_hood_wedges
+55982    # racing_scale_base
+58090    # racing_scale_base
+60581    # glass_box_cab
+60592c01    # six_wide_truck_cab
+62360    # curved_wedge_nose
+79491    # rounded_car_end
+85080    # rounded_car_end
+93606    # cab_over_sleeper
+98282    # car_wheels

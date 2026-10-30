@@ -560,3 +560,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   cube_head_character, brick_enemy, chunky_kart, curb_rumble_strip, start_gantry, bolted_pillar, flip_bridge,
   a_frame_tent, brick_campfire, crt_cabinet, console_shell, vent_fins, controller_slab, game_pipe, polka_dot_cube,
   item_launcher. game_pipe was "warp_pipe" until its sketcher flagged the name as one game's term.
+- **H-26, batch 13 (vehicles at figure scale): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-13.html`): car_wheels, truck_spine_chassis, six_wide_truck_cab, cab_over_sleeper,
+  racing_scale_base, quarter_tile_headlights, side_stud_lights, curved_wedge_nose, tapered_hood_wedges, snot_side_skirt,
+  rounded_car_end, window_band, shipping_container, lift_off_window_cab, vintage_chassis, vintage_radiator, street_cart,
+  four_wide_car, offroad_fender_flare, glass_box_cab. car_wheels puts car rims and tires on flush pins inside mudguard
+  arches at the body's sides, not on the plate with hanging wheel pins that 3C's rejected wheel_axle used.
