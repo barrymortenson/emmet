@@ -555,3 +555,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   block_column, raised_module_base, module_link_block, grass_block, stepped_block_terrain, block_tree,
   speckled_block_wall, mossy_stone_block, bookshelf_block, cactus_column, reed_stalks, block_water_and_falls, lava_inset,
   crop_field, block_fence_post, stick_torch, plank_and_stone_wall, stepped_plank_roof, flat_jumper_roof, block_beast.
+- **H-26, batch 12 (video-game worlds and retro hardware): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-12.html`): pixel_mosaic_panel, tile_brick_texture, item_block, float_on_clear,
+  cube_head_character, brick_enemy, chunky_kart, curb_rumble_strip, start_gantry, bolted_pillar, flip_bridge,
+  a_frame_tent, brick_campfire, crt_cabinet, console_shell, vent_fins, controller_slab, game_pipe, polka_dot_cube,
+  item_launcher. game_pipe was "warp_pipe" until its sketcher flagged the name as one game's term.

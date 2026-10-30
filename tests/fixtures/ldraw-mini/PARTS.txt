@@ -173,3 +173,16 @@
 4345b    # the Cottage
 4346    # the Cottage
 7276    # the Cottage
+
+# Session 3D, batch-12's techniques
+11213    # game_pipe
+15397    # controller_slab
+18649    # bolted_pillar
+30391    # chunky_kart
+3070bp1c    # start_gantry
+3957a    # crt_cabinet
+55981    # chunky_kart
+67329    # item_block
+69754    # item_launcher
+69755    # item_launcher
+87081    # game_pipe
