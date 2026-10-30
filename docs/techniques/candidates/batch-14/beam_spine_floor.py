@@ -56,6 +56,15 @@ def build(
     with m.step(f"{title}: bricks, left"):
         for a in range(0, length, 4):
             m.add("3701", color, at=(x + a, y, z), rot=1)
+    # Pins go into each brick before what they hold: the left ones into the left bricks, the beams onto them, the
+    # right ones into the beams, the right bricks onto those.
+    starts = range(0, length, 4)
+    halves = (starts[: len(starts) // 2], starts[len(starts) // 2 :])
+    for k, half in enumerate(halves):
+        with m.step(f"{title}: pins, left, {'front' if k == 0 else 'back'}"):
+            for a in half:
+                for h in (1, 3):
+                    _put(m, "6558", pin, (x + a + h, y + 1.5, zc))
     for k, row in enumerate(ROWS[length]):
         with m.step(f"{title}: beams, row {k + 1}"):
             first = 1
@@ -68,20 +77,12 @@ def build(
                     ON_EDGE,
                 )
                 first += n
-    with m.step(f"{title}: bricks, right"):
-        for a in range(0, length, 4):
-            m.add("3701", color, at=(x + a, y + 3, z), rot=1)
-    # Pins from the left through the bricks' outer holes, from the right through their middle ones.
-    starts = range(0, length, 4)
-    halves = (starts[: len(starts) // 2], starts[len(starts) // 2 :])
-    for k, half in enumerate(halves):
-        with m.step(f"{title}: pins, left, {'front' if k == 0 else 'back'}"):
-            for a in half:
-                for h in (1, 3):
-                    _put(m, "6558", pin, (x + a + h, y + 1.5, zc))
     with m.step(f"{title}: pins, right"):
         for a in starts:
             _put(m, "6558", pin, (x + a + 2, y + 2.5, zc))
+    with m.step(f"{title}: bricks, right"):
+        for a in range(0, length, 4):
+            m.add("3701", color, at=(x + a, y + 3, z), rot=1)
     if floor is None:
         return z + 3
     with m.step(f"{title}: floor"):

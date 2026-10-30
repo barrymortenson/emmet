@@ -36,11 +36,13 @@ def build(m, x, y, z, color="Yellow", trim="Black", fairing="Yellow", title="Sle
                     m.add("3710", trim, at=(x, side, z + h + 3 + k), rot=1)
                 m.add("3710", trim, at=(x + 3, y + 1, z + h + 3 + k), rot=0)
     with m.step(f"{title}: side panels"):
-        m.add("3031", color, at=(x, y - 0.4, z), rot=LEFT)
-        m.add("3031", color, at=(x, y + 6, z), rot=RIGHT)
+        # Half a plate up: the side studs are 1.75 plates above each brick's bottom, the plate's anti-studs 1.25 from
+        # its edge.
+        m.add("3031", color, at=(x, y - 0.4, z + 0.5), rot=LEFT)
+        m.add("3031", color, at=(x, y + 6, z + 0.5), rot=RIGHT)
         for k in range(2):
-            m.add("87079", color, at=(x, y - 0.8, z + 5 * k), rot=LEFT)
-            m.add("87079", color, at=(x, y + 6.4, z + 5 * k), rot=RIGHT)
+            m.add("87079", color, at=(x, y - 0.8, z + 0.5 + 5 * k), rot=LEFT)
+            m.add("87079", color, at=(x, y + 6.4, z + 0.5 + 5 * k), rot=RIGHT)
     with m.step(f"{title}: fairing"):
         m.add("3032", fairing, at=(x, y, z + 10), rot=0)
         for k in range(3):
