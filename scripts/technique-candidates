@@ -69,6 +69,9 @@ try {
   rmSync(work, { recursive: true, force: true });
 }
 
+// Batches 1 to 5 were session 3C's (H-22); later ones are 3D's, from all of Barry's instruction books (H-26).
+const later = Number(batch.replace(/\D/g, "")) >= 6;
+const [session, step] = later ? ["3D", "H-26"] : ["3C", "H-22"];
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
 const card = (c, i) => {
   const m = matches[c.name];
@@ -142,7 +145,7 @@ const html = `<!doctype html>
 <body>
 <header>
   <h1>Technique candidates: ${esc(batch)}</h1>
-  <p>${candidates.length} candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
+  <p>${candidates.length} candidates for Emmet's technique library (session ${session}, ${step}). Each was found in your instruction
   books and ranked by how widely official models in the LDraw OMR join its key parts (${setCount} sets mined). Each
   picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
   the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
