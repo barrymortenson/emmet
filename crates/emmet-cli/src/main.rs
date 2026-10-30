@@ -702,18 +702,12 @@ fn main() -> ExitCode {
             Output::from(emmet_core::technique::techniques(name.as_deref())),
             mcp::technique_text,
         ),
-        Command::Guide { name } => {
-            let build = match name {
-                Some(_) => None,
-                None => Project::find(cli.project.as_deref()).ok().map(|p| p.config.build),
-            };
-            finish(
-                &cli,
-                started,
-                Output::from(guide::guides(name.as_deref(), build.as_ref())),
-                guide::text,
-            )
-        }
+        Command::Guide { name } => finish(
+            &cli,
+            started,
+            Output::from(guide::answer(name.as_deref(), cli.project.as_deref())),
+            guide::text,
+        ),
         Command::Eval {
             rung,
             agent,

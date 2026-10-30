@@ -63,7 +63,8 @@ fn a_guide_answers_to_its_other_names() {
 }
 
 /// With no name, `guide` reads the project's `[build]`: its scale's and style's guides, figure scale's when no scale
-/// is set; a style in the user's own words gets a note and the list; no settings get the list and what to do.
+/// is set; a scale or style in the user's own words (a scale's name given as the style, say) gets a note and the list;
+/// no settings get the list and what to do.
 #[test]
 fn with_no_name_it_gives_the_guides_for_the_build_settings() {
     let dir = temp_dir("guide-build").join("p");
@@ -105,6 +106,20 @@ fn with_no_name_it_gives_the_guides_for_the_build_settings() {
     // With no scale set, it's figure scale (the doctrine's default), so that guide comes too.
     let (names, _) = with("[build]\nstyle = \"Blocky\"\n");
     assert_eq!(names, "figure-scale blocky");
+    // A blank scale is no scale; a style that names a scale isn't a style, so it doesn't bring a second scale's guide.
+    let (names, v) = with("[build]\nscale = \"  \"\nstyle = \"minifig\"\n");
+    assert_eq!(names, "figure-scale");
+    assert!(v["data"]["note"].as_str().unwrap().contains("\"minifig\""), "{v:#}");
+    let (names, v) = with("[build]\nscale = \"Dollhouse\"\nstyle = \"Blocky\"\n");
+    assert_eq!(names, "blocky");
+    assert!(
+        v["data"]["note"].as_str().unwrap().contains("scale \"Dollhouse\""),
+        "{v:#}"
+    );
+    // A blank name is no name.
+    let (v, code) = emmet_in(&dir, &["guide", " "]);
+    assert_eq!(code, 0, "{v:#}");
+    assert_eq!(v["data"]["guides"][0]["name"], "blocky", "{v:#}");
     let (names, v) = with("");
     assert_eq!(names, "figure-scale");
     assert!(
@@ -139,4 +154,72 @@ fn every_technique_a_guide_names_exists() {
             "the {name} guide names techniques that don't exist: {missing:?}"
         );
     }
+}
+
+/// A project whose emmet.toml can't be read is an error, never a quiet "no scale or style is set": the agent reads the
+/// guide before its first draft and would build at the wrong scale.
+#[test]
+fn a_project_that_cant_be_read_is_an_error() {
+    let dir = temp_dir("guide-broken").join("p");
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(shared_data())
+        .args(["new", "--template", "empty"])
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{}", text(&out));
+    let toml = std::fs::read_to_string(dir.join("emmet.toml")).unwrap();
+    std::fs::write(dir.join("emmet.toml"), format!("{toml}\n[build]\nscale = [oops\n")).unwrap();
+    let (v, code) = emmet_in(&dir, &["guide"]);
+    assert_ne!(code, 0, "{v:#}");
+    assert_eq!(v["ok"], false, "{v:#}");
+    // A folder named with --project that isn't a project is an error too.
+    let (v, code) = emmet_in(&temp_dir("guide-nowhere"), &["guide"]);
+    assert_ne!(code, 0, "{v:#}");
+    assert_eq!(v["error"]["code"], "PROJECT_NOT_FOUND", "{v:#}");
+    // A name still answers, whatever the project.
+    let (v, code) = emmet_in(&dir, &["guide", "micro"]);
+    assert_eq!(code, 0, "{v:#}");
+}
+
+/// Each guide file is a `# Title` line, an `Also:` line, then its text, and no name answers to two guides: `find`
+/// takes the first match, so a clash would send one guide's readers to the other without a word.
+#[test]
+fn every_guide_file_has_a_title_and_names_no_other_guide_answers_to() {
+    let key = |s: &str| -> String {
+        s.chars()
+            .filter(char::is_ascii_alphanumeric)
+            .map(|c| c.to_ascii_lowercase())
+            .collect()
+    };
+    let dir = repo().join("crates/emmet-cli/doctrine/guides");
+    let mut owner: std::collections::BTreeMap<String, String> = Default::default();
+    let mut files = 0;
+    for e in std::fs::read_dir(&dir).unwrap() {
+        let path = e.unwrap().path();
+        let stem = path.file_stem().unwrap().to_string_lossy().into_owned();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let mut lines = text.lines();
+        assert!(
+            lines.next().unwrap_or("").starts_with("# "),
+            "{stem}.md: line 1 isn't '# Title'"
+        );
+        let also = lines
+            .next()
+            .unwrap_or("")
+            .strip_prefix("Also: ")
+            .unwrap_or_else(|| panic!("{stem}.md: line 2 isn't 'Also: ...'"));
+        assert!(
+            !lines.any(|l| l.starts_with("Also: ")),
+            "{stem}.md: a second 'Also:' line"
+        );
+        for name in std::iter::once(stem.as_str()).chain(also.split(',').map(str::trim)) {
+            if let Some(other) = owner.insert(key(name), stem.clone()) {
+                assert_eq!(other, stem, "'{name}' answers to both {other} and {stem}");
+            }
+        }
+        files += 1;
+    }
+    assert_eq!(files, 19);
 }

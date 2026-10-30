@@ -1,6 +1,6 @@
 {
   "name": "guide",
-  "description": "The build guide: the rules for a scale (micro, figure scale, car 1:8, …) or a style (town, blocky, video game,\n…): proportions, parts, and which techniques to use. With no name, the guides for the project's build settings.\nRead it before the first draft, and again when the build settings change.",
+  "description": "The build guide: the rules for a scale (micro, figure scale, car 1:8, …), a style (town, blocky, video game, …),\nor a subject (vehicles, interiors, landscaping): proportions, parts, and which techniques to use. With no name,\nthe guides for the project's build settings. Read it before the first draft, and again when the build settings\nchange.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
@@ -128,7 +128,7 @@
         "type": "object"
       },
       "Guides": {
-        "description": "The guides asked for (by name, or the project's scale and style), and the list of every guide when nothing named\none.",
+        "description": "The guides asked for (by name, or for the project's scale and style), and the list of every guide when the settings\nleave something to choose: none set, or one in the user's own words.",
         "properties": {
           "guides": {
             "items": {
@@ -144,7 +144,7 @@
             "type": "array"
           },
           "note": {
-            "description": "What to do about the settings no guide covers: none set, or a style in the user's own words.",
+            "description": "What to do about the settings no guide covers: none set, or a scale or style in the user's own words.",
             "type": [
               "string",
               "null"

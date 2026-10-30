@@ -6,7 +6,7 @@
 use std::path::Path;
 
 use emmet_it::schema::validate;
-use emmet_it::{emmet, emmet_bin, isolate, project, redact, repo, shared_data, temp_dir};
+use emmet_it::{emmet, emmet_bin, emmet_json, isolate, project, redact, repo, shared_data, temp_dir};
 use rmcp::ServiceExt;
 use rmcp::model::{CallToolRequestParams, CallToolResult};
 use rmcp::service::RunningService;
@@ -497,6 +497,16 @@ async fn guide_tool() {
     assert!(!c.is_error, "{}", c.envelope);
     assert_eq!(c.envelope["data"]["guides"][0]["name"], "blocky");
     assert!(c.text.starts_with("# Blocky"), "{}", c.text);
+    // In a project, the guides for its build settings.
+    let dir = temp_dir("mcp-guide").join("p");
+    let (v, code) = emmet_json(&["new", "--template", "empty", dir.to_str().unwrap()]);
+    assert_eq!(code, 0, "{v}");
+    let toml = std::fs::read_to_string(dir.join("emmet.toml")).unwrap();
+    std::fs::write(dir.join("emmet.toml"), format!("{toml}\n[build]\nscale = \"Micro\"\n")).unwrap();
+    let inside = connect(Some(&dir)).await;
+    let c = inside.call("guide", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["guides"][0]["name"], "micro", "{}", c.envelope);
     let c = client.call("guide", json!({ "name": "blockey" })).await;
     assert!(c.is_error);
     assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");

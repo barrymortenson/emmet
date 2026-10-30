@@ -587,17 +587,14 @@ impl EmmetMcp {
         result(started, out, RunMeta::default(), None, technique_text)
     }
 
-    /// The build guide: the rules for a scale (micro, figure scale, car 1:8, …) or a style (town, blocky, video game,
-    /// …): proportions, parts, and which techniques to use. With no name, the guides for the project's build settings.
-    /// Read it before the first draft, and again when the build settings change.
+    /// The build guide: the rules for a scale (micro, figure scale, car 1:8, …), a style (town, blocky, video game, …),
+    /// or a subject (vehicles, interiors, landscaping): proportions, parts, and which techniques to use. With no name,
+    /// the guides for the project's build settings. Read it before the first draft, and again when the build settings
+    /// change.
     #[tool(output_schema = schema_for_output::<Envelope<crate::guide::Guides>>())]
     async fn guide(&self, Parameters(args): Parameters<GuideArgs>) -> CallToolResult {
         let started = Instant::now();
-        let out = match args.name.as_deref() {
-            Some(name) => crate::guide::guides(Some(name), None),
-            // Outside a project there are no build settings: the list, and what to do.
-            None => crate::guide::guides(None, self.find_project().ok().map(|p| p.config.build).as_ref()),
-        };
+        let out = crate::guide::answer(args.name.as_deref(), self.project.as_deref());
         result(started, out, RunMeta::default(), None, crate::guide::text)
     }
 

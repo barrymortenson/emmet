@@ -8,9 +8,11 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use emmet_core::envelope::{Error, ErrorCode, Result};
-use emmet_core::project::BuildConfig;
+use std::path::Path;
 
-/// Each guide: its name, whether it's a scale or a style, and its text.
+use emmet_core::project::{BuildConfig, Project};
+
+/// Each guide: its name, whether it's a scale, a style, or a subject, and its text.
 const GUIDES: &[(&str, Kind, &str)] = &[
     ("micro", Kind::Scale, include_str!("../doctrine/guides/micro.md")),
     (
@@ -76,6 +78,17 @@ pub enum Kind {
     Subject,
 }
 
+impl Kind {
+    /// The kind as the text output and the JSON name it.
+    fn word(self) -> &'static str {
+        match self {
+            Kind::Scale => "scale",
+            Kind::Style => "style",
+            Kind::Subject => "subject",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Summary {
     /// What `guide` takes.
@@ -94,8 +107,8 @@ pub struct Guide {
     pub text: String,
 }
 
-/// The guides asked for (by name, or the project's scale and style), and the list of every guide when nothing named
-/// one.
+/// The guides asked for (by name, or for the project's scale and style), and the list of every guide when the settings
+/// leave something to choose: none set, or one in the user's own words.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Guides {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -103,48 +116,77 @@ pub struct Guides {
     /// Every guide, when `guides` doesn't cover what the project asks for.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub list: Vec<Summary>,
-    /// What to do about the settings no guide covers: none set, or a style in the user's own words.
+    /// What to do about the settings no guide covers: none set, or a scale or style in the user's own words.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }
 
-/// One guide by name (any of the names its `Also:` line gives), or the guides for a project's build settings.
-pub fn guides(name: Option<&str>, build: Option<&BuildConfig>) -> Result<Guides> {
-    if let Some(name) = name {
-        let Some(g) = find(name) else {
-            let mut close: Vec<(usize, &str)> = GUIDES
-                .iter()
-                .map(|(n, _, _)| (emmet_core::text::edit_distance(&key(name), &key(n)), *n))
-                .collect();
-            close.sort();
-            let names: Vec<String> = close.iter().take(3).map(|(_, n)| format!("'{n}'")).collect();
-            return Err(Error::new(
-                ErrorCode::ParamInvalid,
-                format!("There's no guide '{name}'."),
-                format!(
-                    "Did you mean {}? emmet guide with no name lists them all.",
-                    names.join(", ")
-                ),
-            ));
-        };
-        return Ok(Guides {
-            guides: vec![g],
-            list: vec![],
-            note: None,
-        });
+/// What `emmet guide` and the MCP `guide` tool answer: the guide named (a blank name is no name), or the guides for
+/// the build settings of the project at `project` (or found from the current directory). Only a search from the current
+/// directory that finds no project means there are no settings; a project that can't be read is an error, never a
+/// quiet "nothing is set".
+pub fn answer(name: Option<&str>, project: Option<&Path>) -> Result<Guides> {
+    if let Some(name) = name.map(str::trim).filter(|n| !n.is_empty()) {
+        return named(name);
     }
+    let build = match Project::find(project) {
+        Ok(p) => Some(p.config.build),
+        Err(e) if e.code == ErrorCode::ProjectNotFound && project.is_none() => None,
+        Err(e) => return Err(e),
+    };
+    Ok(for_build(build.as_ref()))
+}
+
+/// The guide with name `name` (or any of the names its `Also:` line gives), of any kind.
+pub fn named(name: &str) -> Result<Guides> {
+    let Some(g) = find(name, &[Kind::Scale, Kind::Style, Kind::Subject]) else {
+        let mut close: Vec<(usize, &str)> = GUIDES
+            .iter()
+            .map(|(n, _, _)| (emmet_core::text::edit_distance(&key(name), &key(n)), *n))
+            .collect();
+        close.sort();
+        let names: Vec<String> = close.iter().take(3).map(|(_, n)| format!("'{n}'")).collect();
+        return Err(Error::new(
+            ErrorCode::ParamInvalid,
+            format!("There's no guide '{name}'."),
+            format!(
+                "Did you mean {}? Every guide's name is in `guide`'s list (emmet guide outside a project).",
+                names.join(", ")
+            ),
+        ));
+    };
+    Ok(Guides {
+        guides: vec![g],
+        list: vec![],
+        note: None,
+    })
+}
+
+/// The guides for a project's build settings (`None`: no project): the scale's (figure scale's when none is set, the
+/// doctrine's default) and the style's. A setting no guide of its kind answers to is the user's own words: a note,
+/// and the list to choose from.
+pub fn for_build(build: Option<&BuildConfig>) -> Guides {
     let build = build.cloned().unwrap_or_default();
+    // A setting is set when it has something besides spaces in it; the app trims them, a hand edit may not.
+    let set = |v: &Option<String>| v.as_deref().map(str::trim).filter(|v| !v.is_empty()).map(String::from);
+    let (scale, style) = (set(&build.scale), set(&build.style));
     let mut out = Guides {
         guides: vec![],
         list: vec![],
         note: None,
     };
     let mut notes = vec![];
-    for (setting, value) in [("scale", &build.scale), ("style", &build.style)] {
-        let Some(value) = value.as_deref().map(str::trim).filter(|v| !v.is_empty()) else {
-            continue;
-        };
-        match find(value) {
+    if scale.is_none() {
+        out.guides
+            .push(find(DEFAULT_SCALE, &[Kind::Scale]).expect("the figure-scale guide"));
+    }
+    for (setting, value, kinds) in [
+        ("scale", &scale, &[Kind::Scale][..]),
+        ("style", &style, &[Kind::Style, Kind::Subject][..]),
+    ] {
+        let Some(value) = value else { continue };
+        match find(value, kinds) {
+            Some(g) if out.guides.iter().any(|h| h.name == g.name) => {}
             Some(g) => out.guides.push(g),
             None => notes.push(format!(
                 "The {setting} \"{value}\" is the user's own words: read the closest guides from the list (guide with \
@@ -152,13 +194,7 @@ pub fn guides(name: Option<&str>, build: Option<&BuildConfig>) -> Result<Guides>
             )),
         }
     }
-    if build.scale.is_none() {
-        // Any scale is figure scale unless the prompt names another (the doctrine's default), so its rules come along:
-        // the live check's blocky house read only the style's guide and left its baseplate bare.
-        out.guides
-            .insert(0, find("figure-scale").expect("the figure-scale guide"));
-    }
-    if build.scale.is_none() && build.style.is_none() {
+    if scale.is_none() && style.is_none() {
         notes.push(
             "No scale or style is set in emmet.toml's [build], so this is figure scale's guide. When the prompt names a \
              scale or style (\"a micro city\", \"blocky\", \"like a video game\"), call guide with it too."
@@ -169,8 +205,11 @@ pub fn guides(name: Option<&str>, build: Option<&BuildConfig>) -> Result<Guides>
         out.note = Some(notes.join(" "));
         out.list = list();
     }
-    Ok(out)
+    out
 }
+
+/// The scale the doctrine builds at when the settings and the prompt don't name one.
+const DEFAULT_SCALE: &str = "figure-scale";
 
 /// Every guide, by name, kind, and title.
 pub fn list() -> Vec<Summary> {
@@ -184,10 +223,12 @@ pub fn list() -> Vec<Summary> {
         .collect()
 }
 
-fn find(name: &str) -> Option<Guide> {
+/// The guide of one of `kinds` that answers to `name`.
+fn find(name: &str, kinds: &[Kind]) -> Option<Guide> {
     let want = key(name);
     GUIDES
         .iter()
+        .filter(|(_, kind, _)| kinds.contains(kind))
         .find(|(n, _, text)| key(n) == want || also(text).iter().any(|a| key(a) == want))
         .map(|(n, kind, text)| Guide {
             name: n.to_string(),
@@ -215,39 +256,35 @@ fn title(text: &str) -> String {
         .to_string()
 }
 
-/// The `Also:` line's names, comma-separated.
+/// The `Also:` line's names (the second line), comma-separated.
 fn also(text: &str) -> Vec<&str> {
     text.lines()
-        .find_map(|l| l.strip_prefix("Also: "))
+        .nth(1)
+        .and_then(|l| l.strip_prefix("Also: "))
         .map(|l| l.split(',').map(str::trim).filter(|s| !s.is_empty()).collect())
         .unwrap_or_default()
 }
 
-/// The guide without its `Also:` line.
+/// The guide without its `Also:` line (the second line).
 fn body(text: &str) -> String {
     text.lines()
-        .filter(|l| !l.starts_with("Also: "))
+        .enumerate()
+        .filter(|(i, l)| !(*i == 1 && l.starts_with("Also: ")))
+        .map(|(_, l)| l)
         .collect::<Vec<_>>()
         .join("\n")
         .trim()
         .to_string()
 }
 
-/// The guides as text: each in full, or the list, then the note.
+/// The guides as text: each in full, then the list, then the note.
 pub fn text(g: &Guides) -> String {
     let mut parts: Vec<String> = g.guides.iter().map(|g| g.text.clone()).collect();
     if !g.list.is_empty() {
         let lines: Vec<String> = g
             .list
             .iter()
-            .map(|s| {
-                let kind = match s.kind {
-                    Kind::Scale => "scale",
-                    Kind::Style => "style",
-                    Kind::Subject => "subject",
-                };
-                format!("{} ({kind}): {}", s.name, s.title)
-            })
+            .map(|s| format!("{} ({}): {}", s.name, s.kind.word(), s.title))
             .collect();
         parts.push(format!("Guides:\n{}", lines.join("\n")));
     }
