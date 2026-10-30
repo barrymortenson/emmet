@@ -33,7 +33,7 @@ import { AgentSetup } from "./Agents";
 import { LimitCard } from "./ChatGpt";
 import { Markdown } from "./markdown";
 import { editedFiles, effortName, fileCard, isEdit, isHidden, modelName, toolCard, doing, toolName } from "./summaries";
-import { AlertCard, Badge, Button, Choose, Icon, type IconName, Kbd, MenuItems, Resizable, Spinner, TextField } from "./ui";
+import { AlertCard, Badge, Button, Choose, Icon, IconButton, type IconName, Kbd, MenuItems, Resizable, Spinner, TextField } from "./ui";
 import { limitWarning, PlanBadge, until } from "./Usage";
 import { type Row, VirtualList } from "./virtual";
 
@@ -288,9 +288,11 @@ type Props = {
   onUndone: (saved: VersionView, who: string) => void;
   /** The agent the chat is with, for the keyboard map and Settings. */
   onAgent: (kind: AgentKind | null) => void;
+  /** Whether the agent is working (tips wait until it's done). */
+  onBusy: (busy: boolean) => void;
 };
 
-export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsChanged, context, onSettings, onUndone, onAgent }: Props) {
+export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsChanged, context, onSettings, onUndone, onAgent, onBusy }: Props) {
   const [chat, dispatch] = useReducer(reduce, empty);
   const [agents, setAgents] = useState<AgentView[] | null>(null);
   const [state, setState] = useState<ChatState | null>(null);
@@ -299,6 +301,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const [now, setNow] = useState(() => Date.now());
   const [undo, setUndo] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+  /** The latest line the user hid (until something newer comes). */
+  const [hiddenLine, setHiddenLine] = useState<string | null>(null);
   const [height, setHeight] = useState(() => Number(localStorage.getItem("emmet.history")) || 58);
   const [usage, setUsage] = useState<UsageSnapshot | null>(null);
   const [turns, setTurns] = useState(0);
@@ -361,6 +365,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
       w.__emmet = { ...(w.__emmet ?? {}), chatLatency: () => latency.current.slice() };
     }
   }, []);
+
+  useEffect(() => onBusy(chat.running), [chat.running, onBusy]);
 
   const pending = chat.items.find((i): i is Extract<Item, { k: "user" }> => i.k === "user" && !!i.note && i.delivered == null) ?? null;
   // The status's time, and a stuck redirect's "Stop and send now".
@@ -511,7 +517,9 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         }
       />
     );
-  } else if (buildError?.shown)
+    // A build that fails while the agent works is its own work in progress: it sees the error and goes on, and the
+    // panel says "Build failed". The card (Ask agent to fix) waits until the turn is over.
+  } else if (buildError?.shown && !chat.running)
     card = buildError.agent ? (
       <AlertCard
         tone="bad"
@@ -577,7 +585,27 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   // Only while History is open: every event would build the whole list again otherwise.
   const rows = useMemo(() => (open ? fold(openCard ? chat.items.slice(0, -1) : chat.items, kind ?? "claude", chat, actions) : []), [chat, kind, openCard, open]);
   // The latest line when nothing needs you: the last step or the agent's last words.
-  const lastLine = !card && last && ["tool", "file", "note", "agent", "thinking"].includes(last.k) && !(last.k === "tool" && !last.result) ? <Message item={last} who={kind ?? "claude"} chat={chat} actions={actions()} line /> : null;
+  // The latest line: while the agent works it's always there, so the dock (and the model above it) doesn't jump: the
+  // newest step, running or done, or the agent's latest words on one line; before the first, a step's worth of space.
+  const shownLine = [...chat.items].reverse().find((i) => ["tool", "file", "note", "agent", "thinking"].includes(i.k) && (chat.running || i === last));
+  const placeholder = (
+    <div className="tool-card" data-c="tool-card" aria-hidden="true" data-placeholder>
+      <div className="tool-card-row">
+        <Icon name="box" />
+        <span className="tool-card-title">&nbsp;</span>
+      </div>
+    </div>
+  );
+  const lastLine = card ? null : chat.running ? (
+    <>
+      {placeholder}
+      {shownLine && <Message item={shownLine} who={kind ?? "claude"} chat={chat} actions={actions()} line />}
+    </>
+  ) : shownLine && shownLine.key !== hiddenLine ? (
+    <LatestLine onAll={() => setOpen(true)} onHide={() => setHiddenLine(shownLine.key)}>
+      <Message item={shownLine} who={kind ?? "claude"} chat={chat} actions={actions()} line />
+    </LatestLine>
+  ) : null;
   // Said before the next turn: a Claude window at 90% or more, or an API key billing instead of the plan (D-35).
   const warning = chat.running ? null : (agent?.warning ?? (kind === "claude" ? limitWarning(chat.limits ?? usage) : null));
 
@@ -684,7 +712,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         </div>
       ) : (
         (lastLine || warning || problem) && (
-          <div className="dock-line" id="dock-line">
+          <div className="dock-line" id="dock-line" data-running={chat.running || undefined}>
             {warning ? (
               <p className="small" id="limit-warning">
                 {warning}
@@ -730,6 +758,28 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         </div>
       </div>
     </section>
+  );
+}
+
+/** The agent's latest words between turns: three lines at most, so the model stays in view, with Show all (History has
+ * the whole reply) and Hide. */
+function LatestLine({ children, onAll, onHide }: { children: ReactNode; onAll: () => void; onHide: () => void }) {
+  const box = useRef<HTMLDivElement | null>(null);
+  const [long, setLong] = useState(false);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (el) setLong(el.scrollHeight > el.clientHeight + 1);
+  });
+  return (
+    <div className="latest-line">
+      <div className="latest-line-text" ref={box}>
+        {children}
+      </div>
+      <div className="latest-line-actions">
+        {long && <Button label="Show all" variant="quiet" size="sm" id="line-all" onClick={onAll} />}
+        <IconButton icon="x" label="Hide" size="sm" id="line-hide" onClick={onHide} />
+      </div>
+    </div>
   );
 }
 

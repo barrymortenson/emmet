@@ -24,7 +24,11 @@ something the agents don't give, the app does the following. The side-by-sides i
 | A crash | Restart, Copy the details | The same; Copy the details copies the diagnostics | 6B's bundle comes later |
 | The agent's replies | Paragraphs and bold | Paragraphs, lists, bold, italics, and inline code; a code block folds to "Code · N lines" | No code on screen unless asked (law 2) |
 | Undo turn | The button | The button and ⌥⌘Z, then a toast: "Undid Claude's last turn. The model before is version 7." | Says where the replaced model went |
-| Tips | Not drawn | One at a time, at the top of the tab where it's useful (Tweaks, Checks, Parts), with Got it; each once per user | Section 14: the first knob, the first finding, the first export |
+| The latest line while the agent works | Shown, or not, as each step comes | Always there, one step's height: the newest step (running or done) or the agent's words on one line | The dock grew and shrank under the model as steps came and went (Barry 2026-10-30) |
+| The latest line between turns | The agent's last words | Three lines at most, with Show all (History has the rest) and Hide | A long reply hid the model (Barry 2026-10-30); the doctrine now ends a turn in two or three sentences |
+| A failed build during a turn | The failed-build card | The panel's "Build failed" only; the card (Ask agent to fix) when the turn is over | The agent sees the error and fixes it; the card hid its progress |
+| An error in the window | Not drawn | "Emmet's window stopped working", with Reload; in the dock, "The chat stopped working", with Try again | A fault never leaves the window blank |
+| Tips | Not drawn | One at a time, at the top of the tab where it's useful (Tweaks, Checks, Parts), with Got it; each once per user; none while the agent works | Section 14: the first knob, the first finding, the first export |
 
 ## Barry's yes
 

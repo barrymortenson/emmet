@@ -78,7 +78,7 @@ export function App() {
   const drawnAt = useRef(0);
   // The viewer's last error, for the E2E hooks (the state is for the window).
   const lastViewerError = useRef<string | null>(null);
-  const canvas = useRef<HTMLCanvasElement | null>(null);
+  const viewerBox = useRef<HTMLElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("options");
   const [step, setStep] = useState<number | null>(null);
@@ -99,6 +99,8 @@ export function App() {
   const [startupMs, setStartupMs] = useState<number | null>(null);
   // The chat: which agent it's with, and what the user sees, which goes with each message (4B).
   const [, setChatKind] = useState<AgentKind | null>(null);
+  /** The agent is working: a tip waits until it's done. */
+  const [agentBusy, setAgentBusy] = useState(false);
   const [agentsChanged, setAgentsChanged] = useState(0);
   const [agents, setAgents] = useState<AgentView[] | null>(null);
   /** A message for the chat ("Ask agent to fix", Rebuild, Make it parametric); `n` counts them, so one can go twice. */
@@ -129,10 +131,15 @@ export function App() {
     void commands.tipsSeen().then(setTipsSeen);
   }, []);
 
-  // The viewer lives as long as the window.
+  // The viewer lives as long as the window, on a canvas of its own: dispose() gives up the canvas's WebGL context, so
+  // an effect run twice (React's StrictMode in dev builds) must not draw on the same one again.
   useEffect(() => {
-    if (!canvas.current) return;
-    const v = createViewer(canvas.current, { partSource: library, theme });
+    const box = viewerBox.current;
+    if (!box) return;
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-label", "3D view of the model; the Steps and Parts tabs list its parts");
+    box.prepend(canvas);
+    const v = createViewer(canvas, { partSource: library, theme });
     viewer.current = v;
     if (__EMMET_TEST_HOOKS__) {
       // Merged: the chat pane adds its own hooks, and a child's effects run first.
@@ -161,6 +168,7 @@ export function App() {
     }
     return () => {
       v.dispose();
+      canvas.remove();
       viewer.current = null;
     };
     // Created once; the theme effect below keeps it current.
@@ -328,7 +336,7 @@ export function App() {
   const project = ui.project;
   // The one tip to teach now: on the tab where it's useful, the first time it is, and never two at once.
   const tip: TipId | null = (() => {
-    if (!tipsSeen || !project || !scene || firstRun) return null;
+    if (!tipsSeen || !project || !scene || firstRun || agentBusy) return null;
     const unseen = (t: TipId) => !tipsSeen.includes(t);
     if (tab === "checks" && unseen("finding") && (scene.checks?.findings.length ?? 0) > 0) return "finding";
     if (tab === "options" && unseen("knob") && scene.parts > 1 && !project.imported) return "knob";
@@ -575,8 +583,7 @@ export function App() {
           <div className="app-main">
             {!windows && titlebar}
             {banner}
-            <section className="viewer" data-c="viewer" aria-label={`3D view of ${name}`} id="viewer" tabIndex={-1}>
-              <canvas ref={canvas} aria-label="3D view of the model; the Steps and Parts tabs list its parts" />
+            <section className="viewer" data-c="viewer" aria-label={`3D view of ${name}`} id="viewer" tabIndex={-1} ref={viewerBox}>
               {compare && (
                 <div className="viewer-bar" role="status" id="version-bar">
                   <Icon name="rotate-ccw-clock" />
@@ -660,6 +667,7 @@ export function App() {
                 context={context}
                 onSettings={() => setDialog("settings")}
                 onAgent={setChatKind}
+                onBusy={setAgentBusy}
                 onUndone={(saved, who) => say(`Undid ${who}'s last turn. The model before is version ${saved.n}.`)}
               />
               </DockBoundary>

@@ -126,8 +126,9 @@ function deltaGroups(lines) {
 }
 
 /** What a replay doesn't need (--trim): the CLIs' streamed deltas (Claude Code's partial messages and Codex's delta
- * notifications; every message also arrives whole), Codex's hooks and turn diffs, the CLIs' stderr, the user's own
- * plugins and commands in Claude Code's init, images, and tool
+ * notifications; every message also arrives whole), Codex's hooks and turn diffs, Claude Code's system messages but
+ * init (status, thinking counts, and the user's own hooks), the CLIs' stderr, the user's own plugins and commands in
+ * Claude Code's init, thinking past its first 400 characters (and its signature), images, and tool
  * results and command output past their first 400 characters, since the fakes call Emmet's real tools again. */
 export function trim(lines) {
   const cut = (s) => (typeof s === "string" && s.length > 400 ? `${s.slice(0, 400)}…` : s);
@@ -137,12 +138,15 @@ export function trim(lines) {
     const m = l?.msg;
     if (l?.dir === "err") return true;
     if (!m || typeof m !== "object") return false;
+    if (m.type === "system" && m.subtype !== "init") return true;
     return m.type === "stream_event" || (typeof m.method === "string" && (/delta$/i.test(m.method) || m.method.startsWith("hook/") || m.method === "turn/diff/updated"));
   };
   return lines.filter((l) => !dropped(l)).map((l) => {
     const m = l?.msg;
     // Claude Code's init lists the user's own plugins, skills, agents, and commands: not the session's, and theirs.
     if (m?.type === "system" && m.subtype === "init") for (const k of ["plugins", "skills", "agents", "slash_commands"]) if (k in m) m[k] = [];
+    if (m?.type === "assistant" && Array.isArray(m.message?.content))
+      m.message.content = m.message.content.map((b) => (b?.type === "thinking" ? { type: "thinking", thinking: cut(b.thinking) } : b));
     if (m?.type === "user" && Array.isArray(m.message?.content)) {
       delete m.tool_use_result;
       m.message.content = m.message.content.map((b) => (b?.type === "tool_result" ? { ...b, content: short(b.content) } : b));

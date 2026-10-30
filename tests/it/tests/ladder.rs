@@ -71,3 +71,17 @@ fn rung2_reference() {
         }
     }
 }
+
+/// Rung 2 as Barry's hand session in the app built it with Claude Code (4B, Done when 5): the project it left, which
+/// validates with no findings (the two step notes on the 9V switch it allowed stay allowed) and has 250 parts or more,
+/// as rung 2 asks. Its transcript replays in agent_claude.rs.
+#[test]
+fn rung2_from_the_hand_session_with_claude_code() {
+    let dir = emmet_it::project("rung2-claude");
+    let (v, code) = emmet_in(&dir, &["check"]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["clean"], true, "{v}");
+    let placements: Value =
+        serde_json::from_str(&std::fs::read_to_string(dir.join("build/placements.json")).unwrap()).unwrap();
+    assert!(placements["parts"].as_array().unwrap().len() >= 250);
+}

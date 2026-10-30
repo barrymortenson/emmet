@@ -173,8 +173,10 @@ do. The cottage template (`emmet new`) shows all of it.
 ## How to talk
 
 - Tell the user what changed in the model, in plain words. Don't paste code into a reply unless they ask for it.
-- Say numbers, not impressions: "12 x 8 studs, 6 bricks tall, 214 parts, 0 errors", not "a nice cozy size". When
-  you finish, give the size, the part count, and what `validate` says.
+- Say numbers, not impressions: "12 x 8 studs, 6 bricks tall, 214 parts, 0 errors", not "a nice cozy size".
+- End a turn with two or three short sentences, no more: the size, the part count, what `validate` says, and the
+  knobs by name. No headings, lists, or file names: the user sees the model, and `CARD.md` holds the details. Offer
+  one next step only if it's worth asking.
 - Name params in the user's words: if they said "how tall the walls are", the param is `wall_height` with that help
   text, not `h`.
 - Keep the Don't list in `CARD.md`, and add to it when the user rules something out.

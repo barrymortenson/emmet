@@ -58,6 +58,17 @@ body { position: relative; overflow: hidden; }
 .dock-history { gap: 0; }
 .dock-history > .virtual-row { display: flex; flex-direction: column; padding-bottom: var(--space-sm); }
 .dock-active > .notice, .dock-line > .notice, .dock-history-wrap > .notice { margin: 0; }
+/* While the agent works, the latest line keeps one line's height: the dock doesn't grow and shrink under the model. */
+.dock-line[data-running] .message[data-from="agent"] p, .dock-line[data-running] .thought { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dock-line[data-running] .message[data-from="agent"] p + p, .dock-line[data-running] .message ul, .dock-line[data-running] .message ol, .dock-line[data-running] .md-code { display: none; }
+.dock-line[data-running] { display: grid; align-items: center; }
+.dock-line[data-running] > * { grid-area: 1 / 1; min-width: 0; }
+.dock-line[data-running] > .notice { grid-area: 2 / 1; }
+.dock-line .tool-card[data-placeholder] { visibility: hidden; }
+/* Between turns, the agent's latest words take three lines at most; History has the rest. */
+.latest-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--space-xs); }
+.latest-line-text { max-height: 3lh; overflow: hidden; }
+.latest-line-actions { display: flex; align-items: center; gap: var(--space-3xs); }
 .select-row { display: grid; gap: var(--space-3xs); }
 .dock-fix { display: grid; gap: var(--space-xs); justify-items: start; }
 .dock-fix > .agent-setup { justify-self: stretch; }

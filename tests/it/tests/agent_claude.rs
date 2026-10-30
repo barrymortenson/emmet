@@ -810,3 +810,31 @@ fn rung1_from_a_live_run_builds_the_cottage() {
         serde_json::from_str(&std::fs::read_to_string(rig.project.join("build/placements.json")).unwrap()).unwrap();
     assert!(placements["parts"].as_array().unwrap().len() >= 40);
 }
+
+/// Rung 2 from Barry's hand session in the app (4B, Done when 5), scrubbed and trimmed, replays through Emmet's real
+/// tools to the end of the turn. Claude Code made most of its edits with shell commands in its sandbox, which a replay
+/// can't run, so the model it left is checked as a project of its own (ladder.rs).
+#[test]
+fn rung2_from_barrys_session_replays() {
+    let rig = Rig::new("claude-rung2", "claude", "rung2");
+    rig.from_empty_template();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Build a small train station next to a loop of track (rung 2)."))
+        .unwrap();
+    let mut events = ev.turn();
+    while !events.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+        events.extend(ev.turn());
+    }
+    s.close();
+    assert!(events.iter().any(|e| matches!(
+        e,
+        AgentEvent::TurnDone {
+            reason: DoneReason::Completed
+        }
+    )));
+    let runs = events
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::ToolCall { name, .. } if name == "mcp__emmet__run_model"))
+        .count();
+    assert!(runs >= 3, "it built in stages: {runs} runs");
+}

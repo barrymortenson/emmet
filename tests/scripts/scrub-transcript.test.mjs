@@ -211,7 +211,9 @@ test("--trim leaves out what a replay doesn't need, and keeps what it does", () 
   const input = [
     { dir: "out", msg: { type: "system", subtype: "init", session_id: "s1", model: "m", plugins: [{ name: "mine" }], slash_commands: ["mine"], tools: ["Read"] } },
     delta(0, "text", "Hello"),
-    { dir: "out", msg: { type: "assistant", message: { id: "msg_1", content: [{ type: "text", text: "Hello" }] } } },
+    { dir: "out", msg: { type: "system", subtype: "thinking_tokens", estimated_tokens: 50 } },
+    { dir: "out", msg: { type: "system", subtype: "hook_started", hook: "mine" } },
+    { dir: "out", msg: { type: "assistant", message: { id: "msg_1", content: [{ type: "thinking", thinking: big, signature: big }, { type: "text", text: "Hello" }] } } },
     { dir: "out", msg: { type: "user", tool_use_result: big, message: { content: [{ type: "tool_result", tool_use_id: "t1", content: [{ type: "text", text: big }, { type: "image", source: { data: big } }] }] } } },
     { dir: "out", msg: { method: "item/agentMessage/delta", params: { itemId: "i1", delta: "Hi" } } },
     { dir: "out", msg: { method: "hook/started", params: {} } },
@@ -224,7 +226,9 @@ test("--trim leaves out what a replay doesn't need, and keeps what it does", () 
   const kept = r.lines;
   assert.deepEqual(kept.map((l) => l.msg.type ?? l.msg.method), ["system", "assistant", "user", "item/completed", "user"]);
   assert.deepEqual([kept[0].msg.plugins, kept[0].msg.slash_commands, kept[0].msg.tools], [[], [], ["Read"]]);
-  assert.equal(kept[1].msg.message.content[0].text, "Hello");
+  assert.equal(kept[1].msg.message.content[1].text, "Hello");
+  assert.ok(kept[1].msg.message.content[0].thinking.length < 500);
+  assert.equal(kept[1].msg.message.content[0].signature, undefined);
   const result = kept[2].msg.message.content[0].content;
   assert.equal(result.length, 1, "the image is gone");
   assert.ok(result[0].text.length < 500);
