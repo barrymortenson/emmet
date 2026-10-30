@@ -209,3 +209,17 @@
 85080    # rounded_car_end
 93606    # cab_over_sleeper
 98282    # car_wheels
+
+# Session 3D, batch-14's techniques
+11476    # hang_on_side_panel
+2730    # technic_brick_ring_chassis
+2819    # dashboard_and_wheel
+32278    # liftarm_ladder_frame
+32523    # steering_rack
+3455    # inverted_arch_wheel_well
+3703    # technic_brick_ring_chassis
+42022    # fender_crown
+4519    # dashboard_and_wheel
+64179    # liftarm_ladder_frame
+6558    # beam_spine_floor
+6630    # steering_rack

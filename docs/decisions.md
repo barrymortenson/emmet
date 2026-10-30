@@ -566,3 +566,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   rounded_car_end, window_band, shipping_container, lift_off_window_cab, vintage_chassis, vintage_radiator, street_cart,
   four_wide_car, offroad_fender_flare, glass_box_cab. car_wheels puts car rims and tires on flush pins inside mudguard
   arches at the body's sides, not on the plate with hanging wheel pins that 3C's rejected wheel_axle used.
+- **H-26, batch 14 (vehicles at large scale): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-14.html`): large_display_wheel, technic_brick_ring_chassis, liftarm_ladder_frame,
+  beam_spine_floor, hang_on_side_panel, rolled_sill, fender_crown, inverted_arch_wheel_well, tapered_deck, canopy_hump,
+  front_hinged_hood, dashboard_and_wheel, pleated_seat, round_tail_light_cluster, ring_light_grille, side_vent_grille,
+  flared_exhaust, steering_rack, removable_soft_top, engine_bay_greebles. removable_soft_top and engine_bay_greebles
+  stand in for a wishbone suspension and a V engine, whose parts (5294, 2909/2910, 2853a/2854) have no connector data
+  yet; front_hinged_hood was "front_hinged_bonnet" until the US English sweep.
