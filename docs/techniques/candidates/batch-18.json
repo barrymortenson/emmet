@@ -1,0 +1,541 @@
+[
+ {
+  "name": "stave_cylinder",
+  "title": "A smooth round column about 6 studs across, four staves of curved slopes clipped round a core with studs on all four sides.",
+  "why": "A big smooth round column, rocket stage, tank, or silo 6 studs across, where round bricks are too small and a brick-built polygon too jagged.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "units",
+   "color",
+   "core",
+   "band",
+   "band_every"
+  ],
+  "books": [
+   "set 10341: 6551135 p280-311"
+  ],
+  "signature": [
+   "4733",
+   "11211",
+   "11477"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The core is fixed at 4 x 4, so the section is 6.4 studs across; 8 to 12 needs wider staves (61678 4 x 1 curved slopes) and reads squarer. Side studs sit 1.75 plates up a brick, so the staves stand half a plate above the core.",
+  "view": "iso"
+ },
+ {
+  "name": "stepped_curve_hull",
+  "title": "A hull side that curves in as it rises, a contour stack of plate layers each set in from the one below, every layer's edge finished with a curved slope so the steps read as one smooth sweep.",
+  "why": "A display hull's shoulder or a curved upper deck that should read as one smooth curve, not stair steps.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "steps",
+   "facing",
+   "color"
+  ],
+  "books": [
+   "set 10356: 6678354 p61-71, p21-40"
+  ],
+  "signature": [
+   "61678",
+   "11477",
+   "50950"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Builds only the convex half (curving in as it rises); the book's S-curve also turns vertical on side-stud bricks and hinges its upper part, which this doesn't.",
+  "view": "iso"
+ },
+ {
+  "name": "bare_stud_greeble",
+  "title": "A hull surface tiled about 70 percent smooth, with small irregular patches of bare studs and a few dark seams, so it reads as busy plating with no greebles bolted on.",
+  "why": "Any big flat surface of a display ship or station, so it reads as busy plating with no bolted-on greebles.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "bare",
+   "seed",
+   "color",
+   "seam",
+   "seams"
+  ],
+  "books": [
+   "set 10356: 6650777 p121-177, p213-218",
+   "set 10356: 6678354 p61-80"
+  ],
+  "signature": [
+   "87079",
+   "3068b",
+   "3069b"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of greeble_strip: an area version, tiles and seeded bare patches on top studs instead of details on side studs.",
+  "view": "iso"
+ },
+ {
+  "name": "porthole_band",
+  "title": "A clean, smooth band along a ship's side, with a row of round portholes set flush in it.",
+  "why": "A clean white band of round portholes on a ship's upper hull, above the dark lower courses.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "spacing",
+   "facing",
+   "color",
+   "glass"
+  ],
+  "books": [
+   "set 10335: 6541881 p132-141"
+  ],
+  "signature": [
+   "11211",
+   "87087",
+   "98138"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of portholes: round tiles flush in a band of tiles on side studs, instead of Technic bricks in the course.",
+  "view": "iso"
+ },
+ {
+  "name": "saucer_petal_panels",
+  "title": "A round disc 12 studs across whose top is broken into tiled panels with radial seams and a few bare patches, like the plating of a display saucer, round a small domed hub.",
+  "why": "The top of a saucer or any round flat deck, panelled with radial seams and a few bare patches round a hub dome.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "bare",
+   "seed",
+   "color",
+   "seam",
+   "seams",
+   "hub"
+  ],
+  "books": [
+   "set 10356: 6650777 p121-177, p201-203"
+  ],
+  "signature": [
+   "6003",
+   "60474",
+   "87079"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Grid-friendly fallback: four 6 x 6 plates with a round corner make the disc and radial tiling makes the petals; the book's wedge-plate petals tilted a few degrees on hinges aren't built.",
+  "view": "iso"
+ },
+ {
+  "name": "radial_spoke_saucer",
+  "title": "The frame of a big flat disc that stays rigid without a baseplate, eight spliced spokes of plates from a hub, with a lit window block at the tip of each straight spoke.",
+  "why": "The rigid frame under a big flat disc (a saucer, a landing pad, a round deck) with lit window blocks at the rim.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "reach",
+   "color",
+   "rim",
+   "glass"
+  ],
+  "books": [
+   "set 10356: 6650777 p2-40, p81-100"
+  ],
+  "signature": [
+   "3795",
+   "3022",
+   "11211"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Four straight spliced spokes and four stepped diagonal ones; the book's eight true radial spokes need 45 degree turns.",
+  "view": "iso"
+ },
+ {
+  "name": "axle_round_stack",
+  "title": "A thin round booster, tank, or pole, 2 x 2 round bricks threaded on a Technic axle, with dark round plates as bands and a cone for a nose.",
+  "why": "Thin round boosters, tanks, masts, and poles up to 2 studs across that must stay straight.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "bricks",
+   "band_every",
+   "color",
+   "band",
+   "nose"
+  ],
+  "books": [
+   "set 10341: 6551135 p321-346",
+   "set 42221: 6621082 p123-131"
+  ],
+  "signature": [
+   "3941",
+   "4032a",
+   "3707"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The axle goes in its own step after the stack (slid down from the top before the nose). The validator accepted the axle through the round bricks' axle holes.",
+  "view": "iso"
+ },
+ {
+  "name": "angled_display_stand",
+  "title": "A low black stand that holds a model nose-up at 10 to 20 degrees on a cradle pinned to a short pylon, so the model looks in flight and lifts off.",
+  "why": "Every display ship or flyer: a low black stand that shows it nose-up in flight and lets it lift off.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "angle",
+   "length",
+   "ship",
+   "color"
+  ],
+  "books": [
+   "set 10356: 6678354 p162-180"
+  ],
+  "signature": [
+   "3700",
+   "3894",
+   "3705"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The cradle turns by any angle on a Technic axle 4 through the pylon; it's placed with a small helper that finds the footprint corner so the rail's middle hole lands on the axle, and the validator accepted the joint at 15 degrees. Simplified from the book: a plate cross with no wedge taper and no diagonal brace. The model goes in as a submodel (ship=).",
+  "view": "left"
+ },
+ {
+  "name": "lancet_window",
+  "title": "A row of tall round-headed Gothic windows at midi scale, each a 1-wide stack of glass centered on a jumper in a 2-stud bay, lit below and dark above, between stone piers.",
+  "why": "A Gothic nave or chapel wall at midi scale: rows of tall round-headed windows, lit below and dark above.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "bays",
+   "stone",
+   "sill",
+   "lit",
+   "dark",
+   "head"
+  ],
+  "books": [
+   "set 21061: 6634577 p126-127"
+  ],
+  "signature": [
+   "15573",
+   "49307",
+   "3005"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of window_frame (midi): a 1-wide window centered on a jumper in a 2-stud bay.",
+  "view": "iso"
+ },
+ {
+  "name": "rose_window_ring",
+  "title": "A big round window in a flat Gothic facade, a ring plate standing on side studs with colored glass flush in its hole, over a gallery of little columns and under a gable.",
+  "why": "The big round window in a Gothic west front or transept facade.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "stone",
+   "ring",
+   "glass"
+  ],
+  "books": [
+   "set 21061: 6634577 p177, p180, p212"
+  ],
+  "signature": [
+   "11833",
+   "30414",
+   "4740"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "A 2 x 2 dish stands in for the book's printed round tile, and a gable of 45 degree slopes for its inverted arch and 1 x 6 arch, which don't make a 4-wide round frame with the parts found.",
+  "view": "iso"
+ },
+ {
+  "name": "flying_buttress_arch",
+  "title": "A row of flying buttresses at midi scale, each an arch leaping from a slim outer pier to the nave wall, its back sloped up toward the wall and a pinnacle on the pier.",
+  "why": "Flying buttresses along a Gothic nave or round an apse, each with a pinnacle on its pier.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "count",
+   "spacing",
+   "height",
+   "stone"
+  ],
+  "books": [
+   "set 21061: 6634577 p92-97"
+  ],
+  "signature": [
+   "3659",
+   "3040b",
+   "4589"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "REPLACES flying_buttress_bar: the book leans a bar in clips at about 45 degrees; this grid version springs a 1 x 4 arch from the pier to the wall. VARIANT of buttress.",
+  "view": "iso"
+ },
+ {
+  "name": "pinnacle_stack",
+  "title": "Small pointed Gothic pinnacles, a stack of round plates under a cone and a slim spike, set in rows on buttresses and parapets so the roofline bristles.",
+  "why": "Rows of small pointed pinnacles on buttress tops and parapets, the bristling roofline of a Gothic building.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "count",
+   "spacing",
+   "axis",
+   "color",
+   "spike",
+   "finial"
+  ],
+  "books": [
+   "set 21061: 6634577 p273-276"
+  ],
+  "signature": [
+   "4589",
+   "6141",
+   "36752a"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's spike wasn't identified; a cone 1 x 1 with a wand in its hollow stud stands in, which the validator accepts as held.",
+  "view": "iso"
+ },
+ {
+  "name": "pointed_buttress_strip",
+  "title": "A slim stone pilaster with fine vertical ribs and a rounded head, standing a plate proud of a tower's face on side studs.",
+  "why": "Slim ribbed pilasters up the corners and faces of a Gothic tower.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "strip",
+   "head"
+  ],
+  "books": [
+   "set 21061: 6634577 p257"
+  ],
+  "signature": [
+   "78329",
+   "2412b",
+   "87087"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of buttress (flat, on side studs). The head is a 1 x 1 tile with a rounded end; the book's pointed piece wasn't identified.",
+  "view": "iso"
+ },
+ {
+  "name": "belfry_louvers",
+  "title": "The slatted openings of a bell tower, a column of bricks with studs on four sides whose side studs carry cheese slopes as slats, so each opening is filled with sloping louvers.",
+  "why": "The slatted openings of a bell tower or belfry, at midi scale.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "slats",
+   "faces",
+   "color"
+  ],
+  "books": [
+   "set 21061: 6634577 p257"
+  ],
+  "signature": [
+   "4733",
+   "54200"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "One slat per side stud; the book fits two cheese slopes per side per brick.",
+  "view": "iso"
+ },
+ {
+  "name": "steep_nave_roof",
+  "title": "A long steep roof of 45 degree slopes built apart as a submodel, its seams staggered course to course, with double slopes along the ridge, set on the walls so it lifts off to show the inside.",
+  "why": "A long steep slate roof that lifts off a nave, chapel, or hall to show its floor.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "width",
+   "color",
+   "gable",
+   "frame"
+  ],
+  "books": [
+   "set 21061: 6634577 p241-251, p88-91"
+  ],
+  "signature": [
+   "3037",
+   "3041",
+   "3043"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of gable_roof plus lift_off_roof_seat, built apart as a submodel; no cross-gable for a transept.",
+  "view": "iso"
+ },
+ {
+  "name": "slender_column_capital",
+  "title": "Rows of thin round columns in twin pairs, each pair joined at the top by a plate and a tile that read as the capital and the springing of the vault, for the inside of a midi-scale hall or nave.",
+  "why": "Rows of thin columns inside a hall or nave, carrying the vault.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "pairs",
+   "bay",
+   "height",
+   "color",
+   "capital",
+   "tiled"
+  ],
+  "books": [
+   "set 21061: 6634577 p47, p130"
+  ],
+  "signature": [
+   "3062b",
+   "6141",
+   "3069b"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "iso"
+ },
+ {
+  "name": "triangle_tile_floor",
+  "title": "A patterned stone floor of 2 x 2 triangular tiles in two colors, set so the triangles meet in diamonds and stars, for the floor of a hall or a cathedral at midi scale.",
+  "why": "A patterned stone floor of diamonds and stars inside a hall or cathedral.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "blocks",
+   "inner",
+   "outer",
+   "open_cells"
+  ],
+  "books": [
+   "set 21061: 6634577 p47, p126"
+  ],
+  "signature": [
+   "35787"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of tiled_floor. The triangular tile's body is 1.85 studs square, so each turn has its own seating offset (SEAT); two fit one 2 x 2 cell with no collision.",
+  "view": "iso"
+ },
+ {
+  "name": "banded_round_turret",
+  "title": "A slim round corner turret of 2 x 2 round bricks with a dark recessed ring and a slight lip every few bricks, the string courses of a midi-scale tower.",
+  "why": "Slim round corner turrets with string-course rings on a midi tower, castle, or civic building.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "bricks",
+   "band_every",
+   "color",
+   "band",
+   "roof"
+  ],
+  "books": [
+   "set 21067: 6661459 p144-145"
+  ],
+  "signature": [
+   "3941",
+   "6141",
+   "4032a"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of round_tower (small, banded).",
+  "view": "iso"
+ },
+ {
+  "name": "architecture_base",
+  "title": "The finished display base of an architecture model, a dark stepped frame round a tiled ground strip, with a long name tile set in the front edge and bare studs only where the model and its trees stand.",
+  "why": "The finished display base under any architecture or midi model: a stepped dark frame, a tiled ground, and a name tile.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "site",
+   "studs",
+   "ground",
+   "frame",
+   "step",
+   "name",
+   "name_length"
+  ],
+  "books": [
+   "set 21061: 6634577 p126, p276",
+   "set 21066: 6651557 p68-70",
+   "set 21067: 6661459 p16-33"
+  ],
+  "signature": [
+   "6636",
+   "3069b",
+   "3034"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The name tile is plain white; the sets use a printed black tile.",
+  "view": "iso"
+ },
+ {
+  "name": "rounded_pier_nose",
+  "title": "A bridge pier 4 studs wide whose ends are smooth half-rounds, quarter-round bricks round a round core, so the water parts round its nose.",
+  "why": "Bridge piers, harbor walls, or any wall end that should be smoothly half-round.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "courses",
+   "both",
+   "stone",
+   "core"
+  ],
+  "books": [
+   "set 21067: 6661459 p35-45"
+  ],
+  "signature": [
+   "3063b",
+   "3941",
+   "27925"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The cap is flat (quarter-round and round tiles); the book domes the nose with curved slopes.",
+  "view": "iso"
+ }
+]

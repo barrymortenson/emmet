@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-18</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-18</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-18/stave_cylinder.png" alt="A sketch of stave_cylinder" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>stave_cylinder</code></h2>
+    <p>A smooth round column about 6 studs across, four staves of curved slopes clipped round a core with studs on all four sides.</p>
+    <p class="why">A big smooth round column, rocket stage, tank, or silo 6 studs across, where round bricks are too small and a brick-built polygon too jagged.</p>
+    <p class="note"><b>Note:</b> The core is fixed at 4 x 4, so the section is 6.4 studs across; 8 to 12 needs wider staves (61678 4 x 1 curved slopes) and reads squarer. Side studs sit 1.75 plates up a brick, so the staves stand half a plate above the core.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>units</code>, <code>color</code>, <code>core</code>, <code>band</code>, <code>band_every</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 17 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/stave_cylinder.py"><code>batch-18/stave_cylinder.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10341: 6551135 p280-311</dd>
+      <dt>Key parts</dt><dd><code>4733</code> + <code>11211</code> + <code>11477</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for stave_cylinder">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for stave_cylinder">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-18/stepped_curve_hull.png" alt="A sketch of stepped_curve_hull" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>stepped_curve_hull</code></h2>
+    <p>A hull side that curves in as it rises, a contour stack of plate layers each set in from the one below, every layer's edge finished with a curved slope so the steps read as one smooth sweep.</p>
+    <p class="why">A display hull's shoulder or a curved upper deck that should read as one smooth curve, not stair steps.</p>
+    <p class="note"><b>Note:</b> Builds only the convex half (curving in as it rises); the book's S-curve also turns vertical on side-stud bricks and hinges its upper part, which this doesn't.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>steps</code>, <code>facing</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 21 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/stepped_curve_hull.py"><code>batch-18/stepped_curve_hull.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10356: 6678354 p61-71, p21-40</dd>
+      <dt>Key parts</dt><dd><code>61678</code> + <code>11477</code> + <code>50950</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for stepped_curve_hull">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for stepped_curve_hull">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-18/bare_stud_greeble.png" alt="A sketch of bare_stud_greeble" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>bare_stud_greeble</code></h2>
+    <p>A hull surface tiled about 70 percent smooth, with small irregular patches of bare studs and a few dark seams, so it reads as busy plating with no greebles bolted on.</p>
+    <p class="why">Any big flat surface of a display ship or station, so it reads as busy plating with no bolted-on greebles.</p>
+    <p class="note"><b>Note:</b> VARIANT of greeble_strip: an area version, tiles and seeded bare patches on top studs instead of details on side studs.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>bare</code>, <code>seed</code>, <code>color</code>, <code>seam</code>, <code>seams</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>13</b> of 1315 official sets (27 times); 114 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/bare_stud_greeble.py"><code>batch-18/bare_stud_greeble.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10356: 6650777 p121-177, p213-218; set 10356: 6678354 p61-80</dd>
+      <dt>Key parts</dt><dd><code>87079</code> + <code>3068b</code> + <code>3069b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bare_stud_greeble">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for bare_stud_greeble">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-18/porthole_band.png" alt="A sketch of porthole_band" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>porthole_band</code></h2>
+    <p>A clean, smooth band along a ship's side, with a row of round portholes set flush in it.</p>
+    <p class="why">A clean white band of round portholes on a ship's upper hull, above the dark lower courses.</p>
+    <p class="note"><b>Note:</b> VARIANT of portholes: round tiles flush in a band of tiles on side studs, instead of Technic bricks in the course.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>spacing</code>, <code>facing</code>, <code>color</code>, <code>glass</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 44 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/porthole_band.py"><code>batch-18/porthole_band.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10335: 6541881 p132-141</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>87087</code> + <code>98138</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for porthole_band">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for porthole_band">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-18/saucer_petal_panels.png" alt="A sketch of saucer_petal_panels" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>saucer_petal_panels</code></h2>
+    <p>A round disc 12 studs across whose top is broken into tiled panels with radial seams and a few bare patches, like the plating of a display saucer, round a small domed hub.</p>
+    <p class="why">The top of a saucer or any round flat deck, panelled with radial seams and a few bare patches round a hub dome.</p>
+    <p class="note"><b>Note:</b> Grid-friendly fallback: four 6 x 6 plates with a round corner make the disc and radial tiling makes the petals; the book's wedge-plate petals tilted a few degrees on hinges aren't built.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>bare</code>, <code>seed</code>, <code>color</code>, <code>seam</code>, <code>seams</code>, <code>hub</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/saucer_petal_panels.py"><code>batch-18/saucer_petal_panels.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10356: 6650777 p121-177, p201-203</dd>
+      <dt>Key parts</dt><dd><code>6003</code> + <code>60474</code> + <code>87079</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for saucer_petal_panels">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for saucer_petal_panels">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-18/radial_spoke_saucer.png" alt="A sketch of radial_spoke_saucer" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>radial_spoke_saucer</code></h2>
+    <p>The frame of a big flat disc that stays rigid without a baseplate, eight spliced spokes of plates from a hub, with a lit window block at the tip of each straight spoke.</p>
+    <p class="why">The rigid frame under a big flat disc (a saucer, a landing pad, a round deck) with lit window blocks at the rim.</p>
+    <p class="note"><b>Note:</b> Four straight spliced spokes and four stepped diagonal ones; the book's eight true radial spokes need 45 degree turns.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>reach</code>, <code>color</code>, <code>rim</code>, <code>glass</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>11</b> of 1315 official sets (12 times); 69 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76161 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10283 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10246 - Main model.ldr (Willy Tschager [Holly-Wood], Redistributable under CCAL version 2.0); FILE 21309 - main.ldr (Jaco van der Molen [Jaco], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/radial_spoke_saucer.py"><code>batch-18/radial_spoke_saucer.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10356: 6650777 p2-40, p81-100</dd>
+      <dt>Key parts</dt><dd><code>3795</code> + <code>3022</code> + <code>11211</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for radial_spoke_saucer">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for radial_spoke_saucer">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-18/axle_round_stack.png" alt="A sketch of axle_round_stack" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>axle_round_stack</code></h2>
+    <p>A thin round booster, tank, or pole, 2 x 2 round bricks threaded on a Technic axle, with dark round plates as bands and a cone for a nose.</p>
+    <p class="why">Thin round boosters, tanks, masts, and poles up to 2 studs across that must stay straight.</p>
+    <p class="note"><b>Note:</b> The axle goes in its own step after the stack (slid down from the top before the nose). The validator accepted the axle through the round bricks' axle holes.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>bricks</code>, <code>band_every</code>, <code>color</code>, <code>band</code>, <code>nose</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (15 times); 25 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 42131 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 8049 - Tractor with Log Loader.ldr (Tomas Kralicek [RabbiT_CZ], Redistributable under CCAL version 2.0); FILE 7191 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 75102 - Poe's X-Wing Fighter - main.ldr (Evert Jan Boer [ejboer], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/axle_round_stack.py"><code>batch-18/axle_round_stack.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10341: 6551135 p321-346; set 42221: 6621082 p123-131</dd>
+      <dt>Key parts</dt><dd><code>3941</code> + <code>4032a</code> + <code>3707</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for axle_round_stack">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for axle_round_stack">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-18/angled_display_stand.png" alt="A sketch of angled_display_stand" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>angled_display_stand</code></h2>
+    <p>A low black stand that holds a model nose-up at 10 to 20 degrees on a cradle pinned to a short pylon, so the model looks in flight and lifts off.</p>
+    <p class="why">Every display ship or flyer: a low black stand that shows it nose-up in flight and lets it lift off.</p>
+    <p class="note"><b>Note:</b> The cradle turns by any angle on a Technic axle 4 through the pylon; it's placed with a small helper that finds the footprint corner so the rail's middle hole lands on the axle, and the validator accepted the joint at 15 degrees. Simplified from the book: a plate cross with no wedge taper and no diagonal brace. The model goes in as a submodel (ship=).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>angle</code>, <code>length</code>, <code>ship</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>9</b> of 1315 official sets (11 times); 68 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 8856 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 5893 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 8859 - main.ldr (Allard van Efferen (rabbitdesign.nl), Redistributable under CCAL version 2.0); FILE 8855 - Prop Plane.ldr (Ignacio Fernandez Galvan [jellby], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/angled_display_stand.py"><code>batch-18/angled_display_stand.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10356: 6678354 p162-180</dd>
+      <dt>Key parts</dt><dd><code>3700</code> + <code>3894</code> + <code>3705</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for angled_display_stand">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for angled_display_stand">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-18/lancet_window.png" alt="A sketch of lancet_window" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>lancet_window</code></h2>
+    <p>A row of tall round-headed Gothic windows at midi scale, each a 1-wide stack of glass centered on a jumper in a 2-stud bay, lit below and dark above, between stone piers.</p>
+    <p class="why">A Gothic nave or chapel wall at midi scale: rows of tall round-headed windows, lit below and dark above.</p>
+    <p class="note"><b>Note:</b> VARIANT of window_frame (midi): a 1-wide window centered on a jumper in a 2-stud bay.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>bays</code>, <code>stone</code>, <code>sill</code>, <code>lit</code>, <code>dark</code>, <code>head</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 16 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/lancet_window.py"><code>batch-18/lancet_window.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p126-127</dd>
+      <dt>Key parts</dt><dd><code>15573</code> + <code>49307</code> + <code>3005</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lancet_window">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for lancet_window">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-18/rose_window_ring.png" alt="A sketch of rose_window_ring" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>rose_window_ring</code></h2>
+    <p>A big round window in a flat Gothic facade, a ring plate standing on side studs with colored glass flush in its hole, over a gallery of little columns and under a gable.</p>
+    <p class="why">The big round window in a Gothic west front or transept facade.</p>
+    <p class="note"><b>Note:</b> A 2 x 2 dish stands in for the book's printed round tile, and a gable of 45 degree slopes for its inverted arch and 1 x 6 arch, which don't make a 4-wide round frame with the parts found.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>stone</code>, <code>ring</code>, <code>glass</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 2 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/rose_window_ring.py"><code>batch-18/rose_window_ring.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p177, p180, p212</dd>
+      <dt>Key parts</dt><dd><code>11833</code> + <code>30414</code> + <code>4740</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rose_window_ring">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for rose_window_ring">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-18/flying_buttress_arch.png" alt="A sketch of flying_buttress_arch" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>flying_buttress_arch</code></h2>
+    <p>A row of flying buttresses at midi scale, each an arch leaping from a slim outer pier to the nave wall, its back sloped up toward the wall and a pinnacle on the pier.</p>
+    <p class="why">Flying buttresses along a Gothic nave or round an apse, each with a pinnacle on its pier.</p>
+    <p class="note"><b>Note:</b> REPLACES flying_buttress_bar: the book leans a bar in clips at about 45 degrees; this grid version springs a 1 x 4 arch from the pier to the wall. VARIANT of buttress.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>count</code>, <code>spacing</code>, <code>height</code>, <code>stone</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 6 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/flying_buttress_arch.py"><code>batch-18/flying_buttress_arch.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p92-97</dd>
+      <dt>Key parts</dt><dd><code>3659</code> + <code>3040b</code> + <code>4589</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for flying_buttress_arch">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for flying_buttress_arch">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-18/pinnacle_stack.png" alt="A sketch of pinnacle_stack" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>pinnacle_stack</code></h2>
+    <p>Small pointed Gothic pinnacles, a stack of round plates under a cone and a slim spike, set in rows on buttresses and parapets so the roofline bristles.</p>
+    <p class="why">Rows of small pointed pinnacles on buttress tops and parapets, the bristling roofline of a Gothic building.</p>
+    <p class="note"><b>Note:</b> The book's spike wasn't identified; a cone 1 x 1 with a wand in its hollow stud stands in, which the validator accepts as held.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>count</code>, <code>spacing</code>, <code>axis</code>, <code>color</code>, <code>spike</code>, <code>finial</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 36752a are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/pinnacle_stack.py"><code>batch-18/pinnacle_stack.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p273-276</dd>
+      <dt>Key parts</dt><dd><code>4589</code> + <code>6141</code> + <code>36752a</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for pinnacle_stack">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for pinnacle_stack">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-18/pointed_buttress_strip.png" alt="A sketch of pointed_buttress_strip" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>pointed_buttress_strip</code></h2>
+    <p>A slim stone pilaster with fine vertical ribs and a rounded head, standing a plate proud of a tower's face on side studs.</p>
+    <p class="why">Slim ribbed pilasters up the corners and faces of a Gothic tower.</p>
+    <p class="note"><b>Note:</b> VARIANT of buttress (flat, on side studs). The head is a 1 x 1 tile with a rounded end; the book's pointed piece wasn't identified.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>strip</code>, <code>head</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/pointed_buttress_strip.py"><code>batch-18/pointed_buttress_strip.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p257</dd>
+      <dt>Key parts</dt><dd><code>78329</code> + <code>2412b</code> + <code>87087</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for pointed_buttress_strip">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for pointed_buttress_strip">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-18/belfry_louvers.png" alt="A sketch of belfry_louvers" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>belfry_louvers</code></h2>
+    <p>The slatted openings of a bell tower, a column of bricks with studs on four sides whose side studs carry cheese slopes as slats, so each opening is filled with sloping louvers.</p>
+    <p class="why">The slatted openings of a bell tower or belfry, at midi scale.</p>
+    <p class="note"><b>Note:</b> One slat per side stud; the book fits two cheese slopes per side per brick.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>slats</code>, <code>faces</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>10</b> of 1315 official sets (12 times); 43 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10185 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0); FILE 21042 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/belfry_louvers.py"><code>batch-18/belfry_louvers.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p257</dd>
+      <dt>Key parts</dt><dd><code>4733</code> + <code>54200</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for belfry_louvers">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for belfry_louvers">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-18/steep_nave_roof.png" alt="A sketch of steep_nave_roof" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>steep_nave_roof</code></h2>
+    <p>A long steep roof of 45 degree slopes built apart as a submodel, its seams staggered course to course, with double slopes along the ridge, set on the walls so it lifts off to show the inside.</p>
+    <p class="why">A long steep slate roof that lifts off a nave, chapel, or hall to show its floor.</p>
+    <p class="note"><b>Note:</b> VARIANT of gable_roof plus lift_off_roof_seat, built apart as a submodel; no cross-gable for a transept.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>color</code>, <code>gable</code>, <code>frame</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1315 official sets (7 times); 6 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 4956 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 4886 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 6074 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 346-2 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/steep_nave_roof.py"><code>batch-18/steep_nave_roof.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p241-251, p88-91</dd>
+      <dt>Key parts</dt><dd><code>3037</code> + <code>3041</code> + <code>3043</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for steep_nave_roof">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for steep_nave_roof">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-18/slender_column_capital.png" alt="A sketch of slender_column_capital" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>slender_column_capital</code></h2>
+    <p>Rows of thin round columns in twin pairs, each pair joined at the top by a plate and a tile that read as the capital and the springing of the vault, for the inside of a midi-scale hall or nave.</p>
+    <p class="why">Rows of thin columns inside a hall or nave, carrying the vault.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>pairs</code>, <code>bay</code>, <code>height</code>, <code>color</code>, <code>capital</code>, <code>tiled</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>15</b> of 1315 official sets (29 times); 246 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 10182 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10232 - Main-model.ldr (Orion Pobursky [OrionP], Licensed under CC BY 4.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/slender_column_capital.py"><code>batch-18/slender_column_capital.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p47, p130</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>6141</code> + <code>3069b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for slender_column_capital">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for slender_column_capital">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-18/triangle_tile_floor.png" alt="A sketch of triangle_tile_floor" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>triangle_tile_floor</code></h2>
+    <p>A patterned stone floor of 2 x 2 triangular tiles in two colors, set so the triangles meet in diamonds and stars, for the floor of a hall or a cathedral at midi scale.</p>
+    <p class="why">A patterned stone floor of diamonds and stars inside a hall or cathedral.</p>
+    <p class="note"><b>Note:</b> VARIANT of tiled_floor. The triangular tile's body is 1.85 studs square, so each turn has its own seating offset (SEAT); two fit one 2 x 2 cell with no collision.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>blocks</code>, <code>inner</code>, <code>outer</code>, <code>open_cells</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>19</b> of 1315 official sets (117 times); 19 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/triangle_tile_floor.py"><code>batch-18/triangle_tile_floor.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p47, p126</dd>
+      <dt>Key parts</dt><dd><code>35787</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for triangle_tile_floor">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for triangle_tile_floor">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-18/banded_round_turret.png" alt="A sketch of banded_round_turret" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>banded_round_turret</code></h2>
+    <p>A slim round corner turret of 2 x 2 round bricks with a dark recessed ring and a slight lip every few bricks, the string courses of a midi-scale tower.</p>
+    <p class="why">Slim round corner turrets with string-course rings on a midi tower, castle, or civic building.</p>
+    <p class="note"><b>Note:</b> VARIANT of round_tower (small, banded).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>bricks</code>, <code>band_every</code>, <code>color</code>, <code>band</code>, <code>roof</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1315 official sets (10 times); 104 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 5571 - Giant Truck - Truck.ldr (Tim Singer [tsinger], Redistributable under CCAL version 2.0); FILE 3315 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 5973 - 5973.ldr (Massimo Maso [Sirio], Redistributable under CCAL version 2.0); FILE 5770 - main.ldr (Takeshi Takahashi [RainbowDolphin], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/banded_round_turret.py"><code>batch-18/banded_round_turret.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21067: 6661459 p144-145</dd>
+      <dt>Key parts</dt><dd><code>3941</code> + <code>6141</code> + <code>4032a</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for banded_round_turret">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for banded_round_turret">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-18/architecture_base.png" alt="A sketch of architecture_base" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>architecture_base</code></h2>
+    <p>The finished display base of an architecture model, a dark stepped frame round a tiled ground strip, with a long name tile set in the front edge and bare studs only where the model and its trees stand.</p>
+    <p class="why">The finished display base under any architecture or midi model: a stepped dark frame, a tiled ground, and a name tile.</p>
+    <p class="note"><b>Note:</b> The name tile is plain white; the sets use a printed black tile.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>site</code>, <code>studs</code>, <code>ground</code>, <code>frame</code>, <code>step</code>, <code>name</code>, <code>name_length</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>28</b> of 1315 official sets (41 times); 153 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-18/architecture_base.py"><code>batch-18/architecture_base.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21061: 6634577 p126, p276; set 21066: 6651557 p68-70; set 21067: 6661459 p16-33</dd>
+      <dt>Key parts</dt><dd><code>6636</code> + <code>3069b</code> + <code>3034</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for architecture_base">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for architecture_base">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-18/rounded_pier_nose.png" alt="A sketch of rounded_pier_nose" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>rounded_pier_nose</code></h2>
+    <p>A bridge pier 4 studs wide whose ends are smooth half-rounds, quarter-round bricks round a round core, so the water parts round its nose.</p>
+    <p class="why">Bridge piers, harbor walls, or any wall end that should be smoothly half-round.</p>
+    <p class="note"><b>Note:</b> The cap is flat (quarter-round and round tiles); the book domes the nose with curved slopes.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>courses</code>, <code>both</code>, <code>stone</code>, <code>core</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-18/rounded_pier_nose.py"><code>batch-18/rounded_pier_nose.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21067: 6661459 p35-45</dd>
+      <dt>Key parts</dt><dd><code>3063b</code> + <code>3941</code> + <code>27925</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rounded_pier_nose">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for rounded_pier_nose">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-18" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>
