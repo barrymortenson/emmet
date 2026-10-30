@@ -77,6 +77,8 @@ export function App() {
   const root = useRef<string | null>(null);
   /** When the last scene finished updating in the viewer (performance.now()), for the bench. */
   const drawnAt = useRef(0);
+  // The viewer's last error, for the E2E hooks (the state is for the window).
+  const lastViewerError = useRef<string | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("options");
@@ -132,6 +134,7 @@ export function App() {
         shown: () => shown.current,
         project: () => root.current,
         drawnAt: () => drawnAt.current,
+        viewerError: () => lastViewerError.current,
         // The app's part source, and a second viewer with an empty part cache (the bench's cold first loads; specs
         // that wrap the part source).
         library,
@@ -184,9 +187,11 @@ export function App() {
       await v.update(placements(scene), { animate: first ? "none" : animate });
       drawnAt.current = performance.now();
       const failed = Object.entries(v.stats().failed);
-      setViewerError(failed.length ? `Some parts can't be shown: ${failed.map(([id, why]) => `${id} (${why})`).join("; ")}` : null);
+      lastViewerError.current = failed.length ? `Some parts can't be shown: ${failed.map(([id, why]) => `${id} (${why})`).join("; ")}` : null;
+      setViewerError(lastViewerError.current);
     } catch (e) {
-      setViewerError(`The viewer couldn't show the model: ${e instanceof Error ? e.message : String(e)}`);
+      lastViewerError.current = `The viewer couldn't show the model: ${e instanceof Error ? e.message : String(e)}`;
+      setViewerError(lastViewerError.current);
       return;
     }
     if (at && framed.current !== at) {

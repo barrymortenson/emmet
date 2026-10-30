@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-7</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-7</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-7/bay_window.png" alt="A sketch of bay_window" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>bay_window</code></h2>
+    <p>A square bay that pushes three studs out of a wall, glazed on its front and both sides, under a lean-to roof.</p>
+    <p class="why">The single feature that gives a cottage front the most character: a glazed bay three studs out of the wall under its own little roof, with a plinth that continues the wainscot.</p>
+    <p class="note"><b>Note:</b> The square bay the research offers first (three faces at right angles); the books' angled faces need a 45 degree yaw. The floor and cap plates' back rows are plate courses in the wall line.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>plinth</code>, <code>color</code>, <code>trim</code>, <code>roof</code>, <code>wall</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 4 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/bay_window.py"><code>batch-7/bay_window.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p74, p167, p174, p190; set 43217: 6461326 p35-59</dd>
+      <dt>Key parts</dt><dd><code>60593</code> + <code>60602</code> + <code>14716</code> + <code>3039</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bay_window">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for bay_window">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-7/window_box.png" alt="A sketch of window_box" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>window_box</code></h2>
+    <p>A planter under a window, bricks with side studs hung from the sill plate, flowers on their studs.</p>
+    <p class="why">A planter of flowers under a cottage window; the books build one at every front window.</p>
+    <p class="note"><b>Note:</b> The box hangs under the sill plate (studs into its underside) instead of carrying a tile on top, so the sill plate is the box's top and the window stands on its back row. Blooms alternate with leaves, as tabbed blooms side by side would touch.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>flowers</code>, <code>leaves</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 11 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 31038 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-7/window_box.py"><code>batch-7/window_box.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43268: 6568841 p78; set 11387: 6672343 p45</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>33291</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for window_box">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for window_box">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-7/round_window.png" alt="A sketch of round_window" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>round_window</code></h2>
+    <p>A bull's-eye window, a round plate with a round hole and a round glass tile in it, on side studs.</p>
+    <p class="why">A bull's-eye window high in a gable or over a door; small, easy, and it breaks up a plain wall.</p>
+    <p class="note"><b>Note:</b> The books put a round tile or ring on a side stud; the ring plate with a round hole (11833) and the 2 x 2 round glass tile are my choice of parts. Four 22885 give a 4 x 4 grid of side studs at a true stud pitch.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>frame</code>, <code>glass</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/round_window.py"><code>batch-7/round_window.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: 6461326 p13; set 11387: 6672343 p147</dd>
+      <dt>Key parts</dt><dd><code>11833</code> + <code>14769</code> + <code>22885</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for round_window">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for round_window">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-7/twin_arched_window.png" alt="A sketch of twin_arched_window" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>twin_arched_window</code></h2>
+    <p>Two round-topped windows side by side under one curved arch, a slim round column in front of the seam between them.</p>
+    <p class="why">A Victorian or civic pair of tall windows under one stone arch with a column between, for a town house's upper floor.</p>
+    <p class="note"><b>Note:</b> The book uses square 1 x 2 x 3 windows; Arch 6183's opening is a rounded rectangle, so square windows leave it open over them and the half-round 20309 doesn't fit it (collides by a plate). Round-topped 30044 windows with lattice panes (30046) fill its corners exactly, so I used them.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>frame</code>, <code>sill</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/twin_arched_window.py"><code>batch-7/twin_arched_window.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p215-217</dd>
+      <dt>Key parts</dt><dd><code>6183</code> + <code>30044</code> + <code>30046</code> + <code>3062b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for twin_arched_window">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for twin_arched_window">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-7/eyebrow_arch_hood.png" alt="A sketch of eyebrow_arch_hood" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>eyebrow_arch_hood</code></h2>
+    <p>A half ring of trim over a window, two quarter-ring plates on side studs standing a plate proud of the wall.</p>
+    <p class="why">A white half ring of trim over a window, a plate proud of the wall, for Victorian and shop facades.</p>
+    <p class="note"><b>Note:</b> VARIANT of window_hood. The book's method A uses four Tile 2 x 2 Corner Round; two quarter-ring plates (68568) give a true half ring with a hole over the window in two parts. The ring stands out over the next course.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>hood</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/eyebrow_arch_hood.py"><code>batch-7/eyebrow_arch_hood.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649254 p99; set 43302: 6649255 p136</dd>
+      <dt>Key parts</dt><dd><code>68568</code> + <code>22885</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for eyebrow_arch_hood">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for eyebrow_arch_hood">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-7/dome_window_hood.png" alt="A sketch of dome_window_hood" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>dome_window_hood</code></h2>
+    <p>A padded half-dome canopy over a window, two curved-top round-corner bricks on quarter-circle plates.</p>
+    <p class="why">A padded, rounded canopy over a window for a civic or festive facade.</p>
+    <p class="note"><b>Note:</b> VARIANT of window_hood. The research didn't pin the dome's id; two curved-top corner bricks (5906) on quarter-circle plates make the half dome. 5906 and 7904 need different quarter turns for the same corner.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>trim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/dome_window_hood.py"><code>batch-7/dome_window_hood.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649254 p87, p66-76</dd>
+      <dt>Key parts</dt><dd><code>5906</code> + <code>7904</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for dome_window_hood">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for dome_window_hood">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-7/slope_hood_small_window.png" alt="A sketch of slope_hood_small_window" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>slope_hood_small_window</code></h2>
+    <p>A small upper-floor window under a tiny hood, a round plate and a slope sloping out over it.</p>
+    <p class="why">The small upper-floor window with a tiny dark hood, repeated every four studs along a row.</p>
+    <p class="note"><b>Note:</b> Alternate, in place of round_hill_door. VARIANT of window_hood. Plate 2 x 2 Round has no lavender, so the trim defaults to white.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>frame</code>, <code>trim</code>, <code>hood</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 2 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/slope_hood_small_window.py"><code>batch-7/slope_hood_small_window.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649256 p92, p95-100</dd>
+      <dt>Key parts</dt><dd><code>60592</code> + <code>4032b</code> + <code>3039</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for slope_hood_small_window">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for slope_hood_small_window">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-7/lattice_shopfront.png" alt="A sketch of lattice_shopfront" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>lattice_shopfront</code></h2>
+    <p>A pub window, clear panes over a paneled base with diamond-lattice lights above them.</p>
+    <p class="why">A pub or old-town shop window: clear panes over a dark paneled base with diamond-lattice lights above.</p>
+    <p class="note"><b>Note:</b> VARIANT of shop_window (clear 1 x 2 x 3 panes under clear transoms): this one has lattice lights (38320, the 1 x 2 x 2 lattice pane) over 1 x 2 x 2 clear panes, a paneled base and a plinth ledge. The book's curtain rod and curtains are left out.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>panes</code>, <code>frame</code>, <code>lattice</code>, <code>panel</code>, <code>plinth</code>, <code>trim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/lattice_shopfront.py"><code>batch-7/lattice_shopfront.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p109-120</dd>
+      <dt>Key parts</dt><dd><code>38320</code> + <code>60592</code> + <code>60601</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lattice_shopfront">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for lattice_shopfront">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-7/round_corner_bay.png" alt="A sketch of round_corner_bay" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>round_corner_bay</code></h2>
+    <p>A house corner rounded off by curved corner windows stacked on a round-cornered plate, the plate over them tying the bay to both walls.</p>
+    <p class="why">Rounds off a house corner with curved glass, for a Victorian town house or a corner shop.</p>
+    <p class="note"><b>Note:</b> The curved frame is Window Round Corner 3 x 3 x 2 (73878, used as the c01 assembly with its two glasses); the book's has three panes. The bottom plate reaches under both walls; the cap stops at the bay so the walls can go on after it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>tiers</code>, <code>corner</code>, <code>frame</code>, <code>trim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/round_corner_bay.py"><code>batch-7/round_corner_bay.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p190-192, p207-225</dd>
+      <dt>Key parts</dt><dd><code>73878c01</code> + <code>6003</code> + <code>30565</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for round_corner_bay">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for round_corner_bay">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-7/plank_door.png" alt="A sketch of plank_door" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>plank_door</code></h2>
+    <p>A board door of tiles on a plate, hung on its two strap hinges in clips in the jamb, so it swings.</p>
+    <p class="why">A board door for a cottage, shed, or cellar that really swings, built from tiles instead of a door part.</p>
+    <p class="note"><b>Note:</b> VARIANT of hatch_on_hinge, upright. The book clips the plate onto a bar; here the door carries the bars (two Plates 1 x 2 with Handle, read as strap hinges) and the jamb carries the clips (60475b), which the validator seats. The door hangs on the wall's face, in front of the opening.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>hinge</code>, <code>wall</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 18 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/plank_door.py"><code>batch-7/plank_door.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p224</dd>
+      <dt>Key parts</dt><dd><code>48336</code> + <code>60475b</code> + <code>3032</code> + <code>6636</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for plank_door">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for plank_door">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-7/doorstep_and_mat.png" alt="A sketch of doorstep_and_mat" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>doorstep_and_mat</code></h2>
+    <p>A lived-in entrance, a landing with a mat in front of the door and a round-nosed step down to the ground, a potted plant at one side.</p>
+    <p class="why">Makes an entrance look lived in: a landing with a mat, a round-nosed step down to the path, a potted bloom.</p>
+    <p class="note"><b>Note:</b> The books' lantern is left to wall_lamp_bracket. Assumes the floor is a brick above the ground, as in three of the four house books.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code>, <code>mat</code>, <code>pot</code>, <code>bloom</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1315 official sets (12 times); 79 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10265 - Ford Mustang 1967 Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0); FILE 70816 - 70816.ldr (Christophe Mitillo [Christophe_Mitillo], Redistributable under CCAL version 2.0); FILE 21307 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-7/doorstep_and_mat.py"><code>batch-7/doorstep_and_mat.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p74; set 21335: 6448881 p94; set 43268: 6568841 p78</dd>
+      <dt>Key parts</dt><dd><code>11477</code> + <code>87079</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for doorstep_and_mat">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for doorstep_and_mat">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-7/panel_garage_door.png" alt="A sketch of panel_garage_door" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>panel_garage_door</code></h2>
+    <p>A pair of tall paneled leaves, tiles on plates, each hung on strap hinges in clips in its jamb so they swing open.</p>
+    <p class="why">Tall paired garage doors with dark panels that swing open, for a fire station, workshop, or warehouse.</p>
+    <p class="note"><b>Note:</b> Same hinge as plank_door (handles on the leaves, clips in the jambs) instead of the book's clip plates on bars. Each leaf is a Plate 4 x 8, so the opening is 8 x 20 plates.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>recess</code>, <code>hinge</code>, <code>wall</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 15 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21319 - Central Perk.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-7/panel_garage_door.py"><code>batch-7/panel_garage_door.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649254 p38-42</dd>
+      <dt>Key parts</dt><dd><code>48336</code> + <code>60475b</code> + <code>3035</code> + <code>6636</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for panel_garage_door">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for panel_garage_door">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-7/round_window_frame.png" alt="A sketch of round_window_frame" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>round_window_frame</code></h2>
+    <p>A round window in a big ring of four quarter-ring plates on side studs, a beam over it.</p>
+    <p class="why">A big round window in a heavy ring, for a hill house or fantasy cottage, often in pairs either side of a door.</p>
+    <p class="note"><b>Note:</b> Differs from round_window: the frame is a ring of four quarter-ring plates six studs across, with round_window's parts as the window inside it. The book's quarters are curved arch bricks in the wall's plane; I found none of radius 3, so the ring is on side studs.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>frame</code>, <code>sash</code>, <code>glass</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/round_window_frame.py"><code>batch-7/round_window_frame.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10354: 6574801 p61-63, p81-83; set 10354: 6574802 p15-17, p95-97</dd>
+      <dt>Key parts</dt><dd><code>68568</code> + <code>11833</code> + <code>22885</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for round_window_frame">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for round_window_frame">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-7/turned_post_porch.png" alt="A sketch of turned_post_porch" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>turned_post_porch</code></h2>
+    <p>Porch posts turned from round bricks and round plates, under a fascia that curves round the front corners and returns to the wall.</p>
+    <p class="why">A cottage porch with turned posts and a fascia that curves round its corners instead of turning sharply.</p>
+    <p class="note"><b>Note:</b> VARIANT of porch_posts (round-plate-and-brick posts, a curved fascia that returns to the wall, two layers). The book's corner is 79491, but that L-shaped plate has no stud or tube at its round corner, so it can't sit on a post; the quarter-circle plate 7904 can.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>tiers</code>, <code>color</code>, <code>fascia</code>, <code>rail</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/turned_post_porch.py"><code>batch-7/turned_post_porch.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p85, p152; set 43217: 6461326 p32-33</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>6141</code> + <code>7904</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for turned_post_porch">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for turned_post_porch">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-7/wing_plate_porch_roof.png" alt="A sketch of wing_plate_porch_roof" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>wing_plate_porch_roof</code></h2>
+    <p>A light porch roof over a side door, one tapered wing plate off the wall on turned posts and a corbel.</p>
+    <p class="why">A light, tapered porch roof over a side or back door, one wing plate on two turned posts and a corbel.</p>
+    <p class="note"><b>Note:</b> VARIANT of porch_posts and door_hood. The corbel takes one cell of the course under the wing.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>ground</code>, <code>color</code>, <code>posts</code>, <code>wall</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/wing_plate_porch_roof.py"><code>batch-7/wing_plate_porch_roof.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p96</dd>
+      <dt>Key parts</dt><dd><code>47397</code> + <code>3665b</code> + <code>3062b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wing_plate_porch_roof">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for wing_plate_porch_roof">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-7/scalloped_awning.png" alt="A sketch of scalloped_awning" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>scalloped_awning</code></h2>
+    <p>A short striped-looking shop awning, a row of curved slopes on a plate off the wall, round plates hung under its edge as scallops.</p>
+    <p class="why">A striped shop awning with a scalloped edge over each shop window.</p>
+    <p class="note"><b>Note:</b> VARIANT of canopy. The book turns the slopes out and down on a bracket (2436b); here they lie on two stepped plates, curves down to the street, which reads the same from the front. A 2 x 1 curved slope with only one end on studs reads as floating, so the second plate carries both ends.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>trim</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>29</b> of 1315 official sets (77 times); 103 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 42069 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 76161 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-7/scalloped_awning.py"><code>batch-7/scalloped_awning.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649255 p42-45, p59-62</dd>
+      <dt>Key parts</dt><dd><code>11477</code> + <code>6141</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for scalloped_awning">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for scalloped_awning">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-7/wall_lamp_bracket.png" alt="A sketch of wall_lamp_bracket" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>wall_lamp_bracket</code></h2>
+    <p>Small lanterns hung from short arms that stick out of one of a wall's plate courses, either side of a door.</p>
+    <p class="why">Lanterns on short arms either side of a door or between windows, at about five bricks up.</p>
+    <p class="note"><b>Note:</b> Related to torch_sconce. The book's arm is a side-stud brick with a bar holder and bar; here it's a plate in a plate course, and the lantern hangs from it, each round piece held by the stud of the one below.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>at</code>, <code>color</code>, <code>arm</code>, <code>glass</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (2 times); 89 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 6745 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 4494 - Imperial Shuttle - Mini.mpd (Evert-Jan Boer [ejboer], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-7/wall_lamp_bracket.py"><code>batch-7/wall_lamp_bracket.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p120-124; set 43302: 6649254 p104-105</dd>
+      <dt>Key parts</dt><dd><code>3023b</code> + <code>3062b</code> + <code>6141</code> + <code>4589</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wall_lamp_bracket">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for wall_lamp_bracket">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-7/hanging_planter.png" alt="A sketch of hanging_planter" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>hanging_planter</code></h2>
+    <p>Planters held out from a facade on short black arms, a pot of leaves with a bloom on each.</p>
+    <p class="why">Pots of leaves and flowers held out from a pub or village facade between the windows.</p>
+    <p class="note"><b>Note:</b> VARIANT of flower_bed (wall-mounted). The pot sits on its arm rather than hanging from a bar: a hanging leaf plate's leaves rise into the arm, so I left the trailing leaves out. The book's flowers on clips are round plates with tabs here.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>at</code>, <code>color</code>, <code>arm</code>, <code>pot</code>, <code>leaves</code>, <code>flowers</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 17 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/hanging_planter.py"><code>batch-7/hanging_planter.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p134-140, p221-225</dd>
+      <dt>Key parts</dt><dd><code>32607</code> + <code>3623</code> + <code>3062b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for hanging_planter">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for hanging_planter">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-7/blade_sign.png" alt="A sketch of blade_sign" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>blade_sign</code></h2>
+    <p>A tall shop sign standing out from the wall edge-on to the street, hung on two bar handles in clips.</p>
+    <p class="why">A shop sign standing out edge-on from the wall so it reads from up and down the street.</p>
+    <p class="note"><b>Note:</b> The sign hangs on two handles in two clips (the book uses one clip and a bar), with a plain Tile 1 x 4 where a printed tile goes. It only reads from +x; a second face would need a second board on the plate's underside.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>board</code>, <code>trim</code>, <code>hinge</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (4 times); 25 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10283 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10262 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-7/blade_sign.py"><code>batch-7/blade_sign.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649256 p187-189</dd>
+      <dt>Key parts</dt><dd><code>48336</code> + <code>60475b</code> + <code>3795</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for blade_sign">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for blade_sign">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-7/signboard_beam.png" alt="A sketch of signboard_beam" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>signboard_beam</code></h2>
+    <p>A deep sign beam over a shopfront, a smooth sign panel on side studs between dark ends, a cornice, a half-dome pediment, and a post at each end.</p>
+    <p class="why">The deep sign beam across a shopfront, with room for a lettered board, a cornice, and a pediment, that hides the window tops.</p>
+    <p class="note"><b>Note:</b> Uses 22885 (two rows of side studs) instead of 11211 so the board is two tiles deep, and two quarter domes (5848) as a small pediment in place of the half dome; the board is plain tiles where printed ones go.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>sign</code>, <code>cornice</code>, <code>pediment</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-7/signboard_beam.py"><code>batch-7/signboard_beam.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649256 p81-86</dd>
+      <dt>Key parts</dt><dd><code>22885</code> + <code>4162</code> + <code>5848</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for signboard_beam">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for signboard_beam">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-7" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

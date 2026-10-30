@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-10</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-10</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-10/organic_ground_outline.png" alt="A sketch of organic_ground_outline" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>organic_ground_outline</code></h2>
+    <p>A patch of raised lawn whose edge is a chain of rounded lobes, never a rectangle: a layer of soil plates with round corners and tongues, and a grass layer set in from it with its own, so a soil lip shows round the edge.</p>
+    <p class="why">The edge of any raised lawn or ground patch on a baseplate (the cottage garden's lawn), so it reads as a vignette, not a rectangle.</p>
+    <p class="note"><b>Note:</b> VARIANT of grass_edge, merging organic_lawn_lobes and ragged_edge_overlay: two layers whose outlines are round corners and random tongues, the grass set in a stud so a soil lip shows. Green on a green baseplate needs the soil color for contrast.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>soil</code>, <code>grass</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 2 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/organic_ground_outline.py"><code>batch-10/organic_ground_outline.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21360; set 10354; set 43268; set 75936; set 31109</dd>
+      <dt>Key parts</dt><dd><code>30565</code> + <code>30357</code> + <code>4032b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for organic_ground_outline">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for organic_ground_outline">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-10/curved_garden_path.png" alt="A sketch of curved_garden_path" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>curved_garden_path</code></h2>
+    <p>A smooth path two studs wide whose bends are true quarter circles of curved tiles, so it sweeps round a lawn's corner instead of turning in steps.</p>
+    <p class="why">A garden path from the gate to the door that sweeps round a lawn's corner in a true curve, or an S between beds.</p>
+    <p class="note"><b>Note:</b> VARIANT of dirt_path (which wanders in 2 x 2 steps with 1 x 1 corner tiles): each bend is two quarter-ring tiles, 79393 inside 3477. In this library 27925, 79393, 3477, and 27507 'Corner Round' tiles are all quarter rings; the books name 27925, so the larger rings are my pick. Path is always 2 studs wide.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>legs</code>, <code>turns</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/curved_garden_path.py"><code>batch-10/curved_garden_path.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217; set 21335</dd>
+      <dt>Key parts</dt><dd><code>79393</code> + <code>3477</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curved_garden_path">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for curved_garden_path">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-10/stepping_stones.png" alt="A sketch of stepping_stones" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>stepping_stones</code></h2>
+    <p>A meandering trail of flat stones across a lawn, each a tile of a different outline, turned its own way, with grass between them.</p>
+    <p class="why">A trail of stones across a lawn to a pond, a bench, or a back door.</p>
+    <p class="note"><b>Note:</b> VARIANT of flagstone_paving: sparse, seeded, on grass. Left out the 2 x 2 triangular tile (35787): its body box puts its right angle off the grid at most turns.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>wander</code>, <code>gap</code>, <code>seed</code>, <code>colors</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/stepping_stones.py"><code>batch-10/stepping_stones.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315</dd>
+      <dt>Key parts</dt><dd><code>14769</code> + <code>22385</code> + <code>5520</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for stepping_stones">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for stepping_stones">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-10/garden_gate.png" alt="A sketch of garden_gate" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>garden_gate</code></h2>
+    <p>A hinged gate between two capped posts, with picket fence running off either side, the way into a cottage garden.</p>
+    <p class="why">The way into a fenced cottage garden: a gate between capped posts, with picket fence running off both sides.</p>
+    <p class="note"><b>Note:</b> VARIANT of fence. The gate is the lattice Gate 1 x 4 x 2 on its hinge base (3186 on 3187): the library has no picket gate part. open=True swings it a quarter turn about its hinge; validated both along x and along y.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>left</code>, <code>right</code>, <code>axis</code>, <code>open</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/garden_gate.py"><code>batch-10/garden_gate.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217</dd>
+      <dt>Key parts</dt><dd><code>3186</code> + <code>3187</code> + <code>33303</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for garden_gate">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for garden_gate">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-10/lawn_with_plant_sockets.png" alt="A sketch of lawn_with_plant_sockets" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>lawn_with_plant_sockets</code></h2>
+    <p>A raised lawn with square holes framed in corner plates, each taking a plant built apart on its own 2 x 2 plug, so trees and bushes can be built separately, moved, or left out.</p>
+    <p class="why">A lawn whose trees and bushes are built apart and plug in, so plants can be moved, swapped, or left out.</p>
+    <p class="note"><b>Note:</b> The plugs are submodels that call the library's bush and tree. Lawn defaults to Bright Green so it reads on a green baseplate.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>sockets</code>, <code>count</code>, <code>seed</code>, <code>plants</code>, <code>lawn</code>, <code>rim</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>9</b> of 1315 official sets (19 times); 71 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 21311 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-10/lawn_with_plant_sockets.py"><code>batch-10/lawn_with_plant_sockets.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315</dd>
+      <dt>Key parts</dt><dd><code>2420</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lawn_with_plant_sockets">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for lawn_with_plant_sockets">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-10/contour_terraces.png" alt="A sketch of contour_terraces" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>contour_terraces</code></h2>
+    <p>A low mound that rises in soft rings, each terrace a layer of earth under a grass top with round corners that overhangs it by a stud, every ring set back from the one below by a different amount on each side.</p>
+    <p class="why">A low garden mound or a hill that rises in soft, rounded rings, behind a cottage or under a gazebo.</p>
+    <p class="note"><b>Note:</b> VARIANT of hillside (which rises in straight terraces with cheese slopes): each ring is earth plates under a round-cornered grass layer that overhangs it a stud, set back 2 or 3 studs at random each side. The earth is solid plates, not the books' hollow ring frame.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>terraces</code>, <code>rise</code>, <code>seed</code>, <code>earth</code>, <code>grass</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 1315 official sets (6 times); 17 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21030 - United States Capitol Building.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 41075-1 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 41072 - Main.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 30052 - AAT.ldr (Jude Parrill, Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-10/contour_terraces.py"><code>batch-10/contour_terraces.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10354; instruction book 6650754</dd>
+      <dt>Key parts</dt><dd><code>30565</code> + <code>30357</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for contour_terraces">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for contour_terraces">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-10/garden_boulder.png" alt="A sketch of garden_boulder" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>garden_boulder</code></h2>
+    <p>A smooth, faceted stone with a ridge along its back, from 33-degree slopes set in pairs that lean together, rounded at its ends by double-convex corners, under a smaller cap of 45-degree slopes crested with cheese slopes.</p>
+    <p class="why">A smooth garden stone beside a pond or path, where a rough outcrop would look wrong.</p>
+    <p class="note"><b>Note:</b> VARIANT of rock_outcrop: mirrored 33-degree slopes meeting in a ridge, a 45-degree cap, a cheese crest, mottled colors. At length 2 and up it reads a little like a hipped roof; length 1 reads best.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>crest</code>, <code>seed</code>, <code>colors</code>, <code>pebbles</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 4 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/garden_boulder.py"><code>batch-10/garden_boulder.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315; set 21363</dd>
+      <dt>Key parts</dt><dd><code>3298</code> + <code>3675</code> + <code>3045</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for garden_boulder">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for garden_boulder">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-10/tiled_pond_water.png" alt="A sketch of tiled_pond_water" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>tiled_pond_water</code></h2>
+    <p>Still water of long tiles laid in a running bond over a blue bed, so it shimmers in staggered rows, with koi among the tiles, lily pads on open studs, and its front and back rows drawn in so the pond reads round.</p>
+    <p class="why">The water of a garden pond, with a shimmer of staggered tiles, koi, and open studs for lilies.</p>
+    <p class="note"><b>Note:</b> VARIANT of pond (plain rows, a rim): running bond with no straight seams, koi, rounded front and back rows, returns the open studs for lily_and_reeds. Tile 1 x 3 was never made in Trans-Light Blue, so rows use 1 x 2 and 1 x 4, a 1 x 1 shifting a row when it must; the koi tiles exist only in Trans-Light Blue.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>bed</code>, <code>water</code>, <code>fish</code>, <code>pads</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/tiled_pond_water.py"><code>batch-10/tiled_pond_water.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315</dd>
+      <dt>Key parts</dt><dd><code>3069bp0p</code> + <code>3069bp0q</code> + <code>2431</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tiled_pond_water">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for tiled_pond_water">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-10/sunken_pond_bank.png" alt="A sketch of sunken_pond_bank" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>sunken_pond_bank</code></h2>
+    <p>A pond whose water lies below the grass, with a bank of curved slopes running down to it all round, so the lawn ends in a smooth curve at the waterline instead of a step.</p>
+    <p class="why">A pond set below the lawn, the grass curving down to the water, instead of a pond sitting on top of the ground.</p>
+    <p class="note"><b>Note:</b> VARIANT of pond and river: adds a bank course of curved slopes facing the water. The water is a plate below the grass. Curved slopes hold only by their lower studs in the connector data, so every bank slope sits wholly on the bed.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>bank</code>, <code>earth</code>, <code>grass</code>, <code>bed</code>, <code>water</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 24 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/sunken_pond_bank.py"><code>batch-10/sunken_pond_bank.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315</dd>
+      <dt>Key parts</dt><dd><code>15068</code> + <code>11477</code> + <code>25269</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for sunken_pond_bank">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for sunken_pond_bank">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-10/lily_and_reeds.png" alt="A sketch of lily_and_reeds" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>lily_and_reeds</code></h2>
+    <p>Life on a pond without covering it, lily pads with a flower and clumps of reeds, each on a single open stud among the water's tiles.</p>
+    <p class="why">Life in a pond, on the open studs a tiled pond leaves: lily pads with flowers and clumps of reeds.</p>
+    <p class="note"><b>Note:</b> Takes the studs (spots) rather than finding them. The pad is a round plate with tabs, not the books' 4727 leaves, to stay on one stud clear of the tiles.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>spots</code>, <code>z</code>, <code>seed</code>, <code>reeds</code>, <code>pad</code>, <code>flowers</code>, <code>reed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/lily_and_reeds.py"><code>batch-10/lily_and_reeds.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315; set 31218</dd>
+      <dt>Key parts</dt><dd><code>33291</code> + <code>24866</code> + <code>15279</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lily_and_reeds">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for lily_and_reeds">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-10/layered_conifer.png" alt="A sketch of layered_conifer" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>layered_conifer</code></h2>
+    <p>A tall, narrow evergreen of soft tiers, each a pinwheel of leaf plates on a round trunk plate, every tier turning the other way from the one below so its leaves fill the gaps; built apart and placed as a submodel.</p>
+    <p class="why">A tall, narrow evergreen for a garden border or a forest edge, softer than the slope-built pine_tree.</p>
+    <p class="note"><b>Note:</b> VARIANT of pine_tree (slopes): leaf plates in tiers. The books thread leaves on a bar; here each tier is four leaves in a pinwheel on a round 2 x 2 plate, held by the leaves' own studs, and the top two tiers have two. It reads columnar, not tapered.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>tiers</code>, <code>colors</code>, <code>trunk</code>, <code>base</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/layered_conifer.py"><code>batch-10/layered_conifer.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315; set 31218; set 11387</dd>
+      <dt>Key parts</dt><dd><code>2423</code> + <code>4032b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for layered_conifer">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for layered_conifer">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-10/blossom_tree.png" alt="A sketch of blossom_tree" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>blossom_tree</code></h2>
+    <p>A small flowering tree whose trunk leans as it rises, on jumper plates that step it half a stud at a time, under a fluffy crown of pink and white leaves in pinwheels, dotted with petal plates; built apart and placed.</p>
+    <p class="why">A flowering cherry or apple tree in a cottage or eastern garden, a splash of pink.</p>
+    <p class="note"><b>Note:</b> VARIANT of tree. The books' crown is the six-stem flower stem (19119) with petals on its angled arms, which the grid can't place; this crown is pinwheels of pink and white Plant Leaves 4 x 3 with petal plates on top. The trunk leans on jumper plates, half a stud a course, as the grid's stand-in for the curved trunk.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>lean</code>, <code>layers</code>, <code>blossom</code>, <code>flowers</code>, <code>trunk</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/blossom_tree.py"><code>batch-10/blossom_tree.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315; set 31218</dd>
+      <dt>Key parts</dt><dd><code>2423</code> + <code>24866</code> + <code>3794b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for blossom_tree">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for blossom_tree">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-10/palm_tree.png" alt="A sketch of palm_tree" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>palm_tree</code></h2>
+    <p>A tall trunk of round bricks that leans as it rises, on jumper plates, under a head of drooping fronds of curved slopes in two pinwheels, with coconuts; built apart and placed as a submodel.</p>
+    <p class="why">A palm for a beach, a tropical garden, or a pirate island.</p>
+    <p class="note"><b>Note:</b> From the curved-slope palm (31109), not the clipped trunk segments and sword leaves (43268), which need angles. The connector data gives 50950 no anti-stud under its high end, so each frond's high end and middle sit on the head plate and only the low end hangs out.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>lean</code>, <code>fronds</code>, <code>trunk</code>, <code>coconuts</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 5 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/palm_tree.py"><code>batch-10/palm_tree.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 31109; set 43268</dd>
+      <dt>Key parts</dt><dd><code>50950</code> + <code>3958</code> + <code>3794b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for palm_tree">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for palm_tree">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-10/bamboo_grove.png" alt="A sketch of bamboo_grove" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>bamboo_grove</code></h2>
+    <p>A clump of tall, segmented canes of round bricks with darker rings at the joints and sprays of narrow leaves, four canes of different heights on one 2 x 2 base, the tallest at the back.</p>
+    <p class="why">A clump of bamboo in an eastern garden, a jungle, or beside a pond.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>seed</code>, <code>cane</code>, <code>joint</code>, <code>leaves</code>, <code>base</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 16 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10232 - Main-model.ldr (Orion Pobursky [OrionP], Licensed under CC BY 4.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-10/bamboo_grove.py"><code>batch-10/bamboo_grove.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315</dd>
+      <dt>Key parts</dt><dd><code>30176</code> + <code>3062b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bamboo_grove">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for bamboo_grove">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-10/potted_plant.png" alt="A sketch of potted_plant" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>potted_plant</code></h2>
+    <p>A pot with a plant in it, for a doorstep, a path's edge, or a windowsill: a real flower pot with a leafy plant or a flower on a stem, or a tiny pot of a round 1 x 1 brick with one bloom.</p>
+    <p class="why">A pot of flowers or a fern by the door, on the step, or on a windowsill.</p>
+    <p class="note"><b>Note:</b> The flower stems with bar (99249c01 and the like) read as floating in the pot (an assembly with no connector data), so the flower is a stem of round bricks with 4727 leaves and a bloom. The flower pot was made only in Black, Dark Orange, and one other color.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>kind</code>, <code>pot</code>, <code>leaves</code>, <code>bloom</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/potted_plant.py"><code>batch-10/potted_plant.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217; set 43268</dd>
+      <dt>Key parts</dt><dd><code>7077</code> + <code>6255</code> + <code>4727</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for potted_plant">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for potted_plant">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-10/clipped_hedge.png" alt="A sketch of clipped_hedge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>clipped_hedge</code></h2>
+    <p>A low hedge along a wall or path that reads as a row of rounded, clipped bushes: round 2 x 2 tiles standing on the side studs of bricks, every other bush a plate higher.</p>
+    <p class="why">A low clipped hedge along a cottage front, a path, or a diner's windows.</p>
+    <p class="note"><b>Note:</b> One stud deep, rounded on its face side only.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>facing</code>, <code>colors</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 11 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/clipped_hedge.py"><code>batch-10/clipped_hedge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10352</dd>
+      <dt>Key parts</dt><dd><code>22885</code> + <code>14769</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for clipped_hedge">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for clipped_hedge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-10/stone_lantern.png" alt="A sketch of stone_lantern" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>stone_lantern</code></h2>
+    <p>A garden lantern of stacked stone, a round plinth, a slim pillar, a glowing light chamber, and a pyramid roof with a finial, built apart and placed beside a path.</p>
+    <p class="why">A stone lantern beside a garden path or a pond, in an eastern or fantasy garden.</p>
+    <p class="note"><b>Note:</b> One roof tier; the books' three-tier stacked tower isn't built.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>pillar</code>, <code>color</code>, <code>light</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/stone_lantern.py"><code>batch-10/stone_lantern.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315</dd>
+      <dt>Key parts</dt><dd><code>3045</code> + <code>3941</code> + <code>87580</code> + <code>4589</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for stone_lantern">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for stone_lantern">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-10/snow_drift_edge.png" alt="A sketch of snow_drift_edge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>snow_drift_edge</code></h2>
+    <p>A snowy patch whose edges are soft drifts, not a plate's edge: round corners, curved slopes laid along the rim with their low side out, a deeper drift piled against a wall, and loose snow on top.</p>
+    <p class="why">Snow over a garden in a winter scene, drifting at the edges and banked against the house.</p>
+    <p class="note"><b>Note:</b> VARIANT of snow_cap and grass_edge. Uses 4 x 4 corner-round plates where the book also used long wedge plates.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>wall</code>, <code>seed</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (2 times); 21 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 75060 - complete.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-10/snow_drift_edge.py"><code>batch-10/snow_drift_edge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387</dd>
+      <dt>Key parts</dt><dd><code>15068</code> + <code>11477</code> + <code>30565</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for snow_drift_edge">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for snow_drift_edge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-10/gnarled_tree.png" alt="A sketch of gnarled_tree" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>gnarled_tree</code></h2>
+    <p>An old, twisted tree on a flared root base, its trunk of round bricks stepping a stud aside at each course, and two crossed limbs spreading low, curving down underneath where they leave the trunk, with leaves at their ends; built apart and placed as a submodel.</p>
+    <p class="why">An old, twisted tree for a fantasy village or the corner of an overgrown garden.</p>
+    <p class="note"><b>Note:</b> VARIANT of tree, a grid stand-in: the book's horn-shaped branches on clips need angles. The trunk twists by offsetting round bricks a stud, the limbs are crossed 2 x 8 plates with inverted curved slopes under them. It reads as a spreading old tree more than a gnarled one.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>seed</code>, <code>bark</code>, <code>leaves</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-10/gnarled_tree.py"><code>batch-10/gnarled_tree.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10354</dd>
+      <dt>Key parts</dt><dd><code>3063b</code> + <code>24201</code> + <code>2417</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for gnarled_tree">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for gnarled_tree">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-10/cypress.png" alt="A sketch of cypress" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>cypress</code></h2>
+    <p>A slim, upright tree, a dark green flame, of small leaf plates stacked on a single stud, each turned a quarter from the one below, on a short trunk; built apart and placed as a submodel, so a row of them along a border is one sub-assembly built &quot;x n&quot;.</p>
+    <p class="why">Slim upright trees in a row along a garden border or a Mediterranean villa.</p>
+    <p class="note"><b>Note:</b> The books use one tall tapered leaf element or small cones on a bar; this stacks Plates 1 x 1 Round with 3 Leaves on a single stud. 6141 and 4589 were never made in Dark Green, so the stem and tip take the trunk and base colors.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>layers</code>, <code>color</code>, <code>trunk</code>, <code>base</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (4 times); 17 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0); FILE 75980 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 75969 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 75953 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-10/cypress.py"><code>batch-10/cypress.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10315; set 31218</dd>
+      <dt>Key parts</dt><dd><code>32607</code> + <code>87580</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cypress">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for cypress">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-10" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

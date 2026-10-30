@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-29",
+  updated: "2026-10-30",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -149,6 +149,16 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-10-29 (D-43): merged with the 'both OSes' items met on macOS; the Windows pass checks first run, trust, import, panel, the side-by-sides, and the title-row menus. A version without build placements can't be restored from the app yet (a design question)"
     },
+    "3D": {
+      status: "done", pr: 43, branch: "bmortenson/s3d-book-techniques-cottage", started: "2026-10-29",
+      evidence: [
+        "CI ci check green #43; Phase 3 exit check in the PR description",
+        "tests/it/tests/{techniques,guides}.rs (381 and 6 passed); check.rs::the_cottage_validates_clean_at_every_corner; mcp.rs::guide_tool",
+        "260 of 260 book candidates accepted (H-26), 378 techniques in all; 19 guides in crates/emmet-cli/doctrine/guides/",
+        "live check: Claude Code read guide unprompted for a blocky house, a micro city block, and a sports car (docs/spec/sessions/3D/)"
+      ],
+      note: "The viewer budget holds with little margin on this Mac (738 to 1,076 ms for the 903-part Cottage); sending the scene before its findings is left for 4C. Follow-ups #36 to #42; Phase 3's Delivers line doesn't name 3D"
+    },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
     "4D": { status: "todo" },
@@ -191,6 +201,7 @@ window.EMMET_STATUS = {
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
     "H-22": { status: "done", date: "2026-10-28", note: "98 of 100 candidates accepted on five review pages (docs/techniques/candidates/batch-1 to 5); rejected: wheel_axle, wheel_arch; docs/decisions.md" },
     "H-23": { status: "todo" },
+    "H-26": { status: "done", date: "2026-10-30", note: "all 13 batches accepted (260 of 260); the Cottage and design change note 002 approved" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
     "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
   },

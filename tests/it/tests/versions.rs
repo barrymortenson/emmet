@@ -78,11 +78,11 @@ fn save_change_restore_gives_the_same_bytes() {
     // Change every kind of source: edit model.py and a submodule, add one, remove CARD.md, set a param, and a build
     // setting in emmet.toml.
     let model = std::fs::read_to_string(dir.join("model.py")).unwrap();
-    std::fs::write(dir.join("model.py"), model.replace("Cottage", "Cottage, changed")).unwrap();
+    std::fs::write(dir.join("model.py"), model.replace("cottage", "cottage, changed")).unwrap();
     std::fs::write(dir.join("models/trim.py"), "WIDTH = 3\n").unwrap();
     std::fs::write(dir.join("models/extra.py"), "X = 1\n").unwrap();
     std::fs::remove_file(dir.join("CARD.md")).unwrap();
-    std::fs::write(dir.join("params.json"), "{\n  \"width\": 8\n}\n").unwrap();
+    std::fs::write(dir.join("params.json"), "{\n  \"width\": 14\n}\n").unwrap();
     let toml = std::fs::read_to_string(dir.join("emmet.toml")).unwrap();
     std::fs::write(
         dir.join("emmet.toml"),

@@ -68,11 +68,11 @@ fn new_then_run_matches_the_golden() {
 
     let (v, code) = emmet_in(&demo, &["run"]);
     assert_eq!(code, 0, "{v}");
-    assert_eq!(v["data"]["parts"], 147);
-    assert_eq!(v["data"]["steps"], 39);
+    assert_eq!(v["data"]["parts"], 903);
+    assert_eq!(v["data"]["steps"], 161);
     assert_eq!(
         v["data"]["bbox"],
-        serde_json::json!({ "min": [0.0, 0.0, 0.0], "max": [32.0, 32.0, 36.5] })
+        serde_json::json!({ "min": [0.0, 0.0, 0.0], "max": [32.0, 32.0, 54.93125] })
     );
     assert_eq!(v["meta"]["generation"], 1);
     assert_eq!(v["meta"]["inputs_hash"].as_str().unwrap().len(), 64);
@@ -177,9 +177,13 @@ fn params_get_set_and_run_overrides() {
         [
             "width",
             "depth",
-            "wall_rows",
             "wall_color",
             "roof_color",
+            "season",
+            "roof_style",
+            "wall_finish",
+            "garden",
+            "lights",
             "chimney",
             "roof",
             "weathering",
@@ -190,26 +194,26 @@ fn params_get_set_and_run_overrides() {
     let width = &v["data"]["params"][0];
     assert_eq!(
         (width["type"].as_str(), width["min"].as_f64(), width["max"].as_f64()),
-        (Some("int"), Some(6.0), Some(16.0))
+        (Some("int"), Some(14.0), Some(20.0))
     );
     assert_eq!(width["help"], "how many studs wide the house is");
     assert_eq!(v["data"]["params"][1]["step"], 2.0);
-    assert_eq!(v["data"]["values"]["wall_color"], "Tan");
+    assert_eq!(v["data"]["values"]["wall_color"], "White");
 
-    let (v, code) = emmet_in(&demo, &["params", "--set", "width=12", "chimney=false"]);
+    let (v, code) = emmet_in(&demo, &["params", "--set", "width=18", "chimney=false"]);
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["changed"], serde_json::json!(["chimney", "width"]));
     let file: Value = serde_json::from_str(&std::fs::read_to_string(demo.join("params.json")).unwrap()).unwrap();
-    assert_eq!(file, serde_json::json!({ "chimney": false, "width": 12 }));
+    assert_eq!(file, serde_json::json!({ "chimney": false, "width": 18 }));
 
     // Setting a value back to its default drops it from params.json.
-    emmet_in(&demo, &["params", "--set", "width=10"]);
+    emmet_in(&demo, &["params", "--set", "width=16"]);
     let file: Value = serde_json::from_str(&std::fs::read_to_string(demo.join("params.json")).unwrap()).unwrap();
     assert_eq!(file, serde_json::json!({ "chimney": false }));
 
     // --params applies to one run and doesn't touch params.json; the inputs hash changes with it.
     let (a, _) = emmet_in(&demo, &["run"]);
-    let (b, code) = emmet_in(&demo, &["run", "--params", "width=14", "wall_color=\"Dark Tan\""]);
+    let (b, code) = emmet_in(&demo, &["run", "--params", "width=20", "wall_color=\"Dark Tan\""]);
     assert_eq!(code, 0, "{b}");
     assert_ne!(a["meta"]["inputs_hash"], b["meta"]["inputs_hash"]);
     assert!(b["data"]["parts"].as_u64() > a["data"]["parts"].as_u64());
@@ -217,13 +221,13 @@ fn params_get_set_and_run_overrides() {
     assert_eq!(file, serde_json::json!({ "chimney": false }));
 
     // An odd depth isn't on the slider's step.
-    let (v, code) = emmet_in(&demo, &["params", "--set", "depth=7"]);
+    let (v, code) = emmet_in(&demo, &["params", "--set", "depth=11"]);
     assert_eq!(code, 3, "{v}");
     assert_eq!(v["error"]["code"], "PARAM_INVALID");
 }
 
-/// The character knobs: weathering changes the bricks, the same seed gives the same build byte for byte (build/ is
-/// reproducible), another seed another arrangement, and roof=false takes the roof off.
+/// The character knobs: weathering changes the stones, the same seed gives the same build byte for byte (build/ is
+/// reproducible), another seed another arrangement, roof=false lifts the roof off, and winter changes the season.
 #[test]
 fn the_knobs_change_the_build_and_a_seed_reproduces_it() {
     let demo = new_demo("knobs");
@@ -239,7 +243,7 @@ fn the_knobs_change_the_build_and_a_seed_reproduces_it() {
     };
     let (plain, parts) = placements(&["weathering=0"]);
     let (old, _) = placements(&["weathering=30", "seed=7"]);
-    assert_ne!(old, plain, "weathering changes no brick");
+    assert_ne!(old, plain, "weathering changes no stone");
     assert_eq!(
         placements(&["weathering=30", "seed=7"]).0,
         old,
@@ -250,7 +254,7 @@ fn the_knobs_change_the_build_and_a_seed_reproduces_it() {
         old,
         "another seed builds the same"
     );
-    // The chimney is shorter without a roof too, so the count alone doesn't show the roof came off.
+    // The roof is one sub-assembly that lifts off: roof=false leaves out all of it.
     let (bytes, roofless) = placements(&["roof=false"]);
     assert!(roofless < parts, "roof=false keeps {roofless} of {parts} parts");
     let built: Value = serde_json::from_slice(&bytes).unwrap();
@@ -258,28 +262,34 @@ fn the_knobs_change_the_build_and_a_seed_reproduces_it() {
         .as_array()
         .unwrap()
         .iter()
-        .filter_map(|p| p["id"].as_str().filter(|id| id.starts_with("roof-")))
+        .filter_map(|p| p["id"].as_str().filter(|id| id.starts_with("roof/") || *id == "roof"))
         .collect();
     assert!(roof.is_empty(), "roof=false keeps the roof: {roof:?}");
+    assert_ne!(placements(&["season=winter"]).0, plain, "winter changes nothing");
 }
 
 #[test]
 fn every_parameter_combination_at_the_edges_builds() {
     let demo = new_demo("edges");
-    for (w, d, rows) in [(6, 4, 6), (16, 12, 9), (7, 10, 7), (11, 6, 8)] {
+    for (w, d, season) in [
+        (14, 10, "summer"),
+        (20, 12, "winter"),
+        (16, 12, "summer"),
+        (18, 10, "winter"),
+    ] {
         for chimney in ["true", "false"] {
             let args = [
                 "run",
                 "--params",
                 &format!("width={w}"),
                 &format!("depth={d}"),
-                &format!("wall_rows={rows}"),
+                &format!("season={season}"),
             ];
             let mut args = args.to_vec();
             let c = format!("chimney={chimney}");
             args.push(&c);
             let (v, code) = emmet_in(&demo, &args);
-            assert_eq!(code, 0, "{w}x{d}x{rows} chimney={chimney}: {v}");
+            assert_eq!(code, 0, "{w}x{d} {season} chimney={chimney}: {v}");
         }
     }
 }

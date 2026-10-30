@@ -1,0 +1,535 @@
+[
+ {
+  "name": "bay_window",
+  "title": "A square bay that pushes three studs out of a wall, glazed on its front and both sides, under a lean-to roof.",
+  "why": "The single feature that gives a cottage front the most character: a glazed bay three studs out of the wall under its own little roof, with a plinth that continues the wainscot.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "plinth",
+   "color",
+   "trim",
+   "roof",
+   "wall"
+  ],
+  "books": [
+   "set 11387: 6672343 p74, p167, p174, p190",
+   "set 43217: 6461326 p35-59"
+  ],
+  "signature": [
+   "60593",
+   "60602",
+   "14716",
+   "3039"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The square bay the research offers first (three faces at right angles); the books' angled faces need a 45 degree yaw. The floor and cap plates' back rows are plate courses in the wall line.",
+  "view": "iso"
+ },
+ {
+  "name": "window_box",
+  "title": "A planter under a window, bricks with side studs hung from the sill plate, flowers on their studs.",
+  "why": "A planter of flowers under a cottage window; the books build one at every front window.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "flowers",
+   "leaves"
+  ],
+  "books": [
+   "set 43268: 6568841 p78",
+   "set 11387: 6672343 p45"
+  ],
+  "signature": [
+   "11211",
+   "33291"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The box hangs under the sill plate (studs into its underside) instead of carrying a tile on top, so the sill plate is the box's top and the window stands on its back row. Blooms alternate with leaves, as tabbed blooms side by side would touch.",
+  "view": "iso"
+ },
+ {
+  "name": "round_window",
+  "title": "A bull's-eye window, a round plate with a round hole and a round glass tile in it, on side studs.",
+  "why": "A bull's-eye window high in a gable or over a door; small, easy, and it breaks up a plain wall.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "frame",
+   "glass"
+  ],
+  "books": [
+   "set 43217: 6461326 p13",
+   "set 11387: 6672343 p147"
+  ],
+  "signature": [
+   "11833",
+   "14769",
+   "22885"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The books put a round tile or ring on a side stud; the ring plate with a round hole (11833) and the 2 x 2 round glass tile are my choice of parts. Four 22885 give a 4 x 4 grid of side studs at a true stud pitch.",
+  "view": "front"
+ },
+ {
+  "name": "twin_arched_window",
+  "title": "Two round-topped windows side by side under one curved arch, a slim round column in front of the seam between them.",
+  "why": "A Victorian or civic pair of tall windows under one stone arch with a column between, for a town house's upper floor.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "frame",
+   "sill"
+  ],
+  "books": [
+   "set 10350: 6553217 p215-217"
+  ],
+  "signature": [
+   "6183",
+   "30044",
+   "30046",
+   "3062b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book uses square 1 x 2 x 3 windows; Arch 6183's opening is a rounded rectangle, so square windows leave it open over them and the half-round 20309 doesn't fit it (collides by a plate). Round-topped 30044 windows with lattice panes (30046) fill its corners exactly, so I used them.",
+  "view": "iso"
+ },
+ {
+  "name": "eyebrow_arch_hood",
+  "title": "A half ring of trim over a window, two quarter-ring plates on side studs standing a plate proud of the wall.",
+  "why": "A white half ring of trim over a window, a plate proud of the wall, for Victorian and shop facades.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "hood"
+  ],
+  "books": [
+   "set 43302: 6649254 p99",
+   "set 43302: 6649255 p136"
+  ],
+  "signature": [
+   "68568",
+   "22885"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of window_hood. The book's method A uses four Tile 2 x 2 Corner Round; two quarter-ring plates (68568) give a true half ring with a hole over the window in two parts. The ring stands out over the next course.",
+  "view": "iso"
+ },
+ {
+  "name": "dome_window_hood",
+  "title": "A padded half-dome canopy over a window, two curved-top round-corner bricks on quarter-circle plates.",
+  "why": "A padded, rounded canopy over a window for a civic or festive facade.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "trim"
+  ],
+  "books": [
+   "set 43302: 6649254 p87, p66-76"
+  ],
+  "signature": [
+   "5906",
+   "7904"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of window_hood. The research didn't pin the dome's id; two curved-top corner bricks (5906) on quarter-circle plates make the half dome. 5906 and 7904 need different quarter turns for the same corner.",
+  "view": "iso"
+ },
+ {
+  "name": "slope_hood_small_window",
+  "title": "A small upper-floor window under a tiny hood, a round plate and a slope sloping out over it.",
+  "why": "The small upper-floor window with a tiny dark hood, repeated every four studs along a row.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "frame",
+   "trim",
+   "hood"
+  ],
+  "books": [
+   "set 43302: 6649256 p92, p95-100"
+  ],
+  "signature": [
+   "60592",
+   "4032b",
+   "3039"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "Alternate, in place of round_hill_door. VARIANT of window_hood. Plate 2 x 2 Round has no lavender, so the trim defaults to white.",
+  "view": "iso"
+ },
+ {
+  "name": "lattice_shopfront",
+  "title": "A pub window, clear panes over a paneled base with diamond-lattice lights above them.",
+  "why": "A pub or old-town shop window: clear panes over a dark paneled base with diamond-lattice lights above.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "panes",
+   "frame",
+   "lattice",
+   "panel",
+   "plinth",
+   "trim"
+  ],
+  "books": [
+   "set 10350: 6553217 p109-120"
+  ],
+  "signature": [
+   "38320",
+   "60592",
+   "60601"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of shop_window (clear 1 x 2 x 3 panes under clear transoms): this one has lattice lights (38320, the 1 x 2 x 2 lattice pane) over 1 x 2 x 2 clear panes, a paneled base and a plinth ledge. The book's curtain rod and curtains are left out.",
+  "view": "iso"
+ },
+ {
+  "name": "round_corner_bay",
+  "title": "A house corner rounded off by curved corner windows stacked on a round-cornered plate, the plate over them tying the bay to both walls.",
+  "why": "Rounds off a house corner with curved glass, for a Victorian town house or a corner shop.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "tiers",
+   "corner",
+   "frame",
+   "trim"
+  ],
+  "books": [
+   "set 10350: 6553217 p190-192, p207-225"
+  ],
+  "signature": [
+   "73878c01",
+   "6003",
+   "30565"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The curved frame is Window Round Corner 3 x 3 x 2 (73878, used as the c01 assembly with its two glasses); the book's has three panes. The bottom plate reaches under both walls; the cap stops at the bay so the walls can go on after it.",
+  "view": "iso"
+ },
+ {
+  "name": "plank_door",
+  "title": "A board door of tiles on a plate, hung on its two strap hinges in clips in the jamb, so it swings.",
+  "why": "A board door for a cottage, shed, or cellar that really swings, built from tiles instead of a door part.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "hinge",
+   "wall"
+  ],
+  "books": [
+   "set 21335: 6448880 p224"
+  ],
+  "signature": [
+   "48336",
+   "60475b",
+   "3032",
+   "6636"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of hatch_on_hinge, upright. The book clips the plate onto a bar; here the door carries the bars (two Plates 1 x 2 with Handle, read as strap hinges) and the jamb carries the clips (60475b), which the validator seats. The door hangs on the wall's face, in front of the opening.",
+  "view": "iso"
+ },
+ {
+  "name": "doorstep_and_mat",
+  "title": "A lived-in entrance, a landing with a mat in front of the door and a round-nosed step down to the ground, a potted plant at one side.",
+  "why": "Makes an entrance look lived in: a landing with a mat, a round-nosed step down to the path, a potted bloom.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color",
+   "mat",
+   "pot",
+   "bloom"
+  ],
+  "books": [
+   "set 11387: 6672343 p74",
+   "set 21335: 6448881 p94",
+   "set 43268: 6568841 p78"
+  ],
+  "signature": [
+   "11477",
+   "87079"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The books' lantern is left to wall_lamp_bracket. Assumes the floor is a brick above the ground, as in three of the four house books.",
+  "view": "iso"
+ },
+ {
+  "name": "panel_garage_door",
+  "title": "A pair of tall paneled leaves, tiles on plates, each hung on strap hinges in clips in its jamb so they swing open.",
+  "why": "Tall paired garage doors with dark panels that swing open, for a fire station, workshop, or warehouse.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "recess",
+   "hinge",
+   "wall"
+  ],
+  "books": [
+   "set 43302: 6649254 p38-42"
+  ],
+  "signature": [
+   "48336",
+   "60475b",
+   "3035",
+   "6636"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Same hinge as plank_door (handles on the leaves, clips in the jambs) instead of the book's clip plates on bars. Each leaf is a Plate 4 x 8, so the opening is 8 x 20 plates.",
+  "view": "iso"
+ },
+ {
+  "name": "round_window_frame",
+  "title": "A round window in a big ring of four quarter-ring plates on side studs, a beam over it.",
+  "why": "A big round window in a heavy ring, for a hill house or fantasy cottage, often in pairs either side of a door.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "frame",
+   "sash",
+   "glass"
+  ],
+  "books": [
+   "set 10354: 6574801 p61-63, p81-83",
+   "set 10354: 6574802 p15-17, p95-97"
+  ],
+  "signature": [
+   "68568",
+   "11833",
+   "22885"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Differs from round_window: the frame is a ring of four quarter-ring plates six studs across, with round_window's parts as the window inside it. The book's quarters are curved arch bricks in the wall's plane; I found none of radius 3, so the ring is on side studs.",
+  "view": "front"
+ },
+ {
+  "name": "turned_post_porch",
+  "title": "Porch posts turned from round bricks and round plates, under a fascia that curves round the front corners and returns to the wall.",
+  "why": "A cottage porch with turned posts and a fascia that curves round its corners instead of turning sharply.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "tiers",
+   "color",
+   "fascia",
+   "rail"
+  ],
+  "books": [
+   "set 11387: 6672343 p85, p152",
+   "set 43217: 6461326 p32-33"
+  ],
+  "signature": [
+   "3062b",
+   "6141",
+   "7904"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "VARIANT of porch_posts (round-plate-and-brick posts, a curved fascia that returns to the wall, two layers). The book's corner is 79491, but that L-shaped plate has no stud or tube at its round corner, so it can't sit on a post; the quarter-circle plate 7904 can.",
+  "view": "iso"
+ },
+ {
+  "name": "wing_plate_porch_roof",
+  "title": "A light porch roof over a side door, one tapered wing plate off the wall on turned posts and a corbel.",
+  "why": "A light, tapered porch roof over a side or back door, one wing plate on two turned posts and a corbel.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "ground",
+   "color",
+   "posts",
+   "wall"
+  ],
+  "books": [
+   "set 10350: 6553217 p96"
+  ],
+  "signature": [
+   "47397",
+   "3665b",
+   "3062b"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of porch_posts and door_hood. The corbel takes one cell of the course under the wing.",
+  "view": "iso"
+ },
+ {
+  "name": "scalloped_awning",
+  "title": "A short striped-looking shop awning, a row of curved slopes on a plate off the wall, round plates hung under its edge as scallops.",
+  "why": "A striped shop awning with a scalloped edge over each shop window.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "trim"
+  ],
+  "books": [
+   "set 43302: 6649255 p42-45, p59-62"
+  ],
+  "signature": [
+   "11477",
+   "6141"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of canopy. The book turns the slopes out and down on a bracket (2436b); here they lie on two stepped plates, curves down to the street, which reads the same from the front. A 2 x 1 curved slope with only one end on studs reads as floating, so the second plate carries both ends.",
+  "view": "iso"
+ },
+ {
+  "name": "wall_lamp_bracket",
+  "title": "Small lanterns hung from short arms that stick out of one of a wall's plate courses, either side of a door.",
+  "why": "Lanterns on short arms either side of a door or between windows, at about five bricks up.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "at",
+   "color",
+   "arm",
+   "glass"
+  ],
+  "books": [
+   "set 10350: 6553217 p120-124",
+   "set 43302: 6649254 p104-105"
+  ],
+  "signature": [
+   "3023b",
+   "3062b",
+   "6141",
+   "4589"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "Related to torch_sconce. The book's arm is a side-stud brick with a bar holder and bar; here it's a plate in a plate course, and the lantern hangs from it, each round piece held by the stud of the one below.",
+  "view": "iso"
+ },
+ {
+  "name": "hanging_planter",
+  "title": "Planters held out from a facade on short black arms, a pot of leaves with a bloom on each.",
+  "why": "Pots of leaves and flowers held out from a pub or village facade between the windows.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "at",
+   "color",
+   "arm",
+   "pot",
+   "leaves",
+   "flowers"
+  ],
+  "books": [
+   "set 10350: 6553217 p134-140, p221-225"
+  ],
+  "signature": [
+   "32607",
+   "3623",
+   "3062b"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "VARIANT of flower_bed (wall-mounted). The pot sits on its arm rather than hanging from a bar: a hanging leaf plate's leaves rise into the arm, so I left the trailing leaves out. The book's flowers on clips are round plates with tabs here.",
+  "view": "iso"
+ },
+ {
+  "name": "blade_sign",
+  "title": "A tall shop sign standing out from the wall edge-on to the street, hung on two bar handles in clips.",
+  "why": "A shop sign standing out edge-on from the wall so it reads from up and down the street.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "board",
+   "trim",
+   "hinge"
+  ],
+  "books": [
+   "set 43302: 6649256 p187-189"
+  ],
+  "signature": [
+   "48336",
+   "60475b",
+   "3795"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The sign hangs on two handles in two clips (the book uses one clip and a bar), with a plain Tile 1 x 4 where a printed tile goes. It only reads from +x; a second face would need a second board on the plate's underside.",
+  "view": "iso"
+ },
+ {
+  "name": "signboard_beam",
+  "title": "A deep sign beam over a shopfront, a smooth sign panel on side studs between dark ends, a cornice, a half-dome pediment, and a post at each end.",
+  "why": "The deep sign beam across a shopfront, with room for a lettered board, a cornice, and a pediment, that hides the window tops.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "sign",
+   "cornice",
+   "pediment"
+  ],
+  "books": [
+   "set 43302: 6649256 p81-86"
+  ],
+  "signature": [
+   "22885",
+   "4162",
+   "5848"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Uses 22885 (two rows of side studs) instead of 11211 so the board is two tiles deep, and two quarter domes (5848) as a small pediment in place of the half dome; the board is plain tiles where printed ones go.",
+  "view": "iso"
+ }
+]

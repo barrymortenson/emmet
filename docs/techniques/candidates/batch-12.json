@@ -1,0 +1,533 @@
+[
+ {
+  "name": "pixel_mosaic_panel",
+  "title": "Any pixel picture, given as rows of color letters, built flat in tiles on plates and stood up studs-out, one stud a pixel.",
+  "why": "Any picture as pixel art (a game screen, a sprite, a sign, a logo): the agent writes the picture as rows of letters and a palette, and the helper tiles it largest-first and stands it up studs-out.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "rows",
+   "palette",
+   "backing",
+   "upright"
+  ],
+  "books": [
+   "set 71374: 6336693 pp. 150-175, 160-161"
+  ],
+  "signature": [
+   "3070b",
+   "3069b",
+   "3068b",
+   "99780"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "The book builds the art on belt slats; the bracket stand (99780 along the bottom, panel resting on smooth tiles in front) is Emmet's, so it stands on any base. Tiles in rare colors may raise color_unavailable for the bigger sizes: the agent should pick palette colors 1 x 1 and 2 x 2 tiles come in.",
+  "view": "iso"
+ },
+ {
+  "name": "tile_brick_texture",
+  "title": "A pixel-art brick wall or ground block, drawn by the seams between small tiles on a darker backing, the mortar lines showing where the tiles meet.",
+  "why": "Pixel-art brick walls and ground blocks for game scenes and screens, where the brick pattern is drawn by tile seams rather than by real bricks.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "bond",
+   "brick",
+   "mortar",
+   "upright"
+  ],
+  "books": [
+   "set 71374: 6336693 pp. 150-158"
+  ],
+  "signature": [
+   "3070b",
+   "3069b"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "Same bracket stand as pixel_mosaic_panel; could become a bond option of it. upright=False gives the flat block top.",
+  "view": "iso"
+ },
+ {
+  "name": "item_block",
+  "title": "A game's floating prize block, a 2 x 2 cube faced on all four sides, held up in the air on a stand of clear panels.",
+  "why": "The iconic floating prize block over a track or a level, at toy or figure scale.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "mark",
+   "lift",
+   "face_part"
+  ],
+  "books": [
+   "set 72036: 6554679 p. 55, 6554677 p. 29"
+  ],
+  "signature": [
+   "67329",
+   "87580",
+   "4864b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "No generic printed '?' brick in LDraw (the only '?' print, 14769pt2, is black and silver), so the faces are jumpers with a round-tile mark; face_part lets the agent swap in a printed 2 x 2 tile. The core (two 67329 back to back) is Emmet's choice.",
+  "view": "iso"
+ },
+ {
+  "name": "float_on_clear",
+  "title": "A thin stand of clear parts that holds a game object up in mid-air, so it seems to hover.",
+  "why": "Anything that should hover (clouds, coins, blocks, a star) on a clear stand that nearly vanishes.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "kind",
+   "color"
+  ],
+  "books": [
+   "set 72036: 6554679 pp. 55, 62-67"
+  ],
+  "signature": [
+   "3062b",
+   "4864b"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The book's long clear bar into a round plate isn't offered; column and panels are.",
+  "view": "iso"
+ },
+ {
+  "name": "cube_head_character",
+  "title": "A chunky brick-built game character, 2 x 2 studs, with a head as big as its body, arms on side studs, and a cap.",
+  "why": "A chunky brick-built game character for toy-scale game scenes, karts, and dioramas, with a facing.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "skin",
+   "shirt",
+   "pants",
+   "shoes",
+   "cap"
+  ],
+  "books": [
+   "set 72036: 6554676 pp. 6-8, 6554677 pp. 6-13, 6554678 pp. 6-16",
+   "set 72040: 6596791 pp. 6-12"
+  ],
+  "signature": [
+   "11211",
+   "98138p07",
+   "15068"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book uses a printed 1 x 2 eye tile and 4733 heads; here the eyes are two printed round 1 x 1 eye tiles on 11211 side studs and the cap is a 2 x 3 plate brim under a curved slope.",
+  "view": "iso"
+ },
+ {
+  "name": "brick_enemy",
+  "title": "A small walking game enemy, a wide domed head over a short body on two feet, with eyes on side studs.",
+  "why": "A small walking enemy to populate a platform level or a game diorama.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "head",
+   "body",
+   "feet"
+  ],
+  "books": [
+   "set 72040: 6596791 pp. 70-71"
+  ],
+  "signature": [
+   "30414",
+   "98138p07",
+   "15068"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's face is a printed 2 x 2 tile; here it's printed eye tiles on a 30414's side studs, the outer studs tiled over.",
+  "view": "iso"
+ },
+ {
+  "name": "chunky_kart",
+  "title": "A stubby game kart on four big wheels with round hubcaps, 2 studs of body between the wheels and fenders 6 wide over them.",
+  "why": "A ready toy-scale racing kart for a game-style scene, wheels nearly as tall as the body.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "accent",
+   "frame_color"
+  ],
+  "books": [
+   "set 72036: 6554677 pp. 14-47, 6554678 pp. 17-43, 6554676 pp. 9-35"
+  ],
+  "signature": [
+   "3702",
+   "55981",
+   "30391",
+   "15535"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's kart is a 2 x 8 plate core with 11211 side panels; the wheel mounts here (friction pins in Technic bricks 1 x 8, the same rim, tire, and hubcap as the batch-14 large_display_wheel) were the only big wheels I could get to seat: 6014bc03 on a 4600 seats but its bounding box collides with anything 2 wide above the axle, and 6014bc01 on 4870 never seats.",
+  "view": "iso"
+ },
+ {
+  "name": "curb_rumble_strip",
+  "title": "A race track's striped edge curb, curved slopes in two colors in turn, with a low rail standing behind it on brackets.",
+  "why": "Red and white curbs along a race track's edges, in any length and facing.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "facing",
+   "base",
+   "stripes",
+   "rail"
+  ],
+  "books": [
+   "set 72036: 6554679 pp. 38-46"
+  ],
+  "signature": [
+   "15068",
+   "99780"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "iso"
+ },
+ {
+  "name": "start_gantry",
+  "title": "A race's start and finish arch, two pillars faced with sign panels on round bases, carrying a beam with a banner of checkered flags either side of a round badge.",
+  "why": "The start and finish arch over a race track, with sign-faced pillars and a checkered banner.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "span",
+   "courses",
+   "color",
+   "trim",
+   "banner"
+  ],
+  "books": [
+   "set 72036: 6554679 pp. 6-37"
+  ],
+  "signature": [
+   "22885",
+   "3070bp1c",
+   "60474"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book builds each pillar lying down on Technic bricks with sticker tiles and stands it up, and uses gray truss parts for the beam; here the pillars are built upright on 22885s (the same studs-out faces) and the beam is a plate under a banner course. Sponsor stickers are plain tiles.",
+  "view": "iso"
+ },
+ {
+  "name": "bolted_pillar",
+  "title": "A gray game pillar 1 x 2 with handholds sticking out both ends at every brick, topped by a round platform to land on.",
+  "why": "Climbable gray pillars with a landing platform for a platform-game course.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "levels",
+   "color",
+   "handles",
+   "platform"
+  ],
+  "books": [
+   "set 72040: 6596791 pp. 42-46, 54-61"
+  ],
+  "signature": [
+   "18649",
+   "60474",
+   "3794b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's handle plate is 3839b; in LDraw 3839b's handle sits off its body box and would not seat, so this uses 18649 (handles on opposite ends). The round platform sits on one jumper stud in the middle of the 1 x 2 pillar.",
+  "view": "iso"
+ },
+ {
+  "name": "flip_bridge",
+  "title": "A plank bridge on hinges between two pillars, with a push rod through the far pillar under its free end, the game trap that flips the bridge over when the rod is shoved.",
+  "why": "A play-feature trap for a platform level: a hinged plank bridge that a push rod flips.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "span",
+   "levels",
+   "color",
+   "planks",
+   "rod"
+  ],
+  "books": [
+   "set 72040: 6596791 pp. 48-49, 67-72"
+  ],
+  "signature": [
+   "3937",
+   "6134",
+   "3700",
+   "3706"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Static: only the shut pose is modeled. The book's rod is an axle 10; here an axle 6, because a 10 drew a weak_connection warning. The bridge's free end rests on tiles so it can flip.",
+  "view": "iso"
+ },
+ {
+  "name": "a_frame_tent",
+  "title": "A camping tent of two canvas panels leaning together on clip hinges over low side walls, open at the ends, with a sleeping bag inside.",
+  "why": "A camping tent with a sleeping bag inside for a game camp scene.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "canvas",
+   "floor",
+   "bag",
+   "pillow"
+  ],
+  "books": [
+   "set 72040: 6596791 pp. 19-31"
+  ],
+  "signature": [
+   "4081b",
+   "2540"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The canvas is the library's hinge_roof (clips on low walls, panels meeting at the ridge) rather than the book's two 6 x 6 plates clipped to a ridge bar. Viewed from the left, the open end.",
+  "view": "left"
+ },
+ {
+  "name": "brick_campfire",
+  "title": "Two crossed logs ringed by stones, with a brick of studs on four sides at the crossing carrying flames on every side and a glowing cone on top.",
+  "why": "A small campfire for a camp, a forge, or any game scene that needs fire.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "logs",
+   "stones",
+   "core",
+   "flames",
+   "tip"
+  ],
+  "books": [
+   "set 72040: 6596791 p. 30"
+  ],
+  "signature": [
+   "4733",
+   "54200",
+   "4589"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's flame pieces are clip-on flames; here 1 x 1 cheese slopes in trans colors stand on the 4733's side studs, points up.",
+  "view": "iso"
+ },
+ {
+  "name": "crt_cabinet",
+  "title": "An old wooden television on four tapered legs, its gray front a studs-out tiled panel with a round-cornered screen and a strip of knobs, and two antennas on top.",
+  "why": "A retro television (or radio, or monitor) with a screen that can show any pixel picture.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "screen",
+   "wood",
+   "bezel",
+   "glass",
+   "knobs",
+   "legs",
+   "picture",
+   "palette"
+  ],
+  "books": [
+   "set 71374: 6336693 pp. 87-123, 182-218, 230-242"
+  ],
+  "signature": [
+   "3688",
+   "25269",
+   "99780",
+   "14769"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book rounds the screen with 27925 macaroni tiles and curved slopes; here 25269 quarter-round tiles in the screen's corners give the round corners. 3688 was never made in medium nougat, so the legs default to tan. The legs' center studs put them half a stud off the base's grid.",
+  "view": "iso"
+ },
+ {
+  "name": "console_shell",
+  "title": "A boxy retro game console in two grays, a smooth dark band across its front on side studs and a tiled lid that lifts off, with a vent strip, a cartridge slot cover, and two buttons.",
+  "why": "A boxy retro home console in two grays with a lift-off lid, for retro and desk scenes.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "body",
+   "band",
+   "buttons"
+  ],
+  "books": [
+   "set 71374: 6337188 pp. 148-185"
+  ],
+  "signature": [
+   "87087",
+   "2412b",
+   "87079"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "The front band uses the library's snot_panel. No printed logo strip; the vent is grille tiles on the lid.",
+  "view": "iso"
+ },
+ {
+  "name": "vent_fins",
+  "title": "A row of thin upright fins with gaps between, like a heat sink or a console's vent, from tiles on the side studs of brackets.",
+  "why": "A finned vent or heat sink for consoles, appliances, engines, and sci-fi machines.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "count",
+   "color",
+   "fins",
+   "base"
+  ],
+  "books": [
+   "set 71374: 6337188 pp. 126-136"
+  ],
+  "signature": [
+   "99207",
+   "3068b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book stacks 99780 brackets at one-plate pitch; standing fin tiles there would sit on the next bracket's plate and studs, so here each fin is a 99207 face with a 2 x 2 tile, 2 studs apart, over a flat tile.",
+  "view": "iso"
+ },
+ {
+  "name": "controller_slab",
+  "title": "A flat retro game controller, a slab of bricks with studs on the sides tiled smooth all round, a cross pad, two round buttons, and two small pill buttons on a dark face.",
+  "why": "A retro game controller as a display piece or a desk prop.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "body",
+   "face",
+   "pad",
+   "buttons",
+   "pills"
+  ],
+  "books": [
+   "set 71374: 6337188 pp. 191-209"
+  ],
+  "signature": [
+   "15397",
+   "30414",
+   "14769"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The cord (a flexible tube) is left out. 11211 stands in for the book's 52107 at the ends of the side rows.",
+  "view": "iso"
+ },
+ {
+  "name": "game_pipe",
+  "title": "A game's green pipe, a column of round bricks under a wider round lip with a dark opening on top.",
+  "why": "A green pipe for a platform-game scene, small (2 x 2) or large (4 x 4).",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "size",
+   "color",
+   "inside"
+  ],
+  "books": [
+   "set 71374: 6336693 pp. 150-175 (pixel art only)"
+  ],
+  "signature": [
+   "3941",
+   "87081",
+   "11833",
+   "11213"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Not built in 3D in any of the books (pipes appear only in the TV's pixel art); written from the style rules. Barry may want another name: 'game pipe' is strongly tied to one game.",
+  "view": "iso"
+ },
+ {
+  "name": "polka_dot_cube",
+  "title": "A white cube 4 studs a side with a big round spot standing proud on every side face and on top, like a game's spotted cap.",
+  "why": "A white cube with big red spots, the spotted-cap prop of game scenes.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "spots"
+  ],
+  "books": [
+   "set 72040: 6596791 pp. 10-12",
+   "set 72036: 6554676 p. 8"
+  ],
+  "signature": [
+   "22885",
+   "14769"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The core (22885 in the middle of each side, 1 x 1 bricks and plates at the corners) is Emmet's choice.",
+  "view": "iso"
+ },
+ {
+  "name": "item_launcher",
+  "title": "A twin flick-fire launcher pod for a kart's nose or a turret, each barrel loaded with a round tile as the item it fires.",
+  "why": "A flick-fire launcher pod for a kart's nose or a turret, loaded with a colored item.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "color",
+   "trigger",
+   "items"
+  ],
+  "books": [
+   "set 72036: 6554676 pp. 32-34, 6554677 pp. 44-46, 6554678 pp. 40-42"
+  ],
+  "signature": [
+   "69754",
+   "69755",
+   "98138"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's shooter fires a shell part; the LDraw shooter here (69754, made in light bluish gray) fires a round 1 x 1 tile, placed as in the 69754c01 assembly so the tile can be any color.",
+  "view": "iso"
+ }
+]

@@ -1,0 +1,565 @@
+[
+ {
+  "name": "hearth_fireplace",
+  "title": "a brick fireplace with a fire in its firebox, a mantel shelf with candles, and a flue rising behind, built apart and placed against a wall.",
+  "why": "The living room's focal point against the chimney wall: a fire in a masonry firebox, a mantel with candles, and a flue that meets the chimney stack.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "arch",
+   "flue",
+   "candles",
+   "color",
+   "mantel",
+   "arch_color"
+  ],
+  "books": [
+   "set 11387: 6672343 p41, p133, p191",
+   "set 10354: 6574801 p76-78; 6574802 p101-108"
+  ],
+  "signature": [
+   "98283",
+   "64647",
+   "3020"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Merges FM brick_built_hearth_with_arch as arch=True, using an Arch 1 x 4 (3659) over the opening rather than a pair of quarter-circle arch bricks. The triple flame (64647) and candle flames (37775) have no connector data; they're placed by their body boxes on the grate and candle studs.",
+  "view": "iso"
+ },
+ {
+  "name": "wood_stove",
+  "title": "a black iron stove on short legs with a glowing grate door, a hotplate, a kettle, and a stovepipe, built apart and placed.",
+  "why": "A small iron stove for a cottage kitchen or a cabin, with its pipe rising up the wall; pairs with the woodpile technique for firewood.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "pipe",
+   "kettle",
+   "color",
+   "glow"
+  ],
+  "books": [
+   "set 21335: 6448880 p201-204"
+  ],
+  "signature": [
+   "2412b",
+   "11211",
+   "3062b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book puts a grille over a glowing tile; both can't sit on the same side studs, so the door is one Trans-Orange grille tile (2412b is made in it). Firewood is left to woodpile.",
+  "view": "iso"
+ },
+ {
+  "name": "figure_bed",
+  "title": "a single bed 2 x 6 studs for a figure, with a headboard or four posts, a pillow, and a checked quilt, built apart and placed.",
+  "why": "Every bedroom or loft needs a bed a figure can lie in; 2 x 6 fits along a wall or under a roof slope.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "posts",
+   "frame",
+   "quilt",
+   "quilt2",
+   "pillow"
+  ],
+  "books": [
+   "set 21335: 6448880 p204",
+   "set 43268: 6568841 p131-134",
+   "set 11377: 6650286 p19-20"
+  ],
+  "signature": [
+   "3795",
+   "15068",
+   "3070b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Four-poster from 43268 and FM short_bed_four_post merged as posts=True, with cones as post caps rather than bars and round plates.",
+  "view": "iso"
+ },
+ {
+  "name": "armchair_and_sofa",
+  "title": "an upholstered seat a figure sits in, with arms, a seat cushion, and a padded back, from an armchair 4 studs wide to a sofa 8 wide, built apart and placed.",
+  "why": "Seating for a living room, a pub, or a waiting room, one technique from a 4-wide armchair to an 8-wide sofa.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "kind",
+   "length",
+   "facing",
+   "color",
+   "cushion"
+  ],
+  "books": [
+   "set 43217: 6461326 p60",
+   "set 43268: 6568841 p111-113",
+   "set 10350: 6553217 p258"
+  ],
+  "signature": [
+   "11211",
+   "11477",
+   "3069b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Merges HC armchair_and_sofa and TM small_sofa as kind=. The armchair is 4 wide so a figure fits between the arms; the book's 2 x 2 armchair has no room for arms.",
+  "view": "iso"
+ },
+ {
+  "name": "kitchen_counter",
+  "title": "a run of kitchen units 2 deep, each 2 studs wide, a cabinet, a stove, or a sink, under one worktop, built apart and placed along a wall.",
+  "why": "The kitchen's working wall: a run of cabinets, a stove, and a sink under one worktop, sized for any length of wall.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "units",
+   "facing",
+   "color",
+   "doors",
+   "top"
+  ],
+  "books": [
+   "set 43268: 6568841 p101-110",
+   "set 10352: 6583432 p128-160, p201-210"
+  ],
+  "signature": [
+   "11211",
+   "4599b",
+   "98138"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Merges TM kitchen_line. No fridge unit (a tall unit needs its own door handle on side studs); the sink is a trans-light-blue tile with a tap, as there is no figure-scale sink part.",
+  "view": "iso"
+ },
+ {
+  "name": "table_and_chairs",
+  "title": "a small round table on one leg, or a long table on four, with up to four chairs set round it, built apart and placed.",
+  "why": "A dining or kitchen table with chairs set round it, the core of any furnished room.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "shape",
+   "chairs",
+   "facing",
+   "wood",
+   "top"
+  ],
+  "books": [
+   "set 11387: 6672343 p41",
+   "set 43217: 6461326 p20-21",
+   "set 21335: 6448880 p205"
+  ],
+  "signature": [
+   "18674",
+   "14769",
+   "36840"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The round table is centered on 18674's one middle stud, half a stud off the grid. The book's Tile 2 x 2 Round (4150) on a round brick's hollow stud validates as floating (a validator gap, or the cross stud isn't modeled), so the top is 14769, which seats. Chair backs reach 0.6 studs past the set's footprint.",
+  "view": "iso"
+ },
+ {
+  "name": "wall_shelf",
+  "title": "a shelf set into a wall as a plate course that reaches a stud into the room, with bottles, cheese, cups, or rows of sweet jars on it.",
+  "why": "Shelves of bottles, cheese, and cups in a kitchen, or sweet jars in a shop, set into any wall course.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "facing",
+   "items",
+   "seed",
+   "color"
+  ],
+  "books": [
+   "set 21335: 6448880 p213, p220",
+   "set 11387: 6672343 p191",
+   "set 43302: 6649255 p22"
+  ],
+  "signature": [
+   "3020",
+   "95228",
+   "3062b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book hangs a 1 x 2 plate on an 87087 side stud; a plate on a side stud stands upright, so this lays a 2-deep plate in the wall course with one row reaching into the room instead. Merges TM jar_shelf as items=\"jars\".",
+  "view": "iso"
+ },
+ {
+  "name": "wall_picture_and_clock",
+  "title": "a framed picture or a round clock hung on side studs in a wall, facing into the room.",
+  "why": "Pictures and clocks on the walls are the cheapest way to make a room feel lived in.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "kind",
+   "facing",
+   "picture",
+   "clock",
+   "color",
+   "frame"
+  ],
+  "books": [
+   "set 21335: 6448880 p214-215, p220",
+   "set 43217: 6461326 p30",
+   "set 11387: 6672343 p133"
+  ],
+  "signature": [
+   "11211",
+   "3068bp71",
+   "87087",
+   "14769p0a"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Each printed tile was made in one color only (3068bp71 Dark Tan, 3068bp74 Reddish Brown, 3068bp8g White, 14769p0a Reddish Brown, 14769p0f White), so the prints carry their own colors.",
+  "view": "front"
+ },
+ {
+  "name": "plank_floor",
+  "title": "a wooden floor of long tile boards in two wood tones, every row's ends staggered from the row before.",
+  "why": "A wooden floor for a living room, pub, or shop that reads as old boards, not a grid of tiles.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "axis",
+   "seed",
+   "color",
+   "color2",
+   "sizes"
+  ],
+  "books": [
+   "set 10350: 6553217 p40-56",
+   "set 43268: 6568841 p85-87"
+  ],
+  "signature": [
+   "2431",
+   "6636",
+   "63864"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of tiled_floor: seeded board lengths with staggered ends and two wood tones, tiles only (no plate layer). The Tile 1 x 8 (4162) was never made in Medium Nougat, so the default sizes stop at 6; pass sizes with 8 for one-tone floors.",
+  "view": "iso"
+ },
+ {
+  "name": "floor_rug",
+  "title": "a flat rug of tiles on a room's floor studs, round or rectangular with a border.",
+  "why": "A rug before the fire or beside the bed marks out a room's zones on a plain floor.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "shape",
+   "length",
+   "depth",
+   "color",
+   "border"
+  ],
+  "books": [
+   "set 11387: 6672343 p191",
+   "set 43268: 6568841 p85-87"
+  ],
+  "signature": [
+   "67095",
+   "3069b",
+   "2431"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "VARIANT of tiled_floor's border pattern, tiles only. The round rug is one Tile 3 x 3 Round (67095): a two-tone ring of quarter-ring tiles (27925, 79393) can't take a middle tile because the validator's boxes overlap. The book's rug dropped at an angle on a jumper is left out (off-grid angle).",
+  "view": "iso"
+ },
+ {
+  "name": "floor_lamp_and_candle",
+  "title": "a standing lamp with a shade on a slim pole, or a candle in a brass dish, built apart and placed.",
+  "why": "Light sources for any room: a standing lamp by a chair, candles on a mantel, table, or piano.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "kind",
+   "pole",
+   "shade",
+   "wax"
+  ],
+  "books": [
+   "set 43217: 6461326 p14",
+   "set 21335: 6448880 p205"
+  ],
+  "signature": [
+   "87994",
+   "4589",
+   "85861",
+   "37775"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The bar reaches a plate up into the cone shade: with the cone sitting on the bar's top the validator calls it floating. The lamp stands half a stud off the grid on 18674's middle stud.",
+  "view": "iso"
+ },
+ {
+  "name": "interior_arch_doorway",
+  "title": "a partition wall one brick thick between two rooms, with a doorway 4 studs wide closed at the top by a raised arch in a contrasting color.",
+  "why": "Joins two rooms through a partition wall with an arched opening, as cottages and town houses do.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "axis",
+   "gap",
+   "opening",
+   "rows",
+   "color",
+   "arch"
+  ],
+  "books": [
+   "set 21335: 6448880 p207, p209"
+  ],
+  "signature": [
+   "92950"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of brick_built_arch: an Arch 1 x 6 Raised in a one-brick partition built with m.wall, the course under it opened for the arch's legs.",
+  "view": "iso"
+ },
+ {
+  "name": "loft_half_floor",
+  "title": "a sleeping loft over part of a room, a floor of two plate layers spanning between the end walls with a lattice rail along its open edge.",
+  "why": "A sleeping loft or upper half floor in an open-back house, so the room below still shows.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "edge",
+   "color",
+   "rail"
+  ],
+  "books": [
+   "set 11387: 6672343 p191",
+   "set 43268: 6568841 p122-145"
+  ],
+  "signature": [
+   "3633",
+   "3034"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "The loft's end strips run through the end walls, so its plate edge shows on their outer faces. The book's quarter-round shelves on brackets and a ladder are left out (ladder parts have no connector data).",
+  "view": "front"
+ },
+ {
+  "name": "cross_display_stand",
+  "title": "a freestanding plus-shaped shop table with a poster on the end of each arm and goods on top, built apart and placed.",
+  "why": "A freestanding display table for the middle of a shop floor, with posters on its ends and goods on top.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "posters",
+   "goods",
+   "seed"
+  ],
+  "books": [
+   "set 43302: 6649255 p67-70"
+  ],
+  "signature": [
+   "22885",
+   "3068b",
+   "3795"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Alternate, in place of bracket_tread_stair: the book's step (a 1 x 2 brick, a bracket, a riser tile and a tread tile, 2 plates rise and 1 stud run) collides with the step below in every arrangement I tried, and I couldn't confirm it from the research. Posters are plain tiles; any printed 2 x 2 tile can go there.",
+  "view": "iso"
+ },
+ {
+  "name": "curved_booth",
+  "title": "a diner booth, a U of padded seat round a table on a round pedestal, built apart and placed.",
+  "why": "A diner or cafe booth for figures to sit round a table, a U of padded seat with a tall back.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "color",
+   "padding",
+   "table"
+  ],
+  "books": [
+   "set 10352: 6583432 p121-127"
+  ],
+  "signature": [
+   "11211",
+   "3062b",
+   "3941",
+   "14769"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The back's corners are round 1 x 1 bricks rather than 2 x 2 corner round bricks, which would lift the corner seat a brick above the rest. The table stands on a 2 x 2 round brick, since a 1 x 1 post can't sit under the middle of a 2 x 2 top on the grid.",
+  "view": "iso"
+ },
+ {
+  "name": "bar_counter",
+  "title": "a pub's wooden bar, its front a row of window frames with dark panes standing in for raised panels, under a tiled top with a beer tap and glasses, built apart and placed.",
+  "why": "The bar for a pub or tavern; window frames with opaque panes read as raised wooden panels.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "panels",
+   "facing",
+   "wood",
+   "panes",
+   "top"
+  ],
+  "books": [
+   "set 10350: 6553217 p50-56"
+  ],
+  "signature": [
+   "60592",
+   "60601",
+   "4599b"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "No curved end. The book's back shelf of bottles is wall_shelf.",
+  "view": "iso"
+ },
+ {
+  "name": "display_case_counter",
+  "title": "a shop counter with a glass front and goods on show behind it, built apart and placed.",
+  "why": "A glass-fronted shop counter with goods on show, for a bakery, sweet shop, or emporium.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "facing",
+   "color",
+   "goods",
+   "seed"
+  ],
+  "books": [
+   "set 43302: 6649255 p14-22"
+  ],
+  "signature": [
+   "60592",
+   "60601",
+   "3062b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The glass is window frames with clear glass. Panels 1 x 2 x 1 (4865a, 4865b) and 1 x 4 x 1 (30413, 15207) have no floor studs in this library, so goods can't stand in them; no glass top.",
+  "view": "front"
+ },
+ {
+  "name": "upright_piano",
+  "title": "a piano 4 studs wide against a wall, its keyboard on a ledge at a seated figure's hands, with sheet music on its front and a candle on its lid, built apart and placed.",
+  "why": "A piano for a parlor, a pub, or an apartment, against a wall with a chair in front.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "color",
+   "candle"
+  ],
+  "books": [
+   "set 43302: 6649254 p113-115"
+  ],
+  "signature": [
+   "2431px0",
+   "30414",
+   "3020"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The keys tile (2431px0, made in White only) lies on the front row of a 2 x 4 plate over two legs instead of on a bracket, so the keyboard ties the body.",
+  "view": "iso"
+ },
+ {
+  "name": "dresser_shelf",
+  "title": "a kitchen dresser, a cupboard with drawers and a worktop below and an open rack of shelves above with jars and cups in its cubbies, built apart and placed against a wall.",
+  "why": "A kitchen dresser or tavern sideboard: a cupboard and worktop with open shelves of jars and cups above.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "shelves",
+   "facing",
+   "seed",
+   "color",
+   "drawers"
+  ],
+  "books": [
+   "set 10354: 6574801 p105-108",
+   "set 21363: 6612024 p44-50"
+  ],
+  "signature": [
+   "30414",
+   "3005",
+   "3062b",
+   "3899"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book builds a wall cabinet only; this adds the cupboard and worktop under it, the usual dresser shape.",
+  "view": "iso"
+ },
+ {
+  "name": "bookcase",
+  "title": "a tall bookcase for a figure's room, its shelves full of books whose spines are 1 x 2 tiles standing on side studs, built apart and placed against a wall.",
+  "why": "A tall bookcase for a study, a parlor, or a shop, its books' spines facing out.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "shelves",
+   "facing",
+   "seed",
+   "color",
+   "books"
+  ],
+  "books": [
+   "set 10350: 6553217 p282-284"
+  ],
+  "signature": [
+   "22885",
+   "3069b",
+   "3068b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The figure-scale one, not VV bookshelf_block. Books are 1 x 2 tiles stood on end on the side studs of 1 x 2 x 1 2/3 bricks, 5 plates tall, so a shelf is 6 plates.",
+  "view": "iso"
+ }
+]

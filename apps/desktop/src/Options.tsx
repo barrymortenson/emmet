@@ -65,12 +65,14 @@ const BRIEF: Record<Key, { label: string; help: string; options: Choice[] }> = {
     options: [
       { id: "Town", sub: "Houses, shops, streets" },
       { id: "Medieval", sub: "Stone, timber, castles" },
-      { id: "Blocky", sub: "Voxel art, one-stud cubes" },
+      { id: "Blocky", sub: "Voxel worlds of square blocks, no curves" },
       { id: "Dinosaur park", sub: "Jungle, fences, big animals" },
       { id: "Space", sub: "Bases, rovers, gray and blue" },
       { id: "Pirate", sub: "Ships, docks, islands" },
       { id: "Modern", sub: "Glass, clean lines" },
       { id: "Fantasy", sub: "Towers, magic, color" },
+      { id: "Video game", sub: "Bright game worlds, item blocks, pixel art" },
+      { id: "Sculpture", sub: "Characters, animals, letters, smooth shapes" },
     ],
   },
 };
@@ -94,7 +96,7 @@ const words = (k: Key, v: string | null | undefined) => (v == null ? null : k ==
 export function rebuildRequest(before: BuildSettings, after: BuildSettings): string {
   const changes = ORDER.filter((k) => (before[k] ?? null) !== (after[k] ?? null)).map((k) => `${BRIEF[k].label}: ${said(after[k])}`);
   const all = ORDER.map((k) => `${BRIEF[k].label} ${said(after[k])}`).join(", ");
-  return `Rework the model for the new build settings (${changes.join("; ")}). All of them now: ${all}. They're in emmet.toml's [build].`;
+  return `Rework the model for the new build settings (${changes.join("; ")}). All of them now: ${all}. They're in emmet.toml's [build]; the guide tool gives their rules.`;
 }
 
 /** One build setting or knob: its name (its meaning is the name's tooltip), "was …" when changed, then its control. */

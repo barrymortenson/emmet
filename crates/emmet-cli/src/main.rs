@@ -3,6 +3,7 @@
 //! prints the result, as the JSON envelope with `--json` or as text.
 
 mod eval;
+mod guide;
 mod host;
 mod mcp;
 mod render;
@@ -163,6 +164,9 @@ enum Command {
     },
     /// The technique library: the list, or one technique's doc, example, and parts.
     Technique { name: Option<String> },
+    /// The build guide for a scale, style, or subject (the same text as the MCP `guide` tool); with no name, the
+    /// guides for the project's build settings.
+    Guide { name: Option<String> },
     /// Run the stdio MCP server.
     Mcp {
         /// The app's chat session (set only by the app): every tool result carries the user's redirect notes.
@@ -697,6 +701,12 @@ fn main() -> ExitCode {
             started,
             Output::from(emmet_core::technique::techniques(name.as_deref())),
             mcp::technique_text,
+        ),
+        Command::Guide { name } => finish(
+            &cli,
+            started,
+            Output::from(guide::answer(name.as_deref(), cli.project.as_deref())),
+            guide::text,
         ),
         Command::Eval {
             rung,

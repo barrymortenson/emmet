@@ -1,0 +1,558 @@
+[
+ {
+  "name": "block_column",
+  "title": "a stack of game blocks on the 2 x 2 grid, each a cube 5 plates tall, textured by mixing shades.",
+  "why": "The base unit of any blocky build: a pillar, a tower corner, or a stone or wood block of the right cube size, in mixed shades.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "blocks",
+   "colors",
+   "height",
+   "seed",
+   "cap"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 15-18, 110, 144"
+  ],
+  "signature": [
+   "3004",
+   "3022",
+   "87580"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The scale rule (2 x 2 studs, 5 plates a block) as a part recipe; the other sketches here share it. Key parts are very common.",
+  "view": "iso"
+ },
+ {
+  "name": "raised_module_base",
+  "title": "a slab of game terrain on dirt-colored legs, one brick off the table, like a chunk cut out of a block world.",
+  "why": "The base for any blocky scene: a slab on dirt legs, cut out of the world, that butts against the next module on the 2-stud grid.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "top",
+   "dirt",
+   "spacing",
+   "seed"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 5, 20-25, 64-65, 95-99, 125",
+   "set 21128: 6192626 pp. 6-12"
+  ],
+  "signature": [
+   "3003",
+   "92438",
+   "41539"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "Related to landing_zone; here the slab stands on brick legs a brick up, with seams on legs.",
+  "view": "iso"
+ },
+ {
+  "name": "module_link_block",
+  "title": "blocks set across the seam of two terrain modules, locking them into one scene and reading as one more grass block.",
+  "why": "Locking two terrain modules together so the joint reads as one more grass block.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "axis",
+   "links",
+   "wide",
+   "dirt",
+   "grass"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 144, 208-210",
+   "set 21128: 6192626 pp. 3, 38, 72-74"
+  ],
+  "signature": [
+   "3003",
+   "87580"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The book drops links into notches left in the module tops; this sketch sets them on top of the two modules, which needs no notch but stands a block proud.",
+  "view": "iso"
+ },
+ {
+  "name": "grass_block",
+  "title": "single raised blocks scattered over a lawn, each a dirt brick under a grass top with one stud.",
+  "why": "Scattering raised grass, sand, or stone blocks over a flat lawn so it reads as a block world.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "count",
+   "tall",
+   "seed",
+   "dirt",
+   "grass"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 5-9, 23, 125, 144",
+   "set 21128: 6192626 p. 13"
+  ],
+  "signature": [
+   "3003",
+   "87580"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The book's block is a brick and a jumper (4 plates); this adds a grass plate between to make the 5-plate cube.",
+  "view": "iso"
+ },
+ {
+  "name": "stepped_block_terrain",
+  "title": "a hill or dune that rises in square terraces on the 2-stud grid, never in slopes, its top in square patches of two or three materials.",
+  "why": "Hills, dunes, and banks in a blocky scene, terraced on the block grid with patches of grass and sand.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "peak",
+   "plate_steps",
+   "seed",
+   "body",
+   "tops"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 147-155, 164-165"
+  ],
+  "signature": [
+   "3001",
+   "3003",
+   "3022"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of hillside: square steps on the 2-stud grid, no slopes. Folds in voxel_color_patch_ground (the top plates' material patches).",
+  "view": "iso"
+ },
+ {
+  "name": "block_tree",
+  "title": "a blocky tree, a square trunk under a cube-ish canopy of mixed greens with see-through leaf blocks and a ragged outline, built apart and placed as a submodel.",
+  "why": "A tree for any blocky scene: square trunk, cube-ish canopy in mixed greens with see-through leaf blocks.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "trunk",
+   "seed",
+   "trunk_color",
+   "leaves",
+   "see_through"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 15-19",
+   "set 21128: 6192626 pp. 69-70"
+  ],
+  "signature": [
+   "3003",
+   "3958",
+   "3065"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of tree. The book hangs side blocks on brackets (99207); this sketch pushes edge blocks a stud out instead, which breaks the outline without brackets. The trans-green blocks are two 1 x 2 bricks (3065), since 3003 was never made in Trans Green.",
+  "view": "iso"
+ },
+ {
+  "name": "speckled_block_wall",
+  "title": "a wall whose texture is two or three shades of one material mixed at random, the way a game draws cobblestone, moss, or planks.",
+  "why": "Cobblestone, mossy, or wooden walls in a blocky build, textured by mixing two or three shades at random.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "width",
+   "colors",
+   "accent",
+   "seed"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 27-46, 57-63, 116-121, 168-180"
+  ],
+  "signature": [
+   "3004",
+   "3622",
+   "3010",
+   "3001"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "A color pass over a running bond, like masonry_wall in mixed shades; width 2 builds it of whole blocks.",
+  "view": "iso"
+ },
+ {
+  "name": "mossy_stone_block",
+  "title": "a gray game block with green showing in a thin band around its side, like moss in the seams.",
+  "why": "A stone block with moss in its seams, for ruins, wells, and cave edges in a blocky scene.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "blocks",
+   "moss",
+   "seed",
+   "stone",
+   "moss_color"
+  ],
+  "books": [
+   "set 21128: 6192624 p. 110"
+  ],
+  "signature": [
+   "6141",
+   "87580",
+   "3003"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The book's unit is a plate, round plates, and a jumper (3 plates); this puts it on a 2 x 2 brick to make the 5-plate cube.",
+  "view": "iso"
+ },
+ {
+  "name": "bookshelf_block",
+  "title": "a 2 x 2 game block of wood whose sides show rows of colored book spines.",
+  "why": "Furniture for a blocky house: a block of book spines, alone or three in a row as a shelf wall.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "count",
+   "axis",
+   "seed",
+   "wood",
+   "books"
+  ],
+  "books": [
+   "set 21128: 6192624 p. 79"
+  ],
+  "signature": [
+   "3005",
+   "3024",
+   "87580"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "iso"
+ },
+ {
+  "name": "cactus_column",
+  "title": "a 2 x 2 green column of game blocks with studs on every side, the studs read as spines.",
+  "why": "A desert cactus in a blocky scene: a green column with studs on every side as spines.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "blocks",
+   "seed",
+   "colors"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 151-152",
+   "set 21128: 6192626 p. 56"
+  ],
+  "signature": [
+   "4733",
+   "87580"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Built the way the second book does it (bricks with studs on four sides, 4733). The first book's version turns a bracket 1 x 2 - 2 x 2 up (99207) on each block, but that bracket's upright fills the 1 x 2 above its base, so it can't sit under the next 2 x 2 block as the research note has it.",
+  "view": "iso"
+ },
+ {
+  "name": "reed_stalks",
+  "title": "tall lime stalks growing from a sand block in a square of water, the game's sugar-cane look.",
+  "why": "Reeds or cane at a pond's edge in a blocky scene: lime stalks from a sand square in water.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "heights",
+   "seed",
+   "water",
+   "surface",
+   "sand",
+   "stalk"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 142-144",
+   "set 21128: 6192626 p. 30"
+  ],
+  "signature": [
+   "3062b",
+   "6141",
+   "3031"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "iso"
+ },
+ {
+  "name": "block_water_and_falls",
+  "title": "a square pool set flush in the ground and a column of see-through blocks falling into it down a stone face, water the way a block world draws it.",
+  "why": "Water in a blocky scene: a flush square pool and a column of see-through blocks falling down a stone face.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "rows",
+   "pool",
+   "seed",
+   "stone",
+   "water"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 103-109, 125-131"
+  ],
+  "signature": [
+   "3004",
+   "3068b",
+   "87580"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of pond and waterfall: square, flush, on the grid. The book's stream also uses 2 x 2 slopes; this one is 1 x 2 bricks only, true to the no-slope rule.",
+  "view": "iso"
+ },
+ {
+  "name": "lava_inset",
+  "title": "a glowing square of lava set a plate down into a stone floor of blocks, for a forge or a cave.",
+  "why": "A forge floor or a cave: a glowing lava square set a plate down in a rim of stone blocks.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "stone",
+   "lava",
+   "glow"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 28-30, 46"
+  ],
+  "signature": [
+   "3069b",
+   "87580",
+   "3003"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "No 2 x 2 tile in Trans Orange, so the glow layer is 1 x 2 tiles.",
+  "view": "iso"
+ },
+ {
+  "name": "crop_field",
+  "title": "a tilled field of crops in rows on dark soil, a water channel down its middle and a rim of smooth blocks around it.",
+  "why": "A farm in a blocky scene: rows of crops on soil, a water channel down the middle, and a rim of jumper blocks.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "soil",
+   "rim",
+   "water",
+   "crop"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 125-131"
+  ],
+  "signature": [
+   "15279",
+   "87580",
+   "3068b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's channel is a 1-wide line of tiles; on the 2-stud grid with an even field it is 2 wide here. Uses jumper_rim's method for the rim. The grass stem (15279) has no connector data but seats cleanly on its round plate.",
+  "view": "iso"
+ },
+ {
+  "name": "block_fence_post",
+  "title": "thin fence posts with stub rails sticking out four ways, each centered on its block, the way a game draws a fence.",
+  "why": "A fence for a blocky farm or yard: thin posts with tab rail stubs, each centered on its block.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "posts",
+   "axis",
+   "rail",
+   "post",
+   "tabs",
+   "seat"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 119-120, 158",
+   "set 21128: 6192626 p. 32"
+  ],
+  "signature": [
+   "33291",
+   "87580",
+   "3005"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of fence (voxel posts on jumpers). The rail plates link posts in pairs, so a long run has a gap in the rail every other bay.",
+  "view": "iso"
+ },
+ {
+  "name": "stick_torch",
+  "title": "a thin wooden stick with a glowing square flame on top, the blocky-world torch.",
+  "why": "Lighting in a blocky scene: a stick with a square flame, on a block's center or a ground stud.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "centered",
+   "stick",
+   "seat",
+   "flame"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 110, 123, 146"
+  ],
+  "signature": [
+   "3062b",
+   "3024",
+   "87580"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of torch_sconce, free-standing; no wall clip version.",
+  "view": "iso"
+ },
+ {
+  "name": "plank_and_stone_wall",
+  "title": "a blocky house wall, light wood planks over a speckled stone footing, with dark log posts at its ends and a plain window set in the planks.",
+  "why": "The wall of a blocky house: planks over a speckled stone footing, log posts at the ends, a plain window.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "stone_rows",
+   "plank_rows",
+   "window",
+   "seed",
+   "stone",
+   "plank",
+   "log"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 47-63, 70-91, 163-205",
+   "set 21128: 6192626 pp. 21-35"
+  ],
+  "signature": [
+   "30136",
+   "30137",
+   "60592"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of masonry_wall / clapboard_siding: two materials and log corners. The log bricks' ridges run up and down (as the part is), reading as vertical planks.",
+  "view": "iso"
+ },
+ {
+  "name": "stepped_plank_roof",
+  "title": "a gable roof with no slopes, climbing in 1-stud steps of plank-faced courses to a ridge of blocks, the blocky-world roof.",
+  "why": "The roof of a blocky house: a gable climbing in 1-stud steps of plank treads to a ridge of jumper blocks, no slopes.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "color",
+   "planks"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 81-94, 193-206"
+  ],
+  "signature": [
+   "3001",
+   "6636",
+   "87580"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of gable_roof. Doesn't lift off as one piece; the courses are stacked on the walls.",
+  "view": "iso"
+ },
+ {
+  "name": "flat_jumper_roof",
+  "title": "a flat roof that lifts off, tiled smooth in the middle and ringed with jumper plates so its edge reads as a row of blocks, one stud each.",
+  "why": "A flat roof for a blocky forge or shed that lifts off, tiled smooth with a rim of one-stud blocks.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "base",
+   "tiles",
+   "rim"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 50-53, 120, 131"
+  ],
+  "signature": [
+   "3794b",
+   "87079"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of lift_off_roof_seat; includes jumper_rim (1 x 2 jumpers in a 1-stud ring, as on the book's forge roof).",
+  "view": "iso"
+ },
+ {
+  "name": "block_beast",
+  "title": "a game animal made of boxes, a box body on four box legs with a box head and a face of flat squares, built apart and placed as a submodel.",
+  "why": "Animals for a blocky farm: a box body on box legs with a box head and a face of tiles; a pig in the default colors.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "body",
+   "snout",
+   "eyes"
+  ],
+  "books": [
+   "set 21128: 6192624 pp. 124, 146"
+  ],
+  "signature": [
+   "11211",
+   "3070b",
+   "3002"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's head is a printed 2 x 2 brick; here the face is plain tiles and a sideways plate on a brick with studs on one side (11211), since Emmet uses no prints.",
+  "view": "iso"
+ }
+]

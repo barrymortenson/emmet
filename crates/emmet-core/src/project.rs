@@ -241,7 +241,7 @@ impl Project {
         let (model, what) = match &template {
             Template::Cottage => (
                 COTTAGE,
-                "A small cottage on a green 32 x 32 baseplate: stone-based walls with a real door and glazed windows, a\ngable roof, a chimney, a path with flowers, and a room inside (a bed, a table, and a stove).",
+                "A stone-and-plaster cottage in its garden on a green 32 x 32 baseplate: a bay window, a porch, a chimney with\na fireplace inside, two furnished rooms, a roof that lifts off, and a garden with a gate, a path, and a tree.",
             ),
             Template::Empty => (EMPTY, "A green 32 x 32 baseplate, ready for a model."),
             Template::Import(file) => {

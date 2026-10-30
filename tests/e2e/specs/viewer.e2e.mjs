@@ -35,7 +35,7 @@ describe("the live viewer", () => {
     const started = Date.now();
     // Width isn't one of the cottage's knobs (they change its character, @model(knobs=...)), so it's set as the CLI
     // and the agent set it.
-    await invoke("set_params", { values: { width: 11 } });
+    await invoke("set_params", { values: { width: 18 } });
     // Sample while the update lands: the old scene stays whole until the new one replaces it (no flicker).
     let lowest = Infinity;
     await browser.waitUntil(
@@ -51,7 +51,7 @@ describe("the live viewer", () => {
     expect(lowest).toBeGreaterThanOrEqual(count);
     expect((await stats()).instances).toBeGreaterThan(count);
     expect(await camera()).toEqual(before);
-    const width = 11;
+    const width = 18;
     expect(JSON.parse(readFileSync(join(project, "params.json"), "utf8")).width).toBe(width);
     // 1B's budget (What good looks like: ≤ 1.0 s on M-series); slower hosted runners only report it.
     if (process.platform === "darwin" && process.env.RUNNER_ENVIRONMENT !== "github-hosted") expect(ms).toBeLessThan(1000);
@@ -61,12 +61,12 @@ describe("the live viewer", () => {
     const before = await camera();
     const gen = await shown();
     const count = (await stats()).instances;
-    writeFileSync(modelPy, original.replace("chimney: bool = True", "chimney: bool = False"));
+    writeFileSync(modelPy, original.replace("roof: bool = True", "roof: bool = False"));
     await nextScene(gen);
-    await browser.waitUntil(async () => (await stats()).instances < count, { timeoutMsg: "the chimney didn't go" });
+    await browser.waitUntil(async () => (await stats()).instances < count, { timeoutMsg: "the roof didn't come off" });
     expect(await camera()).toEqual(before);
-    // The knobs read the schema again: the chimney's new default.
-    await browser.waitUntil(async () => (await $("#param-chimney-switch").getAttribute("aria-checked")) === "false", { timeoutMsg: "the chimney switch kept the old default" });
+    // The knobs read the schema again: the roof's new default.
+    await browser.waitUntil(async () => (await $("#param-roof-switch").getAttribute("aria-checked")) === "false", { timeoutMsg: "the roof switch kept the old default" });
   });
 
   it("a broken model.py says the model didn't build, with its line for the agent, and the last good model stays", async () => {
@@ -134,7 +134,7 @@ describe("the live viewer", () => {
     expect((await stats()).instances).toBe(count);
     await expect($("#build-failed")).not.toBeExisting();
     const gen = await shown();
-    await invoke("set_params", { values: { width: 8 } });
+    await invoke("set_params", { values: { width: 14 } });
     await nextScene(gen);
     expect(existsSync(join(project, "build", "placements.json"))).toBe(true);
     await instances(await partCount());
@@ -156,13 +156,13 @@ describe("the live viewer", () => {
     const gen = await shown();
     await browser.execute(() =>
       Promise.all([
-        window.__TAURI_INTERNALS__.invoke("set_params", { values: { depth: 10 } }),
-        window.__TAURI_INTERNALS__.invoke("set_params", { values: { wall_rows: 7 } }),
+        window.__TAURI_INTERNALS__.invoke("set_params", { values: { depth: 12 } }),
+        window.__TAURI_INTERNALS__.invoke("set_params", { values: { weathering: 7 } }),
       ]),
     );
     await nextScene(gen);
     const saved = JSON.parse(readFileSync(join(project, "params.json"), "utf8"));
-    expect([saved.depth, saved.wall_rows]).toEqual([10, 7]);
+    expect([saved.depth, saved.weathering]).toEqual([12, 7]);
   });
 
   it("reopening a project whose build lost its placements builds it again", async () => {

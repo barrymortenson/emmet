@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-8</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-8</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-8/tiled_roof_panel.png" alt="A sketch of tiled_roof_panel" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>tiled_roof_panel</code></h2>
+    <p>A steep roof of two hinged panels, each a plate base covered with flat 2-deep tiles in running bond, so the courses read as overlapping roof tiles.</p>
+    <p class="why">A steep old-town roof that reads as rows of flat roof tiles: two hinged panels clad in tiles laid in running bond over a darker base.</p>
+    <p class="note"><b>Note:</b> VARIANT of hinge_roof: the same clips (4081b), handle plates (2540), and angle solving. It differs in the panel: a dark base (a hinge row, then one plate 2 wide per column up the panel) under 2-deep tile courses in running bond, where hinge_roof lays one-color tile strips whose joints line up. Needs depth 8 or more (hinge_roof takes 6) because each base column is a single plate. The book clips 2 x 2 hinge plates to bars on the wall top and hangs the bottom course a plate over the edge; here hinge_roof's clips stand in, and the bottom course is flush because the clips sit at the edge.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>base</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 5 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/tiled_roof_panel.py"><code>batch-8/tiled_roof_panel.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 pp. 302-318</dd>
+      <dt>Key parts</dt><dd><code>87079</code> + <code>26603</code> + <code>4081b</code> + <code>2540</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tiled_roof_panel">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for tiled_roof_panel">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-8/plate_shingle_roof.png" alt="A sketch of plate_shingle_roof" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>plate_shingle_roof</code></h2>
+    <p>A roof of two hinged panels of plates laid studs up, so the rows of studs read as shingles, with a pale trim of round-ended tiles along the eaves and the gable edges.</p>
+    <p class="why">A storybook roof with exposed studs for shingles and a pale scalloped trim along the eaves and gable edges.</p>
+    <p class="note"><b>Note:</b> Sits on hinge_roof's clip frame. The book's Sand Blue trim tiles (1126) were never made in Sand Blue, so the default trim is White. The eave trim is 1 x 2 round-ended tiles pointing down the roof; they also tie the panel's base together. For one side that swings open, see half_roof_hinge.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>trim</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/plate_shingle_roof.py"><code>batch-8/plate_shingle_roof.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: 6461326 p72-93</dd>
+      <dt>Key parts</dt><dd><code>1126</code> + <code>24246</code> + <code>4081b</code> + <code>2540</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for plate_shingle_roof">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for plate_shingle_roof">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-8/tile_stripe_shingles.png" alt="A sketch of tile_stripe_shingles" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>tile_stripe_shingles</code></h2>
+    <p>A terracotta roof of two hinged plate panels with rows of tiles across the slope every other stud, the studs between them left bare, and a few tiles in a lighter color so the roof doesn't read flat.</p>
+    <p class="why">A terracotta or Mediterranean roof that doesn't read flat: stripes of tiles every other row with bare studs between, plus a few lighter tiles placed by a seed.</p>
+    <p class="note"><b>Note:</b> The book adds the stripes as a texture over an existing plate roof. Here it's a whole roof on hinge_roof's clip frame, because a panel built as a submodel can't take a pass afterwards. The eave stripe skips 2 x 3 tiles, which were never made in Dark Orange.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>stripe</code>, <code>accent</code>, <code>every</code>, <code>seed</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>16</b> of 1315 official sets (28 times); 123 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 76042 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/tile_stripe_shingles.py"><code>batch-8/tile_stripe_shingles.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43268: 6568841 p182-187, p197</dd>
+      <dt>Key parts</dt><dd><code>2431</code> + <code>3069b</code> + <code>87079</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tile_stripe_shingles">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for tile_stripe_shingles">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-8/studs_up_snow_roof.png" alt="A sketch of studs_up_snow_roof" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>studs_up_snow_roof</code></h2>
+    <p>A roof deep in snow, two hinged panels of white plates laid studs up on a dark underlayer, with a rounded lip of white curved slopes along each eave.</p>
+    <p class="why">A winter cottage roof deep in snow: white plates studs up on a dark underlayer, with a rounded snow lip of curved slopes along the eaves.</p>
+    <p class="note"><b>Note:</b> VARIANT of hinge_roof and snow_cap. The book's lip overhangs the eave by a stud. Here the clips sit on that edge, so the lip of curved slopes stands on the panel's eave row, 2 plates proud. The book hinges the panels at the ridge too; here they meet as in hinge_roof.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>snow</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (4 times); 21 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76042 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 31038 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/studs_up_snow_roof.py"><code>batch-8/studs_up_snow_roof.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p167, p170, p190-191</dd>
+      <dt>Key parts</dt><dd><code>11477</code> + <code>4081b</code> + <code>2540</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for studs_up_snow_roof">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for studs_up_snow_roof">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-8/mansard_module.png" alt="A sketch of mansard_module" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>mansard_module</code></h2>
+    <p>A steep mansard roof face built from 2-stud modules, each two slopes 75 over a bracket that carries a small round window at the eave.</p>
+    <p class="why">A Victorian or French civic roof: a steep mansard face of 75-degree slopes with a small round window every two studs, in runs that can face any side of a flat roof.</p>
+    <p class="note"><b>Note:</b> The book's scroll-edged ornamental plate behind each window and the gray gutter at the base are left out (no clean place on the grid). The corners and the fenced flat top aren't built. The run is a submodel on its own strip of plates, which ties the modules together; it's placed turned for each facing.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>modules</code>, <code>facing</code>, <code>color</code>, <code>trim</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 8 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/mansard_module.py"><code>batch-8/mansard_module.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649255 pp. 150-165</dd>
+      <dt>Key parts</dt><dd><code>4460b</code> + <code>99207</code> + <code>15535</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for mansard_module">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for mansard_module">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-8/cross_gable.png" alt="A sketch of cross_gable" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>cross_gable</code></h2>
+    <p>A 45° gable roof with a small gable across its front face, over the door, that breaks the long roof line and can carry a nameplate.</p>
+    <p class="why">The Cottage's gable over the door: a small cross gable that projects from the front of a 45-degree roof, with a white face and a hanging nameplate.</p>
+    <p class="note"><b>Note:</b> VARIANT of gable_roof and roof_dormer. It lays the whole roof itself, course for course like gable_roof (so ridge_cap and roof_eaves_overhang_frame compose the same way), because a gable_roof that's already laid can't leave the gap. The valleys stay open steps, with no valley slopes. The book's printed nameplate becomes a brick 1 x 4 with side studs faced with a plain tile 1 x 4.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>at</code>, <code>project</code>, <code>color</code>, <code>gable</code>, <code>nameplate</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 2 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/cross_gable.py"><code>batch-8/cross_gable.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448881 p86-93; set 11387: 6672343 p147</dd>
+      <dt>Key parts</dt><dd><code>3038</code> + <code>3043</code> + <code>30414</code> + <code>2431</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cross_gable">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for cross_gable">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-8/curved_dormer.png" alt="A sketch of curved_dormer" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>curved_dormer</code></h2>
+    <p>A small dormer with a rounded roof of curved slopes, dark cheeks either side of its window, set in the bottom course of a roof of 45° slopes.</p>
+    <p class="why">A small village or Victorian dormer with a rounded white roof and dark cheeks, set into a slope roof's bottom course.</p>
+    <p class="note"><b>Note:</b> VARIANT of roof_dormer (same box and the same 'returns a function for the roof' order). There's no cone finial, because the curved slopes have no stud on top. The cheeks are black 1 x 1 bricks, not the book's Wedge 3 x 2 (6564/6565).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>cheeks</code>, <code>roof</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 19 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/curved_dormer.py"><code>batch-8/curved_dormer.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 pp. 268-271</dd>
+      <dt>Key parts</dt><dd><code>11477</code> + <code>60592</code> + <code>3005</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curved_dormer">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for curved_dormer">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-8/mini_dormer.png" alt="A sketch of mini_dormer" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>mini_dormer</code></h2>
+    <p>A tiny dormer that stands on a studs-up roof, a window 1 x 2 x 2 on a plate with two slope plates leaning together over it as its gable.</p>
+    <p class="why">A tiny dormer that needs no cut in the roof: it stands on any studs-up roof (plate_shingle_roof, a flat roof).</p>
+    <p class="note"><b>Note:</b> VARIANT of roof_dormer. The example stands it on flat plates. Built inside a hinged panel's function, it would lean with the panel.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>color</code>, <code>roof</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 7 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 75980 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/mini_dormer.py"><code>batch-8/mini_dormer.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: 6461326 p94-96</dd>
+      <dt>Key parts</dt><dd><code>60592</code> + <code>15672</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for mini_dormer">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for mini_dormer">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-8/roof_cresting.png" alt="A sketch of roof_cresting" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>roof_cresting</code></h2>
+    <p>An ornamental rail along a roof's ridge or a flat roof's edge, spindled fences between two finials.</p>
+    <p class="why">The ornamental iron or gold rail along a Victorian ridge or a flat roof's edge.</p>
+    <p class="note"><b>Note:</b> gable_roof's double-slope ridge (3043) has no studs, so a ridge needs a row of bricks between the top slopes (ridge_cap's row without its caps), as in the example. The book's bars-in-clips version for a bare sloped ridge isn't done.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>finial</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/roof_cresting.py"><code>batch-8/roof_cresting.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649255 pp. 158-165; set 43302: 6649256 pp. 182-185</dd>
+      <dt>Key parts</dt><dd><code>30055</code> + <code>4589</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for roof_cresting">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for roof_cresting">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-8/pyramid_spire_tower.png" alt="A sketch of pyramid_spire_tower" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>pyramid_spire_tower</code></h2>
+    <p>A square brick tower 4 x 4 with a window in each face at the top, a corbel plate that overhangs a stud all round, and a steep pyramid roof of slopes ending in a spire.</p>
+    <p class="why">A civic, fire-station, or church tower: a square brick tower with windows at the top, a corbel, a steep pyramid roof, and a spire.</p>
+    <p class="note"><b>Note:</b> VARIANT of turret, square. The book's single 4 x 4 pyramid part (id not confirmed) becomes two rings of corner slopes under the quadruple convex slope 3688. The pennant on the spire is left out. The windows are 60592 with glass, not the book's arched frame.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>color</code>, <code>roof</code>, <code>trim</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/pyramid_spire_tower.py"><code>batch-8/pyramid_spire_tower.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649254 pp. 126-128</dd>
+      <dt>Key parts</dt><dd><code>3045</code> + <code>3688</code> + <code>3958</code> + <code>3957b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for pyramid_spire_tower">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for pyramid_spire_tower">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-8/ribbed_hip_roof.png" alt="A sketch of ribbed_hip_roof" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>ribbed_hip_roof</code></h2>
+    <p>A roadside hip roof, four panels of chunky ribs hanging from the edges of a raised flat center and sloping down past the walls on every side.</p>
+    <p class="why">A bold roadside diner roof: chunky ribbed panels sloping down on all four sides from a raised flat center.</p>
+    <p class="note"><b>Note:</b> VARIANT of hip_roof and hinge_roof: four clip-hinged panels hang from a raised deck, turned down by `angle`, and the core is as tall as the panels need to clear the walls. The book covers the hip seams with clipped hip caps; here the hips stay open, as triangular gaps that widen toward the eaves. The rooftop units aren't added. The example has 107 parts.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>inset</code>, <code>rows</code>, <code>angle</code>, <code>color</code>, <code>base</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (3 times); 75 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10220 - Main.ldr (Stan Isachenko [angmarec], Redistributable under CCAL version 2.0); Speedboat (Merlijn Wissink [legolijntje], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/ribbed_hip_roof.py"><code>batch-8/ribbed_hip_roof.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10352: 6583432 pp. 206-235</dd>
+      <dt>Key parts</dt><dd><code>4081b</code> + <code>2540</code> + <code>2431</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for ribbed_hip_roof">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for ribbed_hip_roof">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-8/tapered_tower_cap.png" alt="A sketch of tapered_tower_cap" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>tapered_tower_cap</code></h2>
+    <p>A small round tower for a micro or mini castle, a shaft of round bricks 2 x 2 on a plinth that slopes out at its foot, capped with a dome and a cone finial.</p>
+    <p class="why">A tiny turret for a micro or mini castle: round bricks on a sloped plinth, a contrasting collar, and a sand green dome with a finial.</p>
+    <p class="note"><b>Note:</b> VARIANT of turret, mini scale. The book's buttresses (small wedges clipped on) become 1 x 1 cheese slopes round a plinth. The dome is 30367c, since 30151 was never made in Sand Green.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>color</code>, <code>trim</code>, <code>cap</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/tapered_tower_cap.py"><code>batch-8/tapered_tower_cap.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11377: 6650286 p342-358</dd>
+      <dt>Key parts</dt><dd><code>3941</code> + <code>30367c</code> + <code>4589</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tapered_tower_cap">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for tapered_tower_cap">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-8/banded_chimney.png" alt="A sketch of banded_chimney" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>banded_chimney</code></h2>
+    <p>A stout outside chimney against a gable wall, in brick-textured bricks with a darker band every few courses, stepping in with slopes at the shoulder and rising past the ridge to a cap and two pots.</p>
+    <p class="why">The Cottage's outside chimney: brick texture with darker bands against a gable end, stepping in at the eave and rising past the ridge to its pots.</p>
+    <p class="note"><b>Note:</b> VARIANT of chimney_stack. It steps in from 4 wide to 2 with four 45-degree slopes. The book steps 3 wide to 2, which can't center on the grid. It faces any of four ways. No smoke plume. It builds every course in its own steps; for the Cottage, call it with rows and above split across the wall and roof stages if a piece per wall course is wanted.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>above</code>, <code>band_every</code>, <code>facing</code>, <code>color</code>, <code>band</code>, <code>cap</code>, <code>pots</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/banded_chimney.py"><code>batch-8/banded_chimney.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p41, p99, p197; set 21335: 6448881 p92</dd>
+      <dt>Key parts</dt><dd><code>98283</code> + <code>3040b</code> + <code>4589</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for banded_chimney">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for banded_chimney">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-8/sideways_chimney_column.png" alt="A sketch of sideways_chimney_column" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>sideways_chimney_column</code></h2>
+    <p>A tall, flush chimney built lying down as a sub-assembly, then stood up against a wall's side studs, so it rises past the eaves in one smooth piece.</p>
+    <p class="why">A tall, smooth chimney up the outside of a wall: built lying down as a sub-assembly and stood up on the wall's side studs, so it rises past the eaves in one piece.</p>
+    <p class="note"><b>Note:</b> VARIANT of chimney_stack. The wall needs side studs at z + 1.25 + 2.5k: 22885 in every 5-plate band, as in the example. The book fixes the column with brackets. The column faces +x only (one Rot(x=90, z=90)); the other facings aren't done.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>cap</code>, <code>pots</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1315 official sets (12 times); 28 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10283 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21309 - main.ldr (Jaco van der Molen [Jaco], Redistributable under CCAL version 2.0); FILE 75980 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/sideways_chimney_column.py"><code>batch-8/sideways_chimney_column.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: 6461326 p85-89</dd>
+      <dt>Key parts</dt><dd><code>22885</code> + <code>3001</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for sideways_chimney_column">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for sideways_chimney_column">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-8/roof_hatch.png" alt="A sketch of roof_hatch" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>roof_hatch</code></h2>
+    <p>A small hatch box on a flat roof, a curb of bricks a brick or two tall around a 2 x 2 opening, with a lid on hinges that stands open.</p>
+    <p class="why">A small detail for a town building's flat roof: a hatch box beside the chimney whose lid stands open.</p>
+    <p class="note"><b>Note:</b> VARIANT of hatch_on_hinge, which it calls for the lid, on a curb of bricks. The book hinges a door in the box's face; here the lid on top is hinged.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>angle</code>, <code>color</code>, <code>lid</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>102</b> of 1315 official sets (296 times); 103 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10143 - main.ldr (Jude Parrill [theJudeAbides], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 76042 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/roof_hatch.py"><code>batch-8/roof_hatch.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 pp. 327-330</dd>
+      <dt>Key parts</dt><dd><code>3937</code> + <code>6134</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for roof_hatch">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for roof_hatch">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-8/lean_to_awning.png" alt="A sketch of lean_to_awning" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>lean_to_awning</code></h2>
+    <p>A shallow shed roof over a porch or a window, a panel of plates hinged to the wall on clips and tipped down to rest on two posts.</p>
+    <p class="why">A shallow shed roof over a porch or a window, hung from the wall and resting on two posts, as on the Cottage's porch.</p>
+    <p class="note"><b>Note:</b> VARIANT of door_hood and canopy. It hinges on clips and handle plates (hinge_roof's), not the book's hinge plates. It lays the wall's clip course and returns its top for the wall to continue. The posts are cut to fit under the panel, within 0.1 plate. Nothing joins them to it, so the panel is held by the clips alone.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>angle</code>, <code>ground</code>, <code>color</code>, <code>posts</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (4 times); 60 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 6397 - main.ldr (Robert Paciorek [bercik], Redistributable under CCAL version 2.0); FILE 6472 - main.ldr (Zoltán Kéri [Zoltank82], Redistributable under CCAL version 2.0); FILE 6440 - main.ldr (Robert Paciorek [bercik], Redistributable under CCAL version 2.0); FILE 6967 - Main.ldr (Johann Eisner [technicbasics], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/lean_to_awning.py"><code>batch-8/lean_to_awning.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p122, p167</dd>
+      <dt>Key parts</dt><dd><code>4081b</code> + <code>2540</code> + <code>3062b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lean_to_awning">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for lean_to_awning">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-8/half_roof_hinge.png" alt="A sketch of half_roof_hinge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>half_roof_hinge</code></h2>
+    <p>A roof of two panels whose back half lifts like a lid on a hinge at the ridge, to show the attic, while the front half stays fixed on the front wall.</p>
+    <p class="why">A dollhouse roof whose back half lifts like a lid on a ridge hinge to show the attic, while the front half stays fixed.</p>
+    <p class="note"><b>Note:</b> VARIANT of hinge_roof. The ridge hinge is clips on the front panel's top edge holding the back panel's handles. Each panel's half-stud offset makes the back panel sit half a stud along from the front one. The notch round a chimney isn't done. It validates clean shut (open=0) through open=90.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>open</code>, <code>color</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>23</b> of 1315 official sets (30 times); 96 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 76042 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 10220 - Main.ldr (Stan Isachenko [angmarec], Redistributable under CCAL version 2.0); FILE 3185 - main.ldr (Takeshi Takahashi [RainbowDolphin], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/half_roof_hinge.py"><code>batch-8/half_roof_hinge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: 6461326 p74, p78, p90-93</dd>
+      <dt>Key parts</dt><dd><code>4081b</code> + <code>2540</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for half_roof_hinge">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for half_roof_hinge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-8/overlap_tile_roof.png" alt="A sketch of overlap_tile_roof" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>overlap_tile_roof</code></h2>
+    <p>A smooth, studless roof of two hinged panels whose courses of tiles lap like boards, each course a plate higher than the one below and overhanging its top edge.</p>
+    <p class="why">A smooth, studless roof of long lapped boards, each course a plate proud of the one below, for a large-scale or cartoon town building.</p>
+    <p class="note"><b>Note:</b> VARIANT of hinge_roof and tiled_roof_panel. The book hinges the panels at the ridge with hinge plates and rests them on the gables. Here they hang on hinge_roof's eave clips. The panel thickens toward the ridge, a plate per course, and the angle solving allows for it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>base</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 5 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-8/overlap_tile_roof.py"><code>batch-8/overlap_tile_roof.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21368: 6651647 pp 147-173</dd>
+      <dt>Key parts</dt><dd><code>26603</code> + <code>63864</code> + <code>4081b</code> + <code>2540</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for overlap_tile_roof">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for overlap_tile_roof">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-8/roof_eaves_overhang_frame.png" alt="A sketch of roof_eaves_overhang_frame" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>roof_eaves_overhang_frame</code></h2>
+    <p>A lift-off frame for a roof, a stud bigger than the walls all round so the roof's eaves and gables overhang them, which sits on four corner studs of the tiled wall tops and lifts straight off.</p>
+    <p class="why">The Cottage's lift-off roof: a frame a stud bigger than the walls all round, so a 45-degree roof built on it overhangs the eaves and gables and lifts straight off.</p>
+    <p class="note"><b>Note:</b> ALTERNATE, in place of bar_frame_canopy. VARIANT of lift_off_roof_seat: the same tiled wall tops with four corner studs, but a 2-wide frame overhanging a stud, and a roof= callback that builds the roof on the frame inside the submodel. The book locates its frame with lugs hanging inside the walls onto fully tiled tops. To the validator, a frame resting on tiles is floating, so the corner studs stay.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>roof</code>, <code>color</code>, <code>frame</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>37</b> of 1315 official sets (47 times); 210 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10182 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 10197 - main.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/roof_eaves_overhang_frame.py"><code>batch-8/roof_eaves_overhang_frame.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448881 p78-95; set 21335: 6448880 p220</dd>
+      <dt>Key parts</dt><dd><code>3024</code> + <code>3069b</code> + <code>3832</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for roof_eaves_overhang_frame">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for roof_eaves_overhang_frame">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-8/eaves_fascia.png" alt="A sketch of eaves_fascia" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>eaves_fascia</code></h2>
+    <p>A finished eave edge for a roof that overhangs its walls, a strip along the eave in front of the roof's first slopes: a contrasting tile strip, a dark fascia under the edge, a kicked row of cheese slopes, or a rounded lip of curved slopes.</p>
+    <p class="why">A finished eave for any roof that overhangs its walls: a contrasting tile strip, a dark fascia band, a kicked row of cheese slopes, or a rounded lip, in front of the first slopes.</p>
+    <p class="note"><b>Note:</b> From the houses-cottages style notes, not one page. It returns (y, depth) for the roof behind it, so it composes with gable_roof on roof_eaves_overhang_frame's overhang. 'fascia' hangs plates under the overhang. If anything lies below them (the example's first base plate did), the validator warns that the way in from below is closed even with 6 plates of room: a validator gap. The example keeps the base out from under the eaves.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>style</code>, <code>sides</code>, <code>color</code>, <code>trim</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (3 times); 64 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10258 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 31039 - Blue Power Jet.ldr (Merlijn Wissink [legolijntje], Redistributable under CCAL version 2.0); FILE 31063 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-8/eaves_fascia.py"><code>batch-8/eaves_fascia.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: 6461326; set 11387: 6672343; set 21335: 6448881</dd>
+      <dt>Key parts</dt><dd><code>2431</code> + <code>3710</code> + <code>54200</code> + <code>11477</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for eaves_fascia">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for eaves_fascia">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-8" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

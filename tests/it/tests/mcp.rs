@@ -6,7 +6,7 @@
 use std::path::Path;
 
 use emmet_it::schema::validate;
-use emmet_it::{emmet, emmet_bin, isolate, project, redact, repo, shared_data, temp_dir};
+use emmet_it::{emmet, emmet_bin, emmet_json, isolate, project, redact, repo, shared_data, temp_dir};
 use rmcp::ServiceExt;
 use rmcp::model::{CallToolRequestParams, CallToolResult};
 use rmcp::service::RunningService;
@@ -127,6 +127,7 @@ async fn lists_exactly_the_tools_built_so_far() {
             "api",
             "bom",
             "get_params",
+            "guide",
             "highlight",
             "list_colors",
             "part_info",
@@ -226,8 +227,8 @@ async fn run_model() {
     assert_matches_committed(&client, "run_model");
     let c = client.call("run_model", json!({})).await;
     assert!(!c.is_error, "{}", c.text);
-    assert_eq!(c.envelope["data"]["parts"], 147);
-    assert!(c.text.starts_with("Built 147 parts in 39 steps ("), "{}", c.text);
+    assert_eq!(c.envelope["data"]["parts"], 903);
+    assert!(c.text.starts_with("Built 903 parts in 161 steps ("), "{}", c.text);
     assert_eq!(c.envelope["meta"]["generation"], 1);
     // The same output the CLI writes.
     assert!(dir.join("build/model.mpd").is_file());
@@ -474,6 +475,43 @@ async fn technique_tool() {
     assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
     assert!(
         c.envelope["error"]["hint"].as_str().unwrap().contains("'gable_roof'"),
+        "{}",
+        c.envelope
+    );
+}
+
+#[tokio::test]
+async fn guide_tool() {
+    let client = connect(None).await;
+    assert_matches_committed(&client, "guide");
+    // Outside a project there are no build settings: the list, and what to do.
+    let c = client.call("guide", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert!(
+        c.envelope["data"]["list"].as_array().unwrap().len() >= 19,
+        "{}",
+        c.envelope
+    );
+    assert!(c.text.contains("No scale or style is set"), "{}", c.text);
+    let c = client.call("guide", json!({ "name": "Voxel" })).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["guides"][0]["name"], "blocky");
+    assert!(c.text.starts_with("# Blocky"), "{}", c.text);
+    // In a project, the guides for its build settings.
+    let dir = temp_dir("mcp-guide").join("p");
+    let (v, code) = emmet_json(&["new", "--template", "empty", dir.to_str().unwrap()]);
+    assert_eq!(code, 0, "{v}");
+    let toml = std::fs::read_to_string(dir.join("emmet.toml")).unwrap();
+    std::fs::write(dir.join("emmet.toml"), format!("{toml}\n[build]\nscale = \"Micro\"\n")).unwrap();
+    let inside = connect(Some(&dir)).await;
+    let c = inside.call("guide", json!({})).await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["guides"][0]["name"], "micro", "{}", c.envelope);
+    let c = client.call("guide", json!({ "name": "blockey" })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+    assert!(
+        c.envelope["error"]["hint"].as_str().unwrap().contains("'blocky'"),
         "{}",
         c.envelope
     );

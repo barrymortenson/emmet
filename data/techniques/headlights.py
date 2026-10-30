@@ -32,7 +32,8 @@ def build(
     with m.step(title):
         for side in (y, y + width - 1):
             m.add("4070", color, at=(x, side, z), rot=2)
-            m.add("98138", lens, at=(x - 0.4, side, z + 0.5), rot=LENS)
+            # The headlight brick's front stud is set back in its face, so the tile seats 0.2 out, not a plate's 0.4.
+            m.add("98138", lens, at=(x - 0.2, side, z + 0.5), rot=LENS)
         if width > 2:
             m.row(Brick, color, at=(x, y + 1, z), length=width - 2, axis="y")
     return z + 3

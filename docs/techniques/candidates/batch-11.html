@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-11</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-11</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-11/block_column.png" alt="A sketch of block_column" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>block_column</code></h2>
+    <p>a stack of game blocks on the 2 x 2 grid, each a cube 5 plates tall, textured by mixing shades.</p>
+    <p class="why">The base unit of any blocky build: a pillar, a tower corner, or a stone or wood block of the right cube size, in mixed shades.</p>
+    <p class="note"><b>Note:</b> The scale rule (2 x 2 studs, 5 plates a block) as a part recipe; the other sketches here share it. Key parts are very common.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>blocks</code>, <code>colors</code>, <code>height</code>, <code>seed</code>, <code>cap</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>10</b> of 1315 official sets (13 times); 82 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/block_column.py"><code>batch-11/block_column.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 15-18, 110, 144</dd>
+      <dt>Key parts</dt><dd><code>3004</code> + <code>3022</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for block_column">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for block_column">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-11/raised_module_base.png" alt="A sketch of raised_module_base" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>raised_module_base</code></h2>
+    <p>a slab of game terrain on dirt-colored legs, one brick off the table, like a chunk cut out of a block world.</p>
+    <p class="why">The base for any blocky scene: a slab on dirt legs, cut out of the world, that butts against the next module on the 2-stud grid.</p>
+    <p class="note"><b>Note:</b> Related to landing_zone; here the slab stands on brick legs a brick up, with seams on legs.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>top</code>, <code>dirt</code>, <code>spacing</code>, <code>seed</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 8 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-11/raised_module_base.py"><code>batch-11/raised_module_base.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 5, 20-25, 64-65, 95-99, 125; set 21128: 6192626 pp. 6-12</dd>
+      <dt>Key parts</dt><dd><code>3003</code> + <code>92438</code> + <code>41539</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for raised_module_base">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for raised_module_base">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-11/module_link_block.png" alt="A sketch of module_link_block" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>module_link_block</code></h2>
+    <p>blocks set across the seam of two terrain modules, locking them into one scene and reading as one more grass block.</p>
+    <p class="why">Locking two terrain modules together so the joint reads as one more grass block.</p>
+    <p class="note"><b>Note:</b> The book drops links into notches left in the module tops; this sketch sets them on top of the two modules, which needs no notch but stands a block proud.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>axis</code>, <code>links</code>, <code>wide</code>, <code>dirt</code>, <code>grass</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>14</b> of 1315 official sets (24 times); 68 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10270 - Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0); FILE 10230 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10359 - main.ldr (Orion Pobursky [OrionP], Licenced under CC BY 4.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/module_link_block.py"><code>batch-11/module_link_block.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 144, 208-210; set 21128: 6192626 pp. 3, 38, 72-74</dd>
+      <dt>Key parts</dt><dd><code>3003</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for module_link_block">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for module_link_block">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-11/grass_block.png" alt="A sketch of grass_block" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>grass_block</code></h2>
+    <p>single raised blocks scattered over a lawn, each a dirt brick under a grass top with one stud.</p>
+    <p class="why">Scattering raised grass, sand, or stone blocks over a flat lawn so it reads as a block world.</p>
+    <p class="note"><b>Note:</b> The book's block is a brick and a jumper (4 plates); this adds a grass plate between to make the 5-plate cube.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>count</code>, <code>tall</code>, <code>seed</code>, <code>dirt</code>, <code>grass</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>14</b> of 1315 official sets (24 times); 68 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10270 - Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0); FILE 10230 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10359 - main.ldr (Orion Pobursky [OrionP], Licenced under CC BY 4.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/grass_block.py"><code>batch-11/grass_block.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 5-9, 23, 125, 144; set 21128: 6192626 p. 13</dd>
+      <dt>Key parts</dt><dd><code>3003</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for grass_block">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for grass_block">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-11/stepped_block_terrain.png" alt="A sketch of stepped_block_terrain" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>stepped_block_terrain</code></h2>
+    <p>a hill or dune that rises in square terraces on the 2-stud grid, never in slopes, its top in square patches of two or three materials.</p>
+    <p class="why">Hills, dunes, and banks in a blocky scene, terraced on the block grid with patches of grass and sand.</p>
+    <p class="note"><b>Note:</b> VARIANT of hillside: square steps on the 2-stud grid, no slopes. Folds in voxel_color_patch_ground (the top plates' material patches).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>peak</code>, <code>plate_steps</code>, <code>seed</code>, <code>body</code>, <code>tops</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>57</b> of 1315 official sets (81 times); 231 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 6285 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/stepped_block_terrain.py"><code>batch-11/stepped_block_terrain.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 147-155, 164-165</dd>
+      <dt>Key parts</dt><dd><code>3001</code> + <code>3003</code> + <code>3022</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for stepped_block_terrain">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for stepped_block_terrain">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-11/block_tree.png" alt="A sketch of block_tree" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>block_tree</code></h2>
+    <p>a blocky tree, a square trunk under a cube-ish canopy of mixed greens with see-through leaf blocks and a ragged outline, built apart and placed as a submodel.</p>
+    <p class="why">A tree for any blocky scene: square trunk, cube-ish canopy in mixed greens with see-through leaf blocks.</p>
+    <p class="note"><b>Note:</b> VARIANT of tree. The book hangs side blocks on brackets (99207); this sketch pushes edge blocks a stud out instead, which breaks the outline without brackets. The trans-green blocks are two 1 x 2 bricks (3065), since 3003 was never made in Trans Green.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>trunk</code>, <code>seed</code>, <code>trunk_color</code>, <code>leaves</code>, <code>see_through</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 7 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-11/block_tree.py"><code>batch-11/block_tree.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 15-19; set 21128: 6192626 pp. 69-70</dd>
+      <dt>Key parts</dt><dd><code>3003</code> + <code>3958</code> + <code>3065</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for block_tree">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for block_tree">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-11/speckled_block_wall.png" alt="A sketch of speckled_block_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>speckled_block_wall</code></h2>
+    <p>a wall whose texture is two or three shades of one material mixed at random, the way a game draws cobblestone, moss, or planks.</p>
+    <p class="why">Cobblestone, mossy, or wooden walls in a blocky build, textured by mixing two or three shades at random.</p>
+    <p class="note"><b>Note:</b> A color pass over a running bond, like masonry_wall in mixed shades; width 2 builds it of whole blocks.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>width</code>, <code>colors</code>, <code>accent</code>, <code>seed</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>59</b> of 1315 official sets (82 times); 194 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 6285 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/speckled_block_wall.py"><code>batch-11/speckled_block_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 27-46, 57-63, 116-121, 168-180</dd>
+      <dt>Key parts</dt><dd><code>3004</code> + <code>3622</code> + <code>3010</code> + <code>3001</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for speckled_block_wall">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for speckled_block_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-11/mossy_stone_block.png" alt="A sketch of mossy_stone_block" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>mossy_stone_block</code></h2>
+    <p>a gray game block with green showing in a thin band around its side, like moss in the seams.</p>
+    <p class="why">A stone block with moss in its seams, for ruins, wells, and cave edges in a blocky scene.</p>
+    <p class="note"><b>Note:</b> The book's unit is a plate, round plates, and a jumper (3 plates); this puts it on a 2 x 2 brick to make the 5-plate cube.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>blocks</code>, <code>moss</code>, <code>seed</code>, <code>stone</code>, <code>moss_color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (5 times); 68 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10230 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 75953 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 75893 - main.ldr (Magnus Forsberg [MagFors], Redistributable under CCAL version 2.0); FILE 21113 - The Cave.ldr (Merlijn Wissink [legolijntje], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/mossy_stone_block.py"><code>batch-11/mossy_stone_block.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 p. 110</dd>
+      <dt>Key parts</dt><dd><code>6141</code> + <code>87580</code> + <code>3003</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for mossy_stone_block">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for mossy_stone_block">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-11/bookshelf_block.png" alt="A sketch of bookshelf_block" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>bookshelf_block</code></h2>
+    <p>a 2 x 2 game block of wood whose sides show rows of colored book spines.</p>
+    <p class="why">Furniture for a blocky house: a block of book spines, alone or three in a row as a shelf wall.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>count</code>, <code>axis</code>, <code>seed</code>, <code>wood</code>, <code>books</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>10</b> of 1315 official sets (16 times); 80 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10243 - Main model.ldr (Willy Tschager [Holly Wood], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/bookshelf_block.py"><code>batch-11/bookshelf_block.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 p. 79</dd>
+      <dt>Key parts</dt><dd><code>3005</code> + <code>3024</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bookshelf_block">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for bookshelf_block">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-11/cactus_column.png" alt="A sketch of cactus_column" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>cactus_column</code></h2>
+    <p>a 2 x 2 green column of game blocks with studs on every side, the studs read as spines.</p>
+    <p class="why">A desert cactus in a blocky scene: a green column with studs on every side as spines.</p>
+    <p class="note"><b>Note:</b> Built the way the second book does it (bricks with studs on four sides, 4733). The first book's version turns a bracket 1 x 2 - 2 x 2 up (99207) on each block, but that bracket's upright fills the 1 x 2 above its base, so it can't sit under the next 2 x 2 block as the research note has it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>blocks</code>, <code>seed</code>, <code>colors</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (5 times); 31 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 21045 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21028 - New York City.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/cactus_column.py"><code>batch-11/cactus_column.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 151-152; set 21128: 6192626 p. 56</dd>
+      <dt>Key parts</dt><dd><code>4733</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cactus_column">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for cactus_column">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-11/reed_stalks.png" alt="A sketch of reed_stalks" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>reed_stalks</code></h2>
+    <p>tall lime stalks growing from a sand block in a square of water, the game's sugar-cane look.</p>
+    <p class="why">Reeds or cane at a pond's edge in a blocky scene: lime stalks from a sand square in water.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>heights</code>, <code>seed</code>, <code>water</code>, <code>surface</code>, <code>sand</code>, <code>stalk</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>9</b> of 1315 official sets (13 times); 145 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10230 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10295 - Porsche 911 Targa Complete.ldr (Ulrich Röder {UR}, Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/reed_stalks.py"><code>batch-11/reed_stalks.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 142-144; set 21128: 6192626 p. 30</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>6141</code> + <code>3031</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for reed_stalks">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for reed_stalks">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-11/block_water_and_falls.png" alt="A sketch of block_water_and_falls" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>block_water_and_falls</code></h2>
+    <p>a square pool set flush in the ground and a column of see-through blocks falling into it down a stone face, water the way a block world draws it.</p>
+    <p class="why">Water in a blocky scene: a flush square pool and a column of see-through blocks falling down a stone face.</p>
+    <p class="note"><b>Note:</b> VARIANT of pond and waterfall: square, flush, on the grid. The book's stream also uses 2 x 2 slopes; this one is 1 x 2 bricks only, true to the no-slope rule.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>rows</code>, <code>pool</code>, <code>seed</code>, <code>stone</code>, <code>water</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>7</b> of 1315 official sets (14 times); 77 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/block_water_and_falls.py"><code>batch-11/block_water_and_falls.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 103-109, 125-131</dd>
+      <dt>Key parts</dt><dd><code>3004</code> + <code>3068b</code> + <code>87580</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for block_water_and_falls">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for block_water_and_falls">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-11/lava_inset.png" alt="A sketch of lava_inset" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>lava_inset</code></h2>
+    <p>a glowing square of lava set a plate down into a stone floor of blocks, for a forge or a cave.</p>
+    <p class="why">A forge floor or a cave: a glowing lava square set a plate down in a rim of stone blocks.</p>
+    <p class="note"><b>Note:</b> No 2 x 2 tile in Trans Orange, so the glow layer is 1 x 2 tiles.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>stone</code>, <code>lava</code>, <code>glow</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (6 times); 61 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 31153 - main.ldr (Marc Belanger [MonsieurPoulet], Redistributable under CCAL version 2.0); FILE 4206-2 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/lava_inset.py"><code>batch-11/lava_inset.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 28-30, 46</dd>
+      <dt>Key parts</dt><dd><code>3069b</code> + <code>87580</code> + <code>3003</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lava_inset">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for lava_inset">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-11/crop_field.png" alt="A sketch of crop_field" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>crop_field</code></h2>
+    <p>a tilled field of crops in rows on dark soil, a water channel down its middle and a rim of smooth blocks around it.</p>
+    <p class="why">A farm in a blocky scene: rows of crops on soil, a water channel down the middle, and a rim of jumper blocks.</p>
+    <p class="note"><b>Note:</b> The book's channel is a 1-wide line of tiles; on the 2-stud grid with an even field it is 2 wide here. Uses jumper_rim's method for the rim. The grass stem (15279) has no connector data but seats cleanly on its round plate.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>soil</code>, <code>rim</code>, <code>water</code>, <code>crop</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-11/crop_field.py"><code>batch-11/crop_field.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 125-131</dd>
+      <dt>Key parts</dt><dd><code>15279</code> + <code>87580</code> + <code>3068b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for crop_field">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for crop_field">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-11/block_fence_post.png" alt="A sketch of block_fence_post" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>block_fence_post</code></h2>
+    <p>thin fence posts with stub rails sticking out four ways, each centered on its block, the way a game draws a fence.</p>
+    <p class="why">A fence for a blocky farm or yard: thin posts with tab rail stubs, each centered on its block.</p>
+    <p class="note"><b>Note:</b> VARIANT of fence (voxel posts on jumpers). The rail plates link posts in pairs, so a long run has a gap in the rail every other bay.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>posts</code>, <code>axis</code>, <code>rail</code>, <code>post</code>, <code>tabs</code>, <code>seat</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 16 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-11/block_fence_post.py"><code>batch-11/block_fence_post.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 119-120, 158; set 21128: 6192626 p. 32</dd>
+      <dt>Key parts</dt><dd><code>33291</code> + <code>87580</code> + <code>3005</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for block_fence_post">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for block_fence_post">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-11/stick_torch.png" alt="A sketch of stick_torch" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>stick_torch</code></h2>
+    <p>a thin wooden stick with a glowing square flame on top, the blocky-world torch.</p>
+    <p class="why">Lighting in a blocky scene: a stick with a square flame, on a block's center or a ground stud.</p>
+    <p class="note"><b>Note:</b> VARIANT of torch_sconce, free-standing; no wall clip version.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>centered</code>, <code>stick</code>, <code>seat</code>, <code>flame</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 1315 official sets (5 times); 68 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10218 - main.ldr (Stefan Frenz (smf), Redistributable under CCAL version 2.0); FILE 10220 - Main.ldr (Stan Isachenko [angmarec], Redistributable under CCAL version 2.0); FILE 75980 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/stick_torch.py"><code>batch-11/stick_torch.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 110, 123, 146</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>3024</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for stick_torch">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for stick_torch">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-11/plank_and_stone_wall.png" alt="A sketch of plank_and_stone_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>plank_and_stone_wall</code></h2>
+    <p>a blocky house wall, light wood planks over a speckled stone footing, with dark log posts at its ends and a plain window set in the planks.</p>
+    <p class="why">The wall of a blocky house: planks over a speckled stone footing, log posts at the ends, a plain window.</p>
+    <p class="note"><b>Note:</b> VARIANT of masonry_wall / clapboard_siding: two materials and log corners. The log bricks' ridges run up and down (as the part is), reading as vertical planks.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>stone_rows</code>, <code>plank_rows</code>, <code>window</code>, <code>seed</code>, <code>stone</code>, <code>plank</code>, <code>log</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 4 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-11/plank_and_stone_wall.py"><code>batch-11/plank_and_stone_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 47-63, 70-91, 163-205; set 21128: 6192626 pp. 21-35</dd>
+      <dt>Key parts</dt><dd><code>30136</code> + <code>30137</code> + <code>60592</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for plank_and_stone_wall">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for plank_and_stone_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-11/stepped_plank_roof.png" alt="A sketch of stepped_plank_roof" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>stepped_plank_roof</code></h2>
+    <p>a gable roof with no slopes, climbing in 1-stud steps of plank-faced courses to a ridge of blocks, the blocky-world roof.</p>
+    <p class="why">The roof of a blocky house: a gable climbing in 1-stud steps of plank treads to a ridge of jumper blocks, no slopes.</p>
+    <p class="note"><b>Note:</b> VARIANT of gable_roof. Doesn't lift off as one piece; the courses are stacked on the walls.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>color</code>, <code>planks</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (2 times); 53 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 31153 - main.ldr (Marc Belanger [MonsieurPoulet], Redistributable under CCAL version 2.0); FILE 21018 - United Nations Headquarters.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/stepped_plank_roof.py"><code>batch-11/stepped_plank_roof.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 81-94, 193-206</dd>
+      <dt>Key parts</dt><dd><code>3001</code> + <code>6636</code> + <code>87580</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for stepped_plank_roof">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for stepped_plank_roof">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-11/flat_jumper_roof.png" alt="A sketch of flat_jumper_roof" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>flat_jumper_roof</code></h2>
+    <p>a flat roof that lifts off, tiled smooth in the middle and ringed with jumper plates so its edge reads as a row of blocks, one stud each.</p>
+    <p class="why">A flat roof for a blocky forge or shed that lifts off, tiled smooth with a rim of one-stud blocks.</p>
+    <p class="note"><b>Note:</b> VARIANT of lift_off_roof_seat; includes jumper_rim (1 x 2 jumpers in a 1-stud ring, as on the book's forge roof).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>base</code>, <code>tiles</code>, <code>rim</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>12</b> of 1315 official sets (23 times); 39 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10240 - subModel-32.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10227 - subModel-89.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 21017 - Imperial Hotel.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/flat_jumper_roof.py"><code>batch-11/flat_jumper_roof.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 50-53, 120, 131</dd>
+      <dt>Key parts</dt><dd><code>3794b</code> + <code>87079</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for flat_jumper_roof">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for flat_jumper_roof">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-11/block_beast.png" alt="A sketch of block_beast" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>block_beast</code></h2>
+    <p>a game animal made of boxes, a box body on four box legs with a box head and a face of flat squares, built apart and placed as a submodel.</p>
+    <p class="why">Animals for a blocky farm: a box body on box legs with a box head and a face of tiles; a pig in the default colors.</p>
+    <p class="note"><b>Note:</b> The book's head is a printed 2 x 2 brick; here the face is plain tiles and a sideways plate on a brick with studs on one side (11211), since Emmet uses no prints.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>body</code>, <code>snout</code>, <code>eyes</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (4 times); 37 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21311 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-11/block_beast.py"><code>batch-11/block_beast.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21128: 6192624 pp. 124, 146</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>3070b</code> + <code>3002</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for block_beast">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for block_beast">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-11" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

@@ -126,3 +126,15 @@ fn part_and_colors_through_the_cli() {
     assert_eq!(v["data"]["parts"][0]["id"], "3001");
     assert_eq!(v["data"]["parts"].as_array().unwrap().len(), 1);
 }
+
+/// Corner shapes sink unless the query asks for a corner, and rise when it does (3D: "4x4 round" found three corner-round
+/// parts before the round plate).
+#[test]
+fn corner_shapes_only_when_asked() {
+    let index = Index::open(&DataDir::at(shared_library())).unwrap();
+    let names = |q: &str| -> Vec<String> { index.search(q, None, 3).unwrap().into_iter().map(|h| h.name).collect() };
+    let plain = names("tile 2x2 round");
+    assert!(!plain[0].contains("Corner"), "tile 2x2 round: {plain:?}");
+    let asked = names("tile 4x4 corner round");
+    assert!(asked[0].contains("Corner"), "tile 4x4 corner round: {asked:?}");
+}

@@ -1,0 +1,568 @@
+[
+ {
+  "name": "organic_ground_outline",
+  "title": "A patch of raised lawn whose edge is a chain of rounded lobes, never a rectangle: a layer of soil plates with round corners and tongues, and a grass layer set in from it with its own, so a soil lip shows round the edge.",
+  "why": "The edge of any raised lawn or ground patch on a baseplate (the cottage garden's lawn), so it reads as a vignette, not a rectangle.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "soil",
+   "grass",
+   "title"
+  ],
+  "books": [
+   "set 21360",
+   "set 10354",
+   "set 43268",
+   "set 75936",
+   "set 31109"
+  ],
+  "signature": [
+   "30565",
+   "30357",
+   "4032b"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of grass_edge, merging organic_lawn_lobes and ragged_edge_overlay: two layers whose outlines are round corners and random tongues, the grass set in a stud so a soil lip shows. Green on a green baseplate needs the soil color for contrast.",
+  "view": "iso"
+ },
+ {
+  "name": "curved_garden_path",
+  "title": "A smooth path two studs wide whose bends are true quarter circles of curved tiles, so it sweeps round a lawn's corner instead of turning in steps.",
+  "why": "A garden path from the gate to the door that sweeps round a lawn's corner in a true curve, or an S between beds.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "legs",
+   "turns",
+   "color",
+   "title"
+  ],
+  "books": [
+   "set 43217",
+   "set 21335"
+  ],
+  "signature": [
+   "79393",
+   "3477"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of dirt_path (which wanders in 2 x 2 steps with 1 x 1 corner tiles): each bend is two quarter-ring tiles, 79393 inside 3477. In this library 27925, 79393, 3477, and 27507 'Corner Round' tiles are all quarter rings; the books name 27925, so the larger rings are my pick. Path is always 2 studs wide.",
+  "view": "top"
+ },
+ {
+  "name": "stepping_stones",
+  "title": "A meandering trail of flat stones across a lawn, each a tile of a different outline, turned its own way, with grass between them.",
+  "why": "A trail of stones across a lawn to a pond, a bench, or a back door.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "wander",
+   "gap",
+   "seed",
+   "colors",
+   "title"
+  ],
+  "books": [
+   "set 10315"
+  ],
+  "signature": [
+   "14769",
+   "22385",
+   "5520"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of flagstone_paving: sparse, seeded, on grass. Left out the 2 x 2 triangular tile (35787): its body box puts its right angle off the grid at most turns.",
+  "view": "iso"
+ },
+ {
+  "name": "garden_gate",
+  "title": "A hinged gate between two capped posts, with picket fence running off either side, the way into a cottage garden.",
+  "why": "The way into a fenced cottage garden: a gate between capped posts, with picket fence running off both sides.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "left",
+   "right",
+   "axis",
+   "open",
+   "color",
+   "title"
+  ],
+  "books": [
+   "set 43217"
+  ],
+  "signature": [
+   "3186",
+   "3187",
+   "33303"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of fence. The gate is the lattice Gate 1 x 4 x 2 on its hinge base (3186 on 3187): the library has no picket gate part. open=True swings it a quarter turn about its hinge; validated both along x and along y.",
+  "view": "iso"
+ },
+ {
+  "name": "lawn_with_plant_sockets",
+  "title": "A raised lawn with square holes framed in corner plates, each taking a plant built apart on its own 2 x 2 plug, so trees and bushes can be built separately, moved, or left out.",
+  "why": "A lawn whose trees and bushes are built apart and plug in, so plants can be moved, swapped, or left out.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "sockets",
+   "count",
+   "seed",
+   "plants",
+   "lawn",
+   "rim",
+   "title"
+  ],
+  "books": [
+   "set 10315"
+  ],
+  "signature": [
+   "2420",
+   "87580"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The plugs are submodels that call the library's bush and tree. Lawn defaults to Bright Green so it reads on a green baseplate.",
+  "view": "iso"
+ },
+ {
+  "name": "contour_terraces",
+  "title": "A low mound that rises in soft rings, each terrace a layer of earth under a grass top with round corners that overhangs it by a stud, every ring set back from the one below by a different amount on each side.",
+  "why": "A low garden mound or a hill that rises in soft, rounded rings, behind a cottage or under a gazebo.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "terraces",
+   "rise",
+   "seed",
+   "earth",
+   "grass",
+   "title"
+  ],
+  "books": [
+   "set 10354",
+   "instruction book 6650754"
+  ],
+  "signature": [
+   "30565",
+   "30357"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of hillside (which rises in straight terraces with cheese slopes): each ring is earth plates under a round-cornered grass layer that overhangs it a stud, set back 2 or 3 studs at random each side. The earth is solid plates, not the books' hollow ring frame.",
+  "view": "iso"
+ },
+ {
+  "name": "garden_boulder",
+  "title": "A smooth, faceted stone with a ridge along its back, from 33-degree slopes set in pairs that lean together, rounded at its ends by double-convex corners, under a smaller cap of 45-degree slopes crested with cheese slopes.",
+  "why": "A smooth garden stone beside a pond or path, where a rough outcrop would look wrong.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "crest",
+   "seed",
+   "colors",
+   "pebbles",
+   "title"
+  ],
+  "books": [
+   "set 10315",
+   "set 21363"
+  ],
+  "signature": [
+   "3298",
+   "3675",
+   "3045"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of rock_outcrop: mirrored 33-degree slopes meeting in a ridge, a 45-degree cap, a cheese crest, mottled colors. At length 2 and up it reads a little like a hipped roof; length 1 reads best.",
+  "view": "iso"
+ },
+ {
+  "name": "tiled_pond_water",
+  "title": "Still water of long tiles laid in a running bond over a blue bed, so it shimmers in staggered rows, with koi among the tiles, lily pads on open studs, and its front and back rows drawn in so the pond reads round.",
+  "why": "The water of a garden pond, with a shimmer of staggered tiles, koi, and open studs for lilies.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seed",
+   "bed",
+   "water",
+   "fish",
+   "pads",
+   "title"
+  ],
+  "books": [
+   "set 10315"
+  ],
+  "signature": [
+   "3069bp0p",
+   "3069bp0q",
+   "2431"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of pond (plain rows, a rim): running bond with no straight seams, koi, rounded front and back rows, returns the open studs for lily_and_reeds. Tile 1 x 3 was never made in Trans-Light Blue, so rows use 1 x 2 and 1 x 4, a 1 x 1 shifting a row when it must; the koi tiles exist only in Trans-Light Blue.",
+  "view": "iso"
+ },
+ {
+  "name": "sunken_pond_bank",
+  "title": "A pond whose water lies below the grass, with a bank of curved slopes running down to it all round, so the lawn ends in a smooth curve at the waterline instead of a step.",
+  "why": "A pond set below the lawn, the grass curving down to the water, instead of a pond sitting on top of the ground.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "bank",
+   "earth",
+   "grass",
+   "bed",
+   "water",
+   "title"
+  ],
+  "books": [
+   "set 10315"
+  ],
+  "signature": [
+   "15068",
+   "11477",
+   "25269"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of pond and river: adds a bank course of curved slopes facing the water. The water is a plate below the grass. Curved slopes hold only by their lower studs in the connector data, so every bank slope sits wholly on the bed.",
+  "view": "iso"
+ },
+ {
+  "name": "lily_and_reeds",
+  "title": "Life on a pond without covering it, lily pads with a flower and clumps of reeds, each on a single open stud among the water's tiles.",
+  "why": "Life in a pond, on the open studs a tiled pond leaves: lily pads with flowers and clumps of reeds.",
+  "params": [
+   "spots",
+   "z",
+   "seed",
+   "reeds",
+   "pad",
+   "flowers",
+   "reed",
+   "title"
+  ],
+  "books": [
+   "set 10315",
+   "set 31218"
+  ],
+  "signature": [
+   "33291",
+   "24866",
+   "15279"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Takes the studs (spots) rather than finding them. The pad is a round plate with tabs, not the books' 4727 leaves, to stay on one stud clear of the tiles.",
+  "view": "iso"
+ },
+ {
+  "name": "layered_conifer",
+  "title": "A tall, narrow evergreen of soft tiers, each a pinwheel of leaf plates on a round trunk plate, every tier turning the other way from the one below so its leaves fill the gaps; built apart and placed as a submodel.",
+  "why": "A tall, narrow evergreen for a garden border or a forest edge, softer than the slope-built pine_tree.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "tiers",
+   "colors",
+   "trunk",
+   "base",
+   "title"
+  ],
+  "books": [
+   "set 10315",
+   "set 31218",
+   "set 11387"
+  ],
+  "signature": [
+   "2423",
+   "4032b"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of pine_tree (slopes): leaf plates in tiers. The books thread leaves on a bar; here each tier is four leaves in a pinwheel on a round 2 x 2 plate, held by the leaves' own studs, and the top two tiers have two. It reads columnar, not tapered.",
+  "view": "iso"
+ },
+ {
+  "name": "blossom_tree",
+  "title": "A small flowering tree whose trunk leans as it rises, on jumper plates that step it half a stud at a time, under a fluffy crown of pink and white leaves in pinwheels, dotted with petal plates; built apart and placed.",
+  "why": "A flowering cherry or apple tree in a cottage or eastern garden, a splash of pink.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "lean",
+   "layers",
+   "blossom",
+   "flowers",
+   "trunk",
+   "title"
+  ],
+  "books": [
+   "set 10315",
+   "set 31218"
+  ],
+  "signature": [
+   "2423",
+   "24866",
+   "3794b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of tree. The books' crown is the six-stem flower stem (19119) with petals on its angled arms, which the grid can't place; this crown is pinwheels of pink and white Plant Leaves 4 x 3 with petal plates on top. The trunk leans on jumper plates, half a stud a course, as the grid's stand-in for the curved trunk.",
+  "view": "iso"
+ },
+ {
+  "name": "palm_tree",
+  "title": "A tall trunk of round bricks that leans as it rises, on jumper plates, under a head of drooping fronds of curved slopes in two pinwheels, with coconuts; built apart and placed as a submodel.",
+  "why": "A palm for a beach, a tropical garden, or a pirate island.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "lean",
+   "fronds",
+   "trunk",
+   "coconuts",
+   "title"
+  ],
+  "books": [
+   "set 31109",
+   "set 43268"
+  ],
+  "signature": [
+   "50950",
+   "3958",
+   "3794b"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "From the curved-slope palm (31109), not the clipped trunk segments and sword leaves (43268), which need angles. The connector data gives 50950 no anti-stud under its high end, so each frond's high end and middle sit on the head plate and only the low end hangs out.",
+  "view": "iso"
+ },
+ {
+  "name": "bamboo_grove",
+  "title": "A clump of tall, segmented canes of round bricks with darker rings at the joints and sprays of narrow leaves, four canes of different heights on one 2 x 2 base, the tallest at the back.",
+  "why": "A clump of bamboo in an eastern garden, a jungle, or beside a pond.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "seed",
+   "cane",
+   "joint",
+   "leaves",
+   "base",
+   "title"
+  ],
+  "books": [
+   "set 10315"
+  ],
+  "signature": [
+   "30176",
+   "3062b"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "iso"
+ },
+ {
+  "name": "potted_plant",
+  "title": "A pot with a plant in it, for a doorstep, a path's edge, or a windowsill: a real flower pot with a leafy plant or a flower on a stem, or a tiny pot of a round 1 x 1 brick with one bloom.",
+  "why": "A pot of flowers or a fern by the door, on the step, or on a windowsill.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "kind",
+   "pot",
+   "leaves",
+   "bloom",
+   "title"
+  ],
+  "books": [
+   "set 43217",
+   "set 43268"
+  ],
+  "signature": [
+   "7077",
+   "6255",
+   "4727"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The flower stems with bar (99249c01 and the like) read as floating in the pot (an assembly with no connector data), so the flower is a stem of round bricks with 4727 leaves and a bloom. The flower pot was made only in Black, Dark Orange, and one other color.",
+  "view": "iso"
+ },
+ {
+  "name": "clipped_hedge",
+  "title": "A low hedge along a wall or path that reads as a row of rounded, clipped bushes: round 2 x 2 tiles standing on the side studs of bricks, every other bush a plate higher.",
+  "why": "A low clipped hedge along a cottage front, a path, or a diner's windows.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "facing",
+   "colors",
+   "title"
+  ],
+  "books": [
+   "set 10352"
+  ],
+  "signature": [
+   "22885",
+   "14769"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "One stud deep, rounded on its face side only.",
+  "view": "iso"
+ },
+ {
+  "name": "stone_lantern",
+  "title": "A garden lantern of stacked stone, a round plinth, a slim pillar, a glowing light chamber, and a pyramid roof with a finial, built apart and placed beside a path.",
+  "why": "A stone lantern beside a garden path or a pond, in an eastern or fantasy garden.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "pillar",
+   "color",
+   "light",
+   "title"
+  ],
+  "books": [
+   "set 10315"
+  ],
+  "signature": [
+   "3045",
+   "3941",
+   "87580",
+   "4589"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "One roof tier; the books' three-tier stacked tower isn't built.",
+  "view": "iso"
+ },
+ {
+  "name": "snow_drift_edge",
+  "title": "A snowy patch whose edges are soft drifts, not a plate's edge: round corners, curved slopes laid along the rim with their low side out, a deeper drift piled against a wall, and loose snow on top.",
+  "why": "Snow over a garden in a winter scene, drifting at the edges and banked against the house.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "wall",
+   "seed",
+   "color",
+   "title"
+  ],
+  "books": [
+   "set 11387"
+  ],
+  "signature": [
+   "15068",
+   "11477",
+   "30565"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of snow_cap and grass_edge. Uses 4 x 4 corner-round plates where the book also used long wedge plates.",
+  "view": "iso"
+ },
+ {
+  "name": "gnarled_tree",
+  "title": "An old, twisted tree on a flared root base, its trunk of round bricks stepping a stud aside at each course, and two crossed limbs spreading low, curving down underneath where they leave the trunk, with leaves at their ends; built apart and placed as a submodel.",
+  "why": "An old, twisted tree for a fantasy village or the corner of an overgrown garden.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "seed",
+   "bark",
+   "leaves",
+   "title"
+  ],
+  "books": [
+   "set 10354"
+  ],
+  "signature": [
+   "3063b",
+   "24201",
+   "2417"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "VARIANT of tree, a grid stand-in: the book's horn-shaped branches on clips need angles. The trunk twists by offsetting round bricks a stud, the limbs are crossed 2 x 8 plates with inverted curved slopes under them. It reads as a spreading old tree more than a gnarled one.",
+  "view": "iso"
+ },
+ {
+  "name": "cypress",
+  "title": "A slim, upright tree, a dark green flame, of small leaf plates stacked on a single stud, each turned a quarter from the one below, on a short trunk; built apart and placed as a submodel, so a row of them along a border is one sub-assembly built \"x n\".",
+  "why": "Slim upright trees in a row along a garden border or a Mediterranean villa.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "layers",
+   "color",
+   "trunk",
+   "base",
+   "title"
+  ],
+  "books": [
+   "set 10315",
+   "set 31218"
+  ],
+  "signature": [
+   "32607",
+   "87580"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The books use one tall tapered leaf element or small cones on a bar; this stacks Plates 1 x 1 Round with 3 Leaves on a single stud. 6141 and 4589 were never made in Dark Green, so the stem and tip take the trunk and base colors.",
+  "view": "iso"
+ }
+]

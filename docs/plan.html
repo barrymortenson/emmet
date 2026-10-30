@@ -483,6 +483,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
 <tr><td class="id">D-48</td><td>Mined techniques and OMR models</td><td>Techniques aren't derived from OMR models. The mining over the OMR corpus only ranks which sub-assemblies recur; each technique is written from general building knowledge and Barry's own instruction books (read for methods, never copied into the repo), and its provenance note says so (ADR 0003, 3C).</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
 <tr><td class="id">D-49</td><td>3C's eval check</td><td>No rung 2 eval exists before 5A, so 3C proves "no regression" with the rung 1 dry-run eval on both fake agents, the replay suites, and the rung 2 reference model clean at every param. The real rung 2 scores are 5A's and G2's.</td><td><span class="pill decided">Barry 2026-10-28</span></td></tr>
 <tr><td class="id">D-50</td><td>E2E beside Barry's work</td><td>CI's Mac E2E stays on the self-hosted Mac, and its app stays out of Barry's way there: the E2E build (the <code>webdriver</code> feature, debug only) doesn't take focus at launch, has no Dock icon or Cmd-Tab entry, and keeps drawing while other windows cover it, through WKWebView's private <code>_setWindowOcclusionDetectionEnabled:</code>. That one call needs unsafe code, so the workspace lint is <code>deny</code> instead of <code>forbid</code>, the call allows it in <code>apps/desktop/src-tauri/src/e2e.rs</code>, and <code>scripts/unsafe-check.mjs</code> in <code>just check</code> keeps every other file free of it. Rejected: the hosted <code>macos-latest</code> (a trial run shrank the window to 1024 × 674, so the window baselines couldn't be shared, took 7.5 minutes of specs to the Mac's 4, and needed two retries), and only stopping the app from taking focus.</td><td><span class="pill decided">Barry 2026-10-29</span></td></tr>
+<tr><td class="id">D-51</td><td>Session 3D before 4B</td><td>Before 4B, a session reads all of Barry's instruction books (92 booklets) for techniques and the rules of each scale and style, adds a build guide per scale, style, and subject that the agent reads through <code>guide</code>, and rebuilds the Cottage as a detailed figure-scale model with landscaping, a furnished interior, and a lift-off roof. The books are read for methods only, as in D-48.</td><td><span class="pill decided">Barry 2026-10-29</span></td></tr>
 </table></div>
 </section>
 
@@ -2078,17 +2079,19 @@ and record what I change. After sign-off, changes to these screens need a short 
 <div class="phase" id="phase-3" data-phase="3">
 <div class="ph-top"><span class="pnum">Phase 3</span><h3>Engine MVP</h3></div>
 <div class="pbar"><i></i></div>
-<p>Deepen the engine to MVP quality while design happens. 3A owns <code>emmet-core</code>'s validator and connections, and 3B owns the DSL, BOM, steps, and data; they run in parallel and start after G1 is a "go". 3C mines techniques from official models once both are in, alongside Phase 4.</p>
+<p>Deepen the engine to MVP quality while design happens. 3A owns <code>emmet-core</code>'s validator and connections, and 3B owns the DSL, BOM, steps, and data; they run in parallel and start after G1 is a "go". 3C mines techniques from official models once both are in, alongside Phase 4. 3D, added before 4B (D-51), reads all of Barry's instruction books for techniques and the rules of each scale and style, and rebuilds the Cottage with them.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> G1 must be <b>go</b> (H-06) before either session starts.</li>
 <li><span class="pill you">YOU</span> Optional: spot-check exported <code>.mpd</code> files in Studio or LDCad if you have them installed.</li>
 <li><span class="pill you">YOU</span> <b>H-22</b>: accept or reject mined technique candidates, in batches of 20 (3C).</li>
+<li><span class="pill you">YOU</span> <b>H-26</b>: accept or reject the book technique candidates, in batches of 20, and approve the new Cottage (3D).</li>
 </ul></div>
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
 <tr data-session="3A"><td><a href="#session-3a">3A</a></td><td>Validator v1 and the connection model</td><td>1D</td><td>3B, 2B</td><td>XL</td></tr>
 <tr data-session="3B"><td><a href="#session-3b">3B</a></td><td>DSL v1, steps, BOM, colors, availability, techniques</td><td>1D</td><td>3A, 2B</td><td>L</td></tr>
 <tr data-session="3C"><td><a href="#session-3c">3C</a></td><td>Technique mining from official models</td><td>3A, 3B</td><td>Phase 4</td><td>L</td></tr>
+<tr data-session="3D"><td><a href="#session-3d">3D</a></td><td>Building styles from the instruction books, and the Cottage</td><td>3C, 4A</td><td>—</td><td>L</td></tr>
 </table></div>
 
 <div class="session" id="session-3a" data-session="3A" data-phase="3" data-title="Validator v1 and the connection model" data-after="1D" data-waits="H-06" data-waits-merge="" data-read="11, 12, 16">
@@ -2183,6 +2186,33 @@ the PR if it has merged.</code></pre></details>
 <details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 3C. Settle the license for derived snippets first (extend ADR 0003) and stop if it doesn't allow
 this. Mine on 3A's connection graph, present candidates to me in batches of 20 as review pages, and turn only the
 accepted ones into techniques with tests and provenance notes.</code></pre></details>
+</div>
+<div class="session" id="session-3d" data-session="3D" data-phase="3" data-title="Building styles from the instruction books, and the Cottage" data-after="3C 4A" data-waits="" data-waits-merge="H-26" data-read="08, 10, 14">
+<h4><span class="s-id">3D</span> Building styles from the instruction books, and the Cottage<span class="s-meta">after 3C, 4A · before 4B (D-51) · size L · YOU: H-26 before merge</span></h4>
+<p class="goal"><b>Goal:</b> Emmet builds well in every scale and style the Options offer: houses with many wall, roof, and interior treatments; blocky and video-game worlds; cars at each width class and scale; micro, micropolis, and midi; sculptures. The Cottage shows it: a detailed figure-scale building with character, landscaping, a furnished interior, and a roof that lifts off.</p>
+<div class="s-dh">What gets built</div>
+<ul class="build">
+<li><b>Research:</b> every instruction book Barry owns (92 booklets, about 55 sets) read for methods only, by set number, in notes kept out of the repo (D-48, ADR 0003).</li>
+<li><b>Techniques:</b> candidates in review pages of 20 (<code>docs/techniques/candidates/</code>), each an Emmet sketch that validates clean; Barry accepts or rejects (H-26); accepted ones become techniques with a test, a render, and a provenance note citing the books by set number.</li>
+<li><b>Guides:</b> one per scale, per style, and per subject (vehicles, interiors, landscaping), in plain rules an agent follows, naming the techniques to reach for. <code>emmet guide</code> and the MCP <code>guide</code> tool give the ones for the project's <code>[build]</code>, or one by name; the doctrine says when to read them.</li>
+<li><b>Options:</b> the style and scale choices adjusted to what the research shows the agent can build, with a design change note.</li>
+<li><b>The Cottage:</b> the template rebuilt with the library: character, landscaping, a detailed interior, and a lift-off roof, still clean at every knob setting, and every test and baseline that depends on it updated.</li>
+</ul>
+<div class="s-dh">Done when</div>
+<ul class="done">
+<li>Barry has accepted or rejected every candidate (H-26), and each accepted one has a passing test, a render, and a provenance note.</li>
+<li>Every scale and style the Options offer has a guide; every technique a guide names exists; <code>guide</code> with no name answers for the project's build settings (integration tests).</li>
+<li>The Cottage validates clean at its defaults and at the corners of its knobs, its roof lifts off as one piece, and Barry approves it (H-26).</li>
+<li>Rung 1's dry-run eval and the replay suites pass, and the rung 2 reference model is clean at every param.</li>
+</ul>
+<div class="s-dh">What good looks like</div>
+<ul class="good">
+<li>An agent asked for "a blocky house", "a micro city block", or "a sports car" reads the guide unprompted and its model reads as that style and scale.</li>
+<li>Nothing from a book's pages is in the repo; every technique cites its books by set number only.</li>
+</ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 3D. Read Barry's instruction books for methods only (D-48), present technique candidates to him
+in review pages of 20, and turn only the accepted ones into techniques. Write a guide for each scale, style, and
+subject, served by emmet guide and the MCP guide tool, and rebuild the Cottage with the library.</code></pre></details>
 </div>
 </div>
 
@@ -2703,6 +2733,7 @@ misses section 13's budgets. Ask me to pick the rung 4 subject, and ask before e
 <tr data-h="H-20"><td>H-20</td><td>Accept Anthropic's Commercial Terms for running Claude Code inside Emmet (before 0B). No description goes to Anthropic (Barry 2026-10-25, D-37)</td><td>0B start</td><td><a href="#g-h20">guide</a></td></tr>
 <tr data-h="H-21"><td>H-21</td><td>API keys (Anthropic Console, OpenAI) with spend caps for scripted runs and evals</td><td>0B start</td><td><a href="#g-h21">guide</a></td></tr>
 <tr data-h="H-22"><td>H-22</td><td>Accept or reject mined technique candidates, in batches of 20</td><td>3C merge</td><td>Review pages in <code>docs/techniques/candidates/</code></td></tr>
+<tr data-h="H-26"><td>H-26</td><td>Accept or reject the book technique candidates, in batches of 20, and approve the new Cottage</td><td>3D merge</td><td>Review pages in <code>docs/techniques/candidates/</code></td></tr>
 <tr data-h="H-23"><td>H-23</td><td>Photograph three subjects for the photo rung, two angles each (six photos): two brick models and one real building, your own photos with no people in them</td><td>4D start</td><td>Any phone camera; Emmet strips EXIF</td></tr>
 <tr data-h="H-25"><td>H-25</td><td>Install the Antigravity CLI on this Mac and sign in with your Google account (not needed for the MVP, D-43)</td><td>after the MVP</td><td><a href="#g-h25">guide</a></td></tr>
 <tr data-h="H-24"><td>H-24</td><td>Not needed: no note to Rebrickable. Its downloads terms allow the pack with credit, and Q-14 is settled by reading its Terms (Barry 2026-10-24)</td><td>—</td><td>—</td></tr>

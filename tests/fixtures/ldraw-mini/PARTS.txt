@@ -105,3 +105,160 @@
 15254 15279 25269 26601 30176 33291 35787 3942c 4727 69729 91988
 2335 2542 30136 30137 30374 3063b 3308a 3665b 3676 3700 3959 41767 41768 41769a 41770a 4217 44301a 44302a 4490 48092 60475b 63965a 64647 6564 6565 74611
 11090 14419 22890 2620 26603 30414 32002 32063 32073 32123a 32316 32524 3403 3404 3647 3648b 3679 3680 3705 3706 3713 3749 3894 3960 40490 41677 43722a 43723a 44301b 44302b 4625 4716 85861 94925
+
+# Session 3D, batch-6's techniques
+14719    # wall_top_cornice
+2420    # wall_top_cornice
+2449    # irregular_stone_wall
+2653    # white_ashlar_wall
+50950    # curved_wall_end
+
+# Session 3D, batch-7's techniques
+11833    # round_window
+27507    # round_corner_bay
+30044    # twin_arched_window
+30565    # round_corner_bay
+32607    # hanging_planter
+38320    # lattice_shopfront
+4032b    # slope_hood_small_window
+47397    # wing_plate_porch_roof
+48336    # plank_door
+5848    # signboard_beam
+5906    # dome_window_hood
+6003    # round_corner_bay
+6183    # twin_arched_window
+68568    # eyebrow_arch_hood
+73878c01    # round_corner_bay
+7904    # dome_window_hood
+79393    # round_corner_bay
+
+# Session 3D, batch-8's techniques
+1126    # plate_shingle_roof
+15535    # mansard_module
+15672    # mini_dormer
+24246    # plate_shingle_roof
+30367c    # tapered_tower_cap
+3688    # pyramid_spire_tower
+3957b    # pyramid_spire_tower
+
+# Session 3D, batch-9's techniques
+14769p0a    # wall_picture_and_clock
+18674    # table_and_chairs
+2343    # bar_counter
+2431px0    # upright_piano
+3068bp71    # wall_picture_and_clock
+36840    # table_and_chairs
+37775    # hearth_fireplace
+3899    # wood_stove
+4599b    # kitchen_counter
+67095    # floor_rug
+92950    # interior_arch_doorway
+95228    # wall_shelf
+
+# Session 3D, batch-10's techniques
+22385    # stepping_stones
+2417    # gnarled_tree
+24866    # lily_and_reeds
+30357    # contour_terraces
+3069bp0p    # tiled_pond_water
+3186    # garden_gate
+3187    # garden_gate
+33303    # garden_gate
+3477    # curved_garden_path
+3675    # garden_boulder
+5520    # stepping_stones
+7077    # potted_plant
+
+# Session 3D, the Cottage
+4345b    # the Cottage
+4346    # the Cottage
+7276    # the Cottage
+
+# Session 3D, batch-12's techniques
+11213    # game_pipe
+15397    # controller_slab
+18649    # bolted_pillar
+30391    # chunky_kart
+3070bp1c    # start_gantry
+3957a    # crt_cabinet
+55981    # chunky_kart
+67329    # item_block
+69754    # item_launcher
+69755    # item_launcher
+87081    # game_pipe
+
+# Session 3D, batch-13's techniques
+11208    # car_wheels
+11209    # car_wheels
+23405    # shipping_container
+32064b    # racing_scale_base
+3707    # racing_scale_base
+4033c01    # lift_off_window_cab
+4035c01    # lift_off_window_cab
+4176    # six_wide_truck_cab
+4488    # truck_spine_chassis
+4600    # car_wheels
+54383    # tapered_hood_wedges
+54384    # tapered_hood_wedges
+55982    # racing_scale_base
+58090    # racing_scale_base
+60581    # glass_box_cab
+60592c01    # six_wide_truck_cab
+62360    # curved_wedge_nose
+79491    # rounded_car_end
+85080    # rounded_car_end
+93606    # cab_over_sleeper
+98282    # car_wheels
+
+# Session 3D, batch-14's techniques
+11476    # hang_on_side_panel
+2730    # technic_brick_ring_chassis
+2819    # dashboard_and_wheel
+32278    # liftarm_ladder_frame
+32523    # steering_rack
+3455    # inverted_arch_wheel_well
+3703    # technic_brick_ring_chassis
+42022    # fender_crown
+4519    # dashboard_and_wheel
+64179    # liftarm_ladder_frame
+6558    # beam_spine_floor
+6630    # steering_rack
+
+# Session 3D, batch-15's techniques
+2432    # mowed_pitch
+2877    # raked_seating_panel
+30162    # paired_colonnade
+37352    # micro_tower
+47905    # tower_side_fins
+6254    # micro_tree_cluster
+7826    # tower_setback_plinth
+90398    # statuette_group
+91405    # micropolis_block
+
+# Session 3D, batch-16's techniques
+11212    # brick_letters
+14418    # posable_neck_ball
+14769p0p    # big_round_eye
+2419    # brick_letters
+30367a    # muzzle_and_nose
+3660b    # brick_letters
+49668    # teeth_row
+5852    # curved_slope_skin
+76797    # dome_from_quarters
+
+# Session 3D, batch-17's techniques
+32803    # davit_lifeboat
+49612    # clamshell_pod
+6143    # round_bastion
+64448    # ribbed_side_panel
+92947    # pipe_column_cluster
+
+# Session 3D, batch-18's techniques
+27925    # rounded_pier_nose
+3044b    # rose_window_ring
+36752a    # pinnacle_stack
+78329    # pointed_buttress_strip
+
+# Session 3D, the Cottage's knobs
+6192b    # the Cottage
+5841    # the Cottage, the thatch ridge's end

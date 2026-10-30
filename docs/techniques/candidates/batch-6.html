@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-6</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-6</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-6/wainscot_split_wall.png" alt="A sketch of wainscot_split_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>wainscot_split_wall</code></h2>
+    <p>A wall with its lower courses in brickwork and its upper courses in log siding or plain color, split by a trim band of plates in an accent color.</p>
+    <p class="why">Lower courses of brickwork, a trim band, and log siding above: an agent reaches for it to make a plain cottage or town wall read as a built, aged house, with window sills lined up on the band.</p>
+    <p class="note"><b>Note:</b> VARIANT: masonry_wall plus siding at a set split height, with a plate trim band between. 30136 log bricks were never made in Dark Green (the book's color), so the default upper color is Olive Green; siding='plain' gives plain bricks.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>low</code>, <code>color</code>, <code>trim</code>, <code>upper</code>, <code>siding</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (2 times); 4 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10267 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/wainscot_split_wall.py"><code>batch-6/wainscot_split_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387</dd>
+      <dt>Key parts</dt><dd><code>15533</code> + <code>98283</code> + <code>30136</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wainscot_split_wall">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for wainscot_split_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-6/plaster_with_exposed_stones.png" alt="A sketch of plaster_with_exposed_stones" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>plaster_with_exposed_stones</code></h2>
+    <p>A whitewashed wall with a few stones showing where the plaster has fallen away, each a tile on a side stud standing a plate proud.</p>
+    <p class="why">Whitewashed walls with stones showing through, for the Cottage's upper walls and any rustic, coastal, or medieval house.</p>
+    <p class="note"><b>Note:</b> A cousin of quoin_corner: pair them for stone corners (quoin_corner builds its own two corner walls). Stones are seeded, weighted low and toward the ends, never side by side or stacked.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>stone</code>, <code>stones</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (3 times); 55 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0); FILE 21042 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21023 - Flatiron Building.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/plaster_with_exposed_stones.py"><code>batch-6/plaster_with_exposed_stones.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335</dd>
+      <dt>Key parts</dt><dd><code>87087</code> + <code>11211</code> + <code>3069b</code> + <code>3070b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for plaster_with_exposed_stones">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for plaster_with_exposed_stones">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-6/two_tone_masonry.png" alt="A sketch of two_tone_masonry" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>two_tone_masonry</code></h2>
+    <p>An embossed brick wall with plain bricks in a neighboring tone mixed in and the odd brick standing proud, so it reads as real, uneven brickwork.</p>
+    <p class="why">A brick wall that looks real and uneven without printed parts, for any town building's brick face.</p>
+    <p class="note"><b>Note:</b> VARIANT of masonry_wall: adds seeded plain bricks in a neighboring tone, proud bricks (a 1 x 2 tile on 11211), and joint checking against the course below. Medium Nougat against Nougat is subtle in the render, as in the book.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>tone</code>, <code>plain</code>, <code>proud</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (3 times); 6 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10246 - Main model.ldr (Willy Tschager [Holly-Wood], Redistributable under CCAL version 2.0); FILE 21325 - Medieval Blacksmith.ldr (Vincent Messenet [Cheenzo], Redistributable under CCAL version 2.0); FILE 10267 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/two_tone_masonry.py"><code>batch-6/two_tone_masonry.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302; set 10350</dd>
+      <dt>Key parts</dt><dd><code>15533</code> + <code>98283</code> + <code>11211</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for two_tone_masonry">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for two_tone_masonry">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-6/string_course.png" alt="A sketch of string_course" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>string_course</code></h2>
+    <p>A thin light band across a facade at a floor line, standing a plate proud of the wall, that splits one story from the next.</p>
+    <p class="why">A light band across a facade at each floor line, splitting the stories of a town building and lining up the upper sills.</p>
+    <p class="note"><b>Note:</b> Related to wall_top_tie but it's a visible facade band, not a hidden tie. proud=False gives the book's plain flush plate course; the default is the proud side-stud version.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>wall</code>, <code>proud</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1315 official sets (8 times); 114 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 42110 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10258 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10262 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21017 - Imperial Hotel.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/string_course.py"><code>batch-6/string_course.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302; set 10350</dd>
+      <dt>Key parts</dt><dd><code>30414</code> + <code>2431</code> + <code>6636</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for string_course">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for string_course">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-6/dentil_band.png" alt="A sketch of dentil_band" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>dentil_band</code></h2>
+    <p>A row of round studs in two colors across a facade, under a cornice or over a wide doorway, like the teeth of a classical cornice.</p>
+    <p class="why">A row of two-color round studs under a cornice or over a wide doorway, for civic and Victorian facades.</p>
+    <p class="note"><b>Note:</b> The book's chunkier double band staggers the second row half a stud on jumpers; here rows=2 stacks the second row straight, with the colors shifted by one.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>wall</code>, <code>dots</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1315 official sets (6 times); 52 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10232 - Main-model.ldr (Orion Pobursky [OrionP], Licensed under CC BY 4.0); FILE 10298 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21035 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 31070 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/dentil_band.py"><code>batch-6/dentil_band.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302</dd>
+      <dt>Key parts</dt><dd><code>30414</code> + <code>98138</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for dentil_band">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for dentil_band">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-6/timber_frame_panels.png" alt="A sketch of timber_frame_panels" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>timber_frame_panels</code></h2>
+    <p>White plaster panels crossed by dark posts and diagonal braces, each brace the dark strip left between two triangular tiles.</p>
+    <p class="why">White plaster crossed by dark posts and diagonal braces, for a Tudor or medieval upper story where half_timber_band's posts alone look too plain.</p>
+    <p class="note"><b>Note:</b> VARIANT of half_timber_band, which has posts only, 2-stud bays, and plaster flush with the posts. This one adds a diagonal brace in each 3-stud bay, leaning one way then the other: the stud-wide strip of timber color left between two 2 x 2 triangular tiles (35787) set in opposite corners, over timber-colored 1 x 1 tiles and plates; the plaster stands a plate proud of the timbers. The book used angled-end tiles; 22385 (Tile 3 x 2 with Angled End) is a pointed tile, so it didn't fit. 35787's body is 1.85 studs, so its footprints carry 0.15 and 0.375 offsets; its connectors seat on the grid.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>bays</code>, <code>plaster</code>, <code>timber</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 11 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 75276 - main.ldr (Jaco van der Molen [Jaco], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/timber_frame_panels.py"><code>batch-6/timber_frame_panels.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350</dd>
+      <dt>Key parts</dt><dd><code>35787</code> + <code>32952</code> + <code>22885</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for timber_frame_panels">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for timber_frame_panels">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-6/panel_pilaster.png" alt="A sketch of panel_pilaster" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>panel_pilaster</code></h2>
+    <p>A flat pilaster 2 studs wide with a raised base, a dark panel up its face, and a capital, framing a shopfront bay.</p>
+    <p class="why">A paneled pilaster with a base and capital to frame a shopfront bay or a pub front.</p>
+    <p class="note"><b>Note:</b> The book's base is a 2 x 2 crate (35700); the validator finds nothing to hold on the crate's open top, and 35700 was never made in Dark Green, so the base is a 2 x 2 brick standing a stud proud. The book's shaft is 11211/87087; side studs on 3-plate courses don't space for a vertical 1 x 4 tile, so the shaft is 32952 and jumper plates center the tile.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>panels</code>, <code>color</code>, <code>accent</code>, <code>panel</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 28 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-6/panel_pilaster.py"><code>batch-6/panel_pilaster.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350</dd>
+      <dt>Key parts</dt><dd><code>32952</code> + <code>15573</code> + <code>2431</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for panel_pilaster">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for panel_pilaster">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-6/rusticated_stone_pilaster.png" alt="A sketch of rusticated_stone_pilaster" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>rusticated_stone_pilaster</code></h2>
+    <p>A tall pale stone pier of long and short blocks whose joints wander course to course, with the odd block end standing out and a light band at each floor line.</p>
+    <p class="why">A tall pale stone pier beside a big door or at a corner of a civic building, with string courses at the floor lines.</p>
+    <p class="note"><b>Note:</b> VARIANT of quoin_corner: a whole freestanding pier, not just corner tiles. The long block turns a quarter turn round the pier each course.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>color</code>, <code>band</code>, <code>band_every</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>16</b> of 1315 official sets (21 times); 81 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/rusticated_stone_pilaster.py"><code>batch-6/rusticated_stone_pilaster.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302</dd>
+      <dt>Key parts</dt><dd><code>3004</code> + <code>3005</code> + <code>87087</code> + <code>3070b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rusticated_stone_pilaster">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for rusticated_stone_pilaster">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-6/color_block_facade.png" alt="A sketch of color_block_facade" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>color_block_facade</code></h2>
+    <p>A front of narrow wall sections, each its own bright color with a window framed in another, split by pilasters in a trim color, the cheerful storybook way.</p>
+    <p class="why">A cheerful storybook front of narrow sections in different bright colors, each with a window framed in another color.</p>
+    <p class="note"><b>Note:</b> More a style rule than a technique; it composes window_frame for each section. The book's pilasters are plate strips on the side studs of 87087 stacks; a vertical plate needs side studs 2.5 plates apart and 87087 stacks give 3, so these pilasters are flush 1 x 1 brick columns tied by the trim cap.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>sections</code>, <code>trim</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>22</b> of 1315 official sets (90 times); 36 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/color_block_facade.py"><code>batch-6/color_block_facade.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217</dd>
+      <dt>Key parts</dt><dd><code>60592</code> + <code>3005</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for color_block_facade">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for color_block_facade">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-6/wall_top_cornice.png" alt="A sketch of wall_top_cornice" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>wall_top_cornice</code></h2>
+    <p>A band of light stone round the tops of four walls, corner plates tying the corners under smooth tiles, with a stud left open midway along each wall for the roof to grip.</p>
+    <p class="why">A smooth contrasting stone band round the wall tops that ties the corners and seats a lift-off roof, for the Cottage's walls.</p>
+    <p class="note"><b>Note:</b> VARIANT of wall_top_tie, which lays 1-wide plates in the wall color, swaps which walls own the corners course to course, and leaves a stud open at each corner. This one ties each corner with an L-shaped 2 x 2 corner plate (2420) under an L-shaped corner tile (14719, not confirmed from the book), in a contrast color, and leaves the lug studs open midway along each wall.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>lugs</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (7 times); 36 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 21030 - United States Capitol Building.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 75893 - main.ldr (Magnus Forsberg [MagFors], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/wall_top_cornice.py"><code>batch-6/wall_top_cornice.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335</dd>
+      <dt>Key parts</dt><dd><code>2420</code> + <code>14719</code> + <code>6636</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wall_top_cornice">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for wall_top_cornice">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-6/lattice_skirt_foundation.png" alt="A sketch of lattice_skirt_foundation" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>lattice_skirt_foundation</code></h2>
+    <p>A house or porch raised a brick above the garden on beams, the gap along the front closed with lattice panels like a real porch skirt.</p>
+    <p class="why">A house or porch raised a brick above the garden with lattice closing the gap, so the house stands up off the lawn and the steps become a feature.</p>
+    <p class="note"><b>Note:</b> Add steps with the stairs technique. The lattice sits set back under the floor plates' edge, as in the book; the front view shows it best.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>lattice</code>, <code>floor</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>78</b> of 1315 official sets (197 times); 78 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/lattice_skirt_foundation.py"><code>batch-6/lattice_skirt_foundation.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43268; set 11387</dd>
+      <dt>Key parts</dt><dd><code>3633</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lattice_skirt_foundation">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for lattice_skirt_foundation">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-6/curved_wall_end.png" alt="A sketch of curved_wall_end" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>curved_wall_end</code></h2>
+    <p>The open end of a cutaway wall stepping down in curved slopes instead of stopping square, so the cut reads as designed.</p>
+    <p class="why">The open end of a cutaway (open-back) wall, where a square end looks unfinished.</p>
+    <p class="note"><b>Note:</b> The book stacks 1 x 1 bricks on an inverted curved slope (13547 or 50950 turned over); this sweeps the top corner down with 50950s instead. 50950 has no stud at its high end (it holds by its two lower cells), so each course steps 3 studs in. The curve is long and gentle, not a tight quarter circle, and a small notch shows under each high end.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>sweep</code>, <code>end</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>161</b> of 1315 official sets (583 times); 161 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 42043 - Mercedes-Benz Arocs 3245.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 8110 - Mercedes-Benz Unimog U 400.ldr (Tomas Kralicek [RabbiT_CZ], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/curved_wall_end.py"><code>batch-6/curved_wall_end.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387</dd>
+      <dt>Key parts</dt><dd><code>50950</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curved_wall_end">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for curved_wall_end">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-6/rough_stone_ledge.png" alt="A sketch of rough_stone_ledge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>rough_stone_ledge</code></h2>
+    <p>A heavy stone ledge of plates in two close tones, its top course set half a stud over on jumper plates and stopping short here and there, so its edge is ragged like cut stone.</p>
+    <p class="why">A heavy ragged stone ledge where a lower story meets an overhanging or stepped-back upper one.</p>
+    <p class="note"><b>Note:</b> Uses the jumper_offset idea. The top course sits half a stud over, so the next wall stands behind the ledge, not on it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>tones</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>29</b> of 1315 official sets (46 times); 95 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/rough_stone_ledge.py"><code>batch-6/rough_stone_ledge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350</dd>
+      <dt>Key parts</dt><dd><code>15573</code> + <code>3710</code> + <code>3623</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rough_stone_ledge">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for rough_stone_ledge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-6/two_story_color_split.png" alt="A sketch of two_story_color_split" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>two_story_color_split</code></h2>
+    <p>A wall whose lower courses are a darker tone than the rest, with corner boards in a third tone at its ends and a vent grille on a side stud, the plain way a diner or a shop is painted.</p>
+    <p class="why">A plain painted building (a diner, a shop) with a darker band along its bottom, corner boards, and a vent.</p>
+    <p class="note"><b>Note:</b> VARIANT of masonry_wall and close to wainscot_split_wall (no trim band, no masonry texture, plus corner boards and a vent). The name comes from the research; it's one story with a dark base.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>low</code>, <code>color</code>, <code>base</code>, <code>corner</code>, <code>vent</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (3 times); 55 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 75102 - Poe's X-Wing Fighter - main.ldr (Evert Jan Boer [ejboer], Redistributable under CCAL version 2.0); FILE 21023 - Flatiron Building.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/two_story_color_split.py"><code>batch-6/two_story_color_split.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10352</dd>
+      <dt>Key parts</dt><dd><code>3005</code> + <code>11211</code> + <code>2412b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for two_story_color_split">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for two_story_color_split">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-6/white_ashlar_wall.png" alt="A sketch of white_ashlar_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>white_ashlar_wall</code></h2>
+    <p>A smooth stone wall of long, uneven courses with no repeating pattern, a few grooved and grille blocks breaking up its face, and a tiled top with the odd stud left open.</p>
+    <p class="why">A smooth white stone wall of long, uneven courses, for fantasy cities, castles, and temples.</p>
+    <p class="note"><b>Note:</b> VARIANT of masonry_wall: seeded random lengths 1 to 8 with no joint on a joint, grooved and grille slots every fourth course, and a tiled cap with a few open studs. The book's side-stud detail bricks (shields, lamps) are left to the caller.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>seed</code>, <code>cap</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-6/white_ashlar_wall.py"><code>batch-6/white_ashlar_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11377</dd>
+      <dt>Key parts</dt><dd><code>2877</code> + <code>4216</code> + <code>2653</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for white_ashlar_wall">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for white_ashlar_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-6/exposed_stud_stonework.png" alt="A sketch of exposed_stud_stonework" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>exposed_stud_stonework</code></h2>
+    <p>A big stone or concrete face with texture but no brick courses, made of panels on side studs, some left as bare studs, some tiled smooth, some standing a plate proud.</p>
+    <p class="why">A big concrete or stone face with panel texture but no brick courses, for ruins, gates, pylons, and industrial walls.</p>
+    <p class="note"><b>Note:</b> VARIANT of snot_panel: mixes studs-out plates, tiles, and proud plate-plus-tile panels as deliberate texture. The book's angled wedge panels on tapering pylons aren't done; the panels are rectangles.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (2 times); 27 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/exposed_stud_stonework.py"><code>batch-6/exposed_stud_stonework.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 75936</dd>
+      <dt>Key parts</dt><dd><code>22885</code> + <code>3022</code> + <code>3068b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for exposed_stud_stonework">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for exposed_stud_stonework">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-6/irregular_stone_wall.png" alt="A sketch of irregular_stone_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>irregular_stone_wall</code></h2>
+    <p>A cellar or cave wall of uneven stone blocks in a broken bond, with gray rock showing through in steep slopes and a ragged top.</p>
+    <p class="why">An uneven stone wall with rock showing through, for a cellar, cave, dungeon, or pirate tavern.</p>
+    <p class="note"><b>Note:</b> The book also sets some stones back half a stud on jumpers; that isn't done here. The top course is ragged, so the return value is the top of the last full course.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>tone</code>, <code>rock</code>, <code>rocks</code>, <code>seed</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 3 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 7657 - AT-ST - main.ldr (Evert Jan Boer [ejboer], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/irregular_stone_wall.py"><code>batch-6/irregular_stone_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21363</dd>
+      <dt>Key parts</dt><dd><code>4460b</code> + <code>2449</code> + <code>3003</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for irregular_stone_wall">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for irregular_stone_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-6/balustrade_parapet.png" alt="A sketch of balustrade_parapet" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>balustrade_parapet</code></h2>
+    <p>A stone balustrade along a roof edge, round balusters on every stud between a base rail and a handrail, with an arched centerpiece carrying an urn and stone piers at the ends.</p>
+    <p class="why">A stone balustrade along a civic building's roof edge or a terrace, with an urn on an arched centerpiece.</p>
+    <p class="note"><b>Note:</b> A VARIANT of fence in spirit. The book puts an orange cone or shell in the arch's opening; that's left out, since nothing fits under the 1 x 3 arch's opening.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>baluster</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 4 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-6/balustrade_parapet.py"><code>batch-6/balustrade_parapet.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>4490</code> + <code>4589</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for balustrade_parapet">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for balustrade_parapet">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-6/bermed_wall_reveal.png" alt="A sketch of bermed_wall_reveal" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>bermed_wall_reveal</code></h2>
+    <p>A house front that shows only where the hill is cut away, the hill sloping down past both ends of the wall and its turf overhanging the top, so you never see where the wall stops.</p>
+    <p class="why">A house front dug into a hill, with the hill falling past the wall's ends and its turf overhanging the top.</p>
+    <p class="note"><b>Note:</b> The book's cheeks are tan curved bricks and green curved slopes; these are 45-degree 2 x 2 slopes stepping down from the wall's top corners. With wall=False the hill wraps a wall already built (one with a round door, say).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>color</code>, <code>beam</code>, <code>hill</code>, <code>wall</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>87</b> of 1315 official sets (173 times); 214 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/bermed_wall_reveal.py"><code>batch-6/bermed_wall_reveal.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10354</dd>
+      <dt>Key parts</dt><dd><code>3039</code> + <code>3003</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bermed_wall_reveal">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for bermed_wall_reveal">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-6/corbelled_balcony.png" alt="A sketch of corbelled_balcony" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>corbelled_balcony</code></h2>
+    <p>A small balcony on a wall's face, its slab carried by three long pointed corbels hanging under it, with a railing of round balusters along its front.</p>
+    <p class="why">A small balcony on a medieval or fantasy wall held up by pointed corbels.</p>
+    <p class="note"><b>Note:</b> VARIANT of machicolation (corbels under a slab). The book clips wedge plates on side studs to make tooth-shaped corbels; here each corbel is an inverted 75-degree slope 2 x 1 x 3 (2449) hanging from the slab, all on the grid. The book's small roofed window box on top is left out; a baluster railing stands in its place.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>rail</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (4 times); 28 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 31084 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 6987 - Message-Intercept Base.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 7326 - Rise of the Sphinx (Christian Neumann [Wesley], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-6/corbelled_balcony.py"><code>batch-6/corbelled_balcony.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11377</dd>
+      <dt>Key parts</dt><dd><code>2449</code> + <code>3062b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for corbelled_balcony">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for corbelled_balcony">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-6" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

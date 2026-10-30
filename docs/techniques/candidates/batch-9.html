@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-9</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-9</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-9/hearth_fireplace.png" alt="A sketch of hearth_fireplace" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>hearth_fireplace</code></h2>
+    <p>a brick fireplace with a fire in its firebox, a mantel shelf with candles, and a flue rising behind, built apart and placed against a wall.</p>
+    <p class="why">The living room's focal point against the chimney wall: a fire in a masonry firebox, a mantel with candles, and a flue that meets the chimney stack.</p>
+    <p class="note"><b>Note:</b> Merges FM brick_built_hearth_with_arch as arch=True, using an Arch 1 x 4 (3659) over the opening rather than a pair of quarter-circle arch bricks. The triple flame (64647) and candle flames (37775) have no connector data; they're placed by their body boxes on the grate and candle studs.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>arch</code>, <code>flue</code>, <code>candles</code>, <code>color</code>, <code>mantel</code>, <code>arch_color</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 64647 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/hearth_fireplace.py"><code>batch-9/hearth_fireplace.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p41, p133, p191; set 10354: 6574801 p76-78; 6574802 p101-108</dd>
+      <dt>Key parts</dt><dd><code>98283</code> + <code>64647</code> + <code>3020</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for hearth_fireplace">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for hearth_fireplace">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-9/wood_stove.png" alt="A sketch of wood_stove" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>wood_stove</code></h2>
+    <p>a black iron stove on short legs with a glowing grate door, a hotplate, a kettle, and a stovepipe, built apart and placed.</p>
+    <p class="why">A small iron stove for a cottage kitchen or a cabin, with its pipe rising up the wall; pairs with the woodpile technique for firewood.</p>
+    <p class="note"><b>Note:</b> The book puts a grille over a glowing tile; both can't sit on the same side studs, so the door is one Trans-Orange grille tile (2412b is made in it). Firewood is left to woodpile.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>pipe</code>, <code>kettle</code>, <code>color</code>, <code>glow</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 44 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/wood_stove.py"><code>batch-9/wood_stove.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p201-204</dd>
+      <dt>Key parts</dt><dd><code>2412b</code> + <code>11211</code> + <code>3062b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wood_stove">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for wood_stove">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-9/figure_bed.png" alt="A sketch of figure_bed" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>figure_bed</code></h2>
+    <p>a single bed 2 x 6 studs for a figure, with a headboard or four posts, a pillow, and a checked quilt, built apart and placed.</p>
+    <p class="why">Every bedroom or loft needs a bed a figure can lie in; 2 x 6 fits along a wall or under a roof slope.</p>
+    <p class="note"><b>Note:</b> Four-poster from 43268 and FM short_bed_four_post merged as posts=True, with cones as post caps rather than bars and round plates.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>posts</code>, <code>frame</code>, <code>quilt</code>, <code>quilt2</code>, <code>pillow</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 53 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 42078 - Mack Anthem.mpd (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/figure_bed.py"><code>batch-9/figure_bed.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p204; set 43268: 6568841 p131-134; set 11377: 6650286 p19-20</dd>
+      <dt>Key parts</dt><dd><code>3795</code> + <code>15068</code> + <code>3070b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for figure_bed">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for figure_bed">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-9/armchair_and_sofa.png" alt="A sketch of armchair_and_sofa" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>armchair_and_sofa</code></h2>
+    <p>an upholstered seat a figure sits in, with arms, a seat cushion, and a padded back, from an armchair 4 studs wide to a sofa 8 wide, built apart and placed.</p>
+    <p class="why">Seating for a living room, a pub, or a waiting room, one technique from a 4-wide armchair to an 8-wide sofa.</p>
+    <p class="note"><b>Note:</b> Merges HC armchair_and_sofa and TM small_sofa as kind=. The armchair is 4 wide so a figure fits between the arms; the book's 2 x 2 armchair has no room for arms.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>kind</code>, <code>length</code>, <code>facing</code>, <code>color</code>, <code>cushion</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (4 times); 59 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21023 - Flatiron Building.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/armchair_and_sofa.py"><code>batch-9/armchair_and_sofa.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: 6461326 p60; set 43268: 6568841 p111-113; set 10350: 6553217 p258</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>11477</code> + <code>3069b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for armchair_and_sofa">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for armchair_and_sofa">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-9/kitchen_counter.png" alt="A sketch of kitchen_counter" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>kitchen_counter</code></h2>
+    <p>a run of kitchen units 2 deep, each 2 studs wide, a cabinet, a stove, or a sink, under one worktop, built apart and placed along a wall.</p>
+    <p class="why">The kitchen's working wall: a run of cabinets, a stove, and a sink under one worktop, sized for any length of wall.</p>
+    <p class="note"><b>Note:</b> Merges TM kitchen_line. No fridge unit (a tall unit needs its own door handle on side studs); the sink is a trans-light-blue tile with a tap, as there is no figure-scale sink part.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>units</code>, <code>facing</code>, <code>color</code>, <code>doors</code>, <code>top</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 18 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/kitchen_counter.py"><code>batch-9/kitchen_counter.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43268: 6568841 p101-110; set 10352: 6583432 p128-160, p201-210</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>4599b</code> + <code>98138</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for kitchen_counter">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for kitchen_counter">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-9/table_and_chairs.png" alt="A sketch of table_and_chairs" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>table_and_chairs</code></h2>
+    <p>a small round table on one leg, or a long table on four, with up to four chairs set round it, built apart and placed.</p>
+    <p class="why">A dining or kitchen table with chairs set round it, the core of any furnished room.</p>
+    <p class="note"><b>Note:</b> The round table is centered on 18674's one middle stud, half a stud off the grid. The book's Tile 2 x 2 Round (4150) on a round brick's hollow stud validates as floating (a validator gap, or the cross stud isn't modeled), so the top is 14769, which seats. Chair backs reach 0.6 studs past the set's footprint.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>shape</code>, <code>chairs</code>, <code>facing</code>, <code>wood</code>, <code>top</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 9 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/table_and_chairs.py"><code>batch-9/table_and_chairs.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p41; set 43217: 6461326 p20-21; set 21335: 6448880 p205</dd>
+      <dt>Key parts</dt><dd><code>18674</code> + <code>14769</code> + <code>36840</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for table_and_chairs">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for table_and_chairs">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-9/wall_shelf.png" alt="A sketch of wall_shelf" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>wall_shelf</code></h2>
+    <p>a shelf set into a wall as a plate course that reaches a stud into the room, with bottles, cheese, cups, or rows of sweet jars on it.</p>
+    <p class="why">Shelves of bottles, cheese, and cups in a kitchen, or sweet jars in a shop, set into any wall course.</p>
+    <p class="note"><b>Note:</b> The book hangs a 1 x 2 plate on an 87087 side stud; a plate on a side stud stands upright, so this lays a 2-deep plate in the wall course with one row reaching into the room instead. Merges TM jar_shelf as items=&quot;jars&quot;.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>facing</code>, <code>items</code>, <code>seed</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 95228 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/wall_shelf.py"><code>batch-9/wall_shelf.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p213, p220; set 11387: 6672343 p191; set 43302: 6649255 p22</dd>
+      <dt>Key parts</dt><dd><code>3020</code> + <code>95228</code> + <code>3062b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wall_shelf">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for wall_shelf">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-9/wall_picture_and_clock.png" alt="A sketch of wall_picture_and_clock" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>wall_picture_and_clock</code></h2>
+    <p>a framed picture or a round clock hung on side studs in a wall, facing into the room.</p>
+    <p class="why">Pictures and clocks on the walls are the cheapest way to make a room feel lived in.</p>
+    <p class="note"><b>Note:</b> Each printed tile was made in one color only (3068bp71 Dark Tan, 3068bp74 Reddish Brown, 3068bp8g White, 14769p0a Reddish Brown, 14769p0f White), so the prints carry their own colors.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>kind</code>, <code>facing</code>, <code>picture</code>, <code>clock</code>, <code>color</code>, <code>frame</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/wall_picture_and_clock.py"><code>batch-9/wall_picture_and_clock.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p214-215, p220; set 43217: 6461326 p30; set 11387: 6672343 p133</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>3068bp71</code> + <code>87087</code> + <code>14769p0a</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for wall_picture_and_clock">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for wall_picture_and_clock">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-9/plank_floor.png" alt="A sketch of plank_floor" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>plank_floor</code></h2>
+    <p>a wooden floor of long tile boards in two wood tones, every row's ends staggered from the row before.</p>
+    <p class="why">A wooden floor for a living room, pub, or shop that reads as old boards, not a grid of tiles.</p>
+    <p class="note"><b>Note:</b> VARIANT of tiled_floor: seeded board lengths with staggered ends and two wood tones, tiles only (no plate layer). The Tile 1 x 8 (4162) was never made in Medium Nougat, so the default sizes stop at 6; pass sizes with 8 for one-tone floors.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>axis</code>, <code>seed</code>, <code>color</code>, <code>color2</code>, <code>sizes</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>10</b> of 1315 official sets (10 times); 91 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); Robie House (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 10220 - Main.ldr (Stan Isachenko [angmarec], Redistributable under CCAL version 2.0); FILE 10295 - Porsche 911 Targa Complete.ldr (Ulrich Röder {UR}, Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/plank_floor.py"><code>batch-9/plank_floor.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p40-56; set 43268: 6568841 p85-87</dd>
+      <dt>Key parts</dt><dd><code>2431</code> + <code>6636</code> + <code>63864</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for plank_floor">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for plank_floor">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-9/floor_rug.png" alt="A sketch of floor_rug" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>floor_rug</code></h2>
+    <p>a flat rug of tiles on a room's floor studs, round or rectangular with a border.</p>
+    <p class="why">A rug before the fire or beside the bed marks out a room's zones on a plain floor.</p>
+    <p class="note"><b>Note:</b> VARIANT of tiled_floor's border pattern, tiles only. The round rug is one Tile 3 x 3 Round (67095): a two-tone ring of quarter-ring tiles (27925, 79393) can't take a middle tile because the validator's boxes overlap. The book's rug dropped at an angle on a jumper is left out (off-grid angle).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>shape</code>, <code>length</code>, <code>depth</code>, <code>color</code>, <code>border</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 2 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/floor_rug.py"><code>batch-9/floor_rug.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p191; set 43268: 6568841 p85-87</dd>
+      <dt>Key parts</dt><dd><code>67095</code> + <code>3069b</code> + <code>2431</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for floor_rug">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for floor_rug">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-9/floor_lamp_and_candle.png" alt="A sketch of floor_lamp_and_candle" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>floor_lamp_and_candle</code></h2>
+    <p>a standing lamp with a shade on a slim pole, or a candle in a brass dish, built apart and placed.</p>
+    <p class="why">Light sources for any room: a standing lamp by a chair, candles on a mantel, table, or piano.</p>
+    <p class="note"><b>Note:</b> The bar reaches a plate up into the cone shade: with the cone sitting on the bar's top the validator calls it floating. The lamp stands half a stud off the grid on 18674's middle stud.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>kind</code>, <code>pole</code>, <code>shade</code>, <code>wax</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 37775 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/floor_lamp_and_candle.py"><code>batch-9/floor_lamp_and_candle.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43217: 6461326 p14; set 21335: 6448880 p205</dd>
+      <dt>Key parts</dt><dd><code>87994</code> + <code>4589</code> + <code>85861</code> + <code>37775</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for floor_lamp_and_candle">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for floor_lamp_and_candle">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-9/interior_arch_doorway.png" alt="A sketch of interior_arch_doorway" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>interior_arch_doorway</code></h2>
+    <p>a partition wall one brick thick between two rooms, with a doorway 4 studs wide closed at the top by a raised arch in a contrasting color.</p>
+    <p class="why">Joins two rooms through a partition wall with an arched opening, as cottages and town houses do.</p>
+    <p class="note"><b>Note:</b> VARIANT of brick_built_arch: an Arch 1 x 6 Raised in a one-brick partition built with m.wall, the course under it opened for the arch's legs.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>axis</code>, <code>gap</code>, <code>opening</code>, <code>rows</code>, <code>color</code>, <code>arch</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>31</b> of 1315 official sets (73 times); 31 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/interior_arch_doorway.py"><code>batch-9/interior_arch_doorway.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21335: 6448880 p207, p209</dd>
+      <dt>Key parts</dt><dd><code>92950</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for interior_arch_doorway">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for interior_arch_doorway">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-9/loft_half_floor.png" alt="A sketch of loft_half_floor" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>loft_half_floor</code></h2>
+    <p>a sleeping loft over part of a room, a floor of two plate layers spanning between the end walls with a lattice rail along its open edge.</p>
+    <p class="why">A sleeping loft or upper half floor in an open-back house, so the room below still shows.</p>
+    <p class="note"><b>Note:</b> The loft's end strips run through the end walls, so its plate edge shows on their outer faces. The book's quarter-round shelves on brackets and a ladder are left out (ladder parts have no connector data).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>edge</code>, <code>color</code>, <code>rail</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>12</b> of 1315 official sets (16 times); 44 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10270 - Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0); FILE 10182 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/loft_half_floor.py"><code>batch-9/loft_half_floor.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11387: 6672343 p191; set 43268: 6568841 p122-145</dd>
+      <dt>Key parts</dt><dd><code>3633</code> + <code>3034</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for loft_half_floor">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for loft_half_floor">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-9/cross_display_stand.png" alt="A sketch of cross_display_stand" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>cross_display_stand</code></h2>
+    <p>a freestanding plus-shaped shop table with a poster on the end of each arm and goods on top, built apart and placed.</p>
+    <p class="why">A freestanding display table for the middle of a shop floor, with posters on its ends and goods on top.</p>
+    <p class="note"><b>Note:</b> Alternate, in place of bracket_tread_stair: the book's step (a 1 x 2 brick, a bracket, a riser tile and a tread tile, 2 plates rise and 1 stud run) collides with the step below in every arrangement I tried, and I couldn't confirm it from the research. Posters are plain tiles; any printed 2 x 2 tile can go there.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>posters</code>, <code>goods</code>, <code>seed</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (2 times); 26 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76139 - 1989 Batmobile - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10359 - main.ldr (Orion Pobursky [OrionP], Licenced under CC BY 4.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/cross_display_stand.py"><code>batch-9/cross_display_stand.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649255 p67-70</dd>
+      <dt>Key parts</dt><dd><code>22885</code> + <code>3068b</code> + <code>3795</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cross_display_stand">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for cross_display_stand">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-9/curved_booth.png" alt="A sketch of curved_booth" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>curved_booth</code></h2>
+    <p>a diner booth, a U of padded seat round a table on a round pedestal, built apart and placed.</p>
+    <p class="why">A diner or cafe booth for figures to sit round a table, a U of padded seat with a tall back.</p>
+    <p class="note"><b>Note:</b> The back's corners are round 1 x 1 bricks rather than 2 x 2 corner round bricks, which would lift the corner seat a brick above the rest. The table stands on a 2 x 2 round brick, since a 1 x 1 post can't sit under the middle of a 2 x 2 top on the grid.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>color</code>, <code>padding</code>, <code>table</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 9 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/curved_booth.py"><code>batch-9/curved_booth.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10352: 6583432 p121-127</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>3062b</code> + <code>3941</code> + <code>14769</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curved_booth">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for curved_booth">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-9/bar_counter.png" alt="A sketch of bar_counter" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>bar_counter</code></h2>
+    <p>a pub's wooden bar, its front a row of window frames with dark panes standing in for raised panels, under a tiled top with a beer tap and glasses, built apart and placed.</p>
+    <p class="why">The bar for a pub or tavern; window frames with opaque panes read as raised wooden panels.</p>
+    <p class="note"><b>Note:</b> No curved end. The book's back shelf of bottles is wall_shelf.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>panels</code>, <code>facing</code>, <code>wood</code>, <code>panes</code>, <code>top</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 14 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/bar_counter.py"><code>batch-9/bar_counter.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p50-56</dd>
+      <dt>Key parts</dt><dd><code>60592</code> + <code>60601</code> + <code>4599b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bar_counter">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for bar_counter">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-9/display_case_counter.png" alt="A sketch of display_case_counter" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>display_case_counter</code></h2>
+    <p>a shop counter with a glass front and goods on show behind it, built apart and placed.</p>
+    <p class="why">A glass-fronted shop counter with goods on show, for a bakery, sweet shop, or emporium.</p>
+    <p class="note"><b>Note:</b> The glass is window frames with clear glass. Panels 1 x 2 x 1 (4865a, 4865b) and 1 x 4 x 1 (30413, 15207) have no floor studs in this library, so goods can't stand in them; no glass top.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>facing</code>, <code>color</code>, <code>goods</code>, <code>seed</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (5 times); 23 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10278 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10224 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 10185 - Main Model.ldr (Max Martin Richter [MMR1988], Redistributable under CCAL version 2.0); FILE 31063 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/display_case_counter.py"><code>batch-9/display_case_counter.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649255 p14-22</dd>
+      <dt>Key parts</dt><dd><code>60592</code> + <code>60601</code> + <code>3062b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for display_case_counter">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for display_case_counter">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-9/upright_piano.png" alt="A sketch of upright_piano" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>upright_piano</code></h2>
+    <p>a piano 4 studs wide against a wall, its keyboard on a ledge at a seated figure's hands, with sheet music on its front and a candle on its lid, built apart and placed.</p>
+    <p class="why">A piano for a parlor, a pub, or an apartment, against a wall with a chair in front.</p>
+    <p class="note"><b>Note:</b> The keys tile (2431px0, made in White only) lies on the front row of a 2 x 4 plate over two legs instead of on a bracket, so the keyboard ties the body.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>color</code>, <code>candle</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/upright_piano.py"><code>batch-9/upright_piano.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649254 p113-115</dd>
+      <dt>Key parts</dt><dd><code>2431px0</code> + <code>30414</code> + <code>3020</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for upright_piano">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for upright_piano">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-9/dresser_shelf.png" alt="A sketch of dresser_shelf" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>dresser_shelf</code></h2>
+    <p>a kitchen dresser, a cupboard with drawers and a worktop below and an open rack of shelves above with jars and cups in its cubbies, built apart and placed against a wall.</p>
+    <p class="why">A kitchen dresser or tavern sideboard: a cupboard and worktop with open shelves of jars and cups above.</p>
+    <p class="note"><b>Note:</b> The book builds a wall cabinet only; this adds the cupboard and worktop under it, the usual dresser shape.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>shelves</code>, <code>facing</code>, <code>seed</code>, <code>color</code>, <code>drawers</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 3899 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-9/dresser_shelf.py"><code>batch-9/dresser_shelf.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10354: 6574801 p105-108; set 21363: 6612024 p44-50</dd>
+      <dt>Key parts</dt><dd><code>30414</code> + <code>3005</code> + <code>3062b</code> + <code>3899</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for dresser_shelf">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for dresser_shelf">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-9/bookcase.png" alt="A sketch of bookcase" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>bookcase</code></h2>
+    <p>a tall bookcase for a figure's room, its shelves full of books whose spines are 1 x 2 tiles standing on side studs, built apart and placed against a wall.</p>
+    <p class="why">A tall bookcase for a study, a parlor, or a shop, its books' spines facing out.</p>
+    <p class="note"><b>Note:</b> The figure-scale one, not VV bookshelf_block. Books are 1 x 2 tiles stood on end on the side studs of 1 x 2 x 1 2/3 bricks, 5 plates tall, so a shelf is 6 plates.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>shelves</code>, <code>facing</code>, <code>seed</code>, <code>color</code>, <code>books</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (5 times); 25 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10359 - main.ldr (Orion Pobursky [OrionP], Licenced under CC BY 4.0); FILE 10277 - Crocodile Locomotive Complete.ldr (Ulrich Röder {UR}, Redistributable under CCAL version 2.0); FILE 31153 - main.ldr (Marc Belanger [MonsieurPoulet], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-9/bookcase.py"><code>batch-9/bookcase.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10350: 6553217 p282-284</dd>
+      <dt>Key parts</dt><dd><code>22885</code> + <code>3069b</code> + <code>3068b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bookcase">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for bookcase">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-9" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

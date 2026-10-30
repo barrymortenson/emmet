@@ -50,11 +50,25 @@ try {
       readFileSync(sketch, "utf8") +
         `\n\nfrom emmet_dsl import Model as _Model, model as _model\n\n\n@_model\ndef sketch():\n    """The sketch."""\n` +
         `    m = _Model()\n    _use = m.use\n    m.use = lambda name, **kw: build(m, **kw) if name == "${c.name}" else _use(name, **kw)\n` +
-        `    example(m)\n    return m\n`,
+        `    example(m)\n` +
+        // Stand the example on its lowest level, as a baseplate would: loose on the table, a part that floats beside
+        // something passes as a separate toy (3D found three techniques with floating parts that way).
+        `    if not m._ids:\n        raise ValueError("the example placed no parts")\n` +
+        `    low = min(p.box[0][2] for p in m._ids.values())\n` +
+        // Only plain parts: grounding a submodel copy grounds every part inside it.
+        `    m.ground(*[i for i, p in m._ids.items() if p.sub is None and p.box[0][2] <= low + 0.01])\n    return m\n`,
     );
     run("trust", "--project", dir);
     // The page says every sketch validates with no findings: hold it to that.
-    const checked = JSON.parse(run("--json", "check", "--project", dir).toString());
+    // A model that fails exits nonzero with its error in the JSON envelope on stdout: say what it was.
+    let checked;
+    try {
+      checked = JSON.parse(run("--json", "check", "--project", dir).toString());
+    } catch (e) {
+      const envelope = JSON.parse(e.stdout?.toString() || "{}");
+      console.error(`technique-candidates: ${c.name}'s sketch doesn't run: ${envelope.error?.message ?? e.message} ${envelope.error?.hint ?? ""}`);
+      process.exit(1);
+    }
     const findings = checked.data?.findings ?? [];
     if (!checked.ok || findings.length) {
       console.error(`technique-candidates: ${c.name}'s sketch doesn't validate clean:`);
@@ -69,6 +83,9 @@ try {
   rmSync(work, { recursive: true, force: true });
 }
 
+// Batches 1 to 5 were session 3C's (H-22); later ones are 3D's, from all of Barry's instruction books (H-26).
+const later = Number(batch.replace(/\D/g, "")) >= 6;
+const [session, step] = later ? ["3D", "H-26"] : ["3C", "H-22"];
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
 const card = (c, i) => {
   const m = matches[c.name];
@@ -142,7 +159,7 @@ const html = `<!doctype html>
 <body>
 <header>
   <h1>Technique candidates: ${esc(batch)}</h1>
-  <p>${candidates.length} candidates for Emmet's technique library (session 3C, H-22). Each was found in your instruction
+  <p>${candidates.length} candidates for Emmet's technique library (session ${session}, ${step}). Each was found in your instruction
   books and ranked by how widely official models in the LDraw OMR join its key parts (${setCount} sets mined). Each
   picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
   the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or

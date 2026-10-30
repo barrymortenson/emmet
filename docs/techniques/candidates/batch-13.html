@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-13</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-13</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-13/car_wheels.png" alt="A sketch of car_wheels" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>car_wheels</code></h2>
+    <p>a car's two axles of real rims and tires, tucked into wheel arches on the body's sides.</p>
+    <p class="why">Any car, van, or truck at figure scale: the running gear that makes it read as a road vehicle, its wheels at the body's sides under arches, sized by the width class.</p>
+    <p class="note"><b>Note:</b> How it differs from the rejected wheel_axle and wheel_arch: no 4870 (whose pins hang 3 plates below the plate, so the small 4624 wheels dangled under a flat plate like landing gear). The pins here are flush (4600, or two 4488 for 6 and 8 wide), the wheel is a 14 mm rim with a 21 mm tire (11209, about 2.6 studs across) standing at the body's side, and a mudguard whose arch wraps the tire's top (98282, or the taller 50745 at 8 wide) sits on a 2-wide spine, so the side view is a tire in a wheel well. The holders sit a whole 4 plates up and the wheels ride 0.75 LDU low on their pins (inside the 1 LDU joint tolerance), so the tires touch z and the deck is on the plate grid. Widths 6 and 8 validate too (checked at wheelbase 10 and 12). The exact holders and mudguards in the books were not confirmed part by part.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>wheelbase</code>, <code>overhang</code>, <code>color</code>, <code>chassis</code>, <code>rim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/car_wheels.py"><code>batch-13/car_wheels.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60509: 6650721 p13; set 60440: 6521802 p14-15; set 77264: 6662711 p27</dd>
+      <dt>Key parts</dt><dd><code>4600</code> + <code>4488</code> + <code>11208</code> + <code>11209</code> + <code>98282</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for car_wheels">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for car_wheels">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-13/truck_spine_chassis.png" alt="A sketch of truck_spine_chassis" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>truck_spine_chassis</code></h2>
+    <p>a 6-wide city truck's frame, a 2-wide spine with the axles under it, widened by plates laid across and locked by a keel brick.</p>
+    <p class="why">The base of every 6-wide city truck: a stiff spine with the axles and arches built in, ready for a cab on the front and a bed behind.</p>
+    <p class="note"><b>Note:</b> VARIANT of spliced_chassis: there two wide plates are spliced; here a 2-wide spine carries the axles and plates laid across widen it, with a keel brick over the spine's joint. Uses the same wheel unit as car_wheels at 6 wide; axles=3 gives a tandem rear (the alternate semi_tractor_frame folds in here). Checked at lengths 16, 20, 22, 26.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>axles</code>, <code>color</code>, <code>arch</code>, <code>rim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/truck_spine_chassis.py"><code>batch-13/truck_spine_chassis.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60509: 6650721 p6-13; set 60440: 6521802 p3-15</dd>
+      <dt>Key parts</dt><dd><code>4488</code> + <code>98282</code> + <code>3795</code> + <code>3008</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for truck_spine_chassis">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for truck_spine_chassis">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-13/six_wide_truck_cab.png" alt="A sketch of six_wide_truck_cab" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>six_wide_truck_cab</code></h2>
+    <p>a city truck's cab for one figure, a full-width windscreen on a dash, side windows, and a roof with a light bar that lifts off.</p>
+    <p class="why">The cab of a city truck, van, or tow truck: one seated figure behind a full-width windscreen, with a roof that lifts off and a light bar.</p>
+    <p class="note"><b>Note:</b> VARIANT that combines cab_seat, light_bar (both called through m.use) and a 6-wide windscreen. The book's doors (1 x 3 x 2 on rails) are left out: their hinges have no connector data; side windows stand in the door bays.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>glass</code>, <code>roof</code>, <code>lamps</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/six_wide_truck_cab.py"><code>batch-13/six_wide_truck_cab.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60509: 6650721 p21-42</dd>
+      <dt>Key parts</dt><dd><code>4176</code> + <code>2456</code> + <code>60592c01</code> + <code>3036</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for six_wide_truck_cab">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for six_wide_truck_cab">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-13/cab_over_sleeper.png" alt="A sketch of cab_over_sleeper" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>cab_over_sleeper</code></h2>
+    <p>a semi-truck's tall sleeper behind its cab, smooth sides built as flat panels stood on side studs, and a rounded roof fairing that lifts off.</p>
+    <p class="why">The tall sleeper and rounded roof fairing behind a semi-truck's cab, the part that makes a tractor unit read as long-haul.</p>
+    <p class="note"><b>Note:</b> Uses the sideways_built_wall_panel method: 1 x 4 side-stud bricks two plates apart give studs 2 studs apart vertically, and a 4 x 4 plate on its side, tiled, is the smooth panel. The book stands its panels on clips and rounds the fairing with 2 x 4 and 1 x 4 curved slopes; here three 4 x 2 curved slopes (93606).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>trim</code>, <code>fairing</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 16 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 75895 - main.ldr (Magnus Forsberg [MagFors], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-13/cab_over_sleeper.py"><code>batch-13/cab_over_sleeper.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521802 p38-62, p91</dd>
+      <dt>Key parts</dt><dd><code>30414</code> + <code>3031</code> + <code>93606</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cab_over_sleeper">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for cab_over_sleeper">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-13/racing_scale_base.png" alt="A sketch of racing_scale_base" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>racing_scale_base</code></h2>
+    <p>an 8-wide car's low, stiff floor, wheels on short axles through Technic bricks, Technic sills along the cabin, and two seats side by side.</p>
+    <p class="why">The floor of any 8-wide racing-scale replica: low, stiff, wheels at the full track, Technic sills to pin side skirts to, two seats.</p>
+    <p class="note"><b>Note:</b> Wheels are the 18 mm axle-hole rim (55982) and 30 mm low tire (58090) on an axle 8: the book's 8-wide wheels (18976/18977) have no connector data here. Checked at wheelbase 8 to 16.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>wheelbase</code>, <code>color</code>, <code>sill</code>, <code>rim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/racing_scale_base.py"><code>batch-13/racing_scale_base.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 77256: 6641467 p11-15, p41-60; set 77264: 6662711 p6-30</dd>
+      <dt>Key parts</dt><dd><code>32064b</code> + <code>3707</code> + <code>55982</code> + <code>58090</code> + <code>3702</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for racing_scale_base">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for racing_scale_base">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-13/quarter_tile_headlights.png" alt="A sketch of quarter_tile_headlights" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>quarter_tile_headlights</code></h2>
+    <p>the slim swept lights of a racing-scale car's nose, clear tiles with a rounded outer corner on brackets facing the front, a grille between them.</p>
+    <p class="why">The slim, swept headlights of a modern 8-wide sports car's nose.</p>
+    <p class="note"><b>Note:</b> VARIANT of headlights (that one is a 4070 headlight brick with a round tile). Here the lights are on brackets with a quarter-round tile whose round corner is outside and on top; the -y tile needs Rot(x=90, z=-90) to turn it in its own plane (Rot applies x first, so a tile on its back can't be spun with x alone: x = 90 or -90 after y = -90 floats it).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code>, <code>lens</code>, <code>grille</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 22 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/quarter_tile_headlights.py"><code>batch-13/quarter_tile_headlights.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 77264: 6662711 p45-46</dd>
+      <dt>Key parts</dt><dd><code>25269</code> + <code>99780</code> + <code>2412b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for quarter_tile_headlights">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for quarter_tile_headlights">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-13/side_stud_lights.png" alt="A sketch of side_stud_lights" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>side_stud_lights</code></h2>
+    <p>a 6-wide truck's front course, square headlights in its corners and a grille between, all on bricks whose studs face the front.</p>
+    <p class="why">The flush front face of a 6-wide truck or van: headlights in the corners and a grille between, no studs showing.</p>
+    <p class="note"><b>Note:</b> Compared with headlights: headlights uses a headlight brick (4070) with a round tile at each end and plain bricks between, so the middle shows brick; this one puts a side-stud brick under every stud and covers the face: square clear tiles at the corners and grille tiles spanning the studs between, so the whole course is flush. It's the front-facing twin of tail_lights. Found while testing: the library's headlights floats its lenses at z=6 (fine at z=1), so four_wide_car builds its lights this way instead.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code>, <code>lens</code>, <code>grille</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (3 times); 73 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10251 - Brick Bank.ldr (Merlijn Wissink [Legolijntje], Redistributable under CCAL version 2.0); FILE 21023 - Flatiron Building.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 21013 - Big Ben.ldr (Greg Teft [gregteft], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-13/side_stud_lights.py"><code>batch-13/side_stud_lights.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60509: 6650721 p14-15, p22, p31</dd>
+      <dt>Key parts</dt><dd><code>87087</code> + <code>3070b</code> + <code>2412b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for side_stud_lights">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for side_stud_lights">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-13/curved_wedge_nose.png" alt="A sketch of curved_wedge_nose" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>curved_wedge_nose</code></h2>
+    <p>the rounded, sloping nose of a high-speed train, curved slopes rising from headlights on brackets into a curved canopy windscreen.</p>
+    <p class="why">The nose of a modern high-speed or commuter train, a smooth curve from the headlights up through the cab glass.</p>
+    <p class="note"><b>Note:</b> The book uses 4 x 4 curved wedges (45677) and long double-curved wedges; here three curved slopes 4 x 2 (93606) give the rise, and the canopy is the curved windscreen 3 x 6 (62360), which was never made in Trans Black (Trans Light Blue default).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>glass</code>, <code>lens</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 2 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/curved_wedge_nose.py"><code>batch-13/curved_wedge_nose.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60337: 6607941 p42-47, p63-66</dd>
+      <dt>Key parts</dt><dd><code>93606</code> + <code>62360</code> + <code>99780</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curved_wedge_nose">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for curved_wedge_nose">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-13/tapered_hood_wedges.png" alt="A sketch of tapered_hood_wedges" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>tapered_hood_wedges</code></h2>
+    <p>a vintage car's long hood that narrows toward the grille, two wing plates laid side by side with their slanted edges outside, louvers down the middle.</p>
+    <p class="why">The long hood of a 1930s car or vintage truck that narrows toward the radiator.</p>
+    <p class="note"><b>Note:</b> Wing plates 3 x 6 (or 3 x 12) instead of the book's wedges; the 3 x 8 wings (3544/3545) were only made in grays, black, white, and tan, so length 8 isn't offered. The 3 x 6 left wing's body is 2.95 studs across, so it sits 0.05 in to put its studs on the grid.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>louvers</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (2 times); 15 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 70816 - 70816.ldr (Christophe Mitillo [Christophe_Mitillo], Redistributable under CCAL version 2.0); FILE 10213 - main.ldr ([EdmanZA], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-13/tapered_hood_wedges.py"><code>batch-13/tapered_hood_wedges.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43277: 6602467 p47</dd>
+      <dt>Key parts</dt><dd><code>54384</code> + <code>54383</code> + <code>47397</code> + <code>47398</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tapered_hood_wedges">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for tapered_hood_wedges">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-13/snot_side_skirt.png" alt="A sketch of snot_side_skirt" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>snot_side_skirt</code></h2>
+    <p>a racing-scale car's flush lower sides, long tiles standing on the side studs of the sill course, with a grille tile as the intake at the back end.</p>
+    <p class="why">The smooth lower sides of an 8-wide sports car below the doors, with an intake ahead of the rear wheel.</p>
+    <p class="note"><b>Note:</b> VARIANT of bracket_side_panel (a 2-stud-tall panel on brackets): here one course of side-stud bricks carries tiles on edge and a grille intake, a skirt a brick tall. The book clips its tiles into pins in Technic sill holes; that clip path has no clean connector match here, so the method moved to side studs.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>color</code>, <code>skirt</code>, <code>intake</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>8</b> of 1315 official sets (14 times); 119 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10019 - Rebel Blockade Runner - UCS - main.LDR (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10134 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 21017 - Imperial Hotel.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-13/snot_side_skirt.py"><code>batch-13/snot_side_skirt.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 77256: 6641467 p77-78</dd>
+      <dt>Key parts</dt><dd><code>30414</code> + <code>2431</code> + <code>2412b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for snot_side_skirt">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for snot_side_skirt">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-13/rounded_car_end.png" alt="A sketch of rounded_car_end" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>rounded_car_end</code></h2>
+    <p>the smooth rounded corners at the end of a loco or passenger car, quarter-round bricks stacked at each corner and a cap of round-corner plates.</p>
+    <p class="why">The rounded end of a passenger car, loco, tram, or bus, so the body doesn't end in square corners.</p>
+    <p class="note"><b>Note:</b> 85080 and the round-corner plate 79491 turn differently: at rot=0 the brick's round side is at +x, +y and the plate's at +x, -y.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>color</code>, <code>cap</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/rounded_car_end.py"><code>batch-13/rounded_car_end.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60337: 6607941 p68, p74; set 60337: 6607942 p31, p43</dd>
+      <dt>Key parts</dt><dd><code>85080</code> + <code>79491</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rounded_car_end">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for rounded_car_end">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-13/window_band.png" alt="A sketch of window_band" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>window_band</code></h2>
+    <p>the long run of windows down a passenger car's or bus's side, windows side by side over a wall with a colored stripe, a plate course over them, and dark posts where the doors go.</p>
+    <p class="why">The long band of windows along a passenger car, tram, or bus, with a stripe under it and posts at the doors.</p>
+    <p class="note"><b>Note:</b> VARIANT of the window band inside train_carriage: this is one side on its own, for any length, with a stripe course and door bays, so buses and trams can use it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>stripe</code>, <code>post</code>, <code>doors</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (8 times); 6 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10264 - main.ldr (Jaco van der Molen [Jaco van der Molen], Redistributable under CCAL version 2.0); FILE 10246 - Main model.ldr (Willy Tschager [Holly-Wood], Redistributable under CCAL version 2.0); FILE 31025 - Mountain Hut.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0); FILE 40138 - Christmas Train.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-13/window_band.py"><code>batch-13/window_band.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60337: 6607942 p31-36</dd>
+      <dt>Key parts</dt><dd><code>60592c01</code> + <code>3666</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for window_band">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for window_band">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-13/shipping_container.png" alt="A sketch of shipping_container" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>shipping_container</code></h2>
+    <p>a 20-foot freight container for a flat wagon, a truck bed, or a port stack, corrugated panel sides on a plate base that lifts off.</p>
+    <p class="why">Cargo for a flat wagon, truck bed, or port stack: a container that lifts off and stacks.</p>
+    <p class="note"><b>Note:</b> Both ends are closed brick walls: the book's door leaves on clips aren't modeled.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>post</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/shipping_container.py"><code>batch-13/shipping_container.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60509: 6650723 p50-58, p64-66, p75-82</dd>
+      <dt>Key parts</dt><dd><code>23405</code> + <code>3036</code> + <code>3005</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for shipping_container">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for shipping_container">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-13/lift_off_window_cab.png" alt="A sketch of lift_off_window_cab" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>lift_off_window_cab</code></h2>
+    <p>a shunting loco's cab with glass on all four sides, built as one box with its roof that lifts off the cab floor to put the driver in.</p>
+    <p class="why">The cab of a shunter or small loco: glass on four sides and a roof that come off as one box to seat the driver.</p>
+    <p class="note"><b>Note:</b> Alternate, in place of flat_wagon: the wagon needs bogies, and the bogie, its wheels, and the bogie plate (38339, 38340, 18626) have no connector data here, so they float. VARIANT of lift_off_roof_seat: the whole glass box is the lift-off unit, a submodel. The book's windows are 1 x 6 x 2 train frames; here 1 x 4 x 3 and 1 x 2 x 3 train windows.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>roof</code>, <code>lamp</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/lift_off_window_cab.py"><code>batch-13/lift_off_window_cab.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60509: 6650723 p36-40, p84</dd>
+      <dt>Key parts</dt><dd><code>4033c01</code> + <code>4035c01</code> + <code>3032</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for lift_off_window_cab">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for lift_off_window_cab">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-13/vintage_chassis.png" alt="A sketch of vintage_chassis" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>vintage_chassis</code></h2>
+    <p>the long, narrow frame of a 1930s car, a 2-wide spine with a T across each axle, white-wall wheels, and running boards hung between the wheels.</p>
+    <p class="why">The frame of a 1930s car or vintage fire engine: narrow spine, wheels and fender T's, running boards between the wheels.</p>
+    <p class="note"><b>Note:</b> Combines long_hood_vintage_chassis and running_board. The book's spoked wheels (30155) have no connector data, so white 14 mm rims stand in as white-walls. The fender T's stand two plates up to clear the tires. The book's pinned-on rear module is not modeled.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>color</code>, <code>board</code>, <code>rim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/vintage_chassis.py"><code>batch-13/vintage_chassis.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43277: 6602467 p6-20, p27, p31; set 43302: 6649253 p34-36</dd>
+      <dt>Key parts</dt><dd><code>4600</code> + <code>11208</code> + <code>3020</code> + <code>3795</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for vintage_chassis">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for vintage_chassis">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-13/vintage_radiator.png" alt="A sketch of vintage_radiator" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>vintage_radiator</code></h2>
+    <p>the tall brass radiator of an early car or fire engine, a gold bracket faced with grille tiles, a gold cap on top, and a brass lamp each side.</p>
+    <p class="why">The face of a vintage car or early fire engine: a tall brass radiator with a filler cap and brass lamps.</p>
+    <p class="note"><b>Note:</b> Combines brass_radiator and chrome_grille_vintage: pass brass=&quot;Light Bluish Gray&quot; for a chrome grille.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>brass</code>, <code>core</code>, <code>lamp_body</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (3 times); 48 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21046 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21307 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-13/vintage_radiator.py"><code>batch-13/vintage_radiator.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649253 p42-44; set 43277: 6602467 p91-97</dd>
+      <dt>Key parts</dt><dd><code>99207</code> + <code>2412b</code> + <code>98138</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for vintage_radiator">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for vintage_radiator">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-13/street_cart.png" alt="A sketch of street_cart" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>street_cart</code></h2>
+    <p>a food or popcorn cart on four small wheels, a counter with a glass display, and a peaked canopy on four posts.</p>
+    <p class="why">A popcorn, ice cream, or food cart for a street or park scene.</p>
+    <p class="note"><b>Note:</b> The canopy stands on posts of round bricks, not the book's bars, and the wheels are 14 mm rims, not spoked ones (no connector data).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>canopy</code>, <code>trim</code>, <code>rim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/street_cart.py"><code>batch-13/street_cart.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43302: 6649253 p12-31; set 60440: 6521801 p10-16</dd>
+      <dt>Key parts</dt><dd><code>4600</code> + <code>60592c01</code> + <code>3062b</code> + <code>15068</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for street_cart">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for street_cart">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-13/four_wide_car.png" alt="A sketch of four_wide_car" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>four_wide_car</code></h2>
+    <p>a whole small city car for one figure, sized by the 4-wide rules: wheels in arches on a 2-wide spine, a floor, a windscreen with a roof, a seat, and lights front and back.</p>
+    <p class="why">A whole small city car in one call, sized by the 4-wide rules, for a street scene or a starting point to restyle.</p>
+    <p class="note"><b>Note:</b> The books have no 4-wide car: this is built from the width arithmetic (section 3 of the research) with car_wheels' 4-wide running gear. It calls windscreen and tail_lights from the library; its headlights are built inline because the library's headlights floats its lenses at this height.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>chassis</code>, <code>glass</code>, <code>rim</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/four_wide_car.py"><code>batch-13/four_wide_car.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60440: 6521802; set 60509: 6650721</dd>
+      <dt>Key parts</dt><dd><code>4600</code> + <code>11209</code> + <code>98282</code> + <code>3823</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for four_wide_car">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for four_wide_car">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-13/offroad_fender_flare.png" alt="A sketch of offroad_fender_flare" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>offroad_fender_flare</code></h2>
+    <p>a chunky arch over each wheel that stands half a stud proud of a boxy body's side, set out on jumper plates.</p>
+    <p class="why">The chunky fender flares of an off-roader or rally car, standing half a stud out over each wheel.</p>
+    <p class="note"><b>Note:</b> VARIANT of jumper_offset: jumpers laid across the body's edge carry a 1 x 4 arch half a stud outside the side. The book's exact arch piece wasn't confirmed.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (3 times); 9 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 71006 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10230 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-13/offroad_fender_flare.py"><code>batch-13/offroad_fender_flare.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 77264: 6662712 p78</dd>
+      <dt>Key parts</dt><dd><code>3794b</code> + <code>3659</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for offroad_fender_flare">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for offroad_fender_flare">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-13/glass_box_cab.png" alt="A sketch of glass_box_cab" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>glass_box_cab</code></h2>
+    <p>the all-glass operator's cab of a crane, reach stacker, or digger, clear panels on every side of a small plate, a seat inside, and a tiled roof, built apart and set on the machine.</p>
+    <p class="why">The all-glass operator's cab of a crane, reach stacker, or digger, set off to one side of the machine.</p>
+    <p class="note"><b>Note:</b> The book uses corner windscreen panels; here clear panels 1 x 4 x 3 all round. It's a submodel, placed on any studs, so it can hang over the deck's edge (the example) or sit on a bracket.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>glass</code>, <code>roof</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 4079 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-13/glass_box_cab.py"><code>batch-13/glass_box_cab.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 60509: 6650722 p46-47</dd>
+      <dt>Key parts</dt><dd><code>60581</code> + <code>3032</code> + <code>4079</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for glass_box_cab">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for glass_box_cab">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-13" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

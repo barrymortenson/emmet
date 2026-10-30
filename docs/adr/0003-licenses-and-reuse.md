@@ -62,8 +62,8 @@ read.
   (`docs/techniques/candidates/`) show renders of Emmet's own sketch of each candidate, never of a model, and credit
   the models the miner found joining its key parts (title, author, license). Rejected: crediting every model a motif
   was found in, and crediting only the examples a snippet was written from.
-- **Instruction books:** the books (sets 21335, 10350, 43217, 60440, as PDFs on Barry's machine) are the LEGO
-  Group's copyright. Building methods aren't protected, and Emmet takes only methods from them: no page, picture, or
+- **Instruction books:** the books (sets 21335, 10350, 43217, 60440 for 3C; for 3D, all 92 booklets of about 55 sets
+  Barry owns, D-51; PDFs on his machine) are the LEGO Group's copyright. Building methods aren't protected, and Emmet takes only methods from them: no page, picture, or
   text goes into the repo, a fixture, or a render. A technique cites a book by set number only. No technique's name
   uses a trademark (`TRADEMARKS.md`).
 

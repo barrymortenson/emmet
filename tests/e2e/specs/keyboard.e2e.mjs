@@ -130,6 +130,8 @@ describe("the keyboard map", () => {
     // desktop) can't count on, so the rings are read from the window's own CSS: each :focus and :focus-visible rule
     // gets a copy right after it that matches [data-e2e-focus], and the control focus lands on is marked in turn.
     await press(mod, "1");
+    // ⌘O just opened the project again: its knobs show once the model's been read.
+    await (await $("#param-weathering-thumb")).waitForDisplayed({ timeout: 30_000, timeoutMsg: "the knobs never showed" });
     const rings = await browser.execute(() => {
       const focus = /:focus(-visible)?(?![-\w])/g;
       const copy = (owner) => {
@@ -159,7 +161,7 @@ describe("the keyboard map", () => {
     });
     expect(rings.filter((r) => !r.ring).map((r) => r.el)).toEqual([]);
     const reached = rings.map((r) => r.el);
-    for (const id of ["project-chip", "param-weathering-thumb", "param-chimney-switch", "export-button"]) expect(reached).toContain(id);
+    for (const id of ["project-chip", "param-weathering-thumb", "param-roof-switch", "export-button"]) expect(reached).toContain(id);
     // The tab list is one stop in the Tab order: its open tab (arrows move between tabs).
     expect(reached.some((id) => String(id).startsWith("tab-"))).toBe(true);
     // The window's controls: the title row, the chat's agent cards (more when an earlier spec chose Codex), the panel.

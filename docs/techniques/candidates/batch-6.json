@@ -1,0 +1,553 @@
+[
+ {
+  "name": "wainscot_split_wall",
+  "title": "A wall with its lower courses in brickwork and its upper courses in log siding or plain color, split by a trim band of plates in an accent color.",
+  "why": "Lower courses of brickwork, a trim band, and log siding above: an agent reaches for it to make a plain cottage or town wall read as a built, aged house, with window sills lined up on the band.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "low",
+   "color",
+   "trim",
+   "upper",
+   "siding",
+   "title"
+  ],
+  "books": [
+   "set 11387"
+  ],
+  "signature": [
+   "15533",
+   "98283",
+   "30136"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT: masonry_wall plus siding at a set split height, with a plate trim band between. 30136 log bricks were never made in Dark Green (the book's color), so the default upper color is Olive Green; siding='plain' gives plain bricks.",
+  "view": "iso"
+ },
+ {
+  "name": "plaster_with_exposed_stones",
+  "title": "A whitewashed wall with a few stones showing where the plaster has fallen away, each a tile on a side stud standing a plate proud.",
+  "why": "Whitewashed walls with stones showing through, for the Cottage's upper walls and any rustic, coastal, or medieval house.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "stone",
+   "stones",
+   "seed",
+   "title"
+  ],
+  "books": [
+   "set 21335"
+  ],
+  "signature": [
+   "87087",
+   "11211",
+   "3069b",
+   "3070b"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "A cousin of quoin_corner: pair them for stone corners (quoin_corner builds its own two corner walls). Stones are seeded, weighted low and toward the ends, never side by side or stacked.",
+  "view": "iso"
+ },
+ {
+  "name": "two_tone_masonry",
+  "title": "An embossed brick wall with plain bricks in a neighboring tone mixed in and the odd brick standing proud, so it reads as real, uneven brickwork.",
+  "why": "A brick wall that looks real and uneven without printed parts, for any town building's brick face.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "tone",
+   "plain",
+   "proud",
+   "seed",
+   "title"
+  ],
+  "books": [
+   "set 43302",
+   "set 10350"
+  ],
+  "signature": [
+   "15533",
+   "98283",
+   "11211"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "VARIANT of masonry_wall: adds seeded plain bricks in a neighboring tone, proud bricks (a 1 x 2 tile on 11211), and joint checking against the course below. Medium Nougat against Nougat is subtle in the render, as in the book.",
+  "view": "iso"
+ },
+ {
+  "name": "string_course",
+  "title": "A thin light band across a facade at a floor line, standing a plate proud of the wall, that splits one story from the next.",
+  "why": "A light band across a facade at each floor line, splitting the stories of a town building and lining up the upper sills.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "wall",
+   "proud",
+   "title"
+  ],
+  "books": [
+   "set 43302",
+   "set 10350"
+  ],
+  "signature": [
+   "30414",
+   "2431",
+   "6636"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "Related to wall_top_tie but it's a visible facade band, not a hidden tie. proud=False gives the book's plain flush plate course; the default is the proud side-stud version.",
+  "view": "iso"
+ },
+ {
+  "name": "dentil_band",
+  "title": "A row of round studs in two colors across a facade, under a cornice or over a wide doorway, like the teeth of a classical cornice.",
+  "why": "A row of two-color round studs under a cornice or over a wide doorway, for civic and Victorian facades.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "wall",
+   "dots",
+   "title"
+  ],
+  "books": [
+   "set 43302"
+  ],
+  "signature": [
+   "30414",
+   "98138"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The book's chunkier double band staggers the second row half a stud on jumpers; here rows=2 stacks the second row straight, with the colors shifted by one.",
+  "view": "iso"
+ },
+ {
+  "name": "timber_frame_panels",
+  "title": "White plaster panels crossed by dark posts and diagonal braces, each brace the dark strip left between two triangular tiles.",
+  "why": "White plaster crossed by dark posts and diagonal braces, for a Tudor or medieval upper story where half_timber_band's posts alone look too plain.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "bays",
+   "plaster",
+   "timber",
+   "title"
+  ],
+  "books": [
+   "set 10350"
+  ],
+  "signature": [
+   "35787",
+   "32952",
+   "22885"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of half_timber_band, which has posts only, 2-stud bays, and plaster flush with the posts. This one adds a diagonal brace in each 3-stud bay, leaning one way then the other: the stud-wide strip of timber color left between two 2 x 2 triangular tiles (35787) set in opposite corners, over timber-colored 1 x 1 tiles and plates; the plaster stands a plate proud of the timbers. The book used angled-end tiles; 22385 (Tile 3 x 2 with Angled End) is a pointed tile, so it didn't fit. 35787's body is 1.85 studs, so its footprints carry 0.15 and 0.375 offsets; its connectors seat on the grid.",
+  "view": "front"
+ },
+ {
+  "name": "panel_pilaster",
+  "title": "A flat pilaster 2 studs wide with a raised base, a dark panel up its face, and a capital, framing a shopfront bay.",
+  "why": "A paneled pilaster with a base and capital to frame a shopfront bay or a pub front.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "panels",
+   "color",
+   "accent",
+   "panel",
+   "title"
+  ],
+  "books": [
+   "set 10350"
+  ],
+  "signature": [
+   "32952",
+   "15573",
+   "2431"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's base is a 2 x 2 crate (35700); the validator finds nothing to hold on the crate's open top, and 35700 was never made in Dark Green, so the base is a 2 x 2 brick standing a stud proud. The book's shaft is 11211/87087; side studs on 3-plate courses don't space for a vertical 1 x 4 tile, so the shaft is 32952 and jumper plates center the tile.",
+  "view": "iso"
+ },
+ {
+  "name": "rusticated_stone_pilaster",
+  "title": "A tall pale stone pier of long and short blocks whose joints wander course to course, with the odd block end standing out and a light band at each floor line.",
+  "why": "A tall pale stone pier beside a big door or at a corner of a civic building, with string courses at the floor lines.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "rows",
+   "color",
+   "band",
+   "band_every",
+   "title"
+  ],
+  "books": [
+   "set 43302"
+  ],
+  "signature": [
+   "3004",
+   "3005",
+   "87087",
+   "3070b"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of quoin_corner: a whole freestanding pier, not just corner tiles. The long block turns a quarter turn round the pier each course.",
+  "view": "iso"
+ },
+ {
+  "name": "color_block_facade",
+  "title": "A front of narrow wall sections, each its own bright color with a window framed in another, split by pilasters in a trim color, the cheerful storybook way.",
+  "why": "A cheerful storybook front of narrow sections in different bright colors, each with a window framed in another color.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "rows",
+   "sections",
+   "trim",
+   "title"
+  ],
+  "books": [
+   "set 43217"
+  ],
+  "signature": [
+   "60592",
+   "3005"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "More a style rule than a technique; it composes window_frame for each section. The book's pilasters are plate strips on the side studs of 87087 stacks; a vertical plate needs side studs 2.5 plates apart and 87087 stacks give 3, so these pilasters are flush 1 x 1 brick columns tied by the trim cap.",
+  "view": "iso"
+ },
+ {
+  "name": "wall_top_cornice",
+  "title": "A band of light stone round the tops of four walls, corner plates tying the corners under smooth tiles, with a stud left open midway along each wall for the roof to grip.",
+  "why": "A smooth contrasting stone band round the wall tops that ties the corners and seats a lift-off roof, for the Cottage's walls.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "color",
+   "lugs",
+   "title"
+  ],
+  "books": [
+   "set 21335"
+  ],
+  "signature": [
+   "2420",
+   "14719",
+   "6636"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of wall_top_tie, which lays 1-wide plates in the wall color, swaps which walls own the corners course to course, and leaves a stud open at each corner. This one ties each corner with an L-shaped 2 x 2 corner plate (2420) under an L-shaped corner tile (14719, not confirmed from the book), in a contrast color, and leaves the lug studs open midway along each wall.",
+  "view": "iso"
+ },
+ {
+  "name": "lattice_skirt_foundation",
+  "title": "A house or porch raised a brick above the garden on beams, the gap along the front closed with lattice panels like a real porch skirt.",
+  "why": "A house or porch raised a brick above the garden with lattice closing the gap, so the house stands up off the lawn and the steps become a feature.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "color",
+   "lattice",
+   "floor",
+   "title"
+  ],
+  "books": [
+   "set 43268",
+   "set 11387"
+  ],
+  "signature": [
+   "3633"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Add steps with the stairs technique. The lattice sits set back under the floor plates' edge, as in the book; the front view shows it best.",
+  "view": "front"
+ },
+ {
+  "name": "curved_wall_end",
+  "title": "The open end of a cutaway wall stepping down in curved slopes instead of stopping square, so the cut reads as designed.",
+  "why": "The open end of a cutaway (open-back) wall, where a square end looks unfinished.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "sweep",
+   "end",
+   "color",
+   "title"
+  ],
+  "books": [
+   "set 11387"
+  ],
+  "signature": [
+   "50950"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book stacks 1 x 1 bricks on an inverted curved slope (13547 or 50950 turned over); this sweeps the top corner down with 50950s instead. 50950 has no stud at its high end (it holds by its two lower cells), so each course steps 3 studs in. The curve is long and gentle, not a tight quarter circle, and a small notch shows under each high end.",
+  "view": "front"
+ },
+ {
+  "name": "rough_stone_ledge",
+  "title": "A heavy stone ledge of plates in two close tones, its top course set half a stud over on jumper plates and stopping short here and there, so its edge is ragged like cut stone.",
+  "why": "A heavy ragged stone ledge where a lower story meets an overhanging or stepped-back upper one.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "tones",
+   "seed",
+   "title"
+  ],
+  "books": [
+   "set 10350"
+  ],
+  "signature": [
+   "15573",
+   "3710",
+   "3623"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "Uses the jumper_offset idea. The top course sits half a stud over, so the next wall stands behind the ledge, not on it.",
+  "view": "iso"
+ },
+ {
+  "name": "two_story_color_split",
+  "title": "A wall whose lower courses are a darker tone than the rest, with corner boards in a third tone at its ends and a vent grille on a side stud, the plain way a diner or a shop is painted.",
+  "why": "A plain painted building (a diner, a shop) with a darker band along its bottom, corner boards, and a vent.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "low",
+   "color",
+   "base",
+   "corner",
+   "vent",
+   "title"
+  ],
+  "books": [
+   "set 10352"
+  ],
+  "signature": [
+   "3005",
+   "11211",
+   "2412b"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of masonry_wall and close to wainscot_split_wall (no trim band, no masonry texture, plus corner boards and a vent). The name comes from the research; it's one story with a dark base.",
+  "view": "iso"
+ },
+ {
+  "name": "white_ashlar_wall",
+  "title": "A smooth stone wall of long, uneven courses with no repeating pattern, a few grooved and grille blocks breaking up its face, and a tiled top with the odd stud left open.",
+  "why": "A smooth white stone wall of long, uneven courses, for fantasy cities, castles, and temples.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "seed",
+   "cap",
+   "title"
+  ],
+  "books": [
+   "set 11377"
+  ],
+  "signature": [
+   "2877",
+   "4216",
+   "2653"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of masonry_wall: seeded random lengths 1 to 8 with no joint on a joint, grooved and grille slots every fourth course, and a tiled cap with a few open studs. The book's side-stud detail bricks (shields, lamps) are left to the caller.",
+  "view": "iso"
+ },
+ {
+  "name": "exposed_stud_stonework",
+  "title": "A big stone or concrete face with texture but no brick courses, made of panels on side studs, some left as bare studs, some tiled smooth, some standing a plate proud.",
+  "why": "A big concrete or stone face with panel texture but no brick courses, for ruins, gates, pylons, and industrial walls.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "seed",
+   "title"
+  ],
+  "books": [
+   "set 75936"
+  ],
+  "signature": [
+   "22885",
+   "3022",
+   "3068b"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "VARIANT of snot_panel: mixes studs-out plates, tiles, and proud plate-plus-tile panels as deliberate texture. The book's angled wedge panels on tapering pylons aren't done; the panels are rectangles.",
+  "view": "iso"
+ },
+ {
+  "name": "irregular_stone_wall",
+  "title": "A cellar or cave wall of uneven stone blocks in a broken bond, with gray rock showing through in steep slopes and a ragged top.",
+  "why": "An uneven stone wall with rock showing through, for a cellar, cave, dungeon, or pirate tavern.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "tone",
+   "rock",
+   "rocks",
+   "seed",
+   "title"
+  ],
+  "books": [
+   "set 21363"
+  ],
+  "signature": [
+   "4460b",
+   "2449",
+   "3003"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The book also sets some stones back half a stud on jumpers; that isn't done here. The top course is ragged, so the return value is the top of the last full course.",
+  "view": "iso"
+ },
+ {
+  "name": "balustrade_parapet",
+  "title": "A stone balustrade along a roof edge, round balusters on every stud between a base rail and a handrail, with an arched centerpiece carrying an urn and stone piers at the ends.",
+  "why": "A stone balustrade along a civic building's roof edge or a terrace, with an urn on an arched centerpiece.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "baluster",
+   "title"
+  ],
+  "books": [
+   "set 43302"
+  ],
+  "signature": [
+   "3062b",
+   "4490",
+   "4589"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "A VARIANT of fence in spirit. The book puts an orange cone or shell in the arch's opening; that's left out, since nothing fits under the 1 x 3 arch's opening.",
+  "view": "iso"
+ },
+ {
+  "name": "bermed_wall_reveal",
+  "title": "A house front that shows only where the hill is cut away, the hill sloping down past both ends of the wall and its turf overhanging the top, so you never see where the wall stops.",
+  "why": "A house front dug into a hill, with the hill falling past the wall's ends and its turf overhanging the top.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "rows",
+   "color",
+   "beam",
+   "hill",
+   "wall",
+   "title"
+  ],
+  "books": [
+   "set 10354"
+  ],
+  "signature": [
+   "3039",
+   "3003"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "The book's cheeks are tan curved bricks and green curved slopes; these are 45-degree 2 x 2 slopes stepping down from the wall's top corners. With wall=False the hill wraps a wall already built (one with a round door, say).",
+  "view": "iso"
+ },
+ {
+  "name": "corbelled_balcony",
+  "title": "A small balcony on a wall's face, its slab carried by three long pointed corbels hanging under it, with a railing of round balusters along its front.",
+  "why": "A small balcony on a medieval or fantasy wall held up by pointed corbels.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "color",
+   "rail",
+   "title"
+  ],
+  "books": [
+   "set 11377"
+  ],
+  "signature": [
+   "2449",
+   "3062b"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of machicolation (corbels under a slab). The book clips wedge plates on side studs to make tooth-shaped corbels; here each corbel is an inverted 75-degree slope 2 x 1 x 3 (2449) hanging from the slab, all on the grid. The book's small roofed window box on top is left out; a baluster railing stands in its place.",
+  "view": "iso"
+ }
+]

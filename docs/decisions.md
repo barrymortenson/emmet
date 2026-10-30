@@ -503,3 +503,103 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   it, and `scripts/unsafe-check.mjs`, run by `just check`, keeps every other file free of it. It calls through `objc2`, already in the
   tree through tauri and the WebDriver plugin, so no new crate. Rejected: hosted E2E, its own baselines, or a hosted
   PR run with a weekly run on the Mac; and only stopping the app from taking focus.
+
+## 2026-10-29, session 3D
+
+- **Session 3D before 4B (D-51).** Barry asked, before 4B, for detailed technique mining from all his instruction
+  books (92 booklets in his Dropbox, about 55 sets: houses and town buildings, a voxel village, game playsets, cars
+  at every width and scale, architecture and micro models, display ships, and sculptures), so Emmet has many wall,
+  roof, and interior treatments for a house, and knows the blocky and video-game styles, cars at each scale, and
+  micro and micropolis; then how the agent should use them, practiced on the Cottage. The final Cottage for the MVP
+  is a detailed figure-scale building with character, landscaping, a detailed interior, and a removable roof. The
+  books are read for methods only, under D-48: no page, picture, or text in the repo; techniques cite set numbers.
+- **The agent reads guides for its build settings.** One guide per scale, style, and subject (vehicles, interiors,
+  landscaping), in `crates/emmet-cli/doctrine/guides/`, served by `emmet guide` and the MCP `guide` tool: with no
+  name, the guides for the project's `[build]` scale and style. Rejected: putting every style's rules in the
+  doctrine, which every session reads in full. No trademark appears in a guide's names: the doctrine tells the agent
+  to map a game or brand the user names to the guide for its look.
+- **H-26, batch 6 (house walls and facades): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-6.html`): wainscot_split_wall, plaster_with_exposed_stones, two_tone_masonry,
+  string_course, dentil_band, timber_frame_panels, panel_pilaster, rusticated_stone_pilaster, color_block_facade,
+  wall_top_cornice, lattice_skirt_foundation, curved_wall_end, rough_stone_ledge, two_story_color_split,
+  white_ashlar_wall, exposed_stud_stonework, irregular_stone_wall, balustrade_parapet, bermed_wall_reveal,
+  corbelled_balcony. Barry's note on wall_top_cornice: the stud left for the roof to grip should stand at the tiles'
+  height; each lug is now a 1 x 1 plate flush with the tiles, its stud up.
+- **Technique examples are checked standing on their lowest level.** Loose on the table, the validator lets a group of
+  parts that floats beside something pass as a separate toy, which hid floating parts in three accepted techniques
+  (headlights' lenses 0.2 studs too far out, bracket_side_panel's brackets turned the wrong way, grass_edge's example
+  cliff on nothing) and two candidates. The technique tests, `scripts/technique-candidates`, and the sketch checks now
+  mark the example's lowest parts as ground, as a baseplate would.
+- **H-26, batch 7 (windows, doors, and porches): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-7.html`): bay_window, window_box, round_window, twin_arched_window,
+  eyebrow_arch_hood, dome_window_hood, slope_hood_small_window, lattice_shopfront, round_corner_bay, plank_door,
+  doorstep_and_mat, panel_garage_door, round_window_frame, turned_post_porch, wing_plate_porch_roof, scalloped_awning,
+  wall_lamp_bracket, hanging_planter, blade_sign, signboard_beam.
+- **H-26, batch 8 (roofs, chimneys, and roof details): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-8.html`): tiled_roof_panel, plate_shingle_roof, tile_stripe_shingles,
+  studs_up_snow_roof, mansard_module, cross_gable, curved_dormer, mini_dormer, roof_cresting, pyramid_spire_tower,
+  ribbed_hip_roof, tapered_tower_cap, banded_chimney, sideways_chimney_column, roof_hatch, lean_to_awning,
+  half_roof_hinge, overlap_tile_roof, roof_eaves_overhang_frame, eaves_fascia.
+- **H-26, batch 9 (rooms and furniture): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-9.html`): hearth_fireplace, wood_stove, figure_bed, armchair_and_sofa,
+  kitchen_counter, table_and_chairs, wall_shelf, wall_picture_and_clock, plank_floor, floor_rug, floor_lamp_and_candle,
+  interior_arch_doorway, loft_half_floor, cross_display_stand, curved_booth, bar_counter, display_case_counter,
+  upright_piano, dresser_shelf, bookcase.
+- **H-26, batch 10 (gardens and landscaping): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-10.html`): organic_ground_outline, curved_garden_path, stepping_stones, garden_gate,
+  lawn_with_plant_sockets, contour_terraces, garden_boulder, tiled_pond_water, sunken_pond_bank, lily_and_reeds,
+  layered_conifer, blossom_tree, palm_tree, bamboo_grove, potted_plant, clipped_hedge, stone_lantern, snow_drift_edge,
+  gnarled_tree, cypress. garden_gate takes an `id` (the Cottage's gate), as figure_bed, hearth_fireplace, and
+  table_and_chairs now do.
+- **H-26, batch 11 (blocky worlds): all 20 accepted** (Barry, 2026-10-30, on `docs/techniques/candidates/batch-11.html`):
+  block_column, raised_module_base, module_link_block, grass_block, stepped_block_terrain, block_tree,
+  speckled_block_wall, mossy_stone_block, bookshelf_block, cactus_column, reed_stalks, block_water_and_falls, lava_inset,
+  crop_field, block_fence_post, stick_torch, plank_and_stone_wall, stepped_plank_roof, flat_jumper_roof, block_beast.
+- **H-26, batch 12 (video-game worlds and retro hardware): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-12.html`): pixel_mosaic_panel, tile_brick_texture, item_block, float_on_clear,
+  cube_head_character, brick_enemy, chunky_kart, curb_rumble_strip, start_gantry, bolted_pillar, flip_bridge,
+  a_frame_tent, brick_campfire, crt_cabinet, console_shell, vent_fins, controller_slab, game_pipe, polka_dot_cube,
+  item_launcher. game_pipe was "warp_pipe" until its sketcher flagged the name as one game's term.
+- **H-26, batch 13 (vehicles at figure scale): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-13.html`): car_wheels, truck_spine_chassis, six_wide_truck_cab, cab_over_sleeper,
+  racing_scale_base, quarter_tile_headlights, side_stud_lights, curved_wedge_nose, tapered_hood_wedges, snot_side_skirt,
+  rounded_car_end, window_band, shipping_container, lift_off_window_cab, vintage_chassis, vintage_radiator, street_cart,
+  four_wide_car, offroad_fender_flare, glass_box_cab. car_wheels puts car rims and tires on flush pins inside mudguard
+  arches at the body's sides, not on the plate with hanging wheel pins that 3C's rejected wheel_axle used.
+- **H-26, batch 14 (vehicles at large scale): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-14.html`): large_display_wheel, technic_brick_ring_chassis, liftarm_ladder_frame,
+  beam_spine_floor, hang_on_side_panel, rolled_sill, fender_crown, inverted_arch_wheel_well, tapered_deck, canopy_hump,
+  front_hinged_hood, dashboard_and_wheel, pleated_seat, round_tail_light_cluster, ring_light_grille, side_vent_grille,
+  flared_exhaust, steering_rack, removable_soft_top, engine_bay_greebles. removable_soft_top and engine_bay_greebles
+  stand in for a wishbone suspension and a V engine, whose parts (5294, 2909/2910, 2853a/2854) have no connector data
+  yet; front_hinged_hood was "front_hinged_bonnet" until the US English sweep.
+- **H-26, batch 15 (micro and micropolis): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-15.html`): micropolis_block, micro_tower, tower_setback_plinth, tower_crown,
+  tower_side_fins, floor_band_bricks, stepped_tower_setbacks, bar_spire, paired_colonnade, spiral_dish_stack,
+  micro_tree_cluster, micro_traffic, micro_boat, water_tile_field, statuette_group, micro_house_on_wall,
+  raked_seating_panel, mowed_pitch, curtain_wall_glazing, skyline_depth_rows.
+- **H-26, batch 16 (sculptures, characters, and letters): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-16.html`): snot_core, curved_slope_skin, contour_slab, layered_plate_cap,
+  sphere_from_caps, dome_from_quarters, rounded_column, hover_stand, side_stud_eyes, big_round_eye, muzzle_and_nose,
+  teeth_row, floppy_ear, brick_letters, posable_neck_ball, hinged_limb, pyramid_pedestal, countershade_belly,
+  feather_shingles, smooth_display_base. hover_stand replaced egg_from_panels, which read as a box.
+- **H-26, batch 17 (sci-fi rooms, ships, and fantasy stonework): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-17.html`): chamfered_door_portal, hangar_chevron_floor, recessed_glow_panel,
+  lit_window_panel, checker_light_wall, glow_trim_edge, pipe_column_cluster, ribbed_side_panel, lattice_tower,
+  bar_truss_brace, round_deck_dome, clamshell_pod, plank_deck, davit_lifeboat, round_funnel, rock_mosaic_panel,
+  double_arch_colonnade, fin_merlon_crenels, round_bastion, fountain_court.
+- **H-26, batch 18 (midi: display ships and architecture): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-18.html`): stave_cylinder, stepped_curve_hull, bare_stud_greeble, porthole_band,
+  saucer_petal_panels, radial_spoke_saucer, axle_round_stack, angled_display_stand, lancet_window, rose_window_ring,
+  flying_buttress_arch, pinnacle_stack, pointed_buttress_strip, belfry_louvers, steep_nave_roof, slender_column_capital,
+  triangle_tile_floor, banded_round_turret, architecture_base, rounded_pier_nose. 260 accepted in all, of 260
+  candidates in thirteen batches; the library has 378 techniques.
+- **H-26, the Cottage: approved as is** (Barry, 2026-10-30, through AskUserQuestion, on the renders in
+  `docs/spec/sessions/3D/`): 903 parts, a stone-and-plaster house with a bay window, a porch, a dormer, an outside
+  chimney, and a roof that lifts off as one sub-assembly; two furnished rooms; a garden with a fence and gate, a path,
+  a mailbox, raised lawns, a bench, hedges, and a tall tree. Knobs: season, roof, weathering, seed.
+- **The viewer budget holds on the new Cottage** (Barry, 2026-10-30: "speed it up now"). The 903-part Cottage took
+  1,221 to 1,250 ms from a slider change to the updated viewer in the E2E (debug) build, past 1B's 1 s budget; 430 ms
+  of it was the validator running unoptimized. `emmet-core` now builds at opt-level 2 in debug builds too, as every
+  dependency already did, and the same change takes 738 to 797 ms (three runs). Sending the scene before its findings
+  and caching the schema read, the other two ideas offered, aren't needed for the budget; they're left for 4C.
