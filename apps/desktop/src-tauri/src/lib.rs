@@ -9,6 +9,8 @@
 pub mod app;
 pub mod chat;
 pub mod chatgpt;
+#[cfg(all(feature = "webdriver", target_os = "macos"))]
+mod e2e;
 pub mod library;
 pub mod menu;
 pub mod paths;
@@ -276,6 +278,9 @@ pub fn run() {
         .invoke_handler(specta.invoke_handler());
     #[cfg(feature = "webdriver")]
     let builder = builder.plugin(tauri_plugin_wdio_webdriver::init());
+    // E2E on Barry's Mac doesn't take focus from his work at launch (D-50).
+    #[cfg(all(feature = "webdriver", target_os = "macos"))]
+    let builder = builder.activate_ignoring_other_apps(false);
     builder
         .setup(move |tauri_app| {
             specta.mount_events(tauri_app);
@@ -309,7 +314,15 @@ pub fn run() {
                 .traffic_light_position(tauri::LogicalPosition::new(20.0, 22.0));
             #[cfg(windows)]
             let window = window.decorations(false);
-            window.build()?;
+            let window = window.build()?;
+            // E2E on Barry's Mac: no Dock icon, Cmd-Tab entry, or menu bar, and the window draws while covered (D-50).
+            #[cfg(all(feature = "webdriver", target_os = "macos"))]
+            {
+                tauri_app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                e2e::keep_drawing(&window)?;
+            }
+            #[cfg(not(all(feature = "webdriver", target_os = "macos")))]
+            let _ = window;
             crate::menu::install(&handle)?;
             let state = tauri_app.state::<app::AppState>();
             state.start_runs(&handle);

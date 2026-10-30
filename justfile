@@ -43,7 +43,8 @@ deps:
 dev *project:
     cd apps/desktop && pnpm tauri dev --config src-tauri/tauri.dev.conf.json -- --no-default-features -- {{ project }}
 
-# Format, lint, and typecheck across Rust, TS, and Python, plus the SPDX headers and the app's tokens-only styles.
+# Format, lint, and typecheck across Rust, TS, and Python, plus the SPDX headers, the app's tokens-only styles, and
+# unsafe code only where D-50 allows it.
 check:
     cargo fmt --all --check
     cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -53,6 +54,7 @@ check:
     uv run --project {{ dsl }} --frozen ruff format --check {{ dsl }}
     node scripts/spdx-check.mjs
     node scripts/style-lint.mjs
+    node scripts/unsafe-check.mjs
 
 # Build the JS packages, then the Rust workspace (the desktop crate embeds apps/desktop/dist).
 build:

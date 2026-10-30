@@ -80,3 +80,30 @@ test("the pre-push hook refuses main and allows a branch", () => {
   const toBranch = run("bash", [hook, "origin", "url"], { input: `refs/heads/x ${sha} refs/heads/bmortenson/x ${sha}\n` });
   assert.equal(toBranch.code, 0, toBranch.out);
 });
+
+// scripts/unsafe-check.mjs, which `just check` runs: the workspace denies unsafe code rather than forbidding it, so the
+// E2E build's one call into WebKit can allow it (D-50), and the check keeps every other Rust file free of it.
+function unsafeCheck(files) {
+  const { dir, git } = tempRepo();
+  writeFiles(dir, { "apps/desktop/src-tauri/src/e2e.rs": "#[allow(unsafe_code)]\nfn f() { unsafe {} }\n", ...files });
+  git("add", "apps");
+  return run("node", [join(ROOT, "scripts/unsafe-check.mjs"), dir]);
+}
+
+test("unsafe code passes in the E2E build's WebKit call, and in this repo", () => {
+  const r = unsafeCheck({ "crates/a/src/lib.rs": "// no unsafety here\nfn g() {}\n" });
+  assert.equal(r.code, 0, r.out);
+  const repo = run("node", [join(ROOT, "scripts/unsafe-check.mjs")]);
+  assert.equal(repo.code, 0, repo.out);
+});
+
+test("unsafe code anywhere else fails, committed or not", () => {
+  for (const [file, text] of [
+    ["crates/a/src/lib.rs", "fn g() { unsafe {} }\n"],
+    ["crates/a/build.rs", "#![allow(unsafe_code)]\n"],
+  ]) {
+    const r = unsafeCheck({ [file]: text });
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, new RegExp(`unsafe code outside .*\\n  ${file}`));
+  }
+});

@@ -1,4 +1,4 @@
-# The fallback when the self-hosted Mac is down: the whole ci workflow on hosted runners (paid macOS minutes).
+# The fallback when the self-hosted Mac is down: the whole ci workflow on hosted runners (free for public repos).
 name: ci-hosted-mac
 
 on:
