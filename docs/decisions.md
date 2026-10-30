@@ -603,3 +603,18 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   of it was the validator running unoptimized. `emmet-core` now builds at opt-level 2 in debug builds too, as every
   dependency already did, and the same change takes 738 to 797 ms (three runs). Sending the scene before its findings
   and caching the schema read, the other two ideas offered, aren't needed for the budget; they're left for 4C.
+
+## 2026-10-30, session 3E
+
+- **Session 3E before 5A (D-52).** In his 4B hand session of rung 2 on Claude Code, Barry found the model rendered
+  but wasn't built well: the canopy's eaves sat below the ticket booth's door top, and the benches stood against the
+  canopy's columns (`docs/spec/sessions/3E/before-4b-station.png`). He wants Emmet to get this kind of thing right
+  without extra prompting, and asked for a session that takes a complete look at building with good technique and
+  makes sure the technique library doesn't hold models back. The causes were in the library as much as the agent:
+  `canopy` hard-codes 5-brick columns under a 6-brick door, `porch_posts` and `turned_post_porch` are low the same
+  way, `canopy` doesn't say where its columns stand, `validate` only sees overlaps, and the guides give sizes but no
+  clearances. 5A waits for 3E, so G2's live eval runs on the fixed library.
+- **The `figure_clearance` rule (D-53, proposed).** A warning, not an error, so 3A's zero-error gate on the official
+  corpus is untouched; 3E holds the rule to zero findings on that corpus too. Keep-clear boxes come from door frames,
+  from techniques and the agent through `m.keep_clear(box, why)`, at figure scale and large only. Rejected: rules in
+  the doctrine alone, which the agent skims, while it fixes every finding `validate` gives it.
