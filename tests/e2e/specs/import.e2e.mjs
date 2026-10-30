@@ -7,7 +7,7 @@ import { $, $$, expect } from "@wdio/globals";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { open, screenshots } from "../lib/app.mjs";
-import { agentHome } from "../lib/agents.mjs";
+import { agentHome, scenario } from "../lib/agents.mjs";
 import { repo } from "../lib/paths.mjs";
 import { pickNext, projectDir } from "../lib/projects.mjs";
 
@@ -27,9 +27,13 @@ describe("open an LDraw file", () => {
     await (await $("#tab-steps")).click();
     expect((await $$("#steps-tree [data-n]")).length).toBeGreaterThan(0);
     await screenshots("import", { baseline: true });
-    // Make it parametric asks the agent, which needs a chat first.
+    // Make it parametric asks the agent, which starts on it: the chat shows the plain words, sent from the imported file.
+    scenario("claude", "plain-turn");
     await (await $("#make-parametric")).click();
-    await expect($("#chat-error")).toHaveText(expect.stringContaining("Start a chat with an agent first"));
+    await browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running && window.__emmet.chat().items > 0), { timeout: 30_000, timeoutMsg: "the agent never took the request" });
+    if (!(await (await $("#chat-log")).isExisting())) await (await $("#history-toggle")).click();
+    await expect($("#chat-log")).toHaveText(expect.stringContaining("Sent from the imported file"), { wait: 10_000 });
+    await (await $("#history-toggle")).click();
   });
 
   it("opens a project from its emmet.toml", async () => {

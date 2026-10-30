@@ -147,6 +147,15 @@ describe("agent setup without a terminal", () => {
 
   it("installs Codex", async () => {
     mode("codex", "ok");
+    // Claude is ready, so the dock's card went; picking Codex, which isn't set up, brings its card back.
+    if (await (await $("#install-codex")).isExisting() === false) {
+      await browser.execute((e) => e.focus(), await $("#agent-picker"));
+      await browser.keys("Enter");
+      await (await $('[data-menu="agent-codex"]')).waitForDisplayed({ timeout: 5_000 });
+      await expect($('[data-menu="agent-codex"]')).toHaveText(expect.stringContaining("Not set up"));
+      await (await $('[data-menu="agent-codex"]')).click();
+    }
+    await (await $("#install-codex")).waitForExist({ timeout: 10_000 });
     await click("#install-codex");
     // The file keychain holds an API key, so Codex is ready once it's installed.
     await (await $("#setup-codex")).waitForExist({ timeout: 30_000, reverse: true });

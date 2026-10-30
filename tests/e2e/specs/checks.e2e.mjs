@@ -3,10 +3,11 @@
 // the finding in plain words, with no ids, file names, or lines on screen (law 2: they go to the agent); a click
 // highlights exactly its parts as an issue; "Ask agent to fix" with no chat says to start one; fixing the model clears
 // the finding. The flow logs no console errors.
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { $, $$, expect } from "@wdio/globals";
 import { nextScene, open, shown, stats } from "../lib/app.mjs";
+import { scenario } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const project = projectDir("checks");
@@ -35,9 +36,20 @@ describe("checks", () => {
     await browser.waitUntil(async () => (await stats()).highlighted === 0, { timeoutMsg: "the highlight stayed" });
   });
 
-  it("asking the agent to fix it with no chat open says to start one", async () => {
+  it("asking the agent to fix it sends the finding in plain words, and its details to the agent", async () => {
+    scenario("claude", "plain-turn");
     await $("#fix-F-0001").click();
-    await expect($("#chat-error")).toHaveText(expect.stringContaining("Start a chat with an agent first"));
+    await browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running && window.__emmet.chat().items > 0), { timeout: 30_000, timeoutMsg: "the agent never took the finding" });
+    await $("#history-toggle").click();
+    await expect($("#chat-log")).toHaveText(expect.stringContaining("Sent from Checks"), { wait: 10_000 });
+    const shown = await $("#chat-log").getText();
+    expect(shown).toContain("Fix this: 2 parts overlap.");
+    // No ids, lines, or files on screen (law 2); the agent's message has them (its transcript).
+    expect(shown).not.toMatch(/F-0001|model\.py|wall\/a/);
+    const transcripts = join(project, ".emmet", "transcripts");
+    const sent = readdirSync(transcripts).map((f) => readFileSync(join(transcripts, f), "utf8")).join("\n");
+    expect(sent).toContain("Details from Emmet: Fix F-0001 (collision");
+    await $("#history-toggle").click();
   });
 
   it("the Parts tab lists each part and color with its count", async () => {

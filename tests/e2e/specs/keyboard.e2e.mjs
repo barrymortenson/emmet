@@ -134,13 +134,16 @@ describe("the keyboard map", () => {
     await (await $("#param-weathering-thumb")).waitForDisplayed({ timeout: 30_000, timeoutMsg: "the knobs never showed" });
     const rings = await browser.execute(() => {
       const focus = /:focus(-visible)?(?![-\w])/g;
+      const within = /:focus-within/g;
       const copy = (owner) => {
         const rules = owner.cssRules;
         for (let i = rules.length - 1; i >= 0; i--) {
           const r = rules[i];
           if (r instanceof CSSStyleRule && focus.test(r.selectorText)) owner.insertRule(`${r.selectorText.replace(focus, "[data-e2e-focus]")} { ${r.style.cssText} }`, i + 1);
+          else if (r instanceof CSSStyleRule && within.test(r.selectorText)) owner.insertRule(`${r.selectorText.replace(within, "[data-e2e-within]")} { ${r.style.cssText} }`, i + 1);
           else if (!(r instanceof CSSStyleRule) && r.cssRules) copy(r);
           focus.lastIndex = 0;
+          within.lastIndex = 0;
         }
       };
       for (const sheet of document.styleSheets) copy(sheet);
@@ -154,8 +157,15 @@ describe("the keyboard map", () => {
         if (!at || (at !== el && !el.contains(at))) return [];
         at.setAttribute("data-e2e-focus", "");
         const s = getComputedStyle(at);
-        const ring = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2;
+        let ring = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2;
         at.removeAttribute("data-e2e-focus");
+        // A field that shows focus on its box, as the composer does (its border turns the accent color, :focus-within).
+        for (let box = at.parentElement; !ring && box; box = box.parentElement) {
+          const before = getComputedStyle(box).borderColor;
+          box.setAttribute("data-e2e-within", "");
+          ring = getComputedStyle(box).borderColor !== before;
+          box.removeAttribute("data-e2e-within");
+        }
         return [{ el: at.id || at.getAttribute("aria-label") || at.textContent?.trim().slice(0, 30), ring }];
       });
     });

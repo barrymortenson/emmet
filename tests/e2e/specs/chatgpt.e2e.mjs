@@ -65,8 +65,10 @@ describe("Codex on the ChatGPT plan", () => {
     setOpenAi({});
   });
   after(async () => {
-    // Leave the API key chosen for any spec after this one.
+    // Leave the API key chosen, and nothing open, for any spec after this one.
     await invoke("chatgpt_choose", { account: null });
+    await closeSettings();
+    await browser.keys("Escape");
   });
 
   it("invites an API-key user, signs in, and shows the notice once", async () => {
@@ -158,7 +160,7 @@ describe("Codex on the ChatGPT plan", () => {
     await (await $("[data-account] .sign-out")).click();
     await waitFor("not signed out", async () => (await text("#codex-pays")).includes("Signed out"));
     // Signing out stops requests: the chat on that account ended.
-    await waitFor("the plan chat kept running", async () => (await browser.execute(() => window.__emmet.chat().session)) == null);
+    await waitFor("the plan chat kept running", async () => (await invoke("chat_state")).live == null);
     await (await $("[data-account] .sign-in")).click();
     await waitFor("not signed in again", async () => (await text("#codex-pays")).includes("Signed in"));
     expect(await (await $("#plan-notice")).isExisting()).toBe(false);
