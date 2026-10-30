@@ -594,3 +594,7 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   flying_buttress_arch, pinnacle_stack, pointed_buttress_strip, belfry_louvers, steep_nave_roof, slender_column_capital,
   triangle_tile_floor, banded_round_turret, architecture_base, rounded_pier_nose. 260 accepted in all, of 260
   candidates in thirteen batches; the library has 378 techniques.
+- **H-26, the Cottage: approved as is** (Barry, 2026-10-30, through AskUserQuestion, on the renders in
+  `docs/spec/sessions/3D/`): 903 parts, a stone-and-plaster house with a bay window, a porch, a dormer, an outside
+  chimney, and a roof that lifts off as one sub-assembly; two furnished rooms; a garden with a fence and gate, a path,
+  a mailbox, raised lawns, a bench, hedges, and a tall tree. Knobs: season, roof, weathering, seed.
