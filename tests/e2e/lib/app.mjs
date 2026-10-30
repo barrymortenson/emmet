@@ -29,8 +29,17 @@ export const invoke = (cmd, args = {}) =>
 export async function open(dir) {
   const drawn = await browser.execute(() => window.__emmet.drawnAt());
   const { root } = await invoke("open_recent", { path: dir });
+  // The viewer's own error, as soon as there is one, rather than a timeout that hides it.
   await browser.waitUntil(
-    () => browser.execute((r, d) => window.__emmet.project() === r && window.__emmet.shown() >= 1 && window.__emmet.drawnAt() > d, root, drawn),
+    async () => {
+      const [ready, error] = await browser.execute(
+        (r, d) => [window.__emmet.project() === r && window.__emmet.shown() >= 1 && window.__emmet.drawnAt() > d, window.__emmet.viewerError()],
+        root,
+        drawn,
+      );
+      if (error) throw new Error(`${dir}: ${error}`);
+      return ready;
+    },
     { timeout: 30_000, timeoutMsg: `${dir} never showed a scene` },
   );
   const still = await browser.execute(async () => {

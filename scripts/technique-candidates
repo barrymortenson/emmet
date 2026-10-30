@@ -53,12 +53,22 @@ try {
         `    example(m)\n` +
         // Stand the example on its lowest level, as a baseplate would: loose on the table, a part that floats beside
         // something passes as a separate toy (3D found three techniques with floating parts that way).
+        `    if not m._ids:\n        raise ValueError("the example placed no parts")\n` +
         `    low = min(p.box[0][2] for p in m._ids.values())\n` +
-        `    m.ground(*[i for i, p in m._ids.items() if p.box[0][2] <= low + 0.01])\n    return m\n`,
+        // Only plain parts: grounding a submodel copy grounds every part inside it.
+        `    m.ground(*[i for i, p in m._ids.items() if p.sub is None and p.box[0][2] <= low + 0.01])\n    return m\n`,
     );
     run("trust", "--project", dir);
     // The page says every sketch validates with no findings: hold it to that.
-    const checked = JSON.parse(run("--json", "check", "--project", dir).toString());
+    // A model that fails exits nonzero with its error in the JSON envelope on stdout: say what it was.
+    let checked;
+    try {
+      checked = JSON.parse(run("--json", "check", "--project", dir).toString());
+    } catch (e) {
+      const envelope = JSON.parse(e.stdout?.toString() || "{}");
+      console.error(`technique-candidates: ${c.name}'s sketch doesn't run: ${envelope.error?.message ?? e.message} ${envelope.error?.hint ?? ""}`);
+      process.exit(1);
+    }
     const findings = checked.data?.findings ?? [];
     if (!checked.ok || findings.length) {
       console.error(`technique-candidates: ${c.name}'s sketch doesn't validate clean:`);

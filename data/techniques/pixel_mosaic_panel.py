@@ -88,26 +88,49 @@ def _tiles(cells):
 def _panel(m, rows, palette, backing):
     """The panel lying studs up, its bottom-left pixel's corner at the origin."""
     width, height = len(rows[0]), len(rows)
-    with m.step("Backing, up"):
-        for c in range(0, width, 2):
-            m.row(
+    # Each layer's strips are 2 wide, so their sides fall on even studs; each run starts with a 1-long piece, so its
+    # joints fall on odd ones. No joint in one layer then lies along a side in the other, whatever the picture's size,
+    # and every plate is held by plates of the other layer (longest first, a 5-wide picture's last column was loose).
+
+    def pieces(n):
+        """How many plates a run of n lays: the 1-long one, then the rest longest first, as m.row lays them."""
+        count, left = 1, n - 1
+        for size in (16, 14, 12, 10, 8, 6, 4, 3, 2, 1):
+            count, left = count + left // size, left % size
+        return count
+
+    up = [
+        (
+            pieces(height),
+            lambda c=c: m.row(
                 Plate,
                 backing,
                 at=(c, 0, 0),
                 length=height,
                 axis="y",
                 width=min(2, width - c),
-            )
-    with m.step("Backing, across"):
-        for r in range(0, height, 2):
-            m.row(
+                first=1 if height > 1 else None,
+            ),
+        )
+        for c in range(0, width, 2)
+    ]
+    in_steps(m, "Backing, up", up)
+    across = [
+        (
+            pieces(width),
+            lambda r=r: m.row(
                 Plate,
                 backing,
                 at=(0, r, 1),
                 length=width,
                 axis="x",
                 width=min(2, height - r),
-            )
+                first=1 if width > 1 else None,
+            ),
+        )
+        for r in range(0, height, 2)
+    ]
+    in_steps(m, "Backing, across", across)
     tiles = _tiles(_cells(rows, dict(palette)))
     actions = [
         (1, lambda t=t: m.add(t[0], t[1], at=(t[2][0], t[2][1], 2), rot=t[3]))
@@ -121,6 +144,11 @@ def build(m, x, y, z, rows, palette, backing="Black", upright=True, title="Mosai
     if not rows or not rows[0]:
         raise ValueError("pixel_mosaic_panel needs at least one row of pixels")
     width, height = len(rows[0]), len(rows)
+    if upright and width < 2:
+        raise ValueError(
+            "pixel_mosaic_panel stands on brackets 2 studs wide: make the picture 2 or more pixels wide, or lay it flat "
+            "(upright=False)"
+        )
     sub = m.submodel(
         f"{title}: panel",
         _panel,

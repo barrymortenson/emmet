@@ -449,11 +449,46 @@ fn the_doctrine_or_a_guide_names_every_technique() {
     );
 }
 
+/// pixel_mosaic_panel holds together at odd sizes too: its two backing layers' joints once met along the last column
+/// of a 5-wide picture, which floated (3D's review). Its example is 10 x 8, so these sizes are checked here.
+#[test]
+fn pixel_mosaic_panel_holds_at_odd_sizes() {
+    let dir = temp_dir("technique-mosaic-odd").join("p");
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(shared_data())
+        .args(["new", "--template", "empty"])
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{}", text(&out));
+    let (v, code) = emmet_in(&dir, &["trust"]);
+    assert_eq!(code, 0, "{v}");
+    for (w, h) in [(5, 3), (7, 5), (3, 7), (9, 4)] {
+        std::fs::write(
+            dir.join("model.py"),
+            format!(
+                "from emmet_dsl import Model, model\n\n\n@model\ndef mosaic():\n    \"\"\"A checkered picture.\"\"\"\n    \
+                 m = Model()\n    with m.step(\"Base\"):\n        m.add(\"3811\", \"Green\", at=(0, 0, 0))\n    \
+                 rows = [\"\".join(\"RB\"[(r + c) % 2] for c in range({w})) for r in range({h})]\n    \
+                 m.use(\"pixel_mosaic_panel\", x=4, y=4, z=0.5, rows=rows, palette={{\"R\": \"Red\", \"B\": \"Blue\"}})\n    \
+                 return m\n"
+            ),
+        )
+        .unwrap();
+        let (v, code) = emmet_in(&dir, &["check", "--strict"]);
+        assert_eq!(code, 0, "{w} x {h}: {v}");
+        assert_eq!(v["data"]["findings"], serde_json::json!([]), "{w} x {h}: {v:#}");
+    }
+}
+
 /// Stands a technique's example on its lowest level, as a baseplate would. Loose on the table, a group of parts that
-/// floats beside something passes as a separate toy put there, which hid floating lenses in headlights and a floating
-/// panel in bracket_side_panel until 3D. (Model._ids is the DSL's own record of what was placed.)
+/// floats beside something passes as a separate toy put there, which hid floating parts in headlights,
+/// bracket_side_panel, and grass_edge until 3D. Only plain parts are grounded: grounding a submodel copy would ground
+/// every part inside it, so an example whose lowest parts are all in submodels stays loose. (Model._ids is the DSL's
+/// own record of what was placed.)
 const GROUND: &str = "low = min(p.box[0][2] for p in m._ids.values())\n    \
-                      m.ground(*[i for i, p in m._ids.items() if p.box[0][2] <= low + 0.01])\n";
+                      m.ground(*[i for i, p in m._ids.items() if p.sub is None and p.box[0][2] <= low + 0.01])\n";
 
 fn builds_clean(name: &str) {
     let dir = temp_dir(&format!("technique-{name}")).join(name);
