@@ -29,6 +29,9 @@ async function closeSettings() {
   if (await (await $("#settings")).isExisting()) await (await $("#settings-done")).click();
 }
 
+/** Waits until the turn is over. */
+const idle = () => browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running), { timeout: 30_000, timeoutMsg: "the turn never ended" });
+
 /** Text into a field the way typing does (see chat.e2e.mjs). */
 async function say(t) {
   const el = await $("#chat-input");
@@ -97,16 +100,15 @@ describe("Codex on the ChatGPT plan", () => {
     await closeSettings();
     // resume.jsonl: the first app-server, then the one a renewal restarts, which resumes the thread.
     scenario("codex", "resume");
-    const pick = await $("#agent-codex");
-    await pick.waitForEnabled({ timeout: 30_000 });
-    expect(await browser.execute(() => document.getElementById("agent-codex")?.nextElementSibling?.textContent)).toBe(
-      "Codex · ChatGPT plan",
-    );
-    await pick.click();
+    // The agent picker says who pays before the switch.
+    await (await $("#agent-picker")).click();
+    await browser.keys("Enter");
+    const item = await $('[data-menu="agent-codex"]');
+    await item.waitForDisplayed({ timeout: 10_000 });
+    expect(await item.getText()).toContain("ChatGPT plan");
+    await item.click();
     await (await $("#plan-label")).waitForExist({ timeout: 10_000 });
     expect(await text("#plan-label")).toContain("Using ChatGPT plan");
-    await (await $("#usage-plan")).waitForExist({ timeout: 10_000 });
-    expect(await text("#usage-plan")).toContain("Codex · Using ChatGPT plan");
     await (await $("#plan-manage-usage")).click();
     await waitFor("Manage usage didn't open ChatGPT's usage page", () =>
       opened().includes("https://chatgpt.com/settings/usage"),
@@ -125,16 +127,15 @@ describe("Codex on the ChatGPT plan", () => {
     const ms = Date.now() - started;
     console.log(`window answered in ${ms} ms during the renewal`);
     expect(ms).toBeLessThan(1500);
-    await (await $("#chat-new")).waitForExist({ timeout: 30_000 });
+    await idle();
     expect(chatgptRecord("oaiapp_test1").access_token).not.toBe(r.access_token);
     setOpenAi({});
   });
 
   it("shows the usage-limit card with Manage usage first", async () => {
     scenario("codex", "derived-plan-usage-limit");
-    await (await $("#chat-new")).waitForExist({ timeout: 30_000 });
-    await (await $("#chat-new")).click();
-    await (await $("#agent-codex")).click();
+    await (await $("#start-fresh")).click();
+    await browser.waitUntil(async () => (await browser.execute(() => window.__emmet.chat().session)) == null, { timeout: 10_000 });
     await (await $("#plan-label")).waitForExist({ timeout: 10_000 });
     await say("Reply with exactly the word: ready");
     await (await $("#limit-card")).waitForExist({ timeout: 30_000 });
@@ -142,7 +143,7 @@ describe("Codex on the ChatGPT plan", () => {
     expect(card).toContain("ChatGPT");
     expect(card).toContain("Usage limit reached");
     expect(card).toContain("Review your plan or this app's limit in ChatGPT settings.");
-    expect(await (await $("#limit-manage-usage")).getAttribute("class")).toContain("primary");
+    expect(await (await $("#limit-manage-usage")).getAttribute("data-variant")).toBe("primary");
     expect(card).not.toMatch(/resets/i);
     await screenshots("chatgpt-limit");
   });
@@ -157,7 +158,7 @@ describe("Codex on the ChatGPT plan", () => {
     await (await $("[data-account] .sign-out")).click();
     await waitFor("not signed out", async () => (await text("#codex-pays")).includes("Signed out"));
     // Signing out stops requests: the chat on that account ended.
-    await waitFor("the plan chat kept running", async () => (await text("#chat-log")).includes("The agent stopped"));
+    await waitFor("the plan chat kept running", async () => (await browser.execute(() => window.__emmet.chat().session)) == null);
     await (await $("[data-account] .sign-in")).click();
     await waitFor("not signed in again", async () => (await text("#codex-pays")).includes("Signed in"));
     expect(await (await $("#plan-notice")).isExisting()).toBe(false);

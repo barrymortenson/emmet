@@ -39,7 +39,9 @@ pub struct PrefsView {
 const APPEARANCE: [&str; 3] = ["system", "light", "dark"];
 const QUALITY: [&str; 3] = ["fast", "balanced", "best"];
 const AGENTS: [&str; 2] = ["claude", "codex"];
-const CLAUDE_MODELS: [&str; 3] = ["opus", "sonnet", "haiku"];
+const CLAUDE_MODELS: [&str; 4] = ["fable", "opus", "sonnet", "haiku"];
+/// The tips the app teaches, one at a time (plan section 14): the first knob, the first finding, the first export.
+const TIPS: [&str; 3] = ["knob", "finding", "export"];
 
 fn read(data: &DataDir) -> Map<String, Value> {
     std::fs::read_to_string(data.settings())
@@ -167,6 +169,38 @@ pub fn set_prefs(app: AppHandle, prefs: Prefs) -> Result<PrefsView, Box<Problem>
     );
     write(data, &s)?;
     Ok(view(&app))
+}
+
+/// The tips this user has seen (4B): kept in the data dir, so each is taught once per user, in any project.
+#[tauri::command]
+#[specta::specta]
+pub fn tips_seen(app: AppHandle) -> Vec<String> {
+    let data = &app.state::<AppState>().data;
+    read(data)
+        .get("tips_seen")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|v| v.as_str().filter(|t| TIPS.contains(t)).map(String::from))
+        .collect()
+}
+
+/// A tip was seen: Got it, or the user did what it teaches.
+#[tauri::command]
+#[specta::specta]
+pub fn tip_seen(app: AppHandle, tip: String) -> Result<Vec<String>, Box<Problem>> {
+    if !TIPS.contains(&tip.as_str()) {
+        return Err(Problem::internal(format!("There's no tip '{tip}'.")));
+    }
+    let mut seen = tips_seen(app.clone());
+    if !seen.contains(&tip) {
+        seen.push(tip);
+        let data = &app.state::<AppState>().data;
+        let mut s = settings_to_change(data)?;
+        s.insert("tips_seen".into(), seen.iter().cloned().map(Value::String).collect());
+        write(data, &s)?;
+    }
+    Ok(seen)
 }
 
 /// Settings → Projects → Change…: the host's folder dialog; null when the user cancels.

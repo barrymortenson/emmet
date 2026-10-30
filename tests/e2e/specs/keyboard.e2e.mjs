@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Keyboard reach (docs/design/keyboard.md, session 4A Done when 5): each shortcut the map lists that works without an
 // agent's turn does its action, Esc closes what's open, F6 moves between the regions, and Tab shows a visible focus
-// ring on everything it reaches. The chat's own keys (Enter, ⇧↩, ⌘↩, a card's 1–5) are 4B's; the viewer's orbit and
-// zoom keys are 4C's; ⌥⌘Z needs 4B's versions before each turn.
+// ring on everything it reaches. The chat's own keys (⌘L, Enter, Esc, ⌥⌘Z) are in chat.e2e.mjs (4B); the viewer's orbit
+// and zoom keys are 4C's.
 import { $, expect } from "@wdio/globals";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -161,10 +161,10 @@ describe("the keyboard map", () => {
     });
     expect(rings.filter((r) => !r.ring).map((r) => r.el)).toEqual([]);
     const reached = rings.map((r) => r.el);
-    for (const id of ["project-chip", "param-weathering-thumb", "param-roof-switch", "export-button"]) expect(reached).toContain(id);
+    for (const id of ["project-chip", "agent-picker", "start-fresh", "chat-input", "model-chip", "param-weathering-thumb", "param-roof-switch", "export-button"]) expect(reached).toContain(id);
     // The tab list is one stop in the Tab order: its open tab (arrows move between tabs).
     expect(reached.some((id) => String(id).startsWith("tab-"))).toBe(true);
-    // The window's controls: the title row, the chat's agent cards (more when an earlier spec chose Codex), the panel.
+    // The window's controls: the title row, the dock (the picker, the plan badge, Start fresh, the composer), the panel.
     expect(rings.length).toBeGreaterThanOrEqual(18);
   });
 });

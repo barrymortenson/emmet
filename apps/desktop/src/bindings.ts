@@ -61,6 +61,10 @@ export const commands = {
 	setPrefs: (prefs: Prefs) => typedError<PrefsView, Problem>(__TAURI_INVOKE("set_prefs", { prefs })),
 	/**  Settings → Projects → Change…: the host's folder dialog; null when the user cancels. */
 	pickProjectsFolder: () => typedError<PrefsView | null, Problem>(__TAURI_INVOKE("pick_projects_folder")),
+	/**  The tips this user has seen (4B): kept in the data dir, so each is taught once per user, in any project. */
+	tipsSeen: () => __TAURI_INVOKE<string[]>("tips_seen"),
+	/**  A tip was seen: Got it, or the user did what it teaches. */
+	tipSeen: (tip: string) => typedError<string[], Problem>(__TAURI_INVOKE("tip_seen", { tip })),
 	cliStatus: () => __TAURI_INVOKE<CliStatus>("cli_status"),
 	/**  Puts `emmet` on PATH. Null when the user cancels macOS's password prompt. */
 	installCli: () => typedError<CliStatus | null, Problem>(__TAURI_INVOKE("install_cli")),

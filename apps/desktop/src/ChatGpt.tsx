@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Sign in with ChatGPT's UI (1E), in OpenAI's words from its UI/UX guidelines, plain until 4B restyles all but the
-// button to the frozen design: the "Continue with ChatGPT" button in OpenAI's approved black format (the only place
+// Sign in with ChatGPT's UI (1E), in OpenAI's words from its UI/UX guidelines, in the frozen design (4B) but for the
+// button, which keeps OpenAI's own look: the "Continue with ChatGPT" button in OpenAI's approved black format (the only place
 // the ChatGPT logo appears), the one-time "You're using your ChatGPT plan" notice, "Using ChatGPT plan · Manage usage"
 // near the composer, the usage-limit card with Manage usage first, the banner inviting API-key users, and Settings'
 // account picker. The host opens ChatGPT's usage page; the window never sees a token.
@@ -8,6 +8,7 @@ import { Dialog } from "radix-ui";
 import { useCallback, useEffect, useState } from "react";
 import logo from "./assets/openai/chatgpt-logo-white.svg";
 import { type AccountView, type CodexBilling, commands } from "./bindings";
+import { AlertCard, Button } from "./ui";
 
 /** OpenAI's approved "Continue with ChatGPT" button (the continue-black format). */
 export function ContinueButton({ onClick, disabled, id }: { onClick: () => void; disabled?: boolean; id?: string }) {
@@ -22,35 +23,23 @@ export function ContinueButton({ onClick, disabled, id }: { onClick: () => void;
 /** Manage usage: ChatGPT Settings → Usage, in the browser. */
 export function ManageUsage({ primary, id }: { primary?: boolean; id?: string }) {
   return (
-    <button type="button" id={id} className={primary ? "primary" : "link"} onClick={() => void commands.openChatgptUsage()}>
-      Manage usage
-    </button>
+    <Button
+      label="Manage usage"
+      variant={primary ? "primary" : "quiet"}
+      size="sm"
+      icon="external-link"
+      id={id}
+      title="Manage usage: opens ChatGPT's usage settings in your browser"
+      onClick={() => void commands.openChatgptUsage()}
+    />
   );
 }
 
-/** Shown near the composer while Codex runs on the ChatGPT plan. */
-export function PlanLabel() {
-  return (
-    <p className="plan-label" id="plan-label">
-      Using ChatGPT plan <span aria-hidden="true">·</span> <ManageUsage id="plan-manage-usage" />
-    </p>
-  );
-}
-
-/** OpenAI's usage-limit message, compact: the ChatGPT identity visible and Manage usage the primary action. Emmet sells
- * no credits, so there's no second action, and no reset time: OpenAI's error doesn't say when the limit ends, or whose
+/** OpenAI's usage-limit message: the ChatGPT identity visible and Manage usage the primary action. Emmet sells no
+ * credits, so there's no second action, and no reset time: OpenAI's error doesn't say when the limit ends, or whose
  * limit it is. */
 export function LimitCard() {
-  return (
-    <div className="card limit-card" role="alert" id="limit-card">
-      <p className="limit-who">ChatGPT</p>
-      <p>
-        <strong>Usage limit reached</strong>
-      </p>
-      <p>Review your plan or this app's limit in ChatGPT settings.</p>
-      <ManageUsage primary id="limit-manage-usage" />
-    </div>
-  );
+  return <AlertCard icon="gauge" id="limit-card" title="ChatGPT · Usage limit reached" text="Review your plan or this app's limit in ChatGPT settings." actions={<ManageUsage primary id="limit-manage-usage" />} />;
 }
 
 /** The welcome notice, shown once per account: the first sign-in with plan use on. */

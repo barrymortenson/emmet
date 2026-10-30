@@ -3,7 +3,7 @@
 // updates, the command line tool, and diagnostics; 1E's Codex sign-in and API key inside), About Emmet Builder (the
 // versions, what Emmet connects to, the trademark line, and Licenses: the attributions, D-44, and the provider
 // notice, D-37), and the keyboard shortcuts.
-import { Dialog, Select, ToggleGroup } from "radix-ui";
+import { Dialog, ToggleGroup } from "radix-ui";
 import { type ReactNode, useEffect, useState } from "react";
 import iconMac from "./assets/brand/app-icon-macos.svg";
 import iconWin from "./assets/brand/app-icon-windows.svg";
@@ -13,7 +13,7 @@ import { type AppInfo, type CliStatus, commands, type Prefs, type PrefsView } fr
 import { CodexAccounts } from "./ChatGpt";
 import { KEYS, keyName, windows } from "./keys";
 import { REBRICKABLE_CREDIT } from "./Parts";
-import { Button, Icon } from "./ui";
+import { Button, Choose } from "./ui";
 
 function Modal({ title, id, className, onClose, children }: { title: string; id: string; className?: string; onClose: () => void; children: ReactNode }) {
   return (
@@ -46,31 +46,6 @@ function Segmented<T extends string>({ label, value, items, onChange, id }: { la
         </ToggleGroup.Item>
       ))}
     </ToggleGroup.Root>
-  );
-}
-
-function Choose({ label, value, items, onChange, id }: { label: string; value: string; items: [string, string][]; onChange: (v: string) => void; id?: string }) {
-  return (
-    <Select.Root value={value} onValueChange={onChange}>
-      <span className="select" data-c="select">
-        <span className="visually-hidden">{label}</span>
-        <Select.Trigger className="select-trigger" aria-label={label} id={id}>
-          <Select.Value />
-          <Icon name="chevron-down" size="sm" />
-        </Select.Trigger>
-      </span>
-      <Select.Portal>
-        <Select.Content className="menu" data-c="menu" position="popper" sideOffset={4}>
-          <Select.Viewport>
-            {items.map(([v, text]) => (
-              <Select.Item key={v} value={v} className="menu-item">
-                <Select.ItemText>{text}</Select.ItemText>
-              </Select.Item>
-            ))}
-          </Select.Viewport>
-        </Select.Content>
-      </Select.Portal>
-    </Select.Root>
   );
 }
 
@@ -128,6 +103,7 @@ export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCop
             value={prefs.prefs.claude_model ?? DEFAULT}
             items={[
               [DEFAULT, "Claude Code's default"],
+              ["fable", "Fable"],
               ["opus", "Opus"],
               ["sonnet", "Sonnet"],
               ["haiku", "Haiku"],

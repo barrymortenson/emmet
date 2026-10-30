@@ -122,6 +122,8 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             crate::prefs::get_prefs,
             crate::prefs::set_prefs,
             crate::prefs::pick_projects_folder,
+            crate::prefs::tips_seen,
+            crate::prefs::tip_seen,
             crate::tools::cli_status,
             crate::tools::install_cli,
             crate::tools::diagnostics,

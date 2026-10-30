@@ -66,6 +66,8 @@
     "allow-chat-restart",
     "allow-chat-undo",
     "allow-viewer-state",
+    "allow-tips-seen",
+    "allow-tip-seen",
     "allow-usage",
     "allow-openai-key-saved",
     "allow-openai-key-set",

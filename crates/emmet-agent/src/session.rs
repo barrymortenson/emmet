@@ -509,6 +509,8 @@ struct Snapshot(HashMap<String, (u64, Option<SystemTime>)>);
 
 const SKIP: &[&str] = &[
     "build",
+    // Emmet's own versions, saved as a turn starts and by the user: not the agent's work.
+    "history",
     ".emmet",
     ".git",
     "node_modules",

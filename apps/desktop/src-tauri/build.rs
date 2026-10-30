@@ -59,6 +59,8 @@ fn main() {
         "chat_restart",
         "chat_undo",
         "viewer_state",
+        "tips_seen",
+        "tip_seen",
         "usage",
         "openai_key_saved",
         "openai_key_set",
