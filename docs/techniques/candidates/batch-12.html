@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-12</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-12</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-12/pixel_mosaic_panel.png" alt="A sketch of pixel_mosaic_panel" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>pixel_mosaic_panel</code></h2>
+    <p>Any pixel picture, given as rows of color letters, built flat in tiles on plates and stood up studs-out, one stud a pixel.</p>
+    <p class="why">Any picture as pixel art (a game screen, a sprite, a sign, a logo): the agent writes the picture as rows of letters and a palette, and the helper tiles it largest-first and stands it up studs-out.</p>
+    <p class="note"><b>Note:</b> The book builds the art on belt slats; the bracket stand (99780 along the bottom, panel resting on smooth tiles in front) is Emmet's, so it stands on any base. Tiles in rare colors may raise color_unavailable for the bigger sizes: the agent should pick palette colors 1 x 1 and 2 x 2 tiles come in.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>rows</code>, <code>palette</code>, <code>backing</code>, <code>upright</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 58 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10233 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-12/pixel_mosaic_panel.py"><code>batch-12/pixel_mosaic_panel.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 71374: 6336693 pp. 150-175, 160-161</dd>
+      <dt>Key parts</dt><dd><code>3070b</code> + <code>3069b</code> + <code>3068b</code> + <code>99780</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for pixel_mosaic_panel">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for pixel_mosaic_panel">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-12/tile_brick_texture.png" alt="A sketch of tile_brick_texture" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>tile_brick_texture</code></h2>
+    <p>A pixel-art brick wall or ground block, drawn by the seams between small tiles on a darker backing, the mortar lines showing where the tiles meet.</p>
+    <p class="why">Pixel-art brick walls and ground blocks for game scenes and screens, where the brick pattern is drawn by tile seams rather than by real bricks.</p>
+    <p class="note"><b>Note:</b> Same bracket stand as pixel_mosaic_panel; could become a bond option of it. upright=False gives the flat block top.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>bond</code>, <code>brick</code>, <code>mortar</code>, <code>upright</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>140</b> of 1315 official sets (413 times); 278 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-12/tile_brick_texture.py"><code>batch-12/tile_brick_texture.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 71374: 6336693 pp. 150-158</dd>
+      <dt>Key parts</dt><dd><code>3070b</code> + <code>3069b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tile_brick_texture">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for tile_brick_texture">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-12/item_block.png" alt="A sketch of item_block" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>item_block</code></h2>
+    <p>A game's floating prize block, a 2 x 2 cube faced on all four sides, held up in the air on a stand of clear panels.</p>
+    <p class="why">The iconic floating prize block over a track or a level, at toy or figure scale.</p>
+    <p class="note"><b>Note:</b> No generic printed '?' brick in LDraw (the only '?' print, 14769pt2, is black and silver), so the faces are jumpers with a round-tile mark; face_part lets the agent swap in a printed 2 x 2 tile. The core (two 67329 back to back) is Emmet's choice.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>mark</code>, <code>lift</code>, <code>face_part</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/item_block.py"><code>batch-12/item_block.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72036: 6554679 p. 55, 6554677 p. 29</dd>
+      <dt>Key parts</dt><dd><code>67329</code> + <code>87580</code> + <code>4864b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for item_block">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for item_block">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-12/float_on_clear.png" alt="A sketch of float_on_clear" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>float_on_clear</code></h2>
+    <p>A thin stand of clear parts that holds a game object up in mid-air, so it seems to hover.</p>
+    <p class="why">Anything that should hover (clouds, coins, blocks, a star) on a clear stand that nearly vanishes.</p>
+    <p class="note"><b>Note:</b> The book's long clear bar into a round plate isn't offered; column and panels are.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>kind</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1315 official sets (14 times); 29 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10256 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10184 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 10129 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 4563 - main.ldr (Robert Paciorek [bercik], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-12/float_on_clear.py"><code>batch-12/float_on_clear.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72036: 6554679 pp. 55, 62-67</dd>
+      <dt>Key parts</dt><dd><code>3062b</code> + <code>4864b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for float_on_clear">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for float_on_clear">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-12/cube_head_character.png" alt="A sketch of cube_head_character" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>cube_head_character</code></h2>
+    <p>A chunky brick-built game character, 2 x 2 studs, with a head as big as its body, arms on side studs, and a cap.</p>
+    <p class="why">A chunky brick-built game character for toy-scale game scenes, karts, and dioramas, with a facing.</p>
+    <p class="note"><b>Note:</b> The book uses a printed 1 x 2 eye tile and 4733 heads; here the eyes are two printed round 1 x 1 eye tiles on 11211 side studs and the cap is a 2 x 3 plate brim under a curved slope.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>skin</code>, <code>shirt</code>, <code>pants</code>, <code>shoes</code>, <code>cap</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 2 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/cube_head_character.py"><code>batch-12/cube_head_character.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72036: 6554676 pp. 6-8, 6554677 pp. 6-13, 6554678 pp. 6-16; set 72040: 6596791 pp. 6-12</dd>
+      <dt>Key parts</dt><dd><code>11211</code> + <code>98138p07</code> + <code>15068</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for cube_head_character">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for cube_head_character">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-12/brick_enemy.png" alt="A sketch of brick_enemy" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>brick_enemy</code></h2>
+    <p>A small walking game enemy, a wide domed head over a short body on two feet, with eyes on side studs.</p>
+    <p class="why">A small walking enemy to populate a platform level or a game diorama.</p>
+    <p class="note"><b>Note:</b> The book's face is a printed 2 x 2 tile; here it's printed eye tiles on a 30414's side studs, the outer studs tiled over.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>head</code>, <code>body</code>, <code>feet</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/brick_enemy.py"><code>batch-12/brick_enemy.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72040: 6596791 pp. 70-71</dd>
+      <dt>Key parts</dt><dd><code>30414</code> + <code>98138p07</code> + <code>15068</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for brick_enemy">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for brick_enemy">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-12/chunky_kart.png" alt="A sketch of chunky_kart" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>chunky_kart</code></h2>
+    <p>A stubby game kart on four big wheels with round hubcaps, 2 studs of body between the wheels and fenders 6 wide over them.</p>
+    <p class="why">A ready toy-scale racing kart for a game-style scene, wheels nearly as tall as the body.</p>
+    <p class="note"><b>Note:</b> The book's kart is a 2 x 8 plate core with 11211 side panels; the wheel mounts here (friction pins in Technic bricks 1 x 8, the same rim, tire, and hubcap as the batch-14 large_display_wheel) were the only big wheels I could get to seat: 6014bc03 on a 4600 seats but its bounding box collides with anything 2 wide above the axle, and 6014bc01 on 4870 never seats.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>accent</code>, <code>frame_color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/chunky_kart.py"><code>batch-12/chunky_kart.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72036: 6554677 pp. 14-47, 6554678 pp. 17-43, 6554676 pp. 9-35</dd>
+      <dt>Key parts</dt><dd><code>3702</code> + <code>55981</code> + <code>30391</code> + <code>15535</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for chunky_kart">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for chunky_kart">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-12/curb_rumble_strip.png" alt="A sketch of curb_rumble_strip" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>curb_rumble_strip</code></h2>
+    <p>A race track's striped edge curb, curved slopes in two colors in turn, with a low rail standing behind it on brackets.</p>
+    <p class="why">Red and white curbs along a race track's edges, in any length and facing.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>facing</code>, <code>base</code>, <code>stripes</code>, <code>rail</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>13</b> of 1315 official sets (29 times); 62 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 42069 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 42078 - Mack Anthem.mpd (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 42054 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21309 - main.ldr (Jaco van der Molen [Jaco], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-12/curb_rumble_strip.py"><code>batch-12/curb_rumble_strip.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72036: 6554679 pp. 38-46</dd>
+      <dt>Key parts</dt><dd><code>15068</code> + <code>99780</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curb_rumble_strip">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for curb_rumble_strip">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-12/start_gantry.png" alt="A sketch of start_gantry" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>start_gantry</code></h2>
+    <p>A race's start and finish arch, two pillars faced with sign panels on round bases, carrying a beam with a banner of checkered flags either side of a round badge.</p>
+    <p class="why">The start and finish arch over a race track, with sign-faced pillars and a checkered banner.</p>
+    <p class="note"><b>Note:</b> The book builds each pillar lying down on Technic bricks with sticker tiles and stands it up, and uses gray truss parts for the beam; here the pillars are built upright on 22885s (the same studs-out faces) and the beam is a plate under a banner course. Sponsor stickers are plain tiles.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>span</code>, <code>courses</code>, <code>color</code>, <code>trim</code>, <code>banner</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/start_gantry.py"><code>batch-12/start_gantry.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72036: 6554679 pp. 6-37</dd>
+      <dt>Key parts</dt><dd><code>22885</code> + <code>3070bp1c</code> + <code>60474</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for start_gantry">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for start_gantry">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-12/bolted_pillar.png" alt="A sketch of bolted_pillar" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>bolted_pillar</code></h2>
+    <p>A gray game pillar 1 x 2 with handholds sticking out both ends at every brick, topped by a round platform to land on.</p>
+    <p class="why">Climbable gray pillars with a landing platform for a platform-game course.</p>
+    <p class="note"><b>Note:</b> The book's handle plate is 3839b; in LDraw 3839b's handle sits off its body box and would not seat, so this uses 18649 (handles on opposite ends). The round platform sits on one jumper stud in the middle of the 1 x 2 pillar.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>levels</code>, <code>color</code>, <code>handles</code>, <code>platform</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 2 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/bolted_pillar.py"><code>batch-12/bolted_pillar.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72040: 6596791 pp. 42-46, 54-61</dd>
+      <dt>Key parts</dt><dd><code>18649</code> + <code>60474</code> + <code>3794b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bolted_pillar">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for bolted_pillar">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-12/flip_bridge.png" alt="A sketch of flip_bridge" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>flip_bridge</code></h2>
+    <p>A plank bridge on hinges between two pillars, with a push rod through the far pillar under its free end, the game trap that flips the bridge over when the rod is shoved.</p>
+    <p class="why">A play-feature trap for a platform level: a hinged plank bridge that a push rod flips.</p>
+    <p class="note"><b>Note:</b> Static: only the shut pose is modeled. The book's rod is an axle 10; here an axle 6, because a 10 drew a weak_connection warning. The bridge's free end rests on tiles so it can flip.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>span</code>, <code>levels</code>, <code>color</code>, <code>planks</code>, <code>rod</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 20 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/flip_bridge.py"><code>batch-12/flip_bridge.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72040: 6596791 pp. 48-49, 67-72</dd>
+      <dt>Key parts</dt><dd><code>3937</code> + <code>6134</code> + <code>3700</code> + <code>3706</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for flip_bridge">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for flip_bridge">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-12/a_frame_tent.png" alt="A sketch of a_frame_tent" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>a_frame_tent</code></h2>
+    <p>A camping tent of two canvas panels leaning together on clip hinges over low side walls, open at the ends, with a sleeping bag inside.</p>
+    <p class="why">A camping tent with a sleeping bag inside for a game camp scene.</p>
+    <p class="note"><b>Note:</b> The canvas is the library's hinge_roof (clips on low walls, panels meeting at the ridge) rather than the book's two 6 x 6 plates clipped to a ridge bar. Viewed from the left, the open end.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>canvas</code>, <code>floor</code>, <code>bag</code>, <code>pillow</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>23</b> of 1315 official sets (30 times); 96 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 76042 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 10220 - Main.ldr (Stan Isachenko [angmarec], Redistributable under CCAL version 2.0); FILE 3185 - main.ldr (Takeshi Takahashi [RainbowDolphin], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-12/a_frame_tent.py"><code>batch-12/a_frame_tent.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72040: 6596791 pp. 19-31</dd>
+      <dt>Key parts</dt><dd><code>4081b</code> + <code>2540</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for a_frame_tent">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for a_frame_tent">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-12/brick_campfire.png" alt="A sketch of brick_campfire" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>brick_campfire</code></h2>
+    <p>Two crossed logs ringed by stones, with a brick of studs on four sides at the crossing carrying flames on every side and a glowing cone on top.</p>
+    <p class="why">A small campfire for a camp, a forge, or any game scene that needs fire.</p>
+    <p class="note"><b>Note:</b> The book's flame pieces are clip-on flames; here 1 x 1 cheese slopes in trans colors stand on the 4733's side studs, points up.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>logs</code>, <code>stones</code>, <code>core</code>, <code>flames</code>, <code>tip</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 9 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/brick_campfire.py"><code>batch-12/brick_campfire.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72040: 6596791 p. 30</dd>
+      <dt>Key parts</dt><dd><code>4733</code> + <code>54200</code> + <code>4589</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for brick_campfire">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for brick_campfire">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-12/crt_cabinet.png" alt="A sketch of crt_cabinet" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>crt_cabinet</code></h2>
+    <p>An old wooden television on four tapered legs, its gray front a studs-out tiled panel with a round-cornered screen and a strip of knobs, and two antennas on top.</p>
+    <p class="why">A retro television (or radio, or monitor) with a screen that can show any pixel picture.</p>
+    <p class="note"><b>Note:</b> The book rounds the screen with 27925 macaroni tiles and curved slopes; here 25269 quarter-round tiles in the screen's corners give the round corners. 3688 was never made in medium nougat, so the legs default to tan. The legs' center studs put them half a stud off the base's grid.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>screen</code>, <code>wood</code>, <code>bezel</code>, <code>glass</code>, <code>knobs</code>, <code>legs</code>, <code>picture</code>, <code>palette</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/crt_cabinet.py"><code>batch-12/crt_cabinet.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 71374: 6336693 pp. 87-123, 182-218, 230-242</dd>
+      <dt>Key parts</dt><dd><code>3688</code> + <code>25269</code> + <code>99780</code> + <code>14769</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for crt_cabinet">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for crt_cabinet">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-12/console_shell.png" alt="A sketch of console_shell" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>console_shell</code></h2>
+    <p>A boxy retro game console in two grays, a smooth dark band across its front on side studs and a tiled lid that lifts off, with a vent strip, a cartridge slot cover, and two buttons.</p>
+    <p class="why">A boxy retro home console in two grays with a lift-off lid, for retro and desk scenes.</p>
+    <p class="note"><b>Note:</b> The front band uses the library's snot_panel. No printed logo strip; the vent is grille tiles on the lid.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>body</code>, <code>band</code>, <code>buttons</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 72 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/console_shell.py"><code>batch-12/console_shell.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 71374: 6337188 pp. 148-185</dd>
+      <dt>Key parts</dt><dd><code>87087</code> + <code>2412b</code> + <code>87079</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for console_shell">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for console_shell">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-12/vent_fins.png" alt="A sketch of vent_fins" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>vent_fins</code></h2>
+    <p>A row of thin upright fins with gaps between, like a heat sink or a console's vent, from tiles on the side studs of brackets.</p>
+    <p class="why">A finned vent or heat sink for consoles, appliances, engines, and sci-fi machines.</p>
+    <p class="note"><b>Note:</b> The book stacks 99780 brackets at one-plate pitch; standing fin tiles there would sit on the next bracket's plate and studs, so here each fin is a 99207 face with a 2 x 2 tile, 2 studs apart, over a flat tile.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>count</code>, <code>color</code>, <code>fins</code>, <code>base</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>25</b> of 1315 official sets (53 times); 63 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21323 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-12/vent_fins.py"><code>batch-12/vent_fins.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 71374: 6337188 pp. 126-136</dd>
+      <dt>Key parts</dt><dd><code>99207</code> + <code>3068b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for vent_fins">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for vent_fins">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-12/controller_slab.png" alt="A sketch of controller_slab" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>controller_slab</code></h2>
+    <p>A flat retro game controller, a slab of bricks with studs on the sides tiled smooth all round, a cross pad, two round buttons, and two small pill buttons on a dark face.</p>
+    <p class="why">A retro game controller as a display piece or a desk prop.</p>
+    <p class="note"><b>Note:</b> The cord (a flexible tube) is left out. 11211 stands in for the book's 52107 at the ends of the side rows.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>body</code>, <code>face</code>, <code>pad</code>, <code>buttons</code>, <code>pills</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/controller_slab.py"><code>batch-12/controller_slab.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 71374: 6337188 pp. 191-209</dd>
+      <dt>Key parts</dt><dd><code>15397</code> + <code>30414</code> + <code>14769</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for controller_slab">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for controller_slab">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-12/game_pipe.png" alt="A sketch of game_pipe" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>game_pipe</code></h2>
+    <p>A game's green pipe, a column of round bricks under a wider round lip with a dark opening on top.</p>
+    <p class="why">A green pipe for a platform-game scene, small (2 x 2) or large (4 x 4).</p>
+    <p class="note"><b>Note:</b> Not built in 3D in any of the books (pipes appear only in the TV's pixel art); written from the style rules. Barry may want another name: 'game pipe' is strongly tied to one game.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>size</code>, <code>color</code>, <code>inside</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/game_pipe.py"><code>batch-12/game_pipe.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 71374: 6336693 pp. 150-175 (pixel art only)</dd>
+      <dt>Key parts</dt><dd><code>3941</code> + <code>87081</code> + <code>11833</code> + <code>11213</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for game_pipe">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for game_pipe">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-12/polka_dot_cube.png" alt="A sketch of polka_dot_cube" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>polka_dot_cube</code></h2>
+    <p>A white cube 4 studs a side with a big round spot standing proud on every side face and on top, like a game's spotted cap.</p>
+    <p class="why">A white cube with big red spots, the spotted-cap prop of game scenes.</p>
+    <p class="note"><b>Note:</b> The core (22885 in the middle of each side, 1 x 1 bricks and plates at the corners) is Emmet's choice.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>spots</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 11 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/polka_dot_cube.py"><code>batch-12/polka_dot_cube.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72040: 6596791 pp. 10-12; set 72036: 6554676 p. 8</dd>
+      <dt>Key parts</dt><dd><code>22885</code> + <code>14769</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for polka_dot_cube">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for polka_dot_cube">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-12/item_launcher.png" alt="A sketch of item_launcher" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>item_launcher</code></h2>
+    <p>A twin flick-fire launcher pod for a kart's nose or a turret, each barrel loaded with a round tile as the item it fires.</p>
+    <p class="why">A flick-fire launcher pod for a kart's nose or a turret, loaded with a colored item.</p>
+    <p class="note"><b>Note:</b> The book's shooter fires a shell part; the LDraw shooter here (69754, made in light bluish gray) fires a round 1 x 1 tile, placed as in the 69754c01 assembly so the tile can be any color.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>color</code>, <code>trigger</code>, <code>items</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 69754, 69755 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-12/item_launcher.py"><code>batch-12/item_launcher.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 72036: 6554676 pp. 32-34, 6554677 pp. 44-46, 6554678 pp. 40-42</dd>
+      <dt>Key parts</dt><dd><code>69754</code> + <code>69755</code> + <code>98138</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for item_launcher">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for item_launcher">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-12" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

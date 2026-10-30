@@ -14,7 +14,7 @@ or a logo in the model, and say in the reply that the model is in that style, no
    brown except wood and enemies. Two or three colors an object.
 3. Iconic objects keep their outline, from the simplest parts: an item block is a 2 x 2 block (`item_block`), a
    spotted cube is white with red round tiles (`polka_dot_cube`), a coin a round tile, a cloud white curved slopes, a
-   pipe green round bricks with a wider lip (`warp_pipe`). Floating things float on clear stands (`float_on_clear`).
+   pipe green round bricks with a wider lip (`game_pipe`). Floating things float on clear stands (`float_on_clear`).
 4. Pixel art is flat tiles, 1 stud a pixel: built flat and stood up for screens and signs, studs up only for floors
    (`pixel_mosaic_panel`, `tile_brick_texture`). Draw a texture with tile seams, not stud patterns.
 5. Level pieces: platforms on `bolted_pillar`s, a `flip_bridge`, a `start_gantry` and `curb_rumble_strip` for a race,
