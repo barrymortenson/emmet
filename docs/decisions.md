@@ -530,3 +530,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   (headlights' lenses 0.2 studs too far out, bracket_side_panel's brackets turned the wrong way, grass_edge's example
   cliff on nothing) and two candidates. The technique tests, `scripts/technique-candidates`, and the sketch checks now
   mark the example's lowest parts as ground, as a baseplate would.
+- **H-26, batch 7 (windows, doors, and porches): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-7.html`): bay_window, window_box, round_window, twin_arched_window,
+  eyebrow_arch_hood, dome_window_hood, slope_hood_small_window, lattice_shopfront, round_corner_bay, plank_door,
+  doorstep_and_mat, panel_garage_door, round_window_frame, turned_post_porch, wing_plate_porch_roof, scalloped_awning,
+  wall_lamp_bracket, hanging_planter, blade_sign, signboard_beam.

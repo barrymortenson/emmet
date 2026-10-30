@@ -112,3 +112,22 @@
 2449    # irregular_stone_wall
 2653    # white_ashlar_wall
 50950    # curved_wall_end
+
+# Session 3D, batch-7's techniques
+11833    # round_window
+27507    # round_corner_bay
+30044    # twin_arched_window
+30565    # round_corner_bay
+32607    # hanging_planter
+38320    # lattice_shopfront
+4032b    # slope_hood_small_window
+47397    # wing_plate_porch_roof
+48336    # plank_door
+5848    # signboard_beam
+5906    # dome_window_hood
+6003    # round_corner_bay
+6183    # twin_arched_window
+68568    # eyebrow_arch_hood
+73878c01    # round_corner_bay
+7904    # dome_window_hood
+79393    # round_corner_bay

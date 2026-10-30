@@ -40,7 +40,9 @@ of a tall one, its own 2 or 3 colors.
 - Door: `door_frame` (a 1 x 4 x 6 door in its frame) or `plank_door`; a `doorstep_and_mat` or steps up to it; a
   `door_hood`, `turned_post_porch`, or `porch_posts` over it.
 - Windows: `shuttered_window`, `window_frame`, `bay_window`, `twin_arched_window`, `round_window` (in a gable); dress
-  them with `window_sill`, `window_hood`, `eyebrow_arch_hood`, `dome_window_hood`, `window_box`.
+  them with `window_sill`, `window_hood`, `eyebrow_arch_hood`, `dome_window_hood`, `window_box`; a small window under
+  a sloped hood in a gable or an attic (`slope_hood_small_window`).
+- A garage or workshop: `panel_garage_door`. A porch roof on wing plates: `wing_plate_porch_roof`.
 - Shops: `shop_window`, `lattice_shopfront`, `round_corner_bay`, `scalloped_awning`, `signboard_beam`.
 
 ## Roofs
