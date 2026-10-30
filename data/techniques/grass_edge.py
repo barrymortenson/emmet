@@ -96,7 +96,7 @@ def build(m, x, y, z, length, depth=4, seed=1, color="Green", title="Grass"):
 def example(m):
     """Grass along the top of a short cliff 8 studs long."""
     with m.step("Cliff"):
-        m.add("3460", "Dark Bluish Gray", at=(0, 1, 0), rot=1)
+        m.add("3035", "Dark Bluish Gray", at=(0, 1, 0), rot=1)
         m.add("3008", "Dark Bluish Gray", at=(0, 1, 1), rot=1)
         m.add("3001", "Dark Bluish Gray", at=(0, 2, 1), rot=1)
         m.add("3001", "Dark Bluish Gray", at=(4, 2, 1), rot=1)

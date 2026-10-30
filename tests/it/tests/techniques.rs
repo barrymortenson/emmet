@@ -189,6 +189,12 @@ fn the_doctrine_or_a_guide_names_every_technique() {
     );
 }
 
+/// Stands a technique's example on its lowest level, as a baseplate would. Loose on the table, a group of parts that
+/// floats beside something passes as a separate toy put there, which hid floating lenses in headlights and a floating
+/// panel in bracket_side_panel until 3D. (Model._ids is the DSL's own record of what was placed.)
+const GROUND: &str = "low = min(p.box[0][2] for p in m._ids.values())\n    \
+                      m.ground(*[i for i, p in m._ids.items() if p.box[0][2] <= low + 0.01])\n";
+
 fn builds_clean(name: &str) {
     let dir = temp_dir(&format!("technique-{name}")).join(name);
     let out = emmet()
@@ -204,7 +210,7 @@ fn builds_clean(name: &str) {
         format!(
             "from emmet_dsl import Model, model\nfrom emmet_dsl.techniques import {name} as technique\n\n\n@model\n\
              def example():\n    \"\"\"The technique on its own.\"\"\"\n    m = Model()\n    technique.example(m)\n    \
-             return m\n"
+             {GROUND}    return m\n"
         ),
     )
     .unwrap();
