@@ -598,3 +598,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   `docs/spec/sessions/3D/`): 903 parts, a stone-and-plaster house with a bay window, a porch, a dormer, an outside
   chimney, and a roof that lifts off as one sub-assembly; two furnished rooms; a garden with a fence and gate, a path,
   a mailbox, raised lawns, a bench, hedges, and a tall tree. Knobs: season, roof, weathering, seed.
+- **The viewer budget holds on the new Cottage** (Barry, 2026-10-30: "speed it up now"). The 903-part Cottage took
+  1,221 to 1,250 ms from a slider change to the updated viewer in the E2E (debug) build, past 1B's 1 s budget; 430 ms
+  of it was the validator running unoptimized. `emmet-core` now builds at opt-level 2 in debug builds too, as every
+  dependency already did, and the same change takes 738 to 797 ms (three runs). Sending the scene before its findings
+  and caching the schema read, the other two ideas offered, aren't needed for the budget; they're left for 4C.

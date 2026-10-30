@@ -68,3 +68,9 @@ all = { level = "warn", priority = -1 }
 
 [profile.dev.package."*"]
 opt-level = 2
+
+# The engine runs optimized in debug builds too: the validator, the parts index, and the BOM run on every change in the
+# app, and unoptimized they put a debug build (E2E's) far from the release app the budgets are about. A 903-part model's
+# check took 430 ms unoptimized (3D).
+[profile.dev.package.emmet-core]
+opt-level = 2
