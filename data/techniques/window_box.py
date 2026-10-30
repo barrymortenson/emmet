@@ -15,9 +15,9 @@ from emmet_dsl import Rot
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 43268, set 11387. Not derived
 from any model file."""
 
-PARTS = ["11211", "33291", "6141", "3021", "3020", "3795", "3069b", "2431", "6636"]
+PARTS = ["11211", "33291", "6141", "3022", "3020", "3795", "3069b", "2431", "6636"]
 
-PLATES = {2: "3021", 4: "3020", 6: "3795"}  # Plate 2 x n
+PLATES = {2: "3022", 4: "3020", 6: "3795"}  # Plate 2 x n
 TILES = {2: "3069b", 4: "2431", 6: "6636"}  # Tile 1 x n
 FACE = Rot(x=90)  # a round plate on a side stud, its top to -y
 

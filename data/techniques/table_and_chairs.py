@@ -2,15 +2,16 @@
 """Table and chairs: a small round table on one leg, or a long table on four, with up to four chairs set round it, built
 apart and placed.
 
-m.use("table_and_chairs", x, y, z, shape="round", chairs=2, facing="-y", wood="Reddish Brown", top=None, title="Table")
-stands a table set on the studs at height z, its footprint's min corner at (x, y). shape="round" is a 2 x 2 round top on
+m.use("table_and_chairs", x, y, z, shape="round", chairs=2, facing="-y", wood="Reddish Brown", top=None, title="Table",
+id=None) stands a table set on the studs at height z, its footprint's min corner at (x, y). shape="round" is a 2 x 2 round top on
 a single round leg, centered on a round foot plate with one middle stud; the set is 4 x 4 studs. shape="long" is a 2 x 4
 tile top on a plate and four round legs; the set is 6 x 4 (4 x 6 facing "+x" or "-x"). Either top is 5 plates up, 2
 plates over a chair's seat. chairs (0 to 4) are set facing the table: left, right, front, then back. A chair is two
 round plates as its leg and a bracket 1 x 1 - 1 x 1 as its seat and back, the seat 3 plates up, with a tile on the back,
 which reaches 0.6 studs past the set's footprint; it's its own submodel. top colors the tabletop (wood by default). The
 set is a submodel, built once in its own steps, "<title>, table" and "<title>, chairs" (each chair "Chair, leg and
-seat"), placed in a step titled "<title>"; it returns the placed copy's Handle.
+seat"), placed in a step titled "<title>" with the id `id` (by default the submodel's own); it returns the placed copy's
+Handle.
 """
 
 from emmet_dsl import Rot
@@ -36,7 +37,7 @@ def _turn(px, py, k):
     return px, py
 
 
-def _put(m, sub, x, y, z, facing, foot):
+def _put(m, sub, x, y, z, facing, foot, id=None):
     """Places sub so the rectangle foot = (x0, y0, x1, y1) of its own frame lands with its min corner at (x, y) and
     its own z = 0 at z, its front (built toward -y) toward `facing`."""
     if facing not in FACING:
@@ -47,7 +48,9 @@ def _put(m, sub, x, y, z, facing, foot):
     feet = [_turn(px, py, k) for px in (foot[0], foot[2]) for py in (foot[1], foot[3])]
     lo = (min(p[0] for p in box), min(p[1] for p in box))
     fl = (min(p[0] for p in feet), min(p[1] for p in feet))
-    return m.place(sub, at=(x - fl[0] + lo[0], y - fl[1] + lo[1], z + bz0), rot=k)
+    return m.place(
+        sub, at=(x - fl[0] + lo[0], y - fl[1] + lo[1], z + bz0), rot=k, id=id
+    )
 
 
 # Where each chair goes round each table, in the set's own frame: (x, y, facing toward the table).
@@ -97,6 +100,7 @@ def build(
     wood="Reddish Brown",
     top=None,
     title="Table",
+    id=None,
 ):
     """The table set; returns the placed copy's Handle."""
     if shape not in SEATS:
@@ -113,7 +117,9 @@ def build(
         title=title,
     )
     with m.step(title):
-        return _put(m, sub, x, y, z, facing, (0, 0, 4 if shape == "round" else 6, 4))
+        return _put(
+            m, sub, x, y, z, facing, (0, 0, 4 if shape == "round" else 6, 4), id=id
+        )
 
 
 def example(m):

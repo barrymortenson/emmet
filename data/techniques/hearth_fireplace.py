@@ -3,14 +3,15 @@
 behind, built apart and placed against a wall.
 
 m.use("hearth_fireplace", x, y, z, facing="-y", arch=False, flue=2, candles=True, color="Light Bluish Gray",
-mantel="Medium Nougat", arch_color="Reddish Brown", title="Fireplace") stands a fireplace 4 studs wide and 2 deep on the
+mantel="Medium Nougat", arch_color="Reddish Brown", title="Fireplace", id=None) stands a fireplace 4 studs wide and 2 deep on the
 studs at height z, its footprint's min corner at (x, y) (4 x 2 for facing "-y" or "+y", 2 x 4 for "+x" or "-x"), its
 opening toward `facing`, so its back goes against a wall. It's a hearth plate, a firebox 2 studs wide and 2 bricks tall
 between two columns of masonry bricks, a black back, a grate with a triple flame, a mantel plate across the top, a
 candle on each end of the mantel, and `flue` courses of masonry rising behind it to the ceiling or a chimney. arch=True
 closes the top of the opening with a round arch in arch_color instead of square columns (the medieval look). It's a
 submodel, built once in its own steps, "<title>, hearth", "<title>, firebox", "<title>, mantel" and "<title>, flue",
-placed in a step titled "<title>"; it returns the placed copy's Handle.
+placed in a step titled "<title>" with the id `id` (by default the submodel's own); it returns the placed copy's
+Handle.
 """
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 11387, set 10354. Not derived
@@ -43,7 +44,7 @@ def _turn(px, py, k):
     return px, py
 
 
-def _put(m, sub, x, y, z, facing, foot):
+def _put(m, sub, x, y, z, facing, foot, id=None):
     """Places sub so the rectangle foot = (x0, y0, x1, y1) of its own frame lands with its min corner at (x, y) and
     its own z = 0 at z, its front (built toward -y) toward `facing`."""
     if facing not in FACING:
@@ -54,7 +55,9 @@ def _put(m, sub, x, y, z, facing, foot):
     feet = [_turn(px, py, k) for px in (foot[0], foot[2]) for py in (foot[1], foot[3])]
     lo = (min(p[0] for p in box), min(p[1] for p in box))
     fl = (min(p[0] for p in feet), min(p[1] for p in feet))
-    return m.place(sub, at=(x - fl[0] + lo[0], y - fl[1] + lo[1], z + bz0), rot=k)
+    return m.place(
+        sub, at=(x - fl[0] + lo[0], y - fl[1] + lo[1], z + bz0), rot=k, id=id
+    )
 
 
 def _fireplace(m, arch, flue, candles, color, mantel, arch_color, title):
@@ -106,6 +109,7 @@ def build(
     mantel="Medium Nougat",
     arch_color="Reddish Brown",
     title="Fireplace",
+    id=None,
 ):
     """The fireplace; returns the placed copy's Handle."""
     sub = m.submodel(
@@ -120,7 +124,7 @@ def build(
         title=title,
     )
     with m.step(title):
-        return _put(m, sub, x, y, z, facing, (0, 0, 4, 2))
+        return _put(m, sub, x, y, z, facing, (0, 0, 4, 2), id=id)
 
 
 def example(m):

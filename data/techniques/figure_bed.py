@@ -3,13 +3,14 @@
 built apart and placed.
 
 m.use("figure_bed", x, y, z, facing="-y", posts=False, frame="Reddish Brown", quilt="Blue", quilt2="White",
-pillow="White", title="Bed") stands a bed on the studs at height z, its footprint's min corner at (x, y): 2 x 6 with its
+pillow="White", title="Bed", id=None) stands a bed on the studs at height z, its footprint's min corner at (x, y): 2 x 6 with its
 foot toward `facing` "-y" or "+y", 6 x 2 for "+x" or "-x", so its head goes against the wall behind. It's two 1 x 2
 plates as legs under a 2 x 6 plate frame, a curved slope 2 x 2 as the pillow, and a quilt of 1 x 1 tiles checked in
 quilt and quilt2 that a figure lies on (its top 3 plates up). posts=False gives a brick and tile headboard; posts=True
 gives four corner posts of round bricks with cones on top, tall at the head and short at the foot (the four-poster).
 It's a submodel, built once in its own steps, "<title>, frame", "<title>, head", "<title>, foot" (with posts), and
-"<title>, quilt", placed in a step titled "<title>"; it returns the placed copy's Handle.
+"<title>, quilt", placed in a step titled "<title>" with the id `id` (by default the submodel's own); it returns
+the placed copy's Handle.
 """
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 21335, set 43268, set 11377.
@@ -31,7 +32,7 @@ def _turn(px, py, k):
     return px, py
 
 
-def _put(m, sub, x, y, z, facing, foot):
+def _put(m, sub, x, y, z, facing, foot, id=None):
     """Places sub so the rectangle foot = (x0, y0, x1, y1) of its own frame lands with its min corner at (x, y) and
     its own z = 0 at z, its front (built toward -y) toward `facing`."""
     if facing not in FACING:
@@ -42,7 +43,9 @@ def _put(m, sub, x, y, z, facing, foot):
     feet = [_turn(px, py, k) for px in (foot[0], foot[2]) for py in (foot[1], foot[3])]
     lo = (min(p[0] for p in box), min(p[1] for p in box))
     fl = (min(p[0] for p in feet), min(p[1] for p in feet))
-    return m.place(sub, at=(x - fl[0] + lo[0], y - fl[1] + lo[1], z + bz0), rot=k)
+    return m.place(
+        sub, at=(x - fl[0] + lo[0], y - fl[1] + lo[1], z + bz0), rot=k, id=id
+    )
 
 
 def _bed(m, posts, frame, quilt, quilt2, pillow, title):
@@ -88,6 +91,7 @@ def build(
     quilt2="White",
     pillow="White",
     title="Bed",
+    id=None,
 ):
     """The bed; returns the placed copy's Handle."""
     sub = m.submodel(
@@ -101,7 +105,7 @@ def build(
         title=title,
     )
     with m.step(title):
-        return _put(m, sub, x, y, z, facing, (0, 0, 2, 6))
+        return _put(m, sub, x, y, z, facing, (0, 0, 2, 6), id=id)
 
 
 def example(m):
