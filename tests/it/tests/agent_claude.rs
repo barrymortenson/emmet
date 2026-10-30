@@ -716,3 +716,41 @@ fn a_collision_finding_is_fixed_at_its_line() {
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["findings"], serde_json::json!([]));
 }
+
+/// The model and effort picker (4B): a documented alias and level reach Claude Code as `--model` and `--effort`, and a
+/// name it doesn't document never reaches its command line.
+#[test]
+fn the_model_and_effort_reach_the_cli() {
+    let rig = Rig::new("claude-model", "claude", "plain-turn");
+    let args = |n: usize| -> Vec<String> {
+        rig.record("claude", n)["args"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|a| a.as_str().map(String::from))
+            .collect()
+    };
+    let after = |a: &[String], flag: &str| a.iter().position(|x| x == flag).map(|i| a[i + 1].clone());
+    for (n, (model, effort)) in [("opus", "high"), ("gpt-6-luna", "ultra")].into_iter().enumerate() {
+        let mut cfg = rig.cfg.clone();
+        cfg.model = Some(model.into());
+        cfg.effort = Some(effort.into());
+        let (mut s, mut ev) = rig.start_with(CLAUDE, cfg);
+        s.send(turn("Reply with exactly the word: ready")).unwrap();
+        let events = ev.turn();
+        s.close();
+        let a = args(n);
+        if n == 0 {
+            assert_eq!(after(&a, "--model").as_deref(), Some("opus"));
+            assert_eq!(after(&a, "--effort").as_deref(), Some("high"));
+            let Some(AgentEvent::Models { models }) = events.iter().find(|e| matches!(e, AgentEvent::Models { .. }))
+            else {
+                panic!("no Models event");
+            };
+            let ids: Vec<&str> = models.iter().map(|m| m.id.as_str()).collect();
+            assert_eq!(ids, ["", "fable", "opus", "sonnet", "haiku"]);
+        } else {
+            assert!(!a.iter().any(|x| x == "--model" || x == "--effort"), "{a:?}");
+        }
+    }
+}

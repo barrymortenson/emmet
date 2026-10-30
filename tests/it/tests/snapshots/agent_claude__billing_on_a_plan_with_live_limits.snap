@@ -1,10 +1,12 @@
 ---
 source: tests/it/tests/agent_claude.rs
+assertion_line: 442
 expression: rig.outline(&events)
 ---
 {
   "stream": [
     "started claude-haiku-5-5 (plan)",
+    "models 5",
     "text: ready",
     "limits 5-hour 3%, Week 12%",
     "usage",

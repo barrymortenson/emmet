@@ -68,6 +68,42 @@ pub fn plan_billing() -> Billing {
     }
 }
 
+/// `model/list`'s result as the picker's choices: Codex's default first (its own model id is left out, so a new
+/// default reaches the user), then each model it doesn't hide, with the efforts it supports.
+fn models(r: &Value) -> Vec<crate::ModelChoice> {
+    let list = r["data"].as_array().cloned().unwrap_or_default();
+    let efforts = |m: &Value| -> Vec<String> {
+        m["supportedReasoningEfforts"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|e| e["reasoningEffort"].as_str().map(String::from))
+            .collect()
+    };
+    let default = list.iter().find(|m| m["isDefault"] == true);
+    let mut out = vec![crate::ModelChoice {
+        id: String::new(),
+        name: "Default".into(),
+        efforts: default.map(efforts).unwrap_or_default(),
+        default_effort: default.and_then(|m| m["defaultReasoningEffort"].as_str().map(String::from)),
+    }];
+    out.extend(
+        list.iter()
+            .filter(|m| m["hidden"] != true && m["id"].as_str().is_some_and(crate::model_id))
+            .map(|m| crate::ModelChoice {
+                id: m["id"].as_str().unwrap_or_default().into(),
+                name: m["displayName"]
+                    .as_str()
+                    .or(m["id"].as_str())
+                    .unwrap_or_default()
+                    .into(),
+                efforts: efforts(m),
+                default_effort: m["defaultReasoningEffort"].as_str().map(String::from),
+            }),
+    );
+    out
+}
+
 /// A TOML basic string, for a `-c key=value` override.
 fn toml(s: &str) -> String {
     let mut out = String::from('"');
@@ -165,6 +201,7 @@ fn spawn(cfg: &SessionConfig, bin: &Path, plan: bool, secret: &str, secrets: Vec
         cwd: cfg.project.display().to_string(),
         resume: cfg.resume.clone(),
         model: cfg.model.clone(),
+        effort: cfg.effort.clone(),
         plan,
         ..Default::default()
     };
@@ -454,6 +491,7 @@ enum Sent {
     Turn,
     Steer(UserNote),
     Interrupt,
+    Models,
 }
 
 #[derive(Default)]
@@ -461,6 +499,9 @@ struct CodexProto {
     cwd: String,
     resume: Option<String>,
     model: Option<String>,
+    effort: Option<String>,
+    /// `model/list`'s answer when it comes before the thread: Started is the stream's first event.
+    models: Option<Vec<crate::ModelChoice>>,
     next: u64,
     sent: HashMap<u64, Sent>,
     thread: Option<String>,
@@ -497,6 +538,7 @@ impl CodexProto {
         let p = TurnStartParams {
             thread_id: thread,
             input: vec![UserInput::Text { text: text.into() }],
+            effort: self.effort.clone(),
         };
         self.request("turn/start", to(&p), Sent::Turn, io);
     }
@@ -527,7 +569,7 @@ impl CodexProto {
                     reason: DoneReason::Failed,
                 });
             }
-            (Sent::Interrupt, Some(_)) => {}
+            (Sent::Interrupt | Sent::Models, Some(_)) => {}
             (_, Some(e)) => io.emit(AgentEvent::Error {
                 code: AgentErrorCode::Agent,
                 message: format!(
@@ -538,6 +580,12 @@ impl CodexProto {
             (Sent::Initialize, None) => {
                 io.write(json!({ "method": "initialized" }));
                 self.request("account/read", json!({}), Sent::Account, io);
+                self.request(
+                    "model/list",
+                    to(&ModelListParams { include_hidden: false }),
+                    Sent::Models,
+                    io,
+                );
             }
             (Sent::Account, None) => {
                 if r["requiresOpenaiAuth"] == true {
@@ -577,6 +625,9 @@ impl CodexProto {
                     model: r["model"].as_str().map(String::from),
                     billing: Some(if self.plan { plan_billing() } else { key_billing() }),
                 });
+                if let Some(models) = self.models.take() {
+                    io.emit(AgentEvent::Models { models });
+                }
                 for text in std::mem::take(&mut self.waiting) {
                     self.start_turn(&text, io);
                 }
@@ -591,6 +642,8 @@ impl CodexProto {
                 }
             }
             (Sent::Interrupt, None) => {}
+            (Sent::Models, None) if self.thread.is_some() => io.emit(AgentEvent::Models { models: models(r) }),
+            (Sent::Models, None) => self.models = Some(models(r)),
         }
     }
 

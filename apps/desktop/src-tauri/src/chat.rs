@@ -362,6 +362,7 @@ fn start(app: &AppHandle, root: PathBuf, kind: AgentKind, resume: bool) -> Resul
             AgentKind::Claude => crate::prefs::prefs(&state.data).claude_model,
             AgentKind::Codex => None,
         },
+        effort: None,
         env: state.chat.env().to_vec(),
         hub: state.chat.hub.clone(),
         native_steer: true,

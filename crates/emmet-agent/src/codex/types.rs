@@ -53,6 +53,15 @@ pub enum UserInput {
 pub struct TurnStartParams {
     pub thread_id: String,
     pub input: Vec<UserInput>,
+    /// The reasoning effort for this turn and after, one the model's `supportedReasoningEfforts` lists.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effort: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelListParams {
+    pub include_hidden: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -131,7 +140,12 @@ pub fn sent_examples() -> Vec<(&'static str, Value)> {
             to(&TurnStartParams {
                 thread_id: "t".into(),
                 input: vec![UserInput::Text { text: "hi".into() }],
+                effort: Some("medium".into()),
             }),
+        ),
+        (
+            "v2/ModelListParams.json",
+            to(&ModelListParams { include_hidden: false }),
         ),
         (
             "v2/TurnSteerParams.json",
@@ -211,6 +225,8 @@ pub const READS: &[(&str, &str)] = &[
     ("v2/ThreadStartResponse.json", "thread.id"),
     ("v2/ThreadStartResponse.json", "model"),
     ("v2/ThreadResumeResponse.json", "thread.id"),
+    ("v2/ModelListResponse.json", "data"),
+    ("v2/ModelListResponse.json", "nextCursor"),
     ("v2/TurnStartResponse.json", "turn.id"),
     ("v2/TurnStartedNotification.json", "turn.id"),
     ("v2/TurnCompletedNotification.json", "turn.status"),
@@ -275,4 +291,5 @@ pub const CLIENT_METHODS: &[&str] = &[
     "turn/start",
     "turn/steer",
     "turn/interrupt",
+    "model/list",
 ];

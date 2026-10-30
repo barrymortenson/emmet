@@ -1,10 +1,12 @@
 ---
 source: tests/it/tests/agent_codex.rs
+assertion_line: 616
 expression: rig.outline(&events)
 ---
 {
   "stream": [
     "started gpt-6.1-sol (API key)",
+    "models 9",
     "text: I’ll check the model’s height settings and adjust it to 10 bricks high.",
     "tool_call mcp__emmet__rules",
     "tool_result ok # Emmet doctrine",

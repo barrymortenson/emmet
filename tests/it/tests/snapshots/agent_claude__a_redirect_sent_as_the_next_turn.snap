@@ -1,10 +1,12 @@
 ---
 source: tests/it/tests/agent_claude.rs
+assertion_line: 254
 expression: rig.outline(&all)
 ---
 {
   "stream": [
     "started claude-haiku-5-5 (API key)",
+    "models 5",
     "text: ready",
     "usage",
     "turn_done Completed",

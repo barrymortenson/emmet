@@ -82,7 +82,7 @@ fn plain_turn() {
             ..
         }
     ));
-    // The handshake section 10 describes, in order.
+    // The handshake section 10 describes, in order; model/list feeds the model and effort picker (4B).
     let methods: Vec<String> = rig
         .written()
         .iter()
@@ -94,6 +94,7 @@ fn plain_turn() {
             "initialize",
             "initialized",
             "account/read",
+            "model/list",
             "thread/start",
             "turn/start"
         ]
@@ -1027,4 +1028,29 @@ fn plan_use_lost_at_refresh_stops_turns() {
         "no restart on a plan that's off"
     );
     s.close();
+}
+
+/// The model and effort picker (4B): the model goes to thread/start, the effort to every turn/start, and the choices
+/// are Codex's own `model/list`, its default first.
+#[test]
+fn the_model_and_effort_reach_the_cli() {
+    let rig = rig("codex-model", "plain-turn");
+    let mut cfg = rig.cfg.clone();
+    cfg.model = Some("gpt-6-luna".into());
+    cfg.effort = Some("high".into());
+    let (mut s, mut ev) = rig.start_with(CODEX, cfg);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let sent = rig.written();
+    let by = |m: &str| sent.iter().find(|v| v["method"] == m).cloned().unwrap();
+    assert_eq!(by("thread/start")["params"]["model"], "gpt-6-luna");
+    assert_eq!(by("turn/start")["params"]["effort"], "high");
+    let Some(AgentEvent::Models { models }) = events.iter().find(|e| matches!(e, AgentEvent::Models { .. })) else {
+        panic!("no Models event");
+    };
+    assert_eq!((models[0].id.as_str(), models[0].name.as_str()), ("", "Default"));
+    let luna = models.iter().find(|m| m.id == "gpt-6-luna").unwrap();
+    assert_eq!(luna.efforts, ["low", "medium", "high", "xhigh", "max"]);
+    assert_eq!(luna.default_effort.as_deref(), Some("medium"));
 }

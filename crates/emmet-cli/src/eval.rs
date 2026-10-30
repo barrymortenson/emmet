@@ -332,6 +332,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         emmet,
         resume: None,
         model: None,
+        effort: None,
         env,
         hub: hub.clone(),
         native_steer: true,

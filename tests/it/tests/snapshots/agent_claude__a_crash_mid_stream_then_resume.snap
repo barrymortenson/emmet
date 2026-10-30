@@ -1,10 +1,12 @@
 ---
 source: tests/it/tests/agent_claude.rs
+assertion_line: 336
 expression: rig.outline(&events)
 ---
 {
   "stream": [
     "started claude-haiku-5-5 (API key)",
+    "models 5",
     "tool_call ToolSearch",
     "tool_result ok mcp__emmet__ping",
     "tool_call mcp__emmet__ping",

@@ -102,6 +102,7 @@ impl Rig {
                 emmet: emmet_bin(),
                 resume: None,
                 model: None,
+                effort: None,
                 env: vec![],
                 hub: hub(),
                 native_steer: true,
@@ -408,6 +409,7 @@ pub fn outline(events: &[AgentEvent]) -> Vec<String> {
             }
             AgentEvent::NoteDelivered { path, .. } => format!("note_delivered {path:?}"),
             AgentEvent::Usage { .. } => "usage".into(),
+            AgentEvent::Models { models } => format!("models {}", models.len()),
             AgentEvent::TurnDone { reason } => format!("turn_done {reason:?}"),
             AgentEvent::Limits { snapshot } => format!(
                 "limits {}",
