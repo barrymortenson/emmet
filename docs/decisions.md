@@ -540,3 +540,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   studs_up_snow_roof, mansard_module, cross_gable, curved_dormer, mini_dormer, roof_cresting, pyramid_spire_tower,
   ribbed_hip_roof, tapered_tower_cap, banded_chimney, sideways_chimney_column, roof_hatch, lean_to_awning,
   half_roof_hinge, overlap_tile_roof, roof_eaves_overhang_frame, eaves_fascia.
+- **H-26, batch 9 (rooms and furniture): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-9.html`): hearth_fireplace, wood_stove, figure_bed, armchair_and_sofa,
+  kitchen_counter, table_and_chairs, wall_shelf, wall_picture_and_clock, plank_floor, floor_rug, floor_lamp_and_candle,
+  interior_arch_doorway, loft_half_floor, cross_display_stand, curved_booth, bar_counter, display_case_counter,
+  upright_piano, dresser_shelf, bookcase.

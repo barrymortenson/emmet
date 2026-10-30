@@ -140,3 +140,17 @@
 30367c    # tapered_tower_cap
 3688    # pyramid_spire_tower
 3957b    # pyramid_spire_tower
+
+# Session 3D, batch-9's techniques
+14769p0a    # wall_picture_and_clock
+18674    # table_and_chairs
+2343    # bar_counter
+2431px0    # upright_piano
+3068bp71    # wall_picture_and_clock
+36840    # table_and_chairs
+37775    # hearth_fireplace
+3899    # wood_stove
+4599b    # kitchen_counter
+67095    # floor_rug
+92950    # interior_arch_doorway
+95228    # wall_shelf
