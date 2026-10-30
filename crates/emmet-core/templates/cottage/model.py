@@ -4,6 +4,9 @@ import random
 from typing import Annotated, Literal
 
 from emmet_dsl import Brick, Color, Model, Plate, Range, Rot, Step, Tile, frame, model
+from emmet_dsl.core import (
+    in_steps,
+)  # steps of at most the Age setting's target: 4 for 4+, 12 for 18+, 8 otherwise
 
 # The baseplate is half a plate thick, so everything on it starts at z = 0.5.
 BASEPLATE = 0.5
@@ -19,9 +22,6 @@ LOGS = {4: "30137", 2: "30136", 1: "3005"}
 
 # The walls' brick lengths: 1 x 4 and shorter come in the most colors.
 WALL_BRICKS = [1, 2, 3, 4]
-
-# A step adds at most this many parts: the 6+ target (plan section 08's step rules).
-STEP = 8
 
 
 def lengths(n, sizes):
@@ -45,25 +45,6 @@ def staggered(n, sizes, course):
 def piece(m, part, color, at, rot=0, id=None):
     """One part as an in_steps action."""
     return (1, lambda: m.add(part, color, at=at, rot=rot, id=id))
-
-
-def in_steps(m, title, actions):
-    """Runs actions, each (how many parts it adds, a function that adds them), in steps of at most STEP parts. A step
-    that has to split is titled "title (1 of 2)", and so on; an action's parts (a frame and its glass) stay together."""
-    chunks, count = [[]], 0
-    for n, add in actions:
-        if chunks[-1] and count + n > STEP:
-            chunks.append([])
-            count = 0
-        chunks[-1].append(add)
-        count += n
-    chunks = [c for c in chunks if c]
-    for i, chunk in enumerate(chunks):
-        with m.step(
-            title if len(chunks) == 1 else f"{title} ({i + 1} of {len(chunks)})"
-        ):
-            for add in chunk:
-                add()
 
 
 def runs(cells, axis):

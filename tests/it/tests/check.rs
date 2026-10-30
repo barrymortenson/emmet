@@ -206,6 +206,8 @@ fn the_cottage_validates_clean_at_every_corner() {
         &["roof_style=slate"],
         &["roof_style=shingles"],
         &["roof_style=thatch", "season=winter"],
+        // A span that leaves 2 studs over finishes the thatch ridge with curved-top bricks.
+        &["roof_style=thatch", "width=14", "chimney=false"],
         &["wall_finish=brick"],
         &["wall_finish=timber", "weathering=30", "seed=5"],
         &["wall_finish=siding", "roof=false"],

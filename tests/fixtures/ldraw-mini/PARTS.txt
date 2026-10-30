@@ -261,3 +261,4 @@
 
 # Session 3D, the Cottage's knobs
 6192b    # the Cottage
+5841    # the Cottage, the thatch ridge's end

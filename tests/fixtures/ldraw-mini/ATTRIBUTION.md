@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 445 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 446 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -846,6 +846,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/55981.dat | Wheel Rim 14 x 18 with Holes on Both Sides (Needs Work) | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/55982.dat | Wheel Rim 14 x 18 with Axlehole | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/58090.dat | Tyre 14/ 50 x 17 VR | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/5841.dat | Brick  2 x  1 x  1 with Curved Top | Jeff Jones [notmaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/5848.dat | Brick  1 x  1 x  1 Round Quarter Dome with Curved Top | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/5852.dat | Brick  2 x  2 x  0.667 Quarter Circle with Curved Top | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/5906.dat | Brick 2 x 2 x 1.667 Corner Round with Curved Top | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
