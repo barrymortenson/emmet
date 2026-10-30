@@ -149,7 +149,16 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-10-29 (D-43): merged with the 'both OSes' items met on macOS; the Windows pass checks first run, trust, import, panel, the side-by-sides, and the title-row menus. A version without build placements can't be restored from the app yet (a design question)"
     },
-    "3D": { status: "review", pr: 43, branch: "bmortenson/s3d-book-techniques-cottage", started: "2026-10-29" },
+    "3D": {
+      status: "done", pr: 43, branch: "bmortenson/s3d-book-techniques-cottage", started: "2026-10-29",
+      evidence: [
+        "CI ci check green #43; Phase 3 exit check in the PR description",
+        "tests/it/tests/{techniques,guides}.rs (381 and 6 passed); check.rs::the_cottage_validates_clean_at_every_corner; mcp.rs::guide_tool",
+        "260 of 260 book candidates accepted (H-26), 378 techniques in all; 19 guides in crates/emmet-cli/doctrine/guides/",
+        "live check: Claude Code read guide unprompted for a blocky house, a micro city block, and a sports car (docs/spec/sessions/3D/)"
+      ],
+      note: "The viewer budget holds with little margin on this Mac (738 to 1,076 ms for the 903-part Cottage); sending the scene before its findings is left for 4C. Follow-ups #36 to #42; Phase 3's Delivers line doesn't name 3D"
+    },
     "4B": { status: "todo" },
     "4C": { status: "todo" },
     "4D": { status: "todo" },
