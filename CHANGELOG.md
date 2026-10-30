@@ -159,6 +159,16 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   (118 in all): houses and town buildings (stone corners, siding, half-timbering, sills, hoods, shutters, dormers,
   chimneys, lift-off roofs and floors), vehicles and trains (headlights, grilles, cabs, hinged hoods and tailgates, a
   hitch, a carriage), landscape and nature, castles and ships, and sci-fi and mechanisms. Each technique has a `PROVENANCE` note, which `emmet technique` and MCP `technique` return.
+- Building styles from all of Barry's instruction books (session 3D, D-51): ten readers took methods (never pages)
+  from 92 booklets of about 55 sets, and 260 techniques joined the library in thirteen reviewed batches (378 in all):
+  house walls and facades, windows, doors, and porches, roofs and chimneys, rooms and furniture, gardens, blocky
+  worlds, video-game worlds and retro hardware, vehicles at figure scale (with car wheels at last) and at large scale,
+  micro and micropolis, sculptures and brick-built letters, sci-fi rooms and ships, and midi ships and architecture.
+- Build guides: one for each scale (micro, micropolis, midi, figure, large, car 1:8), each style (town, medieval,
+  blocky, video game, dinosaur park, space, pirate, modern, fantasy, sculpture), and each subject (vehicles, interiors,
+  landscaping), in plain rules with the techniques to reach for. `emmet guide` and the MCP `guide` tool give the ones
+  for the project's build settings, or one by name, and the doctrine reads them before the first draft.
+- Options → Style offers Video game and Sculpture (design change note 002).
 - LDraw files saved with a byte order mark (from Windows editors, and in some OMR files) read like any other, in the
   engine and in `import_ldraw`.
 - The doctrine says how official sets are built (no joint on a joint, tie the layers, smooth faces on side studs) and
@@ -173,6 +183,10 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Fixed
 
+- headlights' lenses floated 0.2 studs in front of their bricks, bracket_side_panel hung its panel on the brackets'
+  backs, and grass_edge's example cliff stood on nothing; the checks that let them through are stricter now (3D).
+- window_box built a 2-long box on a 2 x 3 plate (3D).
+
 - Versions never read or write through a link, and an untrusted project's versions can't be restored or copied out as
   a trusted project. An export's file name can't leave Downloads, whatever the project calls itself (4A).
 - The cottage template at an odd width (7, 9, …): the ceiling left one stud unplated, and the roof above it floated.
@@ -181,6 +195,13 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   Windows (1F, found in its Windows hand check).
 
 ### Changed
+
+- The Cottage template is rebuilt as the MVP's example (3D, Barry's yes): a stone-and-plaster cottage with a bay
+  window, a porch, a dormer, an outside chimney, two furnished rooms, a roof that lifts off as one piece, and a garden,
+  903 parts. Its knobs are season, roof, weathering, and seed; width and depth are 14–20 and 10–12.
+- Technique examples are checked standing on their lowest level, as on a baseplate, so a floating part can't pass as a
+  separate toy on the table.
+- Search ranks corner shapes ("Corner Round") below plain ones unless the query says "corner".
 
 - `m.wall` lays each course in bond over the joints of the course below that a `m.wall` laid, so no joint sits on a
   joint and the course over a door or a window bridges its edges. The cottage template is rebuilt to it: long bricks
