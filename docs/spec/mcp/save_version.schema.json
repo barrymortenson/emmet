@@ -1,0 +1,311 @@
+{
+  "name": "save_version",
+  "description": "Save the model's sources as a named version, which the user can compare and restore from the app's Versions\nlist. Save one before a risky change, like reworking the whole roof.",
+  "input": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "name": {
+        "description": "A few words for the version, in the user's terms (\"Before the steeper roof\").",
+        "type": "string"
+      },
+      "note": {
+        "default": null,
+        "description": "Why it was saved, when that helps later.",
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "type": "object"
+  },
+  "output": {
+    "$defs": {
+      "Details": {
+        "description": "Where an error happened and what else helps fix it. Every field is optional.",
+        "properties": {
+          "excerpt": {
+            "description": "The source line, as written.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "description": "The file: relative to the project root for model errors, otherwise the full path.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line": {
+            "description": "1-based line in `file`.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "suggestions": {
+            "description": "Close matches; part ids for `UNKNOWN_PART` (color and parameter suggestions are in the hint).",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Error": {
+        "description": "A failure: what happened, where, and what to try.",
+        "properties": {
+          "code": {
+            "$ref": "#/$defs/ErrorCode"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Details"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hint": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "hint"
+        ],
+        "type": "object"
+      },
+      "ErrorCode": {
+        "description": "The error codes in plan section 09.",
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "PROJECT_UNTRUSTED",
+          "MODEL_EXEC_FAILED",
+          "MODEL_TIMEOUT",
+          "MODEL_TOO_LARGE",
+          "UNKNOWN_PART",
+          "UNKNOWN_COLOR",
+          "PARAM_INVALID",
+          "LIBRARY_MISSING",
+          "LIBRARY_CORRUPT",
+          "PYTHON_MISSING",
+          "RENDER_UNAVAILABLE",
+          "IO_ERROR",
+          "INTERNAL"
+        ],
+        "type": "string"
+      },
+      "Meta": {
+        "description": "Facts about the run that produced a result.",
+        "properties": {
+          "emmet": {
+            "description": "The Emmet version.",
+            "type": "string"
+          },
+          "generation": {
+            "description": "The project's run counter, after a run.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "inputs_hash": {
+            "description": "sha256 of the model's inputs (plan section 07), after a run.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ms": {
+            "description": "Wall time of the command in milliseconds.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project": {
+            "description": "The project root, when the command ran in one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "emmet",
+          "ms"
+        ],
+        "type": "object"
+      },
+      "UserNote": {
+        "description": "A message the user typed while the agent worked, attached to an MCP tool result (D-33, plan section 09). Only\n`emmet mcp --session` (the app's chat) ever sets these.",
+        "properties": {
+          "at": {
+            "description": "When the user sent it, as RFC 3339.",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "at"
+        ],
+        "type": "object"
+      },
+      "Version": {
+        "description": "`history/<n>-<slug>/version.json`.",
+        "properties": {
+          "auto": {
+            "description": "Saved by Emmet (before a restore; from 4B, before an agent's turn too) rather than by the user.",
+            "type": "boolean"
+          },
+          "dir": {
+            "description": "Its folder in history/.",
+            "type": "string"
+          },
+          "inputs_hash": {
+            "description": "manifest.json's inputs hash of that build, when it was current.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "n": {
+            "description": "From 1, in the order they were saved.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parts": {
+            "description": "The build's part count, when the build was current.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "placements": {
+            "default": false,
+            "description": "Whether it has its build's placements.json, to show it without running it.",
+            "type": "boolean"
+          },
+          "thumbnail": {
+            "default": false,
+            "description": "Whether it has a thumbnail.png.",
+            "type": "boolean"
+          },
+          "time": {
+            "description": "When it was saved, in seconds since 1970 (UTC).",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "n",
+          "name",
+          "time",
+          "auto",
+          "dir"
+        ],
+        "type": "object"
+      },
+      "Warning": {
+        "description": "A non-fatal note attached to a success.",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "data": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Version"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Error"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "meta": {
+        "$ref": "#/$defs/Meta"
+      },
+      "ok": {
+        "type": "boolean"
+      },
+      "user_notes": {
+        "description": "What the user just said, newest last. It overrides the current plan (the doctrine says how to handle it).",
+        "items": {
+          "$ref": "#/$defs/UserNote"
+        },
+        "type": "array"
+      },
+      "warnings": {
+        "items": {
+          "$ref": "#/$defs/Warning"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "ok",
+      "warnings",
+      "meta"
+    ],
+    "type": "object"
+  }
+}

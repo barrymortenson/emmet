@@ -126,6 +126,7 @@ async fn lists_exactly_the_tools_built_so_far() {
         [
             "api",
             "bom",
+            "camera",
             "get_params",
             "guide",
             "highlight",
@@ -134,7 +135,9 @@ async fn lists_exactly_the_tools_built_so_far() {
             "render",
             "rules",
             "run_model",
+            "save_version",
             "search_parts",
+            "selection",
             "set_params",
             "steps",
             "technique",
@@ -360,6 +363,79 @@ async fn highlight() {
     assert!(!c.is_error, "{}", c.envelope);
     assert_eq!(c.envelope["data"]["delivered"], false);
     assert!(c.text.starts_with("Emmet app not open"), "{}", c.text);
+}
+
+/// camera and selection ask the open app about this project (4B): the view to turn to, and what the user picked. With
+/// no app, they say so; a view the viewer doesn't have is a usage error.
+#[tokio::test]
+async fn camera_and_selection() {
+    let data = temp_dir("mcp-camera");
+    let dir = project("scene-colors");
+    let root = emmet_core::fsx::canonical(&dir).unwrap().display().to_string();
+    let seen = std::sync::Arc::new(std::sync::Mutex::new(vec![]));
+    let log = seen.clone();
+    let _bus = emmet_bus::Server::start(&emmet_core::data::DataDir::at(&data), move |msg| {
+        log.lock().unwrap().push(msg.clone());
+        match msg {
+            emmet_bus::Message::Camera { project, view } if project == root => emmet_bus::Reply {
+                delivered: true,
+                camera: Some(json!({ "view": view.unwrap_or_else(|| "iso".into()) })),
+                ..Default::default()
+            },
+            emmet_bus::Message::Selection { project } if project == root => emmet_bus::Reply {
+                delivered: true,
+                camera: Some(json!({ "view": "front" })),
+                selected: vec!["p1".into(), "p2".into()],
+                ..Default::default()
+            },
+            _ => emmet_bus::Reply::undelivered("that project isn't open in Emmet"),
+        }
+    })
+    .unwrap();
+    let client = connect_with(Some(&dir), &data).await;
+    for name in ["camera", "selection"] {
+        assert_matches_committed(&client, name);
+    }
+    let c = client.call("camera", json!({ "view": "Top" })).await;
+    assert_eq!(c.envelope["data"]["view"], "top", "{}", c.envelope);
+    assert!(matches!(&seen.lock().unwrap()[0], emmet_bus::Message::Camera { view: Some(v), .. } if v == "top"));
+    let c = client.call("selection", json!({})).await;
+    assert_eq!(c.envelope["data"]["selected"], json!(["p1", "p2"]));
+    assert_eq!(c.text, "The viewer shows the front view. Selected (2): p1, p2.");
+    let c = client.call("camera", json!({ "view": "underneath" })).await;
+    assert!(c.is_error);
+    assert_eq!(c.envelope["error"]["code"], "PARAM_INVALID");
+    assert_eq!(seen.lock().unwrap().len(), 2, "a bad view never reaches the app");
+
+    let client = connect(Some(&dir)).await;
+    let c = client.call("selection", json!({})).await;
+    assert_eq!(c.envelope["data"]["delivered"], false);
+    assert!(c.text.starts_with("Emmet app not open"), "{}", c.text);
+}
+
+/// save_version saves the sources as a named version the app lists, as the user's own (never pruned with Emmet's).
+#[tokio::test]
+async fn save_version_tool() {
+    let dir = project("scene-colors");
+    let client = connect(Some(&dir)).await;
+    assert_matches_committed(&client, "save_version");
+    let c = client
+        .call(
+            "save_version",
+            json!({ "name": "Before the steeper roof", "note": "the roof is next" }),
+        )
+        .await;
+    assert!(!c.is_error, "{}", c.envelope);
+    assert_eq!(c.envelope["data"]["name"], "Before the steeper roof");
+    assert_eq!(c.envelope["data"]["auto"], false);
+    assert_eq!(c.text, "Saved version 1: Before the steeper roof.");
+    let p = emmet_core::project::Project::find(Some(&dir)).unwrap();
+    let saved = emmet_core::versions::get(&p, 1).unwrap();
+    assert_eq!(saved.note.as_deref(), Some("the roof is next"));
+    assert_eq!(
+        std::fs::read(dir.join("history").join(&saved.dir).join("model.py")).unwrap(),
+        std::fs::read(dir.join("model.py")).unwrap()
+    );
 }
 
 /// A finding id highlights the finding's parts; one that build/validation.json doesn't have is a usage error.

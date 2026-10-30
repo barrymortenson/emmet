@@ -41,7 +41,13 @@ Read the guide, then run → validate → render → fix, every time:
    fix one, say which and why.
 5. Call `render` and look at the picture: proportions, openings, roof. Fix what's wrong, then run and validate again.
 
-`highlight` with a finding id (`finding: "F-0003"`) shows the user the parts you're talking about.
+`highlight` with a finding id (`finding: "F-0003"`) shows the user the parts you're talking about. When the user
+says "this" or "these", `selection` says which parts they've picked in the app and which view they're looking at;
+`camera` turns the view to show them something. A message from the app may end with "[Emmet context]": what the
+user had selected and was looking at when they sent it, and the details behind a finding or a failed build.
+
+Call `save_version` before a risky change (reworking the roof, swapping every wall part, a new arrangement), named
+in the user's words, so they can go back to it. Emmet saves one on its own before each of your turns too.
 
 `params.json` holds the user's knob settings: never write it. To check other values of your params (the widest,
 the smallest), call `validate` with `params`: it runs the model with them and checks that build in one call, and

@@ -351,6 +351,35 @@ fn highest_folder(history: &Path) -> u32 {
         .unwrap_or(0)
 }
 
+/// Whether the project's sources are byte for byte the ones version `n` holds, with none added or removed: an agent's
+/// turn that leaves them so changed nothing (4B).
+pub fn unchanged_since(project: &Project, n: u32) -> Result<bool> {
+    let v = get(project, n)?;
+    let dir = project.root.join("history").join(&v.dir);
+    let (mut theirs, mut mine) = (version_sources(&dir), sources(project));
+    theirs.sort();
+    mine.sort();
+    Ok(theirs == mine
+        && mine
+            .iter()
+            .all(|rel| std::fs::read(dir.join(rel)).ok() == std::fs::read(project.root.join(rel)).ok()))
+}
+
+/// Removes one of Emmet's own versions: the one saved before an agent's turn that changed nothing. A version the user
+/// saved is never removed.
+pub fn discard(project: &Project, n: u32) -> Result<()> {
+    let v = get(project, n)?;
+    if !v.auto {
+        return Err(Error::new(
+            ErrorCode::IoError,
+            format!("Version {n} is one you saved, so Emmet won't remove it."),
+            "",
+        ));
+    }
+    let dir = history(project)?.join(&v.dir);
+    std::fs::remove_dir_all(&dir).map_err(|e| Error::io(&dir, e))
+}
+
 /// Removes Emmet's own versions past the newest [`KEEP_AUTO`].
 fn prune(project: &Project) -> Result<()> {
     let history = project.root.join("history");

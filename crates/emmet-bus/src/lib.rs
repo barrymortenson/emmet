@@ -48,6 +48,15 @@ pub enum Message {
     },
     /// Highlight parts by Emmet id in the open viewer.
     Highlight { project: String, ids: Vec<String> },
+    /// Turn the open viewer to `view` (iso, front, top, back, left, right), or with none, read it. The reply's
+    /// `camera` is `{view}`.
+    Camera {
+        project: String,
+        #[serde(default)]
+        view: Option<String>,
+    },
+    /// What the user has selected in the open viewer: the reply's `selected`, and its `camera` the view.
+    Selection { project: String },
     /// `emmet_host approve`, Claude Code's permission prompt (plan section 10): the app shows an approval card for the
     /// chat session and replies with the decision as `answer`. Held open until the user decides.
     Approve {
@@ -137,6 +146,9 @@ pub struct Reply {
     pub camera: Option<serde_json::Value>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub highlighted: Vec<String>,
+    /// The ids the user has selected, for `selection`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub selected: Vec<String>,
     /// The answer to `approve`, `ask`, or `notes`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub answer: Option<serde_json::Value>,

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-viewer-state"
+description = "Enables the viewer_state command without any pre-configured scope."
+commands.allow = ["viewer_state"]
+
+[[permission]]
+identifier = "deny-viewer-state"
+description = "Denies the viewer_state command without any pre-configured scope."
+commands.deny = ["viewer_state"]
