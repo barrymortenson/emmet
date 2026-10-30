@@ -50,7 +50,10 @@ of a tall one, its own 2 or 3 colors.
 `gable_roof` is the default; then `hip_roof`, `mansard_module` (a town house's steep top story), `cross_gable` (breaks a
 long roof, carries a nameplate), `roof_dormer`, `curved_dormer`, `mini_dormer`, `ridge_cap`, `roof_cresting`,
 `studs_up_snow_roof` or `snow_cap` in winter. Roof surfaces: plain slopes at Low detail, `plate_shingle_roof`,
-`tile_stripe_shingles`, or `tiled_roof_panel` at High. Seat it with `lift_off_roof_seat` so it lifts off.
+`tile_stripe_shingles`, `overlap_tile_roof`, or `tiled_roof_panel` at High; a `ribbed_hip_roof` for a pavilion or a
+shop. Seat it with `lift_off_roof_seat` so it lifts off, or build it on a `roof_eaves_overhang_frame` that overhangs
+the walls a stud and lifts off with it. Small roofs: a `lean_to_awning` over a porch or a back door, a `roof_hatch`
+in a flat roof. A chimney built sideways against a gable: `sideways_chimney_column`.
 
 ## Layout
 

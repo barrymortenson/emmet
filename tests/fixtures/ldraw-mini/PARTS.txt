@@ -131,3 +131,12 @@
 73878c01    # round_corner_bay
 7904    # dome_window_hood
 79393    # round_corner_bay
+
+# Session 3D, batch-8's techniques
+1126    # plate_shingle_roof
+15535    # mansard_module
+15672    # mini_dormer
+24246    # plate_shingle_roof
+30367c    # tapered_tower_cap
+3688    # pyramid_spire_tower
+3957b    # pyramid_spire_tower

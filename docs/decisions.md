@@ -535,3 +535,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   eyebrow_arch_hood, dome_window_hood, slope_hood_small_window, lattice_shopfront, round_corner_bay, plank_door,
   doorstep_and_mat, panel_garage_door, round_window_frame, turned_post_porch, wing_plate_porch_roof, scalloped_awning,
   wall_lamp_bracket, hanging_planter, blade_sign, signboard_beam.
+- **H-26, batch 8 (roofs, chimneys, and roof details): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-8.html`): tiled_roof_panel, plate_shingle_roof, tile_stripe_shingles,
+  studs_up_snow_roof, mansard_module, cross_gable, curved_dormer, mini_dormer, roof_cresting, pyramid_spire_tower,
+  ribbed_hip_roof, tapered_tower_cap, banded_chimney, sideways_chimney_column, roof_hatch, lean_to_awning,
+  half_roof_hinge, overlap_tile_roof, roof_eaves_overhang_frame, eaves_fascia.
