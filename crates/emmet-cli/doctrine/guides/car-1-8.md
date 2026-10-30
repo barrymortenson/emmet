@@ -9,8 +9,10 @@ function it shows is real and connected.
 - Start with the frame: a ladder of liftarms and Technic frames, the two rails 7 to 9 holes apart
   (`liftarm_ladder_frame`). Build the mechanisms as modules and pin them into it.
 - Function first: the steering wheel turns the front wheels through a rack (`steering_rack`); the wheels hang on
-  suspension (`wishbone_suspension`); the rear wheels turn the engine's pistons through gears (`v_engine`,
-  `gear_pair`, `worm_drive`). If you can't connect a function, leave it out rather than fake it.
+  suspension; the rear wheels turn the engine's pistons through gears (`gear_pair`, `worm_drive`). If you can't
+  connect a function, leave it out rather than fake it. The parts data doesn't yet seat suspension arms, shock
+  absorber ends, ball joints, or crankshafts, so `validate` reports them floating: build the engine bay as detail
+  (`engine_bay_greebles`) and say so.
 - The body is Technic panels pinned at three or more points each, the frame showing below; body lines come from the
   panels' edges. Gaps between panels are normal.
 - Doors and the bonnet go on pins on the frame and open (`front_hinged_bonnet`, `technic_pin_hinge`).
