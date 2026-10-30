@@ -234,3 +234,14 @@
 7826    # tower_setback_plinth
 90398    # statuette_group
 91405    # micropolis_block
+
+# Session 3D, batch-16's techniques
+11212    # brick_letters
+14418    # posable_neck_ball
+14769p0p    # big_round_eye
+2419    # brick_letters
+30367a    # muzzle_and_nose
+3660b    # brick_letters
+49668    # teeth_row
+5852    # curved_slope_skin
+76797    # dome_from_quarters

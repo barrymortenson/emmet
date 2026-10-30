@@ -578,3 +578,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   tower_side_fins, floor_band_bricks, stepped_tower_setbacks, bar_spire, paired_colonnade, spiral_dish_stack,
   micro_tree_cluster, micro_traffic, micro_boat, water_tile_field, statuette_group, micro_house_on_wall,
   raked_seating_panel, mowed_pitch, curtain_wall_glazing, skyline_depth_rows.
+- **H-26, batch 16 (sculptures, characters, and letters): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-16.html`): snot_core, curved_slope_skin, contour_slab, layered_plate_cap,
+  sphere_from_caps, dome_from_quarters, rounded_column, hover_stand, side_stud_eyes, big_round_eye, muzzle_and_nose,
+  teeth_row, floppy_ear, brick_letters, posable_neck_ball, hinged_limb, pyramid_pedestal, countershade_belly,
+  feather_shingles, smooth_display_base. hover_stand replaced egg_from_panels, which read as a box.
