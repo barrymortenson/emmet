@@ -154,3 +154,17 @@
 67095    # floor_rug
 92950    # interior_arch_doorway
 95228    # wall_shelf
+
+# Session 3D, batch-10's techniques
+22385    # stepping_stones
+2417    # gnarled_tree
+24866    # lily_and_reeds
+30357    # contour_terraces
+3069bp0p    # tiled_pond_water
+3186    # garden_gate
+3187    # garden_gate
+33303    # garden_gate
+3477    # curved_garden_path
+3675    # garden_boulder
+5520    # stepping_stones
+7077    # potted_plant

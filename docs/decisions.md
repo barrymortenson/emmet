@@ -545,3 +545,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   kitchen_counter, table_and_chairs, wall_shelf, wall_picture_and_clock, plank_floor, floor_rug, floor_lamp_and_candle,
   interior_arch_doorway, loft_half_floor, cross_display_stand, curved_booth, bar_counter, display_case_counter,
   upright_piano, dresser_shelf, bookcase.
+- **H-26, batch 10 (gardens and landscaping): all 20 accepted** (Barry, 2026-10-29, on
+  `docs/techniques/candidates/batch-10.html`): organic_ground_outline, curved_garden_path, stepping_stones, garden_gate,
+  lawn_with_plant_sockets, contour_terraces, garden_boulder, tiled_pond_water, sunken_pond_bank, lily_and_reeds,
+  layered_conifer, blossom_tree, palm_tree, bamboo_grove, potted_plant, clipped_hedge, stone_lantern, snow_drift_edge,
+  gnarled_tree, cypress. garden_gate takes an `id` (the Cottage's gate), as figure_bed, hearth_fireplace, and
+  table_and_chairs now do.
