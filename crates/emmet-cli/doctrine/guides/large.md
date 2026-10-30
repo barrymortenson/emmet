@@ -12,7 +12,7 @@ the model is judged on its shape and finish from a step back.
 - A skeleton inside. Big models hang their shell on a frame of Technic bricks or beams, and the mechanisms run through
   the frame, not the shell (`technic_brick_ring_chassis`, `beam_spine_floor`, `technic_spine`, `snot_core`).
 - Big panels built apart and clipped on: a car's sides, doors, hood, and roof, a building's facade. That's also how
-  they open (`hang_on_side_panel`, `front_hinged_bonnet`).
+  they open (`hang_on_side_panel`, `front_hinged_hood`).
 - Curves are runs of curved slopes with the inverted ones under them for the other half of the roll; wedge plates
   taper the outline from above; an inverted arch makes a wheel well (`rolled_sill`, `fender_crown`,
   `inverted_arch_wheel_well`, `tapered_deck`, `canopy_hump`).

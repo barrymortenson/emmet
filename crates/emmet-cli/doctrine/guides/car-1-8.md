@@ -15,7 +15,7 @@ function it shows is real and connected.
   (`engine_bay_greebles`) and say so.
 - The body is Technic panels pinned at three or more points each, the frame showing below; body lines come from the
   panels' edges. Gaps between panels are normal.
-- Doors and the bonnet go on pins on the frame and open (`front_hinged_bonnet`, `technic_pin_hinge`).
+- Doors and the hood go on pins on the frame and open (`front_hinged_hood`, `technic_pin_hinge`).
 - Colored pins and axles are fine: they read as Technic. Body panels in one color, the frame black or dark gray.
 - Figure-scale details are far too small here: lights are 2-stud rings on pin holes, the grille a wide tile between
   them (`ring_light_grille`), the wheels 5 to 8 studs across on hubs.

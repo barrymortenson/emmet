@@ -180,7 +180,7 @@
   ],
   "sure": true,
   "weak": false,
-  "note": "VARIANT of curved_hood: the fenders ride higher than the hood and both roll down to the nose, with inverted curves under it. It's a submodel because the inverted slopes under the nose can't go in after the body below. The hinge is separate (front_hinged_bonnet).",
+  "note": "VARIANT of curved_hood: the fenders ride higher than the hood and both roll down to the nose, with inverted curves under it. It's a submodel because the inverted slopes under the nose can't go in after the body below. The hinge is separate (front_hinged_hood).",
   "view": "iso"
  },
  {
@@ -258,7 +258,7 @@
   "view": "iso"
  },
  {
-  "name": "front_hinged_bonnet",
+  "name": "front_hinged_hood",
   "title": "A large car's hood built as its own sub-assembly that pivots on two Technic pins in line, at the nose or at the windscreen, so it tips up to show the engine.",
   "why": "The right hood hinge for large and 1:8 cars: the hood as its own sub-assembly on two Technic pins, at the nose or the windscreen.",
   "params": [
