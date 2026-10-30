@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-16</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-16</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-16/snot_core.png" alt="A sketch of snot_core" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>snot_core</code></h2>
+    <p>the hidden block in the middle of a sculpture, with studs pointing out on all four sides as well as up, so the skin can be pressed on every face.</p>
+    <p class="why">Gives a sculpture's middle studs on all four sides, so contour slabs, caps, eyes, and tiles can be pressed on every face of a head or body.</p>
+    <p class="note"><b>Note:</b> VARIANT of snot_panel turned into a 3D hub. Courses are 5 plates (2 studs) so a 2-stud panel hung by its upper row sits flush with each course.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>size</code>, <code>courses</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 7 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/snot_core.py"><code>batch-16/snot_core.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21350; set 43014; set 21368; set 43290</dd>
+      <dt>Key parts</dt><dd><code>26604</code> + <code>87087</code> + <code>4733</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for snot_core">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for snot_core">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-16/curved_slope_skin.png" alt="A sketch of curved_slope_skin" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>curved_slope_skin</code></h2>
+    <p>a block whose top edges are rounded off with curved slopes and whose top is tiled, so a stack of bricks reads as a smooth, soft body instead of a box.</p>
+    <p class="why">Turns any boxy body (an animal's back, a cartoon torso, a loaf of a creature) into a soft rounded form with no studs on top.</p>
+    <p class="note"><b>Note:</b> Rounds the top edges only; the underside edges (inverted curved slopes) are left for a later variant. Plate 2 x 2 with Corner Round (79491) points its round corner a quarter turn behind 5852 at the same rot.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>length</code>, <code>courses</code>, <code>color</code>, <code>top</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/curved_slope_skin.py"><code>batch-16/curved_slope_skin.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21350; set 21368; set 43290; set 43008</dd>
+      <dt>Key parts</dt><dd><code>15068</code> + <code>5852</code> + <code>11477</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curved_slope_skin">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for curved_slope_skin">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-16/contour_slab.png" alt="A sketch of contour_slab" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>contour_slab</code></h2>
+    <p>a smooth rounded outline (a cheek, the side of an egg, a shoe's toe) built flat as layers of plates cut to the shape, then stood on its side and pressed onto the side studs of a core, so the silhouette is the plates' outline instead of a stair of bricks.</p>
+    <p class="why">Gives a head, cheek, egg side, or shoe toe a smooth rounded outline seen from the front, pressed onto a SNOT core.</p>
+    <p class="note"><b>Note:</b> The outline is a rounded rectangle (round when width = height = 8), not a free curve. The inner layer's round corners keep their studs: the round corner tiles (27925, 79393) have body boxes that misplace them by about 0.4 studs, so I left them out.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>height</code>, <code>facing</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/contour_slab.py"><code>batch-16/contour_slab.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21368; set 43279; set 43290</dd>
+      <dt>Key parts</dt><dd><code>30565</code> + <code>30357</code> + <code>79491</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for contour_slab">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for contour_slab">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-16/layered_plate_cap.png" alt="A sketch of layered_plate_cap" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>layered_plate_cap</code></h2>
+    <p>a gently domed cap of round plates, each 2 studs smaller than the one under it, topped with a round tile; one on each face of a core makes a ball.</p>
+    <p class="why">A domed cap for a face of a core: six make a ball, one makes the top of a head, a button, or a lamp.</p>
+    <p class="note"><b>Note:</b> Built from round plates 8/6/4/2 (studs in rings, the pebbled look) instead of the book's rounded-square layers with curved slope edges.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>size</code>, <code>facing</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/layered_plate_cap.py"><code>batch-16/layered_plate_cap.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43008</dd>
+      <dt>Key parts</dt><dd><code>11213</code> + <code>60474</code> + <code>4032a</code> + <code>14769</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for layered_plate_cap">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for layered_plate_cap">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-16/sphere_from_caps.png" alt="A sketch of sphere_from_caps" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>sphere_from_caps</code></h2>
+    <p>a ball about 9 studs across, a cube-shaped core with a domed cap of round plates on each of its six faces: a ball, a planet, a round head, a piece of fruit.</p>
+    <p class="why">A ball about 9 studs across: a basketball, a planet, a round head or fruit.</p>
+    <p class="note"><b>Note:</b> The book's hub is Technic; this core is bricks with 1 x 2 x 1 2/3 side-stud bricks, so the result reads as a rounded cube with the core's dark edges as seams. Larger balls would need the Technic hub.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>core</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/sphere_from_caps.py"><code>batch-16/sphere_from_caps.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43008</dd>
+      <dt>Key parts</dt><dd><code>11213</code> + <code>22885</code> + <code>14769</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for sphere_from_caps">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for sphere_from_caps">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-16/dome_from_quarters.png" alt="A sketch of dome_from_quarters" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>dome_from_quarters</code></h2>
+    <p>a smooth half ball from four quarter pieces round a center, each a quarter turn from the last: a nose tip, the top of a head, a robot's dome.</p>
+    <p class="why">A smooth half ball (nose tip, head top, robot dome, lamp) at 2, 4, 6, or 8 studs.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>size</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/dome_from_quarters.py"><code>batch-16/dome_from_quarters.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21368; set 43279</dd>
+      <dt>Key parts</dt><dd><code>5852</code> + <code>76797</code> + <code>49612</code> + <code>5848</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for dome_from_quarters">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for dome_from_quarters">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-16/rounded_column.png" alt="A sketch of rounded_column" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>rounded_column</code></h2>
+    <p>a short round cylinder from four corner round bricks a course, tied by round plates, with an optional dome on the end: a muzzle, a leg, a foot, an eye pod, a pillar, upright or standing out of a face.</p>
+    <p class="why">A short cylinder for a muzzle, leg, foot, eye pod, or pillar, upright or standing out of a face, with an optional dome end.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>size</code>, <code>courses</code>, <code>cap</code>, <code>facing</code>, <code>color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/rounded_column.py"><code>batch-16/rounded_column.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21368; set 43279</dd>
+      <dt>Key parts</dt><dd><code>3063b</code> + <code>5152</code> + <code>2577</code> + <code>60474</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for rounded_column">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for rounded_column">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-16/hover_stand.png" alt="A sketch of hover_stand" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>hover_stand</code></h2>
+    <p>a figure floating above its base on a short glowing column of transparent round bricks, the way a hovering robot or a spirit is displayed.</p>
+    <p class="why">Displays a robot, ghost, or spirit floating over its base on a glowing transparent column.</p>
+    <p class="note"><b>Note:</b> Alternate, replacing egg_from_panels: four flat rounded panels on a core read as a rounded box from every view but straight on; an egg needs bulging curved-slope panels, more than a sketch. 4032a isn't made in Trans Light Blue, so the column's cap is in the base color.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>size</code>, <code>color</code>, <code>glow</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 6 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/hover_stand.py"><code>batch-16/hover_stand.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43279</dd>
+      <dt>Key parts</dt><dd><code>3941</code> + <code>11213</code> + <code>98138</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for hover_stand">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for hover_stand">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-16/side_stud_eyes.png" alt="A sketch of side_stud_eyes" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>side_stud_eyes</code></h2>
+    <p>two round eyes on the face of a small head, each on the stud of a brick with a stud on its side, laid in the course where the eyes go.</p>
+    <p class="why">The simplest face for a small character: two round eyes in the face row of a 4-6 stud head.</p>
+    <p class="note"><b>Note:</b> The plain eye is a white round plate under a black round tile of the same size, so from the front it reads as a black dot.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>spacing</code>, <code>facing</code>, <code>color</code>, <code>eye</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (3 times); 65 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 75144 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 21029 - Buckingham Palace.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-16/side_stud_eyes.py"><code>batch-16/side_stud_eyes.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43290</dd>
+      <dt>Key parts</dt><dd><code>87087</code> + <code>98138</code> + <code>6141</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for side_stud_eyes">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for side_stud_eyes">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-16/big_round_eye.png" alt="A sketch of big_round_eye" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>big_round_eye</code></h2>
+    <p>a large expressive eye, a printed round tile 2 x 2 on the four side studs of a brick 1 x 2 x 1 2/3, under a curved slope for an eyelid: for a bird, a robot, a cartoon creature.</p>
+    <p class="why">Large expressive eyes for a bird, robot, or cartoon creature at 6-8 stud heads.</p>
+    <p class="note"><b>Note:</b> The printed eye pattern is my pick from the library (14769p0p, copper iris; 14769p01 plain black).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>facing</code>, <code>color</code>, <code>eye</code>, <code>lid</code>, <code>lid_color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/big_round_eye.py"><code>batch-16/big_round_eye.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43290; set 43279</dd>
+      <dt>Key parts</dt><dd><code>14769p0p</code> + <code>22885</code> + <code>15068</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for big_round_eye">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for big_round_eye">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-16/muzzle_and_nose.png" alt="A sketch of muzzle_and_nose" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>muzzle_and_nose</code></h2>
+    <p>an animal's face, a muzzle standing out from the head with its top corners rounded, a round dark nose on its tip, and a tongue poking out under it: a dog, a cat, a bear.</p>
+    <p class="why">A dog, cat, or bear face: a muzzle standing out from the head with a dark round nose and a tongue.</p>
+    <p class="note"><b>Note:</b> The small-scale method from the dog book; the large one (rounded_column with a dome, nose on the tip) is rounded_column with facing front.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>color</code>, <code>nose</code>, <code>tongue</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/muzzle_and_nose.py"><code>batch-16/muzzle_and_nose.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43290; set 21368</dd>
+      <dt>Key parts</dt><dd><code>30367a</code> + <code>24246</code> + <code>11477</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for muzzle_and_nose">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for muzzle_and_nose">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-16/teeth_row.png" alt="A sketch of teeth_row" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>teeth_row</code></h2>
+    <p>a jaw's edge set with sharp white teeth, plates 1 x 1 with a tooth standing on the side studs of the jaw's front course, pointing up from the lower jaw or down from the upper: a shark, a dinosaur, a monster.</p>
+    <p class="why">An open mouth with sharp teeth for a shark, dinosaur, or monster, upper and lower jaws.</p>
+    <p class="note"><b>Note:</b> Teeth are plates 1 x 1 with tooth in-line on side studs (Rot y=-90, z=90 points the tooth up on a front face). The upper jaw comes with a plate 2 x length that ties it to the wall behind the mouth.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>jaw</code>, <code>facing</code>, <code>color</code>, <code>teeth</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 1315 official sets (18 times); 15 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10214 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10253 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 7326 - Rise of the Sphinx (Christian Neumann [Wesley], Redistributable under CCAL version 2.0); FILE 5766 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-16/teeth_row.py"><code>batch-16/teeth_row.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21350; set 75936; set 31109</dd>
+      <dt>Key parts</dt><dd><code>49668</code> + <code>87087</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for teeth_row">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for teeth_row">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-16/floppy_ear.png" alt="A sketch of floppy_ear" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>floppy_ear</code></h2>
+    <p>a long flat ear built as a sub-assembly and hung on click hinges at the top edge of a head, so it hangs beside the head and swings out: a dog's, a rabbit's, an elephant's.</p>
+    <p class="why">Hanging ears that swing for dogs, rabbits, and elephants.</p>
+    <p class="note"><b>Note:</b> The books hang ears on clips; this uses click hinge plates (the angled_hull_panel placement), so any angle is exact and validates. Click hinge plates come in few colors (Black default).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>angle</code>, <code>facing</code>, <code>color</code>, <code>hinge_color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/floppy_ear.py"><code>batch-16/floppy_ear.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21368; set 43290</dd>
+      <dt>Key parts</dt><dd><code>44301b</code> + <code>44302b</code> + <code>4032a</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for floppy_ear">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for floppy_ear">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-16/brick_letters.png" alt="A sketch of brick_letters" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>brick_letters</code></h2>
+    <p>a word in big, chunky capital letters built studs up, their fronts the smooth sides of bricks, the diagonals and round corners filled with 45-degree slopes, on an optional contrasting outline wall behind.</p>
+    <p class="why">Big chunky lettering for a sign, a name, a number, or a word sculpture: any text from A-Z, 0-9.</p>
+    <p class="note"><b>Note:</b> Covers letter_relief, letter_diagonal, and letter_set_recipe. All 37 glyphs (A-Z, 0-9, period) validate clean; height 9-15 by repeating plain middle rows. Diagonals step one stud per brick row with 45-degree slopes, so N, M, V, and Z are short stair diagonals, not true slants. Steps are scheduled so an overhanging piece goes in with the piece that ties it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>text</code>, <code>height</code>, <code>depth</code>, <code>color</code>, <code>color2</code>, <code>outline</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 1 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/brick_letters.py"><code>batch-16/brick_letters.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43008</dd>
+      <dt>Key parts</dt><dd><code>3039</code> + <code>3660b</code> + <code>3001</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for brick_letters">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for brick_letters">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-16/posable_neck_ball.png" alt="A sketch of posable_neck_ball" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>posable_neck_ball</code></h2>
+    <p>a head on a ball joint at the front of a body, so it turns and nods: a plate with a ball on the body, a plate with a socket under the back of the head.</p>
+    <p class="why">A head on a ball joint that turns and nods, for an animal or creature whose head sits in front of its body.</p>
+    <p class="note"><b>Note:</b> VARIANT of ball_joint_arm (the same ball and socket math). The books turn heads on an axle or a turntable; a ball joint does both. 22890 is made only in Dark Bluish Gray, 14418 in grays. The head is a plain block; dress it by building on the copy.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>turn</code>, <code>nod</code>, <code>width</code>, <code>depth</code>, <code>courses</code>, <code>color</code>, <code>joint_color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>4</b> of 1315 official sets (19 times); 4 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10283 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10271 - main.ldr (Magnus Forsberg [MagFors], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-16/posable_neck_ball.py"><code>batch-16/posable_neck_ball.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21368; set 43279</dd>
+      <dt>Key parts</dt><dd><code>22890</code> + <code>14418</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for posable_neck_ball">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for posable_neck_ball">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-16/hinged_limb.png" alt="A sketch of hinged_limb" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>hinged_limb</code></h2>
+    <p>an arm or a wing built flat as a sub-assembly and hung on click hinges at a body's shoulder edge, so it swings out from the body or folds flush against it: a robot's arm, a bird's wing, a flipper.</p>
+    <p class="why">Arms or wings that swing out from a body or fold flush against it.</p>
+    <p class="note"><b>Note:</b> VARIANT of angled_hull_panel: the same click hinge placement with an arm or wing panel; shares its hinge code with floppy_ear. One segment; a forearm on a second hinge is left out.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>angle</code>, <code>style</code>, <code>facing</code>, <code>color</code>, <code>hinge_color</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/hinged_limb.py"><code>batch-16/hinged_limb.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43279; set 43290</dd>
+      <dt>Key parts</dt><dd><code>44301b</code> + <code>44302b</code> + <code>15068</code> + <code>41770a</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for hinged_limb">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for hinged_limb">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-16/pyramid_pedestal.png" alt="A sketch of pyramid_pedestal" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>pyramid_pedestal</code></h2>
+    <p>a dark tapered stand that holds a bust, a head, or a helmet up off a square plinth, with a nameplate set flush in the plinth's front.</p>
+    <p class="why">A display stand that holds a bust, head, or helmet up off a square plinth with a nameplate.</p>
+    <p class="note"><b>Note:</b> No Technic spine: the sculpture sits on the column's top 4 studs. The plinth's bottom step keeps its studs.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>height</code>, <code>color</code>, <code>name_color</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (1 times); 18 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 7327 - Scorpion Pyramid (Christian Neumann [Wesley], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-16/pyramid_pedestal.py"><code>batch-16/pyramid_pedestal.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43014</dd>
+      <dt>Key parts</dt><dd><code>3045</code> + <code>3039</code> + <code>3003</code> + <code>2431</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for pyramid_pedestal">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for pyramid_pedestal">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-16/countershade_belly.png" alt="A sketch of countershade_belly" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>countershade_belly</code></h2>
+    <p>an animal's body with a dark back and a pale belly, built in layers of plates with wedge plates at the nose, the color changing on a layer whose white edge stands out under the dark ones as a clean pale line.</p>
+    <p class="why">A fish, shark, or dolphin body with a dark back, pale belly, and a clean pale line between.</p>
+    <p class="note"><b>Note:</b> The book shifts white wedge plates out half a stud; here the white layer is a stud wider, so the line is a 1-stud ledge. Wing 3 x 6 Right sits 0.05 studs in (its body is 2.95 studs wide).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>back</code>, <code>belly</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>5</b> of 1315 official sets (6 times); 26 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 76161 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 8161 - Main.ldr (Massimo Maso [Sirio], Redistributable under CCAL version 2.0); FILE 6741 - Main.ldr (Johann Eisner [technicbasics], Redistributable under CCAL version 2.0); FILE 30277 - Main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-16/countershade_belly.py"><code>batch-16/countershade_belly.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21350; set 75936</dd>
+      <dt>Key parts</dt><dd><code>54383</code> + <code>54384</code> + <code>41769a</code> + <code>41770a</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for countershade_belly">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for countershade_belly">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-16/feather_shingles.png" alt="A sketch of feather_shingles" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>feather_shingles</code></h2>
+    <p>a bird's plumage in bands of color, strips of small curved slopes built flat and hung on a studded side so each band overlaps the one below like roof shingles, every other band shifted half a feather.</p>
+    <p class="why">A bird's plumage, or a dragon's or fish's scales, in overlapping bands of graded color on a creature's side.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>colors</code>, <code>facing</code>, <code>wall</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (3 times); 20 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21042 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 75969 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-16/feather_shingles.py"><code>batch-16/feather_shingles.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 43290</dd>
+      <dt>Key parts</dt><dd><code>15068</code> + <code>11477</code> + <code>22885</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for feather_shingles">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for feather_shingles">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-16/smooth_display_base.png" alt="A sketch of smooth_display_base" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>smooth_display_base</code></h2>
+    <p>a neat base for a model, two layers of plates with rounded corners, its top tiled like boards in staggered lengths, open studs only where the model sits, and a nameplate tile set flush in the front edge.</p>
+    <p class="why">Makes any model look finished: a smooth rounded base with boarded tiles, a seat of studs, and a nameplate.</p>
+    <p class="note"><b>Note:</b> VARIANT of landing_zone, with nameplate_tile folded in. The book rounds the corners with round corner tiles (27925), but that part's body box puts it about 0.4 studs off in the DSL, so the corners keep the round-cornered plates' studs.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seat</code>, <code>color</code>, <code>name_color</code>, <code>name_length</code>, <code>seed</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-16/smooth_display_base.py"><code>batch-16/smooth_display_base.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21368; set 21350; set 43014</dd>
+      <dt>Key parts</dt><dd><code>79491</code> + <code>2431</code> + <code>6636</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for smooth_display_base">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for smooth_display_base">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-16" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

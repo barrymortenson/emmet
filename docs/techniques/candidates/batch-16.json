@@ -1,0 +1,551 @@
+[
+ {
+  "name": "snot_core",
+  "title": "the hidden block in the middle of a sculpture, with studs pointing out on all four sides as well as up, so the skin can be pressed on every face.",
+  "why": "Gives a sculpture's middle studs on all four sides, so contour slabs, caps, eyes, and tiles can be pressed on every face of a head or body.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "size",
+   "courses",
+   "color"
+  ],
+  "books": [
+   "set 21350",
+   "set 43014",
+   "set 21368",
+   "set 43290"
+  ],
+  "signature": [
+   "26604",
+   "87087",
+   "4733"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "VARIANT of snot_panel turned into a 3D hub. Courses are 5 plates (2 studs) so a 2-stud panel hung by its upper row sits flush with each course.",
+  "view": "iso"
+ },
+ {
+  "name": "curved_slope_skin",
+  "title": "a block whose top edges are rounded off with curved slopes and whose top is tiled, so a stack of bricks reads as a smooth, soft body instead of a box.",
+  "why": "Turns any boxy body (an animal's back, a cartoon torso, a loaf of a creature) into a soft rounded form with no studs on top.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "length",
+   "courses",
+   "color",
+   "top"
+  ],
+  "books": [
+   "set 21350",
+   "set 21368",
+   "set 43290",
+   "set 43008"
+  ],
+  "signature": [
+   "15068",
+   "5852",
+   "11477"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "Rounds the top edges only; the underside edges (inverted curved slopes) are left for a later variant. Plate 2 x 2 with Corner Round (79491) points its round corner a quarter turn behind 5852 at the same rot.",
+  "view": "iso"
+ },
+ {
+  "name": "contour_slab",
+  "title": "a smooth rounded outline (a cheek, the side of an egg, a shoe's toe) built flat as layers of plates cut to the shape, then stood on its side and pressed onto the side studs of a core, so the silhouette is the plates' outline instead of a stair of bricks.",
+  "why": "Gives a head, cheek, egg side, or shoe toe a smooth rounded outline seen from the front, pressed onto a SNOT core.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "height",
+   "facing",
+   "color"
+  ],
+  "books": [
+   "set 21368",
+   "set 43279",
+   "set 43290"
+  ],
+  "signature": [
+   "30565",
+   "30357",
+   "79491"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "The outline is a rounded rectangle (round when width = height = 8), not a free curve. The inner layer's round corners keep their studs: the round corner tiles (27925, 79393) have body boxes that misplace them by about 0.4 studs, so I left them out.",
+  "view": "front"
+ },
+ {
+  "name": "layered_plate_cap",
+  "title": "a gently domed cap of round plates, each 2 studs smaller than the one under it, topped with a round tile; one on each face of a core makes a ball.",
+  "why": "A domed cap for a face of a core: six make a ball, one makes the top of a head, a button, or a lamp.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "size",
+   "facing",
+   "color"
+  ],
+  "books": [
+   "set 43008"
+  ],
+  "signature": [
+   "11213",
+   "60474",
+   "4032a",
+   "14769"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "Built from round plates 8/6/4/2 (studs in rings, the pebbled look) instead of the book's rounded-square layers with curved slope edges.",
+  "view": "iso"
+ },
+ {
+  "name": "sphere_from_caps",
+  "title": "a ball about 9 studs across, a cube-shaped core with a domed cap of round plates on each of its six faces: a ball, a planet, a round head, a piece of fruit.",
+  "why": "A ball about 9 studs across: a basketball, a planet, a round head or fruit.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "color",
+   "core"
+  ],
+  "books": [
+   "set 43008"
+  ],
+  "signature": [
+   "11213",
+   "22885",
+   "14769"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book's hub is Technic; this core is bricks with 1 x 2 x 1 2/3 side-stud bricks, so the result reads as a rounded cube with the core's dark edges as seams. Larger balls would need the Technic hub.",
+  "view": "iso"
+ },
+ {
+  "name": "dome_from_quarters",
+  "title": "a smooth half ball from four quarter pieces round a center, each a quarter turn from the last: a nose tip, the top of a head, a robot's dome.",
+  "why": "A smooth half ball (nose tip, head top, robot dome, lamp) at 2, 4, 6, or 8 studs.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "size",
+   "color"
+  ],
+  "books": [
+   "set 21368",
+   "set 43279"
+  ],
+  "signature": [
+   "5852",
+   "76797",
+   "49612",
+   "5848"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "iso"
+ },
+ {
+  "name": "rounded_column",
+  "title": "a short round cylinder from four corner round bricks a course, tied by round plates, with an optional dome on the end: a muzzle, a leg, a foot, an eye pod, a pillar, upright or standing out of a face.",
+  "why": "A short cylinder for a muzzle, leg, foot, eye pod, or pillar, upright or standing out of a face, with an optional dome end.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "size",
+   "courses",
+   "cap",
+   "facing",
+   "color"
+  ],
+  "books": [
+   "set 21368",
+   "set 43279"
+  ],
+  "signature": [
+   "3063b",
+   "5152",
+   "2577",
+   "60474"
+  ],
+  "sure": true,
+  "weak": false,
+  "view": "iso"
+ },
+ {
+  "name": "hover_stand",
+  "title": "a figure floating above its base on a short glowing column of transparent round bricks, the way a hovering robot or a spirit is displayed.",
+  "why": "Displays a robot, ghost, or spirit floating over its base on a glowing transparent column.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "size",
+   "color",
+   "glow"
+  ],
+  "books": [
+   "set 43279"
+  ],
+  "signature": [
+   "3941",
+   "11213",
+   "98138"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "Alternate, replacing egg_from_panels: four flat rounded panels on a core read as a rounded box from every view but straight on; an egg needs bulging curved-slope panels, more than a sketch. 4032a isn't made in Trans Light Blue, so the column's cap is in the base color.",
+  "view": "front"
+ },
+ {
+  "name": "side_stud_eyes",
+  "title": "two round eyes on the face of a small head, each on the stud of a brick with a stud on its side, laid in the course where the eyes go.",
+  "why": "The simplest face for a small character: two round eyes in the face row of a 4-6 stud head.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "spacing",
+   "facing",
+   "color",
+   "eye"
+  ],
+  "books": [
+   "set 43290"
+  ],
+  "signature": [
+   "87087",
+   "98138",
+   "6141"
+  ],
+  "sure": true,
+  "weak": true,
+  "note": "The plain eye is a white round plate under a black round tile of the same size, so from the front it reads as a black dot.",
+  "view": "front"
+ },
+ {
+  "name": "big_round_eye",
+  "title": "a large expressive eye, a printed round tile 2 x 2 on the four side studs of a brick 1 x 2 x 1 2/3, under a curved slope for an eyelid: for a bird, a robot, a cartoon creature.",
+  "why": "Large expressive eyes for a bird, robot, or cartoon creature at 6-8 stud heads.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "facing",
+   "color",
+   "eye",
+   "lid",
+   "lid_color"
+  ],
+  "books": [
+   "set 43290",
+   "set 43279"
+  ],
+  "signature": [
+   "14769p0p",
+   "22885",
+   "15068"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The printed eye pattern is my pick from the library (14769p0p, copper iris; 14769p01 plain black).",
+  "view": "front"
+ },
+ {
+  "name": "muzzle_and_nose",
+  "title": "an animal's face, a muzzle standing out from the head with its top corners rounded, a round dark nose on its tip, and a tongue poking out under it: a dog, a cat, a bear.",
+  "why": "A dog, cat, or bear face: a muzzle standing out from the head with a dark round nose and a tongue.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "width",
+   "color",
+   "nose",
+   "tongue"
+  ],
+  "books": [
+   "set 43290",
+   "set 21368"
+  ],
+  "signature": [
+   "30367a",
+   "24246",
+   "11477"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The small-scale method from the dog book; the large one (rounded_column with a dome, nose on the tip) is rounded_column with facing front.",
+  "view": "iso"
+ },
+ {
+  "name": "teeth_row",
+  "title": "a jaw's edge set with sharp white teeth, plates 1 x 1 with a tooth standing on the side studs of the jaw's front course, pointing up from the lower jaw or down from the upper: a shark, a dinosaur, a monster.",
+  "why": "An open mouth with sharp teeth for a shark, dinosaur, or monster, upper and lower jaws.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "jaw",
+   "facing",
+   "color",
+   "teeth"
+  ],
+  "books": [
+   "set 21350",
+   "set 75936",
+   "set 31109"
+  ],
+  "signature": [
+   "49668",
+   "87087"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Teeth are plates 1 x 1 with tooth in-line on side studs (Rot y=-90, z=90 points the tooth up on a front face). The upper jaw comes with a plate 2 x length that ties it to the wall behind the mouth.",
+  "view": "front"
+ },
+ {
+  "name": "floppy_ear",
+  "title": "a long flat ear built as a sub-assembly and hung on click hinges at the top edge of a head, so it hangs beside the head and swings out: a dog's, a rabbit's, an elephant's.",
+  "why": "Hanging ears that swing for dogs, rabbits, and elephants.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "angle",
+   "facing",
+   "color",
+   "hinge_color"
+  ],
+  "books": [
+   "set 21368",
+   "set 43290"
+  ],
+  "signature": [
+   "44301b",
+   "44302b",
+   "4032a"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The books hang ears on clips; this uses click hinge plates (the angled_hull_panel placement), so any angle is exact and validates. Click hinge plates come in few colors (Black default).",
+  "view": "iso"
+ },
+ {
+  "name": "brick_letters",
+  "title": "a word in big, chunky capital letters built studs up, their fronts the smooth sides of bricks, the diagonals and round corners filled with 45-degree slopes, on an optional contrasting outline wall behind.",
+  "why": "Big chunky lettering for a sign, a name, a number, or a word sculpture: any text from A-Z, 0-9.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "text",
+   "height",
+   "depth",
+   "color",
+   "color2",
+   "outline"
+  ],
+  "books": [
+   "set 43008"
+  ],
+  "signature": [
+   "3039",
+   "3660b",
+   "3001"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "Covers letter_relief, letter_diagonal, and letter_set_recipe. All 37 glyphs (A-Z, 0-9, period) validate clean; height 9-15 by repeating plain middle rows. Diagonals step one stud per brick row with 45-degree slopes, so N, M, V, and Z are short stair diagonals, not true slants. Steps are scheduled so an overhanging piece goes in with the piece that ties it.",
+  "view": "front"
+ },
+ {
+  "name": "posable_neck_ball",
+  "title": "a head on a ball joint at the front of a body, so it turns and nods: a plate with a ball on the body, a plate with a socket under the back of the head.",
+  "why": "A head on a ball joint that turns and nods, for an animal or creature whose head sits in front of its body.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "turn",
+   "nod",
+   "width",
+   "depth",
+   "courses",
+   "color",
+   "joint_color"
+  ],
+  "books": [
+   "set 21368",
+   "set 43279"
+  ],
+  "signature": [
+   "22890",
+   "14418"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of ball_joint_arm (the same ball and socket math). The books turn heads on an axle or a turntable; a ball joint does both. 22890 is made only in Dark Bluish Gray, 14418 in grays. The head is a plain block; dress it by building on the copy.",
+  "view": "left"
+ },
+ {
+  "name": "hinged_limb",
+  "title": "an arm or a wing built flat as a sub-assembly and hung on click hinges at a body's shoulder edge, so it swings out from the body or folds flush against it: a robot's arm, a bird's wing, a flipper.",
+  "why": "Arms or wings that swing out from a body or fold flush against it.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "angle",
+   "style",
+   "facing",
+   "color",
+   "hinge_color"
+  ],
+  "books": [
+   "set 43279",
+   "set 43290"
+  ],
+  "signature": [
+   "44301b",
+   "44302b",
+   "15068",
+   "41770a"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "VARIANT of angled_hull_panel: the same click hinge placement with an arm or wing panel; shares its hinge code with floppy_ear. One segment; a forearm on a second hinge is left out.",
+  "view": "front"
+ },
+ {
+  "name": "pyramid_pedestal",
+  "title": "a dark tapered stand that holds a bust, a head, or a helmet up off a square plinth, with a nameplate set flush in the plinth's front.",
+  "why": "A display stand that holds a bust, head, or helmet up off a square plinth with a nameplate.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "height",
+   "color",
+   "name_color"
+  ],
+  "books": [
+   "set 43014"
+  ],
+  "signature": [
+   "3045",
+   "3039",
+   "3003",
+   "2431"
+  ],
+  "sure": true,
+  "weak": false,
+  "note": "No Technic spine: the sculpture sits on the column's top 4 studs. The plinth's bottom step keeps its studs.",
+  "view": "iso"
+ },
+ {
+  "name": "countershade_belly",
+  "title": "an animal's body with a dark back and a pale belly, built in layers of plates with wedge plates at the nose, the color changing on a layer whose white edge stands out under the dark ones as a clean pale line.",
+  "why": "A fish, shark, or dolphin body with a dark back, pale belly, and a clean pale line between.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "back",
+   "belly"
+  ],
+  "books": [
+   "set 21350",
+   "set 75936"
+  ],
+  "signature": [
+   "54383",
+   "54384",
+   "41769a",
+   "41770a"
+  ],
+  "sure": false,
+  "weak": false,
+  "note": "The book shifts white wedge plates out half a stud; here the white layer is a stud wider, so the line is a 1-stud ledge. Wing 3 x 6 Right sits 0.05 studs in (its body is 2.95 studs wide).",
+  "view": "iso"
+ },
+ {
+  "name": "feather_shingles",
+  "title": "a bird's plumage in bands of color, strips of small curved slopes built flat and hung on a studded side so each band overlaps the one below like roof shingles, every other band shifted half a feather.",
+  "why": "A bird's plumage, or a dragon's or fish's scales, in overlapping bands of graded color on a creature's side.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "colors",
+   "facing",
+   "wall"
+  ],
+  "books": [
+   "set 43290"
+  ],
+  "signature": [
+   "15068",
+   "11477",
+   "22885"
+  ],
+  "sure": true,
+  "weak": true,
+  "view": "iso"
+ },
+ {
+  "name": "smooth_display_base",
+  "title": "a neat base for a model, two layers of plates with rounded corners, its top tiled like boards in staggered lengths, open studs only where the model sits, and a nameplate tile set flush in the front edge.",
+  "why": "Makes any model look finished: a smooth rounded base with boarded tiles, a seat of studs, and a nameplate.",
+  "params": [
+   "x",
+   "y",
+   "z",
+   "length",
+   "depth",
+   "seat",
+   "color",
+   "name_color",
+   "name_length",
+   "seed"
+  ],
+  "books": [
+   "set 21368",
+   "set 21350",
+   "set 43014"
+  ],
+  "signature": [
+   "79491",
+   "2431",
+   "6636"
+  ],
+  "sure": false,
+  "weak": true,
+  "note": "VARIANT of landing_zone, with nameplate_tile folded in. The book rounds the corners with round corner tiles (27925), but that part's body box puts it about 0.4 studs off in the DSL, so the corners keep the round-cornered plates' studs.",
+  "view": "iso"
+ }
+]

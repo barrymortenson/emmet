@@ -14,7 +14,7 @@ silhouette.
   has texture or where something attaches.
 - Round forms by size: under 4 studs, special parts (domes, round bricks); 4 to 8 studs, quarter pieces and curved
   slopes on a stepped stack (`dome_from_quarters`, `rounded_column`); over 8, slabs shaped from plates and stood up on
-  the core (`contour_slab`, `sphere_from_caps`, `egg_from_panels`).
+  the core (`contour_slab`, `sphere_from_caps`).
 - Two to four colors outside. A color changes on a piece's edge, never across a brick face; logos and stripes are flat
   mosaics laid on studs-out walls. A light belly under a dark back (`countershade_belly`).
 - Cute means a big head: 40 to 50% of a cartoon character's height, eyes low and close, a simple face
