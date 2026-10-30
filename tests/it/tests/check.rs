@@ -202,6 +202,25 @@ fn the_cottage_validates_clean_at_every_corner() {
         // The house alone on the table.
         &["baseplate=false"],
         &["width=18", "depth=12", "roof=false", "chimney=false", "season=winter"],
+        // Each roof style and wall finish, the wild garden, and the lights on.
+        &["roof_style=slate"],
+        &["roof_style=shingles"],
+        &["roof_style=thatch", "season=winter"],
+        &["wall_finish=brick"],
+        &["wall_finish=timber", "weathering=30", "seed=5"],
+        &["wall_finish=siding", "roof=false"],
+        &["garden=wild", "lights=true"],
+        // Everything at once, at the widest: the most parts it builds (1,129).
+        &[
+            "width=20",
+            "depth=12",
+            "roof_style=thatch",
+            "wall_finish=timber",
+            "garden=wild",
+            "lights=true",
+            "season=winter",
+            "weathering=30",
+        ],
     ];
     for set in corners {
         let mut args = vec!["--strict"];

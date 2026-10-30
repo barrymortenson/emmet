@@ -426,7 +426,7 @@ fn part_helpers_pick_the_plain_current_part() {
 }
 
 /// The panel shows only the knobs a model names (`@model(knobs=...)`, session 4A, the 2A decision on character knobs):
-/// the cottage's four, not its dimensions, colors, or baseplate; and a knob that isn't a parameter is refused at the
+/// the cottage's eight, not its dimensions, colors, or baseplate; and a knob that isn't a parameter is refused at the
 /// `@model(knobs=...)` line.
 #[test]
 fn a_model_names_its_knobs() {
@@ -442,12 +442,27 @@ fn a_model_names_its_knobs() {
         .filter(|p| p["knob"] == true)
         .map(|p| p["name"].as_str().unwrap())
         .collect();
-    assert_eq!(knobs, ["season", "roof", "weathering", "seed"]);
+    assert_eq!(
+        knobs,
+        [
+            "season",
+            "roof_style",
+            "wall_finish",
+            "garden",
+            "lights",
+            "roof",
+            "weathering",
+            "seed"
+        ]
+    );
 
     let model = std::fs::read_to_string(dir.join("model.py")).unwrap();
     std::fs::write(
         dir.join("model.py"),
-        model.replace(r#"knobs=["season","#, r#"knobs=["height", "season","#),
+        model.replace(
+            "knobs=[\n        \"season\",",
+            "knobs=[\n        \"height\",\n        \"season\",",
+        ),
     )
     .unwrap();
     let (v, code) = emmet_in(&dir, &["params"]);

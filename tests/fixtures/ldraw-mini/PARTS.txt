@@ -258,3 +258,6 @@
 3044b    # rose_window_ring
 36752a    # pinnacle_stack
 78329    # pointed_buttress_strip
+
+# Session 3D, the Cottage's knobs
+6192b    # the Cottage

@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 444 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 445 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -40,6 +40,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/1-4cylc.dat | Cylinder Closed 0.25 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4cylh.dat | Cylinder Helical 0.25 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4cyli.dat | Cylinder 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-4cylj2_1x2.dat | Cylinder Joint  1 to  2 Inverted 0.25 | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4cylo.dat | Cylinder Open 0.25 | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4cyls.dat | Cylinder Sloped 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4cyls2.dat | Cylinder Sloped 0.25 Convex | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -872,6 +873,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/6143.dat | Brick  2 x  2 Round Reinforced | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/61678.dat | Slope Brick Curved  4 x  1 | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6183.dat | Arch  1 x  6 x  2 with Curved Top | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/6192b.dat | Brick  2 x  4 with Curved Top and Groove | Jeff Jones [notmaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/62360.dat | Windscreen  3 x  6 x  1 Curved | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6254.dat | Minifig Food Ice Cream Scoops | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6255.dat | Plant  1 x  1 x  0.667 Round with 3 Large Leaves | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1120,6 +1122,8 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/6143s01.dat | ~Brick  2 x  2 Round Reinforced without Outer Surface | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/6143s02.dat | ~Brick  2 x  2 Round Reinforced without Outer Surface - 1/4 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/61678s01.dat | ~Slope Brick Curved  4 x  1 without Top Surface | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/6192bs01.dat | ~Brick  2 x  4 with Curved Top and Groove - without Patternable Surface | Jeff Jones [notmaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/6192s01.dat | ~Brick  2 x  4 with Curved Top - Inside Stud Adapter | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/62360s01.dat | ~Windscreen  3 x  6 x  1 Curved without Front Face | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/62360s02.dat | ~Windscreen  3 x  6 x  1 Curved - Front Face | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/6255s01.dat | ~Plant  1 x  1 x  0.667 Round with 3 Large Leaves - Leaf | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |

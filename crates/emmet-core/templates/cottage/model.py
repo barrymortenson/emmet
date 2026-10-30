@@ -9,10 +9,13 @@ from emmet_dsl import Brick, Color, Model, Plate, Range, Rot, Step, Tile, frame,
 BASEPLATE = 0.5
 
 SLOPES = {4: "3037", 3: "3038", 2: "3039", 1: "3040b"}  # Slope 45 2 x n
+COURSES = {8: "3007", 4: "3001", 3: "3002", 2: "3003"}  # Brick 2 x n
 TILES = {4: "2431", 3: "63864", 2: "3069b", 1: "3070b"}  # Tile 1 x n
 BRICKS = {4: "3010", 3: "3622", 2: "3004", 1: "3005"}  # Brick 1 x n
 # The stone courses: Bricks 1 x 4 and 1 x 2 with embossed bricks, and a plain 1 x 1 where a run needs one.
 EMBOSSED = {4: "15533", 2: "98283", 1: "3005"}
+# Siding: Bricks 1 x 4 and 1 x 2 Log, whose grooves read as boards, and a plain 1 x 1 where a run needs one.
+LOGS = {4: "30137", 2: "30136", 1: "3005"}
 
 # The walls' brick lengths: 1 x 4 and shorter come in the most colors.
 WALL_BRICKS = [1, 2, 3, 4]
@@ -86,10 +89,12 @@ def stone_course(
     color,
     sides=("back", "left", "right", "front"),
     openings=(),
+    pieces=EMBOSSED,
 ):
-    """One course of embossed brickwork round the walls of a length x depth rectangle from (x, y), at z. Like m.wall,
-    the front and back walls own the corners on even courses and the sides on odd ones, so the corners interlock; each
-    run between openings is the longest pieces, starting with a 1 x 2 on odd courses so its joints move over."""
+    """One course of embossed brickwork (or other `pieces`: {length: part}) round the walls of a length x depth
+    rectangle from (x, y), at z. Like m.wall, the front and back walls own the corners on even courses and the sides on
+    odd ones, so the corners interlock; each run between openings is the longest pieces, starting with a 1 x 2 on odd
+    courses so its joints move over."""
     course = round(z / 3) % 2
     x1, y1 = x + length - 1, y + depth - 1
     lines = {
@@ -101,10 +106,8 @@ def stone_course(
     for side in sides:
         axis = "x" if side in ("back", "front") else "y"
         for (cx, cy), n in runs([c for c in lines[side] if c not in openings], axis):
-            for size in staggered(n, EMBOSSED, course):
-                m.add(
-                    EMBOSSED[size], color, at=(cx, cy, z), rot=1 if axis == "x" else 0
-                )
+            for size in staggered(n, pieces, course):
+                m.add(pieces[size], color, at=(cx, cy, z), rot=1 if axis == "x" else 0)
                 cx, cy = (cx + size, cy) if axis == "x" else (cx, cy + size)
 
 
@@ -153,13 +156,14 @@ def door_in_frame(m, color):
         )
 
 
-def window_unit(m, shutters, trim, wall, shutter, flowers):
+def window_unit(m, shutters, trim, wall, shutter, flowers, lights=False):
     """A window sub-assembly, built along x in a wall facing front (-y) whose line is y 0 to 1, its hood over the
     wall's cells x 0 to 4. The window 1 x 2 x 3 stands on cells 1 and 2 over a window box (window_box), its top under
     the hood (window_hood). With shutters, the unit is all four cells from the band course (z 0) up: a plate 2 x 4 in
     the band's color whose front row carries the box, a column each side of two bricks with studs on one side under a
     louvered shutter, the window, and a plate over it. Without, it starts a plate higher (the sill course is z 0),
-    and the wall's own courses fill cells 0 and 3."""
+    and the wall's own courses fill cells 0 and 3. Lit, the window is a 1 x 2 x 2 with yellow glass under a brick, as
+    if the lamps were on behind it."""
     if shutters:
         with m.step("Box plate"):
             m.add("3020", trim, at=(0, -1, 0), rot=1, id="plate")
@@ -192,15 +196,19 @@ def window_unit(m, shutters, trim, wall, shutter, flowers):
             title="Window box",
         )
     with m.step("Frame and glass"):
-        f = m.add("60593", "White", at=(1, 0, z), rot=1, id="frame")
+        f = m.add(
+            "60592" if lights else "60593", "White", at=(1, 0, z), rot=1, id="frame"
+        )
         (x0, y0, z0), (x1, y1, _) = f.min, f.max
         m.add(
-            "60602",
-            "Trans-Clear",
+            "60601" if lights else "60602",
+            "Trans-Yellow" if lights else "Trans-Clear",
             at=((x0 + x1 - 1.65) / 2, (y0 + y1 - 0.2) / 2, z0 + 0.875),
             rot=1,
             id="glass",
         )
+        if lights:
+            m.add("3004", "White", at=(1, 0, z + 6), rot=1, id="header")
     if shutters:
         with m.step("Over the window"):
             m.add("3023b", "White", at=(1, 0, z + 9), rot=1)
@@ -213,6 +221,64 @@ def window_unit(m, shutters, trim, wall, shutter, flowers):
         color=trim,
         title="Hood",
     )
+
+
+def lit_window(m, at, along_x, color):
+    """A lit window 1 x 2 x 3 high: a Window 1 x 2 x 2 with yellow glass, and a brick 1 x 2 over it."""
+    f = m.add("60592", color, at=at, rot=1 if along_x else 0)
+    (x0, y0, z0), (x1, y1, _) = f.min, f.max
+    if along_x:
+        g = ((x0 + x1 - 1.65) / 2, (y0 + y1 - 0.2) / 2, z0 + 0.875)
+    else:
+        g = ((x0 + x1 - 0.2) / 2, (y0 + y1 - 1.65) / 2, z0 + 0.875)
+    m.add("60601", "Trans-Yellow", at=g, rot=1 if along_x else 0)
+    m.add("3004", color, at=(at[0], at[1], at[2] + 6), rot=1 if along_x else 0)
+
+
+def lit_bay(m, x, y, z, color, trim, roof, title):
+    """bay_window (6 wide, no plinth) with its windows lit: the same floor, posts, cap, and lean-to roof."""
+    front, right = y - 3, x + 5
+    with m.step(f"{title}: floor and posts"):
+        m.add("3032", trim, at=(x, front, z), rot=1)
+        for cx in (x, right):
+            m.add("14716", color, at=(cx, front, z + 1))
+            m.add("14716", color, at=(cx, y, z + 1))
+    with m.step(f"{title}: side windows"):
+        for cx in (x, right):
+            lit_window(m, (cx, front + 1, z + 1), False, color)
+    with m.step(f"{title}: front windows"):
+        for k in range(2):
+            lit_window(m, (x + 1 + 2 * k, front, z + 1), True, color)
+    with m.step(f"{title}: cap"):
+        m.add("3032", trim, at=(x, front, z + 10), rot=1)
+    with m.step(f"{title}: roof"):
+        for k in range(0, 6, 2):
+            m.add("3039", roof, at=(x + k, front, z + 11), rot=3)
+        m.add("3009", roof, at=(x, y - 1, z + 11), rot=1)
+
+
+def lit_dormer(m, x, y, z, color, roof, title):
+    """roof_dormer with its window lit: returns the function that adds its gable."""
+    with m.step(f"{title}: window"):
+        for r in range(2):
+            m.add("3005", color, at=(x, y, z + 3 * r))
+            m.add("3005", color, at=(x + 3, y, z + 3 * r))
+        f = m.add("60592", color, at=(x + 1, y, z), rot=1)
+        (x0, y0, z0), (x1, y1, _) = f.min, f.max
+        m.add(
+            "60601",
+            "Trans-Yellow",
+            at=((x0 + x1 - 1.65) / 2, (y0 + y1 - 0.2) / 2, z0 + 0.875),
+            rot=1,
+        )
+        m.add("3010", roof, at=(x, y + 1, z), rot=1)
+
+    def gable():
+        with m.step(f"{title}: gable"):
+            m.add("3039", roof, at=(x, y, z + 6), rot=2)
+            m.add("3039", roof, at=(x + 2, y, z + 6), rot=0)
+
+    return gable
 
 
 def place_on_wall(m, unit, face, cell, n, z, id):
@@ -248,6 +314,7 @@ LEAVES = {
     "2417": ([-48.0, 0.0, -68.0, 48.0, 8.0, 48.0], 1),
     "2423": ([-26.0, 0.0, -68.0, 26.0, 8.0, 10.0], 1),
     "6255": ([-46.061, -27.45, -33.194, 45.979, 16.0, 54.95], 2),
+    "15279": ([-8.0, -63.993, -19.391, 8.0, 0.0, 14.729], 0),
 }
 
 
@@ -309,10 +376,11 @@ def snowman(m):
         m.add("3062b", "Black", at=(0.5, 0.5, 10), id="hat")
 
 
-def dress(m, title, cells, z, rng, n, blooms):
+def dress(m, title, cells, z, rng, n, blooms, wild=False):
     """Dots the ground among `cells` (free studs at height z): n spots, none beside another, each a tuft of leaves
     (where there's room all round), a flower on a stem, a pebble, or a patch of paler grass, so no wide stretch of
-    bare studs is left."""
+    bare studs is left. Wild, it's long grass and tall flowers on stems of round bricks instead of pebbles and
+    patches."""
     free = set(cells)
     spots = []
     for c in rng.sample(sorted(free), len(free)):
@@ -327,9 +395,12 @@ def dress(m, title, cells, z, rng, n, blooms):
     for x, y in spots:
         roomy = all((x + i, y + j) in free for i in range(-2, 3) for j in range(-2, 3))
         patch = all((x + i, y + j) in free for i in (0, 1) for j in (0, 1))
-        kind = rng.choice(
-            ["tuft"] * roomy * 2 + ["flower"] * 2 + ["pebble"] + ["patch"] * patch
-        )
+        if wild:
+            kind = rng.choice(["grass"] * 2 + ["tall flower"] * 3)
+        else:
+            kind = rng.choice(
+                ["tuft"] * roomy * 2 + ["flower"] * 2 + ["pebble"] + ["patch"] * patch
+            )
         if kind == "tuft":
             green = rng.choice(("Green", "Bright Green"))
             tufts.append(
@@ -351,6 +422,27 @@ def dress(m, title, cells, z, rng, n, blooms):
                     ],
                 )
             )
+        elif kind == "grass":
+            blade = rng.choice(("Bright Green", "Lime", "Olive Green"))
+            actions.append(
+                (
+                    1,
+                    lambda x=x, y=y, blade=blade: on_stud(
+                        m, "15279", blade, x + 0.5, y + 0.5, z
+                    ),
+                )
+            )
+        elif kind == "tall flower":
+            bloom, stem = rng.choice(blooms), rng.randint(1, 2)
+            actions.append(
+                (
+                    stem + 1,
+                    lambda x=x, y=y, bloom=bloom, stem=stem: [
+                        m.stack("3062b", "Green", at=(x, y, z), count=stem),
+                        m.add("33291", bloom, at=(x - 0.1, y - 0.1, z + 3 * stem)),
+                    ],
+                )
+            )
         elif kind == "pebble":
             actions.append(
                 piece(
@@ -365,13 +457,28 @@ def dress(m, title, cells, z, rng, n, blooms):
     in_steps(m, title, actions + tufts)
 
 
-@model(knobs=["season", "roof", "weathering", "seed"])
+@model(
+    knobs=[
+        "season",
+        "roof_style",
+        "wall_finish",
+        "garden",
+        "lights",
+        "roof",
+        "weathering",
+        "seed",
+    ]
+)
 def cottage(
     width: Annotated[int, Range(14, 20), Step(2)] = 16,
     depth: Annotated[int, Range(10, 12), Step(2)] = 10,
     wall_color: Color = "White",
     roof_color: Color = "Dark Red",
     season: Literal["summer", "winter"] = "summer",
+    roof_style: Literal["tiles", "slate", "shingles", "thatch"] = "tiles",
+    wall_finish: Literal["plaster", "brick", "timber", "siding"] = "plaster",
+    garden: Literal["tidy", "wild"] = "tidy",
+    lights: bool = False,
     chimney: bool = True,
     roof: bool = True,
     weathering: Annotated[int, Range(0, 30)] = 0,
@@ -384,9 +491,13 @@ def cottage(
     wall_color: the color of the plaster
     roof_color: the color of the roof
     season: summer (flowers) or winter (snow on the roof and the garden, a snowman, wreaths on the porch)
+    roof_style: what the roof is made of: tiles, slate, shingles, or straw thatch with a rounded ridge
+    wall_finish: what covers the walls above the stone: plaster, brick, half-timbering, or wooden siding
+    garden: tidy, or wild (overgrown, with long grass, tall flowers, roses climbing the fence, and a blossom tree)
+    lights: evening: the windows glow, and the porch lantern and the lamps are lit
     chimney: add a stone chimney on the right end, with the fireplace inside
     roof: put the roof on (off: it's lifted off, so the rooms show)
-    weathering: how much old stone shows through the plaster, in percent
+    weathering: how weathered the walls are, in percent: old stone through the plaster, patched bricks, worn boards
     seed: which arrangement of the old stones and the garden (Shuffle picks another)
     baseplate: stand the cottage in its garden on a green 32 x 32 baseplate (off: the house alone, on the table)
     """
@@ -405,7 +516,30 @@ def cottage(
         "Dark Green",
     )
     snow = "White"
-    roofing = snow if winter else roof_color  # every roof is under snow in winter
+    # Over the stone: plaster, brick in two tones, plaster between dark timbers, or boards of natural wood. The gables
+    # match.
+    brick, patch, timber, boards = (
+        "Nougat",
+        "Medium Nougat",
+        "Dark Brown",
+        "Medium Nougat",
+    )
+    beams = (
+        timber if wall_finish == "timber" else wall_color
+    )  # the sill and hood courses
+    gable_pieces, gable_color = {
+        "plaster": (BRICKS, wall_color),
+        "brick": (EMBOSSED, brick),
+        "timber": (BRICKS, wall_color),
+        "siding": (LOGS, boards),
+    }[wall_finish]
+    # The roof's main color: slate is dark gray and thatch straw, tiles and shingles take roof_color; every roof is
+    # under snow in winter.
+    roofing = (
+        snow
+        if winter
+        else {"slate": "Dark Bluish Gray", "thatch": "Tan"}.get(roof_style, roof_color)
+    )
 
     # The house's corners: off center on the baseplate, toward the back left, so the front garden is deep.
     x0, y0 = 4, 14
@@ -536,21 +670,25 @@ def cottage(
     # embossed brickwork; then the timber band, the sill course, the plaster, the hood course, and a last course of
     # plaster. Openings: the door, the bay, the window units, the stone corners (quoins), and the old stones.
     plaster_rows = [F + 9, F + 12, F + 15, F + 19]
+    upper = {"plaster": Brick, "brick": "stone", "timber": Brick, "siding": "logs"}[
+        wall_finish
+    ]
+    upper_color = {"brick": brick, "siding": boards}.get(wall_finish, wall_color)
     courses = [
         (ground, "stone", plinth, set()),
         (F, Plate, plinth, set()),
         (F + 1, "stone", stone, door),
         (F + 4, "stone", stone, door),
         (F + 7, Plate, trim, door | shuttered),
-        (F + 8, Plate, wall_color, door | bay | shuttered | boxed),
+        (F + 8, Plate, beams, door | bay | shuttered | boxed),
     ]
     # Inside, a clock hangs on the front wall of the living room, beside the door, when there's a stud of wall for it.
     clock = {(x1 - 2, y0)} if dx + 4 <= x1 - 2 else set()
     courses += [
         (
             z,
-            Brick,
-            wall_color,
+            upper,
+            upper_color,
             door
             | bay
             | shuttered
@@ -560,8 +698,27 @@ def cottage(
         )
         for z in plaster_rows[:3]
     ]
-    courses += [(F + 18, Plate, wall_color, door | bay | hoods)]
-    courses += [(F + 19, Brick, wall_color, corners)]
+    courses += [(F + 18, Plate, beams, door | bay | hoods)]
+    courses += [(F + 19, upper, upper_color, corners)]
+
+    # Half-timbering: posts every fourth stud along each wall, and between each two a brace stepping across the
+    # courses under the hood course (its ends in the first and third), leaning one way then the other; the sill and
+    # hood courses are the rails, with plain plaster over the hood course. A timber is a dark brick in its cell.
+    timbers = {}
+    if wall_finish == "timber":
+        for z, *_, gaps in courses:
+            if z not in plaster_rows:
+                continue
+            r = plaster_rows.index(z)
+            cells = set()
+            for c in ring - gaps - corners:
+                i = c[0] - x0 if c[1] in (y0, y1) else c[1] - y0
+                bay_i, k = divmod(i, 4)
+                if r < 3 and (
+                    k == 0 or (r != 1 and k == (1 + r if bay_i % 2 == 0 else 3 - r))
+                ):
+                    cells.add(c)
+            timbers[z] = cells
 
     # Old stone showing through the plaster: single cells, never at a corner or an opening, never beside another old
     # stone, and never over one or an opening, so the course over it bridges it like any other brick. None behind the
@@ -583,7 +740,7 @@ def cottage(
         if z == plaster_rows[-1]:
             beside |= hoods  # the hoods' tiles stand in front of the last course's foot
         picked = set()
-        for c in sorted(ring - gaps - no_stone - beside):
+        for c in sorted(ring - gaps - no_stone - beside - timbers.get(z, set())):
             beside_it = {
                 (c[0] - 1, c[1]),
                 (c[0] + 1, c[1]),
@@ -617,17 +774,34 @@ def cottage(
         the chimney's layers that rise beside it."""
         z, kind, color, gaps = courses[i]
         old = old_stones.get(z, set())
-        quoins = kind is Brick
+        posts = timbers.get(z, set())
+        quoins = z in plaster_rows
         for name, side in sides:
             # About how many bricks it lays: a few long ones a run between the openings.
-            cells = sorted(c for c in ring if on_side[side](c) and c not in gaps | old)
+            cells = sorted(
+                c for c in ring if on_side[side](c) and c not in gaps | old | posts
+            )
             bricks = sum(
-                n // 3 + 1
+                # Brick and siding courses take shorter pieces than plaster's.
+                (
+                    n // 2 + 1
+                    if kind in ("stone", "logs") and z in plaster_rows
+                    else n // 3 + 1
+                )
                 for _, n in runs(cells, "x" if side in ("back", "front") else "y")
             )
-            if kind == "stone":
+            if kind in ("stone", "logs"):
                 lay = lambda side=side: stone_course(
-                    m, x0, y0, z, width, depth, color, sides=(side,), openings=gaps
+                    m,
+                    x0,
+                    y0,
+                    z,
+                    width,
+                    depth,
+                    color,
+                    sides=(side,),
+                    openings=gaps | old,
+                    pieces=LOGS if kind == "logs" else EMBOSSED,
                 )
             else:
                 lay = lambda side=side: m.wall(
@@ -638,11 +812,13 @@ def cottage(
                     depth=depth,
                     sides=side,
                     color=color,
-                    openings=gaps | old,
+                    openings=gaps | old | posts,
                     kind=kind,
                     sizes=WALL_BRICKS if kind is Brick else None,
                 )
             actions = [(bricks, lay)]
+            for c in sorted(filter(on_side[side], posts)):
+                actions.append(piece(m, "3005", timber, (*c, z)))
             for c in sorted(filter(on_side[side], old)):
                 face = face_of(c)
 
@@ -650,7 +826,18 @@ def cottage(
                     m.add("87087", wall_color, at=(*c, z), rot=STUD_ROT[face])
                     face_tile(m, stone, c, face, z)
 
-                actions.append((2, stone_cell))
+                if wall_finish == "brick":
+                    actions.append(piece(m, "3005", patch, (*c, z)))  # a patched brick
+                elif wall_finish == "siding":
+                    actions.append(
+                        piece(m, "3005", "Dark Tan", (*c, z))
+                    )  # a worn board
+                elif wall_finish == "timber":
+                    actions.append(
+                        piece(m, "3005", stone, (*c, z))
+                    )  # stone where the plaster's gone
+                else:
+                    actions.append((2, stone_cell))
             if quoins:
                 r = plaster_rows.index(z)
                 for c in sorted(filter(on_side[side], corners)):
@@ -792,6 +979,13 @@ def cottage(
     lamp = lx1 - lx0 + 1 >= 6
     if lamp:
         furniture["lamp"] = (x1 - 2, ry1 - 1, 2, 2)
+    if lights:
+        furniture["kitchen lamp"] = (
+            bx + 3,
+            ry0,
+            2,
+            2,
+        )  # behind the bay, so it glows through its windows
     table = kx1 - kx0 + 1 >= 7
     cells = set()
     for fx, fy, w, d in furniture.values():
@@ -875,7 +1069,19 @@ def cottage(
         title="Armchair",
     )
     if lamp:
-        m.use("floor_lamp_and_candle", x=x1 - 2, y=ry1 - 1, z=F, title="Floor lamp")
+        lit = {"shade": "Trans-Yellow"} if lights else {}
+        m.use(
+            "floor_lamp_and_candle", x=x1 - 2, y=ry1 - 1, z=F, title="Floor lamp", **lit
+        )
+    if lights:
+        m.use(
+            "floor_lamp_and_candle",
+            x=bx + 3,
+            y=ry0,
+            z=F,
+            shade="Trans-Yellow",
+            title="Floor lamp",
+        )
     m.use(
         "floor_rug", x=x1 - 5, y=cy, z=F, shape="round", color="Dark Red", title="Rug"
     )
@@ -937,17 +1143,20 @@ def cottage(
     with m.step("Walls, band: bay"):
         bay_base(F + 7, Plate, trim)
     course(5, "Walls, sill course")
-    m.use(
-        "bay_window",
-        x=bx,
-        y=y0,
-        z=F + 8,
-        width=6,
-        color="White",
-        trim=trim,
-        roof=roofing,
-        title="Bay window",
-    )
+    if lights:
+        lit_bay(m, bx, y0, F + 8, "White", trim, roofing, "Bay window")
+    else:
+        m.use(
+            "bay_window",
+            x=bx,
+            y=y0,
+            z=F + 8,
+            width=6,
+            color="White",
+            trim=trim,
+            roof=roofing,
+            title="Bay window",
+        )
     course(6, "Walls, row 3")
     course(7, "Walls, row 4")
     if clock:
@@ -974,6 +1183,7 @@ def cottage(
                 wall=wall_color,
                 shutter=green,
                 flowers=flowers,
+                **({"lights": True} if lights else {}),
             )
         with m.step(f"Window, {name.replace('/', ' ')}"):
             place_on_wall(
@@ -1022,6 +1232,22 @@ def cottage(
                 rot=Rot(y=-90, z=90),
                 id="nameplate",
             )
+    if lights:
+        # A lantern hangs under the porch roof beside the door, over the pot: a cap, a glowing round brick, a plate,
+        # and a cone (wall_lamp_bracket's lantern).
+        with m.step("Porch: lantern"):
+            for part, color, dz in (
+                ("6141", "Black", 1),
+                ("3062b", "Trans-Yellow", 4),
+                ("6141", "Black", 5),
+                ("4589", "Black", 7),
+            ):
+                m.add(
+                    part,
+                    color,
+                    at=(dx - 1, y0 - 2, F + 16 - dz),
+                    id=f"lantern/{part}-{dz}",
+                )
     with m.step("Porch: pots"):
         for i, px_ in enumerate((dx - 1, dx + 4)):
             m.use(
@@ -1093,13 +1319,43 @@ def cottage(
     R = x1 + 2 if not chimney else x1 + 1
     dormer_x = dx
 
+    # How each style lays a course: tiles and slate are 45-degree slopes, slate mottled with black ones; shingles are
+    # 2-deep bricks, each course a stud back and a brick up, their studs the rows of shingles; thatch is slopes in
+    # straw, the short ones of every other course in a darker straw, over a thick straw eave, under a rounded ridge.
+    roof_rng = random.Random(seed + 2)
+    eave = "Dark Tan" if roof_style == "thatch" and not winter else trim
+
+    def slope_color(k, n):
+        if winter or roof_style in ("tiles", "shingles"):
+            return roofing
+        if roof_style == "slate":
+            return "Black" if roof_rng.random() < 0.25 else roofing
+        return (
+            "Dark Tan" if k % 2 and n < 4 else roofing
+        )  # Dark Tan slopes come only up to 3 long
+
+    def roof_course(s, k, x, n, sy, z, turn):
+        """One side of course k from x, n studs long: its parts as in_steps actions."""
+        actions = []
+        if roof_style == "shingles":
+            for size in staggered(n, COURSES, k):
+                actions.append(piece(s, COURSES[size], roofing, (x, sy, z), rot=1))
+                x += size
+            return actions
+        for size in staggered(n, SLOPES, k):
+            actions.append(
+                piece(s, SLOPES[size], slope_color(k, size), (x, sy, z), rot=turn)
+            )
+            x += size
+        return actions
+
     def roof_on_frame(s):
         with s.step("Frame"):
-            s.row(Plate, trim, at=(L, ya, T + 1), length=R - L, width=2)
-            s.row(Plate, trim, at=(L, yb - 2, T + 1), length=R - L, width=2)
+            s.row(Plate, eave, at=(L, ya, T + 1), length=R - L, width=2)
+            s.row(Plate, eave, at=(L, yb - 2, T + 1), length=R - L, width=2)
             s.row(
                 Plate,
-                trim,
+                eave,
                 at=(L, ya + 2, T + 1),
                 length=yb - ya - 4,
                 axis="y",
@@ -1107,17 +1363,17 @@ def cottage(
             )
             s.row(
                 Plate,
-                trim,
+                eave,
                 at=(R - 2, ya + 2, T + 1),
                 length=yb - ya - 4,
                 axis="y",
                 width=2,
             )
         with s.step("Frame, second layer"):
-            s.row(Plate, trim, at=(L, ya, T + 2), length=yb - ya, axis="y", width=2)
-            s.row(Plate, trim, at=(R - 2, ya, T + 2), length=yb - ya, axis="y", width=2)
-            s.row(Plate, trim, at=(L + 2, ya, T + 2), length=R - L - 4, width=2)
-            s.row(Plate, trim, at=(L + 2, yb - 2, T + 2), length=R - L - 4, width=2)
+            s.row(Plate, eave, at=(L, ya, T + 2), length=yb - ya, axis="y", width=2)
+            s.row(Plate, eave, at=(R - 2, ya, T + 2), length=yb - ya, axis="y", width=2)
+            s.row(Plate, eave, at=(L + 2, ya, T + 2), length=R - L - 4, width=2)
+            s.row(Plate, eave, at=(L + 2, yb - 2, T + 2), length=R - L - 4, width=2)
         gable = None
         for k in range(roof_courses):
             z = T + 3 + 3 * k
@@ -1127,12 +1383,9 @@ def cottage(
                 x = L
                 gap = (dormer_x, dormer_x + 4) if side == "front" and k == 0 else None
                 for run_from, run_to in [(L, gap[0]), (gap[1], R)] if gap else [(L, R)]:
-                    x = run_from
-                    for n in staggered(run_to - run_from, SLOPES, k):
-                        actions.append(
-                            piece(s, SLOPES[n], roofing, (x, sy, z), rot=turn)
-                        )
-                        x += n
+                    actions += roof_course(
+                        s, k, run_from, run_to - run_from, sy, z, turn
+                    )
                 in_steps(s, f"Roof, course {k + 1}: {side}", actions)
             # The gables: plaster bricks behind the slopes at each end, a round window in the left one.
             inner = list(range(ya + k + 2, yb - 2 - k))
@@ -1142,10 +1395,20 @@ def cottage(
                     win = gx == x0 and k in (1, 2)
                     mid = (y0 + y1) // 2
                     rows = [(gx, y) for y in inner if not (win and mid <= y <= mid + 1)]
+                    # Half-timbered, the gables are plaster between dark studs, every third stud.
+                    studs = [
+                        c
+                        for c in rows
+                        if wall_finish == "timber" and (c[1] - y0) % 3 == 0
+                    ]
+                    actions += [piece(s, "3005", timber, (gx, c[1], z)) for c in studs]
+                    rows = [c for c in rows if c not in studs]
                     for (_, start), n in runs(rows, "y"):
-                        for size in lengths(n, BRICKS):
+                        for size in lengths(n, gable_pieces):
                             actions.append(
-                                piece(s, BRICKS[size], wall_color, (gx, start, z))
+                                piece(
+                                    s, gable_pieces[size], gable_color, (gx, start, z)
+                                )
                             )
                             start += size
                     if win and k == 1:
@@ -1153,7 +1416,9 @@ def cottage(
                             piece(s, "7276", green, (x0, mid, z), id="window/gable")
                         )
                 in_steps(s, f"Roof, course {k + 1}: gables", actions)
-            if k == 0:
+            if k == 0 and lights:
+                gable = lit_dormer(s, dormer_x, ya, z, "White", roofing, "Dormer")
+            elif k == 0:
                 gable = s.use(
                     "roof_dormer",
                     x=dormer_x,
@@ -1166,10 +1431,36 @@ def cottage(
             if k == 1 and gable:
                 gable()
         top = T + 3 + 3 * roof_courses
-        ridge = [
-            piece(s, "3043", roofing, (x, ya + roof_courses, top), rot=1)
-            for x in range(L, R, 2)
-        ]
+        if roof_style == "thatch":
+            # A rounded ridge: bricks 2 x 4 with a curved top, and two 2 x 1 ones for the last two studs.
+            ridge = []
+            for x in range(L, R, 4):
+                if x + 4 <= R:
+                    ridge.append(
+                        piece(
+                            s,
+                            "6192b",
+                            "Dark Tan" if not winter else snow,
+                            (x, ya + roof_courses, top),
+                            1,
+                        )
+                    )
+                else:
+                    ridge += [
+                        piece(
+                            s,
+                            "5841",
+                            "Dark Tan" if not winter else snow,
+                            (x + i, ya + roof_courses, top),
+                            1,
+                        )
+                        for i in (0, 1)
+                    ]
+        else:
+            ridge = [
+                piece(s, "3043", roofing, (x, ya + roof_courses, top), rot=1)
+                for x in range(L, R, 2)
+            ]
         in_steps(s, "Roof, ridge", ridge)
 
     roof_unit = m.submodel("Roof", roof_on_frame)
@@ -1205,6 +1496,10 @@ def cottage(
         m.add("4345b", "Red", at=(sx - 4, 1.5, ground + 7), rot=3, id="mailbox")
         # The lid hangs in the box's open front: its body starts where the box's does.
         m.add("4346", "Red", at=(sx - 4, 1.5, ground + 7), rot=3, id="mailbox/lid")
+    if lights:
+        # In the evening, a lit lamp by the gate.
+        with m.step("Lamp"):
+            m.use("lamp_post", at=(sx - 1, 1, ground), id="lamp")
     # The bed under the bay keeps its winter roses in the snow.
     blooms = ("White", "Red") if winter else ("Red", "Dark Pink", "Bright Light Orange")
     m.use(
@@ -1246,7 +1541,14 @@ def cottage(
     with m.step("Bench"):
         bench_x = max(lawn_x + 2, min(lawn_x + core - 2, lawn_x + 6 + (pave - 4) // 2))
         m.use("bench", at=(bench_x, 6, lawn_top), id="bench")
-    if not winter and core >= 8:
+    # The stepping stone can be one 3 deep, reaching the bed's row: measure it, built apart, and leave the bed out.
+    stone = m.submodel(
+        "Stone",
+        lambda s: s.use(
+            "stepping_stones", x=0, y=0, z=0, length=4, wander=0, seed=seed
+        ),
+    )
+    if not winter and core >= 8 and stone.box[1][1] - stone.box[0][1] <= 2:
         m.use(
             "flower_bed",
             x=lawn_x + 2,
@@ -1316,6 +1618,20 @@ def cottage(
                 rot=2,
                 id=f"fence/right/{k + 1}",
             )
+    if garden == "wild":
+        # Roses climbing the right fence: a stem of round bricks inside it, two leaves stacked on top reaching along
+        # it over the pickets, and a bloom.
+        for k in range((y1 + 1 - 12) // 4):
+            vy = 13 + 4 * k
+            with m.step("Fence, right: roses"):
+                m.stack("3062b", "Green", at=(30, vy, ground), count=2)
+                on_stud(m, "2423", "Green", 30.5, vy + 0.5, ground + 6, rot=3)
+                on_stud(m, "2423", "Dark Green", 30.5, vy + 0.5, ground + 7, rot=1)
+                m.add(
+                    "33291",
+                    "Red" if not winter else "White",
+                    at=(29.9, vy - 0.1, ground + 8),
+                )
     # And the open ground dressed: beside the path, down the left side, right of the house, and behind it.
     taken = {
         (x, y) for x in range(x1 + 1, x1 + 6) for y in range(cy - 2, cy + 5)
@@ -1323,6 +1639,14 @@ def cottage(
     taken |= {
         (tx + 2 + i, ty + 2 + j) for i in range(-5, 5) for j in range(-5, 5)
     }  # under the tree's crown
+    if garden == "wild":
+        taken |= {
+            (x, y) for x in range(2, 5) for y in range(4, 7)
+        }  # the blossom tree's foot
+        taken |= {
+            (x, y) for x in range(sx - 5, sx - 1) for y in range(1, 6)
+        }  # tall flowers clear of the mailbox
+        taken |= {(x, y) for x in (28, 29) for y in range(11, 28)}  # and of the roses
     regions = [
         (
             "front",
@@ -1331,7 +1655,10 @@ def cottage(
         ),
         (
             "left side",
-            [(2, y) for y in range(12, y1 - 1) if not cy - 1 <= y <= cy + 4],
+            [(2, y) for y in range(12, y1 - 1) if not cy - 1 <= y <= cy + 4]
+            if chimney
+            or garden == "tidy"  # wild long grass would stand under the left eave
+            else [],
         ),  # not under the box
         (
             "right side",
@@ -1355,7 +1682,20 @@ def cottage(
             [c for c in cells if c not in taken],
             ground,
             rng,
-            len(cells) // 4,
+            len(cells) // (5 if garden == "wild" else 4),
             flowers,
+            **({"wild": True} if garden == "wild" else {}),
+        )
+    if garden == "wild":
+        # A blossom tree in the front corner, leaning over the bed, its crown over the flowers.
+        m.use(
+            "blossom_tree",
+            x=2,
+            y=4,
+            z=ground,
+            lean=2,
+            layers=3,
+            blossom=("White", "White") if winter else ("Bright Pink", "White"),
+            title="Blossom tree",
         )
     return m
