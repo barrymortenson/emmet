@@ -152,10 +152,16 @@ pub fn guides(name: Option<&str>, build: Option<&BuildConfig>) -> Result<Guides>
             )),
         }
     }
+    if build.scale.is_none() {
+        // Any scale is figure scale unless the prompt names another (the doctrine's default), so its rules come along:
+        // the live check's blocky house read only the style's guide and left its baseplate bare.
+        out.guides
+            .insert(0, find("figure-scale").expect("the figure-scale guide"));
+    }
     if build.scale.is_none() && build.style.is_none() {
         notes.push(
-            "No scale or style is set in emmet.toml's [build]. When the prompt names one (\"a micro city\", \"blocky\", \
-             \"like a video game\"), call guide with it; otherwise build at figure scale."
+            "No scale or style is set in emmet.toml's [build], so this is figure scale's guide. When the prompt names a \
+             scale or style (\"a micro city\", \"blocky\", \"like a video game\"), call guide with it too."
                 .into(),
         );
     }

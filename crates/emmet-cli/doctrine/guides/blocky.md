@@ -28,6 +28,13 @@ When the user names a voxel game, this is the guide for its look; never use the 
 10. Detail is low: a wall is plain texture; a few feature blocks (a bookshelf, a torch, a window, a crafting bench)
     carry the story (`bookshelf_block`, `lava_inset`, `block_water_and_falls`, `cactus_column`).
 
+## Scenes
+
+A blocky model is a scene, not a building on a bare baseplate: the ground is blocks too. Raise it on a module with a
+dirt edge, step the terrain a block at a time, scatter grass blocks, run a path of a different material, plant block
+trees and crops, and put water or lava in a pit (`raised_module_base`, `stepped_block_terrain`, `grass_block`,
+`block_tree`, `crop_field`, `block_water_and_falls`, `lava_inset`). The building covers at most half the base.
+
 ## Buildings
 
 At figure scale the houses keep 1-stud walls and a figure's door (1 x 4 x 6); the blocky look comes from plank and

@@ -62,8 +62,8 @@ fn a_guide_answers_to_its_other_names() {
     assert_eq!(v["error"]["code"], "PARAM_INVALID");
 }
 
-/// With no name, `guide` reads the project's `[build]`: its scale's and style's guides; a style in the user's own
-/// words gets a note and the list; no settings get the list and what to do.
+/// With no name, `guide` reads the project's `[build]`: its scale's and style's guides, figure scale's when no scale
+/// is set; a style in the user's own words gets a note and the list; no settings get the list and what to do.
 #[test]
 fn with_no_name_it_gives_the_guides_for_the_build_settings() {
     let dir = temp_dir("guide-build").join("p");
@@ -102,8 +102,11 @@ fn with_no_name_it_gives_the_guides_for_the_build_settings() {
     );
     assert!(!v["data"]["list"].as_array().unwrap().is_empty());
 
+    // With no scale set, it's figure scale (the doctrine's default), so that guide comes too.
+    let (names, _) = with("[build]\nstyle = \"Blocky\"\n");
+    assert_eq!(names, "figure-scale blocky");
     let (names, v) = with("");
-    assert_eq!(names, "");
+    assert_eq!(names, "figure-scale");
     assert!(
         v["data"]["note"].as_str().unwrap().contains("No scale or style is set"),
         "{v:#}"
