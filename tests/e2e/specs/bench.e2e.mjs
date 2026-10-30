@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The viewer bench (plan section 13's budgets), run by `just bench`, not by `just e2e`. For the cottage (147 parts)
+// The viewer bench (plan section 13's budgets), run by `just bench`, not by `just e2e`. For the cottage (903 parts)
 // and the grid at 500 and 2,000 parts: first load into a viewer with an empty part cache (the host's library cache
 // is cold for each scene's parts the first time), slider → updated viewer (set_params, the watcher, the run, the
 // diff), and orbit frame time. Writes tests/e2e/out/bench-<os>.{json,md} and the CI job summary.
@@ -10,7 +10,7 @@ import { os, out } from "../lib/paths.mjs";
 import { emmet, projectDir } from "../lib/projects.mjs";
 
 const SCENES = [
-  { name: "cottage", dir: projectDir("bench"), change: (i) => ({ width: 8 + (i % 2) }) },
+  { name: "cottage", dir: projectDir("bench"), change: (i) => ({ width: 16 + 2 * (i % 2) }) },
   { name: "grid 500", dir: projectDir("bench-grid500"), change: (i) => ({ count: 500 + (i % 2) }) },
   { name: "grid 2000", dir: projectDir("bench-grid2000"), change: (i) => ({ count: 2000 + (i % 2) }) },
 ];

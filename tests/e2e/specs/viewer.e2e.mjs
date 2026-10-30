@@ -35,7 +35,7 @@ describe("the live viewer", () => {
     const started = Date.now();
     // Width isn't one of the cottage's knobs (they change its character, @model(knobs=...)), so it's set as the CLI
     // and the agent set it.
-    await invoke("set_params", { values: { width: 11 } });
+    await invoke("set_params", { values: { width: 18 } });
     // Sample while the update lands: the old scene stays whole until the new one replaces it (no flicker).
     let lowest = Infinity;
     await browser.waitUntil(
@@ -51,7 +51,7 @@ describe("the live viewer", () => {
     expect(lowest).toBeGreaterThanOrEqual(count);
     expect((await stats()).instances).toBeGreaterThan(count);
     expect(await camera()).toEqual(before);
-    const width = 11;
+    const width = 18;
     expect(JSON.parse(readFileSync(join(project, "params.json"), "utf8")).width).toBe(width);
     // 1B's budget (What good looks like: ≤ 1.0 s on M-series); slower hosted runners only report it.
     if (process.platform === "darwin" && process.env.RUNNER_ENVIRONMENT !== "github-hosted") expect(ms).toBeLessThan(1000);
@@ -134,7 +134,7 @@ describe("the live viewer", () => {
     expect((await stats()).instances).toBe(count);
     await expect($("#build-failed")).not.toBeExisting();
     const gen = await shown();
-    await invoke("set_params", { values: { width: 8 } });
+    await invoke("set_params", { values: { width: 14 } });
     await nextScene(gen);
     expect(existsSync(join(project, "build", "placements.json"))).toBe(true);
     await instances(await partCount());

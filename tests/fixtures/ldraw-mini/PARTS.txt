@@ -168,3 +168,8 @@
 3675    # garden_boulder
 5520    # stepping_stones
 7077    # potted_plant
+
+# Session 3D, the Cottage
+4345b    # the Cottage
+4346    # the Cottage
+7276    # the Cottage

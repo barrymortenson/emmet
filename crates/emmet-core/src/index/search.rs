@@ -197,7 +197,8 @@ fn dim_text(d: f64) -> String {
 }
 
 /// Boosts plain, current parts: moved (alias) and hidden parts always sink; printed, obsolete, and sticker parts sink
-/// unless the query asks for them; a category named in the query rises; and each word of the name costs a little.
+/// unless the query asks for them, and so do corner shapes ("Corner Round" for "4x4 round"); a category named in the
+/// query rises; and each word of the name costs a little.
 fn penalty(hit: &SearchHit, tokens: &[String]) -> f64 {
     let asked = |w: &str| tokens.iter().any(|t| t.starts_with(w));
     let mut p = 0.0;
@@ -219,6 +220,9 @@ fn penalty(hit: &SearchHit, tokens: &[String]) -> f64 {
         .all(|c| c.is_ascii_digit());
     if !plain {
         p += 0.5;
+    }
+    if !asked("corner") && hit.name.split_whitespace().any(|w| w == "Corner") {
+        p += 1.5;
     }
     if tokens.iter().any(|t| t == &hit.category.to_lowercase()) {
         p -= 2.0;

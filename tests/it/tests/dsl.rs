@@ -187,7 +187,7 @@ fn write_default_rewrites_one_literal() {
     let (v, code) = envelope(&out);
     assert_eq!(code, 0, "{v}");
     let before = read(&dir, "model.py");
-    let (v, code) = emmet_in(&dir, &["params", "--set", "width=12", "roof_color=Dark Green"]);
+    let (v, code) = emmet_in(&dir, &["params", "--set", "width=18", "roof_color=Dark Green"]);
     assert_eq!(code, 0, "{v}");
 
     let (v, code) = emmet_in(&dir, &["params", "--write-default", "width"]);
@@ -200,28 +200,26 @@ fn write_default_rewrites_one_literal() {
         .unwrap();
     assert_eq!(
         (width["default"].as_u64(), v["data"]["values"]["width"].as_u64()),
-        (Some(12), Some(12))
+        (Some(18), Some(18))
     );
     let (v, code) = emmet_in(&dir, &["params", "--write-default", "roof_color"]);
     assert_eq!(code, 0, "{v}");
 
     // Only the two literals changed; params.json no longer overrides them.
     let after = read(&dir, "model.py");
-    let expected = before
-        .replacen("Range(6, 16)] = 10,", "Range(6, 16)] = 12,", 1)
-        .replacen(
-            r#"roof_color: Color = "Dark Red","#,
-            r#"roof_color: Color = "Dark Green","#,
-            1,
-        );
+    let expected = before.replacen("Step(2)] = 16,", "Step(2)] = 18,", 1).replacen(
+        r#"roof_color: Color = "Dark Red","#,
+        r#"roof_color: Color = "Dark Green","#,
+        1,
+    );
     assert_ne!(expected, before, "the template's signature changed; update this test");
     assert_eq!(after, expected);
     assert_eq!(read(&dir, "params.json").trim(), "{}");
 
     // A default that isn't a plain value is refused at its line.
-    let model = after.replacen("Range(6, 16)] = 12,", "Range(6, 16)] = 6 + 6,", 1);
+    let model = after.replacen("Step(2)] = 18,", "Step(2)] = 9 + 9,", 1);
     std::fs::write(dir.join("model.py"), &model).unwrap();
-    emmet_in(&dir, &["params", "--set", "width=8"]);
+    emmet_in(&dir, &["params", "--set", "width=14"]);
     let (v, code) = emmet_in(&dir, &["params", "--write-default", "width"]);
     assert_ne!(code, 0, "{v}");
     assert_eq!(v["error"]["code"], "PARAM_INVALID");
@@ -444,12 +442,12 @@ fn a_model_names_its_knobs() {
         .filter(|p| p["knob"] == true)
         .map(|p| p["name"].as_str().unwrap())
         .collect();
-    assert_eq!(knobs, ["chimney", "roof", "weathering", "seed"]);
+    assert_eq!(knobs, ["season", "roof", "weathering", "seed"]);
 
     let model = std::fs::read_to_string(dir.join("model.py")).unwrap();
     std::fs::write(
         dir.join("model.py"),
-        model.replace(r#"knobs=["weathering","#, r#"knobs=["height", "weathering","#),
+        model.replace(r#"knobs=["season","#, r#"knobs=["height", "season","#),
     )
     .unwrap();
     let (v, code) = emmet_in(&dir, &["params"]);

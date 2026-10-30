@@ -30,7 +30,7 @@ fn a_project_path_with_spaces_and_accents() {
         .unwrap();
     let (v, code) = envelope(&out);
     assert_eq!(code, 0, "{v}");
-    assert_eq!(v["data"]["parts"], 147);
+    assert_eq!(v["data"]["parts"], 903);
     assert!(v["meta"]["project"].as_str().unwrap().ends_with("My Cottage"), "{v}");
 
     // No --project at all, from a folder inside the project: emmet looks upward for emmet.toml.

@@ -65,12 +65,14 @@ const BRIEF: Record<Key, { label: string; help: string; options: Choice[] }> = {
     options: [
       { id: "Town", sub: "Houses, shops, streets" },
       { id: "Medieval", sub: "Stone, timber, castles" },
-      { id: "Blocky", sub: "Voxel art, one-stud cubes" },
+      { id: "Blocky", sub: "Voxel worlds of square blocks, no curves" },
       { id: "Dinosaur park", sub: "Jungle, fences, big animals" },
       { id: "Space", sub: "Bases, rovers, gray and blue" },
       { id: "Pirate", sub: "Ships, docks, islands" },
       { id: "Modern", sub: "Glass, clean lines" },
       { id: "Fantasy", sub: "Towers, magic, color" },
+      { id: "Video game", sub: "Bright game worlds, item blocks, pixel art" },
+      { id: "Sculpture", sub: "Characters, animals, letters, smooth shapes" },
     ],
   },
 };

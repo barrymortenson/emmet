@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 366 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 369 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -118,6 +118,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/3-4ndis.dat | Disc Negative 0.75 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-4ring1.dat | Ring  1 x 0.75 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-4ring2.dat | Ring  2 x 0.75 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/3-4ring3.dat | Ring  3 x 0.75 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-8chrd.dat | Chord 0.375 | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-8con3.dat | Cone  3 x 0.375 | Ulrich RÃ¶der [UR] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-8cyli.dat | Cylinder 0.375 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -705,6 +706,8 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/4274.dat | Technic Pin  1/2 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4282.dat | Plate  2 x 16 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4286.dat | Slope Brick 33  3 x  1 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/4345b.dat | Container Box  2 x  2 x  2 with Hollow Studs | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/4346.dat | Container Box  2 x  2 x  2 Door with Slot | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/43722.dat | ~Moved to 43722a | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/43722a.dat | Wing  2 x  3 Right without Chamfer | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/43723.dat | ~Moved to 43723a | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -777,6 +780,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/6881b.dat | Tile  6 x  6 with Underside Details | Tore Eriksson [Tore_Eriksson] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/69729.dat | Tile  2 x  6 | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/7077.dat | Flower Pot  2 x  2 x  1.333 | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/7276.dat | Panel  1 x  2 x  2 Hollow Stud with Round Window Opening | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/73878.dat | Window Round Corner  3 x  3 x  2 | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/73878c01.dat | Window Round Corner  3 x  3 x  2 with Two Trans Clear Glasses | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/74611.dat | Plate  8 x  8 Round with Hole and Snapstud | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -933,6 +937,8 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/41770as01.dat | ~Wing  2 x  4 Left without Chamfer without Studs | Takeshi Takahashi [RainbowDolphin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4215bs01.dat | ~Panel  1 x  4 x  3 with Hollow Studs without Front Face | Andrew Ananjev [woozle] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/s/4286s01.dat | ~Slope Brick 33  3 x  1 without Front and Side Faces | Chris BÃ¶hnke [KnightOfTarenta] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/4345s01.dat | ~Container Box  2 x  2 x  2 without Front Face without Top Studs | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/4346s01.dat | ~Container Box  2 x  2 x  2 Door with Slot without Front Face | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/43722as01.dat | ~Wing  2 x  3 Right without Chamfer without Studs and Top Face | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/44301s01.dat | ~Hinge Plate  1 x  2 Locking with Single Finger on End Vertical - Common Geometry | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4460s01.dat | ~Slope Brick 75  2 x  1 x  3 without Top Faces | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |

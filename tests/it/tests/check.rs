@@ -190,23 +190,18 @@ fn the_cottage_validates_clean_at_every_corner() {
     // Each corner is checked from the defaults with --params, so no setting carries over to the next one.
     let corners: &[&[&str]] = &[
         &[],
-        &["width=6", "depth=4", "wall_rows=6", "chimney=false"],
-        &["width=16", "depth=12", "wall_rows=9", "chimney=true"],
-        &["width=6", "depth=12", "wall_rows=9", "chimney=true"],
-        &["width=16", "depth=4", "wall_rows=6", "chimney=true"],
-        &["width=11", "depth=10", "wall_rows=7", "chimney=false"],
-        // An odd width once left a stud of ceiling unplated, and the roof above it floated.
-        &["width=9", "depth=8", "wall_rows=6", "chimney=true"],
-        &["width=7", "depth=6", "roof=false", "weathering=30", "seed=7"],
-        // Walls in another color, heavily weathered (old bricks never over or beside each other or an opening).
-        &[
-            "width=12",
-            "depth=8",
-            "wall_color=Bright Light Orange",
-            "weathering=30",
-            "seed=3",
-        ],
-        &["width=16", "depth=12", "wall_rows=9", "chimney=true", "roof=false"],
+        &["width=14", "depth=10"],
+        &["width=20", "depth=12"],
+        &["width=14", "depth=12", "chimney=false"],
+        &["width=20", "depth=10", "season=winter"],
+        // The roof lifted off, heavily weathered (old stones never over or beside each other or an opening).
+        &["roof=false", "weathering=30", "seed=7"],
+        &["season=winter", "weathering=15", "seed=3"],
+        // Plaster and roof in other colors, which every part they color must have been made in.
+        &["wall_color=Bright Light Orange", "roof_color=Dark Bluish Gray"],
+        // The house alone on the table.
+        &["baseplate=false"],
+        &["width=18", "depth=12", "roof=false", "chimney=false", "season=winter"],
     ];
     for set in corners {
         let mut args = vec!["--strict"];
@@ -234,14 +229,14 @@ fn check_with_params_leaves_params_json() {
         .unwrap();
     assert!(out.status.success());
     let before = std::fs::read_to_string(dir.join("params.json")).unwrap();
-    let (v, code) = check(&dir, &["--strict", "--params", "width=16", "depth=12", "chimney=false"]);
+    let (v, code) = check(&dir, &["--strict", "--params", "width=20", "depth=12", "chimney=false"]);
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["findings"], json!([]));
     let built: serde_json::Value =
         serde_json::from_slice(&std::fs::read(dir.join("build/placements.json")).unwrap()).unwrap();
     assert!(
-        built["parts"].as_array().unwrap().len() > 150,
-        "the build is the 16 x 12 one"
+        built["parts"].as_array().unwrap().len() > 903,
+        "the build is the 20 x 12 one, bigger than the defaults' 903 parts"
     );
     assert_eq!(std::fs::read_to_string(dir.join("params.json")).unwrap(), before);
 }
