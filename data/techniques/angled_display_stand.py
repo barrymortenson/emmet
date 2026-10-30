@@ -12,8 +12,6 @@ stand on the platform's studs, centered on it, which turns with the cradle and l
 Handle.
 """
 
-import math
-
 from emmet_dsl import Rot, frame
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 10356. Not derived from any

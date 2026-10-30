@@ -239,7 +239,7 @@ def _panel(m, length, rows, side, color, stripe, accent, every, seed):
     """A panel lying flat: the base, a 2-deep stripe along the eave (it ties the base together), the gable edges,
     and a stripe on every other row above it and on the top row."""
     rng = random.Random(f"{seed}/{side}")
-    pick = lambda: accent if rng.random() < 1 / every else stripe  # noqa: E731
+    pick = lambda: accent if rng.random() < 1 / every else stripe
     _base(m, length, rows, color)
     eave, cx = [], 0
     for n in [4] * (length // 4) + [2] * (length % 4 // 2) + [1] * (length % 2):

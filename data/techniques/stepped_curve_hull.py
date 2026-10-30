@@ -80,7 +80,7 @@ def build(
         w = depth - inset
         # Plates across the layer, so each reaches the spine; a short piece at the edge sits under the slopes and is
         # tied by them.
-        short = next(k for k in range(0, step) if w - k in PLATES)
+        short = next(k for k in range(step) if w - k in PLATES)
         cols = [(c, min(2, length - c)) for c in range(0, length, 2)]
         actions = []
         for c, cw in cols:

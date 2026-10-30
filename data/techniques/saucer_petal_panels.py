@@ -36,10 +36,10 @@ PARTS = [
 ROWS = {
     0: range(2, 6),
     1: range(2, 6),
-    2: range(0, 6),
-    3: range(0, 6),
-    4: range(0, 5),
-    5: range(0, 3),
+    2: range(6),
+    3: range(6),
+    4: range(5),
+    5: range(3),
 }
 CELLS = {(u, v) for v, us in ROWS.items() for u in us}
 # Tiles by size (width, length): the length runs out from the middle.

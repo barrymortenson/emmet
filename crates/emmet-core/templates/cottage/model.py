@@ -5,7 +5,6 @@ from typing import Annotated, Literal
 
 from emmet_dsl import Brick, Color, Model, Plate, Range, Rot, Step, Tile, frame, model
 
-
 # The baseplate is half a plate thick, so everything on it starts at z = 0.5.
 BASEPLATE = 0.5
 
@@ -627,11 +626,11 @@ def cottage(
                 for _, n in runs(cells, "x" if side in ("back", "front") else "y")
             )
             if kind == "stone":
-                lay = lambda side=side: stone_course(  # noqa: E731
+                lay = lambda side=side: stone_course(
                     m, x0, y0, z, width, depth, color, sides=(side,), openings=gaps
                 )
             else:
-                lay = lambda side=side: m.wall(  # noqa: E731
+                lay = lambda side=side: m.wall(
                     x0,
                     y0,
                     z,
