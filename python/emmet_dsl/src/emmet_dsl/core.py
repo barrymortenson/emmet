@@ -42,8 +42,8 @@ active = None
 def model(fn=None, *, knobs=()):
     """Marks the model's entry function. Its signature is the param schema; it returns a Model.
 
-    `@model(knobs=["weathering", "chimney", "seed"])` names the knobs: the two to five parameters the app's panel shows
-    because they change the model's character (how worn it looks, a feature on or off, a count, another arrangement),
+    `@model(knobs=["weathering", "chimney", "seed"])` names the knobs: the two to five parameters (up to eight for a
+    detailed model) the app's panel shows because they change the model's character (how worn it looks, a feature on or off, a count, another arrangement),
     never raw dimensions or colors (the prompt and the build settings carry those). The other parameters still work
     from the CLI and the agent's tools; the panel doesn't show them."""
 
