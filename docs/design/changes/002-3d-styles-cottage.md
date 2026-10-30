@@ -13,4 +13,4 @@ wrote a build guide for each, and rebuilt the Cottage. Two places in the frozen 
 
 ## Barry's yes
 
-Not yet: asked with the new Cottage (H-26).
+Yes, as written: Barry, through AskUserQuestion, 2026-10-30, after approving the new Cottage (H-26).
