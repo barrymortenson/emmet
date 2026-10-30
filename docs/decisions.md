@@ -551,3 +551,7 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   layered_conifer, blossom_tree, palm_tree, bamboo_grove, potted_plant, clipped_hedge, stone_lantern, snow_drift_edge,
   gnarled_tree, cypress. garden_gate takes an `id` (the Cottage's gate), as figure_bed, hearth_fireplace, and
   table_and_chairs now do.
+- **H-26, batch 11 (blocky worlds): all 20 accepted** (Barry, 2026-10-30, on `docs/techniques/candidates/batch-11.html`):
+  block_column, raised_module_base, module_link_block, grass_block, stepped_block_terrain, block_tree,
+  speckled_block_wall, mossy_stone_block, bookshelf_block, cactus_column, reed_stalks, block_water_and_falls, lava_inset,
+  crop_field, block_fence_post, stick_torch, plank_and_stone_wall, stepped_plank_roof, flat_jumper_roof, block_beast.

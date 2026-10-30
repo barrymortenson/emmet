@@ -192,7 +192,7 @@ window.EMMET_STATUS = {
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
     "H-22": { status: "done", date: "2026-10-28", note: "98 of 100 candidates accepted on five review pages (docs/techniques/candidates/batch-1 to 5); rejected: wheel_axle, wheel_arch; docs/decisions.md" },
     "H-23": { status: "todo" },
-    "H-26": { status: "waiting", note: "batches 6 to 10 accepted (100 of 100); batches 11 to 18 to review" },
+    "H-26": { status: "waiting", note: "batches 6 to 11 accepted (120 of 120); batches 12 to 18 to review" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
     "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
   },
