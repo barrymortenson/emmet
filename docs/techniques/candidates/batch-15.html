@@ -1,0 +1,486 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-15</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-15</h1>
+  <p>20 candidates for Emmet's technique library (session 3D, H-26). Each was found in your instruction
+  books and ranked by how widely official models in the LDraw OMR join its key parts (1315 sets mined). Each
+  picture is a render of my sketch of it in Emmet's DSL, which validates with no findings; an accepted sketch becomes
+  the technique, with its tests and render, and a rejected one is dropped. Nothing is taken from the models' files or
+  the books' pages (D-48). Every candidate starts as Accept: switch the ones you don't want,
+  add a note if it helps, then copy your answers and paste them to Claude.</p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="batch-15/micropolis_block.png" alt="A sketch of micropolis_block" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>micropolis_block</code></h2>
+    <p>The frame every micro city module starts from, a 16 x 16 base with a 2-stud road of dark tiles along each side that faces a street and a 1-stud sidewalk inside it.</p>
+    <p class="why">The first call of any micro city module: the 16 x 16 base, the street-side roads, and the sidewalks, so modules tile and the agent builds only in the lot it returns.</p>
+    <p class="note"><b>Note:</b> The 16 x 16 module and 2-stud road rules come from the community standard as the research notes summarize it (MA section 4), not from a single book step; the road tiles are common parts, so the miner's count overstates it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>streets</code>, <code>sidewalk</code>, <code>base</code>, <code>road</code>, <code>walk</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (3 times); 14 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10261 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10267 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10359 - main.ldr (Orion Pobursky [OrionP], Licenced under CC BY 4.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/micropolis_block.py"><code>batch-15/micropolis_block.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>91405</code> + <code>87079</code> + <code>3068b</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for micropolis_block">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for micropolis_block">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="batch-15/micro_tower.png" alt="A sketch of micro_tower" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>micro_tower</code></h2>
+    <p>A slender skyscraper of tall 1 x 1 bricks standing side by side on a plate and capped by another, the seams between them reading as the tower's piers.</p>
+    <p class="why">The basic skyscraper of any micro skyline or Micropolis block: two or three tall 1 x 1 bricks side by side read as a ribbed shaft.</p>
+    
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>depth</code>, <code>height</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (3 times); 8 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10258 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 31153 - main.ldr (Marc Belanger [MonsieurPoulet], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/micro_tower.py"><code>batch-15/micro_tower.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>2453b</code> + <code>14716</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for micro_tower">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for micro_tower">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="batch-15/tower_setback_plinth.png" alt="A sketch of tower_setback_plinth" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>tower_setback_plinth</code></h2>
+    <p>A podium a stud wider than the tower on chosen sides, its edge covered with cheese slopes, so a micro tower flares out at street level.</p>
+    <p class="why">Gives a micro tower a podium that flares at street level, so it stands on its plot rather than poking out of it.</p>
+    <p class="note"><b>Note:</b> The book puts a 1 x 3 plate across a 1 x 2 brick with one 85984 on the overhang; this generalizes it to a podium a stud wider on any sides, with a double convex cheese slope (7826) at a corner where two ledges meet.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>depth</code>, <code>sides</code>, <code>height</code>, <code>color</code>, <code>slope_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/tower_setback_plinth.py"><code>batch-15/tower_setback_plinth.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>85984</code> + <code>54200</code> + <code>7826</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tower_setback_plinth">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for tower_setback_plinth">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="batch-15/tower_crown.png" alt="A sketch of tower_crown" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>tower_crown</code></h2>
+    <p>The top that makes a micro tower a tower, rounded, pyramid, or gabled, in the shaft's own color.</p>
+    <p class="why">The top of every micro tower: a rounded, pyramid, or gable crown in the shaft's color is what makes a stack of bricks read as a skyscraper.</p>
+    <p class="note"><b>Note:</b> Merges MA 3 (rounded) and MA 4 (pyramid, gable) under a kind param. The pyramid on a 2 x 2 is a 75 degree quadruple slope (3688), my pick; the book's gable is 3043.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>depth</code>, <code>kind</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/tower_crown.py"><code>batch-15/tower_crown.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>49307</code> + <code>37352</code> + <code>3688</code> + <code>3043</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tower_crown">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for tower_crown">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="batch-15/tower_side_fins.png" alt="A sketch of tower_side_fins" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>tower_side_fins</code></h2>
+    <p>A slender micro tower whose faces are tall tiles hung on side studs, each column its own strip, so the seams between them read as fins and a plate between sections as a band of floors.</p>
+    <p class="why">A sleek micro tower with flush tiled faces, the seams between columns as fins and a transparent plate between sections as a band of lit floors.</p>
+    <p class="note"><b>Note:</b> VARIANT of snot_panel for a 1-stud-deep tower. The book's brick with studs on four sides (4733) can't stand side by side (the side studs would clash), so the columns use 87087 (front only) or 47905 (front and back). Side studs 15 plates apart are 6 studs, so the face is a 1 x 8 tile, not the 1 x 6 the notes name.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>width</code>, <code>sections</code>, <code>faces</code>, <code>core</code>, <code>face</code>, <code>band</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 5 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/tower_side_fins.py"><code>batch-15/tower_side_fins.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>87087</code> + <code>47905</code> + <code>4162</code> + <code>14716</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for tower_side_fins">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for tower_side_fins">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="batch-15/floor_band_bricks.png" alt="A sketch of floor_band_bricks" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>floor_band_bricks</code></h2>
+    <p>A micro glass tower built of bricks with grooved faces, whose grooves read as many fine floor lines, with an angled roofline on top.</p>
+    <p class="why">A glass office tower whose grooved bricks show many fine floor lines, one texture for the whole tower as the micro guide asks.</p>
+    <p class="note"><b>Note:</b> The research names the log brick 30136 with an id? flag; in LDraw its logs run upright, so it reads as ribs. The embossed-bricks 1 x 2 (98283) shows horizontal bands and comes in sand blue, so the sketch uses it. Barry may know the exact brick from the set.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>depth</code>, <code>floors</code>, <code>color</code>, <code>roof</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>6</b> of 1315 official sets (10 times); 30 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10232 - Main-model.ldr (Orion Pobursky [OrionP], Licensed under CC BY 4.0); FILE 31084 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 75948 - main.ldr (Stefan Frenz [smf], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/floor_band_bricks.py"><code>batch-15/floor_band_bricks.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>98283</code> + <code>85984</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for floor_band_bricks">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for floor_band_bricks">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="batch-15/stepped_tower_setbacks.png" alt="A sketch of stepped_tower_setbacks" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>stepped_tower_setbacks</code></h2>
+    <p>A tower that narrows in tiers, each a stud in from the one below on every side with a tiled ledge round it, up to a needle spire.</p>
+    <p class="why">An art deco skyscraper that narrows in tiers to a needle, the landmark of a micro skyline.</p>
+    <p class="note"><b>Note:</b> The book finishes each tier's base edge with brackets carrying a tile skirt; the sketch uses a plain ring of tiles on the tier below as the ledge, which reads the same from a distance. Tiers are walls of plain bricks, so the miner's count will overstate it.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>size</code>, <code>heights</code>, <code>color</code>, <code>ledge</code>, <code>spire</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 47 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/stepped_tower_setbacks.py"><code>batch-15/stepped_tower_setbacks.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>87580</code> + <code>30374</code> + <code>3069b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for stepped_tower_setbacks">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for stepped_tower_setbacks">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="batch-15/bar_spire.png" alt="A sketch of bar_spire" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>bar_spire</code></h2>
+    <p>A needle antenna or spire far thinner than a stud, a bar standing in a hollow stud with round plates threaded on it as rings.</p>
+    <p class="why">A needle antenna or spire on any micro tower, landmark, or church: thinner than a stud, with rings for a tapering mast.</p>
+    <p class="note"><b>Note:</b> VARIANT of antenna_mast (no arms, no dish; threaded rings). The validator accepts a round plate with an open stud threaded on the bar mid-way.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>base</code>, <code>rings</code>, <code>color</code>, <code>bar_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 27 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/bar_spire.py"><code>batch-15/bar_spire.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066; set 21061</dd>
+      <dt>Key parts</dt><dd><code>30374</code> + <code>87994</code> + <code>85861</code> + <code>3062b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bar_spire">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for bar_spire">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="batch-15/paired_colonnade.png" alt="A sketch of paired_colonnade" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>paired_colonnade</code></h2>
+    <p>A classical museum front at micro size, pairs of columns from upright binoculars between end piers, under a plate cornice with sloped shoulders.</p>
+    <p class="why">A classical museum, bank, or civic front at micro scale: pairs of columns in one part each, under a cornice.</p>
+    <p class="note"><b>Note:</b> Upright binoculars (Rot y 90, z 90) have no connector data, but the validator takes them as held on the plate's studs. Their barrels are 0.6 studs apart and don't plug into studs, and from the front the bridge between them shows as a ring, so the columns read only up close. Barry should judge the render.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>pairs</code>, <code>color</code>, <code>wall</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 30162 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/paired_colonnade.py"><code>batch-15/paired_colonnade.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>30162</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for paired_colonnade">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for paired_colonnade">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="batch-15/spiral_dish_stack.png" alt="A sketch of spiral_dish_stack" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>spiral_dish_stack</code></h2>
+    <p>A round micro museum whose tiers grow wider going up, inverted dishes stacked on round plates, their rims reading as the ramps of a spiral.</p>
+    <p class="why">A round modern museum or landmark whose tiers widen going up, from a few inverted dishes on round plates.</p>
+    <p class="note"><b>Note:</b> The book stacks a 3 x 3 dish (43898) on a bar; in the parts data 43898 and the 6 x 6 dish (44375b) have no socket over a stud, so they read as floating. The sketch stacks a 2 x 2 dish and 4 x 4 dishes on round plates instead; the tiers widen only once.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>tiers</code>, <code>gap</code>, <code>color</code>, <code>core</code>, <code>skylight</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>2</b> of 1315 official sets (2 times); 25 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 21003 - Seattle Space Needle.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0); FILE 6834 - Celestial Sled.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/spiral_dish_stack.py"><code>batch-15/spiral_dish_stack.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>4740</code> + <code>3960</code> + <code>6141</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for spiral_dish_stack">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for spiral_dish_stack">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="11">
+  <div class="shot"><img src="batch-15/micro_tree_cluster.png" alt="A sketch of micro_tree_cluster" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">11</span> <code>micro_tree_cluster</code></h2>
+    <p>A park of micro trees, each one to three parts, in three forms mixed at random, with the ground between them tiled.</p>
+    <p class="why">Parks and street trees for micro and Micropolis, each tree one to three parts, where the figure-scale tree technique is far too big.</p>
+    <p class="note"><b>Note:</b> VARIANT of tree (micro). Poplar cones don't come in dark green, so they take their own color (poplar).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>leaves</code>, <code>poplar</code>, <code>trunk</code>, <code>ground</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 6254 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/micro_tree_cluster.py"><code>batch-15/micro_tree_cluster.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>6254</code> + <code>4589</code> + <code>6141</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for micro_tree_cluster">
+      <label><input type="radio" name="d11" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d11" value="reject"> Reject</label>
+      <input type="text" name="note11" placeholder="Note (optional)" aria-label="Note for micro_tree_cluster">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="12">
+  <div class="shot"><img src="batch-15/micro_traffic.png" alt="A sketch of micro_traffic" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">12</span> <code>micro_traffic</code></h2>
+    <p>A 2-lane road strip of dark tiles with tiny cars and buses standing in it, each two or three parts, for the streets of a micro city.</p>
+    <p class="why">Street life for a micro city: cars and buses standing in a dark road strip, the only thing allowed on a Micropolis road.</p>
+    <p class="note"><b>Note:</b> The book's one-part micro car (likely the roller skate 11253, id?) has no connector data, so the car is the midi form: a 1 x 2 jumper with a 1 x 1 tile cabin. Each vehicle stands on a road-colored plate set flush with the road tiles. The bus (1 x 3 plate, clear plate, 1 x 3 tile) is my scale-down of the double-deck bus.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>axis</code>, <code>cars</code>, <code>buses</code>, <code>seed</code>, <code>road</code>, <code>colors</code>, <code>bus</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>3</b> of 1315 official sets (3 times); 21 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10252 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 21037 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 21018 - United Nations Headquarters.ldr (Damien Roux [Darats], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/micro_traffic.py"><code>batch-15/micro_traffic.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066; set 21067</dd>
+      <dt>Key parts</dt><dd><code>3794b</code> + <code>3070b</code> + <code>3623</code> + <code>63864</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for micro_traffic">
+      <label><input type="radio" name="d12" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d12" value="reject"> Reject</label>
+      <input type="text" name="note12" placeholder="Note (optional)" aria-label="Note for micro_traffic">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="13">
+  <div class="shot"><img src="batch-15/micro_boat.png" alt="A sketch of micro_boat" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">13</span> <code>micro_boat</code></h2>
+    <p>A ferry or tug a stud wide, a plate hull with a cheese slope at each end and a deck house in the middle, for a micro harbor.</p>
+    <p class="why">Ferries and tugs for a micro harbor or river, set on bare studs left in the water.</p>
+    <p class="note"><b>Note:</b> Book: a white 1 x 4 plate, a cheese slope at each end, and a 1 x 2 tile on the middle. The sketch adds a plate under the deck house and a dark 1 x 1 tile as the wheelhouse windows, so the house stands above the slopes.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>axis</code>, <code>hull</code>, <code>house</code>, <code>cabin</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>38</b> of 1315 official sets (70 times); 248 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10276 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10179 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 42082 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 21318 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/micro_boat.py"><code>batch-15/micro_boat.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>54200</code> + <code>3710</code> + <code>3069b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for micro_boat">
+      <label><input type="radio" name="d13" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d13" value="reject"> Reject</label>
+      <input type="text" name="note13" placeholder="Note (optional)" aria-label="Note for micro_boat">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="14">
+  <div class="shot"><img src="batch-15/water_tile_field.png" alt="A sketch of water_tile_field" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">14</span> <code>water_tile_field</code></h2>
+    <p>A harbor or river at micro scale, pale tiles in long runs with their seams offset row to row, a few dark patches flush in the water as shadows, and a dark rim so the water sits a plate down.</p>
+    <p class="why">A harbor, river, or lake in a micro or architecture base: pale tiles with offset seams, flush shadows, and a dark rim.</p>
+    <p class="note"><b>Note:</b> VARIANT of river (micro and midi: straight rows, recessed rim, shadow patches). Defaults to Light Aqua; Trans Light Blue works with the same tile sizes.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>seed</code>, <code>shadows</code>, <code>studs</code>, <code>rim</code>, <code>water</code>, <code>shadow</code>, <code>edge</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>13</b> of 1315 official sets (16 times); 95 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10297 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 10264 - main.ldr (Jaco van der Molen [Jaco van der Molen], Redistributable under CCAL version 2.0); FILE 10270 - Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/water_tile_field.py"><code>batch-15/water_tile_field.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21067; set 21066</dd>
+      <dt>Key parts</dt><dd><code>4162</code> + <code>87079</code> + <code>2431</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for water_tile_field">
+      <label><input type="radio" name="d14" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d14" value="reject"> Reject</label>
+      <input type="text" name="note14" placeholder="Note (optional)" aria-label="Note for water_tile_field">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="15">
+  <div class="shot"><img src="batch-15/statuette_group.png" alt="A sketch of statuette_group" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">15</span> <code>statuette_group</code></h2>
+    <p>A small bronze statue group for a micro plaza, statuettes side by side on a dark plinth with a plaque on its front.</p>
+    <p class="why">A bronze statue group on a plinth for a micro plaza or stadium forecourt; the only people a micro model shows.</p>
+    <p class="note"><b>Note:</b> The book's plaque is a printed tile; the sketch uses a plain Metallic Gold tile.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>count</code>, <code>color</code>, <code>plinth</code>, <code>plaque</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not counted: its key parts 90398 are ones the miner leaves out (figures, stickers, baseplates).</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/statuette_group.py"><code>batch-15/statuette_group.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10272</dd>
+      <dt>Key parts</dt><dd><code>90398</code> + <code>11211</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for statuette_group">
+      <label><input type="radio" name="d15" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d15" value="reject"> Reject</label>
+      <input type="text" name="note15" placeholder="Note (optional)" aria-label="Note for statuette_group">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="16">
+  <div class="shot"><img src="batch-15/micro_house_on_wall.png" alt="A sketch of micro_house_on_wall" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">16</span> <code>micro_house_on_wall</code></h2>
+    <p>Tiny houses a stud or two wide standing on ledges in the face of a bigger wall, at different heights, so a figure-scale city wall reads as a far-off town climbing behind it.</p>
+    <p class="why">Makes a figure-scale city wall or castle tier read as a big town climbing behind it, with tiny houses on ledges in its face.</p>
+    <p class="note"><b>Note:</b> The FM notes attach the houses SNOT but don't pin the parts; the sketch seats each house on a ledge plate built into a plate course of the wall (half under the bricks above), which validates. The headlight brick's recess is the window.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>tiers</code>, <code>houses</code>, <code>seed</code>, <code>wall</code>, <code>house</code>, <code>roofs</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 3 sets use the parts.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/micro_house_on_wall.py"><code>batch-15/micro_house_on_wall.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 11377</dd>
+      <dt>Key parts</dt><dd><code>4070</code> + <code>54200</code> + <code>3044c</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for micro_house_on_wall">
+      <label><input type="radio" name="d16" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d16" value="reject"> Reject</label>
+      <input type="text" name="note16" placeholder="Note (optional)" aria-label="Note for micro_house_on_wall">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="17">
+  <div class="shot"><img src="batch-15/raked_seating_panel.png" alt="A sketch of raked_seating_panel" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">17</span> <code>raked_seating_panel</code></h2>
+    <p>A micro stadium stand, built as an upright wall of grille bricks and plain bricks with white aisle plates across it, then laid back at the stand's rake on clip hinges, so the grilles read as rows of seats.</p>
+    <p class="why">Any stadium, arena, or theater stand at micro scale: one cheap pattern of grille bricks and white aisle plates, built standing and leaned back on clips.</p>
+    <p class="note"><b>Note:</b> Uses hinge_roof's clip-and-handle geometry to lean the panel back to the rake (35 degrees by default). Built standing, the grille ribs run up the rake, not across it; the white aisle plates carry the rows. A course of bricks under the clips lifts the hinge so the panel's back edge clears the ground.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>rows</code>, <code>rake</code>, <code>color</code>, <code>aisle</code>, <code>clip_color</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>1</b> of 1315 official sets (2 times); 38 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 7191 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/raked_seating_panel.py"><code>batch-15/raked_seating_panel.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10272</dd>
+      <dt>Key parts</dt><dd><code>2877</code> + <code>2540</code> + <code>4081b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for raked_seating_panel">
+      <label><input type="radio" name="d17" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d17" value="reject"> Reject</label>
+      <input type="text" name="note17" placeholder="Note (optional)" aria-label="Note for raked_seating_panel">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="18">
+  <div class="shot"><img src="batch-15/mowed_pitch.png" alt="A sketch of mowed_pitch" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">18</span> <code>mowed_pitch</code></h2>
+    <p>A micro playing field, tiled in stripes of two greens like a mown lawn, inside white touchlines with a halfway line and a goal at each end.</p>
+    <p class="why">A playing field for a micro stadium or a park module: stripes of two greens, white lines, and handle-tile goals.</p>
+    <p class="note"><b>Note:</b> VARIANT of tiled_floor. The goal (a 1 x 2 tile with a handle, 2432) is my pick; the book's goal part isn't named. With an even length the halfway line is two studs wide.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>light</code>, <code>dark</code>, <code>line</code>, <code>goals</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>10</b> of 1315 official sets (13 times); 64 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      <dt>Sets that join them</dt><dd>FILE 42110 - main.ldr (Philippe Hurbain [Philo], Redistributable under CCAL version 2.0); FILE 6753 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0); FILE 10175-1 - main.ldr (Roland Dahl [RolandD], Redistributable under CCAL version 2.0); FILE 4954 - Main.ldr (Marc Giraudet [Mad_Marc], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/mowed_pitch.py"><code>batch-15/mowed_pitch.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10272</dd>
+      <dt>Key parts</dt><dd><code>6636</code> + <code>2432</code> (some of its parts weren't confirmed from the book; I'd pin them when writing it)</dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for mowed_pitch">
+      <label><input type="radio" name="d18" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d18" value="reject"> Reject</label>
+      <input type="text" name="note18" placeholder="Note (optional)" aria-label="Note for mowed_pitch">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="19">
+  <div class="shot"><img src="batch-15/curtain_wall_glazing.png" alt="A sketch of curtain_wall_glazing" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">19</span> <code>curtain_wall_glazing</code></h2>
+    <p>A modern glass building at micro scale, columns of transparent bricks between dark 1 x 1 mullions, with a dark plate band at every floor.</p>
+    <p class="why">A modern glass office block at micro or Micropolis scale: transparent brick bays between dark mullions, a slab band each floor.</p>
+    <p class="note"><b>Note:</b> VARIANT of shop_window / snot_panel. Uses the book's second way (stacked transparent 1 x 2 bricks between dark mullions); the first, tiles on a plate stood up, isn't built.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>depth</code>, <code>floors</code>, <code>rows</code>, <code>glass</code>, <code>frame</code>, <code>roof</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Joined in <b>61</b> of 1315 official sets (168 times); 61 sets use the parts.</dd>
+      <dt>Sets that join them</dt><dd>FILE 10294 - Titanic - main.ldr (Jens Brühl [jb70], Redistributable under CCAL version 2.0); FILE 10272 - main.ldr (Orion Pobursky [OrionP], Redistributable under CCAL version 2.0); FILE 10143 - main.ldr (Jude Parrill [theJudeAbides], Redistributable under CCAL version 2.0); FILE 10270 - Complete.ldr (Ulrich Röder [UR], Redistributable under CCAL version 2.0)</dd>
+      <dt>Sketch</dt><dd><a href="batch-15/curtain_wall_glazing.py"><code>batch-15/curtain_wall_glazing.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 10272</dd>
+      <dt>Key parts</dt><dd><code>3065</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for curtain_wall_glazing">
+      <label><input type="radio" name="d19" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d19" value="reject"> Reject</label>
+      <input type="text" name="note19" placeholder="Note (optional)" aria-label="Note for curtain_wall_glazing">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="20">
+  <div class="shot"><img src="batch-15/skyline_depth_rows.png" alt="A sketch of skyline_depth_rows" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">20</span> <code>skyline_depth_rows</code></h2>
+    <p>A micro city skyline in three rows by depth, dark towers at the back, gray ones in the middle with one white landmark far taller than the rest, and low light blocks in front, so a shallow base reads deep.</p>
+    <p class="why">A whole micro skyline in one call: three depth rows colored by distance, light low blocks in front, a white landmark in the middle, dark towers behind.</p>
+    <p class="note"><b>Note:</b> Combines MA 52 (depth by color) with the micro skyline rules; a style rule more than one part, so its parts are common.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>seed</code>, <code>front</code>, <code>middle</code>, <code>back</code>, <code>landmark</code>, <code>title</code></dd>
+      <dt>Official models</dt><dd>Not found joined in the 1315 mined sets; 0 sets use the parts. The key parts are common, so this count overstates it.</dd>
+      
+      <dt>Sketch</dt><dd><a href="batch-15/skyline_depth_rows.py"><code>batch-15/skyline_depth_rows.py</code></a></dd>
+      <dt>Instruction books</dt><dd>set 21066</dd>
+      <dt>Key parts</dt><dd><code>2453b</code> + <code>2454b</code> + <code>30145</code> + <code>37352</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for skyline_depth_rows">
+      <label><input type="radio" name="d20" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d20" value="reject"> Reject</label>
+      <input type="text" name="note20" placeholder="Note (optional)" aria-label="Note for skyline_depth_rows">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-15" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>

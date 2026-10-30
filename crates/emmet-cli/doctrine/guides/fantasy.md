@@ -6,8 +6,8 @@ but with curves where they'd have corners and color where they'd be plain.
 
 ## Rules
 
-- Curves beat corners. At least the base's outline and one main opening are curved: a `round_hill_door`, a
-  `round_window_frame`, rounded grass edges, curved walls (`curved_wall_end`, `organic_ground_outline`).
+- Curves beat corners. At least the base's outline and one main opening are curved: a round door (a disc door
+  on a hinge inside a ring of quarter-circle parts), a `round_window_frame`, rounded grass edges, curved walls (`curved_wall_end`, `organic_ground_outline`).
 - No straight base edge longer than 6 studs: break it with a round-corner plate or a step.
 - Buildings sit in the land, not on it: a hill or rock pushes the floor up 1 to 2 bricks, turf rolls over the roof
   (`contour_terraces`, `hillside`, `bermed_wall_reveal`, `grass_edge`).
