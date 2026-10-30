@@ -199,3 +199,36 @@ test("every committed replay transcript is under 200 KB and already scrubbed", (
     }
   }
 });
+
+test("another machine's .local name is scrubbed (4B: a rung 1 run recorded before a rename carried one)", () => {
+  const out = lines(scrubText(JSON.stringify({ dir: "out", msg: { serverName: "Someones-MacBook-Pro.local", note: "on Old-Mac.local today" } }) + "\n", { host: "Mac.localdomain" }));
+  assert.equal(out[0].serverName, "<HOST>");
+  assert.equal(out[0].note, "on <HOST> today");
+});
+
+test("--trim leaves out what a replay doesn't need, and keeps what it does", () => {
+  const big = "x".repeat(5000);
+  const input = [
+    { dir: "out", msg: { type: "system", subtype: "init", session_id: "s1", model: "m", plugins: [{ name: "mine" }], slash_commands: ["mine"], tools: ["Read"] } },
+    delta(0, "text", "Hello"),
+    { dir: "out", msg: { type: "assistant", message: { id: "msg_1", content: [{ type: "text", text: "Hello" }] } } },
+    { dir: "out", msg: { type: "user", tool_use_result: big, message: { content: [{ type: "tool_result", tool_use_id: "t1", content: [{ type: "text", text: big }, { type: "image", source: { data: big } }] }] } } },
+    { dir: "out", msg: { method: "item/agentMessage/delta", params: { itemId: "i1", delta: "Hi" } } },
+    { dir: "out", msg: { method: "hook/started", params: {} } },
+    { dir: "out", msg: { method: "item/completed", params: { item: { type: "mcpToolCall", id: "i2", result: { content: [{ type: "text", text: big }], structuredContent: { big } } } } } },
+    { dir: "err", msg: "some stderr" },
+    { dir: "in", msg: { type: "user", message: { role: "user", content: "Build it" } } },
+  ];
+  const r = scrub(input, "--trim");
+  assert.equal(r.code, 0, r.stderr);
+  const kept = r.lines;
+  assert.deepEqual(kept.map((l) => l.msg.type ?? l.msg.method), ["system", "assistant", "user", "item/completed", "user"]);
+  assert.deepEqual([kept[0].msg.plugins, kept[0].msg.slash_commands, kept[0].msg.tools], [[], [], ["Read"]]);
+  assert.equal(kept[1].msg.message.content[0].text, "Hello");
+  const result = kept[2].msg.message.content[0].content;
+  assert.equal(result.length, 1, "the image is gone");
+  assert.ok(result[0].text.length < 500);
+  assert.equal(kept[2].msg.tool_use_result, undefined);
+  assert.ok(kept[3].msg.params.item.result.content[0].text.length < 500);
+  assert.equal(kept[4].msg.message.content, "Build it");
+});

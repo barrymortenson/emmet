@@ -292,6 +292,12 @@ pub fn apply_change(change: &Value) {
             let Ok(text) = std::fs::read_to_string(path) else {
                 return;
             };
+            // Codex reports a whole-file rewrite as an update whose one hunk starts at line 0 (1D's rung 1 run).
+            let text = if diff.starts_with("@@ -0,0 ") {
+                String::new()
+            } else {
+                text
+            };
             let _ = std::fs::write(path, patch(&text, diff));
         }
         _ => {}

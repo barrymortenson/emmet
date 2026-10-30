@@ -26,7 +26,7 @@ import {
   type UiState,
   type VersionView,
 } from "./bindings";
-import { type Ask, Dock } from "./Chat";
+import { type Ask, Dock, DockBoundary } from "./Chat";
 import { findingWords, fixRequest } from "./Checks";
 import { About, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
@@ -649,6 +649,7 @@ export function App() {
               <Toast.Viewport className="toast-viewport" aria-label="Notifications" />
             </section>
             {project && (
+              <DockBoundary>
               <Dock
                 project={project}
                 ask={ask}
@@ -661,6 +662,7 @@ export function App() {
                 onAgent={setChatKind}
                 onUndone={(saved, who) => say(`Undid ${who}'s last turn. The model before is version ${saved.n}.`)}
               />
+              </DockBoundary>
             )}
           </div>
           <Resizable

@@ -173,6 +173,22 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   engine and in `import_ldraw`.
 - The doctrine says how official sets are built (no joint on a joint, tie the layers, smooth faces on side studs) and
   names every technique under what it's for.
+- The chat to the frozen design (session 4B): docked under the model, with the agent picker (switching starts a fresh
+  conversation and keeps the old one), Start fresh, the plan badge and its usage popover, the agent's status with the
+  time and Stop, Undo turn, History (smooth at 1,000 messages), and the model and effort beside Send. What the agent
+  did is said in plain words: tool cards from one table of product copy, file cards that say what changed, three or
+  more finished steps folded into one line, replies as markdown with no HTML, and thinking folded. Question and
+  approval cards, pending redirects, the crash card with Restart, the sign-in card, and both plan limits ("Continue
+  with Codex" on Claude's).
+- The agent sees what you see: each message carries the parts you picked and the view, and "Ask agent to fix" shows its
+  plain words while the agent gets the finding's file, line, and hint.
+- Conversations per project in `.emmet/chat/`, resumed after an app restart; a version saved before each turn that
+  changes the model, and Undo turn (⌥⌘Z) to go back to it.
+- MCP `camera`, `selection`, and `save_version`; emmet-bus `camera` and `selection`, for the app's sessions and
+  terminal agents alike.
+- One tip at a time, the first time it's useful: the first knob, the first finding, and the first export.
+- `scripts/scrub-transcript --trim`, which fits a live run under the 200 KB fixture limit; rung 1 replayed from 1D's
+  live runs (`tests/replay/{claude,codex}/rung1.jsonl`).
 
 ### Security
 
@@ -182,6 +198,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   in its transcript and chat wherever the CLI echoed it; leak tests grep every output for every token (ADR 0011).
 
 ### Fixed
+
+- The chat's history and the agent's transcripts never write through a link a project carries (4B).
 
 - headlights' lenses floated 0.2 studs in front of their bricks, bracket_side_panel hung its panel on the brackets'
   backs, and grass_edge's example cliff stood on nothing; the checks that let them through are stricter now (3D).

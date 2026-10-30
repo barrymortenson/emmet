@@ -117,7 +117,7 @@ describe("the dock's frozen states", () => {
     await screenshots("dock-usage");
     await browser.keys("Escape");
     await fresh("codex");
-    await play([{ type: "started", resume: "t", model: "gpt-6.1-sol", billing: { kind: "api_key", source: "keychain" } }, tool("w1", "get_params", {}), done("w1", "…"), { type: "reasoning", message: "r2", delta: "Joining the garage to the cottage's right wall and widening it to fit two cars." }], "make the garage and cottage one building, make it larger and make a door from the cottage to the garage, make the garage fit two cars.");
+    await play([{ type: "started", resume: "t", model: "gpt-6.1-sol", billing: { kind: "api_key", source: "keychain" } }, tool("w1", "get_params", {}), done("w1", "…"), { type: "reasoning", message: "r2", delta: "Joining the garage to the cottage's right wall and widening it to fit two cars." }], "make the garage and cottage one building, make it larger and make a door from the cottage to the garage, make the garage fit two cars.", { divider: "Codex · a fresh conversation. The Claude one is kept." });
     await (await $("#history-toggle")).click();
     await screenshots("dock-switched");
     await (await $("#history-toggle")).click();

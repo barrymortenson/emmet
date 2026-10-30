@@ -899,6 +899,7 @@ def cottage(
 <tr><td><code>technique</code></td><td><code>name?</code></td><td>The list, or <code>{name, doc, snippet, parts}</code></td><td>The doc's first lines</td></tr>
 <tr><td><code>list_colors</code></td><td><code>part?</code></td><td><code>[{code, name, rgb, produced_for_part?}]</code></td><td>Compact list</td></tr>
 <tr><td><code>highlight</code></td><td><code>ids</code> or <code>finding</code></td><td><code>{delivered: bool}</code></td><td>"Highlighted in the viewer", or "Emmet app not open"</td></tr>
+<tr><td><code>camera</code> · <code>selection</code></td><td><code>view?</code> · none</td><td><code>{delivered, view, selected}</code></td><td>"The viewer shows the front view. Selected (2): …", or "Emmet app not open". <code>camera</code> with a view turns the open viewer to it (4B)</td></tr>
 <tr><td><code>rules</code> · <code>api</code></td><td>none</td><td>Text only: the doctrine (EMMET.md) and the DSL vocabulary, as <code>emmet rules</code> and <code>emmet api</code> print them (1C: section 10 has the agent read the doctrine through a tool)</td><td>The text</td></tr>
 </table></div>
 <p class="small">A second, app-internal server <code>emmet_host</code> exposes <code>approve</code> for Claude Code's <code>--permission-prompt-tool</code> and <code>ask_user</code> for question cards (section 10). It's injected only by the app, never by terminal users; a terminal agent asks in its own terminal.</p>
@@ -942,6 +943,7 @@ pub enum AgentEvent {
     QuestionClosed { id: QuestionId, reason: Option&lt;String&gt; },
     NoteDelivered { id: NoteId, path: SteerPath },
     Usage { input: u64, output: u64 }, TurnDone { reason: DoneReason },
+    Models { models: Vec&lt;ModelChoice&gt; },                          // what the model and effort picker offers (4B)
     Limits { snapshot: UsageSnapshot },                              // live: Claude's rate_limit_event
     Error { code: AgentErrorCode, message: String },
     Exited { code: Option&lt;i32&gt; },                                 // the CLI ended; nothing follows
@@ -955,7 +957,7 @@ pub enum AgentEvent {
   --disallowedTools "AskUserQuestion" \
   --settings '&lt;the sandbox settings, or on native Windows the ask rules (D-40, below)&gt;' \
   --append-system-prompt "&lt;EMMET.md doctrine pointer&gt;" \
-  [--resume &lt;session-id&gt;] [--model &lt;user choice&gt;]          <span class="c"># cwd = project folder</span></code></pre>
+  [--resume &lt;session-id&gt;] [--model &lt;user choice&gt;] [--effort &lt;level&gt;]          <span class="c"># cwd = project folder</span></code></pre>
 <ul class="small">
 <li>All of these flags work in Claude Code 2.1.310; <code>--permission-prompt-tool</code> is hidden from <code>--help</code> but works. 0B recorded real transcripts with them (ADR 0001, <code>tests/replay/claude/</code>), and the adapter is tested against them.</li>
 <li><code>mcp.json</code> lives in the app's per-session directory (app data, not the project). It lists <code>emmet</code> (the sidecar's absolute path, <code>mcp --project … --session …</code>) and <code>emmet_host</code> (<code>mcp-host --session …</code>), plus any user-added servers later (D-31).</li>
@@ -978,11 +980,11 @@ pub enum AgentEvent {
   -c 'sandbox_workspace_write.exclude_slash_tmp=true' -c 'sandbox_workspace_write.exclude_tmpdir_env_var=true' \
   -c 'shell_environment_policy.ignore_default_excludes=false'      # the key or token never reaches the agent's commands (1E)
 <span class="c"># then JSON-RPC over stdio (newline-delimited):</span>
-initialize {clientInfo: {name: "Emmet", title: "Emmet", version}} → thread/start {cwd, developerInstructions: EMMET.md pointer} → turn/start {input}
+initialize {clientInfo: {name: "Emmet", title: "Emmet", version}} → model/list (the model and effort picker, 4B) → thread/start {cwd, developerInstructions: EMMET.md pointer, model} → turn/start {input, effort}
 server → client requests for command/file approvals → Approval events → respond()</code></pre>
 <ul class="small">
 <li><code>codex app-server generate-json-schema</code> output for each supported Codex version is committed under <code>crates/emmet-agent/schema/codex/&lt;version&gt;/</code>, and the adapter's types are checked against it. A Codex update that changes the schema shows up as a failing test, not a broken chat.</li>
-<li>Exact method names and parameters come from the generated schema committed in 0B: <code>initialize</code>, <code>account/read</code>, <code>thread/start</code>, <code>thread/resume</code>, <code>turn/start</code>, <code>turn/steer</code>, <code>turn/interrupt</code>, and the server requests for command, file-change, and MCP tool-call approvals (ADR 0001).</li>
+<li>Exact method names and parameters come from the generated schema committed in 0B: <code>initialize</code>, <code>account/read</code>, <code>thread/start</code>, <code>thread/resume</code>, <code>turn/start</code>, <code>turn/steer</code>, <code>turn/interrupt</code>, <code>model/list</code> (4B), and the server requests for command, file-change, and MCP tool-call approvals (ADR 0001).</li>
 <li>The provider block pins the session to the user's API key and keeps the app-server off the CLI's own <code>codex login</code> (<code>requires_openai_auth=false</code>), which Emmet never uses (D-35). 1E adds OpenAI's documented Sign in with ChatGPT provider word for word (<code>model_provider="openai_chatgpt_plan"</code>, <code>env_key="ACCESS_TOKEN"</code>, <code>supports_websockets=false</code>) for plan users, renewing the token between turns by restarting the app-server and resuming the thread, and <code>clientInfo.name</code> is "Emmet" to match the registration's <code>agent_name_hint</code> (ADR 0011); the API-key provider stays for users who prefer a key. 0B confirmed the key names with <code>--strict-config</code>, which rejects an unknown <code>-c</code> key, so the adapter passes it.</li>
 <li>Stop uses the app-server's <code>turn/interrupt</code>. Redirects use <code>turn/steer</code>, which 0B showed reaches the model at its next step (the native path). Codex approvals stay on server requests, so <code>emmet_host</code> carries only <code>ask_user</code> here, with <code>tool_timeout_sec=3600</code> because Codex's default MCP tool timeout is 300 s (0B).</li>
 </ul>

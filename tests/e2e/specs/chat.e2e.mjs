@@ -69,7 +69,8 @@ async function start(kind, name) {
 /** Opens a Radix menu or select by keyboard (Radix opens on pointerdown, which the embedded driver doesn't send), then
  * picks `item`. */
 async function choose(trigger, item) {
-  await (await $(trigger)).click();
+  // WebKit doesn't focus a button on a click.
+  await browser.execute((e) => e.focus(), await $(trigger));
   await browser.keys("Enter");
   const it = await $(item);
   await it.waitForDisplayed({ timeout: 5_000 });
@@ -119,6 +120,8 @@ const closedLines = () =>
   );
 
 const before = JSON.parse(process.env.EMMET_E2E_SENTINELS ?? "{}");
+/** The event → DOM times measured during the rung 1 builds (see that test). */
+const rung1Latency = [];
 
 for (const kind of ["claude", "codex"]) {
   describe(`chat with the fake ${kind === "claude" ? "Claude Code" : "Codex"}`, () => {
@@ -128,7 +131,7 @@ for (const kind of ["claude", "codex"]) {
       if ((await chat()).agent !== kind) await pick(kind);
       await waitFor("the picker didn't show the agent", async () => (await $("#agent-picker").getText()) === NAME[kind]);
       if (kind === "claude") {
-        await expect($("#plan-badge")).toHaveText("Max plan", { wait: 10_000 });
+        await expect($("#plan-badge")).toHaveText(expect.stringMatching(/^Max plan( · \d+%)?$/), { wait: 10_000 });
         // A key in the user's environment bills instead of the plan (ADR 0001): the dock says so before a turn.
         writeFileSync(join(fakeDir, "claude-auth.json"), '{"loggedIn":true,"authMethod":"api_key","apiKeySource":"ANTHROPIC_API_KEY"}');
         await choose("#agent-picker", '[data-menu="agents-again"]');
@@ -153,7 +156,7 @@ for (const kind of ["claude", "codex"]) {
       expect(lines.join("\n")).toContain("Changed the model");
       expect(lines.join("\n")).toMatch(/Built 10 parts/);
       for (const l of lines) expect(l).not.toMatch(/mcp__|model\.py|[{}()=]|\//);
-      expect(await log()).toContain("the row is 10 bricks wide");
+      await waitFor("no reply", async () => (await log()).includes("the row is 10 bricks wide"));
       // The end of a turn fetches plan usage (D-36): Claude's meters, Codex's billing state.
       if (kind === "claude") await expect($("#plan-badge")).toHaveText(expect.stringMatching(/^Max plan · \d+%$/), { wait: 10_000 });
       await expect($("#chat-status")).toHaveText(expect.stringContaining("Done in"));
@@ -178,6 +181,12 @@ for (const kind of ["claude", "codex"]) {
       // The card says it waits on you, so the status is quiet.
       expect(await (await $("#chat-status")).isExisting()).toBe(false);
       await screenshots(`chat-approval-${kind}`);
+      // A key typed in the message box goes there, never to the card (4B's review).
+      await (await $("#chat-input")).click();
+      await browser.keys("1");
+      expect(await (await $("#chat-input")).getValue()).toBe("1");
+      expect(await (await $("#dock-active .approval-card")).isExisting()).toBe(true);
+      await type("#chat-input", "");
       await press("#dock-active .approval-card", "Don't allow");
       if (kind === "codex") {
         // untrusted (0B): the command is a card, then the file change.
@@ -186,7 +195,7 @@ for (const kind of ["claude", "codex"]) {
       }
       await idle();
       await history();
-      expect(await log()).toContain("You said no");
+      await waitFor("no line for the denial", async () => (await log()).includes("You said no"));
     });
 
     it("answers a question with Other, in the same turn", async () => {
@@ -210,6 +219,7 @@ for (const kind of ["claude", "codex"]) {
       await expect($("#chat-status")).toHaveText(expect.stringContaining("Working"), { wait: 30_000 });
       await say("Also include the word banana in your reply.");
       await (await $("#pending")).waitForExist({ timeout: 10_000 }).catch(() => {});
+      await history();
       await waitFor("the redirect wasn't delivered", async () => (await log()).includes(`Delivered at ${NAME[kind]}'s next step`), 40_000);
       await waitFor("the agent didn't act on it", async () => (await log()).toLowerCase().includes("banana"));
       await idle();
@@ -229,7 +239,7 @@ for (const kind of ["claude", "codex"]) {
       await idle();
       await expect($("#chat-status")).toHaveText(expect.stringContaining("Stopped by you"));
       await history();
-      expect(await log()).toContain("You stopped the turn at");
+      await waitFor("no line for the stop", async () => (await log()).includes("You stopped the turn at"));
       await screenshots(`chat-stopped-${kind}`);
     });
 
@@ -243,19 +253,29 @@ for (const kind of ["claude", "codex"]) {
       await (await $("#chat-restart")).click();
       await waitFor("the agent didn't start again", async () => (await chat()).session === conversation && !(await chat()).crashed);
       await say(kind === "claude" ? "Reply with exactly the word: ready" : "What was the code word?");
+      await history();
       await waitFor("the resumed chat didn't answer", async () => (await log()).includes(kind === "claude" ? "ready" : "teal"));
       await idle();
     });
 
-    it("builds rung 1 from its replay, and the chat says what each step did", async () => {
-      await start(kind, "derived-rung1");
-      await say("Build rung 1.");
-      await (await $("#dock-active [data-question]")).waitForExist({ timeout: 30_000 });
-      await press("#dock-active [data-question]", "Classic");
-      await idle();
+    it("builds rung 1 from a live run, and the chat says what each step did", async () => {
+      // 1D's live eval run, scrubbed and trimmed (tests/replay/<cli>/rung1.jsonl), from the empty template.
+      await start(kind, "rung1");
+      const from = (await browser.execute(() => window.__emmet.chatLatency())).length;
+      await say("Build a small cottage on a green 32 × 32 baseplate.");
+      await browser.waitUntil(async () => !(await chat()).running, { timeout: 180_000, interval: 500, timeoutMsg: "rung 1 never finished" });
+      // Its builds load a 787-part model in the viewer on the window's thread, which delays the events beside them: that's
+      // the viewer's time (plan section 13, 4C's budgets), logged here and kept out of the chat's own budget below.
+      const ms = (await browser.execute(() => window.__emmet.chatLatency())).slice(from).sort((a, b) => a - b);
+      rung1Latency.push(...ms);
+      console.log(`rung 1 (${kind}) event → DOM with its builds: median ${ms[Math.floor(ms.length / 2)]} ms, p95 ${ms[Math.floor(ms.length * 0.95)]} ms`);
+      const parts = await browser.execute(() => window.__emmet.viewer().stats().instances);
+      expect(parts).toBeGreaterThanOrEqual(40);
       await history();
-      for (const l of await closedLines()) expect(l).not.toMatch(/mcp__|\.py\b|[{}=]|\/\w/);
-      expect(await log()).toContain("The cottage is up");
+      await waitFor("no folded steps", async () => (await closedLines()).some((l) => / steps/.test(l)));
+      const lines = await closedLines();
+      for (const l of lines) expect(l).not.toMatch(/mcp__|\.py\b|[{}=]|\/\w/);
+      await screenshots(`chat-rung1-${kind}`);
     });
   });
 }
@@ -268,8 +288,8 @@ describe("the model and effort", () => {
     await (await $("#model-chip")).click();
     await (await $("#model-popover")).waitForExist({ timeout: 5_000 });
     await screenshots("chat-model-picker");
-    await choose("#model-select", '[role="option"]*=Opus');
-    await choose("#effort-select", '[role="option"]*=High');
+    await choose("#model-select", '//*[@role="option"][normalize-space()="Opus"]');
+    await choose("#effort-select", '//*[@role="option"][normalize-space()="High"]');
     await browser.keys("Escape");
     await expect($("#model-chip")).toHaveText(expect.stringContaining("Opus · High"));
     await say("What was the code word?");
@@ -291,7 +311,7 @@ describe("switching agents", () => {
     await pick("codex");
     await waitFor("no switch", async () => (await chat()).agent === "codex");
     await history();
-    expect(await log()).toContain("Codex · a fresh conversation. The Claude one is kept.");
+    await waitFor("no divider", async () => (await log()).includes("Codex · a fresh conversation. The Claude one is kept."));
     await screenshots("chat-switched");
     await pick("claude");
   });
@@ -301,7 +321,10 @@ describe("the chat overall", () => {
   // The window measures from the host having the event to the change being in the DOM; the next frame paints it, so
   // the budget is 50 ms less one 60 Hz frame.
   it("adds under 50 ms between an agent event and its pixels", async () => {
-    const ms = await browser.execute(() => window.__emmet.chatLatency());
+    const all = await browser.execute(() => window.__emmet.chatLatency());
+    // Every event but the rung 1 builds' (whose time is the viewer's, logged by that test).
+    const ms = [...all];
+    for (const t of rung1Latency) ms.splice(ms.indexOf(t), 1);
     expect(ms.length).toBeGreaterThan(50);
     const sorted = [...ms].sort((a, b) => a - b);
     const p95 = sorted[Math.floor(sorted.length * 0.95)];

@@ -119,6 +119,38 @@ impl Rig {
         rig
     }
 
+    /// Puts the empty template's sources in the project, as `emmet eval` starts a rung (1D's live runs began there).
+    pub fn from_empty_template(&self) {
+        let fresh = crate::temp_dir("empty-template").join("p");
+        let out = emmet()
+            .arg("--data-dir")
+            .arg(shared_data())
+            .args(["new", "--template", "empty"])
+            .arg(&fresh)
+            .output()
+            .expect("emmet new");
+        assert!(out.status.success(), "emmet new: {}", crate::text(&out));
+        for f in ["model.py", "params.json", "emmet.toml", "CARD.md"] {
+            let _ = std::fs::remove_file(self.project.join(f));
+            if fresh.join(f).exists() {
+                std::fs::copy(fresh.join(f), self.project.join(f)).expect("copy the template");
+            }
+        }
+    }
+
+    /// `emmet check --json` on the project: its findings and counts, after running the model.
+    pub fn validate(&self) -> Value {
+        let out = emmet()
+            .arg("--data-dir")
+            .arg(shared_data())
+            .arg("--project")
+            .arg(&self.project)
+            .args(["check", "--json"])
+            .output()
+            .expect("emmet check");
+        serde_json::from_slice(&out.stdout).unwrap_or_else(|_| panic!("check: {}", crate::text(&out)))
+    }
+
     /// Points the fake at another transcript (`variant` "-usage" for Claude's usage probe).
     pub fn scenario(&self, cli: &str, variant: &str, scenario: &str) {
         let path = repo().join("tests/replay").join(cli).join(format!("{scenario}.jsonl"));

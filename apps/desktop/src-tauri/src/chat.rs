@@ -85,6 +85,24 @@ pub struct ChatRecord {
     pub from: Option<Origin>,
     #[serde(default)]
     pub event: Option<AgentEvent>,
+    /// The user's decision on an approval card, so the history shows it decided.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decided: Option<Decided>,
+    /// The user's answer to a question card, in their words.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub answered: Option<Answered>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Decided {
+    pub id: String,
+    pub decision: Decision,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct Answered {
+    pub id: String,
+    pub text: String,
 }
 
 /// One conversation in the project's history.
@@ -144,6 +162,9 @@ pub struct ChatState {
 struct Live {
     project: PathBuf,
     id: String,
+    /// Which start of the CLI this is: Restart starts the same conversation again, and the crashed one's events end
+    /// after the new one is live.
+    run: u64,
     kind: AgentKind,
     /// The model and effort it was started with: a change starts it again on the same conversation.
     model: Option<String>,
@@ -152,6 +173,8 @@ struct Live {
     plan: Option<String>,
     /// The version saved as the turn started, until the turn ends.
     turn: Option<u32>,
+    /// The CLI crashed or exited: Restart (or the next message) starts it again, even before its events are done.
+    dead: bool,
     session: Box<dyn Session>,
 }
 
@@ -512,6 +535,7 @@ fn ensure_live(app: &AppHandle, project: &Project) -> Result<String, Box<Problem
         if let Some(l) = live.as_ref()
             && l.project == project.root
             && l.id == info.id
+            && !l.dead
             && (l.model.as_ref(), l.effort.as_ref()) == (info.model.as_ref(), info.effort.as_ref())
         {
             return Ok(l.id.clone());
@@ -539,28 +563,31 @@ fn ensure_live(app: &AppHandle, project: &Project) -> Result<String, Box<Problem
     };
     let mut session = adapter.start(cfg).map_err(agent_problem)?;
     let events = session.events();
+    let run = state.chat.seq.fetch_add(1, Ordering::SeqCst);
     *state.chat.live.lock().expect("live") = Some(Live {
         project: project.root.clone(),
         id: info.id.clone(),
+        run,
         kind,
         model: info.model,
         effort: info.effort,
         plan,
         turn: None,
+        dead: false,
         session,
     });
     let (handle, project, sid) = (app.clone(), project.clone(), info.id.clone());
-    std::thread::spawn(move || pump(&handle, &project, &sid, kind, events));
+    std::thread::spawn(move || pump(&handle, &project, &sid, run, kind, events));
     Ok(info.id)
 }
 
 /// The turn is over: the version saved as it started goes if the turn changed nothing, and otherwise is what Undo
 /// turn restores.
-fn settle(app: &AppHandle, project: &Project, id: &str) {
+fn settle(app: &AppHandle, project: &Project, run: u64) {
     let state = app.state::<AppState>();
     let turn = {
         let mut live = state.chat.live.lock().expect("live");
-        live.as_mut().filter(|l| l.id == id).and_then(|l| l.turn.take())
+        live.as_mut().filter(|l| l.run == run).and_then(|l| l.turn.take())
     };
     let Some(n) = turn else { return };
     // A turn that changed nothing keeps no version, and there's no turn to undo.
@@ -575,7 +602,7 @@ fn settle(app: &AppHandle, project: &Project, id: &str) {
 }
 
 /// The session's events, to the window and the history, until the CLI exits.
-fn pump(app: &AppHandle, project: &Project, id: &str, kind: AgentKind, events: emmet_agent::EventStream) {
+fn pump(app: &AppHandle, project: &Project, id: &str, run: u64, kind: AgentKind, events: emmet_agent::EventStream) {
     let state = app.state::<AppState>();
     let root = &project.root;
     for mut event in events {
@@ -596,7 +623,18 @@ fn pump(app: &AppHandle, project: &Project, id: &str, kind: AgentKind, events: e
             AgentEvent::Models { models } => {
                 state.chat.models.lock().expect("models").insert(kind, models.clone());
             }
-            AgentEvent::TurnDone { .. } | AgentEvent::Exited { .. } => settle(app, project, id),
+            AgentEvent::TurnDone { .. } | AgentEvent::Exited { .. } => {
+                if matches!(
+                    event,
+                    AgentEvent::TurnDone {
+                        reason: emmet_agent::DoneReason::Crashed
+                    } | AgentEvent::Exited { .. }
+                ) && let Some(l) = state.chat.live.lock().expect("live").as_mut().filter(|l| l.run == run)
+                {
+                    l.dead = true;
+                }
+                settle(app, project, run);
+            }
             _ => {}
         }
         // Text arrives in many small deltas; the history keeps them, and reading it joins them again.
@@ -608,6 +646,8 @@ fn pump(app: &AppHandle, project: &Project, id: &str, kind: AgentKind, events: e
                 user: None,
                 from: None,
                 event: Some(event.clone()),
+                decided: None,
+                answered: None,
             },
         );
         let seq = state.chat.seq.fetch_add(1, Ordering::SeqCst);
@@ -619,9 +659,9 @@ fn pump(app: &AppHandle, project: &Project, id: &str, kind: AgentKind, events: e
         }
         .emit(app);
     }
-    // The session is over; forget it if it's still the live one.
+    // This start of the CLI is over; forget it if it's still the live one (not a Restart of the same conversation).
     let mut live = state.chat.live.lock().expect("live");
-    if live.as_ref().is_some_and(|l| l.id == id) {
+    if live.as_ref().is_some_and(|l| l.run == run) {
         *live = None;
     }
 }
@@ -680,6 +720,8 @@ fn send(app: &AppHandle, text: String, context: TurnContext, from: Option<Origin
                 user: Some(text.clone()),
                 from,
                 event: None,
+                decided: None,
+                answered: None,
             },
         );
         l.session
@@ -706,6 +748,8 @@ pub async fn chat_steer(app: AppHandle, text: String, context: TurnContext) -> R
                     user: Some(text),
                     from: None,
                     event: None,
+                    decided: None,
+                    answered: None,
                 },
             );
             Ok(note)
@@ -736,13 +780,52 @@ pub fn chat_stop(app: AppHandle) -> Result<(), Box<Problem>> {
 #[tauri::command]
 #[specta::specta]
 pub fn chat_respond(app: AppHandle, id: String, decision: Decision) -> Result<(), Box<Problem>> {
-    with_live(&app, |l| l.session.respond(&id, decision).map_err(agent_problem))
+    with_live(&app, |l| {
+        l.session.respond(&id, decision).map_err(agent_problem)?;
+        record(
+            l,
+            ChatRecord {
+                at: now(),
+                user: None,
+                from: None,
+                event: None,
+                decided: Some(Decided { id, decision }),
+                answered: None,
+            },
+        );
+        Ok(())
+    })
 }
 
 #[tauri::command]
 #[specta::specta]
 pub fn chat_answer(app: AppHandle, id: String, answer: Answer) -> Result<(), Box<Problem>> {
-    with_live(&app, |l| l.session.answer(&id, answer).map_err(agent_problem))
+    with_live(&app, |l| {
+        let text = answer
+            .choices
+            .iter()
+            .cloned()
+            .chain(answer.other.clone())
+            .collect::<Vec<_>>()
+            .join(", ");
+        l.session.answer(&id, answer).map_err(agent_problem)?;
+        record(
+            l,
+            ChatRecord {
+                at: now(),
+                user: None,
+                from: None,
+                event: None,
+                decided: None,
+                answered: Some(Answered { id, text }),
+            },
+        );
+        Ok(())
+    })
+}
+
+fn record(l: &Live, r: ChatRecord) {
+    append(&l.project, &l.id, &r);
 }
 
 /// A new conversation with `kind` (the agent picker), or with the same agent (Start fresh): the agent running now

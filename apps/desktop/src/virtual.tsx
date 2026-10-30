@@ -2,7 +2,7 @@
 // A list that puts only the rows in view (and a screen's worth either side) in the DOM, so a chat of 1,000 messages
 // scrolls like one of 10 (session 4B). Rows have their own heights: each is measured once it's drawn, and a row not
 // drawn yet counts as the average so far. Pinned to the bottom, it stays there as rows arrive, as a chat log does.
-import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export type Row = { key: string; node: ReactNode };
 
@@ -16,6 +16,9 @@ export function VirtualList({ rows, className, id, label }: { rows: Row[]; class
   const [, remeasured] = useState(0);
   /** At the bottom: new rows keep it there. */
   const pinned = useRef(true);
+  /** Where the list last scrolled itself: a scroll event there is its own, which doesn't unpin it, as rows measured
+   * since can have moved the bottom. */
+  const own = useRef<number | null>(null);
 
   const avg = () => {
     const h = heights.current;
@@ -38,11 +41,19 @@ export function VirtualList({ rows, className, id, label }: { rows: Row[]; class
   while (last < rows.length - 1 && offsets[last + 1]! < view.top + view.height + over) last++;
   const shown = rows.slice(first, last + 1);
 
+  // The view changes only on a scroll or a resize, and only when it moved: setting it from the layout itself would
+  // loop, as each guess of a row's height moves the bottom a little.
+  const update = () => {
+    const el = box.current;
+    if (!el) return;
+    setView((v) => (Math.abs(v.top - el.scrollTop) < 1 && v.height === el.clientHeight ? v : { top: el.scrollTop, height: el.clientHeight }));
+  };
   const onScroll = () => {
     const el = box.current;
     if (!el) return;
-    pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-    setView({ top: el.scrollTop, height: el.clientHeight });
+    if (own.current == null || Math.abs(el.scrollTop - own.current) >= 2) pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+    own.current = null;
+    update();
   };
 
   // Each drawn row's height, as it lays out and whenever it changes (a streaming message grows).
@@ -65,12 +76,26 @@ export function VirtualList({ rows, className, id, label }: { rows: Row[]; class
     if (el) observer.current?.observe(el);
   }, []);
 
-  useLayoutEffect(() => {
+  // Pinned, it follows the bottom as rows arrive and grow, and as the list itself is resized (opening History, dragging
+  // its edge); the scroll event that follows updates the view.
+  const follow = () => {
     const el = box.current;
-    if (!el) return;
-    if (pinned.current) el.scrollTop = el.scrollHeight;
-    if (el.clientHeight !== view.height || (pinned.current && el.scrollTop !== view.top)) setView({ top: el.scrollTop, height: el.clientHeight });
-  });
+    if (el && pinned.current && el.scrollHeight - el.scrollTop - el.clientHeight >= 1) {
+      el.scrollTop = el.scrollHeight;
+      own.current = el.scrollTop;
+    }
+  };
+  useLayoutEffect(follow);
+  useEffect(() => {
+    const el = box.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const r = new ResizeObserver(() => {
+      follow();
+      update();
+    });
+    r.observe(el);
+    return () => r.disconnect();
+  }, []);
 
   return (
     <div className={className} ref={box} onScroll={onScroll} role="log" aria-label={label} aria-live="polite" id={id} data-rows={rows.length} data-drawn={shown.length}>

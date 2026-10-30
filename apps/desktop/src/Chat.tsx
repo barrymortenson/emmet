@@ -9,7 +9,7 @@
 // code on their closed line (law 2). A message the app wrote for the user ("Ask agent to fix") shows its plain words;
 // the details go to the agent as the turn's context, with what the user has selected and the view.
 import { DropdownMenu, Popover } from "radix-ui";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
+import { Component, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
   type AgentEvent,
   type AgentKind,
@@ -166,9 +166,11 @@ function apply(c: Chat, e: AgentEvent, at: number): Chat {
       return { ...next, limits: e.snapshot };
     case "turn_done": {
       const took = c.began != null ? at - c.began : null;
-      const s = { ...next, running: false, question: null, took };
-      if (e.reason === "crashed") return c.crashed ? s : { ...s, crashed: true, items: [...c.items, { k: "crash", key }] };
-      if (e.reason === "interrupted") return { ...s, stopped: true, items: [...c.items, { k: "note", key, text: `You stopped the turn at ${clock(took ?? 0)}.` }] };
+      // A card the turn left open went away with it.
+      const items = c.items.map((i) => (i.k === "approval" && !i.decided ? { ...i, decided: "closed" as const } : i));
+      const s = { ...next, items, running: false, question: null, took };
+      if (e.reason === "crashed") return c.crashed ? s : { ...s, crashed: true, items: [...items, { k: "crash", key }] };
+      if (e.reason === "interrupted") return { ...s, stopped: true, items: [...items, { k: "note", key, text: `You stopped the turn at ${clock(took ?? 0)}.` }] };
       return s;
     }
     case "error":
@@ -198,6 +200,8 @@ function reduce(c: Chat, a: Action): Chat {
         for (const r of v.records) {
           if (r.user != null) s = reduce(s, { type: "user", text: r.user, from: r.from ?? null, at: r.at ?? 0 });
           else if (r.event) s = apply(s, r.event, r.at ?? 0);
+          else if (r.decided) s = reduce(s, { type: "decided", id: r.decided.id, how: r.decided.decision });
+          else if (r.answered) s = reduce(s, { type: "answered", id: r.answered.id, answer: r.answered.text });
         }
       });
       // A chat read back that isn't running: its last turn is over (a crash shows only while it's live).
@@ -337,7 +341,6 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         painting.current.push(payload.at ?? Date.now());
         dispatch({ type: "event", event: payload.event, at: payload.at ?? Date.now() });
         if (payload.event.type === "turn_done") setTurns((n) => n + 1);
-        if (payload.event.type === "exited") session.current = null;
       }),
       events.chatUndo.listen(({ payload }) => setUndo(payload.undo)),
     ];
@@ -463,7 +466,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     if (!__EMMET_TEST_HOOKS__) return;
     const w = window as unknown as { __emmet?: Record<string, unknown> };
     // The dock spec's screens: a turn's events played into the chat as the host would send them, without an agent.
-    const play = (evs: AgentEvent[], user?: string, o: { from?: Origin; note?: string; at?: number } = {}) => {
+    const play = (evs: AgentEvent[], user?: string, o: { from?: Origin; note?: string; at?: number; divider?: string } = {}) => {
+      if (o.divider) dispatch({ type: "divider", text: o.divider });
       if (user) dispatch({ type: "user", text: user, from: o.from ?? null, note: o.note, at: o.at ?? Date.now() });
       for (const event of evs) dispatch({ type: "event", event, at: Date.now() });
     };
@@ -542,7 +546,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         onStopAndSend={stop}
       />
     );
-  else if (openCard) card = <Message item={last!} who={kind ?? "claude"} chat={chat} actions={actions()} />;
+  else if (openCard) card = <Message item={last!} who={kind ?? "claude"} chat={chat} actions={actions()} active />;
 
   function actions() {
     return {
@@ -570,7 +574,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const canUndo = !chat.running && undo != null && status?.tone === "done";
 
   // The card that needs you shows once: below the history, not in it too.
-  const rows = useMemo(() => fold(openCard ? chat.items.slice(0, -1) : chat.items, kind ?? "claude", chat, actions), [chat, kind, openCard]);
+  // Only while History is open: every event would build the whole list again otherwise.
+  const rows = useMemo(() => (open ? fold(openCard ? chat.items.slice(0, -1) : chat.items, kind ?? "claude", chat, actions) : []), [chat, kind, openCard, open]);
   // The latest line when nothing needs you: the last step or the agent's last words.
   const lastLine = !card && last && ["tool", "file", "note", "agent", "thinking"].includes(last.k) && !(last.k === "tool" && !last.result) ? <Message item={last} who={kind ?? "claude"} chat={chat} actions={actions()} line /> : null;
   // Said before the next turn: a Claude window at 90% or more, or an API key billing instead of the plan (D-35).
@@ -595,7 +600,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
 
   const model = current?.model ?? null;
   const effort = current?.effort ?? null;
-  const chip = `${model ? (offered.find((m) => m.id === model)?.name ?? modelName(model)) : modelName(chat.model)}${effort ? ` · ${effortName(effort)}` : ""}`;
+  const named = (id: string | null) => offered.find((m) => m.id && m.id === id)?.name ?? modelName(id);
+  const chip = `${named(model ?? chat.model)}${effort ? ` · ${effortName(effort)}` : ""}`;
 
   return (
     <section className="dock" data-c="dock" data-state={open ? "open" : "closed"} aria-label="Chat" id="dock" tabIndex={-1} style={{ "--dock-history": height / 100 } as React.CSSProperties}>
@@ -695,7 +701,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
           id="chat-input"
           ref={input}
           rows={text.includes("\n") || text.length > 80 ? 3 : 1}
-          placeholder={chat.running ? `Redirect ${who}…` : `Ask ${who} to build or change something`}
+          placeholder={chat.running && !chat.question ? `Redirect ${who}…` : `Ask ${who} to build or change something`}
           aria-label={chat.question ? "Your answer, in your own words" : chat.running ? `A message for ${who} while it works` : "Message"}
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -734,11 +740,11 @@ function ModelPicker({ kind, models, model, effort, onPick }: { kind: AgentKind 
   const list = models.length ? models : [{ id: "", name: "Default", efforts: [], default_effort: null }];
   return (
     <>
-      <label className="select" data-c="select">
+      <div className="select-row">
         <span className="select-label">Model</span>
         <Choose label="Model" id="model-select" value={model ?? DEFAULT} items={list.map((m) => [m.id || DEFAULT, m.name])} onChange={(v) => onPick(v === DEFAULT ? null : v, null)} />
-      </label>
-      <label className="select" data-c="select">
+      </div>
+      <div className="select-row">
         <span className="select-label">Effort</span>
         <Choose
           label="Effort"
@@ -747,7 +753,7 @@ function ModelPicker({ kind, models, model, effort, onPick }: { kind: AgentKind 
           items={[[DEFAULT, chosen?.default_effort ? `Default (${effortName(chosen.default_effort)})` : `${CLI[kind]}'s default`], ...(chosen?.efforts ?? []).map((e): [string, string] => [e, effortName(e)])]}
           onChange={(v) => onPick(model, v === DEFAULT ? null : v)}
         />
-      </label>
+      </div>
     </>
   );
 }
@@ -800,7 +806,8 @@ function fold(items: Item[], who: AgentKind, chat: Chat, actions: () => Actions)
 
 const TOOL_ICON_DONE = (ok: boolean | undefined) => (ok === false ? <Icon name="x" size="sm" /> : <Icon name="check" size="sm" />);
 
-function Message({ item, who, chat, actions, line }: { item: Item; who: AgentKind; chat: Chat; actions: Actions; line?: boolean }) {
+/** One item of the chat. `active`: it's the card that needs you, which takes the focus (in History it doesn't). */
+function Message({ item, who, chat, actions, line, active }: { item: Item; who: AgentKind; chat: Chat; actions: Actions; line?: boolean; active?: boolean }) {
   const name = NAME[who];
   switch (item.k) {
     case "divider":
@@ -879,10 +886,10 @@ function Message({ item, who, chat, actions, line }: { item: Item; who: AgentKin
             {item.decided === "deny" ? `You said no: ${w.title.replace(/\?$/, "").toLowerCase()}. ${name} carries on without it.` : item.decided === "closed" ? `${w.title} The question went away.` : `You allowed it${item.decided === "allow_session" ? " for this session" : " once"}: ${w.title.replace(/\?$/, "").toLowerCase()}.`}
           </p>
         );
-      return <ApprovalCard item={item} words={w} onDecide={actions.decide} />;
+      return <ApprovalCard item={item} words={w} onDecide={actions.decide} active={!!active} />;
     }
     case "question":
-      return <QuestionCard item={item} open={chat.question === item.id} onAnswer={actions.answer} />;
+      return <QuestionCard item={item} open={!!active && chat.question === item.id} onAnswer={actions.answer} />;
     case "note":
       return (
         <p className="message" data-c="chat-message" data-from="note">
@@ -952,9 +959,24 @@ function Pending({ item, who, now, onNote, onStopAndSend }: { item: Extract<Item
   );
 }
 
-function ApprovalCard({ item, words, onDecide }: { item: Extract<Item, { k: "approval" }>; words: { title: string; tag: string; why: string }; onDecide: (id: string, d: Decision) => void }) {
+/** A card that needs you takes the focus only from nothing in particular, never from a field the user is typing in,
+ * and its number keys work only after a moment: a key meant for the message box can't answer it. */
+const ARMED_MS = 600;
+function useCardFocus(on: boolean) {
   const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => ref.current?.focus(), []);
+  const shown = useRef(Date.now());
+  useEffect(() => {
+    if (!on) return;
+    shown.current = Date.now();
+    const typing = document.activeElement?.matches("input, textarea, [contenteditable]");
+    if (!typing) ref.current?.focus();
+  }, [on]);
+  const armed = () => Date.now() - shown.current > ARMED_MS;
+  return { ref, armed };
+}
+
+function ApprovalCard({ item, words, onDecide, active }: { item: Extract<Item, { k: "approval" }>; words: { title: string; tag: string; why: string }; onDecide: (id: string, d: Decision) => void; active: boolean }) {
+  const { ref, armed } = useCardFocus(active);
   const keys: Record<string, Decision> = { "1": "allow_once", "2": "allow_session", "3": "deny" };
   return (
     <div
@@ -967,7 +989,7 @@ function ApprovalCard({ item, words, onDecide }: { item: Extract<Item, { k: "app
       ref={ref}
       onKeyDown={(e) => {
         const d = keys[e.key];
-        if (d && (e.target as HTMLElement).tagName !== "INPUT") {
+        if (d && armed() && (e.target as HTMLElement).tagName !== "INPUT") {
           e.preventDefault();
           onDecide(item.id, d);
         }
@@ -992,10 +1014,7 @@ function QuestionCard({ item, open, onAnswer }: { item: Extract<Item, { k: "ques
   const q = item.question;
   const [picked, setPicked] = useState<string[]>([]);
   const [other, setOther] = useState("");
-  const card = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (open) card.current?.focus();
-  }, [open]);
+  const { ref: card, armed } = useCardFocus(open);
   if (item.closed || item.answer != null)
     return (
       <div className="question-done" data-c="question-card" data-question={item.id}>
@@ -1010,7 +1029,7 @@ function QuestionCard({ item, open, onAnswer }: { item: Extract<Item, { k: "ques
   };
   // Number keys pick an option, and the one after the options is Other (plan section 10).
   const onKey = (e: React.KeyboardEvent) => {
-    if (!open || (e.target as HTMLElement).tagName === "INPUT") return;
+    if (!open || !armed() || (e.target as HTMLElement).tagName === "INPUT") return;
     const n = Number(e.key);
     if (n >= 1 && n <= q.options.length) {
       e.preventDefault();
@@ -1050,4 +1069,30 @@ function QuestionCard({ item, open, onAnswer }: { item: Extract<Item, { k: "ques
       </form>
     </div>
   );
+}
+
+/** A fault in the chat stays in the chat: the model, the panel, and the project go on, and Try again draws it anew. */
+export class DockBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error) {
+    console.error("the chat failed:", error);
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <section className="dock" data-c="dock" aria-label="Chat" id="dock">
+        <AlertCard
+          tone="bad"
+          icon="octagon-alert"
+          id="dock-failed"
+          title="The chat stopped working"
+          text={`Your project is untouched. ${this.state.error.message}`}
+          actions={<Button label="Try again" variant="primary" icon="refresh-cw" onClick={() => this.setState({ error: null })} />}
+        />
+      </section>
+    );
+  }
 }

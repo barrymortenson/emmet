@@ -283,6 +283,11 @@ export type Answer = {
 	other?: string | null,
 };
 
+export type Answered = {
+	id: string,
+	text: string,
+};
+
 export type AppInfo = {
 	recent: Recent[],
 	/**  The library release, or null when none is installed. */
@@ -392,6 +397,10 @@ export type ChatRecord = {
 	user?: string | null,
 	from?: Origin | null,
 	event?: AgentEvent | null,
+	/**  The user's decision on an approval card, so the history shows it decided. */
+	decided?: Decided | null,
+	/**  The user's answer to a question card, in their words. */
+	answered?: Answered | null,
 };
 
 export type ChatState = {
@@ -460,6 +469,11 @@ export type DataSettings = {
 	parts_data: string | null,
 	/**  ldraw, rebrickable, or bricklink. */
 	color_names: string,
+};
+
+export type Decided = {
+	id: string,
+	decision: Decision,
 };
 
 export type Decision = "allow_once" | "allow_session" | "deny";
