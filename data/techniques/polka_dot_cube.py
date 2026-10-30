@@ -6,7 +6,7 @@ m.use("polka_dot_cube", x, y, z, color="White", spots="Red", title="Spotted cube
 over (x, y) to (x + 4, y + 4), a cube 4 studs tall (10 plates): two 4 x 4 plates, a ring 5 plates tall whose middle on
 each side is a brick 1 x 2 x 1 2/3 with studs on one side (22885) facing out and whose corners are a 1 x 1 brick under
 two 1 x 1 plates, two more 4 x 4 plates, then on top a round tile 2 x 2 (14769) in the middle and four 1 x 3 tiles
-round it. A round tile 2 x 2 in `spots` stands on each side's studs, a plate proud of the face. Returns the z of the
+around it. A round tile 2 x 2 in `spots` stands on each side's studs, a plate proud of the face. Returns the z of the
 top.
 """
 
@@ -26,7 +26,7 @@ SIDES = {
     "right": ((3, 1), 0, (4, 1), Rot(y=90)),
 }
 CORNERS = ((0, 0), (3, 0), (0, 3), (3, 3))
-# The four 1 x 3 tiles round the top's middle, turning like a pinwheel: corner, quarter turns.
+# The four 1 x 3 tiles around the top's middle, turning like a pinwheel: corner, quarter turns.
 RING = (((0, 0), 1), ((3, 0), 0), ((1, 3), 1), ((0, 1), 0))
 
 

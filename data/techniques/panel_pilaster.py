@@ -7,7 +7,7 @@ builds a pilaster on the wall line y (the wall runs along x and faces front, -y)
 standing a stud proud, a 2 x 2 plate in the accent color over it, then a shaft of 1 x 1 x 1 2/3 bricks with studs on
 one side (32952), 10 plates tall per panel. Jumper plates (15573) on the shaft's side studs bring a stud to its
 middle, and a 1 x 4 tile in the panel color stands up on them, so a dark slot runs up the face with the shaft color
-round it. A 2 x 2 plate in the accent color caps it, a stud proud, with a jumper on it for a lamp or a plant. Returns
+around it. A 2 x 2 plate in the accent color caps it, a stud proud, with a jumper on it for a lamp or a plant. Returns
 the z of the capital's top, which a wall of bricks beside it meets every 5 courses (with panels=1).
 """
 

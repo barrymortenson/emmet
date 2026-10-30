@@ -7,7 +7,7 @@ title="Eye") builds a block 2 studs wide and 2 deep from (x, y), on the studs at
 row a brick 1 x 2 x 1 2/3 with four studs on its side pointing out, and behind it a brick 1 x 2 and two plates 1 x 2; on
 the side studs a round tile 2 x 2 printed with an eye (14769p0p, a copper iris; 14769p01 is a plain black eye on white),
 which covers the brick's face; and with lid, a curved slope 2 x 2 on top, falling toward the face, its edge over the eye
-(lid_color, the head's color by default). Lay the head round the block. facing is the face: "front" (-y) and "back" (+y)
+(lid_color, the head's color by default). Lay the head around the block. facing is the face: "front" (-y) and "back" (+y)
 blocks are 2 along x, "left" (-x) and "right" (+x) ones 2 along y; (x, y) is the block's corner with the lowest x and y.
 Returns the z of the block's top (with the lid, the lid's top).
 """

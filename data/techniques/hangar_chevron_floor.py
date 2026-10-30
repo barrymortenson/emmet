@@ -95,7 +95,7 @@ def build(
         with m.step(f"{title}, lift pad"):
             lx, ly = 1, 1
             m.add("3068b", pad, at=(x + lx + 1, y + ly + 1, zt))
-            # A pinwheel of 1 x 3 tiles round the pad.
+            # A pinwheel of 1 x 3 tiles around the pad.
             m.add("63864", marking, at=(x + lx, y + ly, zt), rot=1)
             m.add("63864", marking, at=(x + lx + 3, y + ly, zt), rot=0)
             m.add("63864", marking, at=(x + lx + 1, y + ly + 3, zt), rot=1)

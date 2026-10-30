@@ -7,7 +7,7 @@ Rooms a figure can live in, furnished from few parts, in a building that opens t
 
 - Every room says what it's for at a glance: a fireplace and an armchair, a kitchen counter and a table, a bed, a bar,
   a shop counter. Put the main piece against the wall that faces the opening.
-- Floors are finished, never bare studs, except where something stands: boards or checks (`plank_floor`,
+- Floors are finished, never bare studs, except where something stands: boards or checkered tiles (`plank_floor`,
   `tiled_floor`), a rug (`floor_rug`). Each room gets its own floor, so the plan reads from above.
 - Furniture is 3 to 12 parts a piece, sized for a figure (`guide figure-scale`). A room's furniture lines its walls
   and leaves a figure's path from the door.
@@ -25,7 +25,7 @@ Rooms a figure can live in, furnished from few parts, in a building that opens t
 - Kitchen: a counter 2 deep along one wall with a stove, sink, and cupboard (`kitchen_counter`, `wood_stove`), a table
   with chairs (`table_and_chairs`), a shelf of jars, a checkered floor. 30 to 50 parts.
 - Bedroom: `figure_bed` (2 x 6), a nightstand of a 1 x 1 brick with a candle, a rug, a picture. 20 to 30 parts.
-- Shop: `display_case_counter`, shelves of goods, a `cross_display_stand`, a till, a sign inside the window.
+- Shop: `display_case_counter`, shelves of goods, a `cross_display_stand`, a register, a sign inside the window.
 - Pub or diner: `bar_counter`, stools (a 1 x 1 round brick under a 2 x 2 round tile), `curved_booth`, a stove hood.
 - Music room or parlor: `upright_piano`, `armchair_and_sofa`, a clock.
 - Two rooms in a small house: a partition wall with an `interior_arch_doorway`; an upper room on a `loft_half_floor`

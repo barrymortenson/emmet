@@ -7,7 +7,7 @@ grass=("Bright Green", "Green"), title="Mound") builds, on the studs at height z
 inside the box `length` x `depth` studs from (x, y). Each terrace is `rise` - 1 layers of earth plates a stud in from
 its outline, and on them a grass layer that fills the outline, with a round-cornered plate at each corner, its round
 out: a Plate 4 x 4 with Corner Round (30565) where the terrace is 8 or more studs each way, a Plate 3 x 3 with 2 x 2
-Corner Round (30357) where it is 6 or 7. The grass overhangs the earth by a stud all round, so each step shows a dark
+Corner Round (30357) where it is 6 or 7. The grass overhangs the earth by a stud all around, so each step shows a dark
 band of earth in its shadow, and its plates run the other way from the earth's, so the seams cross. Each terrace's
 outline is set back 2 or 3 studs from the one below on each side, chosen at random, so the rings aren't concentric. It
 stops early when the next outline would be under 6 studs. rise: 2 or 3 plates a terrace. grass: a color, or colors the

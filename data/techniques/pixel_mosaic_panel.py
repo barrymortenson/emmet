@@ -146,8 +146,8 @@ def build(m, x, y, z, rows, palette, backing="Black", upright=True, title="Mosai
     width, height = len(rows[0]), len(rows)
     if upright and width < 2:
         raise ValueError(
-            "pixel_mosaic_panel stands on brackets 2 studs wide: make the picture 2 or more pixels wide, or lay it flat "
-            "(upright=False)"
+            "pixel_mosaic_panel stands on brackets 2 studs wide: make the picture 2 or more pixels wide, "
+            "or lay it flat (upright=False)"
         )
     sub = m.submodel(
         f"{title}: panel",

@@ -5,7 +5,7 @@ and sloping down past the walls on every side.
 m.use("ribbed_hip_roof", x, y, z, length, depth, inset=2, rows=5, angle=45, color="Orange", base="Light Bluish Gray",
 clip_color="Black", title="Roof") roofs the walls of the length x depth rectangle whose front-left corner is (x, y),
 whose top is at z: a ceiling of `base` plates over them, a core of bricks inset `inset` studs from the walls on every
-side, as many courses as the panels need to clear the walls, a deck of plates on it, and round the deck's edge a
+side, as many courses as the panels need to clear the walls, a deck of plates on it, and around the deck's edge a
 course of clips (4081b) pointing out, every other stud, with plates between. From each side hangs a panel, built flat
 and turned down `angle` degrees about the handle plates (2540) along its top edge: a base of `color` plates, a
 2-deep row of tiles along the hinge (it ties the base), ribs of 1-wide tiles on every other row below it with bare

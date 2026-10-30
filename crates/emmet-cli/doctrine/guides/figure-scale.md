@@ -12,7 +12,7 @@ shortened to stay buildable (the doctrine's "Sized for the figure, not to the ra
   the windows.
 - Windows: 1 x 2 x 2 or 1 x 2 x 3 frames, sill 1 to 2 bricks above the floor; 1 x 4 x 3 for a shop or a living room.
 - Story: 5 to 6 bricks of wall (6 to 7 on a ground floor with a shop), plus a 2-plate floor or ceiling.
-- Rooms: at least 6 studs deep where it closes all round (a lift-off roof); 4 to 6 deep when it's open at the back.
+- Rooms: at least 6 studs deep where it closes all around (a lift-off roof); 4 to 6 deep when it's open at the back.
   Corridors and doorways inside 4 studs wide, stairs rising 2 to 3 plates a stud.
 - Furniture: a seat 1 brick high, a table top 2 to 3 plates above that, a bed 2 x 6, a counter 1 brick and a plate
   high and 2 deep, a fireplace 4 wide and 2 deep.
@@ -37,7 +37,7 @@ A closed building has to open, or the inside is wasted. Pick one, in this order:
 ## Detail by the Detail setting
 
 - Low: bricks, plates, and slopes; real doors and windows; one feature per face.
-- Medium: plus tiles on every flat top that isn't for standing on, sills and hoods round windows, a texture on one
+- Medium: plus tiles on every flat top that isn't for standing on, sills and hoods around windows, a texture on one
   wall course, furniture in each room.
 - High: plus sideways-built textures and trim (studs on the side), two or three wall textures, clutter in rooms,
   landscaping on every free stud. About one small detail every 2 to 3 studs of face.

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Sunken pond bank: a pond whose water lies below the grass, with a bank of curved slopes running down to it all round,
+"""Sunken pond bank: a pond whose water lies below the grass, with a bank of curved slopes running down to it all around,
 so the lawn ends in a smooth curve at the waterline instead of a step.
 
 m.use("sunken_pond_bank", x, y, z, length=6, depth=4, bank="Tan", earth="Reddish Brown", grass="Green", bed="Blue",
@@ -115,7 +115,7 @@ def build(
     )
     z += 1
     with m.step(f"{title}, water"):
-        # A corner-round tile rounds back right at rot=0; each turn moves its round a quarter on, counterclockwise.
+        # A corner-round tile rounds back right at rot=0; each turn moves its around a quarter on, counterclockwise.
         corners = [
             ((wx, wy), 2),
             ((wx + length - 1, wy), 3),

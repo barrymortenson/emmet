@@ -4,9 +4,9 @@ nameplate set flush in the plinth's front.
 
 m.use("pyramid_pedestal", x, y, z, height=3, color="Black", name_color="Pearl Gold", title="Pedestal") builds, on the
 studs at height z, a plinth 12 x 12 studs from (x, y): a layer of plates, a layer a stud in from the edge with its seams
-crossed, and a ring of tiles round its top edge with a tile 1 x 4 in `name_color` in the middle of the front, the
+crossed, and a ring of tiles around its top edge with a tile 1 x 4 in `name_color` in the middle of the front, the
 nameplate. On the plinth a ring of 45-degree slopes (double convex slopes at the corners, slopes 2 x 2 between) falls
-outward round a 4 x 4 core of bricks, and on the core four double convex slopes meet in a low pyramid whose four studs
+outward around a 4 x 4 core of bricks, and on the core four double convex slopes meet in a low pyramid whose four studs
 carry a column of bricks 2 x 2, `height` bricks tall (1 to 8), its top 4 studs open for the sculpture (on a plate 2 x 2
 or a turntable). The column stands over (x + 5, y + 5). Returns the z of the column's top.
 """
@@ -52,7 +52,7 @@ def build(
         # Strips the other way, a stud in, so they cross the first layer's seams.
         for i in range(1, 11, 2):
             m.row(Plate, color, at=(x + i, y + 1, z + 1), length=10, axis="y", width=2)
-    # The ring of tiles round the slopes, the nameplate in the middle of the front.
+    # The ring of tiles around the slopes, the nameplate in the middle of the front.
     ring = row_actions(m, Tile, color, (x + 1, y + 1, z + 2), 3)
     ring.append((1, lambda: m.add("2431", name_color, at=(x + 4, y + 1, z + 2), rot=1)))
     ring += row_actions(m, Tile, color, (x + 8, y + 1, z + 2), 3)

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """Saucer petal panels: a round disc 12 studs across whose top is broken into tiled panels with radial seams and a few
-bare patches, like the plating of a display saucer, round a small domed hub.
+bare patches, like the plating of a display saucer, around a small domed hub.
 
 m.use("saucer_petal_panels", x, y, z, bare=0.25, seed=1, color="Light Bluish Gray", seam="Tan", seams=0.2, hub="Light
 Bluish Gray", title="Saucer") lays, on the studs at height z, a disc whose min corner is (x, y): four 6 x 6 plates with

@@ -3,7 +3,7 @@
 of the wall and its turf overhanging the top, so you never see where the wall stops.
 
 m.use("bermed_wall_reveal", x, y, z, length, rows=3, color="Tan", beam="Reddish Brown", hill="Green", wall=True,
-title="Hill front") builds a hill round a wall 1 stud thick and `length` studs long along x from (x, y, z), facing
+title="Hill front") builds a hill around a wall 1 stud thick and `length` studs long along x from (x, y, z), facing
 front (-y), `rows` courses tall. With wall, it lays the wall too, in running bond; without, the wall is already there
 (a door or a window in it, say). Each side of the wall, a cheek of the hill 2 studs deep steps down and out a course
 at a time: 2 x 2 bricks under a 45-degree 2 x 2 slope, so it falls away at 45 degrees from the wall's top corner to

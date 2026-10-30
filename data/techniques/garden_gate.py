@@ -2,14 +2,13 @@
 """Garden gate: a hinged gate between two capped posts, with picket fence running off either side, the way into a
 cottage garden.
 
-m.use("garden_gate", x, y, z, left=1, right=1, axis="x", open=False, color="White", title="Gate",
-id=None) builds, on the studs
-at height z (a baseplate is z = 0.5), along x (or y, with axis="y") from (x, y), one stud deep: `left` picket fence
-panels (Fence 1 x 4 x 2 Picket, 33303), a post, the gate (Gate 1 x 4 x 2, 3186, on its hinge base, 3187), a post, and
-`right` panels. Each post is two 1 x 1 bricks with a round plate and a round tile on top, a plate proud of the fence, so
-the posts read as the gate's frame. open=True swings the gate a quarter turn on its hinge, out to the front (-y; -x
-along y). left and right: 0 to 4 panels, each 4 studs. The whole run is 4 x (left + right) + 6 studs. With `id`, the gate is
-`id` and its hinge base `<id>/hinge`, so the user can talk about it. Returns the z of the posts' top.
+m.use("garden_gate", x, y, z, left=1, right=1, axis="x", open=False, color="White", title="Gate", id=None) builds, on
+the studs at height z (a baseplate is z = 0.5), along x (or y, with axis="y") from (x, y), one stud deep: `left` picket
+fence panels (Fence 1 x 4 x 2 Picket, 33303), a post, the gate (Gate 1 x 4 x 2, 3186, on its hinge base, 3187), a post,
+and `right` panels. Each post is two 1 x 1 bricks with a round plate and a round tile on top, two plates proud of the
+fence, so the posts read as the gate's frame. open=True swings the gate a quarter turn on its hinge, out to the front
+(-y; -x along y). left and right: 0 to 4 panels, each 4 studs. The whole run is 4 x (left + right) + 6 studs. With `id`,
+the gate is `id` and its hinge base `<id>/hinge`, so the user can talk about it. Returns the z of the posts' top.
 """
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 43217. Not derived from any

@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: Apache-2.0
 """Stepped tower setbacks: a tower that narrows in tiers, each a stud in from the one below on every side with a tiled
-ledge round it, up to a needle spire.
+ledge around it, up to a needle spire.
 
 m.use("stepped_tower_setbacks", x, y, z, size=6, heights=(4, 3, 3), color="White", ledge="Light Bluish Gray",
 spire=True, title="Tower") stands, on the studs at height z with its front-left corner at (x, y), a square tower in
 tiers: the first `size` x `size` studs (an even 4 to 8), each next one 2 studs narrower and centered, as many tiers as
 `heights` has entries (each the tier's height in bricks), down to 2 x 2 at most. Each tier is walls of bricks with
 interlocking corners (a 2 x 2 tier, a stack of 2 x 2 bricks), a layer of plates over them, and a ring of tiles in the
-ledge color round the studs the next tier leaves bare. With spire, the top tier takes a jumper plate (87580), a round 1
+ledge color around the studs the next tier leaves bare. With spire, the top tier takes a jumper plate (87580), a round 1
 x 1 brick, and a bar 4L standing in its hollow stud (when the top tier is 2 x 2). Returns the z of the top: the spire's
 tip, or the top tier's plates.
 """

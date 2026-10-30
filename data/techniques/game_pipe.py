@@ -3,11 +3,11 @@
 
 m.use("game_pipe", x, y, z, height=3, size="small", color="Green", inside="Black", title="Pipe") stands a pipe on the
 studs at height z, its column over (x, y): for size="small", round bricks 2 x 2 (3941), `height` bricks tall, then a
-lip a stud wider all round, a round brick 4 x 4 (87081) over (x - 1, y - 1) to (x + 3, y + 3), with a round plate 4 x
+lip a stud wider all around, a round brick 4 x 4 (87081) over (x - 1, y - 1) to (x + 3, y + 3), with a round plate 4 x
 4 with a round hole (11833) on it as the rim and a round tile 2 x 2 (14769) in `inside` in the hole as the dark
 opening; for size="large", round bricks 4 x 4 (87081) as the column, then three round plates 6 x 6 (11213) over (x -
 1, y - 1) to (x + 5, y + 5) as the lip and a round plate 4 x 4 (60474) in `inside` on it as the opening, the lip's
-ring of studs left bare round it. Returns the z of the top.
+ring of studs left bare around it. Returns the z of the top.
 """
 
 PROVENANCE = """Emmet's own (session 3D), from the video-game style rules drawn from the instruction books of set

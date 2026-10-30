@@ -5,7 +5,7 @@ with the odd block end standing out and a light band at each floor line.
 m.use("rusticated_stone_pilaster", x, y, z, rows, color="Tan", band="White", band_every=4, title="Pier") builds a
 2 x 2 pier from x to x + 2 and y - 1 to y + 1, standing a stud proud of a wall whose face is at y (the wall runs
 along x and faces front, -y), `rows` courses tall from z. Each course is a 1 x 2 brick and two 1 x 1 bricks, the long
-one turned a quarter turn round the pier each course, so the joints on the face wander like cut stone. Every third
+one turned a quarter turn around the pier each course, so the joints on the face wander like cut stone. Every third
 course one front 1 x 1 is a brick with a stud on one side (87087) with a 1 x 1 tile on it, a block end standing a
 plate proud, left and right in turn. After every `band_every` courses, and on top, a 2 x 2 plate in the band color
 crosses the pier: carry the same plate course across the wall beside it for a string course. Returns the z of the top.
@@ -19,7 +19,7 @@ model file."""
 PARTS = ["3004", "3005", "87087", "3070b", "3022"]
 
 FACE = Rot(y=-90, z=90)  # a 1 x 1 tile on its back, its face to -y
-# Course by course round the pier: where the 1 x 2 goes (cell, rot) and the two 1 x 1 cells, cells as (dx, dy) from
+# Course by course around the pier: where the 1 x 2 goes (cell, rot) and the two 1 x 1 cells, cells as (dx, dy) from
 # the pier's front-left corner.
 TURNS = [
     (((0, 0), 1), [(0, 1), (1, 1)]),  # long along the front

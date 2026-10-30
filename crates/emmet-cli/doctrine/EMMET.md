@@ -66,7 +66,7 @@ Official sets are built so they hold together and look finished. Do what they do
   (spliced_chassis).
 - Smooth faces come from studs on the side: build a face on bricks or brackets whose studs point out, then cover it
   (snot_panel, clapboard_siding, half_timber_band, bracket_side_panel, wall_vent, front_grille, headlights).
-- Details make it real: a sill and a hood round a window, shutters, a downpipe, a chimney with a cap, stone corners.
+- Details make it real: a sill and a hood around a window, shutters, a downpipe, a chimney with a cap, stone corners.
 - Make it open: a roof or upper floor that lifts off (lift_off_roof_seat, lift_off_floor) and parts on hinges
   (tilting_hood, hinged_tailgate) let the user see and play with the inside.
 
@@ -120,9 +120,9 @@ or the part; "availability unknown" is not a problem.
 
 The app's Options write `emmet.toml`'s `[build]`, and each setting is Any until the user picks one. Scale and Style:
 the guides. Age: the step size (4 parts a step for 4+, 12 for 18+, 8 otherwise) and how fiddly the techniques may be
-(for 4+ and 6+, no sideways building and nothing on hinges at an angle). Detail: Low is bricks, plates, and slopes
-with real doors and windows; Medium adds tiles on tops, sills and hoods, and furniture; High adds sideways textures,
-trim, clutter, and landscaping. Pieces: stay inside its range (Small 50–250, Medium 250–1,000, Large 1,000–2,500,
+(for 4+ and 6+, no sideways building and nothing on hinges at an angle). Detail (the Options' words): Low is bricks,
+plates, and slopes, with real doors and windows; Medium adds tiles, trim, and window frames (tiles on tops, sills and
+hoods, furniture inside); High adds textures, sideways building, and small details (clutter, landscaping). Pieces: stay inside its range (Small 50–250, Medium 250–1,000, Large 1,000–2,500,
 Huge 2,500+). Base: what the model stands on. When the user changes them and presses Rebuild, call `guide` again and
 rework the model for the new settings, keeping what they still allow.
 

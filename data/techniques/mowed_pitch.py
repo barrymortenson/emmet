@@ -4,7 +4,7 @@ halfway line and a goal at each end.
 
 m.use("mowed_pitch", x, y, z, length=12, width=8, light="Bright Green", dark="Green", line="White", goals=True,
 title="Pitch") covers, on the studs at height z, a length x width field from (x, y), its length along x: a 1-stud border
-of white tiles all round (the touchlines and the goal lines), a white halfway line across the middle (two studs wide, as
+of white tiles all around (the touchlines and the goal lines), a white halfway line across the middle (two studs wide, as
 the length is even), and between them stripes 2 studs wide running across the field, light and dark in turn from each
 goal line, each stripe two 1-wide runs of tiles. With goals, the middle two studs of each goal line take a white 1 x 2
 tile with a handle (2432) instead, the handle standing up as the goal frame. length is 8 or more and width 6 or more,

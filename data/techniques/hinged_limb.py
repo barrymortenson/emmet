@@ -175,7 +175,7 @@ def example(m):
                 width=2,
                 first=None if c % 2 else 2,
             )
-    with m.step("Body, top plates round the shoulders"):
+    with m.step("Body, top plates around the shoulders"):
         m.add(
             "3020", "White", at=(2, -1, 10)
         )  # Plate 2 x 4, between the shoulder hinges

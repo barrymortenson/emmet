@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Glow trim edge: a dark platform with a thin lit line all round its edge and indicator lights along its front.
+"""Glow trim edge: a dark platform with a thin lit line all around its edge and indicator lights along its front.
 
 m.use("glow_trim_edge", x, y, z, length=8, depth=4, spacing=2, color="Black", glow="Red", title="Platform")
 builds a platform `length` x `depth` studs from (x, y) on the studs at z, three plates thick: a course of plates in
 `color`; a course whose outer ring, a stud wide, is plates in `glow` (the inside is `color`), so a thin lit line runs
-round the edge under the dark top; and tiles in `color` over it, with a round 1 x 1 tile in `glow` every `spacing`
+around the edge under the dark top; and tiles in `color` over it, with a round 1 x 1 tile in `glow` every `spacing`
 studs along the front row as indicator lights, starting a stud in from each end. length: 4 to 16; depth: 3 to 12.
 Returns the z of the top, where figures and consoles stand.
 """

@@ -3,7 +3,7 @@
 
 m.use("lava_inset", x, y, z, length=2, depth=4, seed=1, stone=("Light Bluish Gray", "Dark Bluish Gray"),
 lava="Orange", glow="Trans Orange", title="Lava") builds, on the studs at height z, a stone rim of 2 x 2 blocks two
-studs wide round a length x depth pit, (length + 4) x (depth + 4) studs in all from (x, y). Each rim block is a 2 x 2
+studs wide around a length x depth pit, (length + 4) x (depth + 4) studs in all from (x, y). Each rim block is a 2 x 2
 brick in one of the `stone` shades, by seed, with a 2 x 2 jumper on top, so the floor is smooth but for one stud a
 block. In the pit, two layers of plates in the lava color and a layer of 1 x 2 tiles in the glow color, whose top is
 a plate below the rim's: it reads as a pool. length and depth: even. Returns the z of the rim's top.

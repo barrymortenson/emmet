@@ -151,7 +151,7 @@ def example(m):
                 width=2,
                 first=None if c % 2 else 2,
             )
-    with m.step("Head, top plates round the ear hinges"):
+    with m.step("Head, top plates around the ear hinges"):
         m.add("3020", "White", at=(2, -1, 10))  # Plate 2 x 4, between the ear hinges
         for cx in (0, 4):
             for cy in (-1, 2):

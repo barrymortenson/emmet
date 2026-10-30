@@ -4,7 +4,7 @@ bricks reads as a smooth, soft body instead of a box.
 
 m.use("curved_slope_skin", x, y, z, width, length, courses=1, color="Orange", top=None, title="Body") builds, on the
 studs at height z, a block `width` studs along x by `length` along y (each 4 to 16) from (x, y): `courses` of brick
-walls round its edge, a layer of plates over them that ties the walls (round-cornered plates at the corners), and then
+walls around its edge, a layer of plates over them that ties the walls (round-cornered plates at the corners), and then
 the skin, 2 plates thick: along every edge a curved slope 2 x 2 (or a curved slope 2 x 1 to finish an odd length)
 falling outward, at each corner a quarter circle 2 x 2 with a curved top, and in the middle plates covered with tiles,
 flush with the slopes' tops. No stud shows. top is the skin's color (the block's by default). It brings its own steps

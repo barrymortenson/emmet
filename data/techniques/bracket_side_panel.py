@@ -4,9 +4,9 @@ whose studs face out.
 
 m.use("bracket_side_panel", x, y, z, length=4, color="Light Bluish Gray", panel="White", title="Side panel") puts
 brackets 1 x 2 - 2 x 2 up (99207) along the left side (-y) of a chassis at z, `length` studs along x from x (2 each),
-their studs out, and on them a 2-tall panel: a 2 x length plate on its side, tiled. A bracket's upright face stands
-a fifth of a stud out from its base, so the brackets' bases sit on the chassis edge's studs (y to y + 1) and the panel
-stands 0.6 studs out from y. Returns nothing.
+their studs out, and on them a 2-tall panel: a 2 x length plate on its side, tiled. A bracket's upright face stands a
+fifth of a stud out from its base, so the brackets' bases sit on the chassis edge's studs (y to y + 1) and the panel
+stands out from y: its plate's outer face 0.6 studs, its tiles' face 1.0. Returns nothing.
 """
 
 from emmet_dsl import Rot

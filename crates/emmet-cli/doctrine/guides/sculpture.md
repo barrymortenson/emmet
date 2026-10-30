@@ -31,7 +31,7 @@ with slopes, a 1-stud outline behind in a contrast color.
 
 ## Presenting it
 
-A display base 2 plates thick and 2 to 4 studs bigger than the model all round, smooth edges, a nameplate tile on the
+A display base 2 plates thick and 2 to 4 studs bigger than the model all around, smooth edges, a nameplate tile on the
 front (`smooth_display_base`). Something that flies or floats stands on a clear rod above its base
 (`hover_stand`). A head or bust goes on a pedestal at least a third of its height (`pyramid_pedestal`),
 with a Technic spine inside.

@@ -45,5 +45,5 @@ stone textures, square windows, and stepped roofs. A house is about 10 x 12 stud
 - Micro: a block is 1 x 1 (a 1 x 1 brick and a plate). A tree is a 1 x 1 brown stack under a 3 x 3 green stack.
 - Figure: 2 x 2 blocks, as above. A tree is a 2 x 2 trunk 3 to 5 bricks tall under a 6 x 6 to 8 x 8 canopy two bricks
   deep.
-- Large: a block is 4 x 4 studs, 13 plates tall, each face a tiled panel with a 4 x 4 pixel texture of 1 x 1 tiles
+- Large: a block is 4 x 4 studs, 10 plates tall, each face a tiled panel with a 4 x 4 pixel texture of 1 x 1 tiles
   (`pixel_mosaic_panel`).

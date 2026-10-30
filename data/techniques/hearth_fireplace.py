@@ -3,14 +3,14 @@
 behind, built apart and placed against a wall.
 
 m.use("hearth_fireplace", x, y, z, facing="-y", arch=False, flue=2, candles=True, color="Light Bluish Gray",
-mantel="Medium Nougat", arch_color="Reddish Brown", title="Fireplace", id=None) stands a fireplace 4 studs wide and 2 deep on the
-studs at height z, its footprint's min corner at (x, y) (4 x 2 for facing "-y" or "+y", 2 x 4 for "+x" or "-x"), its
-opening toward `facing`, so its back goes against a wall. It's a hearth plate, a firebox 2 studs wide and 2 bricks tall
-between two columns of masonry bricks, a black back, a grate with a triple flame, a mantel plate across the top, a
-candle on each end of the mantel, and `flue` courses of masonry rising behind it to the ceiling or a chimney. arch=True
-closes the top of the opening with a round arch in arch_color instead of square columns (the medieval look). It's a
-submodel, built once in its own steps, "<title>, hearth", "<title>, firebox", "<title>, mantel" and "<title>, flue",
-placed in a step titled "<title>" with the id `id` (by default the submodel's own); it returns the placed copy's
+mantel="Medium Nougat", arch_color="Reddish Brown", title="Fireplace", id=None) stands a fireplace 4 studs wide and 2
+deep on the studs at height z, its footprint's min corner at (x, y) (4 x 2 for facing "-y" or "+y", 2 x 4 for "+x" or
+"-x"), its opening toward `facing`, so its back goes against a wall. It's a hearth plate, a firebox 2 studs wide and 2
+bricks tall between two columns of masonry bricks, a black back, a grate with a triple flame, a mantel plate across the
+top, a candle on each end of the mantel, and `flue` courses of masonry rising behind it to the ceiling or a chimney.
+arch=True closes the top of the opening with a round arch in arch_color instead of square columns (the medieval look).
+It's a submodel, built once in its own steps, "<title>, hearth", "<title>, firebox", "<title>, mantel" and "<title>,
+flue", placed in a step titled "<title>" with the id `id` (by default the submodel's own); it returns the placed copy's
 Handle.
 """
 
@@ -69,7 +69,7 @@ def _fireplace(m, arch, flue, candles, color, mantel, arch_color, title):
         m.add("3004", "Black", at=(1, 1, 1), rot=1, id="back/1")
     with m.step(f"{title}, firebox"):
         m.add("3023b", "Black", at=(1, 0, 1), rot=1, id="grate")
-        # The triple flame's pin is at one end: turned half round it spreads along the grate from its left stud.
+        # The triple flame's pin is at one end: turned halfway around, it spreads along the grate from its left stud.
         m.add("64647", "Trans-Orange", at=(1.185, 0.3, 2), rot=2, id="flame")
         if arch:
             m.add("3659", arch_color, at=(0, 0, 4), rot=1, id="arch")

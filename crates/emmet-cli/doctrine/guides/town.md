@@ -68,6 +68,6 @@ in a flat roof. A chimney built sideways against a gable: `sideways_chimney_colu
 ## Common mistakes
 
 - One color and one texture for every wall: add a plinth and a second texture.
-- Windows with nothing round them: give each a sill and a hood, or shutters, or a box.
+- Windows with nothing around them: give each a sill and a hood, or shutters, or a box.
 - A roof that stops at the wall: overhang it a stud.
 - A house in the middle of a bare baseplate: landscape the rest.

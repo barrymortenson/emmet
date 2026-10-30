@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Stave cylinder: a smooth round column about 6 studs across, four staves of curved slopes clipped round a core with
+"""Stave cylinder: a smooth round column about 6 studs across, four staves of curved slopes clipped around a core with
 studs on all four sides.
 
 m.use("stave_cylinder", x, y, z, units=2, color="White", core="Light Bluish Gray", band="Orange", band_every=0,
@@ -8,7 +8,7 @@ title="Cylinder") stands a core 4 x 4 studs on the studs at (x, y, z): in each u
 in all, so the side studs of one unit and the next are two studs apart. Each face then takes a stave built flat as a
 submodel: a 4 x (2 x units) plate with a pair of curved slopes 2 x 1 on each row, back to back, so its outer face is a
 shallow arc. Stood up on the core's side studs, the four arcs make a round section 6.4 studs across. Every
-`band_every`-th row of slopes (0 for none) is in `band`, which reads as a ring round the cylinder. A 4 x 4 round plate
+`band_every`-th row of slopes (0 for none) is in `band`, which reads as a ring around the cylinder. A 4 x 4 round plate
 caps the core. The staves start half a plate up the core and reach half a plate up its cap. Returns the z of the cap's
 top.
 """

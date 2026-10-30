@@ -38,7 +38,7 @@ PARTS = [
 ]
 
 TILES = {1: "3070b", 2: "3069b", 3: "63864", 4: "2431", 6: "6636"}  # Tile 1 x n
-# The round-cornered plate's corner points to +x -y at rot 0 and a quarter turn round each turn: its turn at each
+# The round-cornered plate's corner points to +x -y at rot 0 and a quarter turn around each turn: its turn at each
 # corner of the base, by which end of x and y it's at.
 CORNERS = {(1, 1): 1, (0, 1): 2, (0, 0): 3, (1, 0): 0}
 
@@ -128,7 +128,7 @@ def build(
     seed=1,
     title="Base",
 ):
-    """The two plate layers, then the boards round the seat and the nameplate; returns the seat's corner."""
+    """The two plate layers, then the boards around the seat and the nameplate; returns the seat's corner."""
     if not 6 <= length <= 24 or not 6 <= depth <= 24:
         raise ValueError(
             f"smooth_display_base takes a length and depth of 6 to 24, not {length}, {depth}"
@@ -136,7 +136,7 @@ def build(
     sw, sd = seat
     if sw < 1 or sd < 1 or sw > length - 4 or sd > depth - 4:
         raise ValueError(
-            f"smooth_display_base: the seat {sw} x {sd} has to leave 2 studs of tiles all round"
+            f"smooth_display_base: the seat {sw} x {sd} has to leave 2 studs of tiles all around"
         )
     if name_length not in TILES or name_length == 1 or name_length > length - 4:
         raise ValueError(

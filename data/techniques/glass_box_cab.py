@@ -5,7 +5,7 @@ small plate, a seat inside, and a tiled roof, built apart and set on the machine
 m.use("glass_box_cab", x, y, z, color="Yellow", glass="Trans-Clear", roof="White", title="Operator cab") builds a cab
 6 studs long (along x, its front to -x) and 4 wide as a submodel and places it with its plate's corner at (x, y, z):
 a 4 x 6 plate; a seat 2 x 2 facing the front; clear panels 1 x 4 x 3 (60581) across the front and the back and
-along both sides, so there is glass all round, three bricks tall; and a 4 x 6 roof plate with tiles. Set it on two
+along both sides, so there is glass all around, three bricks tall; and a 4 x 6 roof plate with tiles. Set it on two
 or more studs of the machine anywhere along its plate, so it can sit off to one side of a boom the way the books'
 cabs do. Returns the placed copy's Handle (its .max[2] is the roof's top).
 """

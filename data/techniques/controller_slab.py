@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Controller slab: a flat retro game controller, a slab of bricks with studs on the sides tiled smooth all round, a
+"""Controller slab: a flat retro game controller, a slab of bricks with studs on the sides tiled smooth all around, a
 cross pad, two round buttons, and two small pill buttons on a dark face.
 
 m.use("controller_slab", x, y, z, body="Light Bluish Gray", face="Black", pad="Black", buttons="Red", pills="Dark

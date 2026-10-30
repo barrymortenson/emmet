@@ -4,7 +4,7 @@ ragged outline, built apart and placed as a submodel.
 
 m.use("block_tree", x, y, z, trunk=4, seed=1, trunk_color="Reddish Brown", leaves=("Green", "Bright Green",
 "Dark Green"), see_through=0.2, title="Tree") stands a tree on the studs at height z, its 2 x 2 trunk on the studs from
-(x, y): `trunk` 2 x 2 bricks (3 to 5), then a 6 x 6 canopy centered on it, so keep 2 studs clear all round. The
+(x, y): `trunk` 2 x 2 bricks (3 to 5), then a 6 x 6 canopy centered on it, so keep 2 studs clear all around. The
 canopy is a 6 x 6 plate, a course of nine 2 x 2 leaf blocks (a corner may be missing), a second course in which
 edge blocks are left out or pushed a stud out past the edge, and a dark green cross on top. Each block takes one
 of `leaves`, or, about `see_through` of the time, is two trans-green 1 x 2 bricks; all of it by seed, so no two

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Rounded pier nose: a bridge pier 4 studs wide whose ends are smooth half-rounds, quarter-round bricks round a round
-core, so the water parts round its nose.
+"""Rounded pier nose: a bridge pier 4 studs wide whose ends are smooth half-rounds, quarter-round bricks around a round
+core, so the water parts around its nose.
 
 m.use("rounded_pier_nose", x, y, z, length=8, courses=3, both=True, stone="Tan", core="Light Bluish Gray", title="Pier")
 builds, on the studs at height z, a pier `length` studs along x (6 or more) and 4 across from (x, y), `courses` bricks

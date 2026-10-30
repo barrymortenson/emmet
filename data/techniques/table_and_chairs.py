@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Table and chairs: a small round table on one leg, or a long table on four, with up to four chairs set round it, built
+"""Table and chairs: a small round table on one leg, or a long table on four, with up to four chairs set around it, built
 apart and placed.
 
 m.use("table_and_chairs", x, y, z, shape="round", chairs=2, facing="-y", wood="Reddish Brown", top=None, title="Table",
-id=None) stands a table set on the studs at height z, its footprint's min corner at (x, y). shape="round" is a 2 x 2 round top on
-a single round leg, centered on a round foot plate with one middle stud; the set is 4 x 4 studs. shape="long" is a 2 x 4
-tile top on a plate and four round legs; the set is 6 x 4 (4 x 6 facing "+x" or "-x"). Either top is 5 plates up, 2
-plates over a chair's seat. chairs (0 to 4) are set facing the table: left, right, front, then back. A chair is two
-round plates as its leg and a bracket 1 x 1 - 1 x 1 as its seat and back, the seat 3 plates up, with a tile on the back,
-which reaches 0.6 studs past the set's footprint; it's its own submodel. top colors the tabletop (wood by default). The
-set is a submodel, built once in its own steps, "<title>, table" and "<title>, chairs" (each chair "Chair, leg and
-seat"), placed in a step titled "<title>" with the id `id` (by default the submodel's own); it returns the placed copy's
-Handle.
+id=None) stands a table set on the studs at height z, its footprint's min corner at (x, y). shape="round" is a 2 x 2
+round top on a single round leg, centered on a round foot plate with one middle stud; the set is 4 x 4 studs.
+shape="long" is a 2 x 4 tile top on a plate and four round legs; the set is 6 x 4 (4 x 6 facing "+x" or "-x"). Either
+top is 5 plates up, 2 plates over a chair's seat. chairs (0 to 4) are set facing the table: left, right, front, then
+back. A chair is two round plates as its leg and a bracket 1 x 1 - 1 x 1 as its seat and back, the seat 3 plates up,
+with a tile on the back, which reaches 0.6 studs past the set's footprint; it's its own submodel. top colors the
+tabletop (wood by default). The set is a submodel, built once in its own steps, "<title>, table" and "<title>, chairs"
+(each chair "Chair, leg and seat"), placed in a step titled "<title>" with the id `id` (by default the submodel's own);
+it returns the placed copy's Handle.
 """
 
 from emmet_dsl import Rot
@@ -53,7 +53,7 @@ def _put(m, sub, x, y, z, facing, foot, id=None):
     )
 
 
-# Where each chair goes round each table, in the set's own frame: (x, y, facing toward the table).
+# Where each chair goes around each table, in the set's own frame: (x, y, facing toward the table).
 SEATS = {
     "round": [(0, 1, "+x"), (3, 2, "-x"), (2, 0, "+y"), (1, 3, "-y")],
     "long": [(0, 1, "+x"), (5, 2, "-x"), (2, 0, "+y"), (3, 3, "-y")],
@@ -74,7 +74,8 @@ def _set(m, shape, chairs, wood, top, title):
     with m.step(f"{title}, table"):
         if shape == "round":
             m.add("18674", wood, at=(1, 1, 0), id="foot")
-            # The foot's one stud is in its middle, so the leg and the round top sit half a stud off the grid.
+            # The foot's one stud is in its middle, so the leg sits half a stud off the grid; the top seats on the leg's
+            # stud and lies on the grid.
             m.add("3062b", wood, at=(1.5, 1.5, 1), id="leg")
             m.add("14769", top, at=(1, 1, 4), id="top")
         else:

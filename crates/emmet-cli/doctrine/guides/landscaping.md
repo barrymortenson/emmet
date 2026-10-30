@@ -14,7 +14,7 @@ The ground a model stands in: lawns, paths, water, rock, and plants. It turns a 
 - One dominant ground color and one or two accents covering less than 15% of the area. Lawn green or bright green;
   beds dark green or reddish brown; paths tan, dark tan, or light bluish gray; water light aqua or trans-light blue
   tiles; rock in two grays, never one, never three.
-- Paths lead somewhere: from the gate to the door, from the door round to the garden (`curved_garden_path`,
+- Paths lead somewhere: from the gate to the door, from the door around to the garden (`curved_garden_path`,
   `dirt_path`, `stepping_stones`, `flagstone_paving`).
 - Plants in drifts, not rows: two or three heights together, a tall one behind low ones. A garden leaves 30 to 50% of
   the lawn open; a jungle leaves no stud showing near a wall.

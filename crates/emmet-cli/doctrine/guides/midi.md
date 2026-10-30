@@ -10,7 +10,7 @@ too small for a figure and too big for one-part details. Judged on its outline a
 - Hide the grid. Surfaces are mostly tiles; a face with stud rows across its whole length reads as a toy. Leave a
   few small bare-stud patches as texture, about 70% smooth to 30% texture (`bare_stud_greeble`).
 - Curves by size: under 4 studs across, round bricks and plates stacked on an axle (`axle_round_stack`); 6 to 12 studs, four curved-slope
-  staves round a core with studs on all sides (`stave_cylinder`); a curved wall or a flat disc, a stack of plate
+  staves around a core with studs on all sides (`stave_cylinder`); a curved wall or a flat disc, a stack of plate
   outlines each a stud further out, finished with curved slopes (`stepped_curve_hull`).
 - Big parts are spliced frames: keels, spines, and towers are two-layer plate beams with their joints offset, joined
   with Technic pins (`spliced_chassis`, `technic_spine`).

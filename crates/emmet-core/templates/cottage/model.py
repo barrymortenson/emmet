@@ -72,7 +72,7 @@ def stone_course(
     openings=(),
     pieces=EMBOSSED,
 ):
-    """One course of embossed brickwork (or other `pieces`: {length: part}) round the walls of a length x depth
+    """One course of embossed brickwork (or other `pieces`: {length: part}) around the walls of a length x depth
     rectangle from (x, y), at z. Like m.wall, the front and back walls own the corners on even courses and the sides on
     odd ones, so the corners interlock; each run between openings is the longest pieces, starting with a 1 x 2 on odd
     courses so its joints move over."""
@@ -92,8 +92,8 @@ def stone_course(
                 cx, cy = (cx + size, cy) if axis == "x" else (cx, cy + size)
 
 
-# Each wall faces out one way. TURN turns a part that faces front (-y) to face the wall's way; a side stud's brick
-# (87087, 4733's studs) points the way TURN names, and a tile on a side stud lies on its back with TILE_ROT.
+# Each wall faces out one way. TURN turns a part that faces front (-y) to face the wall's way; STUD_ROT turns a brick
+# with a stud on its side (87087) to point that way, and a tile on a side stud lies on its back with TILE_ROT.
 TURN = {"-y": 0, "+x": 1, "+y": 2, "-x": 3}
 STUD_ROT = {"+x": 0, "+y": 1, "-x": 2, "-y": 3}
 TILE_ROT = {
@@ -139,12 +139,12 @@ def door_in_frame(m, color):
 
 def window_unit(m, shutters, trim, wall, shutter, flowers, lights=False):
     """A window sub-assembly, built along x in a wall facing front (-y) whose line is y 0 to 1, its hood over the
-    wall's cells x 0 to 4. The window 1 x 2 x 3 stands on cells 1 and 2 over a window box (window_box), its top under
-    the hood (window_hood). With shutters, the unit is all four cells from the band course (z 0) up: a plate 2 x 4 in
-    the band's color whose front row carries the box, a column each side of two bricks with studs on one side under a
-    louvered shutter, the window, and a plate over it. Without, it starts a plate higher (the sill course is z 0),
-    and the wall's own courses fill cells 0 and 3. Lit, the window is a 1 x 2 x 2 with yellow glass under a brick, as
-    if the lamps were on behind it."""
+    wall's cells x 0 to 4. The window 1 x 2 x 3 stands on cells 1 and 2 over a window box (built here, as window_box
+    builds one), its top under the hood (window_hood). With shutters, the unit is all four cells from the band course
+    (z 0) up: a plate 2 x 4 in the band's color whose front row carries the box, a column each side of two bricks with
+    studs on one side under a louvered shutter, the window, and a plate over it. Without, it starts a plate higher
+    (the sill course is z 0), and the wall's own courses fill cells 0 and 3. Lit, the window is a 1 x 2 x 2 with yellow
+    glass under a brick, as if the lamps were on behind it."""
     if shutters:
         with m.step("Box plate"):
             m.add("3020", trim, at=(0, -1, 0), rot=1, id="plate")
@@ -359,9 +359,8 @@ def snowman(m):
 
 def dress(m, title, cells, z, rng, n, blooms, wild=False):
     """Dots the ground among `cells` (free studs at height z): n spots, none beside another, each a tuft of leaves
-    (where there's room all round), a flower on a stem, a pebble, or a patch of paler grass, so no wide stretch of
-    bare studs is left. Wild, it's long grass and tall flowers on stems of round bricks instead of pebbles and
-    patches."""
+    (where there's room all around), a flower on a stem, a pebble, or a patch of paler grass, so no wide stretch of
+    bare studs is left. Wild, it's only long grass and tall flowers on stems of round bricks."""
     free = set(cells)
     spots = []
     for c in rng.sample(sorted(free), len(free)):
@@ -372,7 +371,7 @@ def dress(m, title, cells, z, rng, n, blooms, wild=False):
     actions, tufts = (
         [],
         [],
-    )  # the tufts go in last: their leaves spread over the studs round them
+    )  # the tufts go in last: their leaves spread over the studs around them
     for x, y in spots:
         roomy = all((x + i, y + j) in free for i in range(-2, 3) for j in range(-2, 3))
         patch = all((x + i, y + j) in free for i in (0, 1) for j in (0, 1))
@@ -470,13 +469,13 @@ def cottage(
     width: how many studs wide the house is
     depth: how many studs deep the house is
     wall_color: the color of the plaster
-    roof_color: the color of the roof
+    roof_color: the color of a tile or shingle roof (slate and thatch have their own, and snow is white)
     season: summer (flowers) or winter (snow on the roof and the garden, a snowman, wreaths on the porch)
     roof_style: what the roof is made of: tiles, slate, shingles, or straw thatch with a rounded ridge
     wall_finish: what covers the walls above the stone: plaster, brick, half-timbering, or wooden siding
     garden: tidy, or wild (overgrown, with long grass, tall flowers, roses climbing the fence, and a blossom tree)
     lights: evening: the windows glow, and the porch lantern and the lamps are lit
-    chimney: add a stone chimney on the right end, with the fireplace inside
+    chimney: add a stone chimney outside the right end, behind the fireplace
     roof: put the roof on (off: it's lifted off, so the rooms show)
     weathering: how weathered the walls are, in percent: old stone through the plaster, patched bricks, worn boards
     seed: which arrangement of the old stones and the garden (Shuffle picks another)
@@ -827,7 +826,7 @@ def cottage(
                         m.add("4733", stone, at=(*c, z))
                         across = "-x" if c[0] == x0 else "+x"
                         along = "-y" if c[1] == y0 else "+y"
-                        # The bay stands beside the front left corner, and a porch post may beside the right one.
+                        # The bay stands beside the front left corner, and a porch post may stand beside the right one.
                         long_front = r % 2 == 0 and c not in ((x0, y0), (x1, y0))
                         face_tile(
                             m,
@@ -972,7 +971,7 @@ def cottage(
     for fx, fy, w, d in furniture.values():
         cells |= {(fx + i, fy + j) for i in range(w) for j in range(d)}
     if table:
-        # The set turned to face +x: the table's foot and its two chairs stand on studs; the floor runs round them.
+        # The set turned to face +x: the table's foot and its two chairs stand on studs; the floor runs around them.
         tx, ty = kx0 + 3, ry0 + 1
         cells |= {(tx + 1 + i, ty + 1 + j) for i in (0, 1) for j in (0, 1)} | {
             (tx + 2, ty),
@@ -1295,7 +1294,7 @@ def cottage(
 
     # The roof: one sub-assembly, built on its own frame, which sits on the four corner studs and lifts off. The frame
     # stands a stud out over the front and back walls, its edge the eave's dark fascia; the gables overhang a stud
-    # too, unless the chimney stands against the right one.
+    # too, except with a chimney, when neither does (the ridge would come out a stud odd).
     L = x0 - 1 if not chimney else x0
     R = x1 + 2 if not chimney else x1 + 1
     dormer_x = dx
@@ -1368,7 +1367,7 @@ def cottage(
                         s, k, run_from, run_to - run_from, sy, z, turn
                     )
                 in_steps(s, f"Roof, course {k + 1}: {side}", actions)
-            # The gables: plaster bricks behind the slopes at each end, a round window in the left one.
+            # The gables: bricks in the wall finish behind the slopes at each end, a round window in the left one.
             inner = list(range(ya + k + 2, yb - 2 - k))
             if inner:
                 actions = []
@@ -1454,7 +1453,7 @@ def cottage(
         return m
 
     # The garden: the fence and gate, a mailbox, beds, hedges, a tree taller than the ridge, the bench on paving,
-    # rocks on the mound, the woodpile by the chimney.
+    # a rock at the back left, the woodpile by the chimney.
     left = 1 if sx < 10 else 2
     fence_x = sx - 2 - 4 * left
     m.use(
@@ -1495,8 +1494,8 @@ def cottage(
         flowers=blooms,
         title="Flower bed, front",
     )
-    # On the lawn: stepping stones from beside the porch steps to a patch of paving, the bench at its back, and a bed
-    # (or a snowman) behind the stones when there's room.
+    # On the lawn: stepping stones from beside the porch steps to a patch of paving, the bench at its back, a bed
+    # behind the stones when there's room, and in winter a snowman.
     core = 31 - lawn_x - 4  # the lawn's full studs along x, from lawn_x + 2
     pave = core - 4
     m.use(

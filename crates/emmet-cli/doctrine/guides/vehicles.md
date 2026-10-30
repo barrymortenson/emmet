@@ -9,14 +9,15 @@ and where the figure sits.
 | | 4 wide | 6 wide | 8 wide | Vintage |
 |---|---|---|---|---|
 | What | small city car, cart, forklift | truck, van, bus, train | racing-scale replica | 1920s-30s car |
-| Length | 8 to 12 | 14 to 22 (train car 28 to 32) | 18 to 22 | 14 to 18 |
+| Length | 10 to 18 | 14 to 22 (train car 28 to 32) | 18 to 22 | 14 to 18 |
 | Wheels | small, on wheel-holder plates | 14 to 18 mm on wheel-holder plates | low-profile car wheels on axles in 2 x 2 axle bricks | spoked, narrow tires |
 | Arches | none or a 2 x 4 mudguard plate | mudguard plates | shaped by the body: inverted curves | one big fender a wheel |
 | Lights | 1 x 1 round on a side stud or a 1 x 1 trans tile | 1 x 1 on a side-stud brick, a grille between | quarter tiles or curved plates, swept | round pods on brackets |
-| Glass | 2 x 4 x 2 windscreen or roll cage | 2 x 6 x 2 windscreen | sloped 6-wide screen on a hinge | short upright screen |
+| Glass | 2 x 4 x 2 windshield or roll cage | 2 x 6 x 2 windshield | sloped 6-wide screen on a hinge | short upright screen |
 | Figure | sits on the plate, open top | 2 x 2 seat, roof lifts off | one figure on the left seat, roof or screen lifts | a bench, open top |
 
-Use `car_wheels` for the wheels and arches at each width, and `four_wide_car` for a whole small car.
+Use `car_wheels` for the wheels and arches at 4 and 6 wide (and a plain 8-wide car), `racing_scale_base` for a
+racing-scale car's low-profile wheels and its base, and `four_wide_car` for a whole small car (18 studs long).
 
 ## Rules
 

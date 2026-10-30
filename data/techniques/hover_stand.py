@@ -4,7 +4,7 @@ hovering robot or a spirit is displayed.
 
 m.use("hover_stand", x, y, z, height=2, size=6, color="Light Bluish Gray", glow="Trans Light Blue", title="Stand")
 builds, on the studs at height z (or on the table), a round plate `size` studs across (6 or 8) from (x, y), a ring of
-round tiles 1 x 1 in the glow color on its edge studs (lights round the rim, at the four sides), and in its middle a
+round tiles 1 x 1 in the glow color on its edge studs (lights around the rim, at the four sides), and in its middle a
 column of round bricks 2 x 2 in the glow color, `height` bricks tall (1 to 4), capped with a round plate 2 x 2 in the
 base color whose four studs take the figure's underside (a plate 2 x 2, or a round plate on the bottom of its core).
 Returns (cx, cy, top): the column's front-left corner and the z of its top, where the figure goes.

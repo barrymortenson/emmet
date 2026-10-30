@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Curved booth: a diner booth, a U of padded seat round a table on a round pedestal, built apart and placed.
+"""Curved booth: a diner booth, a U of padded seat around a table on a round pedestal, built apart and placed.
 
 m.use("curved_booth", x, y, z, facing="-y", color="Red", padding="Red", table="Medium Lavender", title="Booth") stands a
 booth 6 x 4 studs on the studs at height z, its footprint's min corner at (x, y) (4 x 6 facing "+x" or "-x"), its open

@@ -8,7 +8,7 @@ whose cabinet covers (x, y) to (x + w + 7, y + 6), where (w, h) = screen in stud
 75 2 x 2 x 2 quadruple convex (3688) as tapered legs, their single top studs under the cabinet's corners; a floor of
 two plate layers; side and back walls of bricks; a top of two crossed plate layers with two antennas (3957a). The
 front is a panel w + 5 studs wide and h + 2 tall, built lying down and stood up studs-out on brackets (99780) inside
-the walls: two crossed layers of plates in `glass`, then tiles, the largest that fit first: a 1-stud bezel round the
+the walls: two crossed layers of plates in `glass`, then tiles, the largest that fit first: a 1-stud bezel around the
 screen, a quarter-round 1 x 1 tile (25269) in each screen corner so the glass shows round there, and a 3-stud control
 strip right of the screen with two round 2 x 2 knobs (14769) and two round 1 x 1 buttons. The screen is `glass`, or
 `picture` (h rows of w letters, top first, keyed by `palette` like pixel_mosaic_panel). Returns the z of the top.

@@ -9,7 +9,7 @@ jumper 1 x 2 that moves the trunk half a stud toward +x and another round brick 
 its top stud, a 2 x 2 plate carries the crown: `layers` pinwheels of four Plant Leaves 4 x 3 (2423), each reaching out a
 different way, alternate layers turning the other way, each layer on a round 2 x 2 plate (in the trunk's color, like a
 branch) on the studs of the one below, the layers taking `blossom` in turn. On the top plate's four studs, plates 1 x 1
-with 5 petals (24866) in `flowers`. The crown spreads about 4 studs round the trunk's top. lean: 0 to 3; layers: 1 to 3.
+with 5 petals (24866) in `flowers`. The crown spreads about 4 studs around the trunk's top. lean: 0 to 3; layers: 1 to 3.
 It's a submodel, with its own steps; returns the placed copy's Handle, whose .max[2] is the top.
 """
 

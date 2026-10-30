@@ -4,7 +4,7 @@ round tile; one on each face of a core makes a ball.
 
 m.use("layered_plate_cap", x, y, z, size=6, facing="up", color="White", title="Cap") builds a cap whose base is a round
 plate `size` studs across (4, 6, or 8), with a round plate 2 studs smaller on it, and so on down to a round plate 2 x 2,
-closed by a round tile 2 x 2: 3 to 5 plates thick, its studs only in rings round each step (the pebbled look of a ball).
+closed by a round tile 2 x 2: 3 to 5 plates thick, its studs only in rings around each step (the pebbled look of a ball).
 It's a submodel (one file per size and color) with its own steps, placed in a step titled `title`. facing is the way the
 cap bulges: "up" sits on the studs at height z with its base's corner at (x, y); "down" hangs under a face whose
 underside is at z, built smallest first (a round plate 2 x 2 at the bottom, no tile), so whatever goes on top presses

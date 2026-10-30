@@ -6,7 +6,7 @@ m.use("roof_hatch", x, y, z, rows=2, angle=60, color="Dark Bluish Gray", lid="Li
 title="Roof hatch") builds, on the studs at height z, a curb 4 x 4 whose corner is (x - 1, y - 1), around the
 opening x to x + 2, y to y + 2: `rows` courses of bricks, each laid so its corners belong to the other sides than the
 course below's; the top course leaves its back middle for hatch_on_hinge's hinge bases, and the lid goes on with
-m.use("hatch_on_hinge", ..., angle=angle); then a plate and tile frame round the lid, level with it when shut. It
+m.use("hatch_on_hinge", ..., angle=angle); then a plate and tile frame around the lid, level with it when shut. It
 brings its own steps and returns the z of the frame's top.
 """
 

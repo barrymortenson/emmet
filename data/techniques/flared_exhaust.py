@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """Flared exhaust: a big round rear exhaust or jet nozzle with a flared, petaled rim, eight curved slopes standing out
-round a core on bricks with studs on four sides, the second four turned 45° on a single stud.
+around a core on bricks with studs on four sides, the second four turned 45° on a single stud.
 
 m.use("flared_exhaust", x, y, z, color="Dark Bluish Gray", petal="Pearl Silver", core="Black", title="Exhaust") builds a
 nozzle as a submodel along its own axis: a round plate 2 x 2 and two round bricks 2 x 2 (3941), a plate with one stud
@@ -8,7 +8,7 @@ nozzle as a submodel along its own axis: a round plate 2 x 2 and two round brick
 thick end out to the mouth, a round brick 1 x 1, and a second brick with studs on four sides turned 45° on that one stud
 with four more slopes, capped with a round tile. Then it stands it on a bracket 1 x 2 - 2 x 2 up (99207) at (x, y, z),
 the bracket's face to +x, so the nozzle points out the rear (+x) from the bracket's 2 x 2 studs. The nozzle reaches
-about 8 studs out from x + 1.2 and 1.3 studs round its axis, which is 1 stud in from y and 2.5 plates above z. Returns
+about 8 studs out from x + 1.2 and 1.3 studs around its axis, which is 1 stud in from y and 2.5 plates above z. Returns
 the placed nozzle's Handle.
 """
 

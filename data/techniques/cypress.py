@@ -7,7 +7,7 @@ m.use("cypress", x, y, z, layers=8, color="Dark Green", trunk="Reddish Brown", b
 cypress on the studs at height z (a baseplate is z = 0.5) over the 2 x 2 from (x, y): a plate 2 x 2 in `base` and a
 jumper 2 x 2 that brings a single stud to its middle, a round 1 x 1 brick of trunk, then `layers` Plates 1 x 1 Round
 with 3 Leaves (32607), each on a round 1 x 1 plate of stem in the trunk's color and turned a quarter further, so the
-leaves spiral round the stem, and a cone 1 x 1 in `base` for the tip (neither part was made in Dark Green). It is about
+leaves spiral around the stem, and a cone 1 x 1 in `base` for the tip (neither part was made in Dark Green). It is about
 3 studs wide and 2 x layers + 8 plates tall. layers: 4 to 14. It's a submodel (one file for each size and colors),
 placed without a step of its own, so place a row in your own step (m.repeat spaces them out); returns the placed copy's
 Handle, whose .max[2] is the top.

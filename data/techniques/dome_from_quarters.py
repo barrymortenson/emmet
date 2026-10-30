@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Dome from quarters: a smooth half ball from four quarter pieces round a center, each a quarter turn from the last: a
+"""Dome from quarters: a smooth half ball from four quarter pieces around a center, each a quarter turn from the last: a
 nose tip, the top of a head, a robot's dome.
 
 m.use("dome_from_quarters", x, y, z, size=4, color="White", title="Dome") puts four quarter pieces on the studs at
-height z, round the point (x + size/2, y + size/2), so the dome covers x to x + size and y to y + size: size 2 is four
+height z, around the point (x + size/2, y + size/2), so the dome covers x to x + size and y to y + size: size 2 is four
 quarter domes 1 x 1 (3 plates tall), 4 four quarter circles 2 x 2 with a curved top (2 plates, a low dome), 6 four
 quarter circles 3 x 3 x 1 (3 plates), and 8 four corner round bricks 4 x 4 with a dome top (8 plates, a tall dome). Set
 it on a round plate or the top of a rounded_column of the same size. Returns the z of its top.

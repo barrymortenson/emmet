@@ -60,7 +60,7 @@ def build(
     seams=0.15,
     title="Plating",
 ):
-    """The bare patches and the tiles round them; returns the z of the tiles' top."""
+    """The bare patches and the tiles around them; returns the z of the tiles' top."""
     if length < 3 or depth < 3 or not 0 <= bare <= 0.5:
         raise ValueError(
             f"bare_stud_greeble takes an area of 3 x 3 or more and a bare share of 0 to 0.5, not {length} x {depth}, "

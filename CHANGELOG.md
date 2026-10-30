@@ -185,7 +185,6 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 - headlights' lenses floated 0.2 studs in front of their bricks, bracket_side_panel hung its panel on the brackets'
   backs, and grass_edge's example cliff stood on nothing; the checks that let them through are stricter now (3D).
-- window_box built a 2-long box on a 2 x 3 plate (3D).
 
 - Versions never read or write through a link, and an untrusted project's versions can't be restored or copied out as
   a trusted project. An export's file name can't leave Downloads, whatever the project calls itself (4A).
@@ -198,7 +197,9 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 - The Cottage template is rebuilt as the MVP's example (3D, Barry's yes): a stone-and-plaster cottage with a bay
   window, a porch, a dormer, an outside chimney, two furnished rooms, a roof that lifts off as one piece, and a garden,
-  903 parts. Its knobs are season, roof, weathering, and seed; width and depth are 14–20 and 10–12.
+  903 parts. Its eight knobs are season, roof style (tiles, slate, shingles, thatch), wall finish (plaster, brick,
+  timber, siding), garden (tidy, wild), lights, roof (lifted off to show the rooms), weathering, and seed; width and
+  depth are 14–20 and 10–12. A detailed model may name up to eight knobs (two to five otherwise).
 - Technique examples are checked standing on their lowest level, as on a baseplate, so a floating part can't pass as a
   separate toy on the table.
 - Search ranks corner shapes ("Corner Round") below plain ones unless the query says "corner".

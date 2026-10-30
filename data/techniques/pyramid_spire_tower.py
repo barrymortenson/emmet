@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 """Pyramid spire tower: a square brick tower 4 x 4 with a window in each face at the top, a corbel plate that
-overhangs a stud all round, and a steep pyramid roof of slopes ending in a spire.
+overhangs a stud all around, and a steep pyramid roof of slopes ending in a spire.
 
 m.use("pyramid_spire_tower", x, y, z, rows=3, color="Reddish Brown", roof="Dark Bluish Gray",
 trim="Light Bluish Gray", title="Tower") builds, on the studs at height z, a tower whose 4 x 4 walls cover x to x + 4
 and y to y + 4: `rows` courses of walls (m.wall, corners interlocking), then a stage two bricks tall with a window
-1 x 2 x 2 (and its glass) in the middle of each face between 1 x 1 brick corners, a plate 6 x 6 a stud out all round,
+1 x 2 x 2 (and its glass) in the middle of each face between 1 x 1 brick corners, a plate 6 x 6 a stud out all around,
 and the roof: a ring of slopes 6 wide (a corner slope 2 x 2 at each corner, a 2 x 2 slope in the middle of each side,
 a 2 x 2 brick in the center), four corner slopes 4 wide over it, a quadruple convex slope 75 on their four studs, and
 a spire (an antenna 4H on a round plate). It's hollow under the corbel. Returns the z of the spire's top.

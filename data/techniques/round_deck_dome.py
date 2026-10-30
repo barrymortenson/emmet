@@ -15,7 +15,7 @@ model file."""
 
 PARTS = ["74611", "11213", "60474", "98138", "4032b", "3941", "4740"]
 
-# The 6 x 6 round plate's open studs round the 4 x 4: the middle two of each side.
+# The 6 x 6 round plate's open studs around the 4 x 4: the middle two of each side.
 RING = [(0, 2), (0, 3), (5, 2), (5, 3), (2, 0), (3, 0), (2, 5), (3, 5)]
 
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Wall-top cornice: a band of light stone round the tops of four walls, corner plates tying the corners under smooth
+"""Wall-top cornice: a band of light stone around the tops of four walls, corner plates tying the corners under smooth
 tiles, with a stud standing up midway along each wall for the roof to grip.
 
 m.use("wall_top_cornice", x, y, z, length, depth, color="Tan", lugs=True, title="Cornice") caps the walls (1 stud
@@ -7,7 +7,7 @@ thick) of a length x depth rectangle whose front-left corner is (x, y), at the z
 corner plate (2420) on each corner, which crosses the corner joint below, and 1-wide plates between them, then an
 L-shaped 2 x 2 corner tile (14719) over each corner plate and tiles over the runs. With lugs, a 1 x 1 plate takes the
 tiles' place in the middle of each wall, flush with them, its stud standing up where a lift-off roof frame locates;
-without, the top is smooth all round. Returns the z of the top (the tiles', under the lugs' studs).
+without, the top is smooth all around. Returns the z of the top (the tiles', under the lugs' studs).
 """
 
 from emmet_dsl import Plate, Tile

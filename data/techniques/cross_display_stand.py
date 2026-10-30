@@ -4,7 +4,7 @@ built apart and placed.
 
 m.use("cross_display_stand", x, y, z, color="Reddish Brown", posters="Bright Light Orange", goods=None, seed=0,
 title="Display stand") stands a stand 6 x 6 studs on the studs at height z, its min corner at (x, y): four arms 2 x 2
-round a middle 2 x 2, the plus a shop sets in an aisle. Each arm is a brick 1 x 2 x 1 2/3 with studs on one side at its
+around a middle 2 x 2, the plus a shop sets in an aisle. Each arm is a brick 1 x 2 x 1 2/3 with studs on one side at its
 outer end, studs out, carrying a 2 x 2 tile as a poster in `posters`, and a brick and two plates behind it. Two layers
 of plates make the top, a 2 x 6 and two 2 x 2s each, the second crossing the first so the four arms are one piece; 2 x 2
 tiles finish the arms, and four round bricks stand in the middle as goods, their colors from `goods` (a list) or picked

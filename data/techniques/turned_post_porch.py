@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Turned post porch: porch posts turned from round bricks and round plates, under a fascia that curves round the front
+"""Turned post porch: porch posts turned from round bricks and round plates, under a fascia that curves around the front
 corners and returns to the wall.
 
 m.use("turned_post_porch", x, y, z, length=6, depth=3, tiers=4, color="Medium Nougat", fascia="Reddish Brown",

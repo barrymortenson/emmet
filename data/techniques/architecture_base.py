@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Architecture base: the finished display base of an architecture model, a dark stepped frame round a tiled ground
+"""Architecture base: the finished display base of an architecture model, a dark stepped frame around a tiled ground
 strip, with a long name tile set in the front edge and bare studs only where the model and its trees stand.
 
 m.use("architecture_base", x, y, z, length=12, depth=10, site=(2, 2, 4, 4), studs=(), ground="Light Bluish Gray",
@@ -44,7 +44,7 @@ NAME = {4: "2431", 6: "6636", 8: "4162"}
 
 
 def _ring(m, color, x, y, z, w, d, gap=None):
-    """Tile actions for a 1-wide ring round a w x d rectangle; gap: (x0, n) a run of the front row left out."""
+    """Tile actions for a 1-wide ring around a w x d rectangle; gap: (x0, n) a run of the front row left out."""
     acts = []
 
     def run(at, n, axis):

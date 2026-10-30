@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """Organic ground outline: a patch of raised lawn whose edge is a chain of rounded lobes, never a rectangle: a layer of
-soil plates with round corners and tongues, and a grass layer set in from it with its own, so a soil lip shows round the
+soil plates with round corners and tongues, and a grass layer set in from it with its own, so a soil lip shows around the
 edge.
 
 m.use("organic_ground_outline", x, y, z, length=12, depth=10, seed=1, soil="Reddish Brown", grass="Green", title="Lawn")
@@ -9,7 +9,7 @@ from (x, y). Each layer is a core rectangle a stud in from its own box, with a P
 each corner, its round out, and along each side, at random, tongues that reach the box's edge: a Plate 2 x 2 Round
 (4032b) for a small bump, or two Plates 3 x 3 with 2 x 2 Corner Round (30357) back to back for a long lobe, with gaps
 between where the edge falls back a stud. The soil layer fills the box; the grass layer, a plate up, fills the box a
-stud smaller all round and its plates run the other way, so its seams cross the soil's. Where a soil tongue meets a
+stud smaller all around and its plates run the other way, so its seams cross the soil's. Where a soil tongue meets a
 grass gap, two studs of soil show; where a grass tongue meets a soil gap, the grass comes to the edge. A few round 1 x 1
 plates of grass dot the bare soil, as tufts past the edge. length and depth: 10 to 32. seed picks the tongues and tufts.
 Returns the z of the grass's top.

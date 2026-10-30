@@ -7,7 +7,7 @@ title="Bamboo") stands a clump on the studs at height z (a baseplate is z = 0.5)
 2 in `base`, and on each of its studs a cane: round 1 x 1 bricks in `cane`, with a round 1 x 1 plate in `joint` between
 every two as the cane's joint ring, and here and there, and at the top, a Plant Brick 1 x 1 Round with 3 Bamboo Leaves
 (30176) in `leaves` in place of a brick, turned so its leaves reach away from the clump. The back canes are `height`
-bricks of cane, the front ones a brick or two shorter. The leaves spread about 2.5 studs round the base. height: 3 to
+bricks of cane, the front ones a brick or two shorter. The leaves spread about 2.5 studs around the base. height: 3 to
 10. seed picks the heights and where the leaves are. Returns the z of the tallest cane's top.
 """
 

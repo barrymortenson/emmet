@@ -55,7 +55,7 @@ def build(
     bus="Bright Light Orange",
     title="Traffic",
 ):
-    """The vehicles and the road round them; returns the z of the road's top."""
+    """The vehicles and the road around them; returns the z of the road's top."""
     if axis not in ("x", "y") or length < 4 or cars < 0 or buses < 0 or not colors:
         raise ValueError(
             "micro_traffic takes an axis of 'x' or 'y', a length of 4 or more, counts of 0 or more, and a color, "

@@ -62,7 +62,7 @@ def _cap(m, color, down):
 
 
 def _ring(m, cx, cy, z, core, title):
-    """A course of bricks round the edge of the 6 x 6 core."""
+    """A course of bricks around the edge of the 6 x 6 core."""
     with m.step(title):
         m.wall(cx, cy, z, 6, 6, color=core, rows=1)
 

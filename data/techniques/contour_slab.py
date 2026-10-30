@@ -8,7 +8,7 @@ studs across by `height` studs tall (each 2 to 12) with rounded corners, and sta
 side studs are on the stud grid from z (a snot_core, whose courses are 2 studs tall: its studs meet the slab's rows 1,
 3, 5, ... counting from 0). The slab is three layers of plates and a layer of tiles: the first in rows across, the
 second in columns over the same outline, so it ties every row, each with a round-cornered plate at every corner (a
-quarter circle up to 4 x 4, half the slab's width: an 8 x 8 slab is round); the third, rows again, one stud in all round
+quarter circle up to 4 x 4, half the slab's width: an 8 x 8 slab is round); the third, rows again, one stud in all around
 with smaller round corners, so the edge steps in like a bevel, its cross reaching over the outer layers' corners to tie
 them; and tiles over the third, all but its round corners, whose studs show. facing is the face it goes on and the way
 it faces: "front" (-y) and "back" (+y) go on a face along x, with x its left end and y the face; "left" (-x) and "right"
@@ -124,7 +124,7 @@ def _layer(m, kind, corners, color, x0, y0, x1, y1, z, r, axis):
 
 def _slab(m, width, height, color):
     """The slab lying flat in its own frame, its back on z = 0: two layers of the full outline, their strips crossed,
-    then one a stud in all round whose cross reaches over the outer layers' corners and ties them, then its tiles."""
+    then one a stud in all around whose cross reaches over the outer layers' corners and ties them, then its tiles."""
     r = min(4, width // 2, height // 2)
     r = r if r >= 2 else 0
     in_steps(

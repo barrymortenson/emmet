@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Roof eaves overhang frame: a lift-off frame for a roof, a stud bigger than the walls all round so the roof's
+"""Roof eaves overhang frame: a lift-off frame for a roof, a stud bigger than the walls all around so the roof's
 eaves and gables overhang them, which sits on four corner studs of the tiled wall tops and lifts straight off.
 
 m.use("roof_eaves_overhang_frame", x, y, z, length, depth, roof=None, color="Light Bluish Gray", frame="White",
@@ -35,7 +35,7 @@ PARTS = [
 
 
 def _ring(m, color, length, depth, z, sides_own):
-    """A 2-wide ring of plates round a length x depth rectangle from (0, 0); the front and back runs own the corners,
+    """A 2-wide ring of plates around a length x depth rectangle from (0, 0); the front and back runs own the corners,
     or the sides with sides_own."""
     if sides_own:
         m.row(Plate, color, at=(0, 0, z), length=depth, axis="y", width=2)
@@ -89,7 +89,7 @@ def build(
 
 
 def example(m):
-    """Four walls 8 x 6 with their tops tiled, and on the frame a gable roof that overhangs them a stud all round."""
+    """Four walls 8 x 6 with their tops tiled, and on the frame a gable roof that overhangs them a stud all around."""
     m.wall(0, 0, 0, length=8, depth=6, rows=2, color="White")
     seat = m.use(
         "roof_eaves_overhang_frame",
