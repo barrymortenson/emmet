@@ -17,6 +17,7 @@ otherwise.
   (`brick_built_arch`, `double_arch_colonnade`).
 - The village is timber over stone: a stone ground floor, a `jettied_floor` above in `half_timber_band` or
   `timber_frame_panels`, steep dark roofs, a `chimney_stack`.
+- A town square or a castle court has a fountain (`fountain_court`).
 - Color the life in with few accents: `wall_banner`s, `torch_sconce`s, a red or blue shield, a market stall's awning.
 - A castle is a playset: open at the back, with a great hall (a long table, a throne, a `hearth_fireplace`), a
   dungeon, and stairs to the wall walk (`guide interiors`).

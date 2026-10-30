@@ -23,6 +23,7 @@ too small for a figure and too big for one-part details. Judged on its outline a
 
 ## Ships and spacecraft
 
+- A steamship's funnels and lifeboats: `round_funnel`, `davit_lifeboat`.
 - A sailing ship's hull is round-bilged, dark below, a clean band with portholes above, a wood deck: curved slopes on
   the lower courses, never plain steps. Masts are straight round stacks on an axle; rigging is string or bars.
 - A starship or rocket: a few large forms (a saucer, a cylinder, a wedge) joined cleanly, greebles only at engines,

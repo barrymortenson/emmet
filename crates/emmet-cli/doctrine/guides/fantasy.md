@@ -15,6 +15,8 @@ but with curves where they'd have corners and color where they'd be plain.
   `irregular_stone_wall`), on a ledge of rough stone (`rough_stone_ledge`).
 - An earth palette with one strong accent per area: greens, tan and dark tan, reddish brown, two grays for rock, then a
   dark green door, a red rug, a lavender roof.
+- Rock is a mosaic of two grays with tan veins, built flat and stood up (`rock_mosaic_panel`); a court has a
+  fountain (`fountain_court`).
 - Plants climb everything: vines and flowers on walls and rocks, one twisted tree as the centerpiece (`gnarled_tree`,
   `blossom_tree`, `flower_bed`, `potted_plant`). About one small detail every 4 to 6 studs of wall.
 - Towers lean on taper, not on height: `tapered_tower_cap`, `pyramid_spire_tower`, `round_tower`, with a crooked

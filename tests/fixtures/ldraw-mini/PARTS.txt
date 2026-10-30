@@ -245,3 +245,10 @@
 49668    # teeth_row
 5852    # curved_slope_skin
 76797    # dome_from_quarters
+
+# Session 3D, batch-17's techniques
+32803    # davit_lifeboat
+49612    # clamshell_pod
+6143    # round_bastion
+64448    # ribbed_side_panel
+92947    # pipe_column_cluster

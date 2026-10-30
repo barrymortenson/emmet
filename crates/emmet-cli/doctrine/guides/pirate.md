@@ -7,7 +7,7 @@ Sailing ships, harbors, islands, and the taverns on their rocks, at figure scale
 
 - A ship is compressed: about 16 studs wide and 40 to 60 long, two decks of 6 to 7 bricks each, still with a figure's
   door, cabin, and wheel (`ship_hull`, `plank_deck`, `mast_and_yard`, `crows_nest`, `rudder_hinge`, `cannon_port`,
-  `portholes`, `oars`).
+  `portholes`, `oars`). A steamer adds a `round_funnel` and a `davit_lifeboat` at the rail.
 - The hull is dark below and curves: reddish brown or black with a contrasting band at the gunwale, a rounded stern
   and a pointed bow; never a plain box.
 - Decks are planks: reddish brown or dark tan tiles, hatches, a capstan (`crank_winch`), barrels, crates.

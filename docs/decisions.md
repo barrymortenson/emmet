@@ -583,3 +583,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   sphere_from_caps, dome_from_quarters, rounded_column, hover_stand, side_stud_eyes, big_round_eye, muzzle_and_nose,
   teeth_row, floppy_ear, brick_letters, posable_neck_ball, hinged_limb, pyramid_pedestal, countershade_belly,
   feather_shingles, smooth_display_base. hover_stand replaced egg_from_panels, which read as a box.
+- **H-26, batch 17 (sci-fi rooms, ships, and fantasy stonework): all 20 accepted** (Barry, 2026-10-30, on
+  `docs/techniques/candidates/batch-17.html`): chamfered_door_portal, hangar_chevron_floor, recessed_glow_panel,
+  lit_window_panel, checker_light_wall, glow_trim_edge, pipe_column_cluster, ribbed_side_panel, lattice_tower,
+  bar_truss_brace, round_deck_dome, clamshell_pod, plank_deck, davit_lifeboat, round_funnel, rock_mosaic_panel,
+  double_arch_colonnade, fin_merlon_crenels, round_bastion, fountain_court.

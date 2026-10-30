@@ -16,7 +16,8 @@ Spaceships, stations, rovers, and bases, from figure-scale playsets to display m
 - Rooms: black or dark gray tiled floors, smooth dark panel walls with a few pillars and lit panels, doors 4 wide and
   5 bricks tall with cut corners in walls 2 studs thick, corridors 4 to 6 wide, rooms 6 to 10 deep and open at the
   back (`chamfered_door_portal`, `hangar_chevron_floor`, `recessed_glow_panel`, `lit_window_panel`,
-  `checker_light_wall`, `pipe_column_cluster`, `control_console`, `hatch_on_hinge`).
+  `checker_light_wall`, `pipe_column_cluster`, `ribbed_side_panel`, `control_console`, `hatch_on_hinge`, a
+  `clamshell_pod` that opens).
 - One play feature a room: an elevator, a sliding wall, a hinged hull section, a pod.
 - A display spaceship comes with a black stand that puts it at 10 to 20 degrees, and a plaque (`smooth_display_base`).
 - Moon and planet bases: gray ground with craters (round plates and tiles), a `landing_zone`, `lattice_tower`s and
