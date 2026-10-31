@@ -78,6 +78,7 @@ def street(
 | `m.use(technique, **kw)` | Applies a technique from the library and returns what it returns (below). |
 | `m.allow(rule, ids, reason)` | Records a deliberate exception: the validator lists findings of `rule` whose parts are all in `ids` as allowed, with the reason, never hidden. Ids may be Handles or a copy's id (all its parts). |
 | `m.ground(*ids)` | Parts the model stands on, besides its lowest level and any baseplate. |
+| `m.keep_clear(box, why)` | A space a figure needs, which no part may stand in: the way through a door, the room a seat needs, the gap between posts. `box` is two opposite corners in studs and plates, or a list of them; `why` says what it's for. `figure_clearance` names any part in it (3E). |
 | `import_ldraw(path)` | An .ldr or .mpd inside the project as fixed geometry: a submodel to `place`. Its parts' ids are their line numbers (`L12`, or `L4/L12` inside one of its own submodels), its `0 STEP` lines its steps, and their source lines point into the file. |
 | `Brick(w, l, h=1)`, `Plate(w, l)`, `Tile(w, l)`, `Slope(angle, w, l)` | Part helpers: the plain part of that size (`Brick(2, 4)` is "3001"; `Slope(45, 2, 1)` the Slope Brick 45 2 x 1, w deep down the slope). They resolve through the parts index between passes, and a size the library lacks fails with the sizes it has. `Brick`, `Plate`, and `Tile` themselves are the families `row`, `fill`, and `wall` take. |
 
@@ -128,6 +129,12 @@ candidate batches (`docs/techniques/candidates/`), and the doctrine lists them a
 one, `(x, y, z, heading)`: where the track's center line ends and the way it runs (track_switch returns one for each
 way, `{"straight", "branch"}`), so `p = m.use("track_curve", at=p, …)` chains pieces and a loop closes exactly.
 
+A technique a figure meets fits the next part against it (3E, `docs/techniques/audit.md`): its arguments are what a
+builder would change (a canopy's `height` and `spacing`), its defaults clear a 1 x 4 x 6 door, it declares the spaces a
+figure needs with `m.keep_clear`, and the z it returns carries what comes next as attributes, so `top + 1` still works:
+`door_frame`'s `.door_top` and `.door`, `canopy`'s `.columns` and `.underside`, the porches' `.posts` and
+`.underside`.
+
 ## Parameters
 
 Every parameter of the `@model` function needs a default. The ones `@model(knobs=...)` names show in the app's panel,
@@ -164,8 +171,9 @@ color in `build/colors.json` says whether any part was `produced` in it.
   by `0 !EMMET ID <id> SRC <file>:<line>`, each titled step starts with `0 !EMMET STEP <title>`, and every step ends
   with `0 STEP`. Other LDraw tools ignore the `!EMMET` lines.
 - `placements.json`: `{ schema, model, parts: [{ id, part, color, matrix, step, submodel, copies?, src }], allow?,
-  ground? }`. `matrix` is the 4 × 4 LDraw transform in LDU, column-major (three.js `Matrix4.fromArray` order). `allow`
-  and `ground` are what `m.allow` and `m.ground` recorded, with every copy's ids (`docs/spec/validator.md`).
+  ground?, keep_clear? }`. `matrix` is the 4 × 4 LDraw transform in LDU, column-major (three.js `Matrix4.fromArray`
+  order). `allow` and `ground` are what `m.allow` and `m.ground` recorded, with every copy's ids; `keep_clear` is each
+  `m.keep_clear` space in LDraw's frame, once per copy (`docs/spec/validator.md`).
 - `steps.json`: the steps, above.
 - `manifest.json`: the inputs hash, the Emmet, emmet_dsl, library, and parts data versions, the part, step, and
   submodel counts, the bounding box in DSL units, and a `run` block (generation and timing) that differs from run to

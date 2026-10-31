@@ -1008,18 +1008,21 @@ def seat_space(
     why: str,
     z: float = 0,
     facing: str = "front",
+    ends: bool = True,
+    legs: bool = True,
 ):
     """For techniques: keeps clear the room a figure sitting on a seat needs (building rule 3): a stud at each end,
-    LEG_ROOM studs in front up to a brick over the seat, and SEAT_HEADROOM plates over its front rows. The seat's footprint is
-    `length` studs along its front by `depth` deep from (x, y), its top `seat` plates over z; facing is the side a
-    figure sits facing: "front" (−y, the default), "back" (+y), "left" (−x), or "right" (+x). Returns the boxes."""
+    LEG_ROOM studs in front up to a brick over the seat, and SEAT_HEADROOM plates over its front rows. The seat's
+    footprint is `length` studs along its front by `depth` deep from (x, y), its top `seat` plates over z; facing is
+    the side a figure sits facing: "front" (−y, the default), "back" (+y), "left" (−x), or "right" (+x). ends=False leaves out the
+    studs at the ends (a chair's arms are its ends); legs=False the room in front (a table stands there by design).
+    Returns the boxes."""
     lo, top, over = z + 1, z + seat + SEAT_HEADROOM, max(1, depth - 1)
-    local = [
-        ((-1, 0, lo), (0, depth, top)),
-        ((length, 0, lo), (length + 1, depth, top)),
-        ((0, -LEG_ROOM, lo), (length, 0, z + seat + 3)),
-        ((0, 0, z + seat), (length, over, top)),
-    ]
+    # The ends first: the recall test takes a seat's first two boxes as its ends.
+    local = [((-1, 0, lo), (0, depth, top)), ((length, 0, lo), (length + 1, depth, top))] if ends else []
+    local.append(((0, 0, z + seat), (length, over, top)))
+    if legs:
+        local.append(((0, -LEG_ROOM, lo), (length, 0, z + seat + 3)))
 
     def turn(u, v):
         return {

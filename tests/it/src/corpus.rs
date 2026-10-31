@@ -689,7 +689,8 @@ pub fn figure_mutants(index: &Index, placements: &[Placement], keep: &[KeepClear
     let geo = geometry(index, placements);
     let mut out = Vec::new();
     for (ki, k) in keep.iter().enumerate() {
-        if k.why.contains("sitting") && k.boxes.len() >= 2 {
+        // A seat with its ends, its headroom, and its legroom (seat_space's four boxes, the ends first).
+        if k.why.contains("sitting") && k.boxes.len() == 4 {
             // The seat's ends are its first two boxes; the seat is the parts between them.
             let (e0, e1) = (space(&k.boxes[0]), space(&k.boxes[1]));
             let a = if (e1.min.x - e0.min.x).abs() > (e1.min.z - e0.min.z).abs() {
