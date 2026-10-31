@@ -159,7 +159,7 @@ window.EMMET_STATUS = {
       ],
       note: "The viewer budget holds with little margin on this Mac (738 to 1,076 ms for the 903-part Cottage); sending the scene before its findings is left for 4C. Follow-ups #36 to #42; Phase 3's Delivers line doesn't name 3D"
     },
-    "3E": { status: "todo" },
+    "3E": { status: "in-progress", branch: "bmortenson/s3e-good-building-technique", started: "2026-10-31" },
     "4B": {
       status: "done", pr: 48, branch: "bmortenson/s4b-chat-agent-ux", started: "2026-10-30",
       evidence: [
