@@ -20,8 +20,8 @@ shortened to stay buildable (the doctrine's "Sized for the figure, not to the ra
 
 ## Clearances
 
-What an experienced builder leaves without being told (`docs/spec/building-rules.md`). `validate` finds a part in a
-space a technique or `m.keep_clear` declared; the rest is yours to see in the render.
+What an experienced builder leaves without being told (`docs/spec/building-rules.md`). The validate tool finds a part
+in a space a technique or `m.keep_clear` declared; the rest is yours to see in the render.
 
 - Headroom: anything a figure walks under (a canopy, an awning, a porch roof, an arch) starts at or above the top of
   the door beside it, 6 bricks for a 1 x 4 x 6 door, and 5 bricks at least anywhere. `canopy`, `porch_posts`, and

@@ -1136,5 +1136,6 @@ fn rung2_from_barrys_session_replays() {
     assert_eq!(v["data"]["counts"], serde_json::json!({ "step_order": 2 }), "{v}");
     let placements: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(rig.project.join("build/placements.json")).unwrap()).unwrap();
-    assert_eq!(placements["parts"].as_array().unwrap().len(), 230);
+    // 230 in 4B; the canopy's six columns each gained a Brick 1 x 1 in 3E, to stand 6 bricks and clear a door.
+    assert_eq!(placements["parts"].as_array().unwrap().len(), 236);
 }

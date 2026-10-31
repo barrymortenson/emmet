@@ -939,11 +939,12 @@ def cottage(
     wide = kx1 - kx0 + 1 >= 6
     bed = (kx0, ry1 - 1, 6, 2) if wide else (kx1 - 1, ry1 - 5, 2, 6)
     units_n = min(4, ((ry1 - 1 if wide else ry1 + 1) - ry0) // 2)
+    # In the narrowest house the living room is the door and a stud wide: a fireplace there would stand in the way in
+    # (figure_clearance), so it has none (Barry, 2026-10-31).
+    hearth = width >= 16
     furniture = {
-        "fireplace": (x1 - 2, cy, 2, 4),
         "armchair": (lx0, ry1 - 1, 4, 2),
         "rug": (x1 - 5, cy, 3, 3),
-        "firewood": (x1 - 2, cy - 1, 2, 1),
         "bed": bed,
         "counter": (
             kx0,
@@ -952,6 +953,9 @@ def cottage(
             2 * units_n,
         ),  # its doors stand out into the third column
     }
+    if hearth:
+        furniture["fireplace"] = (x1 - 2, cy, 2, 4)
+        furniture["firewood"] = (x1 - 2, cy - 1, 2, 1)
     lamp = lx1 - lx0 + 1 >= 6
     if lamp:
         furniture["lamp"] = (x1 - 2, ry1 - 1, 2, 2)
@@ -1032,17 +1036,18 @@ def cottage(
         bay_base(F + 4, "stone", stone)
 
     # The rooms, furnished while the walls are two bricks high.
-    m.use(
-        "hearth_fireplace",
-        x=x1 - 2,
-        y=cy,
-        z=F,
-        facing="-x",
-        flue=4,
-        color="Light Bluish Gray",
-        title="Fireplace",
-        id="fireplace",
-    )
+    if hearth:
+        m.use(
+            "hearth_fireplace",
+            x=x1 - 2,
+            y=cy,
+            z=F,
+            facing="-x",
+            flue=4,
+            color="Light Bluish Gray",
+            title="Fireplace",
+            id="fireplace",
+        )
     m.use(
         "armchair_and_sofa",
         x=lx0,
@@ -1069,16 +1074,17 @@ def cottage(
     m.use(
         "floor_rug", x=x1 - 5, y=cy, z=F, shape="round", color="Dark Red", title="Rug"
     )
-    m.use(
-        "woodpile",
-        x=x1 - 2,
-        y=cy - 1,
-        z=F,
-        length=2,
-        rows=2,
-        seed=seed,
-        title="Firewood",
-    )
+    if hearth:
+        m.use(
+            "woodpile",
+            x=x1 - 2,
+            y=cy - 1,
+            z=F,
+            length=2,
+            rows=2,
+            seed=seed,
+            title="Firewood",
+        )
     m.use(
         "kitchen_counter",
         x=kx0,
@@ -1543,7 +1549,8 @@ def cottage(
     if winter:
         sm = m.submodel("Snowman", snowman)
         with m.step("Snowman"):
-            m.place(sm, at=(lawn_x + 2, 7, lawn_top), id="snowman")
+            # Behind the bench's row, clear of the room a figure on it needs.
+            m.place(sm, at=(lawn_x + 2, 8, lawn_top), id="snowman")
     # Hedges along the left and the back, in lengths of 8 (their base plates come in Green up to 10 long), a rock in
     # the corner between them, the tree on the mound, and the woodpile by the chimney.
     for i in range(3):

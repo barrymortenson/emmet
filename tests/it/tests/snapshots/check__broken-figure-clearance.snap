@@ -1,0 +1,124 @@
+---
+source: tests/it/tests/check.rs
+expression: "snapshot(&dir, v)"
+---
+{
+  "data": {
+    "allowed": [],
+    "clean": false,
+    "counts": {
+      "figure_clearance": 4
+    },
+    "findings": [
+      {
+        "at": [
+          5.0,
+          8.5,
+          17.0
+        ],
+        "hint": "Raise the canopy (canopy-beams/2 and 9 more) a brick so it clears the space for a figure walking through the door of Shop, or allow it with m.allow and a reason the user would accept.",
+        "id": "F-0001",
+        "message": "The canopy (canopy-beams/2 and 9 more) stands inside the space kept clear for a figure walking through the door of Shop (declared at model.py:13).",
+        "parts": [
+          "canopy-beams/2",
+          "canopy-deck/1",
+          "canopy-deck/2",
+          "canopy-deck/3",
+          "canopy-roof/1",
+          "canopy-roof/2",
+          "canopy-roof/3",
+          "canopy-roof/4",
+          "canopy-roof/5",
+          "canopy-roof/6"
+        ],
+        "rule": "figure_clearance",
+        "severity": "warning",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 37
+          }
+        ]
+      },
+      {
+        "at": [
+          2.5,
+          4.5,
+          8.0
+        ],
+        "hint": "Move the canopy (canopy-columns/1) 1 stud left (−x), or move what needs the space the other way, so a figure fits; or allow it with m.allow and a reason the user would accept.",
+        "id": "F-0002",
+        "message": "The canopy (canopy-columns/1) stands inside the space kept clear for a figure sitting on the bench (declared at model.py:36).",
+        "parts": [
+          "canopy-columns/1"
+        ],
+        "rule": "figure_clearance",
+        "severity": "warning",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 37
+          }
+        ]
+      },
+      {
+        "at": [
+          16.0,
+          8.5,
+          10.0
+        ],
+        "hint": "Move the wall (wall/1 and 5 more) 2 studs forward (−y), or move what needs the space the other way, so a figure fits; or allow it with m.allow and a reason the user would accept.",
+        "id": "F-0003",
+        "message": "The wall (wall/1 and 5 more) stands inside the space kept clear for a figure walking through the door of Back room (declared at model.py:24).",
+        "parts": [
+          "wall/1",
+          "wall/2",
+          "wall/3",
+          "wall/4",
+          "wall/5",
+          "wall/6"
+        ],
+        "rule": "figure_clearance",
+        "severity": "warning",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 39
+          }
+        ]
+      },
+      {
+        "at": [
+          22.5,
+          4.5,
+          10.0
+        ],
+        "hint": "Move the lamp (lamp/foot and 1 more) 1 stud left (−x), or move what needs the space the other way, so a figure fits; or allow it with m.allow and a reason the user would accept.",
+        "id": "F-0004",
+        "message": "The lamp (lamp/foot and 1 more) stands inside the space kept clear for the path to the garden gate (declared at model.py:40).",
+        "parts": [
+          "lamp/foot",
+          "lamp/post"
+        ],
+        "rule": "figure_clearance",
+        "severity": "warning",
+        "source": [
+          {
+            "file": "model.py",
+            "line": 42
+          }
+        ]
+      }
+    ],
+    "inputs_hash": "[inputs_hash]",
+    "schema": 1
+  },
+  "meta": {
+    "emmet": "[emmet]",
+    "inputs_hash": "[inputs_hash]",
+    "ms": "[ms]",
+    "project": "<project>"
+  },
+  "ok": true,
+  "warnings": []
+}

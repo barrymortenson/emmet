@@ -672,3 +672,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   front door's top, the 4B canopy's mistake: the posts are 7 round bricks instead of 5, the beam starts at the door's
   top, and the porch roof's back row, which ran into the house's eaves once raised, is gone, so the porch roof tucks
   under them (rule 5). `docs/spec/sessions/3E/cottage-{before,after}.png`.
+- **The narrowest Cottage has no hearth** (Barry, through AskUserQuestion). At width 14 the living room is the front
+  door and a stud wide, and the fireplace and the firewood stood a stud inside the door's way in. At width 14 only, the
+  living room leaves them out; the chimney stays outside, and the armchair and rug stay. Rejected: a width knob from
+  16, and moving the armchair to make room. The snowman (winter) stands a stud further back, clear of the garden
+  bench's legroom, which its widest garden had crowded.

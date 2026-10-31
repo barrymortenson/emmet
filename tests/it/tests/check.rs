@@ -257,8 +257,8 @@ fn check_with_params_leaves_params_json() {
     let built: serde_json::Value =
         serde_json::from_slice(&std::fs::read(dir.join("build/placements.json")).unwrap()).unwrap();
     assert!(
-        built["parts"].as_array().unwrap().len() > 903,
-        "the build is the 20 x 12 one, bigger than the defaults' 903 parts"
+        built["parts"].as_array().unwrap().len() > 908,
+        "the build is the 20 x 12 one, bigger than the defaults' 908 parts"
     );
     assert_eq!(std::fs::read_to_string(dir.join("params.json")).unwrap(), before);
 }

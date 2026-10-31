@@ -314,7 +314,8 @@
           "part_unavailable",
           "color_unavailable",
           "obsolete_part",
-          "alias_part"
+          "alias_part",
+          "figure_clearance"
         ],
         "type": "string"
       },
