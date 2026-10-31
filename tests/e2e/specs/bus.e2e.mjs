@@ -92,7 +92,8 @@ describe("a terminal agent and the open app", () => {
   it("turns the view and reads it back", async () => {
     const r = await agent.call("camera", { view: "front" });
     expect(r.data.view).toBe("front");
-    await expect($('.view-switch-item[aria-checked="true"]')).toHaveText("Front");
+    // The reply comes as the host sends the window its event; a busy machine can take a few seconds to draw it.
+    await expect($('.view-switch-item[aria-checked="true"]')).toHaveText("Front", { wait: 10_000 });
     expect((await agent.call("camera", {})).data.view).toBe("front");
     await browser.keys("1");
   });
