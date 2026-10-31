@@ -34,7 +34,7 @@ const viewer = createViewer(canvas, { partSource, theme: "light", quality: "auto
 await viewer.load(placements);                         // first scene (same as update)
 const diff = await viewer.update(placements, { animate: "build" }); // { added, removed, moved, recolored, unchanged }
 viewer.skipAnimation();                                // jump a running build animation to its end
-viewer.highlight(["roof/1", "door"], { mode: "issue" }); // others dim; "issue" tints them; [] clears
+viewer.highlight(["roof/1", "door"], { mode: "issue" }); // others fade, these keep their colors; "issue" tints them; [] clears
 viewer.highlighted();                                  // the highlighted ids
 viewer.frame(ids?);                                    // fit the ids (or everything), keeping the view direction
 viewer.setView("iso" | "front" | "back" | "left" | "right" | "top");

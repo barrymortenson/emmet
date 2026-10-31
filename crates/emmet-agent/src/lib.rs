@@ -131,7 +131,9 @@ pub struct SessionConfig {
     pub emmet: PathBuf,
     /// A Claude session id or Codex thread id to continue.
     pub resume: Option<String>,
+    /// The model and the reasoning effort, as the CLI names them ([`AgentEvent::Models`]); None is the CLI's default.
     pub model: Option<String>,
+    pub effort: Option<String>,
     /// The environment the CLI gets, whole (the login shell's: [`env::login_env`]).
     pub env: Vec<(String, String)>,
     pub hub: Hub,
@@ -148,6 +150,66 @@ pub struct SessionConfig {
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 pub struct UserTurn {
     pub text: String,
+}
+
+/// What the user sees in the app when they send a message (plan section 14: "the agent sees what you selected"), and
+/// the detail behind a message the app wrote for them: the finding or build error, with its file and line, that the
+/// chat shows only in plain words (law 2).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
+pub struct TurnContext {
+    /// Emmet ids of the parts the user has selected.
+    #[serde(default)]
+    pub selection: Vec<String>,
+    /// The viewer's view: iso, front, top, back, left, right.
+    #[serde(default)]
+    pub view: Option<String>,
+    #[serde(default)]
+    pub detail: Option<String>,
+}
+
+impl TurnContext {
+    /// `text` as the agent gets it: the user's words, then what the app knows that they didn't type.
+    pub fn prompt(&self, text: &str) -> String {
+        let mut lines = vec![];
+        if let Some(d) = self.detail.as_deref().filter(|d| !d.trim().is_empty()) {
+            lines.push(format!("Details from Emmet: {}", d.trim()));
+        }
+        if !self.selection.is_empty() {
+            let shown: Vec<&str> = self.selection.iter().take(50).map(String::as_str).collect();
+            let more = self.selection.len().saturating_sub(shown.len());
+            let more = if more > 0 {
+                format!(" and {more} more")
+            } else {
+                String::new()
+            };
+            lines.push(format!(
+                "Selected in the viewer ({} part{}): {}{more}",
+                self.selection.len(),
+                if self.selection.len() == 1 { "" } else { "s" },
+                shown.join(", ")
+            ));
+        }
+        if let Some(v) = self.view.as_deref() {
+            lines.push(format!("The user is looking at the {v} view."));
+        }
+        if lines.is_empty() {
+            return text.to_string();
+        }
+        format!("{text}\n\n[Emmet context]\n{}", lines.join("\n"))
+    }
+}
+
+/// A model the session can use, and the efforts it takes, as the CLI reports or documents them (plan section 10). `id` is what
+/// goes back to the CLI; an empty `id` is the CLI's own default.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
+pub struct ModelChoice {
+    pub id: String,
+    pub name: String,
+    pub efforts: Vec<String>,
+    #[serde(default)]
+    pub default_effort: Option<String>,
 }
 
 /// A redirect: text the user typed while the agent worked (D-33).
@@ -336,6 +398,11 @@ pub enum AgentEvent {
     TurnDone {
         reason: DoneReason,
     },
+    /// The models and efforts the session can switch to: Claude Code's documented aliases and levels, or Codex's
+    /// `model/list`.
+    Models {
+        models: Vec<ModelChoice>,
+    },
     /// Live plan usage from the CLI (Claude's rate_limit_event).
     Limits {
         snapshot: UsageSnapshot,
@@ -413,13 +480,30 @@ pub fn plain_id(s: &str) -> bool {
         && s.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
 }
 
+/// A model or effort name as a CLI gives it (`gpt-6.1-sol`, `xhigh`): a plain id that may hold dots.
+pub fn model_id(s: &str) -> bool {
+    !s.is_empty()
+        && s.len() <= 128
+        && !s.starts_with(['-', '.'])
+        && s.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_' || b == b'.')
+}
+
 impl SessionConfig {
-    /// Refuses an id or resume token that isn't plain (see [`plain_id`]).
+    /// Refuses an id or resume token that isn't plain (see [`plain_id`]), and a model or effort that isn't a plain
+    /// name (see [`model_id`]).
     pub(crate) fn check(&self) -> Result<()> {
+        let bad_name = |v: &Option<String>| v.as_deref().is_some_and(|m| !model_id(m));
         if !plain_id(&self.id) || self.resume.as_deref().is_some_and(|r| !plain_id(r)) {
             return Err(AgentError::new(
                 AgentErrorCode::SpawnFailed,
                 "That chat session's id isn't one Emmet made, so it can't be resumed.",
+            ));
+        }
+        if bad_name(&self.model) || bad_name(&self.effort) {
+            return Err(AgentError::new(
+                AgentErrorCode::SpawnFailed,
+                "That model or effort isn't one the agent offers.",
             ));
         }
         Ok(())

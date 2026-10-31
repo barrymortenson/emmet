@@ -360,7 +360,7 @@ pub async fn reset_params(app: AppHandle, names: Vec<String>) -> Result<ParamsVi
     crate::app::params_view(params)
 }
 
-fn version_view(project: &Project, v: &versions::Version) -> VersionView {
+pub(crate) fn version_view(project: &Project, v: &versions::Version) -> VersionView {
     let thumbnail = v
         .thumbnail
         .then(|| versions::file(project, v, "thumbnail.png"))

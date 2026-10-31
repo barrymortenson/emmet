@@ -716,3 +716,144 @@ fn a_collision_finding_is_fixed_at_its_line() {
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["findings"], serde_json::json!([]));
 }
+
+/// The model and effort picker (4B): a documented alias and level reach Claude Code as `--model` and `--effort`, and a
+/// name it doesn't document never reaches its command line.
+#[test]
+fn the_model_and_effort_reach_the_cli() {
+    let rig = Rig::new("claude-model", "claude", "plain-turn");
+    let args = |n: usize| -> Vec<String> {
+        rig.record("claude", n)["args"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|a| a.as_str().map(String::from))
+            .collect()
+    };
+    let after = |a: &[String], flag: &str| a.iter().position(|x| x == flag).map(|i| a[i + 1].clone());
+    for (n, (model, effort)) in [("opus", "high"), ("gpt-6-luna", "ultra")].into_iter().enumerate() {
+        let mut cfg = rig.cfg.clone();
+        cfg.model = Some(model.into());
+        cfg.effort = Some(effort.into());
+        let (mut s, mut ev) = rig.start_with(CLAUDE, cfg);
+        s.send(turn("Reply with exactly the word: ready")).unwrap();
+        let events = ev.turn();
+        s.close();
+        let a = args(n);
+        if n == 0 {
+            assert_eq!(after(&a, "--model").as_deref(), Some("opus"));
+            assert_eq!(after(&a, "--effort").as_deref(), Some("high"));
+            let Some(AgentEvent::Models { models }) = events.iter().find(|e| matches!(e, AgentEvent::Models { .. }))
+            else {
+                panic!("no Models event");
+            };
+            let ids: Vec<&str> = models.iter().map(|m| m.id.as_str()).collect();
+            assert_eq!(ids, ["", "fable", "opus", "sonnet", "haiku"]);
+        } else {
+            assert!(!a.iter().any(|x| x == "--model" || x == "--effort"), "{a:?}");
+        }
+    }
+}
+
+/// A project that carries `.emmet/transcripts` as a link elsewhere (it may be someone else's) gets no transcript
+/// written through it, and the chat goes on (4B's review; the chat's own `.emmet/chat/` uses the same check).
+#[cfg(unix)]
+#[test]
+fn a_linked_transcripts_folder_isnt_written_through() {
+    let rig = Rig::new("claude-linked-transcripts", "claude", "plain-turn");
+    let elsewhere = emmet_it::temp_dir("linked-transcripts-target");
+    std::fs::create_dir_all(rig.project.join(".emmet")).unwrap();
+    std::os::unix::fs::symlink(&elsewhere, rig.project.join(".emmet/transcripts")).unwrap();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    s.close();
+    assert!(events.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })));
+    assert_eq!(
+        std::fs::read_dir(&elsewhere).unwrap().count(),
+        0,
+        "nothing went through the link"
+    );
+}
+
+/// The same with the transcript file itself a link: a project chooses its session ids, so it could point one at a file
+/// of the user's. Nothing is written through it.
+#[cfg(unix)]
+#[test]
+fn a_linked_transcript_file_isnt_written_through() {
+    let rig = Rig::new("claude-linked-transcript-file", "claude", "plain-turn");
+    let elsewhere = emmet_it::temp_dir("linked-transcript-file-target").join("notes.txt");
+    std::fs::write(&elsewhere, "the user's own file\n").unwrap();
+    let dir = rig.project.join(".emmet/transcripts");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::os::unix::fs::symlink(&elsewhere, dir.join(format!("{}.jsonl", rig.cfg.id))).unwrap();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    s.close();
+    assert!(events.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })));
+    assert_eq!(std::fs::read_to_string(&elsewhere).unwrap(), "the user's own file\n");
+}
+
+/// Rung 1, replayed from 1D's live eval run (scrubbed and trimmed to the fixture limit, 4B): from the empty template to
+/// the cottage, through Emmet's real tools. It passed 1D's validator with no errors; 3A's step rules came later, so the
+/// count of what they'd flag is pinned here, not required to be zero.
+#[test]
+fn rung1_from_a_live_run_builds_the_cottage() {
+    const ERRORS_NOW: usize = 3;
+    let rig = Rig::new("claude-rung1", "claude", "rung1");
+    rig.from_empty_template();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Build a small cottage on a green 32 × 32 baseplate (rung 1)."))
+        .unwrap();
+    let mut events = ev.turn();
+    while !events.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+        events.extend(ev.turn());
+    }
+    s.close();
+    assert!(events.iter().any(|e| matches!(
+        e,
+        AgentEvent::TurnDone {
+            reason: DoneReason::Completed
+        }
+    )));
+    let v = rig.validate();
+    let errors = v["data"]["findings"]
+        .as_array()
+        .unwrap_or_else(|| panic!("{v}"))
+        .iter()
+        .filter(|f| f["severity"] == "error")
+        .count();
+    assert_eq!(errors, ERRORS_NOW, "{v}");
+    let placements: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(rig.project.join("build/placements.json")).unwrap()).unwrap();
+    assert!(placements["parts"].as_array().unwrap().len() >= 40);
+}
+
+/// Rung 2 from Barry's hand session in the app (4B, Done when 5), scrubbed and trimmed, replays through Emmet's real
+/// tools to the end of the turn. Claude Code made most of its edits with shell commands in its sandbox, which a replay
+/// can't run, so the model it left is checked as a project of its own (ladder.rs).
+#[test]
+fn rung2_from_barrys_session_replays() {
+    let rig = Rig::new("claude-rung2", "claude", "rung2");
+    rig.from_empty_template();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Build a small train station next to a loop of track (rung 2)."))
+        .unwrap();
+    let mut events = ev.turn();
+    while !events.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+        events.extend(ev.turn());
+    }
+    s.close();
+    assert!(events.iter().any(|e| matches!(
+        e,
+        AgentEvent::TurnDone {
+            reason: DoneReason::Completed
+        }
+    )));
+    let runs = events
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::ToolCall { name, .. } if name == "mcp__emmet__run_model"))
+        .count();
+    assert!(runs >= 3, "it built in stages: {runs} runs");
+}

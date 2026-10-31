@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use emmet_core::data::DataDir;
-use emmet_core::envelope::{Envelope, Error, Meta, Result};
+use emmet_core::envelope::{Envelope, Error, ErrorCode, Meta, Result};
 use emmet_core::ops::{self, ColorList, Params, PartInfo, SearchResult};
 use emmet_core::project::Project;
 use emmet_core::run::{RunMeta, RunSummary};
@@ -118,6 +118,22 @@ pub struct HighlightArgs {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct CameraArgs {
+    /// Turn the open app's viewer to this view: iso, front, top, back, left, or right. Leave it out to read the view.
+    #[serde(default)]
+    pub view: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct SaveVersionArgs {
+    /// A few words for the version, in the user's terms ("Before the steeper roof").
+    pub name: String,
+    /// Why it was saved, when that helps later.
+    #[serde(default)]
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct ValidateArgs {
     /// Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,
     /// weak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part.
@@ -160,6 +176,23 @@ pub struct Highlighted {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
+
+/// The open app's view, and what the user has selected there.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct Viewing {
+    pub delivered: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+    /// iso, front, top, back, left, or right.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub view: Option<String>,
+    /// The Emmet ids the user has selected (for `selection`).
+    #[serde(default)]
+    pub selected: Vec<String>,
+}
+
+/// The views the viewer has (plan section 13).
+const VIEWS: [&str; 6] = ["iso", "front", "top", "back", "left", "right"];
 
 /// The doctrine (plan section 10), embedded in the binary: printed by `emmet rules` and the `rules` tool.
 pub const DOCTRINE: &str = include_str!("../doctrine/EMMET.md");
@@ -499,9 +532,15 @@ impl EmmetMcp {
     /// Highlight parts in the open Emmet app's viewer, by Emmet id or by a finding id from validate. Says so when the
     /// app isn't open.
     #[tool(output_schema = schema_for_output::<Envelope<Highlighted>>())]
-    async fn highlight(&self, Parameters(args): Parameters<HighlightArgs>) -> CallToolResult {
+    async fn highlight(
+        &self,
+        Parameters(args): Parameters<HighlightArgs>,
+        context: RequestContext<RoleServer>,
+    ) -> CallToolResult {
         let started = Instant::now();
         let (data, me) = (self.data.clone(), self.clone());
+        // Per request in MCP 2026-07-28 (Claude Code's), else from initialize.
+        let from = context.client_info().map(|i| i.name);
         let (out, root) = blocking(
             move || {
                 with_project(&me, |p| {
@@ -513,6 +552,7 @@ impl EmmetMcp {
                         emmet_bus::Message::Highlight {
                             project: p.root.display().to_string(),
                             ids,
+                            from,
                         },
                         std::time::Duration::from_secs(5),
                     );
@@ -531,6 +571,53 @@ impl EmmetMcp {
             } else {
                 format!("Emmet app not open ({}).", h.reason.as_deref().unwrap_or("no answer"))
             }
+        })
+    }
+
+    /// Turn the open Emmet app's viewer to a view (iso, front, top, back, left, right), or read the view the user is
+    /// looking at. Says so when the app isn't open.
+    #[tool(output_schema = schema_for_output::<Envelope<Viewing>>())]
+    async fn camera(&self, Parameters(args): Parameters<CameraArgs>) -> CallToolResult {
+        let view = args.view.map(|v| v.trim().to_lowercase());
+        if let Some(v) = view.as_deref().filter(|v| !VIEWS.contains(v)) {
+            let e = Error::new(
+                ErrorCode::ParamInvalid,
+                format!("There's no view '{v}'."),
+                "Use iso, front, top, back, left, or right.",
+            );
+            return result(Instant::now(), Err(e), RunMeta::default(), None, |_: &Viewing| {
+                String::new()
+            });
+        }
+        self.ask_viewer(move |project| emmet_bus::Message::Camera { project, view })
+            .await
+    }
+
+    /// What the user has selected in the open Emmet app's viewer (Emmet ids), and the view they're looking at: what
+    /// they mean by "this" or "these".
+    #[tool(output_schema = schema_for_output::<Envelope<Viewing>>())]
+    async fn selection(&self, Parameters(_): Parameters<NoArgs>) -> CallToolResult {
+        self.ask_viewer(|project| emmet_bus::Message::Selection { project })
+            .await
+    }
+
+    /// Save the model's sources as a named version, which the user can compare and restore from the app's Versions
+    /// list. Save one before a risky change, like reworking the whole roof.
+    #[tool(output_schema = schema_for_output::<Envelope<emmet_core::versions::Version>>())]
+    async fn save_version(&self, Parameters(args): Parameters<SaveVersionArgs>) -> CallToolResult {
+        let started = Instant::now();
+        let (data, me) = (self.data.clone(), self.clone());
+        let (out, root) = blocking(
+            move || {
+                with_project(&me, |p| {
+                    emmet_core::versions::save(&data, p, &args.name, args.note.as_deref(), false, None)
+                })
+            },
+            |e| (Err(e), None),
+        )
+        .await;
+        result(started, out, RunMeta::default(), root, |v| {
+            format!("Saved version {}: {}.", v.n, v.name)
         })
     }
 
@@ -769,6 +856,44 @@ fn size(s: Option<emmet_core::index::Size>) -> String {
 }
 
 impl EmmetMcp {
+    /// A camera or selection question for the open app, about this project.
+    async fn ask_viewer(&self, msg: impl FnOnce(String) -> emmet_bus::Message + Send + 'static) -> CallToolResult {
+        let started = Instant::now();
+        let (data, me) = (self.data.clone(), self.clone());
+        let (out, root) = blocking(
+            move || {
+                with_project(&me, |p| {
+                    let reply = emmet_bus::send(
+                        &data,
+                        msg(p.root.display().to_string()),
+                        std::time::Duration::from_secs(5),
+                    );
+                    Ok(Viewing {
+                        delivered: reply.delivered,
+                        reason: reply.reason,
+                        view: reply.camera.as_ref().and_then(|c| c["view"].as_str().map(String::from)),
+                        selected: reply.selected,
+                    })
+                })
+            },
+            |e| (Err(e), None),
+        )
+        .await;
+        result(started, out, RunMeta::default(), root, |v| {
+            if !v.delivered {
+                return format!("Emmet app not open ({}).", v.reason.as_deref().unwrap_or("no answer"));
+            }
+            let view = v.view.as_deref().unwrap_or("unknown");
+            match v.selected.len() {
+                0 => format!("The viewer shows the {view} view. Nothing is selected."),
+                n => format!(
+                    "The viewer shows the {view} view. Selected ({n}): {}.",
+                    v.selected.join(", ")
+                ),
+            }
+        })
+    }
+
     /// The session's pending redirect notes, taken from the app over the bus (D-33). None without `--session`, or
     /// when the app doesn't answer.
     fn take_notes(&self) -> Vec<emmet_core::envelope::UserNote> {

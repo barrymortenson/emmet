@@ -21,6 +21,10 @@ import {
   List,
   Lock,
   LogIn,
+  BookOpen,
+  Eye,
+  FilePen,
+  Search,
   type LucideIcon,
   MessageSquarePlus,
   MessagesSquare,
@@ -42,13 +46,17 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-import { DropdownMenu, Menubar, Progress as RadixProgress, Tooltip as RadixTooltip } from "radix-ui";
+import { DropdownMenu, Menubar, Progress as RadixProgress, Select, Tooltip as RadixTooltip } from "radix-ui";
 import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from "react";
 import brick from "./assets/glyphs/brick.svg?raw";
 import floating from "./assets/glyphs/floating.svg?raw";
 import submodel from "./assets/glyphs/submodel.svg?raw";
 
 const LUCIDE: Record<string, LucideIcon> = {
+  "search": Search,
+  "file-pen": FilePen,
+  "eye": Eye,
+  "book-open": BookOpen,
   box: Box,
   camera: Camera,
   check: Check,
@@ -239,6 +247,37 @@ export function MenuItems({ items, menubar }: { items: MenuEntry[]; menubar?: bo
       })}
     </>
   );
+}
+
+/** A select (Radix Select): its value's words on the trigger, the choices in a menu. */
+export function Choose({ label, value, items, onChange, id }: { label: string; value: string; items: [string, string][]; onChange: (v: string) => void; id?: string }) {
+  return (
+    <Select.Root value={value} onValueChange={onChange}>
+      <span className="select" data-c="select">
+        <span className="visually-hidden">{label}</span>
+        <Select.Trigger className="select-trigger" aria-label={label} id={id}>
+          <Select.Value />
+          <Icon name="chevron-down" size="sm" />
+        </Select.Trigger>
+      </span>
+      <Select.Portal>
+        <Select.Content className="menu" data-c="menu" position="popper" sideOffset={4}>
+          <Select.Viewport>
+            {items.map(([v, text]) => (
+              <Select.Item key={v} value={v} className="menu-item">
+                <Select.ItemText>{text}</Select.ItemText>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
+  );
+}
+
+/** One line of text: Other on a question, an edit to a redirect. */
+export function TextField({ label, value, onChange, placeholder, id }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; id?: string }) {
+  return <input className="text-field" data-c="text-field" type="text" aria-label={label} placeholder={placeholder} value={value} id={id} onChange={(e) => onChange(e.target.value)} />;
 }
 
 /** Something that takes a while: what, how much in words, and the bar (Radix Progress). */

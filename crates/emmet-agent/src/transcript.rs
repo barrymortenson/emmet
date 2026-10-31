@@ -42,15 +42,9 @@ impl Transcript {
     /// Opens (appends to) the session's transcript. A transcript that can't be written isn't fatal: the chat goes on
     /// without one.
     pub fn open(project: &Path, session: &str, meta: Value, secrets: Vec<String>) -> Self {
-        let dir = project.join(".emmet").join("transcripts");
-        let out = std::fs::create_dir_all(&dir)
-            .and_then(|_| {
-                std::fs::OpenOptions::new()
-                    .create(true)
-                    .append(true)
-                    .open(dir.join(format!("{session}.jsonl")))
-            })
-            .ok()
+        // Never through a link the project carries (it may be someone else's).
+        let out = emmet_core::fsx::own_file(project, &[".emmet", "transcripts"], &format!("{session}.jsonl"))
+            .and_then(|path| std::fs::OpenOptions::new().create(true).append(true).open(path).ok())
             .map(BufWriter::new);
         let mut t = Self {
             out,

@@ -67,7 +67,29 @@ export type PanelProps = {
   onSaveBuild: (s: BuildSettings) => Promise<boolean>;
   onRebuild: (before: BuildSettings, after: BuildSettings) => void;
   onKnobWrite: () => void;
+  /** The one tip to show now, if any (plan section 14: one affordance at a time), and its Got it. */
+  tip: TipId | null;
+  onTip: (t: TipId) => void;
 };
+
+export type TipId = "knob" | "finding" | "export";
+
+/** What each tip teaches, at the moment it's useful (docs/design/content.md: teach one thing at a time). */
+const TIPS: Record<TipId, string> = {
+  knob: "Drag a knob to try a change: the model updates as you go. Keep writes it to the model; Reset drops it.",
+  finding: "Click a problem to see its parts in the model. Ask agent to fix sends it to the agent, with the details it needs.",
+  export: "Export the parts list for Rebrickable or BrickLink, or the model for Studio, LDCad, and LeoCAD.",
+};
+
+function Tip({ id, onDone }: { id: TipId; onDone: (t: TipId) => void }) {
+  return (
+    <div className="notice tip" data-c="tip" role="status" id={`tip-${id}`}>
+      <Icon name="info" />
+      <p>{TIPS[id]}</p>
+      <Button label="Got it" variant="quiet" size="sm" id="tip-done" onClick={() => onDone(id)} />
+    </div>
+  );
+}
 
 export function Panel(p: PanelProps) {
   const state = modelState(p.project, p.scene, p.running, p.error);
@@ -139,15 +161,17 @@ export function Panel(p: PanelProps) {
                   Trust the project to use these
                 </p>
               ) : (
-                <Knobs key={p.project.root} lastGeneration={p.scene?.generation ?? -1} onWrite={p.onKnobWrite} />
+                <Knobs key={p.project.root} lastGeneration={p.scene?.generation ?? -1} onWrite={p.onKnobWrite} tip={p.tip === "knob" && <Tip id="knob" onDone={p.onTip} />} />
               )}
             </section>
           )}
         </Tabs.Content>
         <Tabs.Content value="checks" className="panel-body" id="checks">
+          {p.tip === "finding" && <Tip id="finding" onDone={p.onTip} />}
           <Checks checks={p.scene?.checks} selected={p.selected?.startsWith("finding:") ? p.selected.slice(8) : null} readonly={readonly} onPick={p.onPickFinding} onAsk={p.onAsk} onAllow={p.onAllow} onUnallow={p.onUnallow} />
         </Tabs.Content>
         <Tabs.Content value="parts" className="panel-body" id="parts">
+          {p.tip === "export" && <Tip id="export" onDone={p.onTip} />}
           <Parts bom={p.scene?.bom} selected={p.selected?.startsWith("part:") ? p.selected.slice(5) : null} onPick={p.onPickPart} />
         </Tabs.Content>
         <Tabs.Content value="steps" className="panel-body" id="steps">

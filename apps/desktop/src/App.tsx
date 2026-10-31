@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The window, to the frozen design (plan section 14, docs/design/frozen; session 4A): the viewer on the left with the
 // title row over it and the chat docked along its bottom, the options panel on the right behind a resizable separator,
-// banners across the viewer's top, and first run as one card over everything until a project is open. The chat's
-// internals are 1C's until 4B, and the viewer is 1B's until 4C. Every action (keys, macOS's menu bar, Windows' title-row
+// banners across the viewer's top, and first run as one card over everything until a project is open. The viewer is
+// 1B's until 4C. Every action (keys, macOS's menu bar, Windows' title-row
 // menus, the project chip's menu) goes through `run`.
 import { createViewer, type Theme, type View, type Viewer } from "@emmet/viewer";
 import { Toast, Tooltip } from "radix-ui";
@@ -22,21 +22,20 @@ import {
   type PrefsView,
   type Problem,
   type Scene,
+  type TurnContext,
   type UiState,
-  type UsageSnapshot,
   type VersionView,
 } from "./bindings";
-import { ChatPane } from "./Chat";
-import { fixRequest } from "./Checks";
+import { type Ask, Dock, DockBoundary } from "./Chat";
+import { findingWords, fixRequest } from "./Checks";
 import { About, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
 import { type Action, actionFor, windows } from "./keys";
 import { base64, json, library, placements } from "./library";
-import { rebuildRequest } from "./Options";
-import { Panel, type Tab } from "./Panel";
+import { rebuildRequest, rebuildWords } from "./Options";
+import { Panel, type Tab, type TipId } from "./Panel";
 import { type Pop, Titlebar } from "./Titlebar";
-import { limitWarning, UsageBar } from "./Usage";
-import { AlertCard, Banner, Button, Icon, Resizable, when } from "./ui";
+import { Banner, Button, Icon, Resizable, when } from "./ui";
 
 type Dialog = "settings" | "about" | "shortcuts" | null;
 const PANEL = { min: 320, max: 520, start: 384 };
@@ -61,6 +60,14 @@ function useTheme(pinned: string | undefined): [Theme, (t: Theme | null) => void
 
 /** The ids of the parts a sub-assembly's copies hold: every placement whose submodel path names its file. */
 const copiesOf = (scene: Scene, file: string) => scene.placements.filter((p) => p.submodel.includes(file)).map((p) => p.id);
+/** The parts an agent's ids light, as the viewer lights them: an id, or the id of a copy that holds the part. */
+const litBy = (scene: Scene, ids: string[]) => {
+  const want = new Set(ids);
+  const lit = (id: string): boolean => want.has(id) || (id.lastIndexOf("/") > 0 && lit(id.slice(0, id.lastIndexOf("/"))));
+  return scene.placements.filter((p) => lit(p.id)).map((p) => p.id);
+};
+/** Who an agent's highlight came from, by the name its MCP client gives ("claude-code"). */
+const pointer = (client: string | null) => (/claude/i.test(client ?? "") ? "Claude" : /codex/i.test(client ?? "") ? "Codex" : "Your agent");
 
 export function App() {
   const [info, setInfo] = useState<AppInfo | null>(null);
@@ -79,8 +86,10 @@ export function App() {
   const drawnAt = useRef(0);
   // The viewer's last error, for the E2E hooks (the state is for the window).
   const lastViewerError = useRef<string | null>(null);
-  const canvas = useRef<HTMLCanvasElement | null>(null);
+  const viewerBox = useRef<HTMLElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  // An agent's highlight (the bus's), named in the bar over the viewer until it's cleared or the user picks something.
+  const [pointing, setPointing] = useState<{ who: string; ids: string[] } | null>(null);
   const [tab, setTab] = useState<Tab>("options");
   const [step, setStep] = useState<number | null>(null);
   const [sub, setSub] = useState<string | null>(null);
@@ -98,35 +107,52 @@ export function App() {
   const [firstRun, setFirstRun] = useState<Step | null>(null);
   const [creating, setCreating] = useState<NewKind | null>(null);
   const [startupMs, setStartupMs] = useState<number | null>(null);
-  // The chat (1C's, until 4B): which agent, its live limits, the turns that ended (each fetches usage).
-  const [chatKind, setChatKind] = useState<AgentKind | null>(null);
-  const [limits, setLimits] = useState<UsageSnapshot | null>(null);
-  const [usage, setUsage] = useState<UsageSnapshot | null>(null);
-  const [turns, setTurns] = useState(0);
+  // The chat: which agent it's with, and what the user sees, which goes with each message (4B).
+  const [, setChatKind] = useState<AgentKind | null>(null);
+  /** The agent is working: a tip waits until it's done. */
+  const [agentBusy, setAgentBusy] = useState(false);
   const [agentsChanged, setAgentsChanged] = useState(0);
   const [agents, setAgents] = useState<AgentView[] | null>(null);
   /** A message for the chat ("Ask agent to fix", Rebuild, Make it parametric); `n` counts them, so one can go twice. */
-  const [ask, setAsk] = useState<{ text: string; n: number } | null>(null);
+  const [ask, setAsk] = useState<Ask | null>(null);
+  /** The ids the user picked (a part, a sub-assembly, a finding) and the view: the agent sees them (the turn's context,
+   * and the bus's selection and camera). */
+  const picked = useRef<string[]>([]);
+  const viewNow = useRef<string>("iso");
   /** A knob wrote params.json: the run it causes shows at once, without the build animation (plan section 13). */
   const knobRun = useRef(false);
-  const onTurnEnd = useCallback(() => setTurns((n) => n + 1), []);
+  /** The tips this user has seen (one at a time, each once: plan section 14). Null until the host says. */
+  const [tipsSeen, setTipsSeen] = useState<string[] | null>(null);
+  const tipSeen = (t: TipId) => {
+    if (tipsSeen && !tipsSeen.includes(t)) void commands.tipSeen(t).then((r) => r.status === "ok" && setTipsSeen(r.data));
+  };
   const refreshInfo = useCallback(() => void commands.appInfo().then(setInfo), []);
   const { setup, start: startSetup } = useSetup(refreshInfo);
   const ready = !!info?.library && !!info.python;
   const say = (text: string, action?: { label: string; run: () => void }) => setToast((t) => ({ text, action, n: (t?.n ?? 0) + 1 }));
-  const sendToAgent = (text: string) => setAsk((a) => ({ text, n: (a?.n ?? 0) + 1 }));
+  const sendToAgent = (from: Ask["from"], text: string, detail: string) => setAsk((a) => ({ text, detail, from, n: (a?.n ?? 0) + 1 }));
+  const context = useCallback((): TurnContext => ({ selection: picked.current, view: viewNow.current, detail: null }), []);
+  const tellHost = () => void commands.viewerState(picked.current, viewNow.current);
 
   useEffect(() => {
     void commands.agents(agentsChanged > 0).then(setAgents);
   }, [agentsChanged]);
-
-  // The viewer lives as long as the window.
   useEffect(() => {
-    if (!canvas.current) return;
-    const v = createViewer(canvas.current, { partSource: library, theme });
+    void commands.tipsSeen().then(setTipsSeen);
+  }, []);
+
+  // The viewer lives as long as the window, on a canvas of its own: dispose() gives up the canvas's WebGL context, so
+  // an effect run twice (React's StrictMode in dev builds) must not draw on the same one again.
+  useEffect(() => {
+    const box = viewerBox.current;
+    if (!box) return;
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-label", "3D view of the model; the Steps and Parts tabs list its parts");
+    box.prepend(canvas);
+    const v = createViewer(canvas, { partSource: library, theme });
     viewer.current = v;
     if (__EMMET_TEST_HOOKS__) {
-      // Merged: the chat pane adds its own hooks, and a child's effects run first.
+      // Merged: the chat dock adds its own hooks, and a child's effects run first.
       const w = window as unknown as { __emmet?: Record<string, unknown> };
       w.__emmet = {
         ...(w.__emmet ?? {}),
@@ -152,6 +178,7 @@ export function App() {
     }
     return () => {
       v.dispose();
+      canvas.remove();
       viewer.current = null;
     };
     // Created once; the theme effect below keeps it current.
@@ -198,6 +225,8 @@ export function App() {
       framed.current = at;
       v.setView("iso");
       setView("iso");
+      viewNow.current = "iso";
+      tellHost();
     }
   }, []);
 
@@ -210,6 +239,10 @@ export function App() {
         root.current = payload.project.root;
         setViewerError(null);
         setSelected(null);
+        setPointing(null);
+        // Nothing is picked in the new project: the agent's `selection` and the next turn's context say so.
+        picked.current = [];
+        tellHost();
         setStep(null);
         setSub(null);
         setCompare(null);
@@ -240,7 +273,20 @@ export function App() {
           return { ...u, running: false };
         });
       }),
-      events.busHighlight.listen(({ payload }) => viewer.current?.highlight(payload.ids)),
+      events.busHighlight.listen(({ payload }) => {
+        // The agent's pointing replaces what the user picked, so `selection` doesn't read a pick no longer shown.
+        setSelected(null);
+        picked.current = [];
+        tellHost();
+        viewer.current?.highlight(payload.ids);
+        setPointing(payload.ids.length ? { who: pointer(payload.from), ids: payload.ids } : null);
+      }),
+      events.busCamera.listen(({ payload }) => {
+        const v = payload.view as View;
+        viewer.current?.setView(v);
+        viewNow.current = v;
+        setView(v === "iso" || v === "front" || v === "top" ? v : null);
+      }),
       events.busRender.listen(async ({ payload }) => {
         const v = viewer.current;
         try {
@@ -270,24 +316,32 @@ export function App() {
       }),
     ];
     void commands.getPrefs().then(setPrefs);
-    void Promise.all([commands.appInfo(), commands.uiState()]).then(([i, s]) => {
-      setInfo(i);
-      root.current = s.project?.root ?? null;
-      setUi(s);
-      void show(s.scene ?? null, root.current);
-      // With no project open: first run, or Start once the parts and Python are set up; else the last project.
-      if (!s.project) {
-        // A last project that can't open says why over Start.
-        if (i.library && i.python && i.recent[0]) void act(commands.openRecent(i.recent[0].path)).then((p) => p == null && setFirstRun("start"));
-        else setFirstRun(i.library && i.python ? "start" : "welcome");
-      }
-      // Interactive: the first frame after this one has drawn with its handlers in place.
-      requestAnimationFrame(() => setTimeout(() => void commands.appInfo().then((n) => setStartupMs(n.uptime_ms)), 0));
-    });
+    // Only once every listener is in place: opening the last project sends ProjectOpened, which a window still
+    // registering its listeners would miss, and stay empty (a dev build's restart showed it). A dev build mounts twice,
+    // so only the mount still in place goes on.
+    let live = true;
+    void Promise.all(off)
+      .then(() => Promise.all([commands.appInfo(), commands.uiState()] as const))
+      .then(([i, s]) => {
+        if (!live) return;
+        setInfo(i);
+        root.current = s.project?.root ?? null;
+        setUi(s);
+        void show(s.scene ?? null, root.current);
+        // With no project open: first run, or Start once the parts and Python are set up; else the last project.
+        if (!s.project) {
+          // A last project that can't open says why over Start.
+          if (i.library && i.python && i.recent[0]) void act(commands.openRecent(i.recent[0].path)).then((p) => p == null && setFirstRun("start"));
+          else setFirstRun(i.library && i.python ? "start" : "welcome");
+        }
+        // Interactive: the first frame after this one has drawn with its handlers in place.
+        requestAnimationFrame(() => setTimeout(() => void commands.appInfo().then((n) => setStartupMs(n.uptime_ms)), 0));
+      });
     const net = () => setOnline(navigator.onLine);
     window.addEventListener("online", net);
     window.addEventListener("offline", net);
     return () => {
+      live = false;
       off.forEach((p) => void p.then((f) => f()));
       window.removeEventListener("online", net);
       window.removeEventListener("offline", net);
@@ -303,12 +357,25 @@ export function App() {
 
   const highlight = (key: string | null, ids: string[], mode: "issue" | "select" = "select") => {
     setSelected(key);
+    setPointing(null);
     viewer.current?.highlight(key ? ids : [], { mode });
+    picked.current = key ? ids : [];
+    tellHost();
   };
   const toggle = (key: string, ids: string[], mode: "issue" | "select" = "select") => highlight(selected === key ? null : key, ids, mode);
 
   const scene = ui.scene;
   const project = ui.project;
+  const pointed = pointing && scene ? litBy(scene, pointing.ids) : [];
+  // The one tip to teach now: on the tab where it's useful, the first time it is, and never two at once.
+  const tip: TipId | null = (() => {
+    if (!tipsSeen || !project || !scene || firstRun || agentBusy) return null;
+    const unseen = (t: TipId) => !tipsSeen.includes(t);
+    if (tab === "checks" && unseen("finding") && (scene.checks?.findings.length ?? 0) > 0) return "finding";
+    if (tab === "options" && unseen("knob") && scene.parts > 1 && !project.imported) return "knob";
+    if (tab === "parts" && unseen("export") && scene.parts > 1) return "export";
+    return null;
+  })();
   // A finding that a new build no longer has stops being highlighted.
   const findings = scene?.checks?.findings;
   useEffect(() => {
@@ -347,12 +414,14 @@ export function App() {
     }
   };
   const exportAs = async (f: ExportFormat) => {
+    tipSeen("export");
     const e = await act(commands.export(f));
     if (e) say(`Saved “${e.file}” to ${e.folder}`, { label: "Show in folder", run: () => void commands.revealExport() });
   };
 
   const can = (a: Action): boolean => {
-    if (["help:guide", "agent:switch", "agent:model", "undo-turn"].includes(a)) return false;
+    if (["help:guide"].includes(a)) return false;
+    if (["agent:switch", "agent:model", "undo-turn", "agent:usage", "agent:fresh", "history"].includes(a)) return !!project && !firstRun;
     // First run covers the window: what's behind it (the viewer, the panel, the chat) takes no keys.
     if (firstRun && !COVERED_OK.includes(a)) return false;
     if (["save", "versions", "export", "frame", "step:prev", "step:next"].includes(a) || a.startsWith("view:") || a.startsWith("tab:")) return !!project;
@@ -377,6 +446,8 @@ export function App() {
       const v = a.slice(5) as View;
       viewer.current?.setView(v);
       setView(v === "iso" || v === "front" || v === "top" ? v : null);
+      viewNow.current = v;
+      tellHost();
     } else if (a.startsWith("tab:")) setTab(a.slice(4) as Tab);
     else
       switch (a) {
@@ -442,13 +513,22 @@ export function App() {
           void commands.chatStop();
           break;
         case "agent:fresh":
-          document.getElementById("chat-new")?.click();
+          document.getElementById("start-fresh")?.click();
           break;
         case "agent:usage":
-          document.getElementById("usage-button")?.click();
+          document.getElementById("plan-badge")?.click();
+          break;
+        case "agent:switch":
+          document.getElementById("agent-picker")?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+          break;
+        case "agent:model":
+          document.getElementById("model-chip")?.click();
+          break;
+        case "undo-turn":
+          document.getElementById("undo-turn")?.click();
           break;
         case "history":
-          document.getElementById("chat-log")?.scrollIntoView({ block: "end" });
+          document.getElementById("history-toggle")?.click();
           break;
         case "region:next": {
           const regions = ["viewer", "dock", "panel"].map((id) => document.getElementById(id)).filter((r): r is HTMLElement => !!r);
@@ -521,7 +601,7 @@ export function App() {
           kind="imported"
           icon="file-up"
           title={`Opened ${project.imported}: ${count(scene.parts, "part")} in ${count(scene.tree?.steps.length ?? scene.steps, "step")}.`}
-          actions={<Button label="Make it parametric" variant="primary" size="sm" id="make-parametric" onClick={() => sendToAgent(`Make this model parametric: rebuild ${project.imported} in model.py with emmet_dsl, keeping its parts, colors, and steps, with two to five knobs that change its character.`)} />}
+          actions={<Button label="Make it parametric" variant="primary" size="sm" id="make-parametric" onClick={() => sendToAgent("import", "Make this model parametric, with a few knobs that change its character.", `Rebuild ${project.imported} in model.py with emmet_dsl, keeping its parts, colors, and steps, with two to five knobs that change its character.`)} />}
         />
       );
     return null;
@@ -536,8 +616,7 @@ export function App() {
           <div className="app-main">
             {!windows && titlebar}
             {banner}
-            <section className="viewer" data-c="viewer" aria-label={`3D view of ${name}`} id="viewer" tabIndex={-1}>
-              <canvas ref={canvas} aria-label="3D view of the model; the Steps and Parts tabs list its parts" />
+            <section className="viewer" data-c="viewer" aria-label={`3D view of ${name}`} id="viewer" tabIndex={-1} ref={viewerBox}>
               {compare && (
                 <div className="viewer-bar" role="status" id="version-bar">
                   <Icon name="rotate-ccw-clock" />
@@ -567,6 +646,24 @@ export function App() {
                   />
                   <Button label="Open as new project" size="sm" id="version-open" onClick={() => void act(commands.openVersionAsNew(compare.v.n))} />
                   <Button label="Back" variant="quiet" size="sm" id="version-back" onClick={() => setCompare(null)} />
+                </div>
+              )}
+              {pointing && !compare && (
+                <div className="viewer-bar" role="status" id="pointing-bar">
+                  <Icon name="eye" />
+                  <span>
+                    {pointed.length ? (
+                      <>
+                        <b>{pointing.who}</b> is pointing at {pointed.length} {pointed.length === 1 ? "part" : "parts"}
+                      </>
+                    ) : (
+                      <>
+                        <b>{pointing.who}</b> pointed at parts this build doesn't have
+                      </>
+                    )}
+                  </span>
+                  {pointed.length > 0 && <Button label="Zoom to them" size="sm" icon="scan" id="pointing-zoom" onClick={() => viewer.current?.frame(pointed)} />}
+                  <Button label="Clear" variant="quiet" size="sm" id="pointing-clear" onClick={() => highlight(null, [])} />
                 </div>
               )}
               {(problem || viewerError || ui.notice || (project && !project.watching)) && (
@@ -610,33 +707,21 @@ export function App() {
               <Toast.Viewport className="toast-viewport" aria-label="Notifications" />
             </section>
             {project && (
-              <section className="dock" data-c="dock" aria-label="Chat" id="dock" tabIndex={-1}>
-                {ui.error &&
-                  (ui.error.code.startsWith("MODEL_") || ui.error.code === "PARAM_INVALID" ? (
-                    <AlertCard
-                      tone="bad"
-                      icon="octagon-alert"
-                      id="build-failed"
-                      title="The model didn't build"
-                      text="The agent's last change has a mistake in it, so the new model couldn't be built."
-                      foot={scene ? "The last good model is still shown." : undefined}
-                      actions={<Button label="Ask agent to fix" variant="primary" id="ask-fix-build" onClick={() => sendToAgent(buildFixRequest(ui.error!))} />}
-                    />
-                  ) : (
-                    // Emmet's own trouble, not the model's: what happened, and Rebuild.
-                    <AlertCard
-                      tone="bad"
-                      icon="octagon-alert"
-                      id="build-failed"
-                      title="The build stopped"
-                      text={`${ui.error.message} ${ui.error.hint}`.trim()}
-                      foot={scene ? "The last good model is still shown." : undefined}
-                      actions={<Button label="Rebuild" variant="primary" icon="refresh-cw" id="rebuild" onClick={() => void act(commands.rebuild())} />}
-                    />
-                  ))}
-                <ChatPane project={project} ask={ask} agentsChanged={agentsChanged} warning={limitWarning(limits ?? usage)} onTurnEnd={onTurnEnd} onLimits={setLimits} onStatus={noop} onAgent={setChatKind} onSettings={() => setDialog("settings")} />
-                <UsageBar kind={chatKind} live={limits} turns={turns} onSnapshot={setUsage} />
-              </section>
+              <DockBoundary>
+              <Dock
+                project={project}
+                ask={ask}
+                buildError={ui.error ? { problem: ui.error, agent: ui.error.code.startsWith("MODEL_") || ui.error.code === "PARAM_INVALID", shown: true } : null}
+                onAskBuild={() => sendToAgent("build", "The model didn't build. Fix the mistake in the last change, then run the model again.", buildFixRequest(ui.error!))}
+                onRebuild={() => void act(commands.rebuild())}
+                agentsChanged={agentsChanged}
+                context={context}
+                onSettings={() => setDialog("settings")}
+                onAgent={setChatKind}
+                onBusy={setAgentBusy}
+                onUndone={(saved, who) => say(`Undid ${who}'s last turn. The model before is version ${saved.n}.`)}
+              />
+              </DockBoundary>
             )}
           </div>
           <Resizable
@@ -665,8 +750,14 @@ export function App() {
               exportOpen={exportOpen}
               onExportOpen={setExportOpen}
               onExport={(f) => void exportAs(f)}
-              onPickFinding={(f: Finding) => toggle(`finding:${f.id}`, f.parts, "issue")}
-              onAsk={(f: Finding) => sendToAgent(fixRequest(f))}
+              onPickFinding={(f: Finding) => {
+                tipSeen("finding");
+                toggle(`finding:${f.id}`, f.parts, "issue");
+              }}
+              onAsk={(f: Finding) => {
+                tipSeen("finding");
+                sendToAgent("checks", `Fix this: ${findingWords(f)}`, fixRequest(f));
+              }}
               onAllow={(f: Finding) => void act(commands.allowFinding(f.rule, f.parts))}
               onUnallow={(a: AllowedView) => void act(commands.unallowFinding(a.rule, a.parts))}
               onPickPart={(l: BomLine) => scene && toggle(`part:${l.part}|${l.color}`, scene.placements.filter((p) => p.part === l.part && p.color === l.color).map((p) => p.id))}
@@ -685,8 +776,13 @@ export function App() {
                 if (saved) setUi((u) => (u.project ? { ...u, project: { ...u.project, build: saved } } : u));
                 return saved != null;
               }}
-              onRebuild={(before, after) => sendToAgent(rebuildRequest(before, after))}
-              onKnobWrite={() => (knobRun.current = true)}
+              onRebuild={(before, after) => sendToAgent("settings", rebuildWords(before, after), rebuildRequest(before, after))}
+              onKnobWrite={() => {
+                knobRun.current = true;
+                tipSeen("knob");
+              }}
+              tip={tip}
+              onTip={tipSeen}
             />
           ) : (
             <aside className="panel" data-c="panel" aria-label="Options" id="panel" tabIndex={-1} />
@@ -728,7 +824,6 @@ export function App() {
   );
 }
 
-const noop = () => {};
 /** A count with its noun: "1 step", "31 steps". */
 const count = (n: number, noun: string) => `${n.toLocaleString("en-US")} ${noun}${n === 1 ? "" : "s"}`;
 

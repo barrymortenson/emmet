@@ -15,6 +15,7 @@ fn highlight() -> Message {
     Message::Highlight {
         project: "/p".into(),
         ids: vec!["roof".into()],
+        from: None,
     }
 }
 
@@ -190,6 +191,7 @@ fn a_request_can_be_sent_once_and_only_as_itself() {
     let other = Message::Highlight {
         project: "/p".into(),
         ids: vec!["something else".into()],
+        from: None,
     };
     assert_eq!(
         ask(request(&auth, &other)).reason.as_deref(),

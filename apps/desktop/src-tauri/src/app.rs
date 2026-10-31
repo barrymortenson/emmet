@@ -329,6 +329,25 @@ pub struct BusRender {
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
 pub struct BusHighlight {
     pub ids: Vec<String>,
+    /// The agent's MCP client name ("claude-code"), when it gave one.
+    pub from: Option<String>,
+}
+
+/// `camera` from an agent: turn the viewer to `view`.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+pub struct BusCamera {
+    pub view: String,
+}
+
+/// The views the viewer has (plan section 13), as the bus and the window name them.
+const VIEWS: [&str; 6] = ["iso", "front", "top", "back", "left", "right"];
+
+/// What the user sees in the viewer, as the window or an agent's `camera` last set it: the bus's `selection` and
+/// `camera` answer from it.
+#[derive(Default)]
+struct Viewing {
+    selection: Vec<String>,
+    view: String,
 }
 
 struct Open {
@@ -380,6 +399,7 @@ pub struct AppState {
     /// One params.json write at a time: each reads the file, checks the values with Python, and writes, so two at
     /// once could lose one's change. Held on a blocking thread, never across an await.
     params: Mutex<()>,
+    viewing: Mutex<Viewing>,
     pub render: Option<RenderJob>,
 }
 
@@ -395,6 +415,10 @@ impl AppState {
             pending: Mutex::new(HashMap::new()),
             next: AtomicU64::new(1),
             params: Mutex::new(()),
+            viewing: Mutex::new(Viewing {
+                selection: vec![],
+                view: "iso".into(),
+            }),
             render,
         }
     }
@@ -813,14 +837,43 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
         want.is_some() && want == open
     };
     match msg {
-        Message::Highlight { project, ids } => {
+        Message::Highlight { project, ids, from } => {
             if !is_open(&project) {
                 return Reply::undelivered("that project isn't open in Emmet");
             }
-            let _ = BusHighlight { ids: ids.clone() }.emit(app);
+            let _ = BusHighlight { ids: ids.clone(), from }.emit(app);
             Reply {
                 delivered: true,
                 highlighted: ids,
+                ..Default::default()
+            }
+        }
+        Message::Camera { project, view } => {
+            if !is_open(&project) {
+                return Reply::undelivered("that project isn't open in Emmet");
+            }
+            let mut viewing = state.viewing.lock().expect("viewing");
+            if let Some(v) = view.filter(|v| VIEWS.contains(&v.as_str())) {
+                let _ = BusCamera { view: v.clone() }.emit(app);
+                viewing.view = v;
+            }
+            // With what's selected, which the camera tool's answer says too.
+            Reply {
+                delivered: true,
+                camera: Some(serde_json::json!({ "view": viewing.view })),
+                selected: viewing.selection.clone(),
+                ..Default::default()
+            }
+        }
+        Message::Selection { project } => {
+            if !is_open(&project) {
+                return Reply::undelivered("that project isn't open in Emmet");
+            }
+            let viewing = state.viewing.lock().expect("viewing");
+            Reply {
+                delivered: true,
+                camera: Some(serde_json::json!({ "view": viewing.view })),
+                selected: viewing.selection.clone(),
                 ..Default::default()
             }
         }
@@ -873,6 +926,18 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
             }
         }
         msg => crate::chat::route(&state.chat.hub, msg),
+    }
+}
+
+/// The window says what the user has selected and which view they're looking at, as either changes: what an agent's
+/// `selection` and `camera` read.
+#[tauri::command]
+#[specta::specta]
+pub fn viewer_state(state: State<'_, AppState>, selection: Vec<String>, view: String) {
+    let mut viewing = state.viewing.lock().expect("viewing");
+    viewing.selection = selection.into_iter().take(20_000).collect();
+    if VIEWS.contains(&view.as_str()) {
+        viewing.view = view;
     }
 }
 

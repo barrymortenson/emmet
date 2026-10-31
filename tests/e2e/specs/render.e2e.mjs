@@ -113,9 +113,15 @@ describe("rendering with the app open", () => {
       // emmet render runs the stale model itself and shows the result in the window before rendering it.
       const env = emmetJson(project, ["render", "--view", "iso", "--size", "256", "--out", join(out, "render-edit.png")]);
       expect(env.data.via).toBe("app");
-      expect(Buffer.compare(readFileSync(join(out, "render-edit.png")), before)).not.toBe(0);
+      const edited = readFileSync(join(out, "render-edit.png"));
+      expect(Buffer.compare(edited, before)).not.toBe(0);
+      // The app's watcher runs the same edit too, so its run can land just after the render, one generation on and
+      // built from the same file: the window catches up to it, and the render was already that model.
       const manifest = JSON.parse(readFileSync(join(project, "build", "manifest.json"), "utf8"));
-      expect(await shown()).toBe(manifest.run.generation);
+      await browser.waitUntil(async () => (await shown()) >= manifest.run.generation, {
+        timeoutMsg: `the window never showed generation ${manifest.run.generation}`,
+      });
+      expect(Buffer.compare(await render({ view: "iso", size: 256 }), edited)).toBe(0);
     } finally {
       const gen = await shown();
       writeFileSync(modelPy, text);

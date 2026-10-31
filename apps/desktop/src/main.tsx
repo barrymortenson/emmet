@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { StrictMode } from "react";
+import { Component, type ReactNode, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { windows } from "./keys";
@@ -30,13 +30,42 @@ if (__EMMET_TEST_HOOKS__) {
   window.addEventListener("unhandledrejection", (e) => errors.push(`unhandled rejection: ${String(e.reason)}`));
 }
 
+/** A fault anywhere in the window says so, instead of leaving it blank: what happened, and Reload. */
+class AppBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error) {
+    console.error("the window failed:", error);
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="alert-card" data-c="alert-card" role="alert" data-tone="bad" id="app-failed">
+        <div className="alert-card-body">
+          <b>Emmet's window stopped working</b>
+          <p>Your projects are untouched. {this.state.error.message}</p>
+          <div className="row">
+            <button type="button" className="button" data-c="button" data-variant="primary" onClick={() => location.reload()}>
+              Reload
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
 // Render mode's hidden window (ADR 0005) has no UI: it renders once and the host exits.
 if (getCurrentWindow().label === "render") {
   void renderMode();
 } else {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
-      <App />
+      <AppBoundary>
+        <App />
+      </AppBoundary>
     </StrictMode>,
   );
 }

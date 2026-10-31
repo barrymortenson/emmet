@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-chat-fresh"
+description = "Enables the chat_fresh command without any pre-configured scope."
+commands.allow = ["chat_fresh"]
+
+[[permission]]
+identifier = "deny-chat-fresh"
+description = "Denies the chat_fresh command without any pre-configured scope."
+commands.deny = ["chat_fresh"]

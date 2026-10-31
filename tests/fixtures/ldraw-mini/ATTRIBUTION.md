@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 446 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 450 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -622,12 +622,15 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/30145.dat | Brick  2 x  2 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/30162.dat | Minifig Binoculars with Round Eyepiece | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/30176.dat | Plant Brick  1 x  1 Round with 3 Bamboo Leaves | Tore Eriksson [Tore_Eriksson] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/30178.dat | ~Door  1 x  4 x  6 with  3 Panes - Frame | Ildefonso Zanette [izanette] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/30178c01.dat | Door  1 x  4 x  6 with 3 Panes with TransClear Glass | Ildefonso Zanette [izanette] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/3020.dat | Plate  2 x  4 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3021.dat | Plate  2 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3022.dat | Plate  2 x  2 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3023.dat | ~Moved to 3023b | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3023b.dat | Plate  1 x  2 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3024.dat | Plate  1 x  1 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/30245.dat | ~Glass for Door  1 x  4 x  6 with 3 Panes | Ildefonso Zanette [izanette] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/3027.dat | Plate  6 x 16 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3028.dat | Plate  6 x 12 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3029.dat | Plate  4 x 12 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -860,6 +863,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/60592.dat | Window  1 x  2 x  2 without Sill | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60592c01.dat | Window  1 x  2 x  2 without Sill w/ Trans-Clear Glass (Complete) | Greg Teft [gregteft] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/60593.dat | Window  1 x  2 x  3 without Sill | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/60593c01.dat | Window  1 x  2 x  3 without Sill w/ Trans-Clear Glass (Complete) | Greg Teft [gregteft] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/60594.dat | Window  1 x  4 x  3 without Shutter Tabs | J.C. Tchang [tchang] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60596.dat | Door  1 x  4 x  6 Frame | J.C. Tchang [tchang] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60601.dat | Glass for Window  1 x  2 x  2 without Sill | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |

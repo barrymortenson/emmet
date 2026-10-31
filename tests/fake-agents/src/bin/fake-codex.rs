@@ -134,6 +134,9 @@ fn main() {
 /// What the adapter wrote, taken in the order the recording expects it. Independent messages can arrive in either order
 /// (a redirect typed just as a tool-call approval goes out), as Codex itself allows, so a line that isn't the expected
 /// one waits in the queue for its turn.
+/// `model/list`'s result, recorded from Codex 0.160.1 (tests/replay/codex/model-list.json).
+const MODEL_LIST: &str = include_str!("../../../replay/codex/model-list.json");
+
 #[derive(Default)]
 struct Input {
     queue: std::collections::VecDeque<Value>,
@@ -152,6 +155,13 @@ impl Input {
                 return self.queue.remove(i);
             }
             let got = read()?;
+            // 0B's recordings predate model/list (4B): it's answered from Codex 0.160.1's own reply, wherever it comes,
+            // unless the recording asks for it here, as 4B's own recordings do.
+            if got["method"] == "model/list" && want["method"] != "model/list" {
+                let rec: Value = serde_json::from_str(MODEL_LIST).expect("model-list.json");
+                write(&json!({ "id": got["id"], "result": rec["result"] }));
+                continue;
+            }
             // Only independent lines wait their turn: a request while a response is expected, or a redirect. Any other
             // request in the wrong place is a protocol error, reported at once.
             let independent = want.get("method").is_none() || got["method"] == "turn/steer";

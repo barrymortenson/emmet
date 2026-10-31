@@ -370,3 +370,39 @@ fn an_imported_projects_version_keeps_its_ldraw_file() {
         std::fs::read(&file).unwrap()
     );
 }
+
+/// An agent's turn that changed nothing keeps no version (4B): the sources match the turn's version until any of them
+/// is edited, added, or removed, and only Emmet's own version can be discarded, never one saved by name.
+#[test]
+fn a_turn_that_changed_nothing_is_told_apart_and_only_emmets_own_version_goes() {
+    use emmet_core::{data::DataDir, project::Project, versions};
+    let dir = new_cottage("versions-unchanged");
+    let data = DataDir::at(temp_dir("versions-unchanged-data"));
+    let project = Project::find(Some(&dir)).unwrap();
+    let turn = versions::save(&data, &project, "Before Claude's turn", None, true, None)
+        .unwrap()
+        .n;
+    let same = || versions::unchanged_since(&Project::find(Some(&dir)).unwrap(), turn).unwrap();
+    assert!(same());
+
+    let model = std::fs::read(dir.join("model.py")).unwrap();
+    std::fs::write(dir.join("model.py"), [&model[..], b"\n# taller\n"].concat()).unwrap();
+    assert!(!same(), "an edit");
+    std::fs::write(dir.join("model.py"), &model).unwrap();
+    assert!(same(), "the edit undone");
+    std::fs::create_dir_all(dir.join("models")).unwrap();
+    std::fs::write(dir.join("models/trim.py"), "WIDTH = 2\n").unwrap();
+    assert!(!same(), "a new models/ file");
+    std::fs::remove_file(dir.join("models/trim.py")).unwrap();
+    assert!(same());
+    let params = std::fs::read(dir.join("params.json")).unwrap();
+    std::fs::remove_file(dir.join("params.json")).unwrap();
+    assert!(!same(), "a removed source");
+    std::fs::write(dir.join("params.json"), &params).unwrap();
+
+    versions::discard(&project, turn).unwrap();
+    assert!(versions::get(&project, turn).is_err());
+    let named = versions::save(&data, &project, "Mine", None, false, None).unwrap().n;
+    assert!(versions::discard(&project, named).is_err());
+    assert!(versions::get(&project, named).is_ok());
+}

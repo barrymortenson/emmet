@@ -53,7 +53,10 @@ describe("agent setup without a terminal", () => {
     rmSync(join(fakeDir, "opened.txt"), { force: true });
     await open(projectDir("setup"));
     // Detect again: the CLIs are gone.
-    await browser.execute(() => [...document.querySelectorAll(".picker > button")].find((b) => b.textContent === "Check agents again")?.click());
+    await (await $("#agent-picker")).click();
+    await browser.keys("Enter");
+    await (await $('[data-menu="agents-again"]')).waitForDisplayed({ timeout: 5_000 });
+    await (await $('[data-menu="agents-again"]')).click();
     await (await $("#install-claude")).waitForExist({ timeout: 30_000 });
   });
 
@@ -66,7 +69,7 @@ describe("agent setup without a terminal", () => {
   it("says which plans work, with the provider's page", async () => {
     await expect($("#setup-claude")).toHaveText(expect.stringContaining("Claude Pro, Max, Team, or Enterprise plan"));
     await expect($("#setup-codex")).toHaveText(expect.stringContaining("every ChatGPT plan, Free included"));
-    await expect($("#agent-claude")).toBeDisabled();
+    await expect($("#agent-fix")).toBeExisting();
     // The checks spec's project left a chat error behind; it belongs to that project, not this one.
     expect(await (await $("#chat-error")).isExisting()).toBe(false);
     await screenshots("setup-picker");
@@ -137,16 +140,25 @@ describe("agent setup without a terminal", () => {
 
     login("ok");
     await click("#retry-claude");
-    await (await $("#agent-claude")).waitForEnabled({ timeout: 30_000 });
+    await (await $("#setup-claude")).waitForExist({ timeout: 30_000, reverse: true });
     const rec = JSON.parse(readFileSync(join(fakeDir, "claude-login.json"), "utf8"));
     expect(rec).toEqual({ args: ["auth", "login"], stdin_closed: true });
   });
 
   it("installs Codex", async () => {
     mode("codex", "ok");
+    // Claude is ready, so the dock's card went; picking Codex, which isn't set up, brings its card back.
+    if (await (await $("#install-codex")).isExisting() === false) {
+      await browser.execute((e) => e.focus(), await $("#agent-picker"));
+      await browser.keys("Enter");
+      await (await $('[data-menu="agent-codex"]')).waitForDisplayed({ timeout: 5_000 });
+      await expect($('[data-menu="agent-codex"]')).toHaveText(expect.stringContaining("Not set up"));
+      await (await $('[data-menu="agent-codex"]')).click();
+    }
+    await (await $("#install-codex")).waitForExist({ timeout: 10_000 });
     await click("#install-codex");
     // The file keychain holds an API key, so Codex is ready once it's installed.
-    await (await $("#agent-codex")).waitForEnabled({ timeout: 30_000 });
+    await (await $("#setup-codex")).waitForExist({ timeout: 30_000, reverse: true });
     expect(await (await $("#setup-codex")).isExisting()).toBe(false);
   });
 

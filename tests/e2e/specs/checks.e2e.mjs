@@ -3,16 +3,29 @@
 // the finding in plain words, with no ids, file names, or lines on screen (law 2: they go to the agent); a click
 // highlights exactly its parts as an issue; "Ask agent to fix" with no chat says to start one; fixing the model clears
 // the finding. The flow logs no console errors.
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { $, $$, expect } from "@wdio/globals";
 import { nextScene, open, shown, stats } from "../lib/app.mjs";
+import { scenario } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const project = projectDir("checks");
 const modelPy = join(project, "model.py");
 const highlighted = () => browser.execute(() => window.__emmet.viewer().highlighted().sort());
 const errors = () => browser.execute(() => window.__emmetErrors.slice());
+
+/** Opens or closes the chat's history. A script click: the toggle redraws ("History · 3") as the turn's last events
+ * land, and a WebDriver click on the one it replaced goes nowhere. */
+const history = (open) =>
+  browser.waitUntil(
+    async () => {
+      if ((await (await $("#chat-log")).isExisting()) === open) return true;
+      await browser.execute(() => document.getElementById("history-toggle")?.click());
+      return false;
+    },
+    { timeout: 10_000, interval: 300, timeoutMsg: `the history never ${open ? "opened" : "closed"}` },
+  );
 
 describe("checks", () => {
   it("lists the collision the validator found, in plain words", async () => {
@@ -35,9 +48,20 @@ describe("checks", () => {
     await browser.waitUntil(async () => (await stats()).highlighted === 0, { timeoutMsg: "the highlight stayed" });
   });
 
-  it("asking the agent to fix it with no chat open says to start one", async () => {
+  it("asking the agent to fix it sends the finding in plain words, and its details to the agent", async () => {
+    scenario("claude", "plain-turn");
     await $("#fix-F-0001").click();
-    await expect($("#chat-error")).toHaveText(expect.stringContaining("Start a chat with an agent first"));
+    await browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running && window.__emmet.chat().items > 0), { timeout: 30_000, timeoutMsg: "the agent never took the finding" });
+    await history(true);
+    await expect($("#chat-log")).toHaveText(expect.stringContaining("Sent from Checks"), { wait: 10_000 });
+    const shown = await $("#chat-log").getText();
+    expect(shown).toContain("Fix this: 2 parts overlap.");
+    // No ids, lines, or files on screen (law 2); the agent's message has them (its transcript).
+    expect(shown).not.toMatch(/F-0001|model\.py|wall\/a/);
+    const transcripts = join(project, ".emmet", "transcripts");
+    const sent = readdirSync(transcripts).map((f) => readFileSync(join(transcripts, f), "utf8")).join("\n");
+    expect(sent).toContain("Details from Emmet: Fix F-0001 (collision");
+    await history(false);
   });
 
   it("the Parts tab lists each part and color with its count", async () => {
@@ -76,8 +100,10 @@ describe("checks", () => {
     for (const e of all) console.log(`console error:\n${e}`);
     // On Windows the embedded WebDriver plugin evaluates its own scripts in the page and logs "JSON error: invalid
     // type: null, expected u32" from them (CI, 2026-10-26): their caller is an <anonymous> script, never the app's
-    // bundle. Every other error is the app's and fails the test.
-    const fromDriver = (e) => /\n\s*at console\.error \([^)]*\)\n\s*at <anonymous>:\d+:\d+\s*$/.test(e);
+    // bundle. On macOS the plugin's in-page scripts throw "stale element reference" when React has replaced an element
+    // a command holds (tauri-plugin-wdio-webdriver 1.5.1, src/platform/macos.rs and executor.rs; CI, 2026-10-31), and
+    // the window's error hook records it; the app never says that. Every other error is the app's and fails the test.
+    const fromDriver = (e) => /\n\s*at console\.error \([^)]*\)\n\s*at <anonymous>:\d+:\d+\s*$/.test(e) || e === "uncaught: Error: stale element reference";
     expect(all.filter((e) => !fromDriver(e))).toEqual([]);
   });
 });

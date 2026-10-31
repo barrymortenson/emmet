@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-chat-undo"
+description = "Enables the chat_undo command without any pre-configured scope."
+commands.allow = ["chat_undo"]
+
+[[permission]]
+identifier = "deny-chat-undo"
+description = "Denies the chat_undo command without any pre-configured scope."
+commands.deny = ["chat_undo"]

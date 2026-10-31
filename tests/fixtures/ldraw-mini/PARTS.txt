@@ -262,3 +262,7 @@
 # Session 3D, the Cottage's knobs
 6192b    # the Cottage
 5841    # the Cottage, the thatch ridge's end
+
+# Session 4B, rung 1 replayed from 1D's live runs
+60593c01    # Claude Code's windows
+30178c01    # Codex's door

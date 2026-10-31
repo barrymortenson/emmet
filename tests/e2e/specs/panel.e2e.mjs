@@ -8,7 +8,7 @@ import { $, $$, expect } from "@wdio/globals";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { nextScene, open, shown, stats } from "../lib/app.mjs";
-import { agentHome } from "../lib/agents.mjs";
+import { agentHome, scenario } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const dir = projectDir("panel");
@@ -25,6 +25,8 @@ describe("the options panel", () => {
   });
 
   it("holds a build setting change until Rebuild, which writes emmet.toml", async () => {
+    // Rebuild asks the agent: a short replay answers it.
+    scenario("claude", "plain-turn");
     await click("#settings-change");
     await choose("Style", "Medieval");
     await expect($("#settings-bar")).toHaveText(expect.stringContaining("1 changed"));
@@ -38,8 +40,12 @@ describe("the options panel", () => {
     await browser.waitUntil(() => read("emmet.toml").includes('age = "9+"'), { timeout: 10_000, timeoutMsg: "emmet.toml never got the settings" });
     expect(read("emmet.toml")).toContain('detail = "Medium"');
     expect(read("emmet.toml")).toContain('pieces = "Medium"');
-    // Rebuild asks the agent; with no chat started, the chat says to start one.
-    await expect($("#chat-error")).toHaveText(expect.stringContaining("Start a chat with an agent first"));
+    // Rebuild asks the agent, which starts on it: the chat says what changed in words, sent from Build settings.
+    await browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running && window.__emmet.chat().items > 0), { timeout: 30_000, timeoutMsg: "the agent never took the rebuild" });
+    await click("#history-toggle");
+    await expect($("#chat-log")).toHaveText(expect.stringContaining("Sent from Build settings"), { wait: 10_000 });
+    await expect($("#chat-log")).toHaveText(expect.stringContaining("Rework the model for the new build settings: age 9+ (was Any)"));
+    await click("#history-toggle");
   });
 
   it("keeps a moved knob as a draft until Keep writes it into model.py", async () => {
@@ -50,7 +56,8 @@ describe("the options panel", () => {
     await expect($("#param-weathering")).toHaveText(expect.stringContaining("was 0%"));
     await expect($("#knobs-bar")).toHaveText(expect.stringContaining("1 change"));
     await nextScene(before);
-    expect(JSON.parse(read("params.json")).weathering).toBe(2);
+    // The scene may be the build the Rebuild before started, so the draft's write is waited for itself.
+    await browser.waitUntil(() => JSON.parse(read("params.json")).weathering === 2, { timeout: 20_000, timeoutMsg: "params.json never got the draft" });
     const kept = await shown();
     await click("#knobs-keep");
     await browser.waitUntil(() => /weathering[^\n]*= 2\b/.test(read("model.py")), { timeout: 20_000, timeoutMsg: "Keep didn't write model.py" });

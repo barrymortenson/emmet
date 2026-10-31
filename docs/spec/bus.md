@@ -28,7 +28,9 @@ process that read `bus.json` can drive the app, and only the app can answer.
 
 ```json
 { "v": 1, "nonce": "…", "auth": "…", "id": 1, "type": "render", "project": "/abs/cottage", "view": "iso", "size": 768, "highlight": [] }
-{ "v": 1, "nonce": "…", "auth": "…", "id": 1, "type": "highlight", "project": "/abs/cottage", "ids": ["roof/1"] }
+{ "v": 1, "nonce": "…", "auth": "…", "id": 1, "type": "highlight", "project": "/abs/cottage", "ids": ["roof/1"], "from": "claude-code" }
+{ "v": 1, "nonce": "…", "auth": "…", "id": 1, "type": "camera", "project": "/abs/cottage", "view": "front" }
+{ "v": 1, "nonce": "…", "auth": "…", "id": 1, "type": "selection", "project": "/abs/cottage" }
 { "v": 1, "nonce": "…", "auth": "…", "id": 1, "type": "approve", "session": "c0123…", "request": { "tool_name": "Bash", "input": { "command": "ls" }, "tool_use_id": "…" } }
 { "v": 1, "nonce": "…", "auth": "…", "id": 1, "type": "ask", "session": "c0123…", "question": { "question": "How tall?", "header": "Height", "options": [{ "label": "6 bricks" }, { "label": "3 bricks" }], "multi": false } }
 { "v": 1, "nonce": "…", "auth": "…", "id": 1, "type": "notes", "session": "c0123…" }
@@ -37,13 +39,22 @@ process that read `bus.json` can drive the app, and only the app can answer.
 ```json
 { "id": 1, "delivered": true, "png": "<base64>", "camera": { "view": "iso", "position": [], "target": [], "fov": 35 }, "highlighted": [], "auth": "…" }
 { "id": 1, "delivered": true, "highlighted": ["roof/1"], "auth": "…" }
+{ "id": 1, "delivered": true, "camera": { "view": "front" }, "auth": "…" }
+{ "id": 1, "delivered": true, "camera": { "view": "iso" }, "selected": ["roof/1", "roof/2"], "auth": "…" }
 { "id": 1, "delivered": true, "answer": { "behavior": "deny", "message": "The user denied this in Emmet." }, "auth": "…" }
 { "id": 1, "delivered": true, "answer": { "answered": true, "choices": ["6 bricks"], "other": null }, "auth": "…" }
 { "id": 1, "delivered": true, "answer": [{ "id": "n1", "text": "Make it blue", "at": "2026-10-25T12:00:00.000Z" }], "auth": "…" }
 { "id": 1, "delivered": false, "reason": "that project isn't open in Emmet" }
 ```
 
-- `render` and `highlight` answer only for the project the app has open (paths compared after canonicalizing).
+- `render`, `highlight`, `camera`, and `selection` answer only for the project the app has open (paths compared after
+  canonicalizing). `camera` with a `view` turns the open viewer to it, and without one reads it; `selection` reads what
+  the user has selected and the view (4B). The app's own sessions and terminal agents use them alike, through MCP's
+  `highlight`, `camera`, and `selection`.
+  `highlight`'s optional `from` is the name the agent's MCP client gives ("claude-code"): in each request's `_meta`
+  in MCP 2026-07-28, which Claude Code speaks, or in `initialize` before it. The viewer
+  names the agent in the bar it shows over the highlight ("Claude is pointing at 10 parts", with Zoom to them and
+  Clear). An agent's highlight replaces what the user picked, and the user's next pick replaces it.
   `render` renders the project's current `build/placements.json` in the open window, offscreen: the window's camera
   doesn't move.
 - `approve` (from `emmet_host approve`, Claude Code's permission prompt) shows an approval card in the chat session
@@ -56,6 +67,6 @@ process that read `bus.json` can drive the app, and only the app can answer.
 
 `emmet_bus::send` always returns a reply. No `bus.json`, no socket, a wrong token, a refused nonce, another protocol
 version, another project open, an answer without the app's proof, or no answer in time is `delivered: false` with a
-`reason`. `emmet render` then falls back to render mode (ADR 0005); MCP `highlight` reports "Emmet app not open";
+`reason`. `emmet render` then falls back to render mode (ADR 0005); MCP `highlight`, `camera`, and `selection` report "Emmet app not open";
 `approve` denies with the reason; `ask_user` returns `reason: "stopped"` (or `"timeout"` just before the hour the CLIs
 allow a tool call).

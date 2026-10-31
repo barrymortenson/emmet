@@ -603,3 +603,36 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   of it was the validator running unoptimized. `emmet-core` now builds at opt-level 2 in debug builds too, as every
   dependency already did, and the same change takes 738 to 797 ms (three runs). Sending the scene before its findings
   and caching the schema read, the other two ideas offered, aren't needed for the budget; they're left for 4C.
+
+## 2026-10-30, session 3E
+
+- **Session 3E before 5A (D-52).** In his 4B hand session of rung 2 on Claude Code, Barry found the model rendered
+  but wasn't built well: the canopy's eaves sat below the ticket booth's door top, and the benches stood against the
+  canopy's columns (`docs/spec/sessions/3E/before-4b-station.png`). He wants Emmet to get this kind of thing right
+  without extra prompting, and asked for a session that takes a complete look at building with good technique and
+  makes sure the technique library doesn't hold models back. The causes were in the library as much as the agent:
+  `canopy` hard-codes 5-brick columns under a 6-brick door, `porch_posts` and `turned_post_porch` are low the same
+  way, `canopy` doesn't say where its columns stand, `validate` only sees overlaps, and the guides give sizes but no
+  clearances. 5A waits for 3E, so G2's live eval runs on the fixed library.
+- **The `figure_clearance` rule (D-53, proposed).** A warning, not an error, so 3A's zero-error gate on the official
+  corpus is untouched; 3E holds the rule to zero findings on that corpus too. Keep-clear boxes come from door frames,
+  from techniques and the agent through `m.keep_clear(box, why)`, at figure scale and large only. Rejected: rules in
+  the doctrine alone, which the agent skims, while it fixes every finding `validate` gives it.
+
+## 2026-10-30, session 4B
+
+- **Codex's rung 2 hand session is taken as it is** (Barry, through AskUserQuestion). On his ChatGPT plan, at Codex's
+  default low effort, it left a clean model of 210 parts: under rung 2's 250, with no door on the ticket booth, and
+  standing on the table after a Rebuild for Base None took the baseplates out. 4B's Done when asks for a clean build,
+  and this one is; the shortfalls go to 3E (technique) and 5A (rung 2's eval). Its transcript is
+  `tests/replay/codex/rung2.jsonl` and its project `tests/fixtures/projects/rung2-codex`.
+- **A highlight has to be seen, and an agent's says whose it is** (Barry, through AskUserQuestion, after his terminal
+  agent's highlight of the station's two benches showed nothing he could see). The viewer dimmed the rest to 35 %
+  and left the highlighted parts as they were, and their edges at full strength, so on a dark model, or a few small
+  parts in a big one, nothing stood out. Now the rest fades 80 % toward the background, the highlighted parts draw over
+  it in their own colors. An agent's highlight puts a bar over the viewer: "Claude is pointing at 10
+  parts", Zoom to them, Clear. The agent is named from its MCP client's own name (the bus's new optional `from`). The
+  camera moves only when the user asks. Rejected: zooming to the parts on every agent highlight, which moves the
+  user's view without asking; and leaving it to 4C. Barry then had the accent edges and the silhouette of a hidden
+  part taken out (2026-10-31): the parts keep their own colors. A hidden part isn't seen until Zoom to them or a turn
+  of the view.

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Keyboard reach (docs/design/keyboard.md, session 4A Done when 5): each shortcut the map lists that works without an
 // agent's turn does its action, Esc closes what's open, F6 moves between the regions, and Tab shows a visible focus
-// ring on everything it reaches. The chat's own keys (Enter, ⇧↩, ⌘↩, a card's 1–5) are 4B's; the viewer's orbit and
-// zoom keys are 4C's; ⌥⌘Z needs 4B's versions before each turn.
+// ring on everything it reaches. The chat's own keys (⌘L, Enter, Esc, ⌥⌘Z) are in chat.e2e.mjs (4B); the viewer's orbit
+// and zoom keys are 4C's.
 import { $, expect } from "@wdio/globals";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -134,13 +134,16 @@ describe("the keyboard map", () => {
     await (await $("#param-weathering-thumb")).waitForDisplayed({ timeout: 30_000, timeoutMsg: "the knobs never showed" });
     const rings = await browser.execute(() => {
       const focus = /:focus(-visible)?(?![-\w])/g;
+      const within = /:focus-within/g;
       const copy = (owner) => {
         const rules = owner.cssRules;
         for (let i = rules.length - 1; i >= 0; i--) {
           const r = rules[i];
           if (r instanceof CSSStyleRule && focus.test(r.selectorText)) owner.insertRule(`${r.selectorText.replace(focus, "[data-e2e-focus]")} { ${r.style.cssText} }`, i + 1);
+          else if (r instanceof CSSStyleRule && within.test(r.selectorText)) owner.insertRule(`${r.selectorText.replace(within, "[data-e2e-within]")} { ${r.style.cssText} }`, i + 1);
           else if (!(r instanceof CSSStyleRule) && r.cssRules) copy(r);
           focus.lastIndex = 0;
+          within.lastIndex = 0;
         }
       };
       for (const sheet of document.styleSheets) copy(sheet);
@@ -154,17 +157,27 @@ describe("the keyboard map", () => {
         if (!at || (at !== el && !el.contains(at))) return [];
         at.setAttribute("data-e2e-focus", "");
         const s = getComputedStyle(at);
-        const ring = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2;
+        let ring = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2;
         at.removeAttribute("data-e2e-focus");
+        // A field that shows focus on its box, as the composer does (its border turns the accent color, :focus-within).
+        // The box's own border is read with the field blurred: in an active window :focus-within already matches, and
+        // the marked copy would change nothing.
+        at.blur();
+        for (let box = at.parentElement; !ring && box; box = box.parentElement) {
+          const before = getComputedStyle(box).borderColor;
+          box.setAttribute("data-e2e-within", "");
+          ring = getComputedStyle(box).borderColor !== before;
+          box.removeAttribute("data-e2e-within");
+        }
         return [{ el: at.id || at.getAttribute("aria-label") || at.textContent?.trim().slice(0, 30), ring }];
       });
     });
     expect(rings.filter((r) => !r.ring).map((r) => r.el)).toEqual([]);
     const reached = rings.map((r) => r.el);
-    for (const id of ["project-chip", "param-weathering-thumb", "param-roof-switch", "export-button"]) expect(reached).toContain(id);
+    for (const id of ["project-chip", "agent-picker", "start-fresh", "chat-input", "model-chip", "param-weathering-thumb", "param-roof-switch", "export-button"]) expect(reached).toContain(id);
     // The tab list is one stop in the Tab order: its open tab (arrows move between tabs).
     expect(reached.some((id) => String(id).startsWith("tab-"))).toBe(true);
-    // The window's controls: the title row, the chat's agent cards (more when an earlier spec chose Codex), the panel.
+    // The window's controls: the title row, the dock (the picker, the plan badge, Start fresh, the composer), the panel.
     expect(rings.length).toBeGreaterThanOrEqual(18);
   });
 });

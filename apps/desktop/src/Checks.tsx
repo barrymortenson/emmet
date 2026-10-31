@@ -124,9 +124,14 @@ export function Checks({
   );
 }
 
-/** What "Ask agent to fix" sends, shown in the chat as the user's message: the finding as validate reports it, and what
- * to do. Its words are the validator's own and the library's part names; ids can't hold spaces (the DSL refuses them),
- * and a long list of parts or lines is cut short. */
+/** What the chat shows for "Ask agent to fix": the finding in plain words, as Checks says it. */
+export function findingWords(f: Finding): string {
+  return `${rule(f.rule)[1](f.parts.length)}. ${plain(f.message)}`.trim();
+}
+
+/** What "Ask agent to fix" gives the agent as the turn's details (the chat shows findingWords): the finding as validate
+ * reports it, and what to do. Its words are the validator's own and the library's part names; ids can't hold spaces
+ * (the DSL refuses them), and a long list of parts or lines is cut short. */
 export function fixRequest(f: Finding): string {
   const few = (list: string[]) => (list.length > 8 ? `${list.slice(0, 8).join(", ")} and ${list.length - 8} more` : list.join(", "));
   const at = few(f.source.map((s) => `${s.file}:${s.line}`));

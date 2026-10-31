@@ -61,6 +61,10 @@ export const commands = {
 	setPrefs: (prefs: Prefs) => typedError<PrefsView, Problem>(__TAURI_INVOKE("set_prefs", { prefs })),
 	/**  Settings → Projects → Change…: the host's folder dialog; null when the user cancels. */
 	pickProjectsFolder: () => typedError<PrefsView | null, Problem>(__TAURI_INVOKE("pick_projects_folder")),
+	/**  The tips this user has seen (4B): kept in the data dir, so each is taught once per user, in any project. */
+	tipsSeen: () => __TAURI_INVOKE<string[]>("tips_seen"),
+	/**  A tip was seen: Got it, or the user did what it teaches. */
+	tipSeen: (tip: string) => typedError<string[], Problem>(__TAURI_INVOKE("tip_seen", { tip })),
 	cliStatus: () => __TAURI_INVOKE<CliStatus>("cli_status"),
 	/**  Puts `emmet` on PATH. Null when the user cancels macOS's password prompt. */
 	installCli: () => typedError<CliStatus | null, Problem>(__TAURI_INVOKE("install_cli")),
@@ -116,24 +120,46 @@ export const commands = {
 	/**  The agents Emmet found: only a detected, signed-in agent can start a chat; the others carry the fix. */
 	agents: (refresh: boolean) => __TAURI_INVOKE<AgentView[]>("agents", { refresh }),
 	/**
-	 *  Starts a chat with `kind` on the open project, ending any chat that's running. With `resume`, it continues the
-	 *  project's last session for that agent.
+	 *  A message from the user, which starts a turn: the agent starts first if it isn't running (resuming the
+	 *  conversation). `context` is what the user sees (the selection and the view) and the details behind a message the
+	 *  app wrote (`from`); the history keeps the plain words. Returns the session the events come from.
 	 */
-	chatStart: (kind: AgentKind, resume: boolean) => typedError<string, Problem>(__TAURI_INVOKE("chat_start", { kind, resume })),
-	/**  A message from the user: a new turn, or (while the agent works) a redirect. */
-	chatSend: (text: string) => typedError<null, Problem>(__TAURI_INVOKE("chat_send", { text })),
+	chatSend: (text: string, context: TurnContext, from: Origin | null) => typedError<string, Problem>(__TAURI_INVOKE("chat_send", { text, context, from })),
 	/**  A redirect while the agent works (D-33): returns the note, which `NoteDelivered` marks once it's out. */
-	chatSteer: (text: string) => typedError<UserNote, Problem>(__TAURI_INVOKE("chat_steer", { text })),
+	chatSteer: (text: string, context: TurnContext) => typedError<UserNote, Problem>(__TAURI_INVOKE("chat_steer", { text, context })),
 	/**  Changes a redirect that hasn't gone out, or withdraws it (`text` null). False if it's already delivered. */
 	chatNote: (id: string, text: string | null) => typedError<boolean, Problem>(__TAURI_INVOKE("chat_note", { id, text })),
 	/**  Stop (Esc): the turn ends at once; an open question is canceled, and pending redirects go out as the next turn. */
 	chatStop: () => typedError<null, Problem>(__TAURI_INVOKE("chat_stop")),
 	chatRespond: (id: string, decision: Decision) => typedError<null, Problem>(__TAURI_INVOKE("chat_respond", { id, decision })),
 	chatAnswer: (id: string, answer: Answer) => typedError<null, Problem>(__TAURI_INVOKE("chat_answer", { id, answer })),
-	/**  The open project's chat: the live session, the last one (to resume), and its history. */
+	/**  The open project's conversations, the live session, and what Undo turn would restore. */
 	chatState: () => __TAURI_INVOKE<ChatState>("chat_state"),
-	/**  Ends the running chat (New chat). Its history stays in the project's .emmet/. */
-	chatEnd: () => __TAURI_INVOKE<void>("chat_end"),
+	/**
+	 *  A new conversation with `kind` (the agent picker), or with the same agent (Start fresh): the agent running now
+	 *  ends, and its conversation is kept if anything was said in it. Nothing starts until the next message.
+	 */
+	chatFresh: (kind: AgentKind | null) => typedError<SessionInfo, Problem>(__TAURI_INVOKE("chat_fresh", { kind })),
+	/**
+	 *  The model and effort for the current conversation (the composer's picker). A running agent takes them at the next
+	 *  message, started again on the same conversation.
+	 */
+	chatModel: (model: string | null, effort: string | null) => typedError<SessionInfo, Problem>(__TAURI_INVOKE("chat_model", { model, effort })),
+	/**
+	 *  Restart after a crash: the agent starts again on the same conversation. It sends nothing; the user's next message
+	 *  is the next turn.
+	 */
+	chatRestart: () => typedError<string, Problem>(__TAURI_INVOKE("chat_restart")),
+	/**
+	 *  Undo turn (⌥⌘Z): restores the version saved before the agent's last turn, if that turn changed the sources. The restore
+	 *  saves the state it replaces first, so Undo turn can be undone from Versions. Returns that version.
+	 */
+	chatUndo: () => typedError<VersionView, Problem>(__TAURI_INVOKE("chat_undo")),
+	/**
+	 *  The window says what the user has selected and which view they're looking at, as either changes: what an agent's
+	 *  `selection` and `camera` read.
+	 */
+	viewerState: (selection: string[], view: string) => __TAURI_INVOKE<void>("viewer_state", { selection, view }),
 	/**
 	 *  Plan usage (D-36): fetched only when the user asks (opening the popover, ⟳, the end of a turn they started), at
 	 *  most once a minute. Codex reports its billing state only.
@@ -166,9 +192,11 @@ export const commands = {
 
 /** Events */
 export const events = {
+	busCamera: makeEvent<BusCamera, BusCamera>("bus-camera"),
 	busHighlight: makeEvent<BusHighlight, BusHighlight>("bus-highlight"),
 	busRender: makeEvent<BusRender, BusRender>("bus-render"),
 	chatEvent: makeEvent<ChatEvent, ChatEvent>("chat-event"),
+	chatUndo: makeEvent<ChatUndo, ChatUndo>("chat-undo"),
 	menuAction: makeEvent<MenuAction, MenuAction>("menu-action"),
 	partsProgress: makeEvent<PartsProgress, PartsProgress>("parts-progress"),
 	projectOpened: makeEvent<ProjectOpened, ProjectOpened>("project-opened"),
@@ -218,6 +246,11 @@ detail: string } |
 { type: "approval_closed"; id: string } | { type: "question"; id: string; question: Question } | 
 /**  The question card closes: answered, or canceled with `reason` ("stopped"). */
 { type: "question_closed"; id: string; reason: string | null } | { type: "note_delivered"; id: string; path: SteerPath } | { type: "usage"; input: number; output: number } | { type: "turn_done"; reason: DoneReason } | 
+/**
+ *  The models and efforts the session can switch to: Claude Code's documented aliases and levels, or Codex's
+ *  `model/list`.
+ */
+{ type: "models"; models: ModelChoice[] } | 
 /**  Live plan usage from the CLI (Claude's rate_limit_event). */
 { type: "limits"; snapshot: UsageSnapshot } | { type: "error"; code: AgentErrorCode; message: string } | 
 /**  The CLI process ended. No events follow. */
@@ -248,6 +281,11 @@ export type Answer = {
 	choices: string[],
 	/**  What the user typed in Other. */
 	other?: string | null,
+};
+
+export type Answered = {
+	id: string,
+	text: string,
 };
 
 export type AppInfo = {
@@ -319,8 +357,15 @@ export type BuildSettings = {
 	style: string | null,
 };
 
+/**  `camera` from an agent: turn the viewer to `view`. */
+export type BusCamera = {
+	view: string,
+};
+
 export type BusHighlight = {
 	ids: string[],
+	/**  The agent's MCP client name ("claude-code"), when it gave one. */
+	from: string | null,
 };
 
 /**
@@ -348,18 +393,37 @@ export type ChatEvent = {
 	event: AgentEvent,
 };
 
-/**  One line of a chat's history: something the user sent, or an agent event. */
+/**  One line of a conversation: something the user sent, or an agent event. */
 export type ChatRecord = {
 	at: number | null,
 	user?: string | null,
+	from?: Origin | null,
 	event?: AgentEvent | null,
+	/**  The user's decision on an approval card, so the history shows it decided. */
+	decided?: Decided | null,
+	/**  The user's answer to a question card, in their words. */
+	answered?: Answered | null,
 };
 
 export type ChatState = {
 	/**  The session that's running, if one is. */
 	live: LiveSession | null,
-	last: LastSession | null,
-	history: ChatRecord[],
+	/**  The project's conversations, oldest first; the newest is the one a message goes to. */
+	sessions: SessionView[],
+	/**
+	 *  The agent a message goes to: the newest conversation's, else the one Settings starts with, else the first
+	 *  that's ready.
+	 */
+	agent: AgentKind | null,
+	/**  The version Undo turn restores. */
+	undo: number | null,
+	/**  The models and efforts that agent offers, when known (Codex says once a session has started). */
+	models: ModelChoice[],
+};
+
+/**  A turn ended: the version Undo turn restores, if the turn changed the sources (else none). */
+export type ChatUndo = {
+	undo: number | null,
 };
 
 export type Checks = {
@@ -410,6 +474,11 @@ export type DataSettings = {
 	parts_data: string | null,
 	/**  ldraw, rebrickable, or bricklink. */
 	color_names: string,
+};
+
+export type Decided = {
+	id: string,
+	decision: Decision,
 };
 
 export type Decision = "allow_once" | "allow_session" | "deny";
@@ -471,13 +540,6 @@ export type Finding = {
 	hint: string,
 };
 
-/**  The project's last chat session, kept in `.emmet/chat.json` so it can be resumed. */
-export type LastSession = {
-	kind: AgentKind,
-	session: string,
-	resume: string | null,
-};
-
 /**  The chat that's running. */
 export type LiveSession = {
 	session: string,
@@ -489,11 +551,36 @@ export type MenuAction = {
 	id: string,
 };
 
+/**
+ *  A model the session can use, and the efforts it takes, as the CLI reports or documents them (plan section 10). `id` is what
+ *  goes back to the CLI; an empty `id` is the CLI's own default.
+ */
+export type ModelChoice = {
+	id: string,
+	name: string,
+	efforts: string[],
+	default_effort?: string | null,
+};
+
 export type NewKind = 
 /**  The Cottage example. */
 "cottage" | 
 /**  An empty baseplate, for a new model from a prompt. */
 "empty";
+
+/**
+ *  Where a message the app wrote for the user came from: the chat shows "Sent from Checks" and the plain words, and
+ *  the agent gets the details too (law 2).
+ */
+export type Origin = 
+/**  "Ask agent to fix" on a finding. */
+"checks" | 
+/**  Rebuild with new build settings. */
+"settings" | 
+/**  "Ask agent to fix" on a failed build. */
+"build" | 
+/**  "Make it parametric" on an imported file. */
+"import";
 
 export type ParamSpec = {
 	name: string,
@@ -645,6 +732,24 @@ export type Scene = {
 	tree?: StepsTree | null,
 };
 
+/**  One conversation in the project's history. */
+export type SessionInfo = {
+	id: string,
+	kind: AgentKind,
+	/**  When it began (Unix ms). */
+	started: number | null,
+	/**  The Claude session id or Codex thread id, once the CLI said it. */
+	resume?: string | null,
+	/**  The model and effort, as the CLI names them; none is its default. */
+	model?: string | null,
+	effort?: string | null,
+};
+
+export type SessionView = {
+	info: SessionInfo,
+	records: ChatRecord[],
+};
+
 /**  A failed install or sign-in, in plain words; `detail` is the tool's own last line, when it said something useful. */
 export type SetupError = {
 	failure: Failure,
@@ -715,6 +820,19 @@ export type SubmodelView = {
 	/**  Parts in one copy. */
 	parts: number,
 	steps: StepView[],
+};
+
+/**
+ *  What the user sees in the app when they send a message (plan section 14: "the agent sees what you selected"), and
+ *  the detail behind a message the app wrote for them: the finding or build error, with its file and line, that the
+ *  chat shows only in plain words (law 2).
+ */
+export type TurnContext = {
+	/**  Emmet ids of the parts the user has selected. */
+	selection?: string[],
+	/**  The viewer's view: iso, front, top, back, left, right. */
+	view?: string | null,
+	detail?: string | null,
 };
 
 export type UiState = {

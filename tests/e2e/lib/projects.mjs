@@ -17,6 +17,8 @@ const PROJECTS = {
   visual: [["", "cottage"], ["scene-colors", "scene-colors"], ["scene-grid", "scene-grid"]],
   bench: [["", "cottage"], ["grid500", "scene-grid"], ["grid2000", "scene-grid", { count: 2000 }]],
   chat: [["", "agent"], ["codex", "agent"]],
+  dock: [["", "cottage"]],
+  bus: [["", "cottage"]],
   chatgpt: [["", "agent"]],
   checks: [["", "broken-collision"]],
   setup: [["", "agent"]],

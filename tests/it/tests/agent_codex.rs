@@ -82,7 +82,7 @@ fn plain_turn() {
             ..
         }
     ));
-    // The handshake section 10 describes, in order.
+    // The handshake section 10 describes, in order; model/list feeds the model and effort picker (4B).
     let methods: Vec<String> = rig
         .written()
         .iter()
@@ -94,6 +94,7 @@ fn plain_turn() {
             "initialize",
             "initialized",
             "account/read",
+            "model/list",
             "thread/start",
             "turn/start"
         ]
@@ -1027,4 +1028,113 @@ fn plan_use_lost_at_refresh_stops_turns() {
         "no restart on a plan that's off"
     );
     s.close();
+}
+
+/// The model and effort picker (4B): the model goes to thread/start, the effort to every turn/start, and the choices
+/// are Codex's own `model/list`, its default first.
+#[test]
+fn the_model_and_effort_reach_the_cli() {
+    let rig = rig("codex-model", "plain-turn");
+    let mut cfg = rig.cfg.clone();
+    cfg.model = Some("gpt-6-luna".into());
+    cfg.effort = Some("high".into());
+    let (mut s, mut ev) = rig.start_with(CODEX, cfg);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let sent = rig.written();
+    let by = |m: &str| sent.iter().find(|v| v["method"] == m).cloned().unwrap();
+    assert_eq!(by("thread/start")["params"]["model"], "gpt-6-luna");
+    assert_eq!(by("turn/start")["params"]["effort"], "high");
+    let Some(AgentEvent::Models { models }) = events.iter().find(|e| matches!(e, AgentEvent::Models { .. })) else {
+        panic!("no Models event");
+    };
+    assert_eq!((models[0].id.as_str(), models[0].name.as_str()), ("", "Default"));
+    let luna = models.iter().find(|m| m.id == "gpt-6-luna").unwrap();
+    assert_eq!(luna.efforts, ["low", "medium", "high", "xhigh", "max"]);
+    assert_eq!(luna.default_effort.as_deref(), Some("medium"));
+}
+
+/// Rung 1, replayed from 1D's live eval run (scrubbed and trimmed to the fixture limit, 4B): from the empty template to
+/// the cottage, through Emmet's real tools. It passed 1D's validator with no errors; 3A's step rules came later, so the
+/// count of what they'd flag is pinned here, not required to be zero.
+#[test]
+fn rung1_from_a_live_run_builds_the_cottage() {
+    const ERRORS_NOW: usize = 12;
+    let rig = rig("codex-rung1", "rung1");
+    rig.from_empty_template();
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Build a small cottage on a green 32 × 32 baseplate (rung 1)."))
+        .unwrap();
+    let mut events = ev.turn();
+    while !events.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+        events.extend(ev.turn());
+    }
+    s.close();
+    assert!(events.iter().any(|e| matches!(
+        e,
+        AgentEvent::TurnDone {
+            reason: DoneReason::Completed
+        }
+    )));
+    let v = rig.validate();
+    let errors = v["data"]["findings"]
+        .as_array()
+        .unwrap_or_else(|| panic!("{v}"))
+        .iter()
+        .filter(|f| f["severity"] == "error")
+        .count();
+    assert_eq!(errors, ERRORS_NOW, "{v}");
+    let placements: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(rig.project.join("build/placements.json")).unwrap()).unwrap();
+    assert!(placements["parts"].as_array().unwrap().len() >= 40);
+}
+
+/// Rung 2 from Barry's hand session in the app, on his ChatGPT plan (4B, Done when 5), scrubbed and trimmed: two turns,
+/// the build and then a Rebuild for Base None, through Emmet's real tools. The first turn's edits were file changes,
+/// which replay; the second turn's were shell commands in Codex's sandbox, which a replay can't run, so what's on disk
+/// at the end is the first turn's model, as Codex reported it (230 parts, no errors, the two step notes where the track
+/// meets the switch). The model the session left is checked as a project of its own (`rung2-codex` in ladder.rs).
+#[test]
+fn rung2_from_barrys_session_replays() {
+    let rig = rig("codex-rung2", "rung2");
+    rig.from_empty_template();
+    let (mut s, mut ev) = rig.start(CODEX);
+    let mut events = Vec::new();
+    for (i, text) in [
+        "Build a small train station next to a loop of track (rung 2).",
+        "Rework the model for the new build settings: base None (was Any).",
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        // Before the second turn Base went to None in the Options, which write it here, and Rebuild sent the turn.
+        if i == 1 {
+            let toml = rig.project.join("emmet.toml");
+            let text = std::fs::read_to_string(&toml).unwrap();
+            std::fs::write(&toml, format!("{text}\n[build]\nbase = \"None\"\n")).unwrap();
+        }
+        s.send(turn(text)).unwrap();
+        let mut got = ev.turn();
+        while !got.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+            got.extend(ev.turn());
+        }
+        assert!(got.iter().any(|e| matches!(
+            e,
+            AgentEvent::TurnDone {
+                reason: DoneReason::Completed
+            }
+        )));
+        events.extend(got);
+    }
+    s.close();
+    let runs = events.iter().filter(|e| is_tool("mcp__emmet__run_model")(e)).count();
+    assert!(runs >= 3, "it built in stages: {runs} runs");
+    let v = rig.validate();
+    let findings = v["data"]["findings"].as_array().unwrap_or_else(|| panic!("{v}"));
+    assert!(findings.iter().all(|f| f["severity"] != "error"), "{v}");
+    assert_eq!(v["data"]["counts"], serde_json::json!({ "step_order": 2 }), "{v}");
+    let placements: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(rig.project.join("build/placements.json")).unwrap()).unwrap();
+    assert_eq!(placements["parts"].as_array().unwrap().len(), 230);
 }

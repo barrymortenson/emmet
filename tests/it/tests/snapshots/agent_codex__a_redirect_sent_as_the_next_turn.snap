@@ -1,10 +1,12 @@
 ---
 source: tests/it/tests/agent_codex.rs
+assertion_line: 336
 expression: rig.outline(&all)
 ---
 {
   "stream": [
     "started gpt-6-luna (API key)",
+    "models 9",
     "text: ready",
     "usage",
     "turn_done Completed",

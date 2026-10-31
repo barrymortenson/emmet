@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // What the specs ask the running app, through the E2E hooks (window.__emmet, only in EMMET_E2E builds) and the
 // app's own typed commands. Viewer assertions read viewer.stats() and ids, not pixels (plan section 16).
+import { $ } from "@wdio/globals";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import pixelmatch from "pixelmatch";
@@ -98,6 +99,8 @@ export async function screenshots(name, { baseline = false } = {}) {
   );
   await browser.pause(300);
   if (baseline) await freshAgents();
+  // A frozen screen shows no tip (they're taught once each, 4B): Got it, as the user would.
+  if (baseline) while (await (await $("#tip-done")).isExisting()) await (await $("#tip-done")).click();
   for (const theme of ["light", "dark"]) {
     await browser.execute((t) => window.__emmet.theme(t), theme);
     await browser.execute(() => window.__emmet.viewer().nextFrame());

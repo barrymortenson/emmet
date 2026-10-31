@@ -1,10 +1,12 @@
 ---
 source: tests/it/tests/agent_claude.rs
+assertion_line: 156
 expression: rig.outline(&all)
 ---
 {
   "stream": [
     "started claude-haiku-5-5 (API key)",
+    "models 5",
     "tool_call Bash",
     "tool_result error The user denied this in Emmet.",
     "text: I couldn't run `ls`. The shell command was denied: the tool returned \"Shell commands",

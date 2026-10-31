@@ -92,7 +92,14 @@ const ANY = "Any";
 const said = (v: string | null | undefined) => v ?? ANY;
 const words = (k: Key, v: string | null | undefined) => (v == null ? null : k === "pieces" ? `${BRIEF.pieces.options.find((o) => o.id === v)?.name ?? v} pieces` : k === "age" ? `Ages ${v}` : k === "detail" ? `${v} detail` : v);
 
-/** The message Rebuild sends to the agent: what changed, in words. */
+/** What the chat shows for Rebuild (the agent gets rebuildRequest's details too): "Rework the model for the new build
+ * settings: style Steampunk (was Town), detail Medium (was Low)." */
+export function rebuildWords(before: BuildSettings, after: BuildSettings): string {
+  const changes = ORDER.filter((k) => (before[k] ?? null) !== (after[k] ?? null)).map((k) => `${BRIEF[k].label.toLowerCase()} ${said(after[k])} (was ${said(before[k])})`);
+  return `Rework the model for the new build settings: ${changes.join(", ")}.`;
+}
+
+/** What Rebuild gives the agent as the turn's details (the chat shows rebuildWords): what changed, in words. */
 export function rebuildRequest(before: BuildSettings, after: BuildSettings): string {
   const changes = ORDER.filter((k) => (before[k] ?? null) !== (after[k] ?? null)).map((k) => `${BRIEF[k].label}: ${said(after[k])}`);
   const all = ORDER.map((k) => `${BRIEF[k].label} ${said(after[k])}`).join(", ");
@@ -268,7 +275,7 @@ const same = (a: Value | undefined, b: Value | undefined) => JSON.stringify(a) =
 const isSeed = (p: ParamSpec) => p.type === "int" && p.name === "seed";
 
 /** The knobs. `onWrite` is called as a change goes to params.json, so the next run shows without the build animation. */
-export function Knobs({ lastGeneration, onWrite, problemOut }: { lastGeneration: number; onWrite?: () => void; problemOut?: (p: Problem | null) => void }) {
+export function Knobs({ lastGeneration, onWrite, problemOut, tip }: { lastGeneration: number; onWrite?: () => void; problemOut?: (p: Problem | null) => void; tip?: React.ReactNode }) {
   const [params, setParams] = useState<ParamsView | null>(null);
   const [values, setValues] = useState<Record<string, Value>>({});
   const [colors, setColors] = useState<ColorView[]>([]);
@@ -361,6 +368,7 @@ export function Knobs({ lastGeneration, onWrite, problemOut }: { lastGeneration:
   };
   return (
     <>
+      {knobs.length > 0 && tip}
       {drafts.length > 0 && (
         <div className="pending-bar" id="knobs-bar">
           <span>

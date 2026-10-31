@@ -56,7 +56,7 @@ impl Claude {
 }
 
 /// The arguments for a chat session (plan section 10), with `mcp` the session's mcp.json.
-pub fn args(mcp: &std::path::Path, resume: Option<&str>, model: Option<&str>) -> Vec<String> {
+pub fn args(mcp: &std::path::Path, resume: Option<&str>, model: Option<&str>, effort: Option<&str>) -> Vec<String> {
     let mut a: Vec<String> = [
         "-p",
         "--input-format",
@@ -95,10 +95,37 @@ pub fn args(mcp: &std::path::Path, resume: Option<&str>, model: Option<&str>) ->
         // One argument, so a token could never read as a flag (and cfg.check() allows only plain ids).
         a.push(format!("--resume={r}"));
     }
-    if let Some(m) = model {
+    if let Some(m) = model.filter(|m| MODELS.iter().any(|(id, _)| id == m)) {
         a.extend(["--model".into(), m.into()]);
     }
+    if let Some(e) = effort.filter(|e| EFFORTS.contains(e)) {
+        a.extend(["--effort".into(), e.into()]);
+    }
     a
+}
+
+/// The model aliases `claude --help` documents (2.1.314: "an alias for the latest model (e.g. 'fable', 'opus', or
+/// 'sonnet')", and haiku in Claude Code's model docs), smallest plan use last; and its `--effort` levels.
+pub const MODELS: [(&str, &str); 4] = [
+    ("fable", "Fable"),
+    ("opus", "Opus"),
+    ("sonnet", "Sonnet"),
+    ("haiku", "Haiku"),
+];
+pub const EFFORTS: [&str; 5] = ["low", "medium", "high", "xhigh", "max"];
+
+/// What the model and effort picker offers for Claude Code: its default, then each alias, each with every level.
+pub fn models() -> Vec<crate::ModelChoice> {
+    let efforts: Vec<String> = EFFORTS.map(String::from).to_vec();
+    std::iter::once(("", "Default"))
+        .chain(MODELS)
+        .map(|(id, name)| crate::ModelChoice {
+            id: id.into(),
+            name: name.into(),
+            efforts: efforts.clone(),
+            default_effort: None,
+        })
+        .collect()
 }
 
 /// The session's MCP servers: `emmet` and `emmet_host`, both the sidecar, both for this session.
@@ -132,7 +159,7 @@ impl AgentAdapter for Claude {
         let mcp = dir.join("mcp.json");
         std::fs::write(&mcp, serde_json::to_vec_pretty(&mcp_config(&cfg)).expect("json"))
             .map_err(|e| AgentError::new(AgentErrorCode::Io, format!("writing {}: {e}", mcp.display())))?;
-        let args = args(&mcp, cfg.resume.as_deref(), cfg.model.as_deref());
+        let args = args(&mcp, cfg.resume.as_deref(), cfg.model.as_deref(), cfg.effort.as_deref());
         let mut cmd = detect::command(&bin);
         cmd.args(&args).current_dir(&cfg.project);
         set_env(&mut cmd, &cfg.env);
@@ -316,6 +343,7 @@ impl Protocol for ClaudeProto {
                         model: m["model"].as_str().map(String::from),
                         billing: Some(init_billing(&m)),
                     });
+                    io.emit(AgentEvent::Models { models: models() });
                 }
             }
             "stream_event" => {
