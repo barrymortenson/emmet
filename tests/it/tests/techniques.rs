@@ -627,3 +627,32 @@ fn wing_plate_porch_roof_clears_a_door_under_it() {
 fn door_hood_clears_its_door() {
     beside_a_door("door_hood", 6, "m.use(\"door_hood\", x=3, y=8, z=wall.door_top)");
 }
+
+/// docs/techniques/audit.md has one row for every technique, and only for techniques (3E, Done when 5), each with a
+/// verdict: fine, fixed, or limited.
+#[test]
+fn the_audit_has_a_row_for_every_technique() {
+    let audit = std::fs::read_to_string(repo().join("docs/techniques/audit.md")).unwrap();
+    let mut rows: Vec<(String, String)> = audit
+        .lines()
+        .filter(|l| l.starts_with("| `"))
+        .map(|l| {
+            let cells: Vec<&str> = l.trim_matches('|').split('|').map(str::trim).collect();
+            (cells[0].trim_matches('`').to_string(), cells[5].to_string())
+        })
+        .collect();
+    rows.sort();
+    let names: Vec<&str> = rows.iter().map(|(n, _)| n.as_str()).collect();
+    let mut want: Vec<&str> = TECHNIQUES.iter().map(|(n, _)| *n).collect();
+    want.sort();
+    assert_eq!(
+        names, want,
+        "docs/techniques/audit.md needs exactly one row per technique"
+    );
+    for (name, verdict) in &rows {
+        assert!(
+            ["fine", "fixed", "limited"].iter().any(|v| verdict.starts_with(v)),
+            "{name}'s verdict is {verdict:?}: fine, fixed, or limited"
+        );
+    }
+}

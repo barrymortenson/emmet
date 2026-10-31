@@ -2,7 +2,9 @@
 Also: large scale, display, display scale, big, 1:12, 1:16
 
 Bigger than figure scale: display models of cars, buildings, and objects, built for a shelf. No figure has to fit;
-the model is judged on its shape and finish from a step back.
+the model is judged on its shape and finish from a step back. Where one has figure doors or seats (a display house
+with figures in it), they keep figure scale's clearances (`guide figure-scale`): a door's way through, a seat's room,
+and headroom at or above the door's top.
 
 ## Rules
 
