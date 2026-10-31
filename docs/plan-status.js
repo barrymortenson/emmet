@@ -160,7 +160,16 @@ window.EMMET_STATUS = {
       note: "The viewer budget holds with little margin on this Mac (738 to 1,076 ms for the 903-part Cottage); sending the scene before its findings is left for 4C. Follow-ups #36 to #42; Phase 3's Delivers line doesn't name 3D"
     },
     "3E": { status: "todo" },
-    "4B": { status: "in-progress", branch: "bmortenson/s4b-chat-agent-ux", started: "2026-10-30" },
+    "4B": {
+      status: "in-progress", branch: "bmortenson/s4b-chat-agent-ux", started: "2026-10-30",
+      evidence: [
+        "tests/e2e/specs/{dock,chat,bus}.e2e.mjs; macOS side-by-sides of every chat state in docs/spec/sessions/4B/side-by-side/",
+        "tests/e2e/specs/bus.e2e.mjs: a terminal agent's highlight, the bar naming it (MCP 2026-07-28 and initialize), Zoom to them, Clear",
+        "docs/spec/sessions/4B/terminal-agent-highlight.mp4: Claude Code in Terminal highlights the station's benches in the open app",
+        "Barry's rung 2 hand sessions: tests/replay/{claude,codex}/rung2.jsonl replayed by tests/it/tests/agent_{claude,codex}.rs"
+      ],
+      note: "Windows halves of Done when 1 and 2 wait for the Windows pass (D-43)"
+    },
     "4C": { status: "todo" },
     "4D": { status: "todo" },
     "4E": { status: "todo" },

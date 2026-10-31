@@ -1,5 +1,6 @@
 * text=auto eol=lf
 *.png binary
+*.mp4 binary
 *.ico binary
 *.icns binary
 # LDraw part files keep their CRLF line endings byte for byte (ADR 0003; scripts/ldraw-mini-check.mjs).
