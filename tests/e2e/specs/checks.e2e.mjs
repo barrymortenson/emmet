@@ -100,8 +100,10 @@ describe("checks", () => {
     for (const e of all) console.log(`console error:\n${e}`);
     // On Windows the embedded WebDriver plugin evaluates its own scripts in the page and logs "JSON error: invalid
     // type: null, expected u32" from them (CI, 2026-10-26): their caller is an <anonymous> script, never the app's
-    // bundle. Every other error is the app's and fails the test.
-    const fromDriver = (e) => /\n\s*at console\.error \([^)]*\)\n\s*at <anonymous>:\d+:\d+\s*$/.test(e);
+    // bundle. On macOS the plugin's in-page scripts throw "stale element reference" when React has replaced an element
+    // a command holds (tauri-plugin-wdio-webdriver 1.5.1, src/platform/macos.rs and executor.rs; CI, 2026-10-31), and
+    // the window's error hook records it; the app never says that. Every other error is the app's and fails the test.
+    const fromDriver = (e) => /\n\s*at console\.error \([^)]*\)\n\s*at <anonymous>:\d+:\d+\s*$/.test(e) || e === "uncaught: Error: stale element reference";
     expect(all.filter((e) => !fromDriver(e))).toEqual([]);
   });
 });
