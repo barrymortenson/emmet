@@ -6,11 +6,15 @@ m.use("window_band", x, y, z, length=12, color="White", stripe="Red", post="Blac
 builds one side 1 stud thick, `length` studs along x from (x, y, z): a course of bricks, a course of plates in the
 stripe color, then windows 1 x 2 x 2 with their glass (60592c01) side by side, the frames themselves the pillars
 between the panes, and a course of plates over them that ties the band together. doors: the numbers of the windows
-(0 from the front) whose bay is a door: two dark 1 x 2 bricks stand there instead, the door's posts for the door the
-car's builder hangs. Even lengths. Returns the z of the top plates' top.
+(0 from the front) whose bay is a door: two dark 1 x 2 bricks fill the bay instead, a door panel over the wall course,
+not an opening a figure walks through. Even lengths. A roof on the band is 11 plates over z, so a seat whose top is 2
+plates or less over z (a minifig seat, 4079, on the floor or on a plate) leaves a seated figure the 9 plates it needs
+(docs/spec/building-rules.md, rule 3). Returns the z of the top plates' top, where a roof goes, with .doors (the x of
+each door bay).
 """
 
 from emmet_dsl import Brick, Plate
+from emmet_dsl.core import fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction book of set 60337. Not derived from any
 model file."""
@@ -30,7 +34,7 @@ def build(
     doors=(),
     title="Window band",
 ):
-    """The wall course, the stripe, the windows, and the plates over them; returns the z of the top."""
+    """The wall course, the stripe, the windows, and the plates over them; returns the z of the top, with .doors."""
     if length < 2 or length % 2:
         raise ValueError(f"window_band needs an even length, not {length}")
     with m.step(f"{title}: wall"):
@@ -55,7 +59,7 @@ def build(
             axis="x",
             first=1 if length > 2 else None,
         )
-    return z + 11
+    return fit(z + 11, doors=[x + 2 * i for i in range(n) if i in doors])
 
 
 def example(m):

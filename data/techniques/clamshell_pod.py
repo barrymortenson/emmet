@@ -4,17 +4,21 @@ figure in.
 
 m.use("clamshell_pod", x, y, z, lifted=False, color="Black", seat="Dark Bluish Gray", title="Pod") builds a pod 8 x 8
 studs from (x, y) on the studs at z: a Plate 8 x 8 Round (74611) as its floor, a minifig seat (4079) at the front
-middle facing out, and the back half of the shell, two courses of Brick 4 x 4 Corner Round (48092), the front left
-open. A post rises at the back middle, inside the shell: two bricks 1 x 2 when closed, a brick 1 x 2 x 5 (2454b) when
-lifted. The cap is a submodel built once: a round plate 8 x 8 with four Brick 4 x 4 x 2 2/3 Corner Round with Dome
-Top (49612) on it, a dome 8 plates tall. Closed, it rests on the shell and the post; lifted, it sits on the tall post
-9 plates higher, the seat in full view. Returns the z of the cap's top.
+middle facing out, and the back half of the shell, three courses of Brick 4 x 4 Corner Round (48092) under two Plate 4
+x 4 Corner Round (30565), the front left open. The cap is a submodel built once: a round plate 8 x 8 with four Brick 4
+x 4 x 2 2/3 Corner Round with Dome Top (49612) on it, a dome 8 plates tall. Closed, it rests on the shell, 9 plates
+over the seat, so a seated figure fits under it (docs/spec/building-rules.md, rule 3); lifted, it sits 9 plates higher
+on a post of three bricks 1 x 2 at the back middle, the seat in full view. The pod keeps clear the room the seated
+figure needs: a stud at each end of the seat, 2 studs in front, and 3 bricks over it. Returns the z of the cap's top,
+with .underside (the z of the cap's bottom) and .seat (the seat's (x, y) and the z of its top).
 """
+
+from emmet_dsl.core import fit, seat_space
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 75419. Not derived from any
 model file."""
 
-PARTS = ["74611", "48092", "49612", "4079", "3004", "2454b"]
+PARTS = ["74611", "48092", "30565", "49612", "4079", "3004"]
 
 QUARTERS = [
     ((4, 4), 0),
@@ -22,7 +26,8 @@ QUARTERS = [
     ((0, 0), 2),
     ((4, 0), 3),
 ]  # min corner from (x, y), and turn: back right first
-SHELL = 6  # the shell's height in plates: two courses
+SHELL = 10  # the shell's height in plates: three courses and a plate, 9 over the seat
+SEAT = 1  # the seat's top, in plates over its bottom
 
 
 def _cap(m, color):
@@ -37,24 +42,28 @@ def _cap(m, color):
 def build(
     m, x, y, z, lifted=False, color="Black", seat="Dark Bluish Gray", title="Pod"
 ):
-    """The floor, the seat, the shell, the post, and the cap; returns the z of the cap's top."""
+    """The floor, the seat, the shell, the post, and the cap; returns the z of the cap's top, with .underside and
+    .seat."""
     with m.step(f"{title}, floor and seat"):
         m.add("74611", color, at=(x, y, z))
         m.add("4079", seat, at=(x + 3, y + 1, z + 1), rot=3)
-    for r in range(2):
+    seat_space(m, x + 3, y + 1, 2, 2, SEAT, "a figure sitting in the pod", z=z + 1)
+    for r in range(3):
         with m.step(f"{title}, shell course {r + 1}"):
             for (dx, dy), turn in QUARTERS[:2]:
                 m.add("48092", color, at=(x + dx, y + dy, z + 1 + 3 * r), rot=turn)
-            if not lifted:
-                m.add("3004", color, at=(x + 3, y + 5, z + 1 + 3 * r), rot=1)
+    with m.step(f"{title}, shell top"):
+        for (dx, dy), turn in QUARTERS[:2]:
+            m.add("30565", color, at=(x + dx, y + dy, z + 1 + 9), rot=turn)
+    zc = z + 1 + SHELL
     if lifted:
         with m.step(f"{title}, post"):
-            m.add("2454b", color, at=(x + 3, y + 5, z + 1), rot=1)
-    zc = z + 1 + (15 if lifted else SHELL)
+            m.stack("3004", color, at=(x + 3, y + 5, zc), count=3, rot=1)
+        zc += 9
     cap = m.submodel("pod_cap", _cap, color=color)
     with m.step(f"{title}, cap"):
         top = m.place(cap, at=(x, y, zc))
-    return top.max[2]
+    return fit(top.max[2], underside=zc, seat=(x + 3, y + 1, z + 1 + SEAT))
 
 
 def example(m):
