@@ -22,26 +22,30 @@ struct Space {
 
 pub(super) fn figure_clearance(m: &Model, keep: &[KeepClear]) -> Vec<Raw> {
     keep.iter()
-        .filter_map(|k| {
+        .flat_map(|k| {
             let space = Space {
+                // Either corner first: the DSL writes min then max, and a hand-written placements.json may not.
                 boxes: k
                     .boxes
                     .iter()
-                    .map(|b| Aabb {
-                        min: DVec3::new(b[0], b[1], b[2]),
-                        max: DVec3::new(b[3], b[4], b[5]),
+                    .map(|b| {
+                        let (p, q) = (DVec3::new(b[0], b[1], b[2]), DVec3::new(b[3], b[4], b[5]));
+                        Aabb {
+                            min: p.min(q),
+                            max: p.max(q),
+                        }
                     })
                     .collect(),
                 why: k.why.clone(),
                 src: k.src.clone(),
             };
-            finding(m, &space)
+            findings(m, &space)
         })
         .collect()
 }
 
 /// Whether placement `j` is part of the building, which can block a figure: not a figure itself, its accessories, an
-/// animal, a door leaf (it swings), or a sticker.
+/// animal, a door leaf (it swings; a door frame is building), or a sticker.
 fn building(m: &Model, j: usize) -> bool {
     let Some(info) = &m.placed[j].info else {
         return false;
@@ -51,7 +55,8 @@ fn building(m: &Model, j: usize) -> bool {
     !(n.starts_with("Minifig")
         || c.starts_with("Minifig")
         || c.starts_with("Figure")
-        || matches!(c, "Animal" | "Door" | "Sticker" | "Sticker Shortcut"))
+        || (c == "Door" && !n.contains("Frame"))
+        || matches!(c, "Animal" | "Sticker" | "Sticker Shortcut"))
 }
 
 /// How far `a` and `b` overlap on each axis (negative where they're apart).
@@ -66,6 +71,10 @@ fn inside(m: &Model, j: usize, space: &Aabb) -> bool {
     };
     if overlap(&wb, space).min_element() <= DEEP {
         return false;
+    }
+    // A part with no proxy (no closed body) is judged by its box.
+    if m.proxies[j].is_empty() {
+        return true;
     }
     let mj = m.placed[j].m;
     m.proxies[j].iter().any(|p| {
@@ -88,34 +97,33 @@ fn inside(m: &Model, j: usize, space: &Aabb) -> bool {
     })
 }
 
-/// One finding for every part standing in `space`, with the smallest move that clears them, in a builder's words.
-fn finding(m: &Model, space: &Space) -> Option<Raw> {
-    let mut parts = Vec::new();
-    // The box the parts stand deepest in, and the box around those parts.
-    let mut worst: Option<(Aabb, Aabb)> = None;
-    for (j, _) in m.placed.iter().enumerate() {
-        if !building(m, j) {
-            continue;
-        }
-        let Some(b) = space.boxes.iter().find(|b| inside(m, j, b)) else {
+/// One finding for each of `space`'s boxes that parts stand in (a door's space has a box each side of its wall),
+/// naming them all, with the move that clears them in a builder's words. A part in two boxes is named in the first.
+fn findings(m: &Model, space: &Space) -> Vec<Raw> {
+    let mut named = vec![false; m.placed.len()];
+    let mut out = Vec::new();
+    for s in &space.boxes {
+        let parts: Vec<usize> = (0..m.placed.len())
+            .filter(|&j| !named[j] && building(m, j) && inside(m, j, s))
+            .collect();
+        let Some(u) = parts.iter().filter_map(|&j| m.boxes[j]).reduce(|u, b| Aabb {
+            min: u.min.min(b.min),
+            max: u.max.max(b.max),
+        }) else {
             continue;
         };
-        parts.push(j);
-        let wb = m.boxes[j].expect("a part inside has a box");
-        worst = Some(match worst {
-            None => (*b, wb),
-            Some((s, u)) => (
-                s,
-                Aabb {
-                    min: u.min.min(wb.min),
-                    max: u.max.max(wb.max),
-                },
-            ),
-        });
+        for &j in &parts {
+            named[j] = true;
+        }
+        out.push(finding(m, space, s, &u, parts));
     }
-    let (s, u) = worst?;
+    out
+}
+
+/// The finding for `parts` (their box `u`) standing in the box `s` of `space`.
+fn finding(m: &Model, space: &Space, s: &Aabb, u: &Aabb, parts: Vec<usize>) -> Raw {
     let what = name_of(m, &parts);
-    let o = overlap(&s, &u);
+    let o = overlap(s, u);
     let at = dsl_point((s.min.max(u.min) + s.max.min(u.max)) / 2.0);
     let declared = if space.src.is_empty() {
         String::new()
@@ -132,12 +140,12 @@ fn finding(m: &Model, space: &Space) -> Option<Raw> {
         },
         space.why
     );
-    let hint = hint(m, &parts, &what, &space.why, &s, &u, o);
-    Some(Raw::new(Rule::FigureClearance, parts, at, message, hint))
+    let hint = hint(m, &parts, &what, &space.why, s, u, o);
+    Raw::new(Rule::FigureClearance, parts, at, message, hint)
 }
 
-/// The smallest move that takes the parts (around `u`) out of the space `s` without running them into another part: up
-/// when they hang into it from above, otherwise sideways, in the DSL's words.
+/// The smallest move that takes the parts (around `u`) out of the box `s`, preferring one that doesn't run them into
+/// another part: up when they hang into it from above, otherwise sideways, in the DSL's words.
 fn hint(m: &Model, parts: &[usize], what: &str, why: &str, s: &Aabb, u: &Aabb, o: DVec3) -> String {
     let allow = "or allow it with m.allow and a reason the user would accept.";
     // LDraw's −y is up: the parts hang in from above when their bottom is inside the space and their top above it.
@@ -159,11 +167,16 @@ fn hint(m: &Model, parts: &[usize], what: &str, why: &str, s: &Aabb, u: &Aabb, o
     moves.sort_by(|a, b| a.0.total_cmp(&b.0));
     let studs = |d: f64| ((d - DEEP) / STUD).ceil();
     let fits = |&(d, dir, _): &(f64, DVec3, &str)| !runs_into(m, parts, dir * studs(d) * STUD);
-    let (d, _, dir) = moves.iter().copied().find(fits).unwrap_or(moves[0]);
-    format!(
-        "Move {what} {} {dir}, or move what needs the space the other way, so a figure fits; {allow}",
-        plural(studs(d), "stud")
-    )
+    match moves.iter().copied().find(fits) {
+        Some((d, _, dir)) => format!(
+            "Move {what} {} {dir}, or move what needs the space the other way, so a figure fits; {allow}",
+            plural(studs(d), "stud")
+        ),
+        None => format!(
+            "Every way out for {what} runs into another part: move what needs the space instead, so a figure fits; \
+             {allow}"
+        ),
+    }
 }
 
 /// Whether `parts`, moved by `by` (LDU), would stand in another part.
@@ -195,8 +208,8 @@ fn height(plates: f64) -> String {
     }
 }
 
-/// What a builder would call the parts: "the canopy" when their ids all start with that word (`canopy-beams/2`,
-/// `canopy-deck/1`), else the first id and how many more.
+/// What a builder would call the parts: "the canopy (canopy-beams/2 and 9 more)" when their ids all start with that
+/// word, else the first id and how many more.
 fn name_of(m: &Model, parts: &[usize]) -> String {
     let ids: Vec<&str> = parts.iter().map(|&i| m.placed[i].p.id.as_str()).collect();
     let word = |id: &str| id.split(['-', '/', '_']).next().unwrap_or("").to_string();

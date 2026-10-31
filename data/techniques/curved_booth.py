@@ -4,7 +4,7 @@
 m.use("curved_booth", x, y, z, facing="-y", color="Red", padding="Red", table="Medium Lavender", title="Booth") stands a
 booth 6 x 4 studs on the studs at height z, its footprint's min corner at (x, y) (4 x 6 facing "+x" or "-x"), its open
 side toward `facing`. On a 4 x 6 base plate, a U of seat (plates under tiles, 1 stud deep, the seat 3 plates up) runs
-round three sides inside a U of back two bricks tall; the back's back corners are round bricks, the open ends round
+around three sides inside a U of back two bricks tall; the back's back corners are round bricks, the open ends round
 bricks as bolsters, and its upper course behind the back seat is bricks with studs on one side carrying 1 x 2 tiles in
 `padding` as the padded stripes. A row of plates caps the back, a 1 x 6 across the back corners tying them. The table in
 the middle is a round 2 x 2 brick as the pedestal, a round 2 x 2 plate and a round tile in `table`, its top 6 plates up,
@@ -28,6 +28,7 @@ PARTS = [
     "3062b",
     "3622",
     "3010",
+    "3004",
     "11211",
     "3069b",
     "3666",

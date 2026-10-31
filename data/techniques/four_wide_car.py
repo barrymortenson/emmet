@@ -12,7 +12,7 @@ stud on the side carrying round clear lenses and a grille; behind the front arch
 plate. The seat keeps clear the 3 bricks over it a seated figure needs (docs/spec/building-rules.md, rule 3): tall=True
 stands the windscreen on a 2 x 4 brick and plate and gives the cab sides three courses and a plate, so the roof is 9
 plates over the seat and the car 6 bricks tall to the roof; tall=False keeps the low cab, its roof 5 plates over the
-seat and the car 5 bricks tall, too low for a seated figure (figure_clearance names it). Returns the z of the roof's
+seat and the car about 5 bricks (14 plates) tall, too low for a seated figure (figure_clearance names it). Returns the z of the roof's
 top, with .underside (the z of the roof's bottom) and .seat (the seat's (x, y) and the z of its top).
 """
 

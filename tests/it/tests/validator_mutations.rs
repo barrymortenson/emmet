@@ -84,7 +84,7 @@ fn built(name: &str) -> (Vec<Placement>, Vec<emmet_core::check::KeepClear>) {
         serde_json::from_slice(&std::fs::read(dir.join("build/placements.json")).unwrap()).unwrap();
     (
         serde_json::from_value(doc["parts"].clone()).unwrap(),
-        serde_json::from_value(doc["keep_clear"].clone()).unwrap_or_default(),
+        serde_json::from_value(doc["keep_clear"].clone()).expect("build/placements.json's keep_clear parses"),
     )
 }
 
@@ -99,6 +99,10 @@ fn figure_faults_are_caught() {
     let mut missed = Vec::new();
     for name in ["figure-clearance-clean", "rung2_reference", "cottage"] {
         let (placements, keep) = built(name);
+        assert!(
+            !keep.is_empty(),
+            "{name} keeps no space clear, so it can't test figure_clearance"
+        );
         let v = corpus::validate_keeping(data, &placements, &keep);
         assert!(
             v.findings

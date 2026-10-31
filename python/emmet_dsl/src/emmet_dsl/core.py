@@ -7,6 +7,7 @@ import contextlib
 import difflib
 import importlib
 import inspect
+import math
 import pkgutil
 import re
 from dataclasses import dataclass, field
@@ -634,6 +635,14 @@ class Model:
                 line,
             )
         boxes = box if isinstance(box, list) else [box]
+        if not boxes:
+            raise EmmetError(
+                "MODEL_EXEC_FAILED",
+                "m.keep_clear needs a box.",
+                "Pass two opposite corners, ((x0, y0, z0), (x1, y1, z1)), in studs and plates, or a list of them.",
+                rel,
+                line,
+            )
         out = []
         for b in boxes:
             try:
@@ -648,7 +657,40 @@ class Model:
                     rel,
                     line,
                 ) from None
-            out.append(frame.box_in_ldraw(tuple(map(min, lo, hi)), tuple(map(max, lo, hi))))
+            if not all(math.isfinite(v) for v in lo + hi):
+                raise EmmetError(
+                    "MODEL_EXEC_FAILED",
+                    f"{b!r} has a corner that isn't a number.",
+                    "Pass finite corners, in studs and plates.",
+                    rel,
+                    line,
+                )
+            # A part must reach more than 1 LDU in on every axis: a side under a tenth of a stud or plate never fires.
+            if any(abs(a - c) < 0.1 for a, c in zip(lo, hi, strict=True)):
+                raise EmmetError(
+                    "MODEL_EXEC_FAILED",
+                    f"{b!r} is flat: no part can stand in it.",
+                    "Give the box depth on every axis: two opposite corners that differ in x, y, and z.",
+                    rel,
+                    line,
+                )
+            # Where Model.repeat and Model.mirror put this copy, as Model.add does: moved, and each open mirror's image.
+            off = self._offset
+            copies = [
+                (
+                    tuple(min(lo[i], hi[i]) + off[i] for i in range(3)),
+                    tuple(max(lo[i], hi[i]) + off[i] for i in range(3)),
+                )
+            ]
+            for axis, about in self._mirrors:
+                k = 0 if axis == "x" else 1
+                images = []
+                for clo, chi in copies:
+                    mlo, mhi = list(clo), list(chi)
+                    mlo[k], mhi[k] = 2 * about - chi[k], 2 * about - clo[k]
+                    images.append((tuple(mlo), tuple(mhi)))
+                copies += images
+            out += [frame.box_in_ldraw(clo, chi) for clo, chi in copies]
         self._keep_clear.append((out, why.strip(), rel, line))
 
     def _ctx(self, what: str, file: str, line: int):
@@ -961,11 +1003,22 @@ LEG_ROOM = 2
 
 
 class _Int(int):
-    pass
+    """An int with attributes (fit): str and f-strings print the number; repr shows the attributes too, so two values
+    with one number and different attributes never key the same submodel."""
+
+    __str__ = int.__repr__
+
+    def __repr__(self):
+        return int.__repr__(self) + (repr(sorted(vars(self).items())) if vars(self) else "")
 
 
 class _Float(float):
-    pass
+    """A float with attributes (fit), as _Int."""
+
+    __str__ = float.__repr__
+
+    def __repr__(self):
+        return float.__repr__(self) + (repr(sorted(vars(self).items())) if vars(self) else "")
 
 
 def fit(value, **info):
@@ -983,6 +1036,8 @@ def door_space(
     `wall` "x" (the wall runs along x at y = at) or "y" (along y at x = at); the door spans `start` to `start + width`
     along it, from z (its bottom) up `height` plates. The space starts a plate above the bottom, where a tile or a mat
     may lie, and reaches APPROACH studs out on each side. Returns the boxes."""
+    if wall not in ("x", "y"):
+        raise ValueError(f'door_space: wall is "x" or "y", not {wall!r}')
     lo, hi = z + 1, z + height
     if wall == "x":
         boxes = [
@@ -1017,6 +1072,8 @@ def seat_space(
     the side a figure sits facing: "front" (−y, the default), "back" (+y), "left" (−x), or "right" (+x).
     ends=False leaves out the studs at the ends (a chair's arms are its ends); legs=False the room in front (a table
     stands there by design). Returns the boxes."""
+    if facing not in ("front", "back", "left", "right"):
+        raise ValueError(f'seat_space: facing is "front", "back", "left", or "right", not {facing!r}')
     lo, top, over = z + 1, z + seat + SEAT_HEADROOM, max(1, depth - 1)
     # The ends first: the recall test takes a seat's first two boxes as its ends.
     local = [((-1, 0, lo), (0, depth, top)), ((length, 0, lo), (length + 1, depth, top))] if ends else []

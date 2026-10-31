@@ -69,7 +69,7 @@ def build(
         for sy in sides:
             m.row(Brick, color, at=(x, sy, z), length=length)
     for sy in sides:
-        # A post at each end and between pairs of windows: post, window, window, post... A window and its glass
+        # A post at each end and between pairs of windows: post, window, post, window... A window and its glass
         # stay in one step.
         actions, a = [], x
         while a < x + length:

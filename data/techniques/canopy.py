@@ -3,12 +3,12 @@
 
 m.use("canopy", x, y, z, length, depth, spacing=8, height=6, style="flat", columns="Dark Green",
 roof="Dark Bluish Gray", title="Canopy") covers the length × depth rectangle whose front-left corner is (x, y), standing
-on studs at height z: a column `height` bricks tall (a Brick 1 x 1 x 5 with 1 x 1 bricks on it) every `spacing` studs
+on studs at height z: a column `height` bricks tall (a Brick 1 x 1 x 5, topped up with 1 x 1 x 3 and 1 x 1 bricks) every `spacing` studs
 along its front and back rows and one at each end (the last bay a little longer, never too narrow to walk through), a beam of plates along each row on top of them, a deck of 2-wide
 plates across from beam to beam, and then a roof: "flat" (tiles over the deck) or "gable" (a gable_roof). height is
 the clear room under the beams: 6 (the default) clears a 1 x 4 x 6 door beside the canopy, and less than 5 can't be
 walked under, so it's 5 to 12. spacing is 4 or more, so a figure fits between columns (docs/spec/building-rules.md).
-length and depth must be even, depth 4 to 16. Leave the column spots free of tiles. It brings its own steps, a stage at
+length and depth must be even, length 6 or more (end columns 4 studs clear), depth 4 to 16. Leave the column spots free of tiles. It brings its own steps, a stage at
 a time, and returns the z of the roof's top, with .columns (the (x, y) of every column, so benches can go between them)
 and .underside (the z of the beams' bottom).
 """
@@ -70,9 +70,9 @@ def build(
     roof="Dark Bluish Gray",
     title="Canopy",
 ):
-    if length % 2 or depth % 2 or not 4 <= depth <= 16:
+    if length % 2 or depth % 2 or length < 6 or not 4 <= depth <= 16:
         raise ValueError(
-            f"canopy needs an even length and an even depth of 4 to 16, not {length} × {depth}"
+            f"canopy needs an even length of 6 or more and an even depth of 4 to 16, not {length} × {depth}"
         )
     if not 5 <= height <= 12:
         raise ValueError(

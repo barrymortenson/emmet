@@ -546,6 +546,13 @@ fn builds_clean(name: &str) {
 
 /// A model of `body` (the lines of a @model function after `m = Model()`) on a baseplate, checked: every finding.
 fn findings_of(name: &str, body: &str) -> serde_json::Value {
+    let (v, code) = check_of(name, body);
+    assert_eq!(code, 0, "{v}");
+    v["data"]["findings"].clone()
+}
+
+/// [`findings_of`]'s check, as its envelope and exit code.
+fn check_of(name: &str, body: &str) -> (serde_json::Value, i32) {
     let dir = temp_dir(&format!("beside-door-{name}")).join("p");
     let out = emmet()
         .arg("--data-dir")
@@ -557,7 +564,8 @@ fn findings_of(name: &str, body: &str) -> serde_json::Value {
     assert!(out.status.success(), "{}", text(&out));
     let (v, code) = emmet_in(&dir, &["trust"]);
     assert_eq!(code, 0, "{v}");
-    let body: String = body.lines().map(|l| format!("    {}\n", l.trim_start())).collect();
+    // Each line indented once into the function, keeping its own indentation (a `with` block's body).
+    let body: String = body.lines().map(|l| format!("    {l}\n")).collect();
     std::fs::write(
         dir.join("model.py"),
         format!(
@@ -567,9 +575,7 @@ fn findings_of(name: &str, body: &str) -> serde_json::Value {
         ),
     )
     .unwrap();
-    let (v, code) = emmet_in(&dir, &["check"]);
-    assert_eq!(code, 0, "{v}");
-    v["data"]["findings"].clone()
+    emmet_in(&dir, &["check"])
 }
 
 /// The techniques a figure walks under or past, each at its defaults against a door_frame's wall (3E, Done when 6):
@@ -824,4 +830,130 @@ fn portcullis_keeps_its_way_through_clear() {
 #[test]
 fn cave_mouth_keeps_its_way_in_clear() {
     keeps_clear("cave_mouth", "m.use(\"cave_mouth\", x=0, y=8, z=0.5)", "3, 6, 0.5");
+}
+
+/// The figure_clearance findings' (rule, parts) in order, leaving the other rules out.
+fn clearance_parts(v: &serde_json::Value) -> Vec<Vec<String>> {
+    v.as_array()
+        .unwrap()
+        .iter()
+        .filter(|f| f["rule"] == "figure_clearance")
+        .map(|f| serde_json::from_value(f["parts"].clone()).unwrap())
+        .collect()
+}
+
+/// A space declared inside m.repeat or m.mirror goes with each copy, as its parts do (the review of PR #49: every copy's
+/// space stayed on the first, so a crate in the second door's way went unseen). The second door is 12 studs on, the
+/// mirrored one across x = 12.
+#[test]
+fn a_space_goes_with_each_repeated_or_mirrored_copy() {
+    let door = "m.use(\"door_frame\", x=0, y=8, z=0.5, length=10, rows=7, offset=3, title=f\"Shop {i + 1}\")";
+    let v = findings_of(
+        "repeat",
+        &format!(
+            "m.repeat(lambda i: {door}, 2, dx=12)\nwith m.step(\"Crate\"):\n    m.add(\"3005\", \"Brown\", at=(16, 6, 0.5), id=\"crate\")"
+        ),
+    );
+    assert_eq!(clearance_parts(&v), [["crate"]], "{v:#}");
+    assert!(v[0]["message"].as_str().unwrap().contains("Shop 2"), "{v:#}");
+    let v = findings_of(
+        "mirror",
+        &format!(
+            "with m.mirror(\"x\", about=12):\n    {}\nwith m.step(\"Crate\"):\n    m.add(\"3005\", \"Brown\", at=(18, 6, 0.5), id=\"crate\")",
+            door.replace("{i + 1}", "1")
+        ),
+    );
+    assert_eq!(clearance_parts(&v), [["crate"]], "{v:#}");
+}
+
+/// A door's space has a box each side of its wall, and the parts in each get their own finding and their own move (the
+/// review: one finding measured a crate behind the door against the box in front of it).
+#[test]
+fn each_side_of_a_door_gets_its_own_finding() {
+    let v = findings_of(
+        "both-sides",
+        &format!(
+            "{}\nwith m.step(\"Crates\"):\n    m.add(\"3005\", \"Brown\", at=(4, 6, 0.5), id=\"crate/front\")\n    \
+             m.add(\"3005\", \"Brown\", at=(5, 10, 0.5), id=\"crate/back\")",
+            DOOR.replace("ROWS", "7")
+        ),
+    );
+    assert_eq!(clearance_parts(&v), [["crate/front"], ["crate/back"]], "{v:#}");
+}
+
+/// What can stand in a figure's way: a door frame does (the review: the whole Door category was skipped, frames with
+/// the leaves), and a figure, an open door leaf, or a figure on a bench doesn't.
+#[test]
+fn a_frame_blocks_a_doorway_and_a_figure_or_a_leaf_doesnt() {
+    let door = DOOR.replace("ROWS", "7");
+    let v = findings_of(
+        "frame-across",
+        &format!(
+            "{door}\nwith m.step(\"Frame\"):\n    m.add(\"60596\", \"White\", at=(3, 6, 0.5), rot=3, id=\"frame\")"
+        ),
+    );
+    assert_eq!(clearance_parts(&v), [["frame"]], "{v:#}");
+    let v = findings_of(
+        "figure-and-leaf",
+        &format!(
+            "{door}\nwith m.step(\"Figure and leaf\"):\n    m.add(\"3817b\", \"Blue\", at=(4, 6, 0.5), id=\"legs\")\n    \
+             m.add(\"60623\", \"Red\", at=(3, 5, 0.5), rot=3, id=\"leaf\")\nwith m.step(\"Bench\"):\n    \
+             m.use(\"bench\", at=(14, 2, 0.5))\nwith m.step(\"Sitter\"):\n    m.add(\"973\", \"Red\", at=(15, 2.5, 5.5), id=\"torso\")"
+        ),
+    );
+    assert_eq!(clearance_parts(&v), Vec::<Vec<String>>::new(), "{v:#}");
+}
+
+/// figure_clearance leads the warnings, after the errors (D-53), whatever its source line; m.allow moves it to allowed.
+#[test]
+fn figure_clearance_leads_the_warnings_and_can_be_allowed() {
+    let door = DOOR.replace("ROWS", "7");
+    let body = format!(
+        "with m.step(\"Nudged\"):\n    m.add(\"3005\", \"Red\", at=(20.2, 2, 0.5), id=\"nudged\")\n{door}\n\
+         with m.step(\"Crate\"):\n    m.add(\"3005\", \"Brown\", at=(4, 6, 0.5), id=\"crate\")\n\
+         with m.step(\"Loose\"):\n    m.add(\"3005\", \"Red\", at=(25, 25, 10), id=\"loose\")"
+    );
+    let v = findings_of("order", &body);
+    let rules: Vec<&str> = v
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|f| f["rule"].as_str().unwrap())
+        .collect();
+    // The errors (the loose brick, and the nudged one, which floats too), then figure_clearance, then off_grid, though
+    // the nudged brick's line comes first.
+    let at = |r: &str| {
+        rules
+            .iter()
+            .position(|x| *x == r)
+            .unwrap_or_else(|| panic!("no {r}: {v:#}"))
+    };
+    assert!(
+        rules[..at("figure_clearance")].iter().all(|r| *r == "floating") && at("figure_clearance") < at("off_grid"),
+        "{rules:?}"
+    );
+    let (v, code) = check_of(
+        "allowed",
+        &format!("{body}\nm.allow(\"figure_clearance\", \"crate\", \"a display crate; no figure goes in\")"),
+    );
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(
+        clearance_parts(&v["data"]["findings"]),
+        Vec::<Vec<String>>::new(),
+        "{v:#}"
+    );
+    assert_eq!(v["data"]["allowed"][0]["rule"], "figure_clearance", "{v:#}");
+}
+
+/// m.keep_clear refuses a space no part could stand in: no box, or a flat one (the review: they were taken and never
+/// fired).
+#[test]
+fn keep_clear_refuses_a_space_that_could_never_fire() {
+    for (box_, says) in [("[]", "needs a box"), ("((0, 0, 1), (4, 0, 10))", "is flat")] {
+        let (v, code) = check_of("bad-space", &format!("m.keep_clear({box_}, \"a path\")"));
+        assert_ne!(code, 0, "{box_}: {v}");
+        assert_eq!(v["error"]["code"], "MODEL_EXEC_FAILED", "{box_}: {v}");
+        assert!(v["error"]["message"].as_str().unwrap().contains(says), "{box_}: {v}");
+        assert_eq!(v["error"]["details"]["line"], 10, "{box_}: {v}");
+    }
 }

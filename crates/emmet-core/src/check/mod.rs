@@ -186,7 +186,7 @@ pub struct Options {
     /// How many parts a step may add before step_size warns: the Age build setting's target (0 means 8, the 6+
     /// target).
     pub step_target: usize,
-    /// The spaces a figure needs that the model declared (`m.keep_clear`), besides the figure doors.
+    /// The spaces a figure needs that the model declared (`m.keep_clear`).
     pub keep_clear: Vec<KeepClear>,
     /// The Scale build setting is one no figure fits (micro, micropolis, midi, car 1:8): figure_clearance is off.
     pub no_figures: bool,

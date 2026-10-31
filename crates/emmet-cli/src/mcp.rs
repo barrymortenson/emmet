@@ -136,7 +136,8 @@ pub struct SaveVersionArgs {
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ValidateArgs {
     /// Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,
-    /// weak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part.
+    /// weak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part,
+    /// figure_clearance.
     #[serde(default)]
     pub rules: Option<Vec<String>>,
     /// Parameter values to check, on top of params.json, which isn't changed: runs the model with them first. Use it

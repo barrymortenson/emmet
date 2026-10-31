@@ -26,10 +26,13 @@ Anything a figure walks under starts at or above the top of the door beside it: 
 shelter's roof, an arcade, a balcony, an archway. For a 1 x 4 x 6 door that's 6 bricks (18 plates) above the floor the
 figure stands on; with no door beside it, at least 5 bricks (a figure with a hat, and a brick to spare).
 
-- Enforced by: **technique** (`canopy`, `porch_posts`, `turned_post_porch`, `lean_to_awning`,
-  `wing_plate_porch_roof`, `door_hood`, the awnings, and the colonnades clear a 6-brick door at their defaults and take
-  a `height` argument), **validator** (a door's keep-clear box reaches the door's top, so a roof lower than the door
-  over the space in front of it is a finding), **render review** (a walk-under with no door beside it).
+- Enforced by: **technique** (`canopy`, `porch_posts`, and `double_arch_colonnade` take a `height`, 6 bricks by
+  default, and refuse under 5; `turned_post_porch` takes `tiers`, 5 by default (20 plates); `lean_to_awning` refuses
+  a front edge under 5 bricks over its ground, or under the door top passed as `clears`; `wing_plate_porch_roof`
+  refuses under 5 bricks; `door_hood`, `scalloped_awning`, `corbelled_balcony`, and `cross_gable` say where their z
+  goes against a door's top and return their `.underside`), **validator** (a door's keep-clear box reaches the door's
+  top, so a roof lower than the door over the space in front of it is a finding), **render review** (a walk-under with
+  no door beside it).
 
 ## 2. A doorway's approach
 
@@ -57,10 +60,11 @@ the legs, and headroom above it: 3 bricks over the seat with nothing in the way.
 Posts, columns, and pillars a figure walks between stand with 3 studs or more clear between them (a figure is 2
 wide). No post or column stands in line with a door: in its approach (rule 2).
 
-- Enforced by: **technique** (`canopy`, `porch_posts`, `turned_post_porch`, and the colonnades space their columns 3
-  or more studs clear by default, refuse less, and return where the columns stand; porches and colonnades declare the
-  way in between their front posts), **validator** (a column in a door's approach or a porch's way in), **render
-  review**.
+- Enforced by: **technique** (`canopy` refuses a spacing under 4 or a length under 6 and leaves no last bay under 3
+  studs clear; `porch_posts` and `lean_to_awning` refuse a length under 5; `footbridge` stands its posts outside the
+  deck; each returns where its columns or posts stand; the porches keep their way in clear when given a `gap`, and
+  `double_arch_colonnade` each bay's way through), **validator** (a column in a door's approach or a porch's way in),
+  **render review**.
 
 ## 5. How parts meet
 
@@ -85,7 +89,10 @@ they're for a figure.
 
 ## How a finding reads
 
-`figure_clearance` names what the space is for and the fix in a builder's words, the smallest move that clears it:
-"Canopy, beams sits 2 plates into the space a figure needs to walk out of the booth's door (up to its top, 6 bricks).
-Raise the canopy 2 plates so it clears the door." The agent fixes it, or allows it with `m.allow` and a reason the user
-would accept ("the bench is a display piece; no figure sits there").
+`figure_clearance` names the parts, what the space is for, and where it was declared, and its hint is the smallest move
+that clears it in a builder's words (preferring one that doesn't run into another part), as in the golden
+`broken-figure-clearance`: "The canopy (canopy-beams/2 and 9 more) stands inside the space kept clear for a figure
+walking through the door of Shop (declared at model.py:13)." and "Raise the canopy (canopy-beams/2 and 9 more) a brick
+so it clears the space for a figure walking through the door of Shop, or allow it with m.allow and a reason the user
+would accept." The agent fixes it, or allows it with `m.allow` and a reason the user would accept ("the bench is a
+display piece; no figure sits there").

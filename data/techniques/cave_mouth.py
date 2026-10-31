@@ -12,7 +12,7 @@ too low to walk into. Behind the opening, two studs back, black bricks are the c
 and into the arch's backing. A 75° slope leans on each jamb's front as a buttress (keep two studs clear in front of y),
 and a 2 x 4 slope over the arch, 2 x 1 slopes beside it, and cheese slopes on top break the rock's top. A mouth 5
 courses high or more keeps clear the way in (3 studs out in front, from a plate above the ground up to where the arch
-springs; rule 2), so a rock or a barrel in it is a figure_clearance finding. Returns the z of the top, with .door_top
+springs; rule 2), so a rock or a barrel in it is a figure_clearance finding. Returns the z of the rock's top under its cheese slopes, with .door_top
 (the z the arch springs from) and .door ((x0, y0), (x1, y1), the mouth's footprint, 2 studs deep to the dark inside).
 """
 

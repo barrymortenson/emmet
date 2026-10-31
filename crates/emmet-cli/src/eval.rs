@@ -256,7 +256,8 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
             opts.rung
         )));
     }
-    let rung = rung(LADDER, &opts.rung)
+    // `--rung t1` names the same prompt as T1.
+    let rung = rung(LADDER, &opts.rung.to_ascii_uppercase())
         .ok_or_else(|| Error::internal(format!("docs/spec/ladder.md has no rung {}", opts.rung)))?;
     let (budget, max_turns) = limits(&opts.rung);
     let tag = opts.rung.to_lowercase();
@@ -646,11 +647,15 @@ fn score_technique(data: &DataDir, project: &Project, run: &Run, budget: Duratio
     let checked = built
         .as_ref()
         .ok()
-        .and(emmet_core::ops::check_build(data, project, &[]).ok());
+        .map(|_| emmet_core::ops::check_build(data, project, &[]));
+    // What the rule had to check, and what the model allowed: a 0 with no spaces or with every finding allowed isn't a
+    // clean model.
+    let spaces = emmet_core::ops::check_options(project).map_or(0, |o| o.keep_clear.len());
     let (runs, clearance) = match (&built, &checked) {
-        (Ok(r), Some(v)) => {
+        (Ok(r), Some(Ok(v))) => {
             let counts: Vec<String> = v.counts.iter().map(|(rule, n)| format!("{rule} {n}")).collect();
             let n = v.counts.get("figure_clearance").copied().unwrap_or(0);
+            let allowed = v.allowed.iter().filter(|a| a.rule == "figure_clearance").count();
             (
                 (
                     v.errors() == 0,
@@ -666,13 +671,17 @@ fn score_technique(data: &DataDir, project: &Project, run: &Run, budget: Duratio
                         }
                     ),
                 ),
-                (n == 0, format!("{n} findings")),
+                (
+                    n == 0,
+                    format!("{n} findings, {allowed} allowed, in {spaces} spaces kept clear"),
+                ),
             )
         }
-        (Ok(_), None) => (
-            (false, "the validator couldn't run".into()),
-            (false, "the validator couldn't run".into()),
-        ),
+        (Ok(_), Some(Err(e))) => {
+            let why = format!("the validator couldn't run: {:?}: {}", e.code, e.message);
+            ((false, why.clone()), (false, why))
+        }
+        (Ok(_), None) => unreachable!("a model that ran is checked"),
         (Err(e), _) => (
             (false, format!("{:?}: {}", e.code, e.message)),
             (false, "the model doesn't run".into()),

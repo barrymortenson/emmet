@@ -54,7 +54,7 @@ def build(
     stone="Dark Bluish Gray",
     title="Bridge",
 ):
-    """The bridge; returns the z of its deck's top."""
+    """The bridge; returns the z of its deck's top, with .posts."""
     if span + 2 not in LONG or width not in (3, 4):
         raise ValueError(
             f"footbridge takes an even span of 2 to 10 and a width of 3 or 4 (a figure needs 3 studs between the "

@@ -9,8 +9,8 @@ wall behind. It's two 1 x 2 plates as legs under a plate frame, a curved slope 2
 1 tiles checkered in quilt and quilt2 that a figure lies on (its top 3 plates up). posts=False gives a brick and tile
 headboard; posts=True gives four corner posts of round bricks with cones on top, tall at the head and short at the
 foot (the four-poster), on a frame 2 studs longer, so the foot posts stand past the figure's feet. A figure lies on 5
-studs of quilt and pillow (6 in the four-poster), and the bed keeps 2 bricks clear over them
-(docs/spec/building-rules.md, rule 3). It's a submodel, built once in its own steps, "<title>, frame", "<title>, head"
+studs of quilt and pillow (6 in the four-poster), and the bed keeps the room a lying figure needs clear: 2 bricks over
+the quilt and 5 plates over the pillow (as rule 3 keeps a seat's room, docs/spec/building-rules.md). It's a submodel, built once in its own steps, "<title>, frame", "<title>, head"
 (with the pillow), "<title>, foot" (with posts), and "<title>, quilt", placed in a step titled "<title>" with the id
 `id` (by default the submodel's own), so that room moves with every copy; it returns the placed copy's Handle.
 """

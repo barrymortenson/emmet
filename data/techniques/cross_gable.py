@@ -14,7 +14,7 @@ hangs under the cross gable's front, faced with a tile 1 x 4: the sign. depth mu
 project 1 or 2; at from x + 1 to x + length - 5. A figure walks under the projection into the door: its lowest part
 (the sign's bottom, z - 4 projecting 2 and z - 3 projecting 1; without a sign, the soffit's, z - 1, or the slopes', z)
 starts at or above the door's top (a door_frame's .door_top), so with a sign, z is 4 plates or more over the door's
-top (docs/spec/building-rules.md, rule 1). It brings its own steps and returns the z of the ridge's top, with
+top (3 projecting 1) (docs/spec/building-rules.md, rule 1). It brings its own steps and returns the z of the ridge's top, with
 .underside (the z of that lowest part).
 """
 

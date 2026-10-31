@@ -7,7 +7,7 @@ one plate course of a wall one stud thick and `length` studs long along x from (
 arm color at each of `at` (studs from the wall's start; by default one near each end), its back stud in the wall and its
 front stud a stud out; plates in the wall color fill the rest. Under each arm's front stud hangs a lantern: a round 1 x
 1 plate as the cap, a round 1 x 1 brick in the glass color, and a round 1 x 1 plate and a cone under it, each held by
-the stud of the one below in its underside. Lay the courses below and above as usual; a lamp hangs 6 plates below the
+the stud of the one below in its underside. Lay the courses below and above as usual; a lamp hangs 7 plates below the
 course, a stud in front of the wall. Returns the z of the course's top.
 """
 

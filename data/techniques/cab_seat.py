@@ -16,7 +16,7 @@ PROVENANCE = """Emmet's own (session 3C), written from general building knowledg
 PARTS = ["30640", "30663", "4079"]
 
 
-# The steering wheel on the holder's column, which leans 45° to the front: the holder's pin (the LDCad connector
+# The steering wheel on the holder's column, which leans 45° back toward the seat: the holder's pin (the LDCad connector
 # data) and the wheel's hole, as an LDraw offset from the holder's origin and the wheel's turn.
 WHEEL_AT = (0, -19.799, 11.515)
 WHEEL_TURN = (-1, 0, 0, 0, 0.70710678, -0.70710678, 0, -0.70710678, -0.70710678)

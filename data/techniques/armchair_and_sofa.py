@@ -4,7 +4,7 @@ armchair 4 studs wide to a sofa 8 wide, built apart and placed.
 
 m.use("armchair_and_sofa", x, y, z, kind="armchair", length=6, facing="-y", color="Dark Red", cushion="Tan", title=None)
 stands a seat on the studs at height z, its footprint's min corner at (x, y), its seat toward `facing`. kind="armchair"
-is 4 studs wide; kind="sofa" is `length` studs wide (6 or 8). Either is 2 deep (so 4 x 2 or length x 2 facing "-y" or
+is 4 studs wide; kind="sofa" is `length` studs wide (4, 6, or 8). Either is 2 deep (so 4 x 2 or length x 2 facing "-y" or
 "+y", turned for "+x" or "-x"): a 2-deep base plate, an arm at each end (a brick with a curved slope on top, low at the
 front), a seat of plates topped with 1 x 2 cushion tiles whose top is 3 plates up, and a back two bricks tall whose
 upper course is bricks with studs on one side carrying 1 x 2 tiles as padding, capped with tiles. It keeps clear the
@@ -105,7 +105,7 @@ def build(
         raise ValueError(f'kind must be "armchair" or "sofa", not {kind!r}')
     width = 4 if kind == "armchair" else length
     if width not in (4, 6, 8):
-        raise ValueError(f"a sofa is 6 or 8 studs long, not {length}")
+        raise ValueError(f"a sofa is 4, 6, or 8 studs long, not {length}")
     title = title or kind.capitalize()
     sub = m.submodel(
         kind, _seat, kind=kind, width=width, color=color, cushion=cushion, title=title

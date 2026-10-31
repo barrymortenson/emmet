@@ -19,6 +19,7 @@ const RULES: Record<string, [tag: string, headline: (n: number) => string]> = {
   color_unavailable: ["Color not made", (n) => (n === 1 ? "1 part was never made in its color" : `${n} parts were never made in their color`)],
   obsolete_part: ["Obsolete", (n) => (n === 1 ? "1 part is obsolete" : `${n} parts are obsolete`)],
   alias_part: ["Renamed", (n) => (n === 1 ? "1 part has a newer number" : `${n} parts have newer numbers`)],
+  figure_clearance: ["No room for a figure", (n) => (n === 1 ? "1 part stands where a figure needs room" : `${n} parts stand where a figure needs room`)],
 };
 
 const rule = (r: string): [string, (n: number) => string] => RULES[r] ?? [r.replaceAll("_", " "), (n) => `${n} parts need a look`];
