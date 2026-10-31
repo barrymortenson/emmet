@@ -161,14 +161,15 @@ window.EMMET_STATUS = {
     },
     "3E": { status: "todo" },
     "4B": {
-      status: "review", pr: 48, branch: "bmortenson/s4b-chat-agent-ux", started: "2026-10-30",
+      status: "done", pr: 48, branch: "bmortenson/s4b-chat-agent-ux", started: "2026-10-30",
       evidence: [
+        "CI ci check green #48 (run 41224787223: mac with the full E2E suite, 18 of 18 specs, plan; windows and nsis paused, D-43)",
         "tests/e2e/specs/{dock,chat,bus}.e2e.mjs; macOS side-by-sides of every chat state in docs/spec/sessions/4B/side-by-side/",
         "tests/e2e/specs/bus.e2e.mjs: a terminal agent's highlight, the bar naming it (MCP 2026-07-28 and initialize), Zoom to them, Clear",
         "docs/spec/sessions/4B/terminal-agent-highlight.mp4: Claude Code in Terminal highlights the station's benches in the open app",
         "Barry's rung 2 hand sessions: tests/replay/{claude,codex}/rung2.jsonl replayed by tests/it/tests/agent_{claude,codex}.rs"
       ],
-      note: "Windows halves of Done when 1 and 2 wait for the Windows pass (D-43)"
+      note: "Barry 2026-10-31 (D-43): merged with the Windows halves of Done when 1 and 2 waiting for the Windows pass"
     },
     "4C": { status: "todo" },
     "4D": { status: "todo" },
