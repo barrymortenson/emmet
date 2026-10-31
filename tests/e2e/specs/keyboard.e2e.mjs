@@ -160,6 +160,9 @@ describe("the keyboard map", () => {
         let ring = s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2;
         at.removeAttribute("data-e2e-focus");
         // A field that shows focus on its box, as the composer does (its border turns the accent color, :focus-within).
+        // The box's own border is read with the field blurred: in an active window :focus-within already matches, and
+        // the marked copy would change nothing.
+        at.blur();
         for (let box = at.parentElement; !ring && box; box = box.parentElement) {
           const before = getComputedStyle(box).borderColor;
           box.setAttribute("data-e2e-within", "");
