@@ -692,3 +692,42 @@ fn cross_gable_clears_a_door_under_it() {
         "m.use(\"cross_gable\", x=0, y=8, z=wall, length=10, depth=6, at=3)",
     );
 }
+
+/// The seats (3E, building rule 3), each at its defaults on a baseplate: no findings, figure_clearance included; and a
+/// 1 x 1 brick at `at`, where a seated figure's legs or shoulder go, is one figure_clearance finding that names the
+/// seat.
+fn seat_keeps_clear(name: &str, seat: &str, at: (u32, u32), why: &str) {
+    assert_eq!(findings_of(name, seat), serde_json::json!([]), "{name} at its defaults");
+    let brick = format!("m.add(\"3005\", \"White\", at=({}, {}, 0.5), id=\"post\")", at.0, at.1);
+    let v = findings_of(name, &format!("{seat}\n{brick}"));
+    let hits: Vec<_> = v
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|f| f["rule"] == "figure_clearance")
+        .collect();
+    assert_eq!(hits.len(), 1, "{name} with a brick in the way: {v:#}");
+    assert!(hits[0]["message"].as_str().unwrap().contains(why), "{v:#}");
+}
+
+#[test]
+fn an_armchair_keeps_clear_the_room_in_front_of_it() {
+    // The armchair is x 2 to 6 and y 4 to 6, its seat x 3 to 5 facing -y: the brick stands where the legs go.
+    seat_keeps_clear(
+        "armchair_and_sofa",
+        "m.use(\"armchair_and_sofa\", x=2, y=4, z=0.5)",
+        (3, 3),
+        "a figure sitting on the armchair",
+    );
+}
+
+#[test]
+fn a_chair_keeps_clear_a_stud_beside_it() {
+    // The round set is x 2 to 6 and y 2 to 6; its first chair is at (2, 3) facing +x: the brick stands at its end.
+    seat_keeps_clear(
+        "table_and_chairs",
+        "m.use(\"table_and_chairs\", x=2, y=2, z=0.5)",
+        (2, 2),
+        "a figure sitting on the chair",
+    );
+}

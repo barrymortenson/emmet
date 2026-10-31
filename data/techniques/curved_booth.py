@@ -8,11 +8,14 @@ round three sides inside a U of back two bricks tall; the back's back corners ar
 bricks as bolsters, and its upper course behind the back seat is bricks with studs on one side carrying 1 x 2 tiles in
 `padding` as the padded stripes. A row of plates caps the back, a 1 x 6 across the back corners tying them. The table in
 the middle is a round 2 x 2 brick as the pedestal, a round 2 x 2 plate and a round tile in `table`, its top 6 plates up,
-3 over the seat. It's a submodel, built once in its own steps, "<title>, seat", "<title>, back", "<title>, padding and
-cap", and "<title>, table", placed in a step titled "<title>"; it returns the placed copy's Handle.
+3 over the seat. The booth keeps clear 3 bricks over each seat, short of the padding (docs/spec/building-rules.md,
+rule 3): the table stands in front of the seats, and the seats meet at the corners, by design. It's a
+submodel, built once in its own steps, "<title>, seat", "<title>, back", "<title>, padding and cap", and "<title>,
+table", placed in a step titled "<title>", so that room moves with every copy; it returns the placed copy's Handle.
 """
 
 from emmet_dsl import Rot
+from emmet_dsl.core import SEAT_HEADROOM
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 10352. Not derived from any
 model file."""
@@ -34,6 +37,7 @@ PARTS = [
 ]
 
 PANEL = Rot(y=-90, z=90)  # a 1 x 2 tile on its back, its face to -y, long along x
+SEAT = 3  # the seat's top, in plates over the booth's bottom
 
 FACING = {
     "-y": 0,
@@ -95,6 +99,16 @@ def _booth(m, color, padding, table, title):
         m.add("3941", "Light Bluish Gray", at=(2, 0, 1), id="table/pedestal")
         m.add("4032b", "Light Bluish Gray", at=(2, 0, 4), id="table/plate")
         m.add("14769", table, at=(2, 0, 5), id="table/top")
+    # Over the left, right, and back seats, up to y = 2.5: the padding stands 0.4 studs out over the back seat's row.
+    top = SEAT + SEAT_HEADROOM
+    m.keep_clear(
+        [
+            ((1, 0, SEAT), (2, 2.5, top)),
+            ((4, 0, SEAT), (5, 2.5, top)),
+            ((2, 2, SEAT), (4, 2.5, top)),
+        ],
+        "a figure sitting in the booth",
+    )
 
 
 def build(
