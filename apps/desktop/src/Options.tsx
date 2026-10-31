@@ -99,7 +99,7 @@ export function rebuildWords(before: BuildSettings, after: BuildSettings): strin
   return `Rework the model for the new build settings: ${changes.join(", ")}.`;
 }
 
-/** The message Rebuild sends to the agent: what changed, in words. */
+/** What Rebuild gives the agent as the turn's details (the chat shows rebuildWords): what changed, in words. */
 export function rebuildRequest(before: BuildSettings, after: BuildSettings): string {
   const changes = ORDER.filter((k) => (before[k] ?? null) !== (after[k] ?? null)).map((k) => `${BRIEF[k].label}: ${said(after[k])}`);
   const all = ORDER.map((k) => `${BRIEF[k].label} ${said(after[k])}`).join(", ");

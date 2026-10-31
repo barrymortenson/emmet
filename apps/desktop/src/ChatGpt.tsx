@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Sign in with ChatGPT's UI (1E), in OpenAI's words from its UI/UX guidelines, in the frozen design (4B) but for the
 // button, which keeps OpenAI's own look: the "Continue with ChatGPT" button in OpenAI's approved black format (the only place
-// the ChatGPT logo appears), the one-time "You're using your ChatGPT plan" notice, "Using ChatGPT plan · Manage usage"
-// near the composer, the usage-limit card with Manage usage first, the banner inviting API-key users, and Settings'
+// the ChatGPT logo appears), the one-time "You're using your ChatGPT plan" notice, the usage-limit card with Manage usage first, the banner inviting API-key users, and Settings'
 // account picker. The host opens ChatGPT's usage page; the window never sees a token.
 import { Dialog } from "radix-ui";
 import { useCallback, useEffect, useState } from "react";

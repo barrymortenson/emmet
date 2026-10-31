@@ -776,6 +776,25 @@ fn a_linked_transcripts_folder_isnt_written_through() {
     );
 }
 
+/// The same with the transcript file itself a link: a project chooses its session ids, so it could point one at a file
+/// of the user's. Nothing is written through it.
+#[cfg(unix)]
+#[test]
+fn a_linked_transcript_file_isnt_written_through() {
+    let rig = Rig::new("claude-linked-transcript-file", "claude", "plain-turn");
+    let elsewhere = emmet_it::temp_dir("linked-transcript-file-target").join("notes.txt");
+    std::fs::write(&elsewhere, "the user's own file\n").unwrap();
+    let dir = rig.project.join(".emmet/transcripts");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::os::unix::fs::symlink(&elsewhere, dir.join(format!("{}.jsonl", rig.cfg.id))).unwrap();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(turn("Reply with exactly the word: ready")).unwrap();
+    let events = ev.turn();
+    s.close();
+    assert!(events.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })));
+    assert_eq!(std::fs::read_to_string(&elsewhere).unwrap(), "the user's own file\n");
+}
+
 /// Rung 1, replayed from 1D's live eval run (scrubbed and trimmed to the fixture limit, 4B): from the empty template to
 /// the cottage, through Emmet's real tools. It passed 1D's validator with no errors; 3A's step rules came later, so the
 /// count of what they'd flag is pinned here, not required to be zero.

@@ -275,7 +275,7 @@ export function Choose({ label, value, items, onChange, id }: { label: string; v
   );
 }
 
-/** One line of text: a version's name, Other on a question, an edit to a redirect. */
+/** One line of text: Other on a question, an edit to a redirect. */
 export function TextField({ label, value, onChange, placeholder, id }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; id?: string }) {
   return <input className="text-field" data-c="text-field" type="text" aria-label={label} placeholder={placeholder} value={value} id={id} onChange={(e) => onChange(e.target.value)} />;
 }

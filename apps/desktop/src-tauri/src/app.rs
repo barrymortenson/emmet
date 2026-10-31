@@ -342,7 +342,8 @@ pub struct BusCamera {
 /// The views the viewer has (plan section 13), as the bus and the window name them.
 const VIEWS: [&str; 6] = ["iso", "front", "top", "back", "left", "right"];
 
-/// What the user sees in the viewer, as the window last said: the bus's `selection` and `camera` answer from it.
+/// What the user sees in the viewer, as the window or an agent's `camera` last set it: the bus's `selection` and
+/// `camera` answer from it.
 #[derive(Default)]
 struct Viewing {
     selection: Vec<String>,
@@ -856,9 +857,11 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
                 let _ = BusCamera { view: v.clone() }.emit(app);
                 viewing.view = v;
             }
+            // With what's selected, which the camera tool's answer says too.
             Reply {
                 delivered: true,
                 camera: Some(serde_json::json!({ "view": viewing.view })),
+                selected: viewing.selection.clone(),
                 ..Default::default()
             }
         }

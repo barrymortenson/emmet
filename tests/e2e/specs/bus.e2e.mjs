@@ -112,5 +112,14 @@ describe("a terminal agent and the open app", () => {
     const r = await agent.call("selection", {});
     expect([...r.data.selected].sort()).toEqual(picked);
     expect(r.text).toContain(`Selected (${picked.length})`);
+    // Turning the view says what's selected too.
+    expect((await agent.call("camera", {})).text).toContain(`Selected (${picked.length})`);
+  });
+
+  it("forgets the pick when a project opens", async () => {
+    await open(dir);
+    const r = await agent.call("selection", {});
+    expect(r.data.selected).toEqual([]);
+    expect(r.text).toContain("Nothing is selected");
   });
 });

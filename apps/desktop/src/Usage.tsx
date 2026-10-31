@@ -63,10 +63,12 @@ export function PlanBadge({
   onSnapshot: (s: UsageSnapshot) => void;
 }) {
   const [snap, setSnap] = useState<UsageSnapshot | null>(null);
+  const [checking, setChecking] = useState(false);
   const now = Date.now();
 
   const fetch = useCallback(async () => {
-    const s = await commands.usage(kind);
+    setChecking(true);
+    const s = await commands.usage(kind).finally(() => setChecking(false));
     if (s) {
       setSnap(s);
       onSnapshot(s);
@@ -125,7 +127,7 @@ export function PlanBadge({
             ))
           ) : (
             <p className="small" id="usage-none">
-              {shown?.status === "api_key" ? "Claude Code bills an API key, which has no plan meters." : shown?.status === "unavailable" ? `Usage unavailable: ${shown.failure ?? "Claude Code didn't report it."}` : shown ? "Usage unknown: Claude Code reported no meters." : "Checking…"}
+              {shown?.status === "api_key" ? "Claude Code bills an API key, which has no plan meters." : shown?.status === "unavailable" ? `Usage unavailable: ${shown.failure ?? "Claude Code didn't report it."}` : shown ? "Usage unknown: Claude Code reported no meters." : checking ? "Checking…" : "No usage report yet."}
             </p>
           )}
           {shown?.credits?.enabled && (

@@ -69,7 +69,7 @@ type Chat = {
   question: string | null;
   stopped: boolean;
   crashed: boolean;
-  /** From the session's start: the model, who pays, and whether it's Codex on the ChatGPT plan. */
+  /** From the session's start: the model, whether it's Codex on the ChatGPT plan, and the models it offers. */
   model: string | null;
   plan: boolean;
   models: ModelChoice[];
@@ -309,6 +309,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const session = useRef<string | null>(null);
   /** The message on its way to the host, which a redirect waits for. */
   const sending = useRef<Promise<unknown> | null>(null);
+  /** A message is starting the agent: chatSend hasn't returned the conversation's id yet. */
+  const starting = useRef(false);
   const input = useRef<HTMLTextAreaElement | null>(null);
   /** Event `at` times waiting for their commit, and the measured event → DOM times (ms). */
   const painting = useRef<number[]>([]);
@@ -341,7 +343,11 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   useEffect(() => {
     const offs = [
       events.chatEvent.listen(({ payload }) => {
-        if (payload.session !== session.current) return;
+        if (payload.session !== session.current) {
+          // The project's first conversation, which a message is starting: its first events name it.
+          if (!(session.current === null && starting.current)) return;
+          session.current = payload.session;
+        }
         painting.current.push(payload.at ?? Date.now());
         dispatch({ type: "event", event: payload.event, at: payload.at ?? Date.now() });
         if (payload.event.type === "turn_done") setTurns((n) => n + 1);
@@ -389,8 +395,9 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     const ctx = { ...context(), detail };
     // While a question is open, what the user types is its Other answer (plan section 10).
     if (chat.question && !from) {
-      dispatch({ type: "answered", id: chat.question, answer: t });
-      await run(() => commands.chatAnswer(chat.question!, { choices: [], other: t }));
+      const id = chat.question;
+      // Answered once the agent has it: a failed answer leaves the card open to try again.
+      if (await run(() => commands.chatAnswer(id, { choices: [], other: t }))) dispatch({ type: "answered", id, answer: t });
       return;
     }
     if (chat.running) {
@@ -403,16 +410,23 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
       return;
     }
     dispatch({ type: "user", text: t, from, at: Date.now() });
+    const before = session.current;
+    // The conversation the message goes to, so its first events (Codex's model, on the plan or not) are taken while
+    // chatSend is still starting the agent, and an agent Start fresh just closed isn't.
+    session.current ??= state?.sessions.at(-1)?.info.id ?? null;
     const call = commands.chatSend(t, ctx, from);
     sending.current = call;
-    const r = await call;
+    starting.current = true;
+    const r = await call.finally(() => {
+      starting.current = false;
+    });
     if (r.status === "error") {
       setError(`${r.error.message} ${r.error.hint}`.trim());
       dispatch({ type: "event", event: { type: "turn_done", reason: "failed" }, at: Date.now() });
       return;
     }
     setError(null);
-    if (session.current !== r.data) {
+    if (before !== r.data) {
       session.current = r.data;
       void commands.chatState().then(setState);
     }
@@ -562,9 +576,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         dispatch({ type: "decided", id, how: d });
         void run(() => commands.chatRespond(id, d));
       },
-      answer: (id: string, choices: string[], other: string | null) => {
-        dispatch({ type: "answered", id, answer: [...choices, ...(other ? [other] : [])].join(", ") });
-        void run(() => commands.chatAnswer(id, { choices, other }));
+      answer: async (id: string, choices: string[], other: string | null) => {
+        if (await run(() => commands.chatAnswer(id, { choices, other }))) dispatch({ type: "answered", id, answer: [...choices, ...(other ? [other] : [])].join(", ") });
       },
       restart: () => void restart(),
     };
@@ -584,7 +597,6 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   // The card that needs you shows once: below the history, not in it too.
   // Only while History is open: every event would build the whole list again otherwise.
   const rows = useMemo(() => (open ? fold(openCard ? chat.items.slice(0, -1) : chat.items, kind ?? "claude", chat, actions) : []), [chat, kind, openCard, open]);
-  // The latest line when nothing needs you: the last step or the agent's last words.
   // The latest line: while the agent works it's always there, so the dock (and the model above it) doesn't jump: the
   // newest step, running or done, or the agent's latest words on one line; before the first, a step's worth of space.
   const shownLine = [...chat.items].reverse().find((i) => ["tool", "file", "note", "agent", "thinking"].includes(i.k) && (chat.running || i === last));

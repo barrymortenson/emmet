@@ -200,7 +200,7 @@ impl TurnContext {
     }
 }
 
-/// A model the session can use, and the efforts it takes, as the CLI documents them (plan section 10). `id` is what
+/// A model the session can use, and the efforts it takes, as the CLI reports or documents them (plan section 10). `id` is what
 /// goes back to the CLI; an empty `id` is the CLI's own default.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
@@ -490,7 +490,8 @@ pub fn model_id(s: &str) -> bool {
 }
 
 impl SessionConfig {
-    /// Refuses an id or resume token that isn't plain (see [`plain_id`]).
+    /// Refuses an id or resume token that isn't plain (see [`plain_id`]), and a model or effort that isn't a plain
+    /// name (see [`model_id`]).
     pub(crate) fn check(&self) -> Result<()> {
         let bad_name = |v: &Option<String>| v.as_deref().is_some_and(|m| !model_id(m));
         if !plain_id(&self.id) || self.resume.as_deref().is_some_and(|r| !plain_id(r)) {

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The window, to the frozen design (plan section 14, docs/design/frozen; session 4A): the viewer on the left with the
 // title row over it and the chat docked along its bottom, the options panel on the right behind a resizable separator,
-// banners across the viewer's top, and first run as one card over everything until a project is open. The chat's
-// internals are 1C's until 4B, and the viewer is 1B's until 4C. Every action (keys, macOS's menu bar, Windows' title-row
+// banners across the viewer's top, and first run as one card over everything until a project is open. The viewer is
+// 1B's until 4C. Every action (keys, macOS's menu bar, Windows' title-row
 // menus, the project chip's menu) goes through `run`.
 import { createViewer, type Theme, type View, type Viewer } from "@emmet/viewer";
 import { Toast, Tooltip } from "radix-ui";
@@ -152,7 +152,7 @@ export function App() {
     const v = createViewer(canvas, { partSource: library, theme });
     viewer.current = v;
     if (__EMMET_TEST_HOOKS__) {
-      // Merged: the chat pane adds its own hooks, and a child's effects run first.
+      // Merged: the chat dock adds its own hooks, and a child's effects run first.
       const w = window as unknown as { __emmet?: Record<string, unknown> };
       w.__emmet = {
         ...(w.__emmet ?? {}),
@@ -225,6 +225,8 @@ export function App() {
       framed.current = at;
       v.setView("iso");
       setView("iso");
+      viewNow.current = "iso";
+      tellHost();
     }
   }, []);
 
@@ -238,6 +240,9 @@ export function App() {
         setViewerError(null);
         setSelected(null);
         setPointing(null);
+        // Nothing is picked in the new project: the agent's `selection` and the next turn's context say so.
+        picked.current = [];
+        tellHost();
         setStep(null);
         setSub(null);
         setCompare(null);

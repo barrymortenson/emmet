@@ -160,6 +160,8 @@ for (const kind of ["claude", "codex"]) {
       // The end of a turn fetches plan usage (D-36): Claude's meters, Codex's billing state.
       if (kind === "claude") await expect($("#plan-badge")).toHaveText(expect.stringMatching(/^Max plan · \d+%$/), { wait: 10_000 });
       await expect($("#chat-status")).toHaveText(expect.stringContaining("Done in"));
+      // The agent named its model as the first message started it, before chatSend returned: the chip has it.
+      expect(await (await $("#model-chip")).getText()).not.toContain("Default");
       expect(sources(projects[kind])).not.toEqual(was);
       await screenshots(`chat-built-${kind}`);
       // Undo turn by its button, and by ⌥⌘Z (docs/design/keyboard.md).

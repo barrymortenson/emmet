@@ -137,7 +137,7 @@ export const commands = {
 	chatState: () => __TAURI_INVOKE<ChatState>("chat_state"),
 	/**
 	 *  A new conversation with `kind` (the agent picker), or with the same agent (Start fresh): the agent running now
-	 *  ends, and its conversation is kept. Nothing starts until the next message.
+	 *  ends, and its conversation is kept if anything was said in it. Nothing starts until the next message.
 	 */
 	chatFresh: (kind: AgentKind | null) => typedError<SessionInfo, Problem>(__TAURI_INVOKE("chat_fresh", { kind })),
 	/**
@@ -151,7 +151,7 @@ export const commands = {
 	 */
 	chatRestart: () => typedError<string, Problem>(__TAURI_INVOKE("chat_restart")),
 	/**
-	 *  Undo turn (⌥⌘Z): restores the version saved before the agent's last turn that changed the sources. The restore
+	 *  Undo turn (⌥⌘Z): restores the version saved before the agent's last turn, if that turn changed the sources. The restore
 	 *  saves the state it replaces first, so Undo turn can be undone from Versions. Returns that version.
 	 */
 	chatUndo: () => typedError<VersionView, Problem>(__TAURI_INVOKE("chat_undo")),
@@ -410,7 +410,10 @@ export type ChatState = {
 	live: LiveSession | null,
 	/**  The project's conversations, oldest first; the newest is the one a message goes to. */
 	sessions: SessionView[],
-	/**  The agent a message goes to: the newest conversation's, else the one Settings starts with. */
+	/**
+	 *  The agent a message goes to: the newest conversation's, else the one Settings starts with, else the first
+	 *  that's ready.
+	 */
 	agent: AgentKind | null,
 	/**  The version Undo turn restores. */
 	undo: number | null,
@@ -549,7 +552,7 @@ export type MenuAction = {
 };
 
 /**
- *  A model the session can use, and the efforts it takes, as the CLI documents them (plan section 10). `id` is what
+ *  A model the session can use, and the efforts it takes, as the CLI reports or documents them (plan section 10). `id` is what
  *  goes back to the CLI; an empty `id` is the CLI's own default.
  */
 export type ModelChoice = {

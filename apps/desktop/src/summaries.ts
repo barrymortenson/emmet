@@ -19,7 +19,7 @@ type Words = {
 
 const str = (i: Input, k: string) => (typeof i[k] === "string" ? (i[k] as string) : "");
 const count = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString("en-US")} ${n === 1 ? one : many}`;
-/** A number the result's text says after `before`: "Built 70 parts" → 70. */
+/** The number `re`'s first group finds in the result's text: "Built 70 parts" → 70. */
 const num = (text: string, re: RegExp) => {
   const m = text.match(re);
   return m ? Number(m[1]!.replaceAll(",", "")) : null;
@@ -59,7 +59,7 @@ function problems(result: string): string {
   return kinds.length ? kinds.join(" · ") : /^No /.test(result) ? "Nothing collides or floats" : "";
 }
 
-/** A view's name for a sentence: "the front view". */
+/** A view's name for a sentence: "Front view". */
 const view = (i: Input) => (str(i, "view") ? `${str(i, "view")[0]!.toUpperCase()}${str(i, "view").slice(1)} view` : "");
 
 /** Emmet's own tools (the `emmet` and `emmet_host` MCP servers). */
@@ -153,7 +153,7 @@ export function toolCard(name: string, input: unknown, result: { ok: boolean; su
 /** What the status line says while `name` runs. */
 export const doing = (name: string) => words(name).doing;
 
-/** A project file in words: what it is ("the model") and its kind of change. models/door.py is the door sub-assembly. */
+/** A project file in words: what it is ("the model") and the noun for it. models/door.py is the door sub-assembly. */
 export function fileWords(path: string): { what: string; noun: string } {
   const rel = path.replaceAll("\\", "/").replace(/^.*?(?=(models\/|model\.py$|CARD\.md$|params\.json$|emmet\.toml$))/, "");
   if (rel === "model.py") return { what: "The model", noun: "the model" };

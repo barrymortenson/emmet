@@ -69,7 +69,7 @@ function blocks(src: string): Block[] {
   return out;
 }
 
-/** `src` as paragraphs and lists. */
+/** `src` as paragraphs, headings, lists, and folded code blocks. */
 export function Markdown({ src }: { src: string }) {
   return (
     <>

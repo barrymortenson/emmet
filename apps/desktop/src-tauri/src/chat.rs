@@ -2,7 +2,7 @@
 //! The chat's host side (plan sections 04 and 10, session 4B): the project's conversations, kept in its `.emmet/chat/`
 //! (each one's agent, its resume token, its model and effort, and its history); one agent session at a time, started
 //! when the user sends a message, so a conversation resumes after an app restart; switching agents and Start fresh,
-//! which begin a new conversation and keep the old one; the version Emmet saves before each turn and Undo turn;
+//! which begin a new conversation and keep the old one if anything was said; the version Emmet saves before each turn and Undo turn;
 //! approvals and questions from the bus to the hub; the agents' detection; the plan usage fetch (D-36); and the Codex
 //! API key in the keychain (D-35). Sign in with ChatGPT's commands are in `chatgpt.rs`.
 //!
@@ -130,6 +130,18 @@ struct Store {
     sessions: Vec<SessionInfo>,
     #[serde(default)]
     undo: Option<u32>,
+    /// The file is there but doesn't read as a store: save_store won't write over it.
+    #[serde(skip)]
+    unreadable: bool,
+}
+
+/// 1C's `.emmet/chat.json`: the project's one last session.
+#[derive(Deserialize)]
+struct LastSession {
+    kind: AgentKind,
+    session: String,
+    #[serde(default)]
+    resume: Option<String>,
 }
 
 /// The chat that's running.
@@ -151,7 +163,8 @@ pub struct ChatState {
     pub live: Option<LiveSession>,
     /// The project's conversations, oldest first; the newest is the one a message goes to.
     pub sessions: Vec<SessionView>,
-    /// The agent a message goes to: the newest conversation's, else the one Settings starts with.
+    /// The agent a message goes to: the newest conversation's, else the one Settings starts with, else the first
+    /// that's ready.
     pub agent: Option<AgentKind>,
     /// The version Undo turn restores.
     pub undo: Option<u32>,
@@ -289,6 +302,11 @@ impl Chat {
     pub fn close(&self) {
         if let Some(mut live) = self.live.lock().expect("live").take() {
             live.session.close();
+            // A turn cut short (another project, Start fresh, a sign-out) keeps its version for Undo turn, as one that
+            // ends does.
+            if let (Some(n), Ok(project)) = (live.turn, Project::find(Some(&live.project))) {
+                settle_turn(&project, n);
+            }
         }
     }
 }
@@ -366,16 +384,10 @@ fn new_id() -> String {
 /// session) is read when there's no store yet.
 fn store(project: &Project) -> Store {
     let read = |p: PathBuf| std::fs::read_to_string(p).ok();
-    let mut s: Store = match chat_file(&project.root, "sessions.json").and_then(read) {
-        Some(text) => serde_json::from_str(&text).unwrap_or_default(),
-        None => read(project.root.join(".emmet").join("chat.json"))
-            .and_then(|t| serde_json::from_str::<SessionInfo>(&t).ok())
-            .map(|old| Store {
-                sessions: vec![old],
-                undo: None,
-            })
-            .unwrap_or_default(),
-    };
+    let mut s = parse_store(
+        chat_file(&project.root, "sessions.json").and_then(read).as_deref(),
+        read(project.root.join(".emmet").join("chat.json")).as_deref(),
+    );
     let plain = |v: &Option<String>| v.as_deref().is_none_or(emmet_agent::model_id);
     s.sessions.retain(|i| {
         ours(&i.id) && i.resume.as_deref().is_none_or(emmet_agent::plain_id) && plain(&i.model) && plain(&i.effort)
@@ -383,7 +395,55 @@ fn store(project: &Project) -> Store {
     s
 }
 
+/// `sessions.json`'s text, else 1C's `chat.json`'s. A session that doesn't read (a newer build's, a hand edit) is left
+/// out on its own; a file that doesn't read at all is unreadable, so a save can't wipe the list.
+fn parse_store(sessions: Option<&str>, legacy: Option<&str>) -> Store {
+    let Some(text) = sessions else {
+        let old = legacy.and_then(|t| serde_json::from_str::<LastSession>(t).ok());
+        return Store {
+            sessions: old
+                .map(|l| SessionInfo {
+                    id: l.session,
+                    kind: l.kind,
+                    started: 0.0,
+                    resume: l.resume,
+                    model: None,
+                    effort: None,
+                })
+                .into_iter()
+                .collect(),
+            ..Default::default()
+        };
+    };
+    match serde_json::from_str::<serde_json::Value>(text) {
+        Ok(serde_json::Value::Object(v)) => Store {
+            sessions: v
+                .get("sessions")
+                .and_then(|s| s.as_array())
+                .into_iter()
+                .flatten()
+                .filter_map(|e| serde_json::from_value(e.clone()).ok())
+                .collect(),
+            undo: v
+                .get("undo")
+                .and_then(|n| n.as_u64())
+                .and_then(|n| u32::try_from(n).ok()),
+            unreadable: false,
+        },
+        _ => Store {
+            unreadable: true,
+            ..Default::default()
+        },
+    }
+}
+
 fn save_store(project: &Project, s: &Store) -> Result<(), Box<Problem>> {
+    if s.unreadable {
+        return Err(problem(
+            "Emmet can't read this project's conversation list (.emmet/chat/sessions.json), so it won't write over \
+             it. Move the file aside to start the chat again.",
+        ));
+    }
     let path = chat_file(&project.root, "sessions.json").ok_or_else(|| {
         problem(".emmet/chat in this project is a link or a file, not a folder; Emmet won't write through it.")
     })?;
@@ -590,7 +650,17 @@ fn settle(app: &AppHandle, project: &Project, run: u64) {
         live.as_mut().filter(|l| l.run == run).and_then(|l| l.turn.take())
     };
     let Some(n) = turn else { return };
-    // A turn that changed nothing keeps no version, and there's no turn to undo.
+    settle_turn(project, n);
+    // What the store holds, so the button and Undo turn agree even when the save failed.
+    let _ = ChatUndo {
+        undo: store(project).undo,
+    }
+    .emit(app);
+}
+
+/// Undo turn goes back to the version saved as the turn began; a turn that changed nothing keeps no version, and
+/// there's no turn to undo.
+fn settle_turn(project: &Project, n: u32) {
     let changed = !versions::unchanged_since(project, n).unwrap_or(false);
     if !changed {
         let _ = versions::discard(project, n);
@@ -598,7 +668,6 @@ fn settle(app: &AppHandle, project: &Project, run: u64) {
     let mut s = store(project);
     s.undo = changed.then_some(n);
     let _ = save_store(project, &s);
-    let _ = ChatUndo { undo: s.undo }.emit(app);
 }
 
 /// The session's events, to the window and the history, until the CLI exits.
@@ -696,8 +765,9 @@ fn send(app: &AppHandle, text: String, context: TurnContext, from: Option<Origin
     let project = open_project(app)?;
     let id = ensure_live(app, &project)?;
     let state = app.state::<AppState>();
-    // Before the agent touches anything: the version Undo turn goes back to. One the project can't keep (read-only)
-    // isn't saved, and the turn still goes.
+    // Before the agent touches anything: the version Undo turn goes back to. One the project can't keep (read-only, a
+    // full disk) isn't saved, and the turn still goes, but with nothing to undo it to: Undo turn must not reach back
+    // past it to the turn before.
     let who = with_live(app, |l| Ok(l.kind))?;
     let saved = project
         .require_trusted(&state.data)
@@ -710,6 +780,16 @@ fn send(app: &AppHandle, text: String, context: TurnContext, from: Option<Origin
             versions::save(&state.data, &project, &name, None, true, None).ok()
         })
         .map(|v| v.n);
+    if saved.is_none() {
+        let mut s = store(&project);
+        if s.undo.take().is_some() {
+            let _ = save_store(&project, &s);
+        }
+        let _ = ChatUndo {
+            undo: store(&project).undo,
+        }
+        .emit(app);
+    }
     with_live(app, |l| {
         l.turn = saved;
         append(
@@ -829,7 +909,7 @@ fn record(l: &Live, r: ChatRecord) {
 }
 
 /// A new conversation with `kind` (the agent picker), or with the same agent (Start fresh): the agent running now
-/// ends, and its conversation is kept. Nothing starts until the next message.
+/// ends, and its conversation is kept if anything was said in it. Nothing starts until the next message.
 #[tauri::command]
 #[specta::specta]
 pub fn chat_fresh(app: AppHandle, kind: Option<AgentKind>) -> Result<SessionInfo, Box<Problem>> {
@@ -895,7 +975,7 @@ pub async fn chat_restart(app: AppHandle) -> Result<String, Box<Problem>> {
     blocking(app, |app| ensure_live(app, &open_project(app)?)).await
 }
 
-/// Undo turn (⌥⌘Z): restores the version saved before the agent's last turn that changed the sources. The restore
+/// Undo turn (⌥⌘Z): restores the version saved before the agent's last turn, if that turn changed the sources. The restore
 /// saves the state it replaces first, so Undo turn can be undone from Versions. Returns that version.
 #[tauri::command]
 #[specta::specta]
@@ -904,10 +984,13 @@ pub async fn chat_undo(app: AppHandle) -> Result<VersionView, Box<Problem>> {
         let state = app.state::<AppState>();
         let project = open_project(app)?;
         let mut s = store(&project);
-        let n = s.undo.ok_or_else(|| problem("There's no agent turn to undo."))?;
-        let r = versions::restore(&state.data, &project, n)?;
-        s.undo = None;
+        let n = s.undo.take().ok_or_else(|| problem("There's no agent turn to undo."))?;
+        // Taken before the restore, so a restore that worked is never offered again.
         save_store(&project, &s)?;
+        let r = versions::restore(&state.data, &project, n).inspect_err(|_| {
+            s.undo = Some(n);
+            let _ = save_store(&project, &s);
+        })?;
         state.refresh_view(&Project::find(Some(&project.root))?);
         let _ = ChatUndo { undo: None }.emit(app);
         Ok(crate::projects::version_view(&project, &r.saved))
@@ -1004,4 +1087,45 @@ pub fn openai_key_set(app: AppHandle, key: Option<String>) -> Result<bool, Box<P
     // Codex's sign-in changed: detect it again.
     state.chat.forget_agents();
     Ok(openai_key_saved(app.clone()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const ID: &str = "c0123456789abcdef0123456789abcdef";
+
+    #[test]
+    fn a_1c_projects_last_session_carries_over() {
+        let old = format!(r#"{{"kind":"claude","session":"{ID}","resume":"6f1c2d3e"}}"#);
+        let s = parse_store(None, Some(&old));
+        assert_eq!(s.sessions.len(), 1);
+        let i = &s.sessions[0];
+        assert_eq!(
+            (i.id.as_str(), i.kind, i.resume.as_deref()),
+            (ID, AgentKind::Claude, Some("6f1c2d3e"))
+        );
+        assert!(!s.unreadable);
+    }
+
+    #[test]
+    fn a_session_that_doesnt_read_is_left_out_alone() {
+        let text = format!(
+            r#"{{"sessions":[{{"id":"{ID}","kind":"claude","started":1}},{{"id":"{ID}","kind":"gemini","started":2}}],"undo":4}}"#
+        );
+        let s = parse_store(Some(&text), None);
+        assert_eq!(s.sessions.len(), 1);
+        assert_eq!(s.undo, Some(4));
+        assert!(!s.unreadable);
+    }
+
+    #[test]
+    fn a_list_that_doesnt_read_is_never_written_over() {
+        for text in ["<<<<<<< HEAD", "[]", ""] {
+            let s = parse_store(Some(text), None);
+            assert!(s.unreadable, "{text:?}");
+        }
+        // sessions.json wins over chat.json, even unreadable: the 1C file is only for a project with no list yet.
+        assert!(parse_store(Some("{"), Some(r#"{"kind":"claude","session":"x"}"#)).unreadable);
+    }
 }

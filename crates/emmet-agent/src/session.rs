@@ -509,7 +509,7 @@ struct Snapshot(HashMap<String, (u64, Option<SystemTime>)>);
 
 const SKIP: &[&str] = &[
     "build",
-    // Emmet's own versions, saved as a turn starts and by the user: not the agent's work.
+    // The project's saved versions (by Emmet, the user, or the agent's save_version): not edits to the model.
     "history",
     ".emmet",
     ".git",

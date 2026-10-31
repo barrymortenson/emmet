@@ -360,19 +360,23 @@ pub fn unchanged_since(project: &Project, n: u32) -> Result<bool> {
     theirs.sort();
     mine.sort();
     Ok(theirs == mine
-        && mine
-            .iter()
-            .all(|rel| std::fs::read(dir.join(rel)).ok() == std::fs::read(project.root.join(rel)).ok()))
+        && mine.iter().all(
+            |rel| match (std::fs::read(dir.join(rel)), std::fs::read(project.root.join(rel))) {
+                // A file that can't be read isn't known to be the same: the turn's version stays.
+                (Ok(a), Ok(b)) => a == b,
+                _ => false,
+            },
+        ))
 }
 
-/// Removes one of Emmet's own versions: the one saved before an agent's turn that changed nothing. A version the user
-/// saved is never removed.
+/// Removes one of Emmet's own versions: the one saved before an agent's turn that changed nothing. A version saved by
+/// name (by the user, or by the agent's save_version) is never removed.
 pub fn discard(project: &Project, n: u32) -> Result<()> {
     let v = get(project, n)?;
     if !v.auto {
         return Err(Error::new(
             ErrorCode::IoError,
-            format!("Version {n} is one you saved, so Emmet won't remove it."),
+            format!("Version {n} was saved by name, so Emmet won't remove it."),
             "",
         ));
     }
