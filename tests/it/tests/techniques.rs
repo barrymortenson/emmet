@@ -543,3 +543,87 @@ fn builds_clean(name: &str) {
         .unwrap_or_else(|_| panic!("{name} has no render; run scripts/render-techniques {name}"));
     check_png(&png, 512);
 }
+
+/// A model of `body` (the lines of a @model function after `m = Model()`) on a baseplate, checked: every finding.
+fn findings_of(name: &str, body: &str) -> serde_json::Value {
+    let dir = temp_dir(&format!("beside-door-{name}")).join("p");
+    let out = emmet()
+        .arg("--data-dir")
+        .arg(shared_data())
+        .args(["new", "--template", "empty"])
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{}", text(&out));
+    let (v, code) = emmet_in(&dir, &["trust"]);
+    assert_eq!(code, 0, "{v}");
+    let body: String = body.lines().map(|l| format!("    {}\n", l.trim_start())).collect();
+    std::fs::write(
+        dir.join("model.py"),
+        format!(
+            "from emmet_dsl import Model, model\n\n\n@model\ndef beside_a_door():\n    \"\"\"{name} beside a door.\"\"\"\n    \
+             m = Model()\n    with m.step(\"Base\"):\n        m.add(\"3811\", \"Green\", at=(0, 0, 0))\n{body}    \
+             return m\n"
+        ),
+    )
+    .unwrap();
+    let (v, code) = emmet_in(&dir, &["check"]);
+    assert_eq!(code, 0, "{v}");
+    v["data"]["findings"].clone()
+}
+
+/// The techniques a figure walks under or past, each at its defaults against a door_frame's wall (3E, Done when 6):
+/// no findings, figure_clearance included, so a canopy or a porch roof clears the door and no post stands in its way.
+/// The door is cells 3 to 7 of a wall along y = 8, from z = 0.5 (its top at 18.5).
+const DOOR: &str = "wall = m.use(\"door_frame\", x=0, y=8, z=0.5, length=10, rows=ROWS, offset=3, facing=\"front\")";
+
+fn beside_a_door(name: &str, rows: u32, body: &str) {
+    let v = findings_of(name, &format!("{}\n{body}", DOOR.replace("ROWS", &rows.to_string())));
+    assert_eq!(v, serde_json::json!([]), "{name} beside a door: {v:#}");
+}
+
+#[test]
+fn canopy_clears_a_door_beside_it() {
+    beside_a_door("canopy", 7, "m.use(\"canopy\", x=0, y=2, z=0.5, length=10, depth=6)");
+}
+
+#[test]
+fn porch_posts_clear_a_door_behind_them() {
+    beside_a_door(
+        "porch_posts",
+        7,
+        "m.use(\"porch_posts\", x=1, y=5, z=0.5, length=8, gap=(2, 4))",
+    );
+}
+
+#[test]
+fn turned_post_porch_clears_a_door_behind_it() {
+    beside_a_door(
+        "turned_post_porch",
+        7,
+        "m.use(\"turned_post_porch\", x=1, y=5, z=0.5, length=8, depth=3, gap=(2, 4))",
+    );
+}
+
+#[test]
+fn lean_to_awning_clears_a_door_under_it() {
+    beside_a_door(
+        "lean_to_awning",
+        8,
+        "m.use(\"lean_to_awning\", x=0, y=8, z=wall, length=10, ground=0.5, clears=wall.door_top)",
+    );
+}
+
+#[test]
+fn wing_plate_porch_roof_clears_a_door_under_it() {
+    beside_a_door(
+        "wing_plate_porch_roof",
+        6,
+        "m.use(\"wing_plate_porch_roof\", x=0, y=8, z=wall.door_top, ground=0.5, corbel=False)",
+    );
+}
+
+#[test]
+fn door_hood_clears_its_door() {
+    beside_a_door("door_hood", 6, "m.use(\"door_hood\", x=3, y=8, z=wall.door_top)");
+}

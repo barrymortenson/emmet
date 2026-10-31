@@ -3,10 +3,13 @@
 
 m.use("door_hood", x, y, z, width=4, color="White", title="Door hood") lays, over a door `width` studs wide whose
 front-left corner is (x, y), at the door's top z, a plate 2 deep and `width` + 2 long half on the wall, a second one on
-its front row that stands two studs out, and a tile along its front edge. Returns the z of its top.
+its front row that stands two studs out, and a tile along its front edge. z is the door's top (a door_frame's
+.door_top), so a figure walks under the hood (docs/spec/building-rules.md, rule 1); the wall stops there, or leaves the
+hood's cells free in that course. Returns the z of its top, with .underside (z).
 """
 
 from emmet_dsl import Plate, Tile
+from emmet_dsl.core import fit
 
 PROVENANCE = """Emmet's own (session 3C), from a method in the instruction books of set 10350, set 43217. Not derived
 from any model file."""
@@ -27,14 +30,14 @@ PARTS = [
 
 
 def build(m, x, y, z, width=4, color="White", title="Door hood"):
-    """The canopy; returns the z of its top."""
+    """The canopy; returns the z of its top, with .underside."""
     n = width + 2
     with m.step(title):
         # Two layers that overlap a row: the first half on the wall, the second two studs out, held by the first.
         m.row(Plate, color, at=(x - 1, y - 1, z), length=n, width=2)
         m.row(Plate, color, at=(x - 1, y - 2, z + 1), length=n, width=2)
         m.row(Tile, color, at=(x - 1, y - 2, z + 2), length=n)
-    return z + 3
+    return fit(z + 3, underside=z)
 
 
 def example(m):

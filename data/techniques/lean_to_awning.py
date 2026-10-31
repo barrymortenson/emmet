@@ -2,8 +2,8 @@
 """Lean-to awning: a shallow shed roof over a porch or a window, a panel of plates hinged to the wall on clips and
 tipped down to rest on two posts.
 
-m.use("lean_to_awning", x, y, z, length, depth=4, angle=20, ground=0, color="White", posts="Reddish Brown",
-clip_color="Black", title="Awning") hangs an awning from the front wall (facing -y) whose row of studs is at y, at
+m.use("lean_to_awning", x, y, z, length, depth=4, angle=20, ground=0, clears=None, color="White",
+posts="Reddish Brown", clip_color="Black", title="Awning") hangs an awning from the front wall (facing -y) whose row of studs is at y, at
 the height z of that wall's top course so far: it lays a course of plates on the wall from x to x + length with clips
 (4081b) every other stud, their clips reaching out past the wall's face, and returns that course's top for the wall
 to go on above. The panel, built flat and turned about the handle plates (2540) along its back edge, is a base of
@@ -11,13 +11,16 @@ plates, a 2-deep row of tiles along the wall (it ties the base), plates studs up
 of tiles along its front edge; it is depth + 1 rows deep and length + 1 long (half a stud past each end) and tips down
 by `angle` degrees. Two posts of round bricks 1 x 1 and round plates stand from `ground` at its front corners, as
 tall as fits under it. length must be 4 or more, and depth 2, 3, 4, 6, 8, 10, or 12 (the plates that run up the
-panel come in those lengths). It brings its own steps and returns the z of the clip course's top.
+panel come in those lengths). The panel's front edge is lower than z: it must leave a figure 5 bricks over `ground`,
+and with clears (the z of a door's top under it, a door_frame's .door_top) it must not come below that; either way the
+error names the z to hang it at (docs/spec/building-rules.md, rule 1). It brings its own steps and returns the z of the
+clip course's top, with .underside (the z of the front edge's bottom) and .posts (the (x, y) of each post).
 """
 
 import math
 
 from emmet_dsl import Brick, Plate, Rot, Tile, frame
-from emmet_dsl.core import in_steps, row_actions
+from emmet_dsl.core import HEADROOM, fit, in_steps, row_actions
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 11387. Not derived from any
 model file."""
@@ -131,6 +134,7 @@ def build(
     depth=4,
     angle=20,
     ground=0,
+    clears=None,
     color="White",
     posts="Reddish Brown",
     clip_color="Black",
@@ -157,7 +161,6 @@ def build(
     for a, b in zip(edges, spots + [x + length], strict=True):
         if b > a:
             course += row_actions(m, Plate, color, (a, y, z), b - a)
-    in_steps(m, f"{title}, clips", course)
     hinge = _axis(CLIP_BODY, (spots[-1], y - 0.9, z - 0.25), 3)
     sub = m.submodel(
         f"{title}: panel", _panel, length=panel_length, rows=rows, color=color
@@ -166,14 +169,29 @@ def build(
     handle = _axis(HANDLE_BODY, (1, -0.8, 0), 3)
     landed = _world(sub, handle, turn)
     at = tuple(hinge[i] - landed[i] for i in range(3))
-    with m.step(f"{title}, panel"):
-        m.place(sub, at=at, rot=turn)
 
-    # The posts: under the panel's front row, on the first whole stud row inside its front edge, as tall as fits.
     def under(fy):
         p = _world(sub, (0, fy, 0), turn)
         return (at[1] + p[1], at[2] + p[2])
 
+    # The front edge's bottom, and how high z must be for it to clear a figure (and the door under it).
+    edge = under(rows)[1]
+    need = max(ground + HEADROOM, clears if clears is not None else ground)
+    if edge < need - 1e-6:
+        what = (
+            "the door top it clears"
+            if clears is not None and clears >= ground + HEADROOM
+            else "5 bricks over the ground, the least a figure walks under"
+        )
+        raise ValueError(
+            f"lean_to_awning's front edge comes down to z={edge:g}, under {need:g} ({what}): "
+            f"hang it at z={z + math.ceil(need - edge):g} or more"
+        )
+    in_steps(m, f"{title}, clips", course)
+    with m.step(f"{title}, panel"):
+        m.place(sub, at=at, rot=turn)
+
+    # The posts: under the panel's front row, on the first whole stud row inside its front edge, as tall as fits.
     front_y = under(rows)[0]
     py = math.ceil(front_y - 1e-6)
     (ya, za), (yb, zb) = under(rows), under(rows - 1)
@@ -183,21 +201,29 @@ def build(
         raise ValueError(
             f"lean_to_awning's posts would be {tall} plates: raise the awning or lower `ground`"
         )
-    with m.step(f"{title}, posts"):
-        for px in (x, x + length - 1):
-            m.stack("3062b", posts, at=(px, py, ground), count=tall // 3)
-            if tall % 3:
-                m.stack(
-                    "6141", posts, at=(px, py, ground + 3 * (tall // 3)), count=tall % 3
-                )
-    return z + 1
+
+    def post(px):
+        m.stack("3062b", posts, at=(px, py, ground), count=tall // 3)
+        if tall % 3:
+            m.stack(
+                "6141", posts, at=(px, py, ground + 3 * (tall // 3)), count=tall % 3
+            )
+
+    # A post a step, or both in one when they're short.
+    n = tall // 3 + tall % 3
+    in_steps(
+        m,
+        f"{title}, posts",
+        [(n, lambda px=px: post(px)) for px in (x, x + length - 1)],
+    )
+    return fit(z + 1, underside=edge, posts=[(x, py), (x + length - 1, py)])
 
 
 def example(m):
-    """A front wall three bricks tall with an awning along it, and the wall going on above."""
+    """A front wall seven bricks tall with an awning along it, and the wall going on above."""
     with m.step("Ground"):
         m.fill(Plate, "Dark Bluish Gray", at=(0, -5, 0), size=(8, 6))
-    for r in range(3):
+    for r in range(7):
         with m.step(f"Wall, row {r + 1}"):
             m.row(
                 Brick,
@@ -206,6 +232,6 @@ def example(m):
                 length=8,
                 first=None if r % 2 == 0 else 2,
             )
-    top = m.use("lean_to_awning", x=0, y=0, z=10, length=8, depth=3, ground=1)
-    with m.step("Wall, row 4"):
+    top = m.use("lean_to_awning", x=0, y=0, z=22, length=8, depth=3, ground=1)
+    with m.step("Wall, row 8"):
         m.row(Brick, "Tan", at=(0, 0, top), length=8)
