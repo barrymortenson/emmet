@@ -25,7 +25,7 @@ racing-scale car's low-profile wheels and its base, and `four_wide_car` for a wh
   flat and stood up). Never stack lights as studs-up 1 x 1 bricks (`headlights`, `side_stud_lights`,
   `quarter_tile_headlights`, `front_grille`, `front_bumper`, `tail_lights`).
 - The figure decides the cab: a 2 x 2 footprint, 3 bricks of headroom from the seat plate (the seat techniques keep
-  it clear, so a roof lower than that is a `figure_clearance` finding), a steering wheel a stud in front, and a roof
+  it clear, so validate flags a roof lower than that), a steering wheel a stud in front, and a roof
   or glass that lifts off (`cab_seat`, `windscreen`, `six_wide_truck_cab`, `cab_over_sleeper`,
   `glass_box_cab`).
 - Length is compressed: trucks and trains stay long (that's their character), cars stay short.

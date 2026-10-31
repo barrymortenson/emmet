@@ -147,16 +147,17 @@ fn clearance(v: &Value) -> Vec<&'static str> {
 /// Rung 2 as Barry's hand session in the app built it with Codex on his ChatGPT plan (4B, Done when 5): the project it
 /// left. It falls short of rung 2's 250 parts (210) and its booth has no door: the build settings went to Base None
 /// partway (a Rebuild turn), so the baseplates came out, and Codex ran at its default low effort. Barry took it as it is
-/// (2026-10-30); 3E and 5A carry the gaps. In 4B it validated with no findings; since 3E, one of its benches stands
-/// against a canopy column, the mistake the Claude Code session made too. Its transcript replays in agent_codex.rs.
+/// (2026-10-30); 3E and 5A carry the gaps. It validates with no findings: figure_clearance found one of its benches
+/// against a canopy column (x 26, in its legroom) until canopy stopped leaving a last bay too narrow to walk through
+/// (3E), which took that column out. Its transcript replays in agent_codex.rs.
 #[test]
 fn rung2_from_the_hand_session_with_codex() {
     let dir = emmet_it::project("rung2-codex");
     let (v, code) = emmet_in(&dir, &["check"]);
     assert_eq!(code, 0, "{v}");
-    assert_eq!(clearance(&v), [BENCH], "{v:#}");
-    assert_eq!(v["data"]["findings"].as_array().unwrap().len(), 1, "{v:#}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
     let placements: Value =
         serde_json::from_str(&std::fs::read_to_string(dir.join("build/placements.json")).unwrap()).unwrap();
-    assert_eq!(placements["parts"].as_array().unwrap().len(), 210);
+    // 210 in 4B; the canopy's columns each gained a Brick 1 x 1 to stand 6 bricks (3E), and lost the one at x 26.
+    assert_eq!(placements["parts"].as_array().unwrap().len(), 216);
 }
