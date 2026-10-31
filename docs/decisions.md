@@ -630,8 +630,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   agent's highlight of the station's two benches showed nothing he could see). The viewer dimmed the rest to 35 %
   and left the highlighted parts as they were, and their edges at full strength, so on a dark model, or a few small
   parts in a big one, nothing stood out. Now the rest fades 80 % toward the background, the highlighted parts draw over
-  it at full color with edges in the accent (a finding's in its bad color), and a highlighted part that others hide
-  shows through them as a faint silhouette. An agent's highlight puts a bar over the viewer: "Claude is pointing at 10
+  it in their own colors. An agent's highlight puts a bar over the viewer: "Claude is pointing at 10
   parts", Zoom to them, Clear. The agent is named from its MCP client's own name (the bus's new optional `from`). The
   camera moves only when the user asks. Rejected: zooming to the parts on every agent highlight, which moves the
-  user's view without asking; and leaving it to 4C.
+  user's view without asking; and leaving it to 4C. Barry then had the accent edges and the silhouette of a hidden
+  part taken out (2026-10-31): the parts keep their own colors. A hidden part isn't seen until Zoom to them or a turn
+  of the view.

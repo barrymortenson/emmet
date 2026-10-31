@@ -98,8 +98,8 @@ export interface Stats {
 export interface Viewer {
   load(placements: Placement[]): Promise<Diff>;
   update(placements: Placement[], options?: UpdateOptions): Promise<Diff>;
-  /** Highlights the ids: the rest fade toward the background, and the ids draw over them at full color with edges in
-   * the accent; "issue" tints them and draws their edges red (a finding's parts). [] clears it. */
+  /** Highlights the ids: the rest fade toward the background, and the ids draw over them in their own colors; "issue"
+   * tints them red (a finding's parts). [] clears it. */
   highlight(ids: string[], options?: { mode?: HighlightMode }): void;
   /** The highlighted ids. */
   highlighted(): string[];
@@ -129,13 +129,6 @@ const RENDER_BACKGROUND = new Color(0xf3f4f6);
 /** How far a highlight fades the rest toward the background: far enough that the highlighted parts are what you see,
  * not so far that you lose where they are. */
 const VEIL = 0.8;
-/** How strongly a highlighted part shows through what hides it. */
-const XRAY = 0.35;
-/** A highlight's edges: the app's accent (--fill-accent), or for an issue its bad color (--fg-bad), per theme. */
-const OUTLINE: Record<"select" | "issue", Record<Theme, number>> = {
-  select: { light: 0xc2410c, dark: 0xff8a4c },
-  issue: { light: 0xa3241a, dark: 0xff9d93 },
-};
 const WHITE = new Color(1, 1, 1);
 /** A finding's parts: their own color, pushed toward red. */
 const ISSUE = new Color(1, 0.42, 0.36);
@@ -193,17 +186,15 @@ class EmmetViewer implements Viewer {
   private buckets = new Map<string, Bucket>();
   private lit = new Set<string>();
   private mode: HighlightMode = "select";
-  /** The highlighted parts again, drawn over the veil: copies of their buckets' instances, rebuilt when the highlight,
-   * the scene, or the theme changes. */
+  /** The highlighted parts again, drawn over the veil: copies of their buckets' instances, rebuilt when the highlight
+   * or the scene changes. */
   private overlay = new Scene();
   private overlayRoot = new Group();
-  private overlayFor: Theme | null = null;
+  private overlayBuilt = false;
   private veil = new Mesh(
     new PlaneGeometry(2, 2),
     new MeshBasicMaterial({ transparent: true, opacity: VEIL, depthTest: false, depthWrite: false }),
   );
-  /** The highlighted parts that others hide, shown through them as a faint silhouette in the outline color. */
-  private xray = new MeshBasicMaterial({ transparent: true, opacity: XRAY, depthTest: false, depthWrite: false });
   private veilScene = new Scene();
   private veilCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
   /** The running build animation: its parts, and when it started (performance.now()). */
@@ -402,7 +393,7 @@ class EmmetViewer implements Viewer {
   }
 
   private dropBucket(bucket: Bucket): void {
-    this.overlayFor = null;
+    this.overlayBuilt = false;
     for (const d of bucket.drawables) {
       this.root.remove(d.object);
       if (d.object instanceof InstancedMesh) d.object.dispose();
@@ -419,7 +410,7 @@ class EmmetViewer implements Viewer {
 
   /** Sets each instance's tint: its own color, or tinted as an issue. The highlight's fade is the veil's (draw()). */
   private paint(bucket: Bucket): void {
-    this.overlayFor = null;
+    this.overlayBuilt = false;
     const issue = this.mode === "issue";
     for (const d of bucket.drawables) {
       if (!(d.object instanceof InstancedMesh) || !d.object.instanceColor) continue;
@@ -429,43 +420,32 @@ class EmmetViewer implements Viewer {
     }
   }
 
-  /** Draws a frame: the model, then while something is highlighted, a veil of the background over it, the highlighted
-   * parts' silhouettes through everything, and the highlighted parts again where they're in sight. */
+  /** Draws a frame: the model, then while something is highlighted, a veil of the background over it and the
+   * highlighted parts again on top, in their own colors. They keep the depth test, so a part behind another stays
+   * behind it. */
   private draw(r: WebGLRenderer, camera: PerspectiveCamera, theme: Theme): void {
     // A frame's passes count as one in stats().
     r.info.autoReset = false;
     r.info.reset();
     r.render(this.scene, camera);
     if (!this.lit.size) return;
-    if (this.overlayFor !== theme) this.buildOverlay(theme);
+    if (!this.overlayBuilt) this.buildOverlay();
     this.veil.material.color.setHex(BACKGROUND[theme]);
-    this.xray.color.setHex(OUTLINE[this.mode === "issue" ? "issue" : "select"][theme]);
-    const lines = this.overlayRoot.children.filter((o) => o instanceof LineSegments);
     const autoClear = r.autoClear;
     r.autoClear = false;
     try {
       r.render(this.veilScene, this.veilCamera);
-      // The silhouettes are the faces alone, in one flat color: the lines would draw every edge, hidden ones too.
-      for (const l of lines) l.visible = false;
-      this.overlay.overrideMaterial = this.xray;
-      r.render(this.overlay, camera);
-    } finally {
-      for (const l of lines) l.visible = true;
-      this.overlay.overrideMaterial = null;
-    }
-    try {
       r.render(this.overlay, camera);
     } finally {
       r.autoClear = autoClear;
     }
   }
 
-  /** Copies the highlighted instances into the overlay: their meshes with the same geometry, material, matrix, and
-   * tint, and their lines in the outline color. */
-  private buildOverlay(theme: Theme): void {
+  /** Copies the highlighted instances into the overlay: their meshes and lines with the same geometry, material,
+   * matrix, and tint. */
+  private buildOverlay(): void {
     this.clearOverlay();
-    this.overlayFor = theme;
-    const [edge, conditional] = this.cache.colors.outline(OUTLINE[this.mode === "issue" ? "issue" : "select"][theme]);
+    this.overlayBuilt = true;
     const m = new Matrix4();
     const c = new Color();
     for (const b of this.buckets.values()) {
@@ -496,7 +476,7 @@ class EmmetViewer implements Viewer {
         for (const [name, attr] of Object.entries(src.attributes)) if (name !== "instanceMatrix") g.setAttribute(name, attr);
         g.setAttribute("instanceMatrix", holder.instanceMatrix);
         g.instanceCount = at.length;
-        const lines = new LineSegments(g, d.kind === "edges" ? edge : conditional);
+        const lines = new LineSegments(g, d.object.material);
         lines.frustumCulled = false;
         this.overlayRoot.add(lines);
       }
@@ -514,7 +494,7 @@ class EmmetViewer implements Viewer {
         g.dispose();
       }
     }
-    this.overlayFor = null;
+    this.overlayBuilt = false;
   }
 
   /** True when the id, or a submodel copy holding the part (its id up to a "/"), is lit: a copy's id lights all its
@@ -589,7 +569,7 @@ class EmmetViewer implements Viewer {
 
   /** Sets one instance's matrix in every mesh of its bucket (the lines share the first mesh's). */
   private setInstance(bucket: Bucket, index: number, m: Matrix4): void {
-    this.overlayFor = null;
+    this.overlayBuilt = false;
     for (const d of bucket.drawables) {
       if (!(d.object instanceof InstancedMesh)) continue;
       d.object.setMatrixAt(index, m);
@@ -746,7 +726,6 @@ class EmmetViewer implements Viewer {
     this.clearOverlay();
     this.veil.geometry.dispose();
     this.veil.material.dispose();
-    this.xray.dispose();
     this.cache.dispose();
     // Its WebGL contexts go now, not when they're collected: a webview keeps only so many.
     this.renderer.dispose();

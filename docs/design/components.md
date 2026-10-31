@@ -288,8 +288,8 @@ The 3D view, the hero (law 1): the render at the camera's field of view, so a sh
 smaller rather than cropping it. It carries only what points at the model: a finding's pin, a step's parts box, an
 open version's bar (Restore, Open as new project, Back), an agent's pointing bar ("Claude is pointing at 10 parts",
 Zoom to them, Clear), Skip animation, and toasts. A highlight (a picked row, a finding, a sub-assembly, an agent's
-pointing) fades the rest of the model 80 % toward `--bg-canvas` and draws the highlighted parts over it at full color,
-their edges in `--fill-accent` (a finding's in `--fg-bad`), so a few small parts in a big model still stand out.
+pointing) fades the rest of the model 80% toward the viewer's background and draws the highlighted parts over it in
+their own colors (a finding's tinted red), so a few small parts in a big model still stand out.
 
 ### `dock`
 The chat along the bottom of the viewer: the agent picker, the plan badge, the status, Undo turn (after a turn that

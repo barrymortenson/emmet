@@ -55,7 +55,6 @@ export class Colors {
   readonly loader: Loader;
   private edges = new WeakMap<Material, LineBasicMaterial>();
   private conditionals = new WeakMap<Material, LDrawConditionalLineMaterial>();
-  private outlines = new Map<number, [LineBasicMaterial, LDrawConditionalLineMaterial]>();
 
   constructor(loader: Loader) {
     this.loader = loader;
@@ -81,26 +80,14 @@ export class Colors {
     let m = this.conditionals.get(source);
     if (!m) {
       const s = source as LDrawConditionalLineMaterial;
-      m = instancedConditional({ transparent: s.transparent, depthWrite: s.depthWrite });
+      m = new LDrawConditionalLineMaterial({ transparent: s.transparent, depthWrite: s.depthWrite });
       m.uniforms.diffuse!.value.copy(s.uniforms.diffuse!.value);
       m.uniforms.opacity!.value = s.uniforms.opacity!.value;
+      m.vertexShader = m.vertexShader.replaceAll("modelViewMatrix * vec4(", "modelViewMatrix * instanceMatrix * vec4(");
+      m.defines = { ...m.defines, USE_INSTANCING: "" };
       this.conditionals.set(source, m);
     }
     return m;
-  }
-
-  /** A highlight's edges and conditional lines, all in one color (an RGB hex), made once per color. */
-  outline(color: number): [LineBasicMaterial, LDrawConditionalLineMaterial] {
-    let pair = this.outlines.get(color);
-    if (!pair) {
-      const edge = new LineBasicMaterial({ color });
-      edge.defines = { ...edge.defines, USE_INSTANCING: "" };
-      const conditional = instancedConditional({});
-      conditional.uniforms.diffuse!.value.setHex(color);
-      pair = [edge, conditional];
-      this.outlines.set(color, pair);
-    }
-    return pair;
   }
 
   /** The edge material for a face color, as LDrawLoader pairs them. */
@@ -225,14 +212,6 @@ export class PartCache {
     for (const p of this.parts.values()) for (const piece of p.pieces) piece.geometry.dispose();
     this.parts.clear();
   }
-}
-
-/** The conditional-line material with the instance matrix applied to the line ends and control points. */
-function instancedConditional(options: { transparent?: boolean; depthWrite?: boolean }): LDrawConditionalLineMaterial {
-  const m = new LDrawConditionalLineMaterial(options);
-  m.vertexShader = m.vertexShader.replaceAll("modelViewMatrix * vec4(", "modelViewMatrix * instanceMatrix * vec4(");
-  m.defines = { ...m.defines, USE_INSTANCING: "" };
-  return m;
 }
 
 /** A part id as the cache and the part source know it: lowercase, without ".dat". */
