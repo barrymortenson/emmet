@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The ladder's hand-written reference models (plan section 02): data/ladder/rung2_reference.py runs, validates with
-//! no errors at its defaults and at each param's other values, and has at least 6 params that each change the model.
+//! no findings at its defaults and at each param's other values, and has at least 6 params that each change the model.
 
 use emmet_it::{emmet, emmet_in, envelope, repo, shared_data, temp_dir};
 use serde_json::{Value, json};
@@ -65,7 +65,9 @@ fn rung2_reference() {
             let set = format!("{name}={value}");
             let (v, code) = emmet_in(&dir, &["check", "--params", &set]);
             assert_eq!(code, 0, "{set}: {v}");
+            // Clean, figure_clearance included (3E, Done when 7), not just free of errors.
             assert_eq!(errors(&v), 0, "{set}: {v:#}");
+            assert_eq!(v["data"]["findings"], json!([]), "{set}: {v:#}");
             let mpd = std::fs::read_to_string(dir.join("build/model.mpd")).unwrap();
             assert_ne!(mpd, defaults, "{set} doesn't change the model");
         }
