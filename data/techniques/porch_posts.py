@@ -4,14 +4,14 @@
 m.use("porch_posts", x, y, z, length=6, height=6, gap=None, color="White", title="Porch") stands a post at each end of a run
 `length` studs along x from (x, y, z), each a round 1 x 1 brick under tall 1 x 1 bricks, `height` bricks in all, lays a
 plate across their tops as the beam, and between them a balustrade of round plates stacked two high under a rail of
-tiles. gap=(offset, width) leaves the balustrade out for `width` studs from x + offset: the way in, in line with the
-door and the steps. height is the clear room under the beam: 6 (the default) clears a 1 x 4 x 6 door behind the porch, and less
+tiles. gap=(offset, width) leaves the balustrade out for `width` studs (3 or more) from x + offset: the way in, in
+line with the door and the steps, which it keeps clear 3 studs out on both sides, up to the beam. height is the clear room under the beam: 6 (the default) clears a 1 x 4 x 6 door behind the porch, and less
 than 5 can't be walked under, so it's 5 to 12 (docs/spec/building-rules.md, rule 1). Returns the z of the beam's top,
 with .posts (the (x, y) of each post) and .underside (the z of the beam's bottom).
 """
 
 from emmet_dsl import Plate, Tile
-from emmet_dsl.core import fit
+from emmet_dsl.core import door_space, fit
 from emmet_dsl.techniques.canopy import column
 
 PROVENANCE = """Emmet's own (session 3C), from a method in the instruction books of set 43217. Not derived
@@ -47,6 +47,10 @@ def build(m, x, y, z, length=6, height=6, gap=None, color="White", title="Porch"
         raise ValueError(
             f"porch_posts' gap {gap} must lie between its posts (offsets 1 to {length - 2})"
         )
+    if open_ and len(open_) < 3:
+        raise ValueError(
+            f"porch_posts' gap is 3 studs or more, so a figure fits through, not {len(open_)}"
+        )
     rail = [a for a in range(1, length - 1) if a not in open_]
     top = z + 3 * height
     with m.step(f"{title}: posts"):
@@ -64,6 +68,17 @@ def build(m, x, y, z, length=6, height=6, gap=None, color="White", title="Porch"
         for a, n in _runs(rail):
             m.row(Tile, color, at=(x + a, y, z + 2), length=n)
         m.row(Plate, color, at=(x, y, top), length=length)
+    if gap:
+        door_space(
+            m,
+            "x",
+            y,
+            x + gap[0],
+            gap[1],
+            z,
+            f"a figure walking into {title}",
+            height=3 * height,
+        )
     return fit(top + 1, posts=posts, underside=top)
 
 

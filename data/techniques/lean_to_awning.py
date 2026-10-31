@@ -10,7 +10,7 @@ to go on above. The panel, built flat and turned about the handle plates (2540) 
 plates, a 2-deep row of tiles along the wall (it ties the base), plates studs up (the snow lies on them), and a row
 of tiles along its front edge; it is depth + 1 rows deep and length + 1 long (half a stud past each end) and tips down
 by `angle` degrees. Two posts of round bricks 1 x 1 and round plates stand from `ground` at its front corners, as
-tall as fits under it. length must be 4 or more, and depth 2, 3, 4, 6, 8, 10, or 12 (the plates that run up the
+tall as fits under it. length must be 5 or more (the posts at its ends stand 3 studs clear apart), and depth 2, 3, 4, 6, 8, 10, or 12 (the plates that run up the
 panel come in those lengths). The panel's front edge is lower than z: it must leave a figure 5 bricks over `ground`,
 and with clears (the z of a door's top under it, a door_frame's .door_top) it must not come below that; either way the
 error names the z to hang it at (docs/spec/building-rules.md, rule 1). It brings its own steps and returns the z of the
@@ -142,9 +142,9 @@ def build(
 ):
     """The clip course, the panel, and the posts; returns the z of the clip course's top."""
     rows = depth + 1
-    if length < 4 or rows - 1 not in RUNS:
+    if length < 5 or rows - 1 not in RUNS:
         raise ValueError(
-            f"lean_to_awning needs a length of 4 or more and a depth of 2, 3, 4, 6, 8, 10 or 12, not {depth}"
+            f"lean_to_awning needs a length of 5 or more (its posts 3 studs clear apart) and a depth of 2, 3, 4, 6, 8, 10 or 12, not {length} x {depth}"
         )
     panel_length = (
         length + 1

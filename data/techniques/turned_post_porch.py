@@ -9,7 +9,8 @@ depth rectangle whose front-left corner is (x, y) (the house wall runs along its
 x 2 Quarter Circle (7904) at each front corner, so the edge curves round, plates along the front between them, and
 plates back along each side to the wall; a second layer of plates, set in from the round corners, bridges their joints.
 Between the posts at the front, a low rail of round plates under tiles; gap=(offset, width) leaves it out for `width`
-studs from x + offset, the way in, in line with the door. length 5 to 12, depth 3 to 8. Each tier is 4
+studs (3 or more) from x + offset, the way in, in line with the door, which it keeps clear 3 studs out in front and
+back over the porch floor to the wall, up to the fascia. length 5 to 12, depth 3 to 8. Each tier is 4
 plates, so the fascia's underside is 4 x tiers plates up: 5 tiers (the default, 20 plates) clears a 1 x 4 x 6 door
 behind the porch, and 4 (16) is the least a figure walks under, so tiers is 4 to 8 (docs/spec/building-rules.md, rule
 1). Returns the z of the fascia's top, with .posts (the (x, y) of each post) and .underside (the z of the fascia's
@@ -17,7 +18,7 @@ bottom).
 """
 
 from emmet_dsl import Plate, Tile
-from emmet_dsl.core import fit
+from emmet_dsl.core import APPROACH, fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 11387, set 43217. Not derived
 from any model file."""
@@ -72,6 +73,10 @@ def build(
         raise ValueError(
             f"turned_post_porch's gap {gap} must lie between its posts (offsets 1 to {length - 2})"
         )
+    if open_ and len(open_) < 3:
+        raise ValueError(
+            f"turned_post_porch's gap is 3 studs or more, so a figure fits through, not {len(open_)}"
+        )
     rail_at = [a for a in range(1, length - 1) if a not in open_]
     for t in range(tiers):
         with m.step(f"{title}: posts, tier {t + 1}"):
@@ -96,6 +101,16 @@ def build(
         m.row(Plate, fascia, at=(x + 1, y, top + 1), length=length - 2)
         for px in (x, right):
             m.row(Plate, fascia, at=(px, y + 1, top + 1), length=depth - 1, axis="y")
+    if gap:
+        # The way in: 3 studs out in front, and over the porch floor back to the house wall.
+        a, b = x + gap[0], x + gap[0] + gap[1]
+        m.keep_clear(
+            [
+                ((a, y - APPROACH, z + 1), (b, y, top)),
+                ((a, y + 1, z + 1), (b, y + depth, top)),
+            ],
+            f"a figure walking into {title}",
+        )
     return fit(top + 2, posts=[(x, y), (right, y)], underside=top)
 
 
