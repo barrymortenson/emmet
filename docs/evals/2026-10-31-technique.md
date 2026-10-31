@@ -38,7 +38,7 @@ Questions: none were asked in any run. Usage, where the CLI reports it: the end 
 tokens each (Claude Code 1.7 to 2.3, Codex 0.3 to 0.7); each section below gives its own, and the providers' consoles
 have the cost.
 
-Barry's judgment of the before and after renders (H-27): pending.
+Barry's judgment of the before and after renders (H-27, 2026-10-31, through AskUserQuestion): better; approved.
 
 ## The baseline, on main
 

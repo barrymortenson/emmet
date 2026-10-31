@@ -684,3 +684,6 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   out where the table is, stood the garden lamp behind the gate's post (it stood in the gate's opening), and planted
   the lawn's flower bed only where it leaves the bench's end a stud. Rejected: a small table by the bay, and a
   2-stud way through for interior doorways.
+- **H-27, part 2: the after renders are better** (Barry, through AskUserQuestion). The technique prompts went from 4
+  figure_clearance findings in the baseline to 0 at the end on both agents, and both stations centered their benches
+  between the columns and stood the canopy at the booth's door height, unprompted (`docs/evals/2026-10-31-technique.md`).
