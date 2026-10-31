@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-10-30",
+  updated: "2026-10-31",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -161,7 +161,7 @@ window.EMMET_STATUS = {
     },
     "3E": { status: "todo" },
     "4B": {
-      status: "in-progress", branch: "bmortenson/s4b-chat-agent-ux", started: "2026-10-30",
+      status: "review", pr: 48, branch: "bmortenson/s4b-chat-agent-ux", started: "2026-10-30",
       evidence: [
         "tests/e2e/specs/{dock,chat,bus}.e2e.mjs; macOS side-by-sides of every chat state in docs/spec/sessions/4B/side-by-side/",
         "tests/e2e/specs/bus.e2e.mjs: a terminal agent's highlight, the bar naming it (MCP 2026-07-28 and initialize), Zoom to them, Clear",
