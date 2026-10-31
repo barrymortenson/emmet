@@ -11,11 +11,15 @@ of bricks behind it that carries the main roof's third course over the valley. P
 are `gable` color, so the gable's face reads as a white triangle, over a `gable` plate 2 x 4 under the projection
 (the soffit, which ties them on). With `nameplate` (a color, or None for none), a brick 1 x 4 with studs on its side
 hangs under the cross gable's front, faced with a tile 1 x 4: the sign. depth must be even, 6 or more;
-project 1 or 2; at from x + 1 to x + length - 5. It brings its own steps and returns the z of the ridge's top.
+project 1 or 2; at from x + 1 to x + length - 5. A figure walks under the projection into the door: its lowest part
+(the sign's bottom, z - 4 projecting 2 and z - 3 projecting 1; without a sign, the soffit's, z - 1, or the slopes', z)
+starts at or above the door's top (a door_frame's .door_top), so with a sign, z is 4 plates or more over the door's
+top (docs/spec/building-rules.md, rule 1). It brings its own steps and returns the z of the ridge's top, with
+.underside (the z of that lowest part).
 """
 
 from emmet_dsl import Brick, Rot, Slope
-from emmet_dsl.core import in_steps
+from emmet_dsl.core import fit, in_steps
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 21335, set 11387. Not derived
 from any model file."""
@@ -75,7 +79,7 @@ def build(
     nameplate="Tan",
     title="Roof",
 ):
-    """The main roof with the cross gable in its front; returns the z of the ridge's top."""
+    """The main roof with the cross gable in its front; returns the z of the ridge's top, with .underside."""
     if depth < 6 or depth % 2:
         raise ValueError(f"cross_gable needs an even depth of 6 or more, not {depth}")
     if project not in (1, 2) or not x + 1 <= at <= x + length - 5:
@@ -134,18 +138,32 @@ def build(
     in_steps(
         m, f"{title}, ridge", _run(m, RIDGES, color, x, x + length, y + courses, top, 1)
     )
-    return top + 3
+    below = z - (1 if project == 2 else 0)
+    return fit(top + 3, underside=below - 3 if nameplate else below)
 
 
 def example(m):
-    """Walls 10 x 6 with a door, a ceiling, and the roof with a cross gable over the door."""
+    """Walls 10 x 6 with a door, a ceiling, and the roof with a cross gable over the door, its sign clear of the door's
+    top."""
     from emmet_dsl import Plate
 
     with m.step("Base"):
-        m.fill(Plate, "Dark Bluish Gray", at=(0, -2, 0), size=(10, 8))
-    for r in range(3):
-        with m.step(f"Walls, row {r + 1}"):
-            m.wall(0, 0, 1 + 3 * r, length=10, depth=6, color="Tan")
+        m.fill(Plate, "Dark Bluish Gray", at=(0, -3, 0), size=(10, 9))
+    m.use("door_frame", x=0, y=0, z=1, length=10, rows=7, offset=3, title="Front wall")
+    for r in range(7):
+        with m.step(f"Side and back walls, row {r + 1}"):
+            for wx in (0, 9):
+                m.row(
+                    Brick,
+                    "Tan",
+                    at=(wx, 1, 1 + 3 * r),
+                    length=5,
+                    axis="y",
+                    first=2 if r % 2 else None,
+                )
+            m.row(
+                Brick, "Tan", at=(1, 5, 1 + 3 * r), length=8, first=2 if r % 2 else None
+            )
     with m.step("Ceiling"):
-        m.fill(Plate, "Tan", at=(0, 0, 10), size=(10, 6))
-    m.use("cross_gable", x=0, y=0, z=11, length=10, depth=6, at=3)
+        m.fill(Plate, "Tan", at=(0, 0, 22), size=(10, 6))
+    m.use("cross_gable", x=0, y=0, z=23, length=10, depth=6, at=3)

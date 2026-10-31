@@ -656,3 +656,39 @@ fn the_audit_has_a_row_for_every_technique() {
         );
     }
 }
+
+#[test]
+fn double_arch_colonnade_clears_a_door_behind_it() {
+    // 3 studs out from the wall, the door's way out ends where the colonnade's plinth begins; a bay is in line with
+    // the door, its columns either side.
+    beside_a_door(
+        "double_arch_colonnade",
+        7,
+        "m.use(\"double_arch_colonnade\", x=2, y=4, z=0.5)",
+    );
+}
+
+#[test]
+fn scalloped_awning_clears_a_door_under_it() {
+    beside_a_door(
+        "scalloped_awning",
+        6,
+        "m.use(\"scalloped_awning\", x=3, y=8, z=wall.door_top)",
+    );
+}
+
+#[test]
+fn corbelled_balcony_clears_a_door_under_it() {
+    // The corbels hang 3 bricks under the slab: on a wall 3 bricks taller than the door, they end at its top.
+    beside_a_door("corbelled_balcony", 9, "m.use(\"corbelled_balcony\", x=3, y=8, z=wall)");
+}
+
+#[test]
+fn cross_gable_clears_a_door_under_it() {
+    // The sign hangs 4 plates under the roof: on a wall 2 bricks taller than the door, it clears the door's top.
+    beside_a_door(
+        "cross_gable",
+        8,
+        "m.use(\"cross_gable\", x=0, y=8, z=wall, length=10, depth=6, at=3)",
+    );
+}

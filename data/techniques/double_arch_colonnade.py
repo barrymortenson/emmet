@@ -2,16 +2,21 @@
 """Double arch colonnade: an open arcade of tall arches on slender round columns, paired where two arches meet, with a
 cornice line over them.
 
-m.use("double_arch_colonnade", x, y, z, bays=3, height=3, color="White", trim="Light Bluish Gray",
+m.use("double_arch_colonnade", x, y, z, bays=3, height=6, color="White", trim="Light Bluish Gray",
 title="Colonnade") builds, on the studs at z, an arcade one stud deep and 6 * bays studs long along x from (x, y): a
 plinth of a plate course in `trim` and one in `color` over it, its joints crossed; columns of round bricks 1 x 1
 (3062b) `height` bricks tall under each arch's feet, so a single column stands at each end and a pair where two arches
-meet; a plate over each column or pair as its capital (1 x 2 over a pair, which ties it); an Arch 1 x 6 x 2 with Thin
-Top (15254) over each bay; and a cornice of a plate course in `trim` and one in `color`, their joints off the arches'.
-bays: 1 to 4; height: 2 to 6. Returns the z of the cornice's top.
+meet, 4 studs clear between a bay's two; a plate over each column or pair as its capital (1 x 2 over a pair, which ties
+it); an Arch 1 x 6 x 2 with Thin Top (15254) over each bay; and a cornice of a plate course in `trim` and one in
+`color`, their joints off the arches'. bays: 1 to 4. height is the clear room over the plinth up to the capitals: 6
+(the default) clears a 1 x 4 x 6 door beside the colonnade, and less than 5 can't be walked under, so it's 5 to 8
+(docs/spec/building-rules.md, rule 1). It keeps clear the way through each bay, between its columns and 3 studs out on
+both sides, from a plate over the plinth up to where the arch springs. Returns the z of the cornice's top, with
+.columns (the (x, y) of every column) and .underside (the z where the arches spring).
 """
 
 from emmet_dsl import Plate
+from emmet_dsl.core import APPROACH, fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 11377. Not derived from any
 model file."""
@@ -25,15 +30,18 @@ def build(
     y,
     z,
     bays=3,
-    height=3,
+    height=6,
     color="White",
     trim="Light Bluish Gray",
     title="Colonnade",
 ):
-    """The plinth, the columns, the capitals, the arches, and the cornice; returns the z of the top."""
-    if not 1 <= bays <= 4 or not 2 <= height <= 6:
+    """The plinth, the columns, the capitals, the arches, and the cornice; returns the z of the top, with .columns
+    and .underside."""
+    if not 1 <= bays <= 4:
+        raise ValueError(f"double_arch_colonnade takes 1 to 4 bays, not {bays}")
+    if not 5 <= height <= 8:
         raise ValueError(
-            f"double_arch_colonnade takes 1 to 4 bays and a height of 2 to 6, not {bays}, {height}"
+            f"double_arch_colonnade height is 5 to 8 bricks (6 clears a door beside it), not {height}"
         )
     length = 6 * bays
     with m.step(f"{title}, plinth"):
@@ -58,11 +66,19 @@ def build(
     with m.step(f"{title}, arches"):
         for k in range(bays):
             m.add("15254", color, at=(x + 6 * k, y, za + 1), rot=1)
+    # The way through each bay: between its columns and 3 studs out on both sides, from a plate over the plinth to
+    # the arch's springing.
+    for k in range(bays):
+        x0, x1 = x + 6 * k + 1, x + 6 * k + 5
+        m.keep_clear(
+            ((x0, y - APPROACH, zc + 1), (x1, y + 1 + APPROACH, za + 1)),
+            f"a figure walking through bay {k + 1} of {title}",
+        )
     zt = za + 7
     with m.step(f"{title}, cornice"):
         m.row(Plate, trim, at=(x, y, zt), length=length, first=3)
         m.row(Plate, color, at=(x, y, zt + 1), length=length)
-    return zt + 2
+    return fit(zt + 2, columns=[(x + f, y) for f in feet], underside=za + 1)
 
 
 def example(m):
