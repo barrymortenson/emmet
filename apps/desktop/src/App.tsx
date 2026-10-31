@@ -293,24 +293,32 @@ export function App() {
       }),
     ];
     void commands.getPrefs().then(setPrefs);
-    void Promise.all([commands.appInfo(), commands.uiState()]).then(([i, s]) => {
-      setInfo(i);
-      root.current = s.project?.root ?? null;
-      setUi(s);
-      void show(s.scene ?? null, root.current);
-      // With no project open: first run, or Start once the parts and Python are set up; else the last project.
-      if (!s.project) {
-        // A last project that can't open says why over Start.
-        if (i.library && i.python && i.recent[0]) void act(commands.openRecent(i.recent[0].path)).then((p) => p == null && setFirstRun("start"));
-        else setFirstRun(i.library && i.python ? "start" : "welcome");
-      }
-      // Interactive: the first frame after this one has drawn with its handlers in place.
-      requestAnimationFrame(() => setTimeout(() => void commands.appInfo().then((n) => setStartupMs(n.uptime_ms)), 0));
-    });
+    // Only once every listener is in place: opening the last project sends ProjectOpened, which a window still
+    // registering its listeners would miss, and stay empty (a dev build's restart showed it). A dev build mounts twice,
+    // so only the mount still in place goes on.
+    let live = true;
+    void Promise.all(off)
+      .then(() => Promise.all([commands.appInfo(), commands.uiState()] as const))
+      .then(([i, s]) => {
+        if (!live) return;
+        setInfo(i);
+        root.current = s.project?.root ?? null;
+        setUi(s);
+        void show(s.scene ?? null, root.current);
+        // With no project open: first run, or Start once the parts and Python are set up; else the last project.
+        if (!s.project) {
+          // A last project that can't open says why over Start.
+          if (i.library && i.python && i.recent[0]) void act(commands.openRecent(i.recent[0].path)).then((p) => p == null && setFirstRun("start"));
+          else setFirstRun(i.library && i.python ? "start" : "welcome");
+        }
+        // Interactive: the first frame after this one has drawn with its handlers in place.
+        requestAnimationFrame(() => setTimeout(() => void commands.appInfo().then((n) => setStartupMs(n.uptime_ms)), 0));
+      });
     const net = () => setOnline(navigator.onLine);
     window.addEventListener("online", net);
     window.addEventListener("offline", net);
     return () => {
+      live = false;
       off.forEach((p) => void p.then((f) => f()));
       window.removeEventListener("online", net);
       window.removeEventListener("offline", net);
