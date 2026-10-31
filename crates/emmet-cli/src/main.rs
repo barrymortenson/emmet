@@ -731,7 +731,8 @@ fn main() -> ExitCode {
             let pass = result.as_ref().is_ok_and(|r| r.pass);
             let code = finish(&cli, started, result.into(), |r| {
                 let mut lines = vec![format!(
-                    "Rung 1 on {}: {} ({} min {} s, {} turns)",
+                    "Rung {} on {}: {} ({} min {} s, {} turns)",
+                    rung,
                     r.run.agent,
                     if r.pass { "pass" } else { "fail" },
                     r.run.seconds / 60,

@@ -213,7 +213,7 @@ window.EMMET_STATUS = {
     "H-22": { status: "done", date: "2026-10-28", note: "98 of 100 candidates accepted on five review pages (docs/techniques/candidates/batch-1 to 5); rejected: wheel_axle, wheel_arch; docs/decisions.md" },
     "H-23": { status: "todo" },
     "H-26": { status: "done", date: "2026-10-30", note: "all 13 batches accepted (260 of 260); the Cottage and design change note 002 approved" },
-    "H-27": { status: "todo" },
+    "H-27": { status: "waiting", note: "part 1 done 2026-10-31: the building rules approved as written (docs/decisions.md); part 2, the before and after renders, at the end" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
     "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
   },

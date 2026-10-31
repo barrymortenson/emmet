@@ -636,3 +636,17 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   user's view without asking; and leaving it to 4C. Barry then had the accent edges and the silhouette of a hidden
   part taken out (2026-10-31): the parts keep their own colors. A hidden part isn't seen until Zoom to them or a turn
   of the view.
+
+## 2026-10-31, session 3E
+
+- **The building rules are approved as written (H-27, part 1; Barry, through AskUserQuestion).**
+  `docs/spec/building-rules.md`: headroom at or above the door top beside it, a door's approach clear on both sides
+  (its width, 3 studs out, from a plate above its bottom up to its top), a seat's ends, front, and headroom, walkways 3
+  studs clear with no post in line with a door, how parts meet, and the scales they hold at (figure scale, large where
+  the model has figure doors or seats, and Any). Each rule names what enforces it. Rejected: a 2-stud approach on a
+  door's room side, which only the `door_frame` technique could tell from the street side.
+- **D-53 is decided** with the rules: `figure_clearance` is a warning, from keep-clear boxes declared by door frames
+  (the parts index), by techniques, and by the agent with `m.keep_clear`, at figure scale, large, and Any.
+- **The technique prompts' baseline runs with `main`'s library** (session prompt): `emmet eval` learns the five prompts
+  in `docs/spec/ladder.md` (T1 to T5) and keeps each run's project, and that is the only change before the ten
+  baseline runs. They are the scripted runs D-52 asks for, on top of D-38's gate budget: ten now and ten at the end.

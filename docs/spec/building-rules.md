@@ -1,0 +1,88 @@
+# Building rules
+
+The rules an experienced builder applies without being told (session 3E, D-52). A model that breaks one can still
+validate clean as parts: it just isn't built for the figure that lives in it. Each rule says where Emmet enforces it:
+
+- **validator**: the `figure_clearance` rule (D-53), a warning, from keep-clear boxes (`docs/spec/validator.md`).
+- **technique**: a technique's defaults, its arguments, what it returns, and the keep-clear boxes it declares with
+  `m.keep_clear` (`docs/techniques/audit.md`).
+- **doctrine**: a short rule in the doctrine or a guide the agent reads (`EMMET.md`, `figure-scale.md`, `large.md`,
+  `vehicles.md`).
+- **render review**: what step 5 of the doctrine's loop tells the agent to look for in the render.
+
+Sources: the guides in `crates/emmet-cli/doctrine/guides/`; methods noted from Barry's instruction books, cited by set
+number only (D-48: 43217, 43268, 11387, 43302, 21335); and general building knowledge. Sizes are in the DSL's units:
+studs across, plates (and bricks of 3 plates) up.
+
+## The figure
+
+A figure is 4 bricks tall with a hat, 2 studs wide at the shoulders, 1 stud deep, and stands on a 1 x 2 or 2 x 2 spot.
+Seated, it reaches about 3 bricks above its seat. Every rule below follows from these sizes.
+
+## 1. Headroom
+
+Anything a figure walks under starts at or above the top of the door beside it: a canopy, an awning, a porch roof, a
+shelter's roof, an arcade, a balcony, an archway. For a 1 x 4 x 6 door that's 6 bricks (18 plates) above the floor the
+figure stands on; with no door beside it, at least 5 bricks (a figure with a hat, and a brick to spare).
+
+- Enforced by: **technique** (`canopy`, `porch_posts`, `turned_post_porch`, `lean_to_awning`,
+  `wing_plate_porch_roof`, `door_hood`, the awnings, and the colonnades clear a 6-brick door at their defaults and take
+  a `height` argument), **validator** (a door's keep-clear box reaches the door's top, so a roof lower than the door
+  over the space in front of it is a finding), **render review** (a walk-under with no door beside it).
+
+## 2. A doorway's approach
+
+In front of a door and behind it, a space the door's width, 3 studs out, and from 1 plate above the door's bottom up
+to its top stays clear: no wall, post, bench, lamp, sign, or roof edge inside it. A tile or a mat may lie on the floor
+there (it's under the space), and a step down from a raised door is fine.
+
+- Enforced by: **validator** (each figure door, a door frame 5 bricks tall or more found through the parts index,
+  gives a keep-clear box on each side), **technique** (`door_frame` returns its door's top and the space in front of
+  it, so the next technique can stand clear of it), **doctrine**.
+
+## 3. Seats
+
+A seat a figure sits on (a bench, a chair, a sofa, a stool) has a stud free at each end, 2 studs clear in front for
+the legs, and headroom above it: 3 bricks over the seat with nothing in the way.
+
+- Enforced by: **technique** (`bench`, the seats and chairs, and the vehicle seats declare these spaces with
+  `m.keep_clear`), **validator** (anything inside them is a finding), **doctrine** (a seat built by hand gets the same
+  spaces, declared with `m.keep_clear`).
+
+## 4. Walkways
+
+Posts, columns, and pillars a figure walks between stand with 3 studs or more clear between them (a figure is 2
+wide). No post or column stands in line with a door: in its approach (rule 2).
+
+- Enforced by: **technique** (`canopy`, `porch_posts`, `turned_post_porch`, and the colonnades space their columns 3
+  or more studs clear by default, refuse less, and return where the columns stand; porches and colonnades declare the
+  way in between their front posts), **validator** (a column in a door's approach or a porch's way in), **render
+  review**.
+
+## 5. How parts meet
+
+- A lower roof meets a taller wall under that wall's eaves or on a string course (a ledge a plate proud), never across
+  a window or a door. A canopy or an awning beside a door clears the door's top (rule 1).
+- Door tops, window tops, and eaves line up along a facade: one line a story.
+- Every roof edge meets what's under it: eaves overhang the wall by a stud (or 1 to 2 plates on a small roof), with no
+  gap between the roof and the wall top, and no roof edge buried in a wall.
+- A seat or a bench goes between columns, centered in the space, not against one (rules 3 and 4).
+- Enforced by: **technique** (`door_frame` and `window_frame` at the same `rows` give one line; the roofs overhang by
+  default; `canopy` returns its columns so benches can be centered between them), **validator** (a roof across a
+  door's opening is inside its approach), **doctrine** and **render review** (the rest).
+
+## 6. Where the rules hold
+
+At figure scale and large, and when the Scale build setting is Any (Emmet builds at figure scale then). Not at micro,
+micropolis, midi, or car 1:8: no figure fits there, so `figure_clearance` is off and the guides for those scales don't
+teach these rules. At large, a display model with no figure doors or seats has nothing to check; where it has them,
+they're for a figure.
+
+- Enforced by: **validator** (it reads the project's Scale build setting), **doctrine** (the guides).
+
+## How a finding reads
+
+`figure_clearance` names what the space is for and the fix in a builder's words, the smallest move that clears it:
+"Canopy, beams sits 2 plates into the space a figure needs to walk out of the booth's door (up to its top, 6 bricks).
+Raise the canopy 2 plates so it clears the door." The agent fixes it, or allows it with `m.allow` and a reason the user
+would accept ("the bench is a display piece; no figure sits there").
