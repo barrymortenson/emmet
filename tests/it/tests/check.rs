@@ -38,6 +38,7 @@ fn each_broken_project_gets_exactly_its_findings() {
         "broken-off-grid",
         "broken-obsolete-part",
         "broken-alias-part",
+        "broken-figure-clearance",
     ] {
         let dir = project(name);
         let (v, code) = check(&dir, &[]);

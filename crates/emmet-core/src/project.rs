@@ -62,6 +62,15 @@ impl BuildConfig {
         *self == Self::default()
     }
 
+    /// The Scale setting is one no figure fits, where figure_clearance is off (docs/spec/building-rules.md, rule 6):
+    /// micro, micropolis, midi, or car 1:8. Figure scale, large, and Any keep it on.
+    pub fn no_figures(&self) -> bool {
+        matches!(
+            self.scale.as_deref().map(|s| s.trim().to_lowercase()).as_deref(),
+            Some("micro" | "micropolis" | "midi" | "car 1:8")
+        )
+    }
+
     /// The most parts a step should add for the Age setting: 4 for 4+, 12 for 18+, and 8 for 6+ or Any.
     pub fn step_target(&self) -> usize {
         match self.age.as_deref().map(str::trim) {

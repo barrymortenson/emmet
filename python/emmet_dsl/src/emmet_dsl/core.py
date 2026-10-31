@@ -30,6 +30,7 @@ RULES = (
     "alias_part",
     "part_unavailable",
     "color_unavailable",
+    "figure_clearance",
 )
 
 # The functions marked with @model, in definition order. run.py takes the last one model.py defines.
@@ -167,6 +168,7 @@ class Model:
         self._mirrors: list[tuple[str, float]] = []  # the open Model.mirror blocks
         self._allowed: list[tuple] = []  # (rule, ids, reason, file, line)
         self._grounded: list[tuple] = []  # (ids, file, line)
+        self._keep_clear: list[tuple] = []  # ([LDraw box], why, file, line)
         # Where Model.wall's pieces meet, by (axis, the line across it, the course's top), so the course above lays
         # them in bond.
         self._joints: dict[tuple, set] = {}
@@ -616,6 +618,39 @@ class Model:
         found = [i for v in ids for i in _ids(v)]
         self._grounded.append((found, rel, line))
 
+    def keep_clear(self, box, why: str) -> None:
+        """Marks a space a figure needs, which no part may stand in: the way through a door, the room a seat needs,
+        the gap between posts. box: two opposite corners ((x0, y0, z0), (x1, y1, z1)) in studs and plates, or a list
+        of them for one space. why: what the space is for, in words the user reads ("a figure sitting on the bench").
+        figure_clearance names any part more than 1 LDU inside it (docs/spec/building-rules.md)."""
+        file, line = caller()
+        rel = self._context.rel(file) if self._context else file
+        if not isinstance(why, str) or not why.strip():
+            raise EmmetError(
+                "MODEL_EXEC_FAILED",
+                "m.keep_clear needs a why.",
+                'Say what the space is for: why="the way through the shop door".',
+                rel,
+                line,
+            )
+        boxes = box if isinstance(box, list) else [box]
+        out = []
+        for b in boxes:
+            try:
+                lo, hi = _point(b[0], rel, line), _point(b[1], rel, line)
+                if len(b) != 2:
+                    raise TypeError
+            except (TypeError, IndexError, EmmetError):
+                raise EmmetError(
+                    "MODEL_EXEC_FAILED",
+                    f"{b!r} isn't a box.",
+                    "Pass two opposite corners, ((x0, y0, z0), (x1, y1, z1)), in studs and plates, or a list of them.",
+                    rel,
+                    line,
+                ) from None
+            out.append(frame.box_in_ldraw(tuple(map(min, lo, hi)), tuple(map(max, lo, hi))))
+        self._keep_clear.append((out, why.strip(), rel, line))
+
     def _ctx(self, what: str, file: str, line: int):
         ctx = self._context
         if ctx is None:
@@ -913,3 +948,90 @@ def techniques() -> list[str]:
     except ModuleNotFoundError:
         return []
     return sorted(m.name for m in pkgutil.iter_modules(package.__path__) if not m.name.startswith("_"))
+
+
+# What a figure needs at figure scale (docs/spec/building-rules.md), in plates up and studs across: a 1 x 4 x 6 door's
+# top, the least headroom where no door stands beside a walk-under, how far out a door's way through reaches, the
+# headroom over a seat, and the room in front of one.
+DOOR_TOP = 18
+HEADROOM = 15
+APPROACH = 3
+SEAT_HEADROOM = 9
+LEG_ROOM = 2
+
+
+class _Int(int):
+    pass
+
+
+class _Float(float):
+    pass
+
+
+def fit(value, **info):
+    """For techniques: `value` (the z the technique has always returned, so `top + 1` still works) carrying what the
+    next technique needs to fit against it as attributes: a door's top, a canopy's columns."""
+    out = _Int(value) if isinstance(value, int) and not isinstance(value, bool) else _Float(value)
+    out.__dict__.update(info)
+    return out
+
+
+def door_space(
+    m: Model, wall: str, at: float, start: float, width: float, z: float, why: str, height: float = DOOR_TOP
+):
+    """For techniques: keeps clear the way through a door (building rule 2) on both sides of a wall one stud thick:
+    `wall` "x" (the wall runs along x at y = at) or "y" (along y at x = at); the door spans `start` to `start + width`
+    along it, from z (its bottom) up `height` plates. The space starts a plate above the bottom, where a tile or a mat
+    may lie, and reaches APPROACH studs out on each side. Returns the boxes."""
+    lo, hi = z + 1, z + height
+    if wall == "x":
+        boxes = [
+            ((start, at - APPROACH, lo), (start + width, at, hi)),
+            ((start, at + 1, lo), (start + width, at + 1 + APPROACH, hi)),
+        ]
+    else:
+        boxes = [
+            ((at - APPROACH, start, lo), (at, start + width, hi)),
+            ((at + 1, start, lo), (at + 1 + APPROACH, start + width, hi)),
+        ]
+    m.keep_clear(boxes, why)
+    return boxes
+
+
+def seat_space(
+    m: Model,
+    x: float,
+    y: float,
+    length: float,
+    depth: float,
+    seat: float,
+    why: str,
+    z: float = 0,
+    facing: str = "front",
+):
+    """For techniques: keeps clear the room a figure sitting on a seat needs (building rule 3): a stud at each end,
+    LEG_ROOM studs in front up to a brick over the seat, and SEAT_HEADROOM plates over its front rows. The seat's footprint is
+    `length` studs along its front by `depth` deep from (x, y), its top `seat` plates over z; facing is the side a
+    figure sits facing: "front" (−y, the default), "back" (+y), "left" (−x), or "right" (+x). Returns the boxes."""
+    lo, top, over = z + 1, z + seat + SEAT_HEADROOM, max(1, depth - 1)
+    local = [
+        ((-1, 0, lo), (0, depth, top)),
+        ((length, 0, lo), (length + 1, depth, top)),
+        ((0, -LEG_ROOM, lo), (length, 0, z + seat + 3)),
+        ((0, 0, z + seat), (length, over, top)),
+    ]
+
+    def turn(u, v):
+        return {
+            "front": (x + u, y + v),
+            "back": (x + length - u, y + depth - v),
+            "left": (x + v, y + u),
+            "right": (x + depth - v, y + u),
+        }[facing]
+
+    boxes = []
+    for (u0, v0, z0), (u1, v1, z1) in local:
+        (a0, b0), (a1, b1) = turn(u0, v0), turn(u1, v1)
+        boxes.append(((min(a0, a1), min(b0, b1), z0), (max(a0, a1), max(b0, b1), z1)))
+    m.keep_clear(boxes, why)
+    return boxes

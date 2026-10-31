@@ -4,14 +4,21 @@
 m.use("bench", at=(x, y, z), rot=0, color="Reddish Brown", legs="Dark Bluish Gray", id=None) places one bench with
 the minimum corner of its box at `at`, on studs: two legs, a seat with a tile to sit on, and a lattice back. At rot=0
 it runs along x and faces −y (its back is at the larger y); rot turns it like any part. Every bench with the same
-colors is one sub-assembly, built once in its own steps and placed "× n", so place them inside your own step. It
-returns the placed copy's Handle.
+colors is one sub-assembly, built once in its own steps and placed "× n", so place them inside your own step. Each
+bench keeps clear the room a figure sitting on it needs (docs/spec/building-rules.md, rule 3): a stud at each end, 2
+studs in front, and 3 bricks over the seat, so set it between posts, not against one. It returns the placed copy's
+Handle.
 """
+
+from emmet_dsl.core import seat_space
 
 PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
 file."""
 
 PARTS = ["3004", "3020", "2431", "3633"]
+
+
+SEAT = 5  # the seat's top, in plates over the bench's bottom
 
 
 def _bench(m, color, legs):
@@ -22,6 +29,7 @@ def _bench(m, color, legs):
     with m.step("Seat and back"):
         m.add("2431", color, at=(0, 0, 4), rot=1, id="seat/tile")
         m.add("3633", color, at=(0, 1, 4), rot=1, id="back")
+    seat_space(m, 0, 0, 4, 2, SEAT, "a figure sitting on the bench")
 
 
 def build(m, at, rot=0, color="Reddish Brown", legs="Dark Bluish Gray", id=None):
@@ -30,9 +38,9 @@ def build(m, at, rot=0, color="Reddish Brown", legs="Dark Bluish Gray", id=None)
 
 
 def example(m):
-    """Two benches facing each other on a plate."""
+    """Two benches back to back on a plate."""
     with m.step("Plate"):
         m.add("3031", "Light Bluish Gray", at=(0, 0, 0))
     with m.step("Benches"):
-        m.use("bench", at=(0, 2, 1))
-        m.use("bench", at=(0, 0, 1), rot=2)
+        m.use("bench", at=(0, 0, 1))
+        m.use("bench", at=(0, 2, 1), rot=2)

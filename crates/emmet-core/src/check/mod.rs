@@ -6,6 +6,7 @@
 
 mod availability;
 mod boxes;
+mod clearance;
 mod collision;
 pub mod connectors;
 pub mod graph;
@@ -54,10 +55,11 @@ pub enum Rule {
     ColorUnavailable,
     ObsoletePart,
     AliasPart,
+    FigureClearance,
 }
 
 impl Rule {
-    pub const ALL: [Rule; 12] = [
+    pub const ALL: [Rule; 13] = [
         Rule::UnknownPart,
         Rule::Collision,
         Rule::Floating,
@@ -70,6 +72,7 @@ impl Rule {
         Rule::ColorUnavailable,
         Rule::ObsoletePart,
         Rule::AliasPart,
+        Rule::FigureClearance,
     ];
 
     pub fn name(self) -> &'static str {
@@ -86,6 +89,7 @@ impl Rule {
             Rule::ColorUnavailable => "color_unavailable",
             Rule::ObsoletePart => "obsolete_part",
             Rule::AliasPart => "alias_part",
+            Rule::FigureClearance => "figure_clearance",
         }
     }
 
@@ -109,7 +113,8 @@ impl Rule {
             | Rule::OffGrid
             | Rule::PartUnavailable
             | Rule::ColorUnavailable
-            | Rule::ObsoletePart => Severity::Warning,
+            | Rule::ObsoletePart
+            | Rule::FigureClearance => Severity::Warning,
             Rule::AliasPart => Severity::Info,
         }
     }
@@ -181,6 +186,20 @@ pub struct Options {
     /// How many parts a step may add before step_size warns: the Age build setting's target (0 means 8, the 6+
     /// target).
     pub step_target: usize,
+    /// The spaces a figure needs that the model declared (`m.keep_clear`), besides the figure doors.
+    pub keep_clear: Vec<KeepClear>,
+    /// The Scale build setting is one no figure fits (micro, micropolis, midi, car 1:8): figure_clearance is off.
+    pub no_figures: bool,
+}
+
+/// A space a figure needs, from `m.keep_clear` (build/placements.json's `keep_clear`): its boxes in LDraw's frame
+/// ([min x, min y, min z, max x, max y, max z], LDU), what it's for, and the model line that declared it.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+pub struct KeepClear {
+    pub boxes: Vec<[f64; 6]>,
+    pub why: String,
+    #[serde(default)]
+    pub src: String,
 }
 
 /// An allow entry from emmet.toml or the model (`m.allow`).
@@ -394,6 +413,9 @@ pub fn validate(
     if on(Rule::OffGrid) {
         raw.extend(structure::off_grid(&model, &ground));
     }
+    if on(Rule::FigureClearance) && !options.no_figures {
+        raw.extend(clearance::figure_clearance(&model, &options.keep_clear));
+    }
     Ok(finish(placed, raw, &options.allow, inputs_hash))
 }
 
@@ -603,8 +625,8 @@ fn part_rules(placed: &[Placed], rules: &[Rule]) -> Vec<Raw> {
     out
 }
 
-/// Numbers the findings in a stable order (severity, then the first source line, then the rule, then the parts) and applies the
-/// project's allow entries.
+/// Numbers the findings in a stable order (severity, figure_clearance first among the warnings, then the first source
+/// line, then the rule, then the parts) and applies the project's allow entries.
 fn finish(placed: &[Placed], raw: Vec<Raw>, allow: &[Allow], inputs_hash: Option<String>) -> Validation {
     let mut items: Vec<(Raw, Vec<Source>, Vec<String>)> = raw
         .into_iter()
@@ -622,9 +644,12 @@ fn finish(placed: &[Placed], raw: Vec<Raw>, allow: &[Allow], inputs_hash: Option
             (r, source, ids)
         })
         .collect();
+    // figure_clearance leads the warnings (D-53): the agent reads the list top down.
+    let first = |r: &Raw| r.rule != Rule::FigureClearance;
     items.sort_by(|a, b| {
-        (a.0.severity(), a.1.first().cloned(), a.0.rule, &a.2).cmp(&(
+        (a.0.severity(), first(&a.0), a.1.first().cloned(), a.0.rule, &a.2).cmp(&(
             b.0.severity(),
+            first(&b.0),
             b.1.first().cloned(),
             b.0.rule,
             &b.2,

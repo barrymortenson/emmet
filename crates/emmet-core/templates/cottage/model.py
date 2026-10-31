@@ -22,6 +22,9 @@ LOGS = {4: "30137", 2: "30136", 1: "3005"}
 
 # The walls' brick lengths: 1 x 4 and shorter come in the most colors.
 WALL_BRICKS = [1, 2, 3, 4]
+PORCH_POSTS = (
+    7  # round bricks a porch post stands, so the beam on them starts at the door's top
+)
 
 
 def lengths(n, sizes):
@@ -662,19 +665,12 @@ def cottage(
         (F + 7, Plate, trim, door | shuttered),
         (F + 8, Plate, beams, door | bay | shuttered | boxed),
     ]
-    # Inside, a clock hangs on the front wall of the living room, beside the door, when there's a stud of wall for it.
-    clock = {(x1 - 2, y0)} if dx + 4 <= x1 - 2 else set()
     courses += [
         (
             z,
             upper,
             upper_color,
-            door
-            | bay
-            | shuttered
-            | boxed
-            | corners
-            | (clock if z == F + 12 else set()),
+            door | bay | shuttered | boxed | corners,
         )
         for z in plaster_rows[:3]
     ]
@@ -706,7 +702,7 @@ def cottage(
     # beside a corner on the side its quoin's long tile reaches along: the front corners' long tiles are always on the
     # ends (the bay and a porch post stand beside them); the back ones' take turns.
     porch = {(x, y0) for x in range(dx - 1, dx + 5)}
-    no_stone = porch | bay | clock | {(x1, cy + i) for i in range(-1, 4)}
+    no_stone = porch | bay | {(x1, cy + i) for i in range(-1, 4)}
     no_stone |= {(x0, y0 + 1), (x1, y0 + 1)}
     old_stones = {}
     below = set()
@@ -1023,6 +1019,14 @@ def cottage(
         bay_base(F + 1, "stone", stone)
     with m.step("Door"):
         m.place(door_unit, at=(dx, y0, F + 1), rot=3, id="door")
+    # The way through the door, 3 studs out on each side and up to its top, stays clear (figure_clearance).
+    m.keep_clear(
+        [
+            ((dx, y0 - 3, F + 2), (dx + 4, y0, F + 19)),
+            ((dx, y0 + 1, F + 2), (dx + 4, y0 + 4, F + 19)),
+        ],
+        "a figure walking through the front door",
+    )
     course(3, "Walls, row 2")
     with m.step("Walls, row 2: bay"):
         bay_base(F + 4, "stone", stone)
@@ -1139,17 +1143,6 @@ def cottage(
         )
     course(6, "Walls, row 3")
     course(7, "Walls, row 4")
-    if clock:
-        m.use(
-            "wall_picture_and_clock",
-            x=x1 - 2,
-            y=y0,
-            z=F + 12,
-            kind="clock",
-            facing="+y",
-            color=wall_color,
-            title="Clock",
-        )
     course(8, "Walls, row 5")
     flowers = ("Dark Pink", "Bright Light Orange") if not winter else ("Red", "Red")
     window_units = {}
@@ -1178,7 +1171,9 @@ def cottage(
     course(9, "Walls, hood course")
     course(10, "Walls, row 6")
 
-    # The porch: four posts on the landing, a plate roof, and slopes; two rounded steps down to the path.
+    # The porch: four posts on the landing, a plate roof, and slopes; two rounded steps down to the path. The beam
+    # under the roof's front starts at the door's top, so a figure walks under it, and the roof's back row tucks under
+    # the house's eaves (docs/spec/building-rules.md).
     with m.step("Porch: steps"):
         m.add("3020", "Light Bluish Gray", at=(dx, y0 - 5, ground), rot=1)
         for i in range(4):
@@ -1186,21 +1181,27 @@ def cottage(
     posts = ((dx - 1, y0 - 3), (dx + 4, y0 - 3), (dx - 1, y0 - 1), (dx + 4, y0 - 1))
     for i, (qx, qy) in enumerate(posts):
         with m.step("Porch: posts"):
-            m.stack("3062b", "White", at=(qx, qy, F), count=5, id=f"porch/post/{i + 1}")
-            m.add("6141", "White", at=(qx, qy, F + 15))
+            m.stack(
+                "3062b",
+                "White",
+                at=(qx, qy, F),
+                count=PORCH_POSTS,
+                id=f"porch/post/{i + 1}",
+            )
+            m.add("6141", "White", at=(qx, qy, F + 3 * PORCH_POSTS))
     # The porch roof's plates, and under their front, between the posts, a beam with studs on its face that carries
     # the house's nameplate, or in winter two wreaths.
     with m.step("Porch: roof plates and beam"):
-        m.add("3795", trim, at=(dx - 1, y0 - 3, F + 16), rot=1)
-        m.add("3666", trim, at=(dx - 1, y0 - 1, F + 16), rot=1)
-        m.add("30414", trim, at=(dx, y0 - 3, F + 13), rot=3, id="porch/beam")
+        m.add("3795", trim, at=(dx - 1, y0 - 3, F + 22), rot=1)
+        m.add("3666", trim, at=(dx - 1, y0 - 1, F + 22), rot=1)
+        m.add("30414", trim, at=(dx, y0 - 3, F + 19), rot=3, id="porch/beam")
     with m.step("Porch: nameplate" if not winter else "Porch: wreaths"):
         if winter:
             for i in (1, 2):
                 m.add(
                     "33291",
                     "Green",
-                    at=(dx + i - 0.1, y0 - 3.4, F + 13.25),
+                    at=(dx + i - 0.1, y0 - 3.4, F + 19.25),
                     rot=Rot(x=90),
                     id=f"wreath/{i}",
                 )
@@ -1208,7 +1209,7 @@ def cottage(
             m.add(
                 "2431",
                 stone,
-                at=(dx, y0 - 3.4, F + 13.5),
+                at=(dx, y0 - 3.4, F + 19.5),
                 rot=Rot(y=-90, z=90),
                 id="nameplate",
             )
@@ -1225,7 +1226,7 @@ def cottage(
                 m.add(
                     part,
                     color,
-                    at=(dx - 1, y0 - 2, F + 16 - dz),
+                    at=(dx - 1, y0 - 2, F + 22 - dz),
                     id=f"lantern/{part}-{dz}",
                 )
     with m.step("Porch: pots"):
@@ -1243,8 +1244,7 @@ def cottage(
             )
     with m.step("Porch: roof"):
         for i in range(3):
-            m.add("3039", roofing, at=(dx - 1 + 2 * i, y0 - 3, F + 17), rot=3)
-        m.add("3009", roofing, at=(dx - 1, y0 - 1, F + 17), rot=1)
+            m.add("3039", roofing, at=(dx - 1 + 2 * i, y0 - 3, F + 23), rot=3)
 
     # The wall tops, tiled smooth but for a plate at each corner, where the roof's frame locates (lift_off_roof_seat).
     tiles = (1, 2, 3, 4, 6, 8)

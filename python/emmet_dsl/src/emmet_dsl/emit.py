@@ -121,6 +121,7 @@ class Flat:
         self.boxes: list[tuple] = []
         self.allow: list[dict] = []
         self.ground: list[str] = []
+        self.keep_clear: list[dict] = []
         identity = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         self._walk(built, built.main, "", [], [], identity, (0, 0, 0))
 
@@ -152,6 +153,11 @@ class Flat:
             self.allow.append({"rule": rule, "parts": _expand(m, ids, prefix, mine, file, line), "reason": reason})
         for ids, file, line in m._grounded:
             self.ground += _expand(m, ids, prefix, mine, file, line)
+        for boxes, why, file, line in m._keep_clear:
+            placed = [frame.transform_box(outer_r, outer_pos, b) for b in boxes]
+            self.keep_clear.append(
+                {"boxes": [[clean(v) for v in b] for b in placed], "why": why, "src": f"{file}:{line}"}
+            )
 
 
 def _expand(m: Model, ids: list[str], prefix: str, mine: list[str], file: str, line: int) -> list[str]:
@@ -261,6 +267,8 @@ def write_all(out_dir: str, name: str, title: str, m: Model, manifest_in: dict, 
         placements["allow"] = flat.allow
     if flat.ground:
         placements["ground"] = flat.ground
+    if flat.keep_clear:
+        placements["keep_clear"] = flat.keep_clear
     write_atomic(os.path.join(out_dir, "model.mpd"), mpd(name, title, built))
     write_atomic(os.path.join(out_dir, "placements.json"), dumps(placements))
     write_atomic(os.path.join(out_dir, "steps.json"), dumps(steps_doc(name, built)))

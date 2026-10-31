@@ -3,7 +3,8 @@
 The rules an experienced builder applies without being told (session 3E, D-52). A model that breaks one can still
 validate clean as parts: it just isn't built for the figure that lives in it. Each rule says where Emmet enforces it:
 
-- **validator**: the `figure_clearance` rule (D-53), a warning, from keep-clear boxes (`docs/spec/validator.md`).
+- **validator**: the `figure_clearance` rule (D-53), a warning, from the keep-clear boxes techniques and the agent
+  declare with `m.keep_clear` (`docs/spec/validator.md`).
 - **technique**: a technique's defaults, its arguments, what it returns, and the keep-clear boxes it declares with
   `m.keep_clear` (`docs/techniques/audit.md`).
 - **doctrine**: a short rule in the doctrine or a guide the agent reads (`EMMET.md`, `figure-scale.md`, `large.md`,
@@ -36,9 +37,11 @@ In front of a door and behind it, a space the door's width, 3 studs out, and fro
 to its top stays clear: no wall, post, bench, lamp, sign, or roof edge inside it. A tile or a mat may lie on the floor
 there (it's under the space), and a step down from a raised door is fine.
 
-- Enforced by: **validator** (each figure door, a door frame 5 bricks tall or more found through the parts index,
-  gives a keep-clear box on each side), **technique** (`door_frame` returns its door's top and the space in front of
-  it, so the next technique can stand clear of it), **doctrine**.
+- Enforced by: **technique** (`door_frame` and the other techniques that place a figure door declare this space on
+  both sides with `m.keep_clear`, and return the door's top, so the next technique can stand clear of it),
+  **validator** (anything inside the space is a finding), **doctrine** (a door frame placed by hand gets the same space,
+  declared with `m.keep_clear`). Door frames found in the parts index make no space: official models put a counter, a
+  stair, or a wall within a stud of their doors (Barry, 2026-10-31, `docs/decisions.md`).
 
 ## 3. Seats
 

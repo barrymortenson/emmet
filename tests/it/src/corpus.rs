@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use emmet_core::check::{Rule, Validation};
+use emmet_core::check::{KeepClear, Rule, Validation};
 use emmet_core::data::DataDir;
 use emmet_core::index::Index;
 use emmet_core::ldraw::{self, placements::Placement};
@@ -633,4 +633,202 @@ impl Recall {
         s += &format!("| **overall** | | {} / {} | {} | |\n", o.0, o.1, pct(o));
         s
     }
+}
+
+/// [`validate`] with the spaces a model keeps clear (`m.keep_clear`), for figure_clearance.
+pub fn validate_keeping(data: &Path, placements: &[Placement], keep: &[KeepClear]) -> Validation {
+    let options = emmet_core::check::Options {
+        keep_clear: keep.to_vec(),
+        ..Default::default()
+    };
+    emmet_core::ops::validate_placements(&DataDir::at(data), placements, &Rule::ALL, &options, None)
+        .unwrap_or_else(|e| panic!("validate: {e}"))
+}
+
+/// The faults figure_clearance must catch (3E), each a real move in a model that keeps spaces clear.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum FigureFault {
+    /// A bench slid against the nearest post, the post at its end.
+    BenchToPost,
+    /// What stands over a door's approach (a canopy, an awning, a hood) lowered a brick.
+    LowerCanopy,
+    /// A brick wall built across a doorway, a stud or two out.
+    WallAcross,
+}
+
+/// One figure fault: the changed placements and the parts a figure_clearance finding may name to catch it.
+pub struct FigureMutant {
+    pub fault: FigureFault,
+    pub placements: Vec<Placement>,
+    /// The spaces after the fault: a moved bench takes its own with it.
+    pub keep: Vec<KeepClear>,
+    pub names: Vec<String>,
+    pub what: String,
+}
+
+impl FigureMutant {
+    pub fn caught(&self, v: &Validation) -> bool {
+        v.findings
+            .iter()
+            .any(|f| f.rule == Rule::FigureClearance && f.parts.iter().any(|p| self.names.contains(p)))
+    }
+}
+
+fn space(b: &[f64; 6]) -> Geo {
+    Geo {
+        min: DVec3::new(b[0], b[1], b[2]),
+        max: DVec3::new(b[3], b[4], b[5]),
+        upright: true,
+        basic: true,
+    }
+}
+
+/// Every figure fault the model's spaces allow: a bench to its nearest post (one within 8 studs), each door's
+/// overhead lowered (when something stands over its approach), and a wall across each door.
+pub fn figure_mutants(index: &Index, placements: &[Placement], keep: &[KeepClear]) -> Vec<FigureMutant> {
+    let geo = geometry(index, placements);
+    let mut out = Vec::new();
+    for (ki, k) in keep.iter().enumerate() {
+        if k.why.contains("sitting") && k.boxes.len() >= 2 {
+            // The seat's ends are its first two boxes; the seat is the parts between them.
+            let (e0, e1) = (space(&k.boxes[0]), space(&k.boxes[1]));
+            let a = if (e1.min.x - e0.min.x).abs() > (e1.min.z - e0.min.z).abs() {
+                0
+            } else {
+                2
+            };
+            let c = 2 - a;
+            let (lo, hi) = (e0.max[a].min(e1.max[a]), e0.min[a].max(e1.min[a]));
+            let seat: Vec<usize> = (0..placements.len())
+                .filter(|&i| {
+                    geo[i].as_ref().is_some_and(|g| {
+                        g.min[a] >= lo - 1.0
+                            && g.max[a] <= hi + 1.0
+                            && g.min[c] >= e0.min[c] - 1.0
+                            && g.max[c] <= e0.max[c] + 1.0
+                            && g.min.y >= e0.min.y - 1.0
+                    })
+                })
+                .collect();
+            if seat.is_empty() {
+                continue;
+            }
+            let (smin, smax) = seat.iter().filter_map(|&i| geo[i].as_ref()).fold(
+                (DVec3::splat(f64::INFINITY), DVec3::splat(f64::NEG_INFINITY)),
+                |(lo, hi), g| (lo.min(g.min), hi.max(g.max)),
+            );
+            let mid = (smin + smax) / 2.0;
+            // A post: a part a stud square and 3 bricks tall or more, standing at the seat's level.
+            let post = (0..placements.len())
+                .filter(|i| !seat.contains(i))
+                .filter_map(|j| geo[j].as_ref().map(|g| (j, g)))
+                .filter(|(_, g)| {
+                    let s = g.max - g.min;
+                    s.x <= STUD + 1.0
+                        && s.z <= STUD + 1.0
+                        && s.y >= 3.0 * 24.0 - 1.0
+                        && g.min.y < smin.y
+                        && g.max.y > smax.y - 1.0
+                })
+                .map(|(j, g)| (j, (((g.min + g.max) / 2.0) - mid).with_y(0.0).length()))
+                .filter(|(_, d)| *d <= 8.0 * STUD)
+                .min_by(|x, y| x.1.total_cmp(&y.1));
+            if let Some((j, _)) = post {
+                let g = geo[j].as_ref().unwrap();
+                let mut by = DVec3::ZERO;
+                by[a] = if (g.min[a] + g.max[a]) / 2.0 > mid[a] {
+                    g.min[a] - smax[a]
+                } else {
+                    g.max[a] - smin[a]
+                };
+                by[c] = g.min[c] - smin[c];
+                let mut p = placements.to_vec();
+                for &i in &seat {
+                    p[i] = moved(&placements[i], by);
+                }
+                let mut kept = keep.to_vec();
+                for b in &mut kept[ki].boxes {
+                    for (v, d) in b.iter_mut().zip([by.x, by.y, by.z, by.x, by.y, by.z]) {
+                        *v += d;
+                    }
+                }
+                out.push(FigureMutant {
+                    fault: FigureFault::BenchToPost,
+                    placements: p,
+                    keep: kept,
+                    names: vec![placements[j].id.clone()],
+                    what: format!("{} moved against {}", placements[seat[0]].id, placements[j].id),
+                });
+            }
+        }
+        if k.why.contains("door") {
+            for (n, b) in k.boxes.iter().enumerate() {
+                let s = space(b);
+                // Over the approach: a bottom within a brick above the door's top, over its footprint.
+                let over_it: Vec<usize> = (0..placements.len())
+                    .filter(|&i| {
+                        geo[i].as_ref().is_some_and(|g| {
+                            g.max.y <= s.min.y + 1.0
+                                && g.max.y >= s.min.y - 24.0
+                                && g.min.x + INSET < s.max.x
+                                && s.min.x + INSET < g.max.x
+                                && g.min.z + INSET < s.max.z
+                                && s.min.z + INSET < g.max.z
+                        })
+                    })
+                    .collect();
+                if !over_it.is_empty() {
+                    let mut p = placements.to_vec();
+                    for &i in &over_it {
+                        p[i] = moved(&placements[i], DVec3::new(0.0, 24.0, 0.0));
+                    }
+                    out.push(FigureMutant {
+                        fault: FigureFault::LowerCanopy,
+                        placements: p,
+                        keep: keep.to_vec(),
+                        names: over_it.iter().map(|&i| placements[i].id.clone()).collect(),
+                        what: format!("{} parts over {} lowered a brick", over_it.len(), k.why),
+                    });
+                }
+                if n > 0 {
+                    continue;
+                }
+                // A wall of Bricks 1 x 4 across the middle of the approach, from the floor up 6 bricks.
+                let size = s.max - s.min;
+                let across_x = size.x > size.z;
+                let floor = s.max.y + PLATE;
+                let center = (s.min + s.max) / 2.0;
+                let mut p = placements.to_vec();
+                let mut names = Vec::new();
+                for k in 0..6 {
+                    let mut m = if across_x {
+                        DMat4::IDENTITY
+                    } else {
+                        DMat4::from_rotation_y(std::f64::consts::FRAC_PI_2)
+                    };
+                    m.w_axis = DVec3::new(center.x, floor - 24.0 * (k as f64 + 1.0), center.z).extend(1.0);
+                    let id = format!("mutant-wall/{}", k + 1);
+                    names.push(id.clone());
+                    p.push(Placement {
+                        id,
+                        part: "3010".into(),
+                        color: 19,
+                        matrix: m.to_cols_array(),
+                        step: placements.iter().map(|q| q.step).max().unwrap_or(0) + 1,
+                        submodel: vec![],
+                        copies: vec![],
+                        src: String::new(),
+                    });
+                }
+                out.push(FigureMutant {
+                    fault: FigureFault::WallAcross,
+                    placements: p,
+                    keep: keep.to_vec(),
+                    names,
+                    what: format!("a wall across the space for {}", k.why),
+                });
+            }
+        }
+    }
+    out
 }

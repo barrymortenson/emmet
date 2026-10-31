@@ -650,3 +650,25 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **The technique prompts' baseline runs with `main`'s library** (session prompt): `emmet eval` learns the five prompts
   in `docs/spec/ladder.md` (T1 to T5) and keeps each run's project, and that is the only change before the ten
   baseline runs. They are the scripted runs D-52 asks for, on top of D-38's gate budget: ten now and ten at the end.
+- **Door spaces come from the techniques that place doors, not the parts index** (Barry, through AskUserQuestion).
+  Found from door frames in the parts index, rule 2's space gave 269 findings on the 67 official models in the 3C pool
+  that have 1 x 4 x 6 door frames, and still 90 when cut to a 1-stud, 2-wide doorway: counters, stairs, and crates a
+  stud behind a door, walls built right behind a facade's decorative door, upper-floor doors opening under a slope.
+  The committed and nightly OMR corpus has no figure doors, so it would have passed without testing anything. Now
+  `door_frame` and the other door techniques declare the approved space with `m.keep_clear`, and the doctrine asks the
+  agent to declare one for a door frame it places by hand. Rejected: the parts index with the narrow doorway, which
+  leaves official models with findings and changes D-53's bar to errors only; and both sources.
+- **The 4B station is checked two ways** (Barry, through AskUserQuestion). On the fixed library the station's canopy,
+  called without a height, clears the booth's door by itself, so `tests/fixtures/projects/rung2-claude` as it is gives
+  the two bench findings only. `ladder.rs` checks the station with its canopy at 4B's height (`height=5`, the old
+  5-brick column): exactly the three findings Done when 2 names, the canopy at the booth's door and a column against
+  each bench; and the fixture as it is: exactly the two bench findings. Rejected: the fixture alone with Done when 2
+  reworded, and a copy of the old canopy pinned in the fixture.
+- **The Cottage drops its wall clock** (Barry, through AskUserQuestion). Now that the Cottage declares its front door's
+  way through with `m.keep_clear`, figure_clearance found the clock in the cell beside the door hanging half a stud
+  over the doorway at head height, at every width (the living room is the door plus one cell wide on that wall).
+  Rejected: a picture in its place, which starts at the same cell, and moving the clock to another wall.
+- **The Cottage's porch stands taller** (rule 1, approved with the building rules). Its beam started 2 bricks under the
+  front door's top, the 4B canopy's mistake: the posts are 7 round bricks instead of 5, the beam starts at the door's
+  top, and the porch roof's back row, which ran into the house's eaves once raised, is gone, so the porch roof tucks
+  under them (rule 5). `docs/spec/sessions/3E/cottage-{before,after}.png`.
