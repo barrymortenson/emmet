@@ -66,6 +66,8 @@ describe("the frozen screens", () => {
     await (await $("#tab-steps")).click();
     await (await $("#steps-tree [data-sub='window.ldr']")).click();
     await shot("structure");
+    // Clicked again, it's let go: the screens after it aren't about a selection.
+    await (await $("#steps-tree [data-sub='window.ldr']")).click();
   });
 
   it("the project menu, Export, a toast, About, and Settings", async () => {

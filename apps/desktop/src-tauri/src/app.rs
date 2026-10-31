@@ -329,6 +329,8 @@ pub struct BusRender {
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
 pub struct BusHighlight {
     pub ids: Vec<String>,
+    /// The agent's MCP client name ("claude-code"), when it gave one.
+    pub from: Option<String>,
 }
 
 /// `camera` from an agent: turn the viewer to `view`.
@@ -834,11 +836,11 @@ pub fn on_bus(app: &AppHandle, msg: emmet_bus::Message) -> emmet_bus::Reply {
         want.is_some() && want == open
     };
     match msg {
-        Message::Highlight { project, ids } => {
+        Message::Highlight { project, ids, from } => {
             if !is_open(&project) {
                 return Reply::undelivered("that project isn't open in Emmet");
             }
-            let _ = BusHighlight { ids: ids.clone() }.emit(app);
+            let _ = BusHighlight { ids: ids.clone(), from }.emit(app);
             Reply {
                 delivered: true,
                 highlighted: ids,

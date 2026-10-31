@@ -532,9 +532,14 @@ impl EmmetMcp {
     /// Highlight parts in the open Emmet app's viewer, by Emmet id or by a finding id from validate. Says so when the
     /// app isn't open.
     #[tool(output_schema = schema_for_output::<Envelope<Highlighted>>())]
-    async fn highlight(&self, Parameters(args): Parameters<HighlightArgs>) -> CallToolResult {
+    async fn highlight(
+        &self,
+        Parameters(args): Parameters<HighlightArgs>,
+        context: RequestContext<RoleServer>,
+    ) -> CallToolResult {
         let started = Instant::now();
         let (data, me) = (self.data.clone(), self.clone());
+        let from = context.peer.peer_info().map(|p| p.client_info.name.clone());
         let (out, root) = blocking(
             move || {
                 with_project(&me, |p| {
@@ -546,6 +551,7 @@ impl EmmetMcp {
                         emmet_bus::Message::Highlight {
                             project: p.root.display().to_string(),
                             ids,
+                            from,
                         },
                         std::time::Duration::from_secs(5),
                     );

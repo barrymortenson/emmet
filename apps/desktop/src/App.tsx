@@ -60,6 +60,14 @@ function useTheme(pinned: string | undefined): [Theme, (t: Theme | null) => void
 
 /** The ids of the parts a sub-assembly's copies hold: every placement whose submodel path names its file. */
 const copiesOf = (scene: Scene, file: string) => scene.placements.filter((p) => p.submodel.includes(file)).map((p) => p.id);
+/** The parts an agent's ids light, as the viewer lights them: an id, or the id of a copy that holds the part. */
+const litBy = (scene: Scene, ids: string[]) => {
+  const want = new Set(ids);
+  const lit = (id: string): boolean => want.has(id) || (id.lastIndexOf("/") > 0 && lit(id.slice(0, id.lastIndexOf("/"))));
+  return scene.placements.filter((p) => lit(p.id)).map((p) => p.id);
+};
+/** Who an agent's highlight came from, by the name its MCP client gives ("claude-code"). */
+const pointer = (client: string | null) => (/claude/i.test(client ?? "") ? "Claude" : /codex/i.test(client ?? "") ? "Codex" : "Your agent");
 
 export function App() {
   const [info, setInfo] = useState<AppInfo | null>(null);
@@ -80,6 +88,8 @@ export function App() {
   const lastViewerError = useRef<string | null>(null);
   const viewerBox = useRef<HTMLElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  // An agent's highlight (the bus's), named in the bar over the viewer until it's cleared or the user picks something.
+  const [pointing, setPointing] = useState<{ who: string; ids: string[] } | null>(null);
   const [tab, setTab] = useState<Tab>("options");
   const [step, setStep] = useState<number | null>(null);
   const [sub, setSub] = useState<string | null>(null);
@@ -227,6 +237,7 @@ export function App() {
         root.current = payload.project.root;
         setViewerError(null);
         setSelected(null);
+        setPointing(null);
         setStep(null);
         setSub(null);
         setCompare(null);
@@ -257,7 +268,14 @@ export function App() {
           return { ...u, running: false };
         });
       }),
-      events.busHighlight.listen(({ payload }) => viewer.current?.highlight(payload.ids)),
+      events.busHighlight.listen(({ payload }) => {
+        // The agent's pointing replaces what the user picked, so `selection` doesn't read a pick no longer shown.
+        setSelected(null);
+        picked.current = [];
+        tellHost();
+        viewer.current?.highlight(payload.ids);
+        setPointing(payload.ids.length ? { who: pointer(payload.from), ids: payload.ids } : null);
+      }),
       events.busCamera.listen(({ payload }) => {
         const v = payload.view as View;
         viewer.current?.setView(v);
@@ -334,6 +352,7 @@ export function App() {
 
   const highlight = (key: string | null, ids: string[], mode: "issue" | "select" = "select") => {
     setSelected(key);
+    setPointing(null);
     viewer.current?.highlight(key ? ids : [], { mode });
     picked.current = key ? ids : [];
     tellHost();
@@ -342,6 +361,7 @@ export function App() {
 
   const scene = ui.scene;
   const project = ui.project;
+  const pointed = pointing && scene ? litBy(scene, pointing.ids) : [];
   // The one tip to teach now: on the tab where it's useful, the first time it is, and never two at once.
   const tip: TipId | null = (() => {
     if (!tipsSeen || !project || !scene || firstRun || agentBusy) return null;
@@ -621,6 +641,24 @@ export function App() {
                   />
                   <Button label="Open as new project" size="sm" id="version-open" onClick={() => void act(commands.openVersionAsNew(compare.v.n))} />
                   <Button label="Back" variant="quiet" size="sm" id="version-back" onClick={() => setCompare(null)} />
+                </div>
+              )}
+              {pointing && !compare && (
+                <div className="viewer-bar" role="status" id="pointing-bar">
+                  <Icon name="eye" />
+                  <span>
+                    {pointed.length ? (
+                      <>
+                        <b>{pointing.who}</b> is pointing at {pointed.length} {pointed.length === 1 ? "part" : "parts"}
+                      </>
+                    ) : (
+                      <>
+                        <b>{pointing.who}</b> pointed at parts this build doesn't have
+                      </>
+                    )}
+                  </span>
+                  {pointed.length > 0 && <Button label="Zoom to them" size="sm" icon="scan" id="pointing-zoom" onClick={() => viewer.current?.frame(pointed)} />}
+                  <Button label="Clear" variant="quiet" size="sm" id="pointing-clear" onClick={() => highlight(null, [])} />
                 </div>
               )}
               {(problem || viewerError || ui.notice || (project && !project.watching)) && (

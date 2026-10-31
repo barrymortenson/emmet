@@ -364,6 +364,8 @@ export type BusCamera = {
 
 export type BusHighlight = {
 	ids: string[],
+	/**  The agent's MCP client name ("claude-code"), when it gave one. */
+	from: string | null,
 };
 
 /**

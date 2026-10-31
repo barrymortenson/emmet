@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // A terminal agent and the open app (session 4B, plan section 10, docs/spec/bus.md): the real `emmet mcp`, started in
 // the project folder with no session, as `codex mcp add emmet -- emmet mcp` or Claude Code's own config starts it,
-// highlights parts in the app's viewer, turns its view, and reads what the user has selected there.
+// highlights parts in the app's viewer (named in the bar over it, with Zoom to them and Clear), turns its view, and reads
+// what the user has selected there.
 import { $, expect } from "@wdio/globals";
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
-import { invoke, open } from "../lib/app.mjs";
+import { camera, invoke, open, screenshots, stats } from "../lib/app.mjs";
 import { bin } from "../lib/paths.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
@@ -31,7 +32,7 @@ function mcp() {
     });
   return {
     async start() {
-      await request("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "terminal-agent", version: "0" } });
+      await request("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "claude-code", version: "0" } });
       child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`);
     },
     async call(name, args) {
@@ -51,7 +52,7 @@ describe("a terminal agent and the open app", () => {
   });
   after(() => agent.close());
 
-  it("highlights parts in the app's viewer", async () => {
+  it("highlights parts in the app's viewer and says who is pointing", async () => {
     const { scene } = await invoke("ui_state");
     const ids = scene.placements.slice(0, 3).map((p) => p.id);
     const r = await agent.call("highlight", { ids });
@@ -60,6 +61,15 @@ describe("a terminal agent and the open app", () => {
       timeout: 5_000,
       timeoutMsg: "the viewer didn't highlight the agent's parts",
     });
+    // The MCP client's own name (claude-code) names the agent.
+    await expect($("#pointing-bar")).toHaveText(expect.stringContaining("Claude is pointing at 3 parts"));
+    await screenshots("agent-pointing");
+    const before = await camera();
+    await $("#pointing-zoom").click();
+    await browser.waitUntil(async () => JSON.stringify(await camera()) !== JSON.stringify(before), { timeoutMsg: "Zoom to them didn't move the camera" });
+    await $("#pointing-clear").click();
+    await expect($("#pointing-bar")).not.toBeExisting();
+    expect((await stats()).highlighted).toBe(0);
   });
 
   it("turns the view and reads it back", async () => {
@@ -71,12 +81,17 @@ describe("a terminal agent and the open app", () => {
   });
 
   it("reads what the user picked", async () => {
+    // The user's pick replaces an agent's pointing.
+    const { scene } = await invoke("ui_state");
+    await agent.call("highlight", { ids: [scene.placements[0].id] });
+    await $("#pointing-bar").waitForExist({ timeoutMsg: "the agent's pointing bar never showed" });
     // A row of the parts list selects every copy of that part.
     await (await $("#tab-parts")).click();
     const row = await $("#parts tbody tr");
     await row.click();
     const picked = await browser.execute(() => window.__emmet.viewer().highlighted().sort());
     expect(picked.length).toBeGreaterThan(0);
+    await expect($("#pointing-bar")).not.toBeExisting();
     const r = await agent.call("selection", {});
     expect([...r.data.selected].sort()).toEqual(picked);
     expect(r.text).toContain(`Selected (${picked.length})`);

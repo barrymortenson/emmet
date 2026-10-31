@@ -46,8 +46,14 @@ pub enum Message {
         #[serde(default)]
         highlight: Vec<String>,
     },
-    /// Highlight parts by Emmet id in the open viewer.
-    Highlight { project: String, ids: Vec<String> },
+    /// Highlight parts by Emmet id in the open viewer. `from` is the agent asking, as its MCP client names itself
+    /// ("claude-code"), for the viewer to say who is pointing.
+    Highlight {
+        project: String,
+        ids: Vec<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        from: Option<String>,
+    },
     /// Turn the open viewer to `view` (iso, front, top, back, left, right), or with none, read it. The reply's
     /// `camera` is `{view}`.
     Camera {
