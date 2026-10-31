@@ -7,9 +7,15 @@ title="Partition") builds a straight wall `length` studs long along `axis` ("x" 
 bricks tall, standing on the studs at height z. The doorway is 4 studs wide, `gap` studs from the wall's start, open
 from the floor through `opening` courses (5 is 15 plates, room for a figure with a hat); on the next course an Arch 1 x
 6 Raised spans it with a leg on the wall each side, and the wall goes on above it in running bond. gap is at least 1 and
-gap + 5 at most length, so each leg has wall under it. It's a submodel, built once in its own steps, a row at a time,
-"<title>, row 1" and so on and "<title>, arch", placed in a step titled "<title>"; it returns the placed copy's Handle.
+gap + 5 at most length, so each leg has wall under it. An opening of 5 courses or more keeps clear the way through the
+doorway on both sides of the wall (3 studs out, from a plate above the floor up to the opening's top;
+docs/spec/building-rules.md, rule 2), so a bed or a table in it is a figure_clearance finding. It's a submodel, built
+once in its own steps, a row at a time, "<title>, row 1" and so on and "<title>, arch", placed in a step titled
+"<title>"; it returns the placed copy's Handle, with .door_top (the z of the opening's top, where the arch stands) and
+.door ((x0, y0), (x1, y1), the doorway's footprint).
 """
+
+from emmet_dsl.core import HEADROOM, door_space
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 21335. Not derived from any
 model file."""
@@ -75,7 +81,7 @@ def build(
     arch="Tan",
     title="Partition",
 ):
-    """The partition; returns the placed copy's Handle."""
+    """The partition; returns the placed copy's Handle, with .door_top and .door."""
     if axis not in ("x", "y"):
         raise ValueError(f'axis must be "x" or "y", not {axis!r}')
     if gap < 1 or gap + 5 > length:
@@ -96,7 +102,27 @@ def build(
         title=title,
     )
     with m.step(title):
-        return _put(m, sub, x, y, z, "-y" if axis == "x" else "+x", (0, 0, length, 1))
+        handle = _put(m, sub, x, y, z, "-y" if axis == "x" else "+x", (0, 0, length, 1))
+    top = z + 3 * opening
+    if axis == "x":
+        wall, at, start = "x", y, x + gap
+        handle.door = ((start, y), (start + 4, y + 1))
+    else:
+        wall, at, start = "y", x, y + gap
+        handle.door = ((x, start), (x + 1, start + 4))
+    if 3 * opening >= HEADROOM:
+        door_space(
+            m,
+            wall,
+            at,
+            start,
+            4,
+            z,
+            f"a figure walking through {title}'s doorway",
+            3 * opening,
+        )
+    handle.door_top = top
+    return handle
 
 
 def example(m):

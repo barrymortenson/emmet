@@ -731,3 +731,97 @@ fn a_chair_keeps_clear_a_stud_beside_it() {
         "a figure sitting on the chair",
     );
 }
+
+#[test]
+fn bermed_wall_reveal_clears_a_door_in_its_wall() {
+    // In the middle of the baseplate: the hill's cheeks reach 12 studs out from each end of the wall.
+    let v = findings_of(
+        "bermed_wall_reveal",
+        "m.use(\"door_frame\", x=12, y=8, z=0.5, length=8, rows=6, offset=2)\n\
+         m.use(\"bermed_wall_reveal\", x=12, y=8, z=0.5, length=8, wall=False)",
+    );
+    assert_eq!(v, serde_json::json!([]), "bermed_wall_reveal around a door: {v:#}");
+}
+
+/// A technique that makes a way through (3E, rule 2), at its defaults: alone, no findings; with a crate (a 1 x 1 brick)
+/// at `crate_at` in its way through, one figure_clearance finding.
+fn keeps_clear(name: &str, body: &str, crate_at: &str) {
+    let v = findings_of(name, body);
+    assert_eq!(v, serde_json::json!([]), "{name} alone: {v:#}");
+    let v = findings_of(
+        name,
+        &format!("{body}\nwith m.step(\"Crate\"): m.add(\"3005\", \"Red\", at=({crate_at}))"),
+    );
+    let rules: Vec<&str> = v
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|f| f["rule"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        rules,
+        ["figure_clearance"],
+        "{name} with a crate in its way through: {v:#}"
+    );
+}
+
+#[test]
+fn chamfered_door_portal_keeps_its_way_through_clear() {
+    keeps_clear(
+        "chamfered_door_portal",
+        "m.use(\"chamfered_door_portal\", x=4, y=8, z=0.5)",
+        "6, 6, 0.5",
+    );
+}
+
+#[test]
+fn plank_door_keeps_its_way_through_clear() {
+    // The door stands 0.8 stud proud of the wall: the space starts in front of it.
+    keeps_clear("plank_door", "m.use(\"plank_door\", x=4, y=8, z=0.5)", "5, 5, 0.5");
+}
+
+#[test]
+fn interior_arch_doorway_keeps_its_way_through_clear() {
+    keeps_clear(
+        "interior_arch_doorway",
+        "m.use(\"interior_arch_doorway\", x=2, y=8, z=0.5)",
+        "5, 10, 0.5",
+    );
+}
+
+#[test]
+fn garden_gate_keeps_its_way_through_clear() {
+    keeps_clear("garden_gate", "m.use(\"garden_gate\", x=2, y=8, z=0.5)", "7, 6, 0.5");
+    // Open, the gate stands in the front space's last stud, which the space leaves out.
+    let v = findings_of("garden_gate", "m.use(\"garden_gate\", x=2, y=8, z=0.5, open=True)");
+    assert_eq!(v, serde_json::json!([]), "garden_gate open: {v:#}");
+}
+
+#[test]
+fn panel_garage_door_keeps_its_way_through_clear() {
+    // Behind it only: a car parks in front.
+    keeps_clear(
+        "panel_garage_door",
+        "m.use(\"panel_garage_door\", x=4, y=8, z=0.5)",
+        "6, 10, 0.5",
+    );
+}
+
+#[test]
+fn brick_built_arch_keeps_its_way_through_clear() {
+    keeps_clear(
+        "brick_built_arch",
+        "m.use(\"brick_built_arch\", x=0, y=8, z=0.5, length=10)",
+        "4, 6, 0.5",
+    );
+}
+
+#[test]
+fn portcullis_keeps_its_way_through_clear() {
+    keeps_clear("portcullis", "m.use(\"portcullis\", x=0, y=8, z=0.5)", "4, 12, 0.5");
+}
+
+#[test]
+fn cave_mouth_keeps_its_way_in_clear() {
+    keeps_clear("cave_mouth", "m.use(\"cave_mouth\", x=0, y=8, z=0.5)", "3, 6, 0.5");
+}

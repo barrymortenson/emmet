@@ -1,17 +1,22 @@
 # SPDX-License-Identifier: Apache-2.0
 """Chamfered door portal: a sci-fi doorway with cut corners, an opening 4 studs wide in a wall 2 studs thick.
 
-m.use("chamfered_door_portal", x, y, z, height=5, color="Dark Bluish Gray", trim="White", light="Red",
-title="Portal") builds a wall section 8 studs long along x from (x, y) and 2 studs thick, standing on the studs at z,
-with an opening 4 studs wide in the middle and `height` bricks tall (3 to 8; 5 fits a figure). Its four corners are
-cut at 45 degrees: a Slope Brick 45 2 x 2 (3039) at each foot, its high half in the jamb and its slope in the opening,
-and an inverted one (3660b) at each head, so the opening reads as an octagon. The jambs are 2 x 2 columns whose
-courses cross, one jamb carries a door control (a 1 x 1 tile in `light` on a side stud, facing front), a 2 x 2 tile
-is the sill, and the lintel is a 1 x 8 plate in `trim` on the front, one in `color` behind, and a 2 x 8 plate over
-both that ties the jambs. Returns the z of the top of the lintel.
+m.use("chamfered_door_portal", x, y, z, height=6, color="Dark Bluish Gray", trim="White", light="Red", title="Portal")
+builds a wall section 8 studs long along x from (x, y) and 2 studs thick, standing on the studs at z, with an opening 4
+studs wide in the middle and `height` bricks tall (3 to 8): 6 (the default) lines up with a 1 x 4 x 6 door, and under 5
+a figure can't walk through (docs/spec/building-rules.md, rule 1). Its four corners are cut at 45 degrees: a Slope Brick
+45 2 x 2 (3039) at each foot, its high half in the jamb and its slope in the opening, and an inverted one (3660b) at
+each head, so the opening reads as an octagon. The jambs are 2 x 2 columns whose courses cross, one jamb carries a door
+control (a 1 x 1 tile in `light` on a side stud, facing front), a 2 x 2 tile is the sill, and the lintel is a 1 x 8
+plate in `trim` on the front, one in `color` behind, and a 2 x 8 plate over both that ties the jambs. An opening 5
+bricks tall or more keeps clear the way through it on both sides of the wall (3 studs out, from a plate above the floor
+up to the opening's top; rule 2), so a console or a crate in it is a figure_clearance finding. Returns the z of the top
+of the lintel, with .door_top (the z of the opening's top, which a roof or a canopy beside it starts at or above) and
+.door ((x0, y0), (x1, y1), the opening's footprint).
 """
 
 from emmet_dsl import Rot
+from emmet_dsl.core import APPROACH, HEADROOM, fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 75419. Not derived from any
 model file."""
@@ -37,13 +42,14 @@ def build(
     x,
     y,
     z,
-    height=5,
+    height=6,
     color="Dark Bluish Gray",
     trim="White",
     light="Red",
     title="Portal",
 ):
-    """The jambs, the cut corners, the control, and the lintel; returns the z of the lintel's top."""
+    """The jambs, the cut corners, the control, and the lintel; returns the z of the lintel's top, with .door_top and
+    .door."""
     if not 3 <= height <= 8:
         raise ValueError(
             f"chamfered_door_portal takes a height of 3 to 8 bricks, not {height}"
@@ -85,7 +91,16 @@ def build(
         m.add("3460", color, at=(x, y + 1, zl), rot=1)
     with m.step(f"{title}, lintel tie"):
         m.add("3034", color, at=(x, y, zl + 1), rot=1)
-    return zl + 2
+    if 3 * height >= HEADROOM:
+        # The wall is 2 studs thick, so the space behind starts 2 studs back.
+        m.keep_clear(
+            [
+                ((x + 2, y - APPROACH, z + 1), (x + 6, y, zl)),
+                ((x + 2, y + 2, z + 1), (x + 6, y + 2 + APPROACH, zl)),
+            ],
+            f"a figure walking through {title}",
+        )
+    return fit(zl + 2, door_top=zl, door=((x + 2, y), (x + 6, y + 2)))
 
 
 def example(m):

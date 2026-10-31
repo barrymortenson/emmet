@@ -63,19 +63,9 @@ def example(m):
     """A door with a lamp each side, in a short wall."""
     from emmet_dsl import Brick
 
-    with m.step("Door"):
-        frame = m.add("60596", "White", at=(1, 0, 0), rot=3)
-        (x0, y0, z0), (x1, y1, _) = frame.min, frame.max
-        m.add(
-            "60623",
-            "Dark Green",
-            at=((x0 + x1 - 3.55) / 2, (y0 + y1 - 0.3) / 2, z0 + 0.875),
-            rot=3,
-        )
-    for r in range(6):
-        with m.step(f"Wall, row {r + 1}"):
-            for cx in (0, 5):
-                m.add("3005", "Tan", at=(cx, 0, 3 * r))
-    z = m.use("wall_lamp_bracket", x=0, y=0, z=18, length=6, at=[0, 5])
+    wall = m.use(
+        "door_frame", x=0, y=0, z=0, length=6, rows=6, offset=1, door_color="Dark Green"
+    )
+    z = m.use("wall_lamp_bracket", x=0, y=0, z=wall, length=6, at=[0, 5])
     with m.step("Wall over the door"):
         m.row(Brick, "Tan", at=(0, 0, z), length=6)

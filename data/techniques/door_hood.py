@@ -42,18 +42,5 @@ def build(m, x, y, z, width=4, color="White", title="Door hood"):
 
 def example(m):
     """A door in a wall with its hood over it."""
-
-    with m.step("Door"):
-        frame = m.add("60596", "White", at=(1, 0, 0), rot=3)
-        (x0, y0, z0), (x1, y1, _) = frame.min, frame.max
-        m.add(
-            "60623",
-            "Reddish Brown",
-            at=((x0 + x1 - 3.55) / 2, (y0 + y1 - 0.3) / 2, z0 + 0.875),
-            rot=3,
-        )
-    for r in range(6):
-        with m.step(f"Wall, row {r + 1}"):
-            m.add("3005", "Tan", at=(0, 0, 3 * r))
-            m.add("3005", "Tan", at=(5, 0, 3 * r))
-    m.use("door_hood", x=1, y=0, z=18)
+    wall = m.use("door_frame", x=0, y=0, z=0, length=6, rows=6, offset=1)
+    m.use("door_hood", x=1, y=0, z=wall.door_top)

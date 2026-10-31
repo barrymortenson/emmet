@@ -7,10 +7,15 @@ each side (at x - 1 and x + 4) and a Brick 1 x 6 over it as the lintel; the left
 Bricks 1 x 1 with Clip Vertical (60475b), their clips out front. The door is a sub-assembly built flat: a Plate 4 x 6
 with Tiles 1 x 6 down it as the planks, two Plates 1 x 2 with Handle (48336) on its hinge edge as the strap hinges, and
 a round knob; it stands up in front of the doorway with its hinge bars in the jamb's clips, so it can swing open. It
-takes the wall's cells x - 1 to x + 4 from z to z + 18. Returns the z of the lintel's top.
+takes the wall's cells x - 1 to x + 4 from z to z + 18. The doorway is 15 plates tall, the height of the door (a Plate 4
+x 6 stood up) and room for a figure with a hat (docs/spec/building-rules.md, rule 1). It keeps clear the way through on
+both sides (3 studs out, from a plate above the floor up to the doorway's top; rule 2), the front space starting in
+front of the closed door, so a bench or a lamp in it is a figure_clearance finding. Returns the z of the lintel's top,
+with .door_top (the z of the doorway's top) and .door ((x0, y0), (x1, y1), the doorway's footprint in the wall).
 """
 
 from emmet_dsl import Rot
+from emmet_dsl.core import APPROACH, fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 21335. Not derived from any
 model file."""
@@ -24,6 +29,7 @@ CLIP = 0.7  # how far a clip brick's clip stands out from the wall's face
 # Where the stood-up door's footprint corner goes from the doorway's front-left corner: its hinge bars, half a stud left
 # of the plate's edge and 1 3/4 plates in front of its back, sit in the clips, half a stud in front of the wall.
 DOOR_AT = (-0.8, -0.8)
+TALL = 15  # the doorway's height in plates: the door is a Plate 4 x 6 stood up
 
 
 def _door(m, color, hinge):
@@ -44,7 +50,8 @@ def _door(m, color, hinge):
 def build(
     m, x, y, z, color="Dark Green", hinge="Black", wall="Tan", title="Plank door"
 ):
-    """The jambs a row at a time, the door on its clips, and the lintel; returns the z of the lintel's top."""
+    """The jambs a row at a time, the door on its clips, and the lintel; returns the z of the lintel's top, with
+    .door_top and .door."""
     door = m.submodel("Plank door", _door, color=color, hinge=hinge)
     for r in range(5):
         with m.step(f"{title}, row {r + 1}"):
@@ -56,8 +63,16 @@ def build(
     with m.step(f"{title}: door"):
         m.place(door, at=(x + DOOR_AT[0], y + DOOR_AT[1], z), rot=UP)
     with m.step(f"{title}: lintel"):
-        m.add("3009", wall, at=(x - 1, y, z + 15), rot=1)
-    return z + 18
+        m.add("3009", wall, at=(x - 1, y, z + TALL), rot=1)
+    front = y + DOOR_AT[1]  # the closed door's face
+    m.keep_clear(
+        [
+            ((x, front - APPROACH, z + 1), (x + 4, front, z + TALL)),
+            ((x, y + 1, z + 1), (x + 4, y + 1 + APPROACH, z + TALL)),
+        ],
+        f"a figure walking through {title}",
+    )
+    return fit(z + TALL + 3, door_top=z + TALL, door=((x, y), (x + 4, y + 1)))
 
 
 def example(m):
