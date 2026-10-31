@@ -85,3 +85,18 @@ fn rung2_from_the_hand_session_with_claude_code() {
         serde_json::from_str(&std::fs::read_to_string(dir.join("build/placements.json")).unwrap()).unwrap();
     assert!(placements["parts"].as_array().unwrap().len() >= 250);
 }
+
+/// Rung 2 as Barry's hand session in the app built it with Codex on his ChatGPT plan (4B, Done when 5): the project it
+/// left, which validates with no findings. It falls short of rung 2's 250 parts (210) and its booth has no door: the
+/// build settings went to Base None partway (a Rebuild turn), so the baseplates came out, and Codex ran at its default
+/// low effort. Barry took it as it is (2026-10-30); 3E and 5A carry the gaps. Its transcript replays in agent_codex.rs.
+#[test]
+fn rung2_from_the_hand_session_with_codex() {
+    let dir = emmet_it::project("rung2-codex");
+    let (v, code) = emmet_in(&dir, &["check"]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["clean"], true, "{v}");
+    let placements: Value =
+        serde_json::from_str(&std::fs::read_to_string(dir.join("build/placements.json")).unwrap()).unwrap();
+    assert_eq!(placements["parts"].as_array().unwrap().len(), 210);
+}

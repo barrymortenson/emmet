@@ -1,0 +1,11 @@
+# The Emmet project file (docs/spec/project-format.md).
+schema = 1
+name = "New model 3"
+created_by = "m:0000000000000000"
+library = "2026-10"
+
+[agent]
+preferred = "claude"
+
+[build]
+base = "None"

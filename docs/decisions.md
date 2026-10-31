@@ -618,3 +618,11 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   corpus is untouched; 3E holds the rule to zero findings on that corpus too. Keep-clear boxes come from door frames,
   from techniques and the agent through `m.keep_clear(box, why)`, at figure scale and large only. Rejected: rules in
   the doctrine alone, which the agent skims, while it fixes every finding `validate` gives it.
+
+## 2026-10-30, session 4B
+
+- **Codex's rung 2 hand session is taken as it is** (Barry, through AskUserQuestion). On his ChatGPT plan, at Codex's
+  default low effort, it left a clean model of 210 parts: under rung 2's 250, with no door on the ticket booth, and
+  standing on the table after a Rebuild for Base None took the baseplates out. 4B's Done when asks for a clean build,
+  and this one is; the shortfalls go to 3E (technique) and 5A (rung 2's eval). Its transcript is
+  `tests/replay/codex/rung2.jsonl` and its project `tests/fixtures/projects/rung2-codex`.

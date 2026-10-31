@@ -155,8 +155,9 @@ impl Input {
                 return self.queue.remove(i);
             }
             let got = read()?;
-            // 0B's recordings predate model/list (4B): it's answered from Codex 0.160.1's own reply, wherever it comes.
-            if got["method"] == "model/list" {
+            // 0B's recordings predate model/list (4B): it's answered from Codex 0.160.1's own reply, wherever it comes,
+            // unless the recording asks for it here, as 4B's own recordings do.
+            if got["method"] == "model/list" && want["method"] != "model/list" {
                 let rec: Value = serde_json::from_str(MODEL_LIST).expect("model-list.json");
                 write(&json!({ "id": got["id"], "result": rec["result"] }));
                 continue;
