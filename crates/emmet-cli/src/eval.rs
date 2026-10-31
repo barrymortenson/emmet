@@ -981,9 +981,9 @@ fn repo_dir() -> Result<PathBuf> {
     emmet_core::fsx::canonical(&dir).map_err(|e| Error::io(&dir, e))
 }
 
-/// A technique prompt: T1 to T5.
+/// A technique prompt: T1 to T5 (or the report's tag for one, t1 to t5).
 fn is_technique(rung: &str) -> bool {
-    matches!(rung, "T1" | "T2" | "T3" | "T4" | "T5")
+    matches!(rung.to_ascii_uppercase().as_str(), "T1" | "T2" | "T3" | "T4" | "T5")
 }
 
 /// The run's time and turn budget.
@@ -1096,6 +1096,53 @@ mod tests {
                 .contains("two benches under the canopy")
         );
         assert_eq!(rung(LADDER, "1").unwrap().script.len(), 6, "rung 1 keeps its own");
+    }
+
+    /// The baseline runs' report headed every section with the agent alone, and called all but the first two reruns:
+    /// write_report got the lowercase tag, which is_technique didn't take.
+    #[test]
+    fn a_technique_report_has_a_section_per_prompt_and_agent() {
+        let dir = std::env::temp_dir().join(format!("emmet-eval-report-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("technique.md");
+        let _ = std::fs::remove_file(&path);
+        for n in ["T1", "T2"] {
+            for agent in [AgentKind::Claude, AgentKind::Codex] {
+                let report = Report {
+                    rung: n.into(),
+                    run: Run {
+                        agent: agent.label().into(),
+                        ..Default::default()
+                    },
+                    scores: vec![],
+                    pass: true,
+                    render: None,
+                    project: String::new(),
+                };
+                write_report(
+                    &path,
+                    agent,
+                    &n.to_lowercase(),
+                    &rung(LADDER, n).unwrap(),
+                    &report,
+                    "2026-10-31",
+                )
+                .unwrap();
+            }
+        }
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(text.starts_with("# Live eval: the technique prompts"), "{text}");
+        let heads: Vec<&str> = text.lines().filter(|l| l.starts_with("## ")).collect();
+        assert_eq!(
+            heads,
+            [
+                "## Rung T1: The station, Claude Code — pass",
+                "## Rung T1: The station, Codex — pass",
+                "## Rung T2: A corner shop with an awning, Claude Code — pass",
+                "## Rung T2: A corner shop with an awning, Codex — pass",
+            ]
+        );
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
