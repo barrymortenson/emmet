@@ -230,8 +230,8 @@ async fn run_model() {
     assert_matches_committed(&client, "run_model");
     let c = client.call("run_model", json!({})).await;
     assert!(!c.is_error, "{}", c.text);
-    assert_eq!(c.envelope["data"]["parts"], 908);
-    assert!(c.text.starts_with("Built 908 parts in 160 steps ("), "{}", c.text);
+    assert_eq!(c.envelope["data"]["parts"], 905);
+    assert!(c.text.starts_with("Built 905 parts in 160 steps ("), "{}", c.text);
     assert_eq!(c.envelope["meta"]["generation"], 1);
     // The same output the CLI writes.
     assert!(dir.join("build/model.mpd").is_file());

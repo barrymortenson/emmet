@@ -223,7 +223,7 @@ export function FirstRun({
               <img className="viewer-render" src={r.cottage} alt="" />
             </span>
             <b>Start with the Cottage example</b>
-            <span className="small">908 parts: a stone cottage with a garden, two furnished rooms, and a roof that lifts off</span>
+            <span className="small">905 parts: a stone cottage with a garden, two furnished rooms, and a roof that lifts off</span>
           </button>
           <button type="button" className="start-card" id="start-prompt" disabled={waiting || creating != null} onClick={() => onNew("empty")}>
             <span className="viewer" data-c="viewer">

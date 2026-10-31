@@ -959,14 +959,16 @@ def cottage(
     lamp = lx1 - lx0 + 1 >= 6
     if lamp:
         furniture["lamp"] = (x1 - 2, ry1 - 1, 2, 2)
-    if lights:
+    # The table and chairs (4 studs, beside the 3-deep counter) only where they leave the partition's doorway its way
+    # through, 3 studs (Barry, 2026-10-31): a kitchen 10 wide, the widest house.
+    table = kx1 - kx0 + 1 >= 10
+    if lights and not table:
         furniture["kitchen lamp"] = (
             bx + 3,
             ry0,
             2,
             2,
         )  # behind the bay, so it glows through its windows
-    table = kx1 - kx0 + 1 >= 7
     cells = set()
     for fx, fy, w, d in furniture.values():
         cells |= {(fx + i, fy + j) for i in range(w) for j in range(d)}
@@ -1062,7 +1064,7 @@ def cottage(
         m.use(
             "floor_lamp_and_candle", x=x1 - 2, y=ry1 - 1, z=F, title="Floor lamp", **lit
         )
-    if lights:
+    if lights and not table:
         m.use(
             "floor_lamp_and_candle",
             x=bx + 3,
@@ -1122,7 +1124,7 @@ def cottage(
         z=F,
         length=depth - 2,
         axis="y",
-        gap=1,
+        gap=2,  # a stud back, so the lamp behind the bay stands clear of its way through
         rows=7,
         color="White",
         arch=stone,
@@ -1485,7 +1487,8 @@ def cottage(
     if lights:
         # In the evening, a lit lamp by the gate.
         with m.step("Lamp"):
-            m.use("lamp_post", at=(sx - 1, 1, ground), id="lamp")
+            # Behind the gate's left post, clear of its way through.
+            m.use("lamp_post", at=(sx - 2, 1, ground), id="lamp")
     # The bed under the bay keeps its winter roses in the snow.
     blooms = ("White", "Red") if winter else ("Red", "Dark Pink", "Bright Light Orange")
     m.use(
@@ -1534,7 +1537,13 @@ def cottage(
             "stepping_stones", x=0, y=0, z=0, length=4, wander=0, seed=seed
         ),
     )
-    if not winter and core >= 8 and stone.box[1][1] - stone.box[0][1] <= 2:
+    # The bed only where it leaves the bench's end a stud of room (figure_clearance).
+    if (
+        not winter
+        and core >= 8
+        and stone.box[1][1] - stone.box[0][1] <= 2
+        and bench_x >= lawn_x + 7
+    ):
         m.use(
             "flower_bed",
             x=lawn_x + 2,

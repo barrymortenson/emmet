@@ -677,3 +677,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   living room leaves them out; the chimney stays outside, and the armchair and rug stay. Rejected: a width knob from
   16, and moving the armchair to make room. The snowman (winter) stands a stud further back, clear of the garden
   bench's legroom, which its widest garden had crowded.
+- **The Cottage's kitchen table only in the widest house** (Barry, through AskUserQuestion). `interior_arch_doorway`
+  now keeps its way through clear, and in a kitchen 7 wide (widths 16 and 18) the counter and the table set fill it
+  to the partition, in front of the doorway. The table and chairs go in only where they leave it 3 studs (width 20).
+  The same pass moved the partition's doorway a stud back (the lamp behind the bay clears it), left the kitchen lamp
+  out where the table is, stood the garden lamp behind the gate's post (it stood in the gate's opening), and planted
+  the lawn's flower bed only where it leaves the bench's end a stud. Rejected: a small table by the bay, and a
+  2-stud way through for interior doorways.
