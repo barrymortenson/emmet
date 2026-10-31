@@ -539,7 +539,8 @@ impl EmmetMcp {
     ) -> CallToolResult {
         let started = Instant::now();
         let (data, me) = (self.data.clone(), self.clone());
-        let from = context.peer.peer_info().map(|p| p.client_info.name.clone());
+        // Per request in MCP 2026-07-28 (Claude Code's), else from initialize.
+        let from = context.client_info().map(|i| i.name);
         let (out, root) = blocking(
             move || {
                 with_project(&me, |p| {

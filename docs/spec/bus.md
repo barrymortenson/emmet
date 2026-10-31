@@ -51,7 +51,8 @@ process that read `bus.json` can drive the app, and only the app can answer.
   canonicalizing). `camera` with a `view` turns the open viewer to it, and without one reads it; `selection` reads what
   the user has selected and the view (4B). The app's own sessions and terminal agents use them alike, through MCP's
   `highlight`, `camera`, and `selection`.
-  `highlight`'s optional `from` is the name the agent's MCP client gave in `initialize` ("claude-code"); the viewer
+  `highlight`'s optional `from` is the name the agent's MCP client gives ("claude-code"): in each request's `_meta`
+  in MCP 2026-07-28, which Claude Code speaks, or in `initialize` before it. The viewer
   names the agent in the bar it shows over the highlight ("Claude is pointing at 10 parts", with Zoom to them and
   Clear). An agent's highlight replaces what the user picked, and the user's next pick replaces it.
   `render` renders the project's current `build/placements.json` in the open window, offscreen: the window's camera

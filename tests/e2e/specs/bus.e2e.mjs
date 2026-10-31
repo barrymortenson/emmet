@@ -12,8 +12,14 @@ import { projectDir } from "../lib/projects.mjs";
 
 const dir = projectDir("bus");
 
-/** A minimal MCP client over stdio: one JSON-RPC message per line, as rmcp's stdio transport speaks it. */
-function mcp() {
+/** A minimal MCP client over stdio: one JSON-RPC message per line, as rmcp's stdio transport speaks it. With `era`
+ * "modern" it speaks MCP 2026-07-28 as Claude Code does: no initialize, and who it is in every request's `_meta`. */
+function mcp({ name = "claude-code", era = "modern" } = {}) {
+  const meta = {
+    "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+    "io.modelcontextprotocol/clientInfo": { name, version: "0" },
+    "io.modelcontextprotocol/clientCapabilities": {},
+  };
   const child = spawn(bin("emmet"), ["--data-dir", process.env.EMMET_DATA_DIR, "mcp"], { cwd: dir, stdio: ["pipe", "pipe", "inherit"] });
   const waiting = new Map();
   createInterface({ input: child.stdout }).on("line", (line) => {
@@ -32,11 +38,12 @@ function mcp() {
     });
   return {
     async start() {
-      await request("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "claude-code", version: "0" } });
+      if (era === "modern") return;
+      await request("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name, version: "0" } });
       child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`);
     },
-    async call(name, args) {
-      const r = await request("tools/call", { name, arguments: args });
+    async call(tool, args) {
+      const r = await request("tools/call", { name: tool, arguments: args, ...(era === "modern" && { _meta: meta }) });
       return { text: r.result.content[0].text, data: r.result.structuredContent?.data };
     },
     close: () => child.kill(),
@@ -70,6 +77,16 @@ describe("a terminal agent and the open app", () => {
     await $("#pointing-clear").click();
     await expect($("#pointing-bar")).not.toBeExisting();
     expect((await stats()).highlighted).toBe(0);
+  });
+
+  it("names an agent that says who it is in initialize, the older way", async () => {
+    const older = mcp({ name: "codex-mcp-client", era: "2025-06-18" });
+    await older.start();
+    const { scene } = await invoke("ui_state");
+    await older.call("highlight", { ids: [scene.placements[0].id] });
+    await expect($("#pointing-bar")).toHaveText(expect.stringContaining("Codex is pointing at 1 part"));
+    older.close();
+    await $("#pointing-clear").click();
   });
 
   it("turns the view and reads it back", async () => {
