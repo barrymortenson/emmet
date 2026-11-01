@@ -6,7 +6,7 @@
 import { $, expect } from "@wdio/globals";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { camera, nextScene, open, shown, stats } from "../lib/app.mjs";
+import { invoke, nextScene, open, restingCamera, shown, stats } from "../lib/app.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const dir = projectDir("animate");
@@ -14,16 +14,23 @@ const modelPy = join(dir, "model.py");
 const original = readFileSync(modelPy, "utf8");
 const mod = process.platform === "darwin" ? "Meta" : "Control";
 
-/** The most parts animating at once, sampled every frame until `done` says so. */
-const sampleUntil = async (done, timeout = 20_000) => {
+/** The page's clock, for drawnAt(). */
+const now = () => browser.execute(() => performance.now());
+/** The most parts animating at once, from `change()` until its update is in the viewer and 0.4 s after (an animation
+ * starts as the update lands, and a part takes 160 ms, so one that ran would be seen). */
+const mostAnimating = async (change) => {
+  const t0 = await now();
+  await change();
   let most = 0;
   await browser.waitUntil(
     async () => {
       most = Math.max(most, (await stats()).animating);
-      return done();
+      return (await browser.execute(() => window.__emmet.drawnAt())) > t0;
     },
-    { timeout, interval: 16 },
+    { timeout: 20_000, interval: 16, timeoutMsg: "the change never reached the viewer" },
   );
+  const until = Date.now() + 400;
+  while (Date.now() < until) most = Math.max(most, (await stats()).animating);
   return most;
 };
 
@@ -39,18 +46,24 @@ describe("the build animation", () => {
   let still;
   before(async () => {
     await open(dir);
-    still = await camera();
+    still = await restingCamera();
   });
   afterEach(async () => {
-    expect(await camera()).toEqual(still);
+    expect(await restingCamera()).toEqual(still);
+  });
+  // A failed test mustn't leave the next specs at Fast or Off.
+  after(async () => {
+    const { prefs } = await invoke("get_prefs");
+    await invoke("set_prefs", { prefs: { ...prefs, build_animation: "animated" } });
+    await browser.execute(() => window.__emmet.viewer().setPace("animated"));
   });
 
   it("a knob's run shows at once: nothing animates", async () => {
     const gen = await shown();
     const before = (await stats()).instances;
     await $("#tab-options").click();
-    await $("#param-roof-switch").click();
-    const most = await sampleUntil(async () => (await shown()) > gen && (await stats()).instances !== before);
+    const most = await mostAnimating(() => $("#param-roof-switch").click());
+    expect((await stats()).instances).not.toBe(before);
     expect(most).toBe(0);
     expect((await stats()).lastDiff.removed).toBeGreaterThan(0);
     await $("#knobs-reset").click();
@@ -86,21 +99,45 @@ describe("the build animation", () => {
     await $("#skip-animation").click();
   });
 
+  it("Replay build from a step plays the whole model", async () => {
+    await $("#tab-steps").click();
+    await (await $("#steps-tree [role='treeitem'][data-n='3']")).click();
+    await browser.waitUntil(async () => (await stats()).step === 3);
+    await $("#replay").click();
+    await browser.waitUntil(async () => (await stats()).animating > 100, { timeoutMsg: "Replay build didn't start" });
+    // Still playing a moment later: closing the step didn't end it.
+    await browser.pause(300);
+    const s = await stats();
+    expect(s.animating).toBeGreaterThan(0);
+    expect(s.step).toBe(null);
+    await $("#skip-animation").click();
+  });
+
   it("Fast fits the whole model into 0.6 s, and Off doesn't animate at all", async () => {
     await pace("Fast");
-    await $("#replay").click();
-    const t0 = Date.now();
-    await browser.waitUntil(async () => (await stats()).animating > 0, { timeoutMsg: "Fast didn't animate" });
-    await browser.waitUntil(async () => (await stats()).animating === 0, { timeout: 5_000, interval: 16 });
-    // 0.6 s for the batch, and what WebDriver's round trips add.
-    expect(Date.now() - t0).toBeLessThan(1_600);
+    // Timed in the page, from the replay to the animation's end: WebDriver's round trips stay out of it.
+    const ms = await browser.execute(
+      () =>
+        new Promise((resolve) => {
+          const v = window.__emmet.viewer();
+          let t0 = 0;
+          const off = v.on("animation", (running) => {
+            if (running) t0 = performance.now();
+            else {
+              off();
+              resolve(performance.now() - t0);
+            }
+          });
+          document.getElementById("replay").click();
+        }),
+    );
+    // 0.6 s for the batch, and a frame or two.
+    expect(ms).toBeGreaterThan(100);
+    expect(ms).toBeLessThan(800);
     await pace("Off");
     await expect($("#replay")).toBeDisabled();
-    const gen = await shown();
-    writeFileSync(modelPy, original.replace("chimney: bool = True", "chimney: bool = False"));
-    expect(await sampleUntil(async () => (await shown()) > gen)).toBe(0);
-    writeFileSync(modelPy, original);
-    expect(await sampleUntil(async () => (await shown()) > gen + 1)).toBe(0);
+    expect(await mostAnimating(() => writeFileSync(modelPy, original.replace("chimney: bool = True", "chimney: bool = False")))).toBe(0);
+    expect(await mostAnimating(() => writeFileSync(modelPy, original))).toBe(0);
     await pace("Animated");
   });
 
@@ -114,11 +151,8 @@ describe("the build animation", () => {
       await $("#replay").click();
       await browser.pause(300);
       expect((await stats()).animating).toBe(0);
-      const gen = await shown();
-      writeFileSync(modelPy, original.replace("chimney: bool = True", "chimney: bool = False"));
-      expect(await sampleUntil(async () => (await shown()) > gen)).toBe(0);
-      writeFileSync(modelPy, original);
-      await nextScene(gen + 1);
+      expect(await mostAnimating(() => writeFileSync(modelPy, original.replace("chimney: bool = True", "chimney: bool = False")))).toBe(0);
+      expect(await mostAnimating(() => writeFileSync(modelPy, original))).toBe(0);
     } finally {
       await browser.execute(() => (window.matchMedia = window.__realMatchMedia));
     }

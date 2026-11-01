@@ -191,6 +191,7 @@ function instancedConditional(transparent: boolean, opacity: number, colored: bo
   const m = new LDrawConditionalLineMaterial({ transparent, depthWrite: !transparent });
   m.uniforms.diffuse!.value.set(1, 1, 1);
   m.uniforms.opacity!.value = opacity;
+  if (!m.vertexShader.includes("modelViewMatrix * vec4(")) throw new Error("three's conditional line shader changed: no modelViewMatrix");
   m.vertexShader = m.vertexShader.replaceAll("modelViewMatrix * vec4(", "modelViewMatrix * instanceMatrix * vec4(");
   m.defines = { ...m.defines, USE_INSTANCING: "" };
   if (colored) colorFromInstance(m);
@@ -213,7 +214,8 @@ function colorFromInstance(shader: { vertexShader: string; fragmentShader: strin
 }
 
 /** The studio: a soft room for reflections (three's RoomEnvironment, prefiltered once per renderer), a key light from
- * the front left and above, a fill from the right, a rim from behind, and a little sky and ground light. The key casts
+ * the front, above, and to the model's right (+Z), a fill from the back left, a rim from behind and to the left, and a
+ * little sky and ground light. The key casts
  * the optional ground shadow. */
 export interface Studio {
   environment: Texture;

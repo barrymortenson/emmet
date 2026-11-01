@@ -85,7 +85,8 @@ export interface RenderOptions {
   highlight?: string[];
   /** The build up to this step, as the steps show it (its new parts outlined); the whole model by default. */
   step?: number;
-  /** No background: the picture's pixels around the model are transparent (the Parts list's pictures). */
+  /** No background: the picture's pixels around the model are transparent (the Parts list's and the parts box's
+   * pictures). */
   transparent?: boolean;
 }
 
@@ -165,7 +166,7 @@ export interface Stats {
   animating: number;
   /** Parts the scene uses that couldn't load, with why; they aren't drawn. */
   failed: Record<string, string>;
-  /** Placements on screen per diff kind in the last update. */
+  /** How many placements the last update added, removed, moved, recolored, or left unchanged. */
   lastDiff: { added: number; removed: number; moved: number; recolored: number; unchanged: number };
   quality: Preset;
   pace: Pace;
@@ -188,7 +189,7 @@ export interface Viewer {
   cutAway(layer: number | null): void;
   /** How many layers (plates) tall the model is. */
   layers(): number;
-  /** Plays the whole model from empty in build order. */
+  /** Plays the whole model from empty in build order (nothing, when the pace is Off or reduced motion is on). */
   replayBuild(): void;
   /** Jumps a running build animation to its end. */
   skipAnimation(): void;
@@ -201,7 +202,8 @@ export interface Viewer {
   orbit(radians: number, tilt?: number): void;
   /** Moves the camera toward the target (a factor under 1) or away from it (over 1). */
   zoom(factor: number): void;
-  /** A PNG of the whole model from `view`, drawn offscreen with only `highlight` highlighted: the window's camera,
+  /** A PNG of the whole model (or the build up to `step`) from `view`, drawn offscreen with only `highlight`
+   * highlighted: the window's camera,
    * canvas, and highlight don't change. Refuses when a part the scene uses failed or the last update failed. */
   render(options?: RenderOptions): Promise<Rendered>;
   /** A PNG of what the window shows, from its own camera, at `scale` times the canvas's size (a screenshot). */
@@ -244,7 +246,8 @@ const SOFT_EDGES: Record<Theme, number> = { light: 0.18, dark: 0.32 };
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 const FOV = 35;
 const PLATE = 8;
-/** A stud is 12 LDU across: under this many pixels on screen (per quality), its bucket draws low-detail studs. */
+/** A stud is 12 LDU across: under this many drawing-buffer (device) pixels on screen, per quality, its bucket draws
+ * low-detail studs. */
 const LOD_PX: Record<Preset, number> = { fast: Infinity, balanced: 5, best: 2.5 };
 /** A press that moves less than this is a click, not a drag. */
 const DRAG_PX = 4;
@@ -482,6 +485,14 @@ class EmmetViewer implements Viewer {
         this.emit("pick", this.pickAt(at.x, at.y), { add: e.shiftKey || e.metaKey || e.ctrlKey });
       }
     };
+    // A cancelled pointer (or a box let go where the canvas couldn't capture it) ends the gesture.
+    const onCancel = () => {
+      if (down?.box) {
+        this.controls.enabled = true;
+        this.emit("boxing", null);
+      }
+      down = null;
+    };
     const onLeave = () => {
       this.pointer = null;
       if (this.hovered) {
@@ -493,7 +504,11 @@ class EmmetViewer implements Viewer {
     c.addEventListener("pointermove", onMove);
     c.addEventListener("pointerup", onUp);
     c.addEventListener("pointerleave", onLeave);
+    c.addEventListener("pointercancel", onCancel);
+    c.addEventListener("lostpointercapture", onCancel);
     this.cleanup.push(() => {
+      c.removeEventListener("pointercancel", onCancel);
+      c.removeEventListener("lostpointercapture", onCancel);
       c.removeEventListener("pointerdown", onDown);
       c.removeEventListener("pointermove", onMove);
       c.removeEventListener("pointerup", onUp);
@@ -583,7 +598,6 @@ class EmmetViewer implements Viewer {
   private async apply(placements: Placement[], animate: boolean): Promise<Diff> {
     const failedBefore = new Set(this.cache.failed.keys());
     await this.cache.ensure(placements.map((p) => p.part));
-    this.skipAnimation();
     const before = this.placements;
     const diff = diffPlacements(before.values(), placements);
     const dirty = dirtyBuckets(diff, before, this.keyOf);
@@ -591,6 +605,16 @@ class EmmetViewer implements Viewer {
     for (const p of placements) {
       if (failedBefore.has(partKey(p.part)) && this.cache.get(p.part)) dirty.add(this.keyOf(p));
     }
+    // An update that changes nothing (the app sends the scene again when the steps or a compare close) leaves a
+    // running build animation, such as Replay build, to play on.
+    if (!dirty.size) {
+      // Still the new list: a rebuild can renumber the steps without moving a part, and the steps read them.
+      this.placements = new Map(placements.map((p) => [p.id, p]));
+      if (this.step != null || this.cut != null) this.refill();
+      this.lastDiff = { added: 0, removed: 0, moved: 0, recolored: 0, unchanged: diff.unchanged };
+      return diff;
+    }
+    this.skipAnimation();
     this.placements = new Map(placements.map((p) => [p.id, p]));
     const members = new Map<string, Placement[]>();
     for (const p of this.placements.values()) {
@@ -600,7 +624,8 @@ class EmmetViewer implements Viewer {
       if (!list) members.set(k, (list = []));
       list.push(p);
     }
-    // Removed parts lift away from where they were, so their buckets keep them as ghosts until the animation ends.
+    // Removed parts, and a recolored part's old self, lift away from where they were, so their buckets keep them as
+    // ghosts until the animation ends.
     const ghosts = new Map<string, Placement[]>();
     if (animate) {
       for (const p of [...diff.removed, ...diff.recolored.map((r) => before.get(r.id)!)]) {
@@ -612,8 +637,12 @@ class EmmetViewer implements Viewer {
         list.push(p);
       }
     }
-    for (const k of dirty) this.writeBucket(k, members.get(k) ?? [], ghosts.get(k) ?? []);
+    // The cut-away counts layers from the model's bottom: measured first, and with a new bottom every bucket is cut
+    // again, not only the ones the diff touched.
+    const bottom = this.extent.bottom;
     this.measure();
+    if (this.cut != null && this.extent.bottom !== bottom) for (const b of this.buckets.values()) dirty.add(b.key);
+    for (const k of dirty) this.writeBucket(k, members.get(k) ?? [], ghosts.get(k) ?? []);
     if (animate) this.startAnimation(diff, before, ghosts);
     this.lastDiff = {
       added: diff.added.length,
@@ -1089,7 +1118,8 @@ class EmmetViewer implements Viewer {
     if (pace === "off") this.skipAnimation();
   }
 
-  /** Sets one instance's matrix in every mesh of its bucket (the lines share the first mesh's). */
+  /** Sets one instance's matrix in every mesh of its bucket (the lines share the first mesh's). Picking's bounds go
+   * stale with it: three keeps an InstancedMesh's bounding sphere once computed, and only raycasts inside it. */
   private setInstance(bucket: Bucket, index: number, m: Matrix4): void {
     this.overlayBuilt = false;
     this.outlineBuilt = false;
@@ -1097,6 +1127,8 @@ class EmmetViewer implements Viewer {
       if (!(d.object instanceof InstancedMesh)) continue;
       d.object.setMatrixAt(index, m);
       d.object.instanceMatrix.needsUpdate = true;
+      d.object.boundingSphere = null;
+      d.object.boundingBox = null;
     }
   }
 
@@ -1248,7 +1280,8 @@ class EmmetViewer implements Viewer {
     return this.offscreen;
   }
 
-  /** Draws offscreen: full-detail studs and conditional lines, the shadow, the given highlight, step, and theme, and
+  /** Draws offscreen: full-detail studs and conditional lines, the shadow, the given highlight, step, cut-away, and
+   * theme, and
    * the finished model (never a frame of the build animation, which carries on in the window). The window's own
    * state comes back around one synchronous draw, so it never draws a frame with the render's. */
   private drawOffscreen(
@@ -1263,7 +1296,7 @@ class EmmetViewer implements Viewer {
     const before = { lit: this.lit, mode: this.mode, step: this.step, cut: this.cut, theme: this.theme, hovered: this.hovered };
     const background = this.scene.background;
     const lows = [...this.buckets.values()].filter((b) => b.drawn !== b.part);
-    const conditionals = [...this.buckets.values()].flatMap((b) => b.drawables.filter((d) => d.kind === "conditional" && !d.object.visible));
+    let conditionals: Drawable[] = [];
     const motion = this.motion;
     const shadow = { cast: this.studio.key.castShadow, ground: this.ground.visible };
     const ghosts = new Map<Bucket, Placement[]>();
@@ -1273,6 +1306,8 @@ class EmmetViewer implements Viewer {
         this.motion = null;
       }
       for (const b of lows) this.setDetail(b, b.part);
+      // After the rebuild to full detail, whose conditional lines Fast builds hidden.
+      conditionals = [...this.buckets.values()].flatMap((b) => b.drawables.filter((d) => d.kind === "conditional" && !d.object.visible));
       for (const d of conditionals) d.object.visible = true;
       Object.assign(this, { lit: state.lit, mode: state.mode, step: state.step, cut: state.cut, theme: state.theme, hovered: null });
       this.scene.background = state.background;

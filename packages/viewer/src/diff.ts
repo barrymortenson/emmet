@@ -25,12 +25,13 @@ export interface Diff {
   removed: Placement[];
   /** Same part and color, a new matrix. */
   moved: Placement[];
-  /** A new color or a new part under the same id: it changes bucket. */
+  /** A new color or a new part under the same id (in the viewer it stays in its bucket when the finish is the same). */
   recolored: Placement[];
   unchanged: number;
 }
 
-/** The (part, color) bucket a placement draws in. */
+/** A placement's part and color: what the diff compares to tell a recolor from a move (the viewer's buckets are by part
+ * and finish; see dirtyBuckets' `key`). */
 export function bucketKey(p: Pick<Placement, "part" | "color">): string {
   return `${p.part.toLowerCase()}|${p.color}`;
 }

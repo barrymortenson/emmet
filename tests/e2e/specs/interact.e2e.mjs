@@ -7,7 +7,7 @@
 // Pointer events go to the canvas as the webview would send them (WebDriver's pointer actions aren't on every
 // driver).
 import { $, $$, expect } from "@wdio/globals";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { camera, invoke, open, restingCamera, screenshots, stats } from "../lib/app.mjs";
 import { agentHome } from "../lib/agents.mjs";
@@ -193,6 +193,8 @@ describe("the viewer's interactions", () => {
   });
 
   it("Screenshot puts a picture of the view on the clipboard, and the toast saves it to a file", async () => {
+    // A retried spec finds the first try's file, and the next would be "Interact 2.png".
+    rmSync(join(agentHome, "Downloads", "Interact.png"), { force: true });
     // The clipboard is the system's, which CI's own Mac shares: the spec records what the app hands it.
     await browser.execute(() => {
       window.__clip = null;
@@ -210,6 +212,69 @@ describe("the viewer's interactions", () => {
     const file = join(agentHome, "Downloads", "Interact.png");
     expect(existsSync(file)).toBe(true);
     expect([...readFileSync(file).subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
+    // The host writes only a PNG: anything else the window sends is refused, and nothing is written.
+    const files = readdirSync(join(agentHome, "Downloads")).length;
+    for (const png of [btoa("not a png"), "%%%"]) {
+      const refused = await browser.execute((b64) => window.__TAURI_INTERNALS__.invoke("save_screenshot", { png: b64 }).then(() => null, (e) => e.message ?? String(e)), png);
+      expect(refused).toContain("wasn't a picture Emmet could save");
+    }
+    expect(readdirSync(join(agentHome, "Downloads")).length).toBe(files);
+  });
+
+  it("picks the parts a step hid once they show again", async () => {
+    // Picking keeps each part's bounds; the parts a step hid must be pickable after it.
+    const roof = await browser.execute(async () => {
+      const v = window.__emmet.viewer();
+      v.showSteps(1);
+      await v.nextFrame();
+      v.pickAt(10, 10);
+      v.showSteps(null);
+      await v.nextFrame();
+      const { scene } = await window.__TAURI_INTERNALS__.invoke("ui_state");
+      const tile = scene.placements.find((p) => p.part === "3037" && p.submodel.some((s) => /roof/i.test(s)) && p.id.includes("front"));
+      const at = v.screenPoint([tile.id]);
+      // Just below the top of its box, which is on the slope.
+      return v.pickAt(at.x, at.y + 3);
+    });
+    expect(roof).toMatch(/^roof\//);
+  });
+
+  it("the cut-away counts from the model's new bottom after an update", async () => {
+    const r = await browser.execute(async () => {
+      const v = window.__emmet.viewer();
+      const { scene } = await window.__TAURI_INTERNALS__.invoke("ui_state");
+      const c = document.querySelector("#viewer canvas");
+      const seen = () => {
+        const ids = new Set();
+        for (let y = 0; y < c.clientHeight; y += 9) for (let x = 0; x < c.clientWidth; x += 9) ids.add(v.pickAt(x, y));
+        return ids.size;
+      };
+      v.cutAway(6);
+      // A plate under the whole model: the bottom moves down a plate.
+      const under = { id: "under", part: "3958", color: 71, matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 200, 0, 1], step: 1, submodel: [] };
+      await v.update([...scene.placements, under]);
+      await v.nextFrame();
+      const after = seen();
+      // Cut again from scratch: what's drawn must be what the update drew.
+      v.cutAway(null);
+      v.cutAway(6);
+      await v.nextFrame();
+      const again = seen();
+      v.cutAway(null);
+      await v.update(scene.placements);
+      return { after, again };
+    });
+    expect(r.after).toBe(r.again);
+  });
+
+  it("a part picture that can't be drawn doesn't stop the others", async () => {
+    const [missing, after] = await browser.execute(async () => {
+      const missing = await window.__emmet.partPicture("no-such-part", 4);
+      const after = await window.__emmet.partPicture("3001", 1);
+      return [missing, after?.slice(0, 22) ?? null];
+    });
+    expect(missing).toBe(null);
+    expect(after).toBe("data:image/png;base64,");
   });
 
   it("a finding's pin sits at its parts and opens it in Checks", async () => {

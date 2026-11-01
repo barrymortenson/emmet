@@ -82,4 +82,24 @@ describe("visual baselines", () => {
     const bad = pixelmatch(expected.data, actual.data, null, SIZE, SIZE, { threshold: 0.1 });
     expect(bad / (SIZE * SIZE)).toBeGreaterThan(TOLERANCE);
   });
+  it("a render is the same at every quality, so an agent's render doesn't depend on the machine", async () => {
+    await open(projectDir("visual"));
+    const shot = (q) =>
+      browser.execute(async (quality) => {
+        const v = window.__emmet.viewer();
+        v.setQuality(quality);
+        // Fast's low-detail studs are made once the camera settles.
+        for (let i = 0; i < 30; i++) await v.nextFrame();
+        const { png } = await v.render({ view: "iso", size: 512 });
+        let s = "";
+        for (let i = 0; i < png.length; i += 0x8000) s += String.fromCharCode(...png.subarray(i, i + 0x8000));
+        return btoa(s);
+      }, q);
+    const fast = decode(Buffer.from(await shot("fast"), "base64"));
+    expect(await browser.execute(() => window.__emmet.viewer().stats().lowDetail)).toBeGreaterThan(0);
+    const best = decode(Buffer.from(await shot("best"), "base64"));
+    await browser.execute(() => window.__emmet.viewer().setQuality("auto"));
+    const bad = pixelmatch(fast.data, best.data, null, SIZE, SIZE, { threshold: 0.1 });
+    expect(bad / (SIZE * SIZE)).toBeLessThanOrEqual(TOLERANCE);
+  });
 });

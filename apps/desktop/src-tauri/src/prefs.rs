@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The app's own settings (Settings, session 4A), kept beside the BOM's color naming in the data dir's settings.json:
-//! the projects folder (Documents/Emmet until changed), the appearance, the viewer's quality and build animation, the
-//! agent to start with, and Claude Code's model. The window reads and changes them by name; the only path in them, the projects
+//! the projects folder (Documents/Emmet until changed), the appearance, the viewer's quality and build animation,
+//! the agent to start with, and Claude Code's model. The window reads and changes them by name; the only path in them, the projects
 //! folder, is picked in the host's own dialog, never sent by the window.
 
 use std::path::PathBuf;

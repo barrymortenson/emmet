@@ -85,6 +85,8 @@ export class PartCache {
   readonly colors: Colors;
   private parts = new Map<string, PartGeometry>();
   private texts = new Map<string, string>();
+  /** Low-detail variants being made: a part in two finishes is two buckets asking at once, and gets one. */
+  private lows = new Map<string, Promise<PartGeometry>>();
   private pending = new Map<string, Promise<void>>();
   /** Parts whose last load failed, with why. They are never drawn with holes (ADR 0005), and the next ensure() that
    * asks for one tries it again (the library may have been installed, or a fetch may have failed once). */
@@ -135,8 +137,17 @@ export class PartCache {
 
   /** The part's low-detail variant, made from its text the first time it's asked for. The same part when it has no
    * studs to simplify. */
-  async low(part: PartGeometry): Promise<PartGeometry> {
-    if (part.low) return part.low;
+  low(part: PartGeometry): Promise<PartGeometry> {
+    if (part.low) return Promise.resolve(part.low);
+    let pending = this.lows.get(part.id);
+    if (!pending) {
+      pending = this.makeLow(part).finally(() => this.lows.delete(part.id));
+      this.lows.set(part.id, pending);
+    }
+    return pending;
+  }
+
+  private async makeLow(part: PartGeometry): Promise<PartGeometry> {
     const text = this.texts.get(part.id);
     const lowText = text && simplifyStuds(text);
     if (!lowText) return (part.low = part);
@@ -148,7 +159,9 @@ export class PartCache {
         return (part.low = part);
       }
       return (part.low = low);
-    } catch {
+    } catch (e) {
+      // The full part draws instead: whole, only with more triangles. Said, so a broken variant isn't silent.
+      console.warn(`the viewer's low-detail ${part.id} couldn't be made, so it draws in full: ${String(e)}`);
       return (part.low = part);
     }
   }
@@ -218,7 +231,8 @@ export class PartCache {
       const parts = slot.parts.filter((g) => g.getAttribute("position").count > 0);
       if (!parts.length) continue;
       const geometry = parts.length === 1 ? parts[0]! : mergeGeometries(parts, false);
-      if (!geometry) continue;
+      // Never a part with a piece missing (ADR 0005): it fails, and the scene says so.
+      if (!geometry) throw new Error(`${id}: its ${slot.kind} couldn't be merged`);
       if (parts.length > 1) parts.forEach((g) => g.dispose());
       if (slot.kind === "mesh") triangles += geometry.getAttribute("position").count / 3;
       pieces.push({ kind: slot.kind, geometry, fixed: slot.fixed });

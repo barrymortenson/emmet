@@ -18,7 +18,7 @@ D-23 stands, as built in `packages/viewer` (its README has the API):
 - **One request per model, one parse per part.** The host's `emmet-lib://localhost/pack?parts=a,b,…` returns every
   file the parts use, each once, and the app turns each part into a packed `.mpd` (`0 FILE` blocks) that
   `LDrawLoader.parse` reads without fetching anything. A model's parts load in one request, not hundreds.
-- **Instancing.** One `InstancedMesh` per (part, color). Edges and conditional lines are instanced too, sharing the
+- **Instancing.** One `InstancedMesh` per (part, color) (4C: per part and finish, below). Edges and conditional lines are instanced too, sharing the
   mesh's `instanceMatrix` through an `InstancedBufferGeometry`: the edge material gets `USE_INSTANCING`, and the
   conditional-line shader multiplies `instanceMatrix` into each of its five `modelViewMatrix` products. Main-color slots (16,
   24) take the bucket's color; a part's fixed colors stay.
@@ -85,10 +85,11 @@ doesn't wait).
 
 The decision: one `InstancedMesh` per (part, finish). The finish's material (Emmet's own, per LDraw finish, in
 `packages/viewer/src/materials.ts`) is white, and every instance carries its color: the faces' through
-`instanceColor`, the edges' and conditional lines' through an instanced `instanceColor` attribute on their
-`InstancedBufferGeometry` (`USE_INSTANCING_COLOR`). Transparent colors bucket by alpha and glowing ones by color,
+`instanceColor`, the edges' and conditional lines' through their own per-instance attribute, `emmetColor`, on their
+`InstancedBufferGeometry`, which edits to three's line shaders read in place of vertex colors (`materials.ts`; three
+applies a per-instance color only to an `InstancedMesh`). Transparent colors bucket by alpha and glowing ones by color,
 which the material holds. A part's fixed colors (prints, a part that is always one color) keep their own materials,
-tinted only by the highlight. Each part is one geometry per kind and color slot, merged across its sub-objects
+tinted only by the issue tint, hover, and the build animation's fade. Each part is one geometry per kind and color slot, merged across its sub-objects
 (`BufferGeometryUtils.mergeGeometries`, part of three), so a part made of parts draws as one.
 
 The other costs, in order: triangles (studs and the tubes under bricks: a low-detail variant, made on demand from the

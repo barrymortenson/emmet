@@ -20,7 +20,7 @@ use this same code, so an agent's render is what the window shows.
 - **Quality presets.** Fast (pixel ratio 1, no conditional lines, low-detail studs at any size), Balanced, and Best
   (the ground shadow). "auto" picks one by the GPU: Fast on a software renderer, Balanced on integrated graphics, Best
   otherwise.
-- **Stud LOD.** Once the camera settles, a bucket whose nearest studs are under 5 pixels on screen (2.5 at Best) draws
+- **Stud LOD.** Once the camera settles, a bucket whose nearest studs are under 5 device pixels on screen (2.5 at Best) draws
   its part's low-detail variant: 8-sided studs without conditional lines, and no tubes underneath. The variant is made
   the first time it's wanted. Renders always use the full detail.
 - **Transparent parts** draw after the opaque ones, back to front by bucket, with depth writes off.
@@ -93,7 +93,8 @@ part before), each falling three plates and fading in over 160 ms with ease-out;
 (150 ms) and moved parts glide (200 ms). Animated staggers parts about 30 ms apart with the whole batch within 6 s,
 Fast fits it into 0.6 s, and Off applies it at once; reduced motion turns it off. Every instance is in the scene from
 the start (hidden until its turn), so `stats().instances` counts them at once and `stats().animating` counts what
-hasn't landed. A new update, a click in the viewer (not a drag), or `skipAnimation()` finishes it at once; a render
+hasn't landed. A recolored part's old color lifts away while the new one is in place at once. A new update that changes something,
+a click in the viewer (not a drag), `showSteps()`, `cutAway()`, or `skipAnimation()` finishes it at once; a render
 always shows the final state. The order and timing live in `src/animate.ts`, tested in Node.
 
 **Steps** (section 08's step rules): `showSteps(n)` hides the later steps and outlines step n's new parts (a

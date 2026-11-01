@@ -68,6 +68,8 @@ describe("the viewer's budgets at 2,000 parts", () => {
       const orbit = await run(() => v.orbit(0.03));
       v.replayBuild();
       await frame();
+      // A replay that didn't start (the pace Off) would time idle frames.
+      if (v.stats().animating === 0) throw new Error("the build animation didn't start");
       const animation = await run(() => {});
       const calls = v.stats().drawCalls;
       v.skipAnimation();

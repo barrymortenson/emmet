@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // A step's new parts outlined (plan section 08's step rules, section 13): the parts drawn flat into a mask, then a
-// full-screen pass that draws the outline color wherever a pixel outside the mask has a neighbor inside it. The parts
-// are the step's newest, with later steps hidden, so they're on top and their outline is what the eye follows.
+// full-screen pass that draws the outline color wherever a pixel outside the mask has a neighbor inside it. The mask has
+// no depth test against the rest, so a new part behind earlier ones is outlined through them; with later steps hidden,
+// the newest parts are mostly on top.
 
 import {
   Color,

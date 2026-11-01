@@ -36,6 +36,7 @@ import { rebuildRequest, rebuildWords } from "./Options";
 import { Panel, type Tab, type TipId } from "./Panel";
 import { type Pop, Titlebar } from "./Titlebar";
 import { Banner, Button, Icon, Resizable, when } from "./ui";
+import { partPicture } from "./pictures";
 import { ViewerLayer } from "./ViewerLayer";
 
 type Dialog = "settings" | "about" | "shortcuts" | null;
@@ -95,7 +96,7 @@ export function App() {
   const [step, setStep] = useState<number | null>(null);
   const [sub, setSub] = useState<string | null>(null);
   const [view, setView] = useState<"iso" | "front" | "top" | null>("iso");
-  /** The cut-away's top layer (null when it's off), and how many layers the model has. */
+  /** The cut-away's top layer (null when it's off). */
   const [cut, setCut] = useState<number | null>(null);
   const [animating, setAnimating] = useState(false);
   /** What "auto" quality picked for this GPU, for Settings to show. */
@@ -179,6 +180,8 @@ export function App() {
           return createViewer(c, { partSource, theme });
         },
         theme: (t: Theme | null) => forceTheme(t),
+        // A part's picture, as the Parts list and the parts box ask for one.
+        partPicture,
         offline: (off: boolean | null) => setOnline(off == null ? navigator.onLine : !off),
         // First run's step, for a spec to come back to one the rail has passed.
         firstRun: (step: Step) => setFirstRun(step),
@@ -213,6 +216,22 @@ export function App() {
     if (pace) viewer.current?.setPace(pace as Pace);
   }, [pace]);
 
+  /** Puts placements in the viewer and says over it when parts can't be shown, or the viewer failed (ADR 0005: never
+   * a model with holes, unremarked). False when the update failed. */
+  const showIn = useCallback(async (v: Viewer, list: ReturnType<typeof placements>, animate: "build" | "none"): Promise<boolean> => {
+    try {
+      await v.update(list, { animate });
+      const failed = Object.entries(v.stats().failed);
+      lastViewerError.current = failed.length ? `Some parts can't be shown: ${failed.map(([id, why]) => `${id} (${why})`).join("; ")}` : null;
+      setViewerError(lastViewerError.current);
+      return true;
+    } catch (e) {
+      lastViewerError.current = `The viewer couldn't show the model: ${e instanceof Error ? e.message : String(e)}`;
+      setViewerError(lastViewerError.current);
+      return false;
+    }
+  }, []);
+
   /** Shows a scene if it's newer than the one on screen (the generation check), framing a project's first one. A
    * project's first scene and a knob's runs appear at once; other runs (the agent's, an edit) build up part by part
    * (D-34). */
@@ -223,17 +242,8 @@ export function App() {
     // A version open to compare stays on screen; the newest build shows when it closes.
     if (comparing.current) return;
     const first = at != null && framed.current !== at;
-    try {
-      await v.update(placements(scene), { animate: first ? "none" : animate });
-      drawnAt.current = performance.now();
-      const failed = Object.entries(v.stats().failed);
-      lastViewerError.current = failed.length ? `Some parts can't be shown: ${failed.map(([id, why]) => `${id} (${why})`).join("; ")}` : null;
-      setViewerError(lastViewerError.current);
-    } catch (e) {
-      lastViewerError.current = `The viewer couldn't show the model: ${e instanceof Error ? e.message : String(e)}`;
-      setViewerError(lastViewerError.current);
-      return;
-    }
+    if (!(await showIn(v, placements(scene), first ? "none" : animate))) return;
+    drawnAt.current = performance.now();
     if (at && framed.current !== at) {
       framed.current = at;
       v.setView("iso");
@@ -241,7 +251,7 @@ export function App() {
       viewNow.current = "iso";
       tellHost();
     }
-  }, []);
+  }, [showIn]);
 
   useEffect(() => {
     const off: Promise<() => void>[] = [
@@ -369,7 +379,8 @@ export function App() {
     return out.status === "ok" ? out.data : null;
   };
 
-  // A click in the viewer picks a part (shift, ⌘, or Ctrl adds it to the pick), a click on nothing clears what's
+  // A click in the viewer picks a part (shift, ⌘, or Ctrl adds it to the pick, or takes it away), a click on nothing
+  // clears what's
   // picked, and shift-drag's box picks the parts in it: the agent sees them as it sees a row picked in the panel.
   useEffect(() => {
     const v = viewer.current;
@@ -422,9 +433,9 @@ export function App() {
     if (!v || !scene) return;
     if (compare) {
       v.showSteps(null);
-      void v.update(placements(compare.scene), { animate: "none" });
+      void showIn(v, placements(compare.scene), "none");
     } else {
-      void v.update(placements(scene), { animate: "none" });
+      void showIn(v, placements(scene), "none");
       v.showSteps(step);
     }
   }, [compare, step]);
@@ -438,22 +449,31 @@ export function App() {
     if (!v) return;
     const png = v.snapshot(2);
     const save = { label: "Save to file", run: () => void saveShot(png) };
+    // The clipboard refusing offers Save; the picture itself failing doesn't, since Save would fail the same way.
+    const failed = (e: unknown) =>
+      png.then(
+        () => say("Emmet couldn't copy the picture. You can save it to a file instead.", save),
+        () => say(`Emmet couldn't take the picture: ${e instanceof Error ? e.message : String(e)}`),
+      );
     try {
       const item = new ClipboardItem({ "image/png": png.then((b) => new Blob([b as BlobPart], { type: "image/png" })) });
-      navigator.clipboard.write([item]).then(
-        () => say("Copied a picture of the model", save),
-        () => say("Emmet couldn't copy the picture. You can save it to a file instead.", save),
-      );
-    } catch {
-      say("Emmet couldn't copy the picture. You can save it to a file instead.", save);
+      navigator.clipboard.write([item]).then(() => say("Copied a picture of the model", save), failed);
+    } catch (e) {
+      void failed(e);
     }
   };
   const saveShot = async (png?: Promise<Uint8Array>) => {
     const v = viewer.current;
     if (!v) return;
-    const bytes = await (png ?? v.snapshot(2));
+    let bytes: Uint8Array;
+    try {
+      bytes = await (png ?? v.snapshot(2));
+    } catch (e) {
+      say(`Emmet couldn't take the picture: ${e instanceof Error ? e.message : String(e)}`);
+      return;
+    }
     const e = await act(commands.saveScreenshot(base64(bytes)));
-    if (e) say(`Saved “${e.file}” to ${e.folder}`, { label: "Show in folder", run: () => void commands.revealExport() });
+    if (e) say(`Saved “${e.file}” to ${e.folder}`, { label: "Show in folder", run: () => void act(commands.revealExport()) });
   };
 
   const openVersions = async () => {
@@ -481,7 +501,7 @@ export function App() {
   const exportAs = async (f: ExportFormat) => {
     tipSeen("export");
     const e = await act(commands.export(f));
-    if (e) say(`Saved “${e.file}” to ${e.folder}`, { label: "Show in folder", run: () => void commands.revealExport() });
+    if (e) say(`Saved “${e.file}” to ${e.folder}`, { label: "Show in folder", run: () => void act(commands.revealExport()) });
   };
 
   const can = (a: Action): boolean => {

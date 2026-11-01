@@ -200,10 +200,10 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   `.posts`, `.underside`), as attributes of the z they always returned.
 - Five technique prompts (`docs/spec/ladder.md`, T1 to T5) that `emmet eval` runs, scored on their figure_clearance
   findings.
-- The viewer, polished (session 4C): every LDraw finish (solid, transparent, chrome, pearl, metal, rubber, glow) in a
-  studio light rig with reflections, neutral tone mapping, and a ground shadow at Best; low-detail studs past a few
-  pixels; quality presets picked by the GPU until Settings says otherwise. Hovering names a part and its color, a
-  click picks it (shift adds), shift-drag's box picks what's in it, the cut-away hides everything above a layer
+- The viewer, polished (session 4C): every LDraw finish (solid, transparent, chrome, pearl, metal, matte metal, rubber, glow) in a
+  studio light rig with reflections, neutral tone mapping, and a ground shadow at Best; low-detail studs when a stud is
+  only a few pixels across; quality presets picked by the GPU until Settings says otherwise. Hovering names a part and its color, a
+  click picks it (shift, ⌘, or Ctrl adds or takes away), shift-drag's box picks what's in it, the cut-away hides everything above a layer
   (View menu, `⌥↓` `⌥↑`), Screenshot copies the view and its toast saves it, the viewer's keys orbit and zoom, and a
   finding's pin opens it in Checks. A step outlines its new parts and draws its parts box and any sub-assembly's box
   with numbered sub-steps. The build animation drops, fades, lifts away, and glides, with Replay build, Skip, and

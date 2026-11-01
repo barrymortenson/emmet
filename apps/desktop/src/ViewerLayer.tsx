@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // What the viewer carries over the model (plan section 14, docs/design/components.md's viewer): the hovered part's
 // name and color, shift-drag's box, a finding's pin at its parts, a step's parts box (and any sub-assembly's box, with
-// its leader to where the copies go), the cut-away's bar, and Skip animation while the build animation runs. Each is
-// placed from the viewer's own projection and follows the camera; none moves it (law 1).
+// its leader to its first copy), the cut-away's bar, and Skip animation while the build animation runs. The pins and
+// the leader are placed from the viewer's own projection and follow the camera; nothing here moves it (law 1).
 import type { Rect, Viewer } from "@emmet/viewer";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Finding, Scene, StepView } from "./bindings";
@@ -36,7 +36,7 @@ function Picture({ load, alt }: { load: () => Promise<string | null>; alt: strin
     return () => {
       live = false;
     };
-    // `load` is made fresh each render; what it loads is named by `alt`'s owner (the key).
+    // `load` is a new closure each render; the parent's `key` names what it loads, so a new picture remounts.
   }, []);
   return src ? <img src={src} alt={alt} /> : <span className="parts-box-pic" aria-hidden="true" />;
 }
@@ -125,7 +125,7 @@ export function ViewerLayer({
 
 /** At most this many pins at once: a model with many findings points at the worst few, and Checks lists them all. */
 const PINS = 5;
-const SEVERITY: Record<string, number> = { error: 0, warning: 1, info: 2 };
+const SEVERITY: Record<string, number> = { error: 0, warning: 1 };
 
 /** The findings that get a pin: those with parts, errors first, then warnings, in Checks' order. */
 function pinned(findings: Finding[]): Finding[] {
@@ -154,7 +154,7 @@ function Pin({ viewer, finding, tick, onPin }: { viewer: Viewer; finding: Findin
 
 /** A step as the instruction books draw it (plan section 08): its parts box with each new part's picture and count,
  * the step number, and each sub-assembly it puts on in its own box, with its parts and numbered sub-steps and a leader
- * to where the copies go. */
+ * to its first copy. */
 function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: Scene; step: StepView; tick: number }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const subs = step.subs
