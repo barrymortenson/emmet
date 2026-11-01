@@ -9,7 +9,7 @@
 import { $, $$, expect } from "@wdio/globals";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { camera, invoke, open, restingCamera, stats } from "../lib/app.mjs";
+import { camera, invoke, open, restingCamera, screenshots, stats } from "../lib/app.mjs";
 import { agentHome } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
@@ -72,6 +72,7 @@ describe("the viewer's interactions", () => {
     await $("#viewer-hover").waitForDisplayed({ timeoutMsg: "hovering a part named nothing" });
     await expect($("#viewer-hover")).toHaveText(await nameOf(a.id));
     expect((await stats()).hovered).toBe(a.id);
+    await screenshots("viewer-hover");
     await pointer("pointerleave", a.x, a.y, { buttons: 0 });
     await expect($("#viewer-hover")).not.toBeExisting();
     expect(await camera()).toEqual(before);
@@ -98,6 +99,7 @@ describe("the viewer's interactions", () => {
     await pointer("pointerdown", x0, y0, { shiftKey: true });
     await pointer("pointermove", x1, y1, { shiftKey: true });
     await expect($("#viewer-box")).toBeDisplayed();
+    await screenshots("viewer-box-select");
     await pointer("pointerup", x1, y1, { shiftKey: true });
     await expect($("#viewer-box")).not.toBeExisting();
     const want = await browser.execute((r) => window.__emmet.viewer().idsInBox(r), { x: x0, y: y0, width: x1 - x0, height: y1 - y0 });
@@ -143,6 +145,7 @@ describe("the viewer's interactions", () => {
     await expect($("#step-view .step-number")).toHaveText(String(step.n));
     await expect($$("#parts-box .parts-box-item")).toBeElementsArrayOfSize(step.items.length);
     await browser.waitUntil(async () => (await $$("#parts-box img")).length === step.items.length, { timeoutMsg: "the parts box's pictures never drew" });
+    await screenshots("viewer-step");
   });
 
   it("a step that puts on a sub-assembly draws its box with numbered sub-steps and a leader to the copies", async () => {
@@ -157,6 +160,7 @@ describe("the viewer's interactions", () => {
     await expect($$("#step-view .sub-steps li")).toBeElementsArrayOfSize(sub.steps.length);
     await browser.waitUntil(async () => (await $$("#step-view .sub-steps img")).length === sub.steps.length, { timeoutMsg: "the sub-steps never drew" });
     await expect($("#step-leader")).toBeExisting();
+    await screenshots("viewer-step-sub-assembly");
     // The sub-assembly's parts show at the step that places the copy, not at their own sub-steps: all of them there,
     // and none a step before (a filter by their own step showed them from step 2).
     expect((await stats()).outlined).toBe(step.subs[0].count * sub.parts);
@@ -177,6 +181,7 @@ describe("the viewer's interactions", () => {
     expect((await stats()).cut).toBe(layers - 1);
     await expect($("#cut-bar")).toHaveText(expect.stringContaining(`Showing layers 1–${layers - 1} of ${layers}`));
     for (let i = 0; i < 10; i++) await $("#cut-down").click();
+    await screenshots("viewer-cut-away");
     const low = await stats();
     expect(low.cut).toBe(layers - 11);
     expect(low.hidden).toBeGreaterThan(0);
@@ -212,6 +217,7 @@ describe("the viewer's interactions", () => {
     const pin = await $(".viewer-pin");
     await pin.waitForDisplayed({ timeoutMsg: "the finding has no pin" });
     await expect(pin).toHaveText(expect.stringMatching(/parts? floats?/));
+    await screenshots("viewer-pin");
     const before = await restingCamera();
     await pin.click();
     await expect($("#tab-checks")).toHaveAttribute("aria-selected", "true");

@@ -711,3 +711,11 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   render, a baseline, and an export look the same on every machine.
 - **Pins for the worst five findings** (4C): a pin for each finding with parts, errors first, at most five. A model
   with hundreds of findings made a pin each and slowed every frame the camera moved.
+- **Design change note 004 approved as written** (Barry, through AskUserQuestion, 2026-11-01): Replay build in the
+  view switch, the hover tooltip, shift-drag's outline, the cut-away bar, up to five finding pins, the step's parts box
+  with sub-assembly boxes and a leader, and Settings' quality pick and Build animation row
+  (`docs/design/changes/004-4c-viewer.md`).
+- **4C's Windows half: the PR opens now, and Windows CI runs once on the branch** (Barry, through AskUserQuestion,
+  2026-11-01). The macOS halves of Done when 1 and 2 are ticked; a manual CI run with its "windows" box checked
+  reports the hosted Windows numbers and writes Windows baselines from its artifact. Rejected: leaving Windows wholly
+  to the Windows pass, as 4A and 4B did, and holding the PR until then.

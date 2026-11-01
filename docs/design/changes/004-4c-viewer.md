@@ -20,4 +20,5 @@ screens don't draw a state, or plan section 13 asks for something they leave out
 
 ## Barry's yes
 
-Asked through AskUserQuestion when the screenshots were ready.
+Yes, as written: Barry, through AskUserQuestion, 2026-11-01, with the light and dark screenshots in
+`docs/spec/sessions/4C/screens/`.
