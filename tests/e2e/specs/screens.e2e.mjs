@@ -100,10 +100,15 @@ describe("the frozen screens", () => {
     await shot("settings-dialog");
     // Viewer quality applies to the viewer at once.
     const quality = () => browser.execute(() => window.__emmet.viewer().stats().quality);
+    const picked = await quality();
     await choose("Viewer quality", "Fast");
     await browser.waitUntil(async () => (await quality()) === "fast", { timeout: 5000, timeoutMsg: "Fast didn't apply" });
     await choose("Viewer quality", "Balanced");
     await browser.waitUntil(async () => (await quality()) === "balanced", { timeout: 5000, timeoutMsg: "Balanced didn't apply" });
+    // Back to the one the GPU picked, for the screens after this one.
+    await invoke("set_prefs", { prefs: { ...(await invoke("get_prefs")).prefs, viewer_quality: "auto" } });
+    await browser.execute(() => window.__emmet.viewer().setQuality("auto"));
+    expect(await quality()).toBe(picked);
     await browser.keys("Escape");
   });
 

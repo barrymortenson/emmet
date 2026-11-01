@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect } from "@wdio/globals";
 import pixelmatch from "pixelmatch";
-import { camera, nextScene, open, render, shown, stats } from "../lib/app.mjs";
+import { nextScene, open, render, restingCamera, shown, stats } from "../lib/app.mjs";
 import { mcp } from "../lib/mcp.mjs";
 import { bin, os, out, repo } from "../lib/paths.mjs";
 import { decode, isBlank } from "../lib/png.mjs";
@@ -34,7 +34,7 @@ describe("rendering with the app open", () => {
   });
 
   it("emmet render renders through the open window", async () => {
-    const before = await camera();
+    const before = await restingCamera();
     const file = join(out, "render-app.png");
     const env = JSON.parse(
       execFileSync(bin("emmet"), ["--json", "--data-dir", process.env.EMMET_DATA_DIR, "--project", project, "render", "--view", "front", "--size", "256", "--out", file], {
@@ -45,7 +45,7 @@ describe("rendering with the app open", () => {
     expect(env.data.via).toBe("app");
     expect(env.data.camera.view).toBe("front");
     checkPng(readFileSync(file), 256);
-    expect(await camera()).toEqual(before);
+    expect(await restingCamera()).toEqual(before);
   });
 
   it("MCP render returns image content from the open window", async () => {

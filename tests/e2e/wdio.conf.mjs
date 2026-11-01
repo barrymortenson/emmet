@@ -7,7 +7,7 @@
 // dir is the one the integration tests share (ldraw-mini and Python, from target/debug/prepare-data). Screenshots,
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { agentHome, prepareAgents, startOpenAi, stopOpenAi } from "./lib/agents.mjs";
 import { webContentPids } from "./lib/memory.mjs";
@@ -52,6 +52,15 @@ export const config = {
     process.env.EMMET_E2E_PICK_FILE = join(out, "pick.txt");
     // The app reopens its last project at launch; the run starts from none, as hello expects.
     rmSync(join(shared, "recent.json"), { force: true });
+    // Each run starts with the viewer's own settings (quality by the GPU, the build animation on): a spec that
+    // changes them, or a run that stopped in the middle of one, mustn't change the next run's screenshots.
+    const settings = join(shared, "settings.json");
+    if (existsSync(settings)) {
+      const s = JSON.parse(readFileSync(settings, "utf8"));
+      delete s.viewer_quality;
+      delete s.build_animation;
+      writeFileSync(settings, `${JSON.stringify(s, null, 2)}\n`);
+    }
     // Old-library checks and Update the library download ldraw-mini from here too.
     await startLibrary(shared);
     if (firstRun) {
