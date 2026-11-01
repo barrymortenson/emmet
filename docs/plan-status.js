@@ -180,7 +180,7 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-10-31 (D-43): merged with the Windows halves of Done when 1 and 2 waiting for the Windows pass"
     },
-    "4C": { status: "todo" },
+    "4C": { status: "in-progress", branch: "bmortenson/s4c-viewer-polish-performance", started: "2026-10-31" },
     "4D": { status: "todo" },
     "4E": { status: "todo" },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
