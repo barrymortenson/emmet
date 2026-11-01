@@ -57,6 +57,11 @@ export const commands = {
 	export: (format: ExportFormat) => typedError<Exported, Problem>(__TAURI_INVOKE("export", { format })),
 	/**  Show in folder: the last export, selected in Finder, or its folder in File Explorer. */
 	revealExport: () => typedError<null, Problem>(__TAURI_INVOKE("reveal_export")),
+	/**
+	 *  Save Screenshot (the screenshot toast's Save to file): the viewer's PNG, sent as base64, into Downloads beside the
+	 *  exports, named for the project ("Cottage.png"). Only a PNG is written.
+	 */
+	saveScreenshot: (png: string) => typedError<Exported, Problem>(__TAURI_INVOKE("save_screenshot", { png })),
 	getPrefs: () => __TAURI_INVOKE<PrefsView>("get_prefs"),
 	setPrefs: (prefs: Prefs) => typedError<PrefsView, Problem>(__TAURI_INVOKE("set_prefs", { prefs })),
 	/**  Settings → Projects → Change…: the host's folder dialog; null when the user cancels. */
@@ -613,6 +618,12 @@ export type PartsProgress = {
 	total: number | null,
 };
 
+/**  A copy of a sub-assembly: its id (`towers/2`) and the parent model's step that places it. */
+export type PlacedCopy = {
+	id: string,
+	step: number,
+};
+
 /**  One placed part, as build/placements.json lists it. */
 export type Placement = {
 	id: string,
@@ -621,6 +632,11 @@ export type Placement = {
 	matrix: (number | null)[],
 	step: number,
 	submodel: string[],
+	/**
+	 *  Inside a sub-assembly, each copy it's in, outermost first, with the parent step that places it (the steps
+	 *  show a sub-assembly's parts at that step).
+	 */
+	copies?: PlacedCopy[],
 	src?: string | null,
 };
 
@@ -628,8 +644,10 @@ export type Placement = {
 export type Prefs = {
 	/**  system, light, or dark. */
 	appearance: string,
-	/**  fast, balanced, or best. */
+	/**  auto (picked by the GPU until the user picks one), fast, balanced, or best. */
 	viewer_quality: string,
+	/**  The build animation's pace: animated, fast, or off. */
+	build_animation: string,
 	/**  The agent the chat starts with: claude or codex, or null for the last one used. */
 	start_with: string | null,
 	/**  Claude Code's model: null for its own default, or opus, sonnet, or haiku. */
@@ -797,12 +815,31 @@ export type SteerPath =
 /**  Sent as the next turn, because the turn ended (or was stopped) first. */
 "next_turn";
 
+export type StepItem = {
+	part: string,
+	color: number,
+	count: number,
+};
+
+export type StepSub = {
+	name: string,
+	/**  Its file in model.mpd (SubmodelView's file). */
+	file: string,
+	count: number,
+	/**  The copies' ids, which their parts' ids start with. */
+	ids: string[],
+};
+
 export type StepView = {
 	n: number,
 	title: string,
 	group: string,
 	/**  The parts this step adds, and the copies of sub-assemblies it puts on. */
 	parts: number,
+	/**  The step's parts box: each new part and color, with how many. */
+	items: StepItem[],
+	/**  The sub-assemblies it puts on, each with how many copies. */
+	subs: StepSub[],
 };
 
 /**  The Steps tab's tree (build/steps.json): the sub-assemblies, each with its uses and sub-steps, then the steps. */

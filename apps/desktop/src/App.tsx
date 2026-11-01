@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The window, to the frozen design (plan section 14, docs/design/frozen; session 4A): the viewer on the left with the
 // title row over it and the chat docked along its bottom, the options panel on the right behind a resizable separator,
-// banners across the viewer's top, and first run as one card over everything until a project is open. The viewer is
-// 1B's until 4C. Every action (keys, macOS's menu bar, Windows' title-row
-// menus, the project chip's menu) goes through `run`.
-import { createViewer, type Theme, type View, type Viewer } from "@emmet/viewer";
+// banners across the viewer's top, and first run as one card over everything until a project is open. What the viewer
+// carries over the model (the hovered part, a step's parts box, pins, the cut-away's bar) is ViewerLayer's (4C). Every
+// action (keys, macOS's menu bar, Windows' title-row menus, the project chip's menu) goes through `run`.
+import { createViewer, type Pace, type Preset, type Quality, type Theme, type View, type Viewer } from "@emmet/viewer";
 import { Toast, Tooltip } from "radix-ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -36,6 +36,7 @@ import { rebuildRequest, rebuildWords } from "./Options";
 import { Panel, type Tab, type TipId } from "./Panel";
 import { type Pop, Titlebar } from "./Titlebar";
 import { Banner, Button, Icon, Resizable, when } from "./ui";
+import { ViewerLayer } from "./ViewerLayer";
 
 type Dialog = "settings" | "about" | "shortcuts" | null;
 const PANEL = { min: 320, max: 520, start: 384 };
@@ -94,6 +95,11 @@ export function App() {
   const [step, setStep] = useState<number | null>(null);
   const [sub, setSub] = useState<string | null>(null);
   const [view, setView] = useState<"iso" | "front" | "top" | null>("iso");
+  /** The cut-away's top layer (null when it's off), and how many layers the model has. */
+  const [cut, setCut] = useState<number | null>(null);
+  const [animating, setAnimating] = useState(false);
+  /** What "auto" quality picked for this GPU, for Settings to show. */
+  const [autoQuality, setAutoQuality] = useState<Preset | null>(null);
   const [panelWidth, setPanelWidth] = useState(() => Number(localStorage.getItem("emmet.panel")) || PANEL.start);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [pop, setPop] = useState<Pop>(null);
@@ -151,6 +157,8 @@ export function App() {
     box.prepend(canvas);
     const v = createViewer(canvas, { partSource: library, theme });
     viewer.current = v;
+    setAutoQuality(v.stats().quality);
+    const offAnimation = v.on("animation", setAnimating);
     if (__EMMET_TEST_HOOKS__) {
       // Merged: the chat dock adds its own hooks, and a child's effects run first.
       const w = window as unknown as { __emmet?: Record<string, unknown> };
@@ -177,6 +185,7 @@ export function App() {
       };
     }
     return () => {
+      offAnimation();
       v.dispose();
       canvas.remove();
       viewer.current = null;
@@ -197,8 +206,12 @@ export function App() {
   }, [firstRun, ui.project]);
   const quality = prefs?.prefs.viewer_quality;
   useEffect(() => {
-    if (quality) viewer.current?.setQuality(quality === "fast" ? "low" : "auto");
+    if (quality) viewer.current?.setQuality(quality as Quality);
   }, [quality]);
+  const pace = prefs?.prefs.build_animation;
+  useEffect(() => {
+    if (pace) viewer.current?.setPace(pace as Pace);
+  }, [pace]);
 
   /** Shows a scene if it's newer than the one on screen (the generation check), framing a project's first one. A
    * project's first scene and a knob's runs appear at once; other runs (the agent's, an edit) build up part by part
@@ -245,6 +258,7 @@ export function App() {
         tellHost();
         setStep(null);
         setSub(null);
+        setCut(null);
         setCompare(null);
         setVersions(null);
         setTab("options");
@@ -278,7 +292,7 @@ export function App() {
         setSelected(null);
         picked.current = [];
         tellHost();
-        viewer.current?.highlight(payload.ids);
+        viewer.current?.highlight(payload.ids, { mode: "agent" });
         setPointing(payload.ids.length ? { who: pointer(payload.from), ids: payload.ids } : null);
       }),
       events.busCamera.listen(({ payload }) => {
@@ -355,6 +369,23 @@ export function App() {
     return out.status === "ok" ? out.data : null;
   };
 
+  // A click in the viewer picks a part (shift, ⌘, or Ctrl adds it to the pick), a click on nothing clears what's
+  // picked, and shift-drag's box picks the parts in it: the agent sees them as it sees a row picked in the panel.
+  useEffect(() => {
+    const v = viewer.current;
+    if (!v) return;
+    const off = [
+      v.on("pick", (id, { add }) => {
+        const now = latestPick.current;
+        if (!id) return now.key && now.highlight(null, []);
+        const ids = add && now.key === "pick" ? (now.ids.includes(id) ? now.ids.filter((x) => x !== id) : [...now.ids, id]) : [id];
+        now.highlight(ids.length ? "pick" : null, ids);
+      }),
+      v.on("box", (ids) => latestPick.current.highlight(ids.length ? "pick" : null, ids)),
+    ];
+    return () => off.forEach((f) => f());
+  }, []);
+
   const highlight = (key: string | null, ids: string[], mode: "issue" | "select" = "select") => {
     setSelected(key);
     setPointing(null);
@@ -363,6 +394,8 @@ export function App() {
     tellHost();
   };
   const toggle = (key: string, ids: string[], mode: "issue" | "select" = "select") => highlight(selected === key ? null : key, ids, mode);
+  const latestPick = useRef({ key: selected, ids: picked.current, highlight });
+  latestPick.current = { key: selected, ids: picked.current, highlight };
 
   const scene = ui.scene;
   const project = ui.project;
@@ -382,14 +415,46 @@ export function App() {
     if (selected?.startsWith("finding:") && !findings?.some((f) => `finding:${f.id}` === selected)) highlight(null, []);
   }, [findings, selected]);
 
-  // What the viewer shows: a version opened to compare, the build up to a step, or the whole model.
+  // What the viewer shows: a version opened to compare, or the model, whole or built up to a step (the viewer hides the
+  // later steps, so a sub-assembly's parts show at the step that places the copy).
   useEffect(() => {
     const v = viewer.current;
     if (!v || !scene) return;
-    if (compare) void v.update(placements(compare.scene), { animate: "none" });
-    else if (step != null) void v.update(placements(scene).filter((p) => p.step <= step), { animate: "none" });
-    else void v.update(placements(scene), { animate: "none" });
+    if (compare) {
+      v.showSteps(null);
+      void v.update(placements(compare.scene), { animate: "none" });
+    } else {
+      void v.update(placements(scene), { animate: "none" });
+      v.showSteps(step);
+    }
   }, [compare, step]);
+  useEffect(() => viewer.current?.cutAway(cut), [cut]);
+  const layers = viewer.current && scene ? viewer.current.layers() : 1;
+
+  /** Screenshot: a picture of what the viewer shows, onto the clipboard. The clipboard item is made inside the click,
+   * as WebKit asks, with the picture still being drawn. */
+  const copyShot = () => {
+    const v = viewer.current;
+    if (!v) return;
+    const png = v.snapshot(2);
+    const save = { label: "Save to file", run: () => void saveShot(png) };
+    try {
+      const item = new ClipboardItem({ "image/png": png.then((b) => new Blob([b as BlobPart], { type: "image/png" })) });
+      navigator.clipboard.write([item]).then(
+        () => say("Copied a picture of the model", save),
+        () => say("Emmet couldn't copy the picture. You can save it to a file instead.", save),
+      );
+    } catch {
+      say("Emmet couldn't copy the picture. You can save it to a file instead.", save);
+    }
+  };
+  const saveShot = async (png?: Promise<Uint8Array>) => {
+    const v = viewer.current;
+    if (!v) return;
+    const bytes = await (png ?? v.snapshot(2));
+    const e = await act(commands.saveScreenshot(base64(bytes)));
+    if (e) say(`Saved “${e.file}” to ${e.folder}`, { label: "Show in folder", run: () => void commands.revealExport() });
+  };
 
   const openVersions = async () => {
     // After a menu that chose it has closed, so the popover isn't dismissed as the menu goes.
@@ -424,7 +489,9 @@ export function App() {
     if (["agent:switch", "agent:model", "undo-turn", "agent:usage", "agent:fresh", "history"].includes(a)) return !!project && !firstRun;
     // First run covers the window: what's behind it (the viewer, the panel, the chat) takes no keys.
     if (firstRun && !COVERED_OK.includes(a)) return false;
-    if (["save", "versions", "export", "frame", "step:prev", "step:next"].includes(a) || a.startsWith("view:") || a.startsWith("tab:")) return !!project;
+    if (a === "replay") return !!project && !!scene && pace !== "off";
+    if (a === "cut:up" || a === "cut:off") return !!project && cut != null;
+    if (["save", "versions", "export", "frame", "step:prev", "step:next", "cut:down", "screenshot:copy", "screenshot:save"].includes(a) || a.startsWith("view:") || a.startsWith("tab:") || a.startsWith("orbit:") || a.startsWith("zoom:")) return !!project;
     return true;
   };
   const lastAction = useRef<{ a: Action; at: number } | null>(null);
@@ -493,6 +560,45 @@ export function App() {
         case "frame":
           viewer.current?.frame(selected ? viewer.current.highlighted() : undefined);
           break;
+        case "orbit:left":
+        case "orbit:right":
+        case "orbit:up":
+        case "orbit:down": {
+          const turn = Math.PI / 12;
+          const d = { "orbit:left": [-turn, 0], "orbit:right": [turn, 0], "orbit:up": [0, turn], "orbit:down": [0, -turn] }[a] as [number, number];
+          viewer.current?.orbit(d[0], d[1]);
+          break;
+        }
+        case "zoom:in":
+          viewer.current?.zoom(0.8);
+          break;
+        case "zoom:out":
+          viewer.current?.zoom(1.25);
+          break;
+        case "cut:down":
+          setCut((c) => Math.max(1, (c ?? viewer.current?.layers() ?? 1) - 1));
+          break;
+        case "cut:up":
+          setCut((c) => (c == null || c + 1 > (viewer.current?.layers() ?? 1) ? null : c + 1));
+          break;
+        case "cut:off":
+          setCut(null);
+          break;
+        case "replay":
+          // The whole model plays: the steps and the cut-away go first, in the viewer at once (their effects come
+          // after this render, and would end the replay).
+          setStep(null);
+          setCut(null);
+          viewer.current?.showSteps(null);
+          viewer.current?.cutAway(null);
+          viewer.current?.replayBuild();
+          break;
+        case "screenshot:copy":
+          copyShot();
+          break;
+        case "screenshot:save":
+          void saveShot();
+          break;
         case "step:prev":
           stepTo(-1);
           break;
@@ -552,6 +658,8 @@ export function App() {
       if (e.defaultPrevented) return;
       const a = actionFor(e);
       if (!a) return;
+      // Orbit and zoom are the viewer's keys: elsewhere the arrows and minus are a control's own (the tree, a slider).
+      if ((a.startsWith("orbit:") || a.startsWith("zoom:")) && !document.getElementById("viewer")?.contains(document.activeElement)) return;
       if (a === "escape" && document.querySelector('[role="dialog"], [role="menu"], [role="listbox"]')) return;
       if (a !== "escape") e.preventDefault();
       run(a, "key");
@@ -704,6 +812,23 @@ export function App() {
                   </Toast.Close>
                 </Toast.Root>
               )}
+              <ViewerLayer
+                viewer={viewer.current}
+                scene={compare ? null : scene}
+                step={compare ? null : step}
+                cut={cut}
+                layers={layers}
+                animating={animating}
+                findings={findings ?? []}
+                showPins={!compare && step == null}
+                onPin={(f) => {
+                  tipSeen("finding");
+                  setTab("checks");
+                  highlight(`finding:${f.id}`, f.parts, "issue");
+                }}
+                onCut={setCut}
+                onSkip={() => viewer.current?.skipAnimation()}
+              />
               <Toast.Viewport className="toast-viewport" aria-label="Notifications" />
             </section>
             {project && (
@@ -815,7 +940,7 @@ export function App() {
               )}
             </div>
           )}
-          {dialog === "settings" && <Settings info={info} prefs={prefs} onPrefs={setPrefs} onClose={() => setDialog(null)} onAgentsChanged={() => setAgentsChanged((n) => n + 1)} onCopied={(copied) => say(copied ? "Copied the diagnostics" : "Emmet couldn't copy the diagnostics to the clipboard.")} />}
+          {dialog === "settings" && <Settings info={info} prefs={prefs} autoQuality={autoQuality} onPrefs={setPrefs} onClose={() => setDialog(null)} onAgentsChanged={() => setAgentsChanged((n) => n + 1)} onCopied={(copied) => say(copied ? "Copied the diagnostics" : "Emmet couldn't copy the diagnostics to the clipboard.")} />}
           {dialog === "about" && <About info={info} theme={theme} onClose={() => setDialog(null)} />}
           {dialog === "shortcuts" && <Shortcuts onClose={() => setDialog(null)} />}
         </div>

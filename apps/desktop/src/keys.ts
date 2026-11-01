@@ -28,6 +28,15 @@ export type Action =
   | `tab:${"options" | "checks" | "parts" | "steps"}`
   | "step:prev"
   | "step:next"
+  | `orbit:${"left" | "right" | "up" | "down"}`
+  | "zoom:in"
+  | "zoom:out"
+  | "cut:down"
+  | "cut:up"
+  | "cut:off"
+  | "replay"
+  | "screenshot:copy"
+  | "screenshot:save"
   | "history"
   | "agent:message"
   | "agent:send"
@@ -58,6 +67,16 @@ export const KEYS: { action: Action; keys: Key[]; does: string; where: string }[
   { action: "frame", keys: [{ key: "f", plain: true }], does: "Frame the selection, or the whole model", where: "Outside a text field" },
   { action: "step:prev", keys: [{ key: "[", plain: true }], does: "Previous step (opens Steps)", where: "Outside a text field" },
   { action: "step:next", keys: [{ key: "]", plain: true }], does: "Next step (opens Steps)", where: "Outside a text field" },
+  ...(["left", "right", "up", "down"] as const).map((d) => ({
+    action: `orbit:${d}` as Action,
+    keys: [{ key: `Arrow${d[0]!.toUpperCase()}${d.slice(1)}`, plain: true }],
+    does: `Orbit 15° ${d}`,
+    where: "The viewer with focus",
+  })),
+  { action: "zoom:in", keys: [{ key: "=", plain: true }, { key: "+", shift: true, plain: true }], does: "Zoom in", where: "The viewer with focus" },
+  { action: "zoom:out", keys: [{ key: "-", plain: true }], does: "Zoom out", where: "The viewer with focus" },
+  { action: "cut:down", keys: [{ key: "ArrowDown", alt: true, plain: true }], does: "Cut away above: lower the cut a layer", where: "Outside a text field" },
+  { action: "cut:up", keys: [{ key: "ArrowUp", alt: true, plain: true }], does: "Raise the cut-away a layer", where: "Outside a text field" },
   ...(["options", "checks", "parts", "steps"] as const).map((t, i) => ({
     action: `tab:${t}` as Action,
     keys: [{ key: String(i + 1), mod: true }],
@@ -78,8 +97,10 @@ export const KEYS: { action: Action; keys: Key[]; does: string; where: string }[
 ];
 
 /** A key as the platform writes it: ⌘S on macOS, Ctrl+S on Windows. */
+const ARROWS: Record<string, string> = { ArrowLeft: "←", ArrowRight: "→", ArrowUp: "↑", ArrowDown: "↓" };
+
 export function keyName(k: Key): string {
-  const name = k.key === "Escape" ? "Esc" : k.key.length === 1 ? k.key.toUpperCase() : k.key;
+  const name = k.key === "Escape" ? "Esc" : (ARROWS[k.key] ?? (k.key.length === 1 ? k.key.toUpperCase() : k.key));
   if (windows) return [k.mod && "Ctrl", k.alt && "Alt", k.shift && "Shift", name].filter(Boolean).join("+");
   return `${k.alt ? "⌥" : ""}${k.shift ? "⇧" : ""}${k.mod ? "⌘" : ""}${name}`;
 }
@@ -93,7 +114,7 @@ export function keysFor(action: Action): string | undefined {
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || t.tagName === "TEXTAREA" || (t.tagName === "INPUT" && !["checkbox", "radio", "button", "range"].includes((t as HTMLInputElement).type)));
 
-const CODES: Record<string, string> = { ",": "Comma", "/": "Slash", "[": "BracketLeft", "]": "BracketRight" };
+const CODES: Record<string, string> = { ",": "Comma", "/": "Slash", "[": "BracketLeft", "]": "BracketRight", "=": "Equal", "-": "Minus", "+": "Equal" };
 
 /** The physical key's code: Option changes the character macOS reports (⌥⌘Z types Ω), never the code. */
 const code = (key: string) => CODES[key] ?? (/^[a-z]$/.test(key) ? `Key${key.toUpperCase()}` : /^\d$/.test(key) ? `Digit${key}` : key);

@@ -90,8 +90,19 @@ pub struct Placement {
     pub matrix: Vec<f64>,
     pub step: u32,
     pub submodel: Vec<String>,
+    /// Inside a sub-assembly, each copy it's in, outermost first, with the parent step that places it (the steps
+    /// show a sub-assembly's parts at that step).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub copies: Vec<PlacedCopy>,
     #[serde(default)]
     pub src: Option<String>,
+}
+
+/// A copy of a sub-assembly: its id (`towers/2`) and the parent model's step that places it.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct PlacedCopy {
+    pub id: String,
+    pub step: u32,
 }
 
 /// A built model on screen: what the viewer shows, and the run it came from.
@@ -171,6 +182,27 @@ pub struct StepView {
     pub group: String,
     /// The parts this step adds, and the copies of sub-assemblies it puts on.
     pub parts: u32,
+    /// The step's parts box: each new part and color, with how many.
+    pub items: Vec<StepItem>,
+    /// The sub-assemblies it puts on, each with how many copies.
+    pub subs: Vec<StepSub>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct StepItem {
+    pub part: String,
+    pub color: u32,
+    pub count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct StepSub {
+    pub name: String,
+    /// Its file in model.mpd (SubmodelView's file).
+    pub file: String,
+    pub count: u32,
+    /// The copies' ids, which their parts' ids start with.
+    pub ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -535,6 +567,25 @@ fn steps_tree(root: &Path) -> Option<StepsTree> {
                 title: s.title.clone(),
                 group: s.group.clone(),
                 parts: (s.part_ids.len() + s.submodels.iter().map(|p| p.count).sum::<usize>()) as u32,
+                items: s
+                    .parts
+                    .iter()
+                    .map(|l| StepItem {
+                        part: l.part.clone(),
+                        color: l.color,
+                        count: l.count as u32,
+                    })
+                    .collect(),
+                subs: s
+                    .submodels
+                    .iter()
+                    .map(|p| StepSub {
+                        name: p.name.clone(),
+                        file: p.file.clone(),
+                        count: p.count as u32,
+                        ids: p.ids.clone(),
+                    })
+                    .collect(),
             })
             .collect::<Vec<_>>()
     };

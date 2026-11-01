@@ -119,6 +119,7 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             crate::projects::open_version_as_new,
             crate::projects::export,
             crate::projects::reveal_export,
+            crate::projects::save_screenshot,
             crate::prefs::get_prefs,
             crate::prefs::set_prefs,
             crate::prefs::pick_projects_folder,

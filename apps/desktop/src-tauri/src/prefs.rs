@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The app's own settings (Settings, session 4A), kept beside the BOM's color naming in the data dir's settings.json:
-//! the projects folder (Documents/Emmet until changed), the appearance, the viewer's quality, the agent to start
-//! with, and Claude Code's model. The window reads and changes them by name; the only path in them, the projects
+//! the projects folder (Documents/Emmet until changed), the appearance, the viewer's quality and build animation, the
+//! agent to start with, and Claude Code's model. The window reads and changes them by name; the only path in them, the projects
 //! folder, is picked in the host's own dialog, never sent by the window.
 
 use std::path::PathBuf;
@@ -19,8 +19,10 @@ use crate::app::{AppState, Problem};
 pub struct Prefs {
     /// system, light, or dark.
     pub appearance: String,
-    /// fast, balanced, or best.
+    /// auto (picked by the GPU until the user picks one), fast, balanced, or best.
     pub viewer_quality: String,
+    /// The build animation's pace: animated, fast, or off.
+    pub build_animation: String,
     /// The agent the chat starts with: claude or codex, or null for the last one used.
     pub start_with: Option<String>,
     /// Claude Code's model: null for its own default, or opus, sonnet, or haiku.
@@ -37,7 +39,8 @@ pub struct PrefsView {
 }
 
 const APPEARANCE: [&str; 3] = ["system", "light", "dark"];
-const QUALITY: [&str; 3] = ["fast", "balanced", "best"];
+const QUALITY: [&str; 4] = ["auto", "fast", "balanced", "best"];
+const PACE: [&str; 3] = ["animated", "fast", "off"];
 const AGENTS: [&str; 2] = ["claude", "codex"];
 const CLAUDE_MODELS: [&str; 4] = ["fable", "opus", "sonnet", "haiku"];
 /// The tips the app teaches, one at a time (plan section 14): the first knob, the first finding, the first export.
@@ -86,7 +89,8 @@ pub fn prefs(data: &DataDir) -> Prefs {
     let s = read(data);
     Prefs {
         appearance: pick(&s, "appearance", &APPEARANCE).unwrap_or_else(|| "system".into()),
-        viewer_quality: pick(&s, "viewer_quality", &QUALITY).unwrap_or_else(|| "balanced".into()),
+        viewer_quality: pick(&s, "viewer_quality", &QUALITY).unwrap_or_else(|| "auto".into()),
+        build_animation: pick(&s, "build_animation", &PACE).unwrap_or_else(|| "animated".into()),
         start_with: pick(&s, "start_with", &AGENTS),
         claude_model: pick(&s, "claude_model", &CLAUDE_MODELS),
     }
@@ -152,6 +156,9 @@ pub fn set_prefs(app: AppHandle, prefs: Prefs) -> Result<PrefsView, Box<Problem>
     if !QUALITY.contains(&prefs.viewer_quality.as_str()) {
         return Err(bad("viewer quality", &prefs.viewer_quality));
     }
+    if !PACE.contains(&prefs.build_animation.as_str()) {
+        return Err(bad("build animation", &prefs.build_animation));
+    }
     if let Some(a) = prefs.start_with.as_deref().filter(|a| !AGENTS.contains(a)) {
         return Err(bad("agent", a));
     }
@@ -162,6 +169,7 @@ pub fn set_prefs(app: AppHandle, prefs: Prefs) -> Result<PrefsView, Box<Problem>
     let mut s = settings_to_change(data)?;
     s.insert("appearance".into(), prefs.appearance.into());
     s.insert("viewer_quality".into(), prefs.viewer_quality.into());
+    s.insert("build_animation".into(), prefs.build_animation.into());
     s.insert("start_with".into(), prefs.start_with.map_or(Value::Null, Value::String));
     s.insert(
         "claude_model".into(),

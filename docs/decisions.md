@@ -687,3 +687,27 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **H-27, part 2: the after renders are better** (Barry, through AskUserQuestion). The technique prompts went from 4
   figure_clearance findings in the baseline to 0 at the end on both agents, and both stations centered their benches
   between the columns and stood the canopy at the booth's door height, unprompted (`docs/evals/2026-10-31-technique.md`).
+
+## 2026-10-31, session 4C
+
+- **Box select and the layer cut-away** (Barry, through AskUserQuestion; the frozen viewer design doesn't show
+  them). Shift-drag in the viewer draws a box that selects the parts in it. The cut-away is in the View menu, Cut Away
+  Above (`⌥↓` lowers the cut a layer, `⌥↑` raises it), and while it's on a bar over the viewer names the layers shown,
+  with lower, raise, and Show all, as the version bar does. Rejected: a slider always on the viewer's right edge, and
+  two more mode buttons in the view switch.
+- **Screenshot copies, and the toast offers Save** (Barry, through AskUserQuestion; the frozen view switch has one
+  Screenshot button). A click copies a PNG of what the viewer shows to the clipboard at once, and the toast, "Copied a
+  picture of the model", offers Save to file, which writes it where exports go and then offers Show in folder. The
+  View menu has Copy Screenshot and Save Screenshot. Rejected: a two-item menu on the button, and saving first with
+  Copy in the toast.
+- **One bucket per part and finish, not per part and color** (4C, from the profile). The 2,000-part town block drew
+  in 639 calls, against section 13's ~300, because each (part, color) bucket draws its faces, edges, and conditional
+  lines. The finish's material is now white and each instance carries its color (faces, and the edges' softened edge
+  color), so a part in many solid colors is one bucket: 213 draw calls for the 2,018-part block and 271 for the
+  Cottage. Transparent colors bucket by alpha and glowing ones by color, since the material holds those. Section 13
+  and ADR 0008 say so. Rejected: merging parts into one geometry per color, which breaks the diff by id and the
+  per-part highlight.
+- **Renders always draw the full detail and the ground shadow** (4C), whatever the window's quality, so an agent's
+  render, a baseline, and an export look the same on every machine.
+- **Pins for the worst five findings** (4C): a pin for each finding with parts, errors first, at most five. A model
+  with hundreds of findings made a pin each and slowed every frame the camera moved.

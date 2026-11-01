@@ -101,9 +101,9 @@ describe("the frozen screens", () => {
     // Viewer quality applies to the viewer at once.
     const quality = () => browser.execute(() => window.__emmet.viewer().stats().quality);
     await choose("Viewer quality", "Fast");
-    await browser.waitUntil(async () => (await quality()) === "low", { timeout: 5000, timeoutMsg: "Fast didn't apply" });
+    await browser.waitUntil(async () => (await quality()) === "fast", { timeout: 5000, timeoutMsg: "Fast didn't apply" });
     await choose("Viewer quality", "Balanced");
-    await browser.waitUntil(async () => (await quality()) === "auto", { timeout: 5000, timeoutMsg: "Balanced didn't apply" });
+    await browser.waitUntil(async () => (await quality()) === "balanced", { timeout: 5000, timeoutMsg: "Balanced didn't apply" });
     await browser.keys("Escape");
   });
 
