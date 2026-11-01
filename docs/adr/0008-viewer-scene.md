@@ -77,9 +77,9 @@ across launches. D-23 stands either way: the per-part cost is the loader's work,
 ## 4C: one bucket per part and finish
 
 Profiling 4C's 2,000-part stress model (`tests/fixtures/projects/scene-stress`, a town block of four buildings with
-glass, chrome, pearl, and rubber, 216 (part, color) pairs) on this Mac found draw calls the biggest cost: each
-(part, color) bucket draws its faces, its edges, and its conditional lines, so the block took 639 draw calls and the
-Cottage 523, against section 13's ~300. The orbit frame time sits at the display's refresh interval on an M-series
+glass, chrome, pearl, and rubber, 2,018 parts) on this Mac found draw calls the biggest cost: each (part, color)
+bucket draws its faces, its edges, and its conditional lines, so the block took 647 draw calls and the Cottage 523,
+against section 13's ~300. The orbit frame time sits at the display's refresh interval on an M-series
 GPU, so the bench now also reports a frame's draw cost, waited for with a one-pixel read (WebKit's `gl.finish()`
 doesn't wait).
 
@@ -99,7 +99,15 @@ most).
 
 | Scene (macOS, this Mac, debug build) | Parts | Draw calls before | after | Draw cost before | after |
 |---|---|---|---|---|---|
-| (filled from `docs/spec/sessions/4C.md`'s before and after tables) | | | | | |
+| town block, 1 building | 184 | 87 | 77 | 1.4 ms | 1.8 ms |
+| town block, 1 floor | 478 | 259 | 130 | 2.3 ms | 2.6 ms |
+| Cottage | 905 | 523 | 272 | 3.8 ms | 2.9 ms |
+| town block | 2,018 | 647 | 229 | 3.4 ms | 3.0 ms |
+| grid (one part) | 2,000 | 18 | 4 | 2.5 ms | 2.7 ms |
+
+At 2,018 parts: first load 767 ms, slider → viewer 650 ms, orbit and build-animation frames at the refresh interval
+(`docs/spec/sessions/4C.md` has every column). What 4C adds to a frame (reflections, the shadow at Best, the outline)
+costs back some of the saving on the small models.
 
 Rejected: one geometry per color with every part of that color merged into it (fewest draw calls, but a diff, a
 highlight, and the build animation would rewrite whole buffers), and `BatchedMesh` (three's, for many geometries in

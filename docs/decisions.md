@@ -701,9 +701,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   View menu has Copy Screenshot and Save Screenshot. Rejected: a two-item menu on the button, and saving first with
   Copy in the toast.
 - **One bucket per part and finish, not per part and color** (4C, from the profile). The 2,000-part town block drew
-  in 639 calls, against section 13's ~300, because each (part, color) bucket draws its faces, edges, and conditional
+  in 647 calls, against section 13's ~300, because each (part, color) bucket draws its faces, edges, and conditional
   lines. The finish's material is now white and each instance carries its color (faces, and the edges' softened edge
-  color), so a part in many solid colors is one bucket: 213 draw calls for the 2,018-part block and 271 for the
+  color), so a part in many solid colors is one bucket: 229 draw calls for the 2,018-part block and 272 for the
   Cottage. Transparent colors bucket by alpha and glowing ones by color, since the material holds those. Section 13
   and ADR 0008 say so. Rejected: merging parts into one geometry per color, which breaks the diff by id and the
   per-part highlight.

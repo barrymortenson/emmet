@@ -13,7 +13,7 @@ use this same code, so an agent's render is what the window shows.
 - **Instancing by finish.** One `InstancedMesh` per (part, finish): the finish's material is white and every instance
   carries its own color (faces, and the edges' softened edge color), so one part in twenty solid colors is one bucket.
   Transparent colors bucket by their alpha and glowing ones by color. Edges and conditional lines are instanced too:
-  they share the mesh's `instanceMatrix`. A 2,018-part model is about 210 draw calls.
+  they share the mesh's `instanceMatrix`. A 2,018-part model is about 230 draw calls.
 - **Materials and light** (`src/materials.ts`): every LDraw finish (solid, transparent, chrome, pearl, metal, matte
   metal, rubber, glow) with its own roughness, metalness, and reflections of a studio room (three's `RoomEnvironment`),
   a key, fill, and rim light, neutral tone mapping, and an optional ground shadow from the key.

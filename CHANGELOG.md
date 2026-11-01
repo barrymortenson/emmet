@@ -235,8 +235,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
-- The viewer draws one bucket per part and finish, each instance carrying its color: 213 draw calls for the
-  2,018-part town block, from 639 (4C).
+- The viewer draws one bucket per part and finish, each instance carrying its color: 229 draw calls for the
+  2,018-part town block, from 647, and 272 for the Cottage, from 523 (4C).
 
 - The Cottage template is rebuilt as the MVP's example (3D, Barry's yes): a stone-and-plaster cottage with a bay
   window, a porch, a dormer, an outside chimney, two furnished rooms, a roof that lifts off as one piece, and a garden,
