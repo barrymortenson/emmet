@@ -160,12 +160,12 @@ window.EMMET_STATUS = {
       note: "The viewer budget holds with little margin on this Mac (738 to 1,076 ms for the 903-part Cottage); sending the scene before its findings is left for 4C. Follow-ups #36 to #42; Phase 3's Delivers line doesn't name 3D"
     },
     "3E": {
-      status: "review", pr: 49, branch: "bmortenson/s3e-good-building-technique", started: "2026-10-31",
+      status: "done", pr: 49, branch: "bmortenson/s3e-good-building-technique", started: "2026-10-31",
       evidence: [
+        "CI ci check green #49 (run 41255082827: mac with the full E2E suite, 18 of 18 specs, plan; windows and nsis paused, D-43); Phase 3 exit check in the PR description",
         "tests/it/tests/{ladder,check,validator_mutations,validator_corpus,techniques}.rs: the 4B station's findings, broken-figure-clearance, figure faults 11/11, the audit's count, a test each beside a door",
         "nightly run 41252442383 on the branch: 33 models, no errors, no figure_clearance; just bench validator: 15 ms for 510 parts, 66 ms for 2,078",
-        "docs/techniques/audit.md: 378 techniques, 39 fixed; docs/evals/2026-10-31-technique.md: figure_clearance 4 in the baseline, 0 at the end on both agents",
-        "H-27: Barry approved the building rules and judged the after renders better"
+        "docs/techniques/audit.md: 378 techniques, 39 fixed; docs/evals/2026-10-31-technique.md: figure_clearance 4 in the baseline, 0 at the end on both agents; H-27 done"
       ],
       note: "Door spaces come from techniques, not the parts index (Barry): official models put counters, stairs, and walls within a stud of their doors. 20 live runs, as D-52 asks"
     },
