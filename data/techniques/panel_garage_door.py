@@ -8,11 +8,16 @@ tall from z, with a jamb each side (at x - 1 and x + 8) of six bricks and two pl
 1 x 1 with Clip Vertical (60475b), clips out front, and a lintel of bricks over it. Each leaf is a sub-assembly built
 flat: a Plate 4 x 8 framed with tiles in `color` round two Tiles 1 x 6 in the recess color laid lengthwise, with two
 Plates 1 x 2 with Handle (48336) on its outer edge as strap hinges. The leaves stand up in front of the opening, their
-hinge bars in the jambs' clips. It takes the wall's cells x - 1 to x + 8 from z to z + 23. Returns the z of the lintel's
-top.
+hinge bars in the jambs' clips. It takes the wall's cells x - 1 to x + 8 from z to z + 23. The opening is 20 plates
+tall, over a 1 x 4 x 6 door's top (docs/spec/building-rules.md, rule 1). It keeps clear the way through behind the
+opening (3 studs back, from a plate above the floor up to the opening's top; rule 2), so a shelf or a workbench across
+it is a figure_clearance finding; the space in front isn't kept clear, since a car parks there. Returns the z of the
+lintel's top, with .door_top (the z of the opening's top, which a canopy beside it starts at or above) and .door ((x0,
+y0), (x1, y1), the opening's footprint in the wall).
 """
 
 from emmet_dsl import Brick, Rot
+from emmet_dsl.core import APPROACH, fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 43302. Not derived from any
 model file."""
@@ -57,7 +62,8 @@ def build(
     wall="Reddish Brown",
     title="Garage door",
 ):
-    """The jambs a row at a time, the leaves on their clips, and the lintel; returns the z of the lintel's top."""
+    """The jambs a row at a time, the leaves on their clips, and the lintel; returns the z of the lintel's top, with
+    .door_top and .door."""
     leaves = [
         m.submodel(
             f"Garage leaf, {s}", _leaf, side=s, color=color, recess=recess, hinge=hinge
@@ -80,7 +86,11 @@ def build(
         m.place(leaves[1], at=(x + 4, y - OUT, z), rot=UP)
     with m.step(f"{title}: lintel"):
         m.row(Brick, wall, at=(x - 1, y, z + 20), length=10)
-    return z + 23
+    m.keep_clear(
+        ((x, y + 1, z + 1), (x + 8, y + 1 + APPROACH, z + 20)),
+        f"a figure walking out through {title}",
+    )
+    return fit(z + 23, door_top=z + 20, door=((x, y), (x + 8, y + 1)))
 
 
 def example(m):

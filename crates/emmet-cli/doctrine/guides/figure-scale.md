@@ -18,6 +18,22 @@ shortened to stay buildable (the doctrine's "Sized for the figure, not to the ra
   high and 2 deep, a fireplace 4 wide and 2 deep.
 - Vehicles: a seated figure needs a 2 x 2 footprint and 3 bricks of headroom from its seat plate (`guide vehicles`).
 
+## Clearances
+
+What an experienced builder leaves without being told (`docs/spec/building-rules.md`). The validate tool finds a part
+in a space a technique or `m.keep_clear` declared; the rest is yours to see in the render.
+
+- Headroom: anything a figure walks under (a canopy, an awning, a porch roof, an arch) starts at or above the top of
+  the door beside it, 6 bricks for a 1 x 4 x 6 door, and 5 bricks at least anywhere. `canopy`, `porch_posts`, and
+  `turned_post_porch` clear a door at their defaults; give `lean_to_awning` `clears=` the door's top.
+- A door's way through: its width, 3 studs out on both sides, up to its top, stays clear. `door_frame` keeps it and
+  returns `.door_top`; a door you place by hand gets `m.keep_clear` for it.
+- Seats: a stud free at each end, 2 studs in front, 3 bricks over the seat. Center a bench between two posts, never
+  against one: `canopy` returns `.columns`, the porches `.posts`.
+- Posts and columns stand 3 studs or more clear apart, never in line with a door.
+- A lower roof meets a taller wall under its eaves or on a string course, never across a window or a door. Door tops,
+  window tops, and eaves line up along a facade; every roof edge overhangs a stud and meets the wall under it.
+
 ## Compress the rest
 
 - Keep the outline and the figure-facing details; drop windows, floors, bays, and length until it fits the Pieces

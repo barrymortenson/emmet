@@ -20,7 +20,8 @@ fn the_omr_fixtures_have_no_errors() {
     for f in &files {
         let name = f.file_name().unwrap().to_string_lossy().into_owned();
         let v = validate(shared_library(), &placements_of(f));
-        if v.errors() > 0 {
+        // No figure_clearance either (3E, D-53): official models declare no spaces, and the parts index makes none.
+        if v.errors() > 0 || v.counts.contains_key("figure_clearance") {
             bad.push(format!("{name}:\n{}", report(&v)));
         }
         for f in v.findings.iter().filter(|f| f.severity != Severity::Error) {
@@ -35,7 +36,7 @@ fn the_omr_fixtures_have_no_errors() {
     }
     assert!(
         bad.is_empty(),
-        "official models must have no errors:\n{}",
+        "official models must have no errors and no figure_clearance:\n{}",
         bad.join("\n")
     );
     insta::assert_snapshot!(rest.join("\n"));
@@ -213,7 +214,7 @@ fn corpus_nightly() {
         let ms = started.elapsed().as_millis();
         let warnings = v.findings.iter().filter(|f| f.severity == Severity::Warning).count();
         println!("| {file} | {} | {} | {warnings} | {ms} |", placements.len(), v.errors());
-        if v.errors() > 0 {
+        if v.errors() > 0 || v.counts.contains_key("figure_clearance") {
             bad.push(format!("{file}:\n{}", report(&v)));
         }
         models.push((file.to_string(), placements));

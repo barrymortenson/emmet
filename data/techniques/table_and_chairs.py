@@ -8,13 +8,16 @@ round top on a single round leg, centered on a round foot plate with one middle 
 shape="long" is a 2 x 4 tile top on a plate and four round legs; the set is 6 x 4 (4 x 6 facing "+x" or "-x"). Either
 top is 5 plates up, 2 plates over a chair's seat. chairs (0 to 4) are set facing the table: left, right, front, then
 back. A chair is two round plates as its leg and a bracket 1 x 1 - 1 x 1 as its seat and back, the seat 3 plates up,
-with a tile on the back, which reaches 0.6 studs past the set's footprint; it's its own submodel. top colors the
-tabletop (wood by default). The set is a submodel, built once in its own steps, "<title>, table" and "<title>, chairs"
-(each chair "Chair, leg and seat"), placed in a step titled "<title>" with the id `id` (by default the submodel's own);
-it returns the placed copy's Handle.
+with a tile on the back, which reaches 0.6 studs past the set's footprint; it's its own submodel, and keeps clear the
+room a figure sitting on it needs (docs/spec/building-rules.md, rule 3): a stud at each side and 3 bricks over the
+seat. The room in front, where the legs go, is the table's by design. top colors the tabletop (wood by default). The
+set is a submodel, built once in its own steps, "<title>, table" and "<title>, chairs" (each chair "Chair, leg and
+seat"), placed in a step titled "<title>" with the id `id` (by default the submodel's own); it returns the placed
+copy's Handle.
 """
 
 from emmet_dsl import Rot
+from emmet_dsl.core import seat_space
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 11387, set 43217, set 21335.
 Not derived from any model file."""
@@ -22,6 +25,7 @@ Not derived from any model file."""
 PARTS = ["18674", "3062b", "14769", "3020", "87079", "6141", "36840", "3070b"]
 
 BACK = Rot(x=-90)  # a 1 x 1 tile on its back, its face to +y
+SEAT = 3  # a chair's seat, in plates over its bottom
 
 FACING = {
     "-y": 0,
@@ -67,6 +71,7 @@ def _chair(m, wood):
         # The bracket's upright is on its +x side; turned a quarter it stands at the back.
         m.add("36840", wood, at=(0, 0, 2), rot=1, id="seat")
         m.add("3070b", wood, at=(0, 1.2, 2), rot=BACK, id="back")
+    seat_space(m, 0, 0, 1, 1, SEAT, "a figure sitting on the chair", legs=False)
 
 
 def _set(m, shape, chairs, wood, top, title):

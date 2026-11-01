@@ -132,6 +132,13 @@ Records a deliberate exception: findings of `rule` whose parts are all in `ids` 
 Marks parts the model stands on, besides its lowest level and any baseplate (a pier's footing on a raised
 base, say). ids: ids or Handles.
 
+### Model.keep_clear(box, why: str) -> None
+
+Marks a space a figure needs, which no part may stand in: the way through a door, the room a seat needs,
+the gap between posts. box: two opposite corners ((x0, y0, z0), (x1, y1, z1)) in studs and plates, or a list
+of them for one space. why: what the space is for, in words the user reads ("a figure sitting on the bench").
+figure_clearance names any part more than 1 LDU inside it (docs/spec/building-rules.md).
+
 ## Plate(w: int, l: int, h: int = 1) -> str
 
 A family of parts by size: Brick, Plate, or Tile. Call it with a size for one part's id (Brick(2, 4) is

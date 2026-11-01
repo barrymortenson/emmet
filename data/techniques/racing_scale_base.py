@@ -8,11 +8,16 @@ a 4-wide spine of plates down the middle; at each axle (the front one 3 studs fr
 behind it) two Technic bricks 1 x 2 with an axle hole on the spine and an axle 8 through them, with an 18 mm rim and
 its low 30 mm tire on each end, so the track is the full 8; 8-wide plates across the cabin between the wheels and on
 the front and rear overhangs; Technic bricks 1 x 8 with holes as the cabin's sills (their holes take pins for side
-skirts); and two seats side by side a plate above the floor. The floor stands 2 plates off the ground. Returns the z
-of the cabin floor's top.
+skirts); and two seats side by side on 2 x 2 plates, facing the front, 4 studs ahead of the rear axle. The seats keep
+clear what a seated figure needs in a car (docs/spec/building-rules.md, rule 3): the free stud between each seat and
+its sill, and 3 bricks over the seats, so a roof goes 11 plates or more over the floor. The room in front, where a car
+puts its steering wheel, isn't kept clear. The floor stands 2 plates off the ground. Returns the z of the cabin
+floor's top, with .seats (each seat's (x, y) and the z of its top) and .cabin (the x the cabin floor runs from and
+to).
 """
 
 from emmet_dsl import Plate
+from emmet_dsl.core import fit, seat_space
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 77256, set 77264. Not derived
 from any model file."""
@@ -116,8 +121,26 @@ def build(
             m.add(SILLS[wheelbase - 4], sill, at=(front + 3, side, floor + 2), rot=1)
         for k in range(2):
             m.add("3022", color, at=(rear - 4, y + 2 + 2 * k, floor + 2))
-            m.add("4079", "Black", at=(rear - 4, y + 2 + 2 * k, floor + 3))
-    return floor + 2
+            # Turned a half, the seat faces the front (-x).
+            m.add("4079", "Black", at=(rear - 4, y + 2 + 2 * k, floor + 3), rot=2)
+    # The seats' tops are 2 plates over the cabin floor: the riser plate and the seat's own plate.
+    seat_space(
+        m,
+        rear - 4,
+        y + 2,
+        4,
+        2,
+        2,
+        "a driver and a passenger in the seats",
+        z=floor + 2,
+        facing="left",
+        legs=False,
+    )
+    return fit(
+        floor + 2,
+        seats=[(rear - 4, y + 2 + 2 * k, floor + 4) for k in range(2)],
+        cabin=(front + 3, rear - 1),
+    )
 
 
 def example(m):

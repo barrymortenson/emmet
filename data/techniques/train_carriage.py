@@ -1,17 +1,20 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Train carriage: a 6-wide passenger carriage's body on a train base, window bands along both sides, doors at the ends,
-and a roof that curves down at its edges.
+"""Train carriage: a 6-wide passenger carriage's body on a train base, window bands along both sides, and a roof that
+curves down at its edges.
 
 m.use("train_carriage", x, y, z, length=16, color="Red", window="White", roof="Light Bluish Gray", title="Carriage")
 builds on a train base (6584) or a plate whose 6 x `length` top is at (x, y, z) (the base runs along x): a course of
 bricks along each side, a band of windows 1 x 2 x 2 with glass along each side between 1-wide posts, a course of plates
 over them, and a roof: plates across the full width, which tie the two sides together, and on them curved slopes 3 x 2
 falling to each edge, two meeting in the middle, so the roof is round. The ends are left open for the next car's
-gangway. Lengths are multiples of 4 from 8 to 24. Returns the z of the roof's top.
+gangway. Lengths are multiples of 4 from 8 to 24. Inside, the roof plates are 10 plates over the floor: a minifig seat
+(4079) on the floor, its top a plate up, leaves a seated figure the 9 plates it needs (docs/spec/building-rules.md,
+rule 3); a higher seat doesn't. Returns the z of the roof's top, with .underside (the z of the roof plates' bottom,
+z + 10).
 """
 
 from emmet_dsl import Brick, Plate
-from emmet_dsl.core import in_steps
+from emmet_dsl.core import fit, in_steps
 
 PROVENANCE = """Emmet's own (session 3C), written from general building knowledge. Not derived from any model file."""
 
@@ -56,7 +59,7 @@ def build(
     roof="Light Bluish Gray",
     title="Carriage",
 ):
-    """The sides, windows, and roof; returns the z of the roof's top."""
+    """The sides, windows, and roof; returns the z of the roof's top, with .underside."""
     if length % 4 or not 8 <= length <= 24:
         raise ValueError(
             f"train_carriage takes a length of 8 to 24 in steps of 4, not {length}"
@@ -66,7 +69,7 @@ def build(
         for sy in sides:
             m.row(Brick, color, at=(x, sy, z), length=length)
     for sy in sides:
-        # A post at each end and between pairs of windows: post, window, window, post... A window and its glass
+        # A post at each end and between pairs of windows: post, window, post, window... A window and its glass
         # stay in one step.
         actions, a = [], x
         while a < x + length:
@@ -113,7 +116,7 @@ def build(
                 for a in range(0, length, 2)
             ],
         )
-    return z + 14
+    return fit(z + 14, underside=z + 10)
 
 
 def example(m):

@@ -4,15 +4,18 @@ armchair 4 studs wide to a sofa 8 wide, built apart and placed.
 
 m.use("armchair_and_sofa", x, y, z, kind="armchair", length=6, facing="-y", color="Dark Red", cushion="Tan", title=None)
 stands a seat on the studs at height z, its footprint's min corner at (x, y), its seat toward `facing`. kind="armchair"
-is 4 studs wide; kind="sofa" is `length` studs wide (6 or 8). Either is 2 deep (so 4 x 2 or length x 2 facing "-y" or
+is 4 studs wide; kind="sofa" is `length` studs wide (4, 6, or 8). Either is 2 deep (so 4 x 2 or length x 2 facing "-y" or
 "+y", turned for "+x" or "-x"): a 2-deep base plate, an arm at each end (a brick with a curved slope on top, low at the
 front), a seat of plates topped with 1 x 2 cushion tiles whose top is 3 plates up, and a back two bricks tall whose
-upper course is bricks with studs on one side carrying 1 x 2 tiles as padding, capped with tiles. It's a submodel, built
+upper course is bricks with studs on one side carrying 1 x 2 tiles as padding, capped with tiles. It keeps clear the
+room a figure sitting on it needs (docs/spec/building-rules.md, rule 3): 2 studs in front of the seat, up to a brick
+over it, and 3 bricks over the seat's front half, short of the padding; the arms are its ends. It's a submodel, built
 once in its own steps, "<title>, base and arms", "<title>, seat", and "<title>, back", placed in a step titled "<title>"
-("Armchair" or "Sofa" by default); it returns the placed copy's Handle.
+("Armchair" or "Sofa" by default), so the room moves with every copy; it returns the placed copy's Handle.
 """
 
 from emmet_dsl import Brick, Plate, Rot, Tile
+from emmet_dsl.core import LEG_ROOM, SEAT_HEADROOM
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 43217, set 43268, set 10350.
 Not derived from any model file."""
@@ -20,6 +23,7 @@ Not derived from any model file."""
 PARTS = ["3020", "3795", "3004", "11477", "3023b", "3069b", "11211", "3010", "2431"]
 
 PANEL = Rot(y=-90, z=90)  # a 1 x 2 tile on its back, its face to -y, long along x
+SEAT = 3  # the cushions' top, in plates over the seat's bottom
 
 FACING = {
     "-y": 0,
@@ -49,7 +53,7 @@ def _put(m, sub, x, y, z, facing, foot):
     return m.place(sub, at=(x - fl[0] + lo[0], y - fl[1] + lo[1], z + bz0), rot=k)
 
 
-def _seat(m, width, color, cushion, title):
+def _seat(m, kind, width, color, cushion, title):
     """The seat in its own frame: `width` along x and 2 deep, its front at y = 0."""
     inner = width - 2
     with m.step(f"{title}, base and arms"):
@@ -74,6 +78,14 @@ def _seat(m, width, color, cushion, title):
                 id=f"back/{i + 1}/pad",
             )
         m.row(Tile, color, at=(1, 1, 7), length=inner)
+    # The padding stands 0.4 studs out over the seat's back half, so the headroom stops at its front half.
+    m.keep_clear(
+        [
+            ((1, -LEG_ROOM, 1), (width - 1, 0, SEAT + 3)),
+            ((1, 0, SEAT), (width - 1, 0.5, SEAT + SEAT_HEADROOM)),
+        ],
+        f"a figure sitting on the {kind}",
+    )
 
 
 def build(
@@ -93,10 +105,10 @@ def build(
         raise ValueError(f'kind must be "armchair" or "sofa", not {kind!r}')
     width = 4 if kind == "armchair" else length
     if width not in (4, 6, 8):
-        raise ValueError(f"a sofa is 6 or 8 studs long, not {length}")
+        raise ValueError(f"a sofa is 4, 6, or 8 studs long, not {length}")
     title = title or kind.capitalize()
     sub = m.submodel(
-        kind, _seat, width=width, color=color, cushion=cushion, title=title
+        kind, _seat, kind=kind, width=width, color=color, cushion=cushion, title=title
     )
     with m.step(title):
         return _put(m, sub, x, y, z, facing, (0, 0, width, 2))

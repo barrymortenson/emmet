@@ -24,7 +24,7 @@ Rooms a figure can live in, furnished from few parts, in a building that opens t
   (`armchair_and_sofa`), a floor lamp (`floor_lamp_and_candle`), a rug, a picture. 25 to 40 parts.
 - Kitchen: a counter 2 deep along one wall with a stove, sink, and cupboard (`kitchen_counter`, `wood_stove`), a table
   with chairs (`table_and_chairs`), a shelf of jars, a checkered floor. 30 to 50 parts.
-- Bedroom: `figure_bed` (2 x 6), a nightstand of a 1 x 1 brick with a candle, a rug, a picture. 20 to 30 parts.
+- Bedroom: `figure_bed` (2 x 6, or 2 x 8 with posts), a nightstand of a 1 x 1 brick with a candle, a rug, a picture. 20 to 30 parts.
 - Shop: `display_case_counter`, shelves of goods, a `cross_display_stand`, a register, a sign inside the window.
 - Pub or diner: `bar_counter`, stools (a 1 x 1 round brick under a 2 x 2 round tile), `curved_booth`, a stove hood.
 - Music room or parlor: `upright_piano`, `armchair_and_sofa`, a clock.

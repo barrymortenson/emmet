@@ -159,7 +159,16 @@ window.EMMET_STATUS = {
       ],
       note: "The viewer budget holds with little margin on this Mac (738 to 1,076 ms for the 903-part Cottage); sending the scene before its findings is left for 4C. Follow-ups #36 to #42; Phase 3's Delivers line doesn't name 3D"
     },
-    "3E": { status: "todo" },
+    "3E": {
+      status: "done", pr: 49, branch: "bmortenson/s3e-good-building-technique", started: "2026-10-31",
+      evidence: [
+        "CI ci check green #49 (run 41255082827: mac with the full E2E suite, 18 of 18 specs, plan; windows and nsis paused, D-43); Phase 3 exit check in the PR description",
+        "tests/it/tests/{ladder,check,validator_mutations,validator_corpus,techniques}.rs: the 4B station's findings, broken-figure-clearance, figure faults 11/11, the audit's count, a test each beside a door",
+        "nightly run 41252442383 on the branch: 33 models, no errors, no figure_clearance; just bench validator: 15 ms for 510 parts, 66 ms for 2,078",
+        "docs/techniques/audit.md: 378 techniques, 39 fixed; docs/evals/2026-10-31-technique.md: figure_clearance 4 in the baseline, 0 at the end on both agents; H-27 done"
+      ],
+      note: "Door spaces come from techniques, not the parts index (Barry): official models put counters, stairs, and walls within a stud of their doors. 20 live runs, as D-52 asks"
+    },
     "4B": {
       status: "done", pr: 48, branch: "bmortenson/s4b-chat-agent-ux", started: "2026-10-30",
       evidence: [
@@ -213,7 +222,7 @@ window.EMMET_STATUS = {
     "H-22": { status: "done", date: "2026-10-28", note: "98 of 100 candidates accepted on five review pages (docs/techniques/candidates/batch-1 to 5); rejected: wheel_axle, wheel_arch; docs/decisions.md" },
     "H-23": { status: "todo" },
     "H-26": { status: "done", date: "2026-10-30", note: "all 13 batches accepted (260 of 260); the Cottage and design change note 002 approved" },
-    "H-27": { status: "todo" },
+    "H-27": { status: "done", date: "2026-10-31", note: "the building rules approved as written; the technique prompts' before and after renders judged better and approved (docs/evals/2026-10-31-technique.md); both through AskUserQuestion" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
     "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
   },

@@ -24,8 +24,9 @@ racing-scale car's low-profile wheels and its base, and `four_wide_car` for a wh
 - Faces with lights and a grille are built on studs that point forward (side-stud bricks, brackets, or a front built
   flat and stood up). Never stack lights as studs-up 1 x 1 bricks (`headlights`, `side_stud_lights`,
   `quarter_tile_headlights`, `front_grille`, `front_bumper`, `tail_lights`).
-- The figure decides the cab: a 2 x 2 footprint, 3 bricks of headroom from the seat plate, a steering wheel a stud in
-  front, and a roof or glass that lifts off (`cab_seat`, `windscreen`, `six_wide_truck_cab`, `cab_over_sleeper`,
+- The figure decides the cab: a 2 x 2 footprint, 3 bricks of headroom from the seat plate (the seat techniques keep
+  it clear, so validate flags a roof lower than that), a steering wheel a stud in front, and a roof
+  or glass that lifts off (`cab_seat`, `windscreen`, `six_wide_truck_cab`, `cab_over_sleeper`,
   `glass_box_cab`).
 - Length is compressed: trucks and trains stay long (that's their character), cars stay short.
 - One body color, black for the chassis, arches, and bumpers, gray for machinery, one accent for stripes. Trans-clear

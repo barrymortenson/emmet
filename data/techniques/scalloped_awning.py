@@ -7,8 +7,13 @@ wall one stud thick along x facing front (-y), a Plate 2 x `length` in the trim 
 takes the wall's cells x to x + length - 1 for that plate course, its front row stands a stud out; a second such plate
 on that front row reaches two studs out. On it go `length` Slope Brick Curved 2 x 1 (11477), striped in the two colors,
 their curves down to the street, and under its front row hang `length` round 1 x 1 plates in `color`, the scallops.
-length is 2, 4, or 6. Returns the z of the plate's top, where the wall goes on.
+length is 2, 4, or 6. z is the awning's underside, where a figure walks under it: at or above the top of a door beside
+it on the facade (a door_frame's .door_top, 6 bricks over its floor), or with no door, 5 bricks or more over the
+sidewalk (docs/spec/building-rules.md, rule 1). Returns the z of the plate's top, where the wall goes on, with
+.underside (z).
 """
+
+from emmet_dsl.core import fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 43302. Not derived from any
 model file."""
@@ -19,7 +24,7 @@ PLATES = {2: "3021", 4: "3020", 6: "3795"}  # Plate 2 x n
 
 
 def build(m, x, y, z, length=4, color="Dark Red", trim="White", title="Awning"):
-    """The plate, the scallops under it, and the slopes; returns the z of the plate's top."""
+    """The plate, the scallops under it, and the slopes; returns the z of the plate's top, with .underside."""
     if length not in PLATES:
         raise ValueError(f"scalloped_awning takes a length of 2, 4, or 6, not {length}")
     with m.step(f"{title}: plates and scallops"):
@@ -32,32 +37,34 @@ def build(m, x, y, z, length=4, color="Dark Red", trim="White", title="Awning"):
             m.add(
                 "11477", color if k % 2 == 0 else trim, at=(x + k, y - 2, z + 2), rot=3
             )
-    return z + 1
+    return fit(z + 1, underside=z)
 
 
 def example(m):
-    """An awning over a shop window in a short wall."""
+    """An awning over a tall shop window, 5 bricks up the wall, so a figure walks under it."""
     from emmet_dsl import Brick
 
     with m.step("Wall, row 1"):
         m.row(Brick, "Sand Green", at=(0, 0, 0), length=6)
     with m.step("Window"):
         for k in range(2):
-            f = m.add("60592", "White", at=(1 + 2 * k, 0, 3), rot=1)
+            f = m.add("60593", "White", at=(1 + 2 * k, 0, 3), rot=1)
             (x0, y0, z0), (x1, y1, _) = f.min, f.max
             m.add(
-                "60601",
+                "60602",
                 "Trans-Clear",
                 at=((x0 + x1 - 1.65) / 2, (y0 + y1 - 0.2) / 2, z0 + 0.875),
                 rot=1,
             )
-    for r in range(2):
+    for r in range(3):
         with m.step(f"Wall beside the window, row {r + 2}"):
             for cx in (0, 5):
                 m.add("3005", "Sand Green", at=(cx, 0, 3 + 3 * r))
+    with m.step("Wall over the window"):
+        m.row(Brick, "Sand Green", at=(0, 0, 12), length=6)
     with m.step("Plates beside the awning"):
         for cx in (0, 5):
-            m.add("3024", "Sand Green", at=(cx, 0, 9))
-    z = m.use("scalloped_awning", x=1, y=0, z=9)
+            m.add("3024", "Sand Green", at=(cx, 0, 15))
+    z = m.use("scalloped_awning", x=1, y=0, z=15)
     with m.step("Wall over the awning"):
         m.row(Brick, "Sand Green", at=(0, 0, z), length=6)

@@ -2,16 +2,20 @@
 """Wooden hoarding: a covered timber gallery built out from a wall's top on beams through the wall, with a log front,
 loopholes, and a sloped roof against the parapet.
 
-m.use("wooden_hoarding", x, y, z, length, color="Light Bluish Gray", timber="Reddish Brown", roof="Dark Bluish Gray",
-title="Hoarding") builds on a wall 1 stud thick along x from (x, y), its top at z, `length` studs long (3n + 1). The
-wall's next course is laid with beams: a 1 x 3 brick in timber every 3 studs, through the wall and 2 studs out front
-(-y), with the wall's bricks between. A floor of 2-wide plates lies on the beams' ends; on
-its front edge stand two courses of log bricks, the lower with a loophole in each bay; behind, the wall rises two
-courses and a plate as a parapet. The roof is plates across the front, the gallery and the parapet, and 2 x 2 slopes
-over the front two rows. Returns the z of the roof plates' top.
+m.use("wooden_hoarding", x, y, z, length, rows=5, color="Light Bluish Gray", timber="Reddish Brown",
+roof="Dark Bluish Gray", title="Hoarding") builds on a wall 1 stud thick along x from (x, y), its top at z, `length`
+studs long (3n + 1). The wall's next course is laid with beams: a 1 x 3 brick in timber every 3 studs, through the wall
+and 2 studs out front (-y), with the wall's bricks between. A floor of 2-wide plates lies on the beams' ends; on its
+front edge stand `rows` courses of log bricks, the next to top with a loophole in each bay, at a figure's eyes;
+behind, the wall rises `rows` courses and a plate as a parapet. The roof is plates across the front, the gallery and
+the parapet, and 2 x 2 slopes over the front two rows. The gallery between the front and the parapet is a stud deep,
+room for a figure to stand, and rows is its headroom: 5 (the default) is the least a figure stands under, so it's 5 to
+8 (docs/spec/building-rules.md, rule 1). Returns the z of the roof plates' top, with .floor (the z of the gallery
+floor's top) and .underside (the z of the roof plates' bottom).
 """
 
 from emmet_dsl import Brick, Plate
+from emmet_dsl.core import fit
 
 PROVENANCE = """Emmet's own (session 3C), written from general building knowledge. Not derived from any model file."""
 
@@ -69,15 +73,22 @@ def build(
     y,
     z,
     length,
+    rows=5,
     color="Light Bluish Gray",
     timber="Reddish Brown",
     roof="Dark Bluish Gray",
     title="Hoarding",
 ):
-    """The beam course, the floor, the front and parapet, and the roof; returns the z of the roof plates' top."""
+    """The beam course, the floor, the front and parapet, and the roof; returns the z of the roof plates' top, with
+    .floor and .underside."""
     if length < 4 or (length - 1) % 3:
         raise ValueError(
             f"wooden_hoarding needs a length of 3n + 1 (4, 7, 10, ...), not {length}"
+        )
+    if not 5 <= rows <= 8:
+        raise ValueError(
+            f"wooden_hoarding takes rows of 5 to 8 (5 bricks over the gallery floor, the least a figure stands "
+            f"under), not {rows}"
         )
     beams = range(0, length, 3)
     with m.step(f"{title}: beams"):
@@ -88,19 +99,32 @@ def build(
     zf = z + 3
     with m.step(f"{title}: floor"):
         m.row(Plate, timber, at=(x, y - 2, zf), length=length, width=2)
-    with m.step(f"{title}: front, lower course"):
-        # A loophole, a stud wide, in the middle of each bay.
-        u = 0
-        for gap in [b + 1 for b in beams[:-1]] + [length]:
-            _logs(m, timber, x + u, y - 2, zf + 1, gap - u)
-            u = gap + 1
-    with m.step(f"{title}: front, upper course"):
-        _logs(m, timber, x, y - 2, zf + 4, length)
-    with m.step(f"{title}: parapet"):
-        m.row(Brick, color, at=(x, y, zf), length=length, first=2)
-        m.row(Brick, color, at=(x, y, zf + 3), length=length)
-        m.row(Plate, color, at=(x, y, zf + 6), length=length, first=2)
-    zr = zf + 7
+    for r in range(rows):
+        with m.step(f"{title}: front and parapet, course {r + 1}"):
+            if r == rows - 2:
+                # A loophole, a stud wide, in the middle of each bay.
+                u = 0
+                for gap in [b + 1 for b in beams[:-1]] + [length]:
+                    _logs(m, timber, x + u, y - 2, zf + 1 + 3 * r, gap - u)
+                    u = gap + 1
+            else:
+                _logs(m, timber, x, y - 2, zf + 1 + 3 * r, length)
+            m.row(
+                Brick,
+                color,
+                at=(x, y, zf + 3 * r),
+                length=length,
+                first=None if r % 2 else 2,
+            )
+            if r == rows - 1:
+                m.row(
+                    Plate,
+                    color,
+                    at=(x, y, zf + 3 * rows),
+                    length=length,
+                    first=None if rows % 2 else 2,
+                )
+    zr = zf + 3 * rows + 1
     with m.step(f"{title}: roof plates"):
         # One-wide over the front, two-wide over the gallery and the parapet, so the roof ties the two.
         m.row(Plate, roof, at=(x, y - 2, zr), length=length)
@@ -110,7 +134,7 @@ def build(
             m.add("3039", roof, at=(x + u, y - 2, zr + 1), rot=3)
         if length % 2:
             m.add("3040b", roof, at=(x + length - 1, y - 2, zr + 1), rot=3)
-    return zr + 1
+    return fit(zr + 1, floor=zf + 1, underside=zr)
 
 
 def example(m):

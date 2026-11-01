@@ -70,6 +70,7 @@ def build(
 def example(m):
     """A door on a raised floor, with its step and mat."""
     from emmet_dsl import Brick
+    from emmet_dsl.core import door_space
 
     with m.step("Floor"):
         m.row(Brick, "Dark Bluish Gray", at=(-1, 0, 0), length=6)
@@ -82,4 +83,6 @@ def example(m):
             at=((x0 + x1 - 3.55) / 2, (y0 + y1 - 0.3) / 2, z0 + 0.875),
             rot=3,
         )
+    # A door placed by hand keeps clear its way through, as door_frame's does.
+    door_space(m, "x", 0, 0, 4, 3, "a figure walking through the door")
     m.use("doorstep_and_mat", x=0, y=0, z=3)

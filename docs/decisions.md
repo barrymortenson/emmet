@@ -636,3 +636,54 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   user's view without asking; and leaving it to 4C. Barry then had the accent edges and the silhouette of a hidden
   part taken out (2026-10-31): the parts keep their own colors. A hidden part isn't seen until Zoom to them or a turn
   of the view.
+
+## 2026-10-31, session 3E
+
+- **The building rules are approved as written (H-27, part 1; Barry, through AskUserQuestion).**
+  `docs/spec/building-rules.md`: headroom at or above the door top beside it, a door's approach clear on both sides
+  (its width, 3 studs out, from a plate above its bottom up to its top), a seat's ends, front, and headroom, walkways 3
+  studs clear with no post in line with a door, how parts meet, and the scales they hold at (figure scale, large where
+  the model has figure doors or seats, and Any). Each rule names what enforces it. Rejected: a 2-stud approach on a
+  door's room side, which only the `door_frame` technique could tell from the street side.
+- **D-53 is decided** with the rules: `figure_clearance` is a warning, from keep-clear boxes declared by door frames
+  (the parts index), by techniques, and by the agent with `m.keep_clear`, at figure scale, large, and Any.
+- **The technique prompts' baseline runs with `main`'s library** (session prompt): `emmet eval` learns the five prompts
+  in `docs/spec/ladder.md` (T1 to T5) and keeps each run's project, and that is the only change before the ten
+  baseline runs. They are the scripted runs D-52 asks for, on top of D-38's gate budget: ten now and ten at the end.
+- **Door spaces come from the techniques that place doors, not the parts index** (Barry, through AskUserQuestion).
+  Found from door frames in the parts index, rule 2's space gave 269 findings on the 67 official models in the 3C pool
+  that have 1 x 4 x 6 door frames, and still 90 when cut to a 1-stud, 2-wide doorway: counters, stairs, and crates a
+  stud behind a door, walls built right behind a facade's decorative door, upper-floor doors opening under a slope.
+  The committed and nightly OMR corpus has no figure doors, so it would have passed without testing anything. Now
+  `door_frame` and the other door techniques declare the approved space with `m.keep_clear`, and the doctrine asks the
+  agent to declare one for a door frame it places by hand. Rejected: the parts index with the narrow doorway, which
+  leaves official models with findings and changes D-53's bar to errors only; and both sources.
+- **The 4B station is checked two ways** (Barry, through AskUserQuestion). On the fixed library the station's canopy,
+  called without a height, clears the booth's door by itself, so `tests/fixtures/projects/rung2-claude` as it is gives
+  the two bench findings only. `ladder.rs` checks the station with its canopy at 4B's height (`height=5`, the old
+  5-brick column): exactly the three findings Done when 2 names, the canopy at the booth's door and a column against
+  each bench; and the fixture as it is: exactly the two bench findings. Rejected: the fixture alone with Done when 2
+  reworded, and a copy of the old canopy pinned in the fixture.
+- **The Cottage drops its wall clock** (Barry, through AskUserQuestion). Now that the Cottage declares its front door's
+  way through with `m.keep_clear`, figure_clearance found the clock in the cell beside the door hanging half a stud
+  over the doorway at head height, at every width (the living room is the door plus one cell wide on that wall).
+  Rejected: a picture in its place, which starts at the same cell, and moving the clock to another wall.
+- **The Cottage's porch stands taller** (rule 1, approved with the building rules). Its beam started 2 bricks under the
+  front door's top, the 4B canopy's mistake: the posts are 7 round bricks instead of 5, the beam starts at the door's
+  top, and the porch roof's back row, which ran into the house's eaves once raised, is gone, so the porch roof tucks
+  under them (rule 5). `docs/spec/sessions/3E/cottage-{before,after}.png`.
+- **The narrowest Cottage has no hearth** (Barry, through AskUserQuestion). At width 14 the living room is the front
+  door and a stud wide, and the fireplace and the firewood stood a stud inside the door's way in. At width 14 only, the
+  living room leaves them out; the chimney stays outside, and the armchair and rug stay. Rejected: a width knob from
+  16, and moving the armchair to make room. The snowman (winter) stands a stud further back, clear of the garden
+  bench's legroom, which its widest garden had crowded.
+- **The Cottage's kitchen table only in the widest house** (Barry, through AskUserQuestion). `interior_arch_doorway`
+  now keeps its way through clear, and in a kitchen 7 wide (widths 16 and 18) the counter and the table set fill it
+  to the partition, in front of the doorway. The table and chairs go in only where they leave it 3 studs (width 20).
+  The same pass moved the partition's doorway a stud back (the lamp behind the bay clears it), left the kitchen lamp
+  out where the table is, stood the garden lamp behind the gate's post (it stood in the gate's opening), and planted
+  the lawn's flower bed only where it leaves the bench's end a stud. Rejected: a small table by the bay, and a
+  2-stud way through for interior doorways.
+- **H-27, part 2: the after renders are better** (Barry, through AskUserQuestion). The technique prompts went from 4
+  figure_clearance findings in the baseline to 0 at the end on both agents, and both stations centered their benches
+  between the columns and stood the canopy at the booth's door height, unprompted (`docs/evals/2026-10-31-technique.md`).

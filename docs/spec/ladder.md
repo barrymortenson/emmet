@@ -153,6 +153,64 @@ for rung 3 is therefore:
 > the hood and roof, a clear windshield and side windows, a rear wing, light gray wheels with black tires, and a
 > yellow number plate on the front.
 
+## Technique prompts (3E)
+
+Five prompts that tempt the building mistakes of Barry's 4B hand session of rung 2 (D-52): a roof or awning lower
+than the door beside it, a seat against a post, a column in front of a door, a lower roof that meets a wall across an
+opening. No prompt names any of them; the point is whether the agent builds well without being told. Each is a
+figure-scale build on one green 32 × 32 baseplate, run by `emmet eval --rung T1` (to T5) with the build settings Base
+32 × 32 and Scale Figure scale, once on `main` before 3E's changes (the baseline) and once at the end. The report,
+`docs/evals/<date>-technique.md`, counts each run's `figure_clearance` findings; a run's score is that count and its
+validator errors, not the size and features rung 1 and 2 score. Each run's budget is 20 minutes and 80 turns.
+
+The answer script for every technique prompt:
+
+| When the question mentions | Answer |
+|---|---|
+| scale, size, how big | Figure scale, on the one 32 × 32 baseplate |
+| style | Classic town |
+| color, colors | Your choice of classic town colors |
+
+## Rung T1: The station
+
+> Build a small train station on a green 32 × 32 baseplate: a platform with a canopy over it, two benches under the
+> canopy, and a ticket booth with a door at one end of the platform. Give me sliders for the platform length, the
+> canopy style, and the station colors.
+
+**Features:** rung 2's station without the track loop: a platform, a canopy, two benches, a ticket booth with a door.
+
+## Rung T2: A corner shop with an awning
+
+> Build a corner shop on a green 32 × 32 baseplate: shop windows along two walls that meet at the corner, a door, an
+> awning over the windows and the door, and a flat roof with a sign. Give me sliders for the shop's width, the awning
+> color, and the wall color.
+
+**Features:** a shop with a door, windows, an awning, a flat roof, a sign.
+
+## Rung T3: A cottage with a porch
+
+> Build a cottage with a covered front porch on a green 32 × 32 baseplate: the front door opens onto the porch, the
+> porch has its own roof on posts, the house has a sloped roof, and there's a bench on the porch. Give me sliders for
+> the cottage's width, the porch depth, and the wall and roof colors.
+
+**Features:** a cottage with a door, a porch roof on posts, a sloped main roof, a bench on the porch.
+
+## Rung T4: A bus stop
+
+> Build a bus stop on a green 32 × 32 baseplate: a stretch of sidewalk, a shelter with a roof and a back wall, a bench
+> in the shelter, a bus stop sign on a pole, and a trash can. Give me sliders for the shelter's length, the roof color,
+> and whether the shelter has an advertising panel.
+
+**Features:** a sidewalk, a shelter with a roof, a bench in it, a sign on a pole.
+
+## Rung T5: A café with seats outside
+
+> Build a small café on a green 32 × 32 baseplate: a one-story building with a door and big front windows, a striped
+> awning over the front, and tables with chairs outside on the sidewalk. Give me sliders for the number of tables, the
+> awning colors, and the wall color.
+
+**Features:** a café with a door, windows, an awning, tables and chairs outside.
+
 ## Scoring config
 
 Thresholds from section 16.1, which sets no time or turn budget for the photo rung (`null` until 5A sets one). 5A tunes

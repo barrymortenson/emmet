@@ -34,12 +34,13 @@ Read the guide, then run → validate → render → fix, every time:
    size, style, and the base are the build settings in `emmet.toml`'s `[build]`, and colors go through the prompt.
 3. Call `run_model`. It answers with the part count, or an error with the file, line, and a hint: fix that line and
    run again.
-4. Call `validate`. It lists findings (parts that collide or float, a submodel placed off the model, a part in a step
-   before what holds it, steps too big, weak spans, parts a little off the grid, unknown or obsolete parts), each
-   with an id, the parts, the `model.py` line that placed them, and a hint that says what to change. Fix errors
-   first, top down, at the line each names, then run and validate again. Don't stop with an error left; if you can't
-   fix one, say which and why.
-5. Call `render` and look at the picture: proportions, openings, roof. Fix what's wrong, then run and validate again.
+4. Call `validate`. It lists findings (parts that collide or float, a part where a figure needs to walk or sit, a
+   submodel placed off the model, a part in a step before what holds it, steps too big, weak spans, parts a little off
+   the grid, unknown or obsolete parts), each with an id, the parts, the `model.py` line that placed them, and a hint
+   that says what to change. Fix errors first, top down, then `figure_clearance`, at the line each names, then run and
+   validate again. Don't stop with an error left; if you can't fix one, say which and why.
+5. Call `render` and look at the picture: proportions, openings, roof; a door a figure can walk through, a seat it
+   can sit on, and every roof edge meeting what's under it. Fix what's wrong, then run and validate again.
 
 `highlight` with a finding id (`finding: "F-0003"`) shows the user the parts you're talking about. When the user
 says "this" or "these", `selection` says which parts they've picked in the app and which view they're looking at;
@@ -138,7 +139,8 @@ Build the way official sets are built: what a figure touches (doors, seats, cock
 4-brick-tall figure, and the whole is shortened to stay buildable. A starship, a ship, or a castle comes out much
 shorter than its true ratio, with fewer windows, decks, and floors, and still reads as itself. Do the same unless the
 user asks for an exact ratio: keep the figure-facing details at figure size, keep the outline recognizable, and
-compress the rest to fit. Say how much you compressed it ("about a third of its true length").
+compress the rest to fit. Say how much you compressed it ("about a third of its true length"). Techniques keep a
+figure's way clear (`m.keep_clear`); a door or seat you build by hand declares its space the same way.
 
 ## Show a draft in the first minute
 

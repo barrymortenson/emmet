@@ -8,10 +8,14 @@ bricks tall from z (at least sill + 6), with a door 1 x 4 x 6 (a frame 4 studs w
 opens out of, which also sets the wall's direction: "front" (−y) and "back" (+y) walls run along x, "left" (−x) and
 "right" (+x) ones along y. The bricks go around the door in a running bond, and the row above it, if any, bridges its
 top. The door in its frame is a submodel (the frame, then the door), placed in the step of its own bottom row (row sill + 1). It
-brings its own steps, a row at a time, titled "<title>, row 1" and so on, and returns the z of the wall's top.
+keeps clear the way through the door on both sides (3 studs out, up to its top; docs/spec/building-rules.md, rule 2),
+so a canopy, a post, or a bench in it is a figure_clearance finding. It brings its own steps, a row at a time, titled
+"<title>, row 1" and so on, and returns the z of the wall's top, with .door_top (the z of the door's top, which a roof
+or an awning beside it starts at or above) and .door ((x0, y0), (x1, y1), the door's footprint).
 """
 
-from emmet_dsl.techniques.window_frame import wall_with
+from emmet_dsl.core import DOOR_TOP, door_space, fit
+from emmet_dsl.techniques.window_frame import FACING, wall_with
 
 PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
 file."""
@@ -57,11 +61,36 @@ def build(
     door_color="Reddish Brown",
     title="Wall",
 ):
-    """The wall and its door; returns the z of the wall's top."""
+    """The wall and its door; returns the z of the wall's top, with .door_top and .door."""
     unit = m.submodel("Door", _door, frame_color=frame_color, door_color=door_color)
-    return wall_with(
+    top = wall_with(
         m, x, y, z, length, rows, facing, color, title, (offset, sill, 4, 6), unit
     )
+    axis = FACING[facing][0]
+    bottom = z + 3 * sill
+    if axis == "x":
+        door = ((x + offset, y), (x + offset + 4, y + 1))
+        door_space(
+            m,
+            "x",
+            y,
+            x + offset,
+            4,
+            bottom,
+            f"a figure walking through the door of {title}",
+        )
+    else:
+        door = ((x, y + offset), (x + 1, y + offset + 4))
+        door_space(
+            m,
+            "y",
+            x,
+            y + offset,
+            4,
+            bottom,
+            f"a figure walking through the door of {title}",
+        )
+    return fit(top, door_top=bottom + DOOR_TOP, door=door)
 
 
 def example(m):

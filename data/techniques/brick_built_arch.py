@@ -2,21 +2,27 @@
 """Brick-built arch: a wall with an arched opening through it, the arch brick on the wall to each side and the wall
 built over it.
 
-m.use("brick_built_arch", x, y, z, length, rows=None, opening=2, opening_rows=1, offset=None, axis="x",
-curved=False, color="Light Bluish Gray", arch_color=None, title="Arch") builds a wall 1 stud thick and `length` studs
-long along the axis ("x" or "y") from (x, y), `rows` bricks tall (3 plates each), standing on the studs at height z,
-with an opening `opening` studs wide (2 or 4) starting `offset` studs from the wall's start (by default in the
-middle; at least 2 studs of wall on each side). The opening's sides rise `opening_rows` rows; then the arch spans it,
-its feet on the wall a stud to each side: Arch 1 x 4 (3659, a brick tall) over 2, Arch 1 x 6 x 2 (3307, two bricks)
-over 4, or with curved=True (opening=4 only) two Arch 1 x 3 x 2 with Curved Top (6005) meeting in the middle with a Plate 1 x 2 on
-their tabs as a keystone (the curves leave a small open corner over each foot, as they do in real builds). The row over the arch starts with a lintel, a brick 1 x 6 (or 1 x 8) over the arch and a
-stud of wall each side, that ties it into the wall; rows (opening_rows + the arch's rows + 1 by default, the
-fewest) can add more wall above. The courses are a running bond, every other row starting with a shorter brick. It
-brings its own steps, a row at a time, titled "<title>, row 1" and so on, and returns the z of the wall's top.
+m.use("brick_built_arch", x, y, z, length, rows=None, opening=4, opening_rows=5, offset=None, axis="x", curved=False,
+color="Light Bluish Gray", arch_color=None, title="Arch") builds a wall 1 stud thick and `length` studs long along the
+axis ("x" or "y") from (x, y), `rows` bricks tall (3 plates each), standing on the studs at height z, with an opening
+`opening` studs wide (2 or 4) starting `offset` studs from the wall's start (by default in the middle; at least 2 studs
+of wall on each side). The opening's sides rise `opening_rows` rows: 5 (the default) is 15 plates, room for a figure
+with a hat (docs/spec/building-rules.md, rule 1), and 6 lines up with a 1 x 4 x 6 door's top; fewer make a low arch a
+figure can't walk through, for a window or a garden wall. Then the arch spans it, its feet on the wall a stud to each
+side: Arch 1 x 4 (3659, a brick tall) over 2, Arch 1 x 6 x 2 (3307, two bricks) over 4, or with curved=True (opening=4
+only) two Arch 1 x 3 x 2 with Curved Top (6005) meeting in the middle with a Plate 1 x 2 on their tabs as a keystone
+(the curves leave a small open corner over each foot, as they do in real builds). The row over the arch starts with a
+lintel, a brick 1 x 6 (or 1 x 8) over the arch and a stud of wall each side, that ties it into the wall; rows
+(opening_rows + the arch's rows + 1 by default, the fewest) can add more wall above. The courses are a running bond,
+every other row starting with a shorter brick. An opening whose sides rise 5 rows or more keeps clear the way through it
+on both sides of the wall (3 studs out, from a plate above the floor up to where the arch springs; rule 2), so a post or
+a bench in it is a figure_clearance finding. It brings its own steps, a row at a time, titled "<title>, row 1" and so
+on, and returns the z of the wall's top, with .door_top (the z the arch springs from, the top of the way through) and
+.door ((x0, y0), (x1, y1), the opening's footprint).
 """
 
 from emmet_dsl import Brick
-from emmet_dsl.core import in_steps
+from emmet_dsl.core import HEADROOM, door_space, fit, in_steps
 
 PROVENANCE = """Emmet's own (session 3B), written from general building knowledge; not derived from any model
 file."""
@@ -58,8 +64,8 @@ def build(
     z,
     length,
     rows=None,
-    opening=2,
-    opening_rows=1,
+    opening=4,
+    opening_rows=5,
     offset=None,
     axis="x",
     curved=False,
@@ -67,7 +73,7 @@ def build(
     arch_color=None,
     title="Arch",
 ):
-    """The wall and its arch; returns the z of the wall's top."""
+    """The wall and its arch; returns the z of the wall's top, with .door_top and .door."""
     if axis not in ("x", "y"):
         raise ValueError(f'brick_built_arch: axis must be "x" or "y", not {axis!r}')
     if opening not in (2, 4) or (curved and opening != 4):
@@ -162,7 +168,22 @@ def build(
 
             actions.insert(0, (1, add_key))
         in_steps(m, f"{title}, row {r + 1}", actions)
-    return z + 3 * rows
+    if axis == "x":
+        door = ((x + o, y), (x + o + opening, y + 1))
+    else:
+        door = ((x, y + o), (x + 1, y + o + opening))
+    if 3 * opening_rows >= HEADROOM:
+        door_space(
+            m,
+            axis,
+            y if axis == "x" else x,
+            (x if axis == "x" else y) + o,
+            opening,
+            z,
+            f"a figure walking through {title}",
+            za - z,
+        )
+    return fit(z + 3 * rows, door_top=za, door=door)
 
 
 def example(m):

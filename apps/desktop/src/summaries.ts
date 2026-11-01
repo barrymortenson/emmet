@@ -46,6 +46,7 @@ const RULE_WORDS: Record<string, [string, string]> = {
   color_unavailable: ["color never made", "colors never made"],
   obsolete_part: ["obsolete part", "obsolete parts"],
   alias_part: ["renamed part", "renamed parts"],
+  figure_clearance: ["part in a figure's way", "parts in a figure's way"],
 };
 
 /** The problems by kind: "1 floating part · 2 overlaps". */

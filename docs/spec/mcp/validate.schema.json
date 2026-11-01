@@ -15,7 +15,7 @@
       },
       "rules": {
         "default": null,
-        "description": "Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,\nweak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part.",
+        "description": "Only these rules (default: all): collision, floating, disconnected_submodel, step_order, step_size,\nweak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part,\nfigure_clearance.",
         "items": {
           "type": "string"
         },
@@ -314,7 +314,8 @@
           "part_unavailable",
           "color_unavailable",
           "obsolete_part",
-          "alias_part"
+          "alias_part",
+          "figure_clearance"
         ],
         "type": "string"
       },

@@ -61,10 +61,10 @@ def build(
 
 
 def example(m):
-    """Two lanterns either side of a path on a baseplate."""
+    """Two lanterns either side of a path on a baseplate, their roofs 3 studs apart so a figure walks between."""
     with m.step("Baseplate"):
         m.add("3867", "Green", at=(0, 0, 0))
     with m.step("Path"):
         m.add("3034", "Tan", at=(7, 4, 0.5))
     m.use("stone_lantern", x=4, y=6, z=0.5, pillar=1)
-    m.use("stone_lantern", x=10, y=6, z=0.5, pillar=2, color="Light Bluish Gray")
+    m.use("stone_lantern", x=11, y=6, z=0.5, pillar=2, color="Light Bluish Gray")

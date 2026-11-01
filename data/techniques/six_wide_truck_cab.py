@@ -5,17 +5,32 @@ with a light bar that lifts off.
 m.use("six_wide_truck_cab", x, y, z, color="White", glass="Trans-Clear", roof="White", lamps=("Trans-Orange",),
 title="Cab") builds a cab 8 studs long and 6 wide on the floor whose top is at (x, y, z), its front to -x: a 2 x 6
 brick across the front as the dash, a windscreen 2 x 6 x 2 (4176) on it, a seat with its steering wheel in front
-(cab_seat), side walls a brick of 1 x 4s then a window 1 x 2 x 2 and 1 x 2 bricks, a back wall three bricks tall, and
-on the walls a 6 x 8 roof plate tiled smooth with a light bar on its front edge, which lifts off to put the driver
-in. The whole cab is 3 bricks tall, about 4 over the chassis with the roof. Returns the z of the roof's top.
+(cab_seat), side walls a brick of 1 x 4s then a window 1 x 2 x 2 and 1 x 2 bricks, a back wall three bricks tall, a
+course of plates on the windscreen and the walls, and on them a 6 x 8 roof plate tiled smooth with a light bar on its
+front edge, which lifts off to put the driver in. The roof's underside is 9 plates over the seat, the headroom
+cab_seat keeps clear for a seated figure (docs/spec/building-rules.md, rule 3). The whole cab is 3 bricks and a plate
+tall, about 4 over the chassis with the roof. Returns the z of the roof's top, with .underside (the z of the roof
+plate's bottom, z + 10).
 """
 
-from emmet_dsl import Tile
+from emmet_dsl import Plate, Tile
+from emmet_dsl.core import fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction book of set 60509. Not derived from any
 model file."""
 
-PARTS = ["2456", "4176", "3010", "3005", "60592c01", "3004", "3009", "3036"]
+PARTS = [
+    "2456",
+    "4176",
+    "3010",
+    "3005",
+    "60592c01",
+    "3004",
+    "3009",
+    "3666",
+    "3710",
+    "3036",
+]
 
 
 def build(
@@ -29,7 +44,8 @@ def build(
     lamps=("Trans-Orange",),
     title="Cab",
 ):
-    """The dash, the seat, the walls, the windscreen, and the roof; returns the z of the roof's top."""
+    """The dash, the seat, the walls, the windscreen, and the roof; returns the z of the roof's top, with
+    .underside."""
     with m.step(f"{title}: dash and sides"):
         m.add("2456", color, at=(x, y, z), rot=0)
         for side in (y, y + 5):
@@ -49,11 +65,17 @@ def build(
                 m.add("3004", color, at=(x + 4 + r, side, z + 3 + 3 * r), rot=1)
                 m.add("3005", color, at=(x + 6 - 2 * r, side, z + 3 + 3 * r))
             m.add("3009", color, at=(x + 7, y, z + 3 + 3 * r))
+    # A plate course lifts the roof to 9 plates over the seat's top (z + 1).
+    with m.step(f"{title}: top plates"):
+        m.row(Plate, color, at=(x + 1, y, z + 9), length=6, axis="y")
+        for side in (y, y + 5):
+            m.row(Plate, color, at=(x + 2, side, z + 9), length=6, axis="x")
+        m.row(Plate, color, at=(x + 7, y + 1, z + 9), length=4, axis="y")
     with m.step(f"{title}: roof"):
-        m.add("3036", roof, at=(x, y, z + 9), rot=1)
-        m.fill(Tile, roof, at=(x + 1, y, z + 10), size=(7, 6))
-    m.use("light_bar", x=x, y=y + 1, z=z + 10, lamps=lamps, title=f"{title}: light bar")
-    return z + 10
+        m.add("3036", roof, at=(x, y, z + 10), rot=1)
+        m.fill(Tile, roof, at=(x + 1, y, z + 11), size=(7, 6))
+    m.use("light_bar", x=x, y=y + 1, z=z + 11, lamps=lamps, title=f"{title}: light bar")
+    return fit(z + 11, underside=z + 10)
 
 
 def example(m):

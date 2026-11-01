@@ -5,7 +5,7 @@
 //! tools and edits to the model files and deny everything else. `--dry-run` is for the fake agents in CI: no keychain,
 //! no question before it starts. A turn is one tool call; questions are `ask_user` calls, so they count.
 //!
-//! v0 runs rung 1; 5A adds the other rungs.
+//! It runs rung 1 and the technique prompts T1 to T5 (3E); 5A adds the other rungs.
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, Write};
@@ -27,6 +27,9 @@ const LADDER: &str = include_str!("../../../docs/spec/ladder.md");
 /// Rung 1's budget (plan section 16.1).
 const BUDGET: Duration = Duration::from_secs(10 * 60);
 const MAX_TURNS: usize = 40;
+/// A technique prompt's budget (docs/spec/ladder.md, "Technique prompts").
+const TECHNIQUE_BUDGET: Duration = Duration::from_secs(20 * 60);
+const TECHNIQUE_TURNS: usize = 80;
 const MIN_PARTS: usize = 40;
 const MIN_PARAMS: usize = 3;
 /// The largest replay fixture (plan section 16).
@@ -76,8 +79,24 @@ pub fn rung(ladder: &str, n: &str) -> Option<Rung> {
         .find_map(|p| p.trim().strip_prefix("**Features:**"))
         .map(|p| p.split_whitespace().collect::<Vec<_>>().join(" "))
         .unwrap_or_default();
+    let mut script = script_in(section);
+    // The technique prompts (3E) share one script, in the section before them.
+    if script.is_empty() && n.starts_with('T') {
+        let shared = ladder.find("## Technique prompts").map(|i| &ladder[i..]).unwrap_or("");
+        script = script_in(&shared[..shared[3..].find("\n## ").map_or(shared.len(), |i| i + 3)]);
+    }
+    (!prompt.is_empty()).then_some(Rung {
+        title,
+        prompt,
+        features,
+        script,
+    })
+}
+
+/// The answer table after a section's "**Answer script:**" (or, with none, its only table).
+fn script_in(section: &str) -> Vec<(Vec<String>, String)> {
     let mut script = Vec::new();
-    let mut in_table = false;
+    let mut in_table = !section.contains("**Answer script:**");
     for line in section.lines() {
         if line.starts_with("**Answer script:**") {
             in_table = true;
@@ -97,12 +116,7 @@ pub fn rung(ladder: &str, n: &str) -> Option<Rung> {
             .collect();
         script.push((words, cells[1].to_string()));
     }
-    (!prompt.is_empty()).then_some(Rung {
-        title,
-        prompt,
-        features,
-        script,
-    })
+    script
 }
 
 /// The answer to an `ask_user` question (docs/spec/ladder.md, "How answer scripts work"): the first entry with a
@@ -235,13 +249,18 @@ pub struct Report {
 
 /// Runs the eval and writes its report. Returns the report.
 pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
-    if opts.rung != "1" {
+    let technique = is_technique(&opts.rung);
+    if opts.rung != "1" && !technique {
         return Err(usage(format!(
-            "emmet eval runs rung 1 for now; rung {} arrives with 5A.",
+            "emmet eval runs rung 1 and the technique prompts T1 to T5 for now; rung {} arrives with 5A.",
             opts.rung
         )));
     }
-    let rung = rung(LADDER, "1").ok_or_else(|| Error::internal("docs/spec/ladder.md has no rung 1"))?;
+    // `--rung t1` names the same prompt as T1.
+    let rung = rung(LADDER, &opts.rung.to_ascii_uppercase())
+        .ok_or_else(|| Error::internal(format!("docs/spec/ladder.md has no rung {}", opts.rung)))?;
+    let (budget, max_turns) = limits(&opts.rung);
+    let tag = opts.rung.to_lowercase();
     // The bus: the eval answers questions and approvals itself, so no app may hold this data dir's bus.
     if emmet_bus::listening(data) {
         return Err(Error::new(
@@ -286,7 +305,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
             detection.fix.unwrap_or_default(),
         ));
     }
-    if !opts.dry_run && !opts.yes && !confirm(opts.agent)? {
+    if !opts.dry_run && !opts.yes && !confirm(opts.agent, &opts.rung)? {
         return Err(Error::new(
             ErrorCode::Internal,
             "Canceled; nothing ran.",
@@ -299,9 +318,15 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         Some(w) => w.clone(),
         None => std::env::temp_dir().join(format!("emmet-eval-{}", emmet_core::fsx::random_hex(1))),
     };
-    let root = work.join(format!("rung1-{}", name(opts.agent)));
+    let root = work.join(format!("{}-{}", dir_name(&opts.rung), name(opts.agent)));
     let created = emmet_core::ops::new_project(data, &root, Template::Empty)?;
-    let project = Project::find(Some(Path::new(&created.project)))?;
+    let mut project = Project::find(Some(Path::new(&created.project)))?;
+    if technique {
+        // The build settings the technique prompts run with (docs/spec/ladder.md).
+        project.config.build.base = Some("32 × 32".into());
+        project.config.build.scale = Some("Figure scale".into());
+        project.write_config()?;
+    }
 
     let hub = Hub::default();
     let route = hub.clone();
@@ -347,7 +372,12 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         cli_version: detection.version.clone(),
         ..Default::default()
     };
-    eprintln!("eval: rung 1 on {} in {}", opts.agent.label(), project.root.display());
+    eprintln!(
+        "eval: rung {} on {} in {}",
+        opts.rung,
+        opts.agent.label(),
+        project.root.display()
+    );
     let started = Instant::now();
     session
         .send(UserTurn {
@@ -356,7 +386,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         .map_err(|e| Error::internal(format!("sending the prompt: {}", e.message)))?;
     let mut stopped = false;
     loop {
-        let left = (BUDGET + GRACE).saturating_sub(started.elapsed());
+        let left = (budget + GRACE).saturating_sub(started.elapsed());
         let event = match events.recv_timeout(left.min(Duration::from_secs(5))) {
             Ok(e) => e,
             Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
@@ -365,7 +395,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
                     let _ = session.interrupt();
                     stopped = true;
                 }
-                if started.elapsed() > BUDGET + GRACE * 2 {
+                if started.elapsed() > budget + GRACE * 2 {
                     run.ended = "never ended after Stop".into();
                     break;
                 }
@@ -403,8 +433,8 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
                 run.last_message.clear();
                 run.turns += 1;
                 eprintln!("eval: [{}] {name}", run.turns);
-                if run.turns > MAX_TURNS && !stopped {
-                    eprintln!("eval: over {MAX_TURNS} turns; stopping the turn");
+                if run.turns > max_turns && !stopped {
+                    eprintln!("eval: over {max_turns} turns; stopping the turn");
                     let _ = session.interrupt();
                     stopped = true;
                 }
@@ -457,7 +487,11 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
     let last: Vec<char> = run.last_message.trim().chars().collect();
     run.last_message = last[last.len().saturating_sub(1200)..].iter().collect();
 
-    let scores = score(data, &project, &run);
+    let scores = if technique {
+        score_technique(data, &project, &run, budget, max_turns)
+    } else {
+        score(data, &project, &run)
+    };
     let pass = scores.iter().filter(|s| s.required).all(|s| s.pass);
     let out_dir = match &opts.out {
         Some(o) => o.clone(),
@@ -468,8 +502,8 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
     // A rerun gets its own picture (-2, -3, …): the earlier run's section still shows its own.
     let png_name = (1..)
         .map(|n| match n {
-            1 => format!("{date}-rung1-{}.png", name(opts.agent)),
-            n => format!("{date}-rung1-{}-{n}.png", name(opts.agent)),
+            1 => format!("{date}-{}-{}.png", dir_name(&opts.rung), name(opts.agent)),
+            n => format!("{date}-{}-{}-{n}.png", dir_name(&opts.rung), name(opts.agent)),
         })
         .find(|f| !out_dir.join(f).exists())
         .expect("a free name");
@@ -492,13 +526,19 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         project: project.root.display().to_string(),
     };
     write_report(
-        &out_dir.join(format!("{date}-rung1.md")),
+        &out_dir.join(if technique {
+            format!("{date}-technique.md")
+        } else {
+            format!("{date}-rung1.md")
+        }),
         opts.agent,
+        &tag,
         &rung,
         &report,
         &date,
     )?;
-    if !opts.dry_run && report.run.transcript.is_some() {
+    // The technique prompts measure the library; their transcripts aren't replay fixtures.
+    if !opts.dry_run && !technique && report.run.transcript.is_some() {
         offer_fixture(opts.agent, &report)?;
     }
     Ok(report)
@@ -599,6 +639,81 @@ fn score(data: &DataDir, project: &Project, run: &Run) -> Vec<Score> {
     out
 }
 
+/// A technique prompt's run scored (docs/spec/ladder.md, "Technique prompts"): it runs with 0 validator errors, its
+/// figure_clearance findings (the count the prompts measure), and the budget.
+fn score_technique(data: &DataDir, project: &Project, run: &Run, budget: Duration, max_turns: usize) -> Vec<Score> {
+    let mut out = Vec::new();
+    let built = emmet_core::ops::run_model(data, project, &BTreeMap::new()).0;
+    let checked = built
+        .as_ref()
+        .ok()
+        .map(|_| emmet_core::ops::check_build(data, project, &[]));
+    // What the rule had to check, and what the model allowed: a 0 with no spaces or with every finding allowed isn't a
+    // clean model.
+    let spaces = emmet_core::ops::check_options(project).map_or(0, |o| o.keep_clear.len());
+    let (runs, clearance) = match (&built, &checked) {
+        (Ok(r), Some(Ok(v))) => {
+            let counts: Vec<String> = v.counts.iter().map(|(rule, n)| format!("{rule} {n}")).collect();
+            let n = v.counts.get("figure_clearance").copied().unwrap_or(0);
+            let allowed = v.allowed.iter().filter(|a| a.rule == "figure_clearance").count();
+            (
+                (
+                    v.errors() == 0,
+                    format!(
+                        "{} parts, {} findings ({} errors){}",
+                        r.parts,
+                        v.findings.len(),
+                        v.errors(),
+                        if counts.is_empty() {
+                            String::new()
+                        } else {
+                            format!(": {}", counts.join(", "))
+                        }
+                    ),
+                ),
+                (
+                    n == 0,
+                    format!("{n} findings, {allowed} allowed, in {spaces} spaces kept clear"),
+                ),
+            )
+        }
+        (Ok(_), Some(Err(e))) => {
+            let why = format!("the validator couldn't run: {:?}: {}", e.code, e.message);
+            ((false, why.clone()), (false, why))
+        }
+        (Ok(_), None) => unreachable!("a model that ran is checked"),
+        (Err(e), _) => (
+            (false, format!("{:?}: {}", e.code, e.message)),
+            (false, "the model doesn't run".into()),
+        ),
+    };
+    let mut push = |name: &str, (pass, detail): (bool, String)| {
+        out.push(Score {
+            name: name.into(),
+            required: true,
+            pass,
+            detail,
+        })
+    };
+    push("Runs and validates with 0 errors", runs);
+    push("figure_clearance", clearance);
+    push(
+        "Budget",
+        (
+            run.seconds <= budget.as_secs() && run.turns <= max_turns && run.ended == "completed",
+            format!(
+                "{} min {} s (≤ {} min), {} turns (≤ {max_turns}), ended: {}",
+                run.seconds / 60,
+                run.seconds % 60,
+                budget.as_secs() / 60,
+                run.turns,
+                run.ended
+            ),
+        ),
+    );
+    out
+}
+
 /// Whether a part with this LDraw category and name is a `kind` ("Door", "Window", "Slope"): its category, or a word of
 /// its name. Categories alone miss parts: "Train Window 1 x 4 x 3 with Trans-Clear Glass" is filed under Train.
 fn is_a(category: &str, name: &str, kind: &str) -> bool {
@@ -674,12 +789,29 @@ fn other_value(spec: &emmet_core::ops::ParamSpec, current: &Value) -> Option<Val
 }
 
 /// Writes (or updates) the agent's section of the day's report.
-fn write_report(path: &Path, agent: AgentKind, rung: &Rung, r: &Report, date: &str) -> Result<()> {
-    let tag = name(agent);
+fn write_report(path: &Path, agent: AgentKind, rung_tag: &str, rung: &Rung, r: &Report, date: &str) -> Result<()> {
+    // Rung 1's report has a section per agent; the technique report, one per prompt and agent.
+    let technique = is_technique(rung_tag);
+    let tag = if technique {
+        format!("{rung_tag}-{}", name(agent))
+    } else {
+        name(agent).to_string()
+    };
+    let heading = if technique {
+        format!("{}, {}", rung.title, r.run.agent)
+    } else {
+        r.run.agent.clone()
+    };
     let mut section = vec![
         format!("<!-- eval:{tag} -->"),
-        format!("## {} — {}", r.run.agent, if r.pass { "pass" } else { "fail" }),
+        format!("## {heading} — {}", if r.pass { "pass" } else { "fail" }),
         String::new(),
+    ];
+    if technique {
+        section.push(format!("**Prompt:** {}", rung.prompt));
+        section.push(String::new());
+    }
+    section.extend([
         format!(
             "{} {}, model {}, billed to {}. Emmet {}.",
             r.run.agent,
@@ -691,7 +823,7 @@ fn write_report(path: &Path, agent: AgentKind, rung: &Rung, r: &Report, date: &s
         String::new(),
         "| Score | Required | Result | Detail |".into(),
         "|---|---|---|---|".into(),
-    ];
+    ]);
     for s in &r.scores {
         section.push(format!(
             "| {} | {} | {} | {} |",
@@ -762,16 +894,17 @@ fn write_report(path: &Path, agent: AgentKind, rung: &Rung, r: &Report, date: &s
                     &format!("<!-- /eval:{tag}-run{earlier} -->"),
                 );
             let section = if kept != text {
-                section.replacen(
-                    &format!("## {}", r.run.agent),
-                    &format!("## {} (rerun)", r.run.agent),
-                    1,
-                )
+                section.replacen(&format!("## {heading}"), &format!("## {heading} (rerun)"), 1)
             } else {
                 section
             };
             format!("{}\n\n{section}\n", kept.trim_end())
         }
+        None if technique => format!(
+            "# Live eval: the technique prompts ({date})\n\nRun by `emmet eval --rung T1` to `T5` (docs/spec/ladder.md, \
+             \"Technique prompts\", session 3E): one run per prompt and agent on the eval API keys, headless, at figure \
+             scale on a 32 × 32 base, with questions answered from the prompts' script.\n\n{section}\n"
+        ),
         None => format!(
             "# Live eval: {} ({date})\n\nRun by `emmet eval --rung 1` (plan section 16.1, D-38): one run per agent on the eval API \
              keys, headless, with questions answered from the rung's script in docs/spec/ladder.md.\n\n**Prompt:** {}\n\n\
@@ -783,15 +916,22 @@ fn write_report(path: &Path, agent: AgentKind, rung: &Rung, r: &Report, date: &s
 }
 
 /// Asks before a live run (D-38): what it runs, what it bills, and what it costs.
-fn confirm(agent: AgentKind) -> Result<bool> {
+fn confirm(agent: AgentKind, rung: &str) -> Result<bool> {
     let (key, provider) = match agent {
         AgentKind::Claude => ("emmet-eval-anthropic", "Anthropic"),
         AgentKind::Codex => ("emmet-eval-openai", "OpenAI"),
     };
+    let (budget, turns) = limits(rung);
+    let (minutes, cost) = if is_technique(rung) {
+        ("10 to 20", "$2 to $10")
+    } else {
+        ("5 to 10", "$1 to $5")
+    };
     eprintln!(
-        "Live eval: rung 1 on {}, 1 run, billed to your {provider} API key (keychain item {key}).\nExpected: 5 to 10 \
-         minutes and about $1 to $5. It stops at 10 minutes (plus 2 to finish) or {MAX_TURNS} turns.\nRun it? [y/N] ",
-        agent.label()
+        "Live eval: rung {rung} on {}, 1 run, billed to your {provider} API key (keychain item {key}).\nExpected: \
+         {minutes} minutes and about {cost}. It stops at {} minutes (plus 2 to finish) or {turns} turns.\nRun it? [y/N] ",
+        agent.label(),
+        budget.as_secs() / 60
     );
     let mut line = String::new();
     std::io::stdin()
@@ -850,6 +990,29 @@ fn repo_dir() -> Result<PathBuf> {
     emmet_core::fsx::canonical(&dir).map_err(|e| Error::io(&dir, e))
 }
 
+/// A technique prompt: T1 to T5 (or the report's tag for one, t1 to t5).
+fn is_technique(rung: &str) -> bool {
+    matches!(rung.to_ascii_uppercase().as_str(), "T1" | "T2" | "T3" | "T4" | "T5")
+}
+
+/// The run's time and turn budget.
+fn limits(rung: &str) -> (Duration, usize) {
+    if is_technique(rung) {
+        (TECHNIQUE_BUDGET, TECHNIQUE_TURNS)
+    } else {
+        (BUDGET, MAX_TURNS)
+    }
+}
+
+/// The run's project folder and picture name: `rung1`, `t1`, …
+fn dir_name(rung: &str) -> String {
+    if is_technique(rung) {
+        rung.to_lowercase()
+    } else {
+        format!("rung{rung}")
+    }
+}
+
 fn name(agent: AgentKind) -> &'static str {
     match agent {
         AgentKind::Claude => "claude",
@@ -861,7 +1024,7 @@ fn usage(message: String) -> Error {
     Error::new(
         ErrorCode::ParamInvalid,
         message,
-        "Run emmet eval --rung 1 --agent claude|codex.",
+        "Run emmet eval --rung 1 (or T1 to T5) --agent claude|codex.",
     )
 }
 
@@ -920,6 +1083,75 @@ mod tests {
         );
         assert_eq!(r.script.len(), 6);
         assert_eq!(r.script[1].0, ["size", "footprint", "how big"]);
+    }
+
+    #[test]
+    fn the_technique_prompts_read_from_the_ladder_with_their_shared_script() {
+        for n in ["T1", "T2", "T3", "T4", "T5"] {
+            let r = rung(LADDER, n).unwrap_or_else(|| panic!("rung {n}"));
+            assert!(
+                r.prompt.starts_with("Build ") && r.prompt.contains("green 32 × 32 baseplate"),
+                "{n}: {}",
+                r.prompt
+            );
+            assert!(!r.features.is_empty(), "{n}");
+            assert_eq!(r.script.len(), 3, "{n}: {:?}", r.script);
+            assert_eq!(r.script[0].0, ["scale", "size", "how big"]);
+        }
+        assert!(
+            rung(LADDER, "T1")
+                .unwrap()
+                .prompt
+                .contains("two benches under the canopy")
+        );
+        assert_eq!(rung(LADDER, "1").unwrap().script.len(), 6, "rung 1 keeps its own");
+    }
+
+    /// The baseline runs' report headed every section with the agent alone, and called all but the first two reruns:
+    /// write_report got the lowercase tag, which is_technique didn't take.
+    #[test]
+    fn a_technique_report_has_a_section_per_prompt_and_agent() {
+        let dir = std::env::temp_dir().join(format!("emmet-eval-report-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("technique.md");
+        let _ = std::fs::remove_file(&path);
+        for n in ["T1", "T2"] {
+            for agent in [AgentKind::Claude, AgentKind::Codex] {
+                let report = Report {
+                    rung: n.into(),
+                    run: Run {
+                        agent: agent.label().into(),
+                        ..Default::default()
+                    },
+                    scores: vec![],
+                    pass: true,
+                    render: None,
+                    project: String::new(),
+                };
+                write_report(
+                    &path,
+                    agent,
+                    &n.to_lowercase(),
+                    &rung(LADDER, n).unwrap(),
+                    &report,
+                    "2026-10-31",
+                )
+                .unwrap();
+            }
+        }
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(text.starts_with("# Live eval: the technique prompts"), "{text}");
+        let heads: Vec<&str> = text.lines().filter(|l| l.starts_with("## ")).collect();
+        assert_eq!(
+            heads,
+            [
+                "## Rung T1: The station, Claude Code — pass",
+                "## Rung T1: The station, Codex — pass",
+                "## Rung T2: A corner shop with an awning, Claude Code — pass",
+                "## Rung T2: A corner shop with an awning, Codex — pass",
+            ]
+        );
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

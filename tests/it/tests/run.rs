@@ -68,8 +68,8 @@ fn new_then_run_matches_the_golden() {
 
     let (v, code) = emmet_in(&demo, &["run"]);
     assert_eq!(code, 0, "{v}");
-    assert_eq!(v["data"]["parts"], 903);
-    assert_eq!(v["data"]["steps"], 161);
+    assert_eq!(v["data"]["parts"], 905);
+    assert_eq!(v["data"]["steps"], 160);
     assert_eq!(
         v["data"]["bbox"],
         serde_json::json!({ "min": [0.0, 0.0, 0.0], "max": [32.0, 32.0, 54.93125] })

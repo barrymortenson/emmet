@@ -73,7 +73,8 @@ enum Command {
         #[arg(long)]
         strict: bool,
         /// Only these rules (repeatable): collision, floating, disconnected_submodel, step_order, step_size,
-        /// weak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part.
+        /// weak_connection, off_grid, part_unavailable, color_unavailable, unknown_part, obsolete_part, alias_part,
+        /// figure_clearance.
         #[arg(long = "rule", value_name = "RULE")]
         rules: Vec<String>,
         /// Check the model run with these values, on top of params.json (which isn't changed).
@@ -731,7 +732,8 @@ fn main() -> ExitCode {
             let pass = result.as_ref().is_ok_and(|r| r.pass);
             let code = finish(&cli, started, result.into(), |r| {
                 let mut lines = vec![format!(
-                    "Rung 1 on {}: {} ({} min {} s, {} turns)",
+                    "Rung {} on {}: {} ({} min {} s, {} turns)",
+                    rung,
                     r.run.agent,
                     if r.pass { "pass" } else { "fail" },
                     r.run.seconds / 60,

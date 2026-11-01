@@ -189,6 +189,17 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - One tip at a time, the first time it's useful: the first knob, the first finding, and the first export.
 - `scripts/scrub-transcript --trim`, which fits a live run under the 200 KB fixture limit; rung 1 replayed from 1D's
   live runs (`tests/replay/{claude,codex}/rung1.jsonl`).
+- Good building technique by default (session 3E, D-52): the building rules an experienced builder applies without
+  being told (`docs/spec/building-rules.md`, approved by Barry), and the `figure_clearance` rule (D-53), a warning listed
+  first among the warnings, for a part standing where a figure needs to walk or sit. Spaces come from `m.keep_clear`
+  (new in the DSL): the techniques that place doors, seats, porches, and colonnades declare theirs, and the agent
+  declares the ones it builds by hand. The golden `broken-figure-clearance` and the faults for its recall come with it.
+- The technique audit (`docs/techniques/audit.md`): every technique checked against the rules, 39 fixed. Canopies,
+  porches, colonnades, and doorways clear a 1 x 4 x 6 door at their defaults and take the height a builder would
+  change; seats keep a figure's room; techniques return what the next part fits against (`.door_top`, `.columns`,
+  `.posts`, `.underside`), as attributes of the z they always returned.
+- Five technique prompts (`docs/spec/ladder.md`, T1 to T5) that `emmet eval` runs, scored on their figure_clearance
+  findings.
 
 ### Security
 
@@ -220,6 +231,11 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   depth are 14–20 and 10–12. A detailed model may name up to eight knobs (two to five otherwise).
 - Technique examples are checked standing on their lowest level, as on a baseplate, so a floating part can't pass as a
   separate toy on the table.
+- The Cottage keeps a figure's way clear (3E): its porch stands to the front door's top and tucks under the eaves, the
+  clock that hung over the doorway is gone, the narrowest house has no hearth, the kitchen table goes in only in the
+  widest house, and its lamps, snowman, and lawn bed stand clear of the doors and the bench. 905 parts at its defaults.
+- The doctrine's loop fixes figure_clearance after the errors and looks in the render for a door a figure can walk
+  through, a seat it can sit on, and every roof edge meeting what's under it; the figure-scale guide has the clearances.
 - Search ranks corner shapes ("Corner Round") below plain ones unless the query says "corner".
 
 - `m.wall` lays each course in bond over the joints of the course below that a `m.wall` laid, so no joint sits on a

@@ -7,12 +7,15 @@ lays a floor over the rectangle whose front-left corner is (x, y), `length` stud
 z, where its two end columns (x and x + length - 1) rest on the tops of the room's end walls. The first layer is plates
 in strips along x, the second strips across them along y, so the seams cross and the floor is one piece. A rail of
 lattice fences 1 x 4 x 1 (and round bricks where a fence won't fit) stands on the edge toward `edge` ("-y" or "+y"),
-between the walls. Carry the end walls on up on the loft's end columns. Set it 5 to 6 bricks over the room's floor, over
-a third to a half of the plan, so the room below shows from the open side. It brings its own steps, "<title>, first
-layer", "<title>, second layer", and "<title>, rail", and returns the z of the loft's top, z + 2.
+between the walls. Carry the end walls on up on the loft's end columns. z is the loft's underside, where a figure
+walks under it: set it 5 to 6 bricks over the room's floor (5 is the least a figure walks under), and at or above the
+top of a door under it (a door_frame's .door_top; docs/spec/building-rules.md, rule 1), over a third to a half of the
+plan, so the room below shows from the open side. It brings its own steps, "<title>, first layer", "<title>, second
+layer", and "<title>, rail", and returns the z of the loft's top, z + 2, with .underside (z).
 """
 
 from emmet_dsl import Plate
+from emmet_dsl.core import fit
 
 PROVENANCE = """Emmet's own (session 3D), from a method in the instruction books of set 11387, set 43268. Not derived
 from any model file."""
@@ -32,7 +35,7 @@ def build(
     rail="Reddish Brown",
     title="Loft",
 ):
-    """The loft; returns the z of its top."""
+    """The loft; returns the z of its top, with .underside."""
     if edge not in ("-y", "+y"):
         raise ValueError(f'edge must be "-y" or "+y", not {edge!r}')
     with m.step(f"{title}, first layer"):
@@ -68,7 +71,7 @@ def build(
                 at=(x + 1 + inner // 4 * 4 + k, ry, z + 2),
                 id=f"{title.lower()}/post/{k + 1}",
             )
-    return z + 2
+    return fit(z + 2, underside=z)
 
 
 def example(m):
