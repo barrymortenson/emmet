@@ -719,3 +719,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   2026-11-01). The macOS halves of Done when 1 and 2 are ticked; a manual CI run with its "windows" box checked
   reports the hosted Windows numbers and writes Windows baselines from its artifact. Rejected: leaving Windows wholly
   to the Windows pass, as 4A and 4B did, and holding the PR until then.
+- **One pin per rule, and only for rules about a place** (Barry, through AskUserQuestion, 2026-11-02). A model with
+  many step-size warnings showed five pins, each "A step adds more parts than the age allows", stacked over the
+  model's middle. Now each rule about where parts are (floating, collision, weak connection, figure clearance) gets
+  one pin over all its findings' parts, naming their count; a click opens the rule's first finding in Checks. Step
+  size, step order, and the library rules get no pin. Replaces 4C's "pins for the worst five findings". Rejected: one
+  pin per rule including step size, and a pin per place finding up to five.

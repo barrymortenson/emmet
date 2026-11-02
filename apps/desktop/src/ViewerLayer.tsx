@@ -84,6 +84,7 @@ export function ViewerLayer({
   const name = useNames(scene);
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
   const [box, setBox] = useState<Rect | null>(null);
+  const pins = useMemo(() => pinned(findings), [findings]);
   useEffect(() => {
     if (!viewer) return;
     const off = [viewer.on("hover", setHover), viewer.on("boxing", setBox)];
@@ -101,7 +102,7 @@ export function ViewerLayer({
         </div>
       )}
       {box && <div className="viewer-box" id="viewer-box" aria-hidden="true" style={{ left: box.x, top: box.y, width: box.width, height: box.height }} />}
-      {showPins && viewer && pinned(findings).map((f) => <Pin key={f.id} viewer={viewer} finding={f} tick={tick} onPin={onPin} />)}
+      {showPins && viewer && pins.map((p) => <Pin key={p.rule} viewer={viewer} pin={p} tick={tick} onPin={onPin} />)}
       {shown && scene && <StepBox key={`${scene.generation}:${shown.n}`} viewer={viewer} scene={scene} step={shown} tick={tick} />}
       {cut != null && (
         <div className="viewer-bar" role="status" id="cut-bar">
@@ -123,31 +124,38 @@ export function ViewerLayer({
   );
 }
 
-/** At most this many pins at once: a model with many findings points at the worst few, and Checks lists them all. */
-const PINS = 5;
 const SEVERITY: Record<string, number> = { error: 0, warning: 1 };
 
-/** The findings that get a pin: those with parts, errors first, then warnings, in Checks' order. */
-function pinned(findings: Finding[]): Finding[] {
-  return findings
-    .filter((f) => f.parts.length && f.severity !== "info")
-    .map((f, i) => [f, i] as const)
-    .sort(([a, i], [b, j]) => (SEVERITY[a.severity] ?? 3) - (SEVERITY[b.severity] ?? 3) || i - j)
-    .slice(0, PINS)
-    .map(([f]) => f);
+/** One pin for each rule about where parts are, over all its findings' parts: five floating findings make one "12
+ * parts float", not five pins stacked over the model. A click opens the rule's first finding in Checks. */
+type PinGroup = { rule: string; first: Finding; parts: string[]; words: string };
+
+/** The pins: errors first, then warnings, in Checks' order. */
+function pinned(findings: Finding[]): PinGroup[] {
+  const groups = new Map<string, { first: Finding; worst: number; at: number; parts: Set<string> }>();
+  findings.forEach((f, i) => {
+    if (!f.parts.length || f.severity === "info" || pinWords(f.rule, 1) == null) return;
+    const g = groups.get(f.rule) ?? { first: f, worst: 3, at: i, parts: new Set<string>() };
+    g.worst = Math.min(g.worst, SEVERITY[f.severity] ?? 3);
+    for (const id of f.parts) g.parts.add(id);
+    groups.set(f.rule, g);
+  });
+  return [...groups]
+    .sort(([, a], [, b]) => a.worst - b.worst || a.at - b.at)
+    .map(([rule, g]) => ({ rule, first: g.first, parts: [...g.parts], words: pinWords(rule, g.parts.size) ?? "" }));
 }
 
-/** A finding's pin, just above its parts, with its glyph and a few words; it opens the finding in Checks. */
-function Pin({ viewer, finding, tick, onPin }: { viewer: Viewer; finding: Finding; tick: number; onPin: (f: Finding) => void }) {
-  const at = useMemo(() => viewer.screenPoint(finding.parts), [viewer, finding, tick]);
+/** A rule's pin, just above its parts, with its glyph and a few words; it opens the rule's first finding in Checks. */
+function Pin({ viewer, pin, tick, onPin }: { viewer: Viewer; pin: PinGroup; tick: number; onPin: (f: Finding) => void }) {
+  const at = useMemo(() => viewer.screenPoint(pin.parts), [viewer, pin.parts, tick]);
   if (!at?.visible) return null;
-  const glyph = finding.rule === "floating" ? "floating" : finding.rule === "collision" ? "collision" : "triangle-alert";
+  const glyph = pin.rule === "floating" ? "floating" : pin.rule === "collision" ? "collision" : "triangle-alert";
   return (
-    <button type="button" className="pin viewer-pin" data-c="pin" data-pin={finding.id} style={{ left: at.x, top: at.y }} onClick={() => onPin(finding)}>
+    <button type="button" className="pin viewer-pin" data-c="pin" data-pin={pin.rule} style={{ left: at.x, top: at.y }} onClick={() => onPin(pin.first)}>
       <span className="pin-dot">
         <Icon name={glyph} size="sm" />
       </span>
-      {pinWords(finding)}
+      {pin.words}
     </button>
   );
 }

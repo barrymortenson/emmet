@@ -24,7 +24,8 @@ const RULES: Record<string, [tag: string, headline: (n: number) => string]> = {
 
 const rule = (r: string): [string, (n: number) => string] => RULES[r] ?? [r.replaceAll("_", " "), (n) => `${n} parts need a look`];
 
-/** A pin's few words, beside the parts on the viewer: "9 parts float". */
+/** A pin's few words, beside the parts on the viewer: "9 parts float". Only the rules about where parts are get a pin;
+ * a step's size or order, or a part the library doesn't have, isn't a place to point at, and stays in Checks. */
 const PINS: Record<string, (n: number) => string> = {
   floating: (n) => (n === 1 ? "1 part floats" : `${n} parts float`),
   collision: (n) => `${n} parts overlap`,
@@ -32,9 +33,9 @@ const PINS: Record<string, (n: number) => string> = {
   figure_clearance: (n) => (n === 1 ? "1 part in a figure's way" : `${n} parts in a figure's way`),
 };
 
-export function pinWords(f: Finding): string {
-  const n = f.parts.length;
-  return (PINS[f.rule] ?? rule(f.rule)[1])(n);
+/** A pin's words for `n` parts of `rule`, or null when the rule gets no pin. */
+export function pinWords(rule: string, n: number): string | null {
+  return PINS[rule]?.(n) ?? null;
 }
 
 /** The validator's sentence for the screen: a part named "wall/a (Brick 2 x 4)" reads "Brick 2 x 4" (no ids, law 2). */

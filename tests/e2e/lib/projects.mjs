@@ -33,7 +33,7 @@ const PROJECTS = {
   import: [["", "cottage"]],
   versions: [["", "cottage"]],
   keyboard: [["", "cottage"]],
-  interact: [["", "cottage"], ["floating", "broken-floating"], ["town", "scene-stress", { buildings: 2, floors: 1 }]],
+  interact: [["", "cottage"], ["floating", "broken-floating"], ["pins", "pins-grouped"], ["town", "scene-stress", { buildings: 2, floors: 1 }]],
   animate: [["", "cottage"]],
   perf: [["", "scene-stress"]],
   screens: [["", "cottage"], ["floating", "broken-floating"], ["untrusted", "cottage-untrusted"]],

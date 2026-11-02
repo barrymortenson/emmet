@@ -15,6 +15,7 @@ import { projectDir } from "../lib/projects.mjs";
 
 const cottage = projectDir("interact");
 const floating = projectDir("interact-floating");
+const pins = projectDir("interact-pins");
 const town = projectDir("interact-town");
 
 /** Sends a pointer event to the viewer's canvas at (x, y) in its own CSS pixels. */
@@ -290,5 +291,16 @@ describe("the viewer's interactions", () => {
     expect(s.mode).toBe("issue");
     expect(s.highlighted).toBeGreaterThan(0);
     expect(await camera()).toEqual(before);
+  });
+
+  it("findings of one rule share a pin, and a step's size gets none", async () => {
+    // Two floating bricks far apart and a step of ten: one "2 parts float" pin, not two, and no step-size pin stacked
+    // over the model (the step-size warning is in Checks).
+    await open(pins);
+    const pin = await $(".viewer-pin");
+    await pin.waitForDisplayed({ timeoutMsg: "the floating findings have no pin" });
+    await expect($$(".viewer-pin")).toBeElementsArrayOfSize(1);
+    await expect(pin).toHaveAttribute("data-pin", "floating");
+    await expect(pin).toHaveText(expect.stringContaining("2 parts float"));
   });
 });
