@@ -53,6 +53,14 @@ describe("the viewer's budgets at 2,000 parts", () => {
     const frames = await browser.execute(async () => {
       const v = window.__emmet.viewer();
       v.skipAnimation();
+      // WebKit's own frame interval with nothing to draw: the floor under the frames below. At 33.3 ms (30 fps), WebKit
+      // or the display is throttling the window, and an orbit frame can't come in faster whatever the viewer costs.
+      const screen = await new Promise((resolve) => {
+        let n = 0;
+        const t0 = performance.now();
+        const tick = () => (++n < 30 ? requestAnimationFrame(tick) : resolve((performance.now() - t0) / n));
+        requestAnimationFrame(tick);
+      });
       const frame = () => Promise.race([v.nextFrame().then(() => true), new Promise((r) => setTimeout(() => r(false), 1000))]);
       const run = async (step) => {
         await frame();
@@ -73,8 +81,9 @@ describe("the viewer's budgets at 2,000 parts", () => {
       const animation = await run(() => {});
       const calls = v.stats().drawCalls;
       v.skipAnimation();
-      return { orbit, animation, calls };
+      return { screen, orbit, animation, calls };
     });
+    console.log(`screenFrameMs: ${frames.screen.toFixed(1)} (WebKit's frame interval with nothing drawn; not a budget)`);
     within("orbitFrameMs", Number(frames.orbit.toFixed(1)));
     within("animationFrameMs", Number(frames.animation.toFixed(1)));
     within("drawCalls", (await stats()).drawCalls);
