@@ -731,3 +731,6 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   run failed the same way). Now `just check` builds the frontend when dist is missing, and warm_run_is_fast reports
   on hosted runners and enforces 400 ms on the self-hosted Mac, as perf.e2e.mjs does. Rejected: a separate `ci:` PR
   first, and leaving 4C's Windows half unticked.
+- **Hosted CI jobs get 45 minutes** (Barry, through AskUserQuestion, 2026-11-02). The rerun passed all of Windows'
+  `just test` (21 minutes, cold) and was stopped at 25 building the E2E app; the hosted Mac stopped at 20. A full run
+  on a hosted runner now has 45 minutes for the windows job and the mac job; the warm self-hosted Mac keeps 20.
