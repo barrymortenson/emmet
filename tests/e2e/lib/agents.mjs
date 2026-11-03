@@ -9,7 +9,7 @@
 // one ("not installed") and have fake-install (EMMET_FAKE_INSTALL) put it back; the app never looks on PATH for them.
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { bin, out, repo } from "./paths.mjs";
 
@@ -38,10 +38,42 @@ export function install(cli) {
   copyFileSync(bin(`fake-${cli}`), installed[cli]);
 }
 
-/** Sets the app's environment for the fakes (wdio's onPrepare, before the service starts the app). */
+/** Removes `dir`. Windows won't delete a running exe, and the shared app keeps a spec's agent running into the next
+ * spec (fake claude.exe, CI run 41566073449), but it will rename one: so a file that can't go is moved out of the
+ * way, into out/held, and the next run's start clears it. */
+function remove(dir) {
+  try {
+    rmSync(dir, { recursive: true, force: true });
+  } catch (e) {
+    if (process.platform !== "win32" || e.code !== "EPERM") throw e;
+    const held = join(out, "held");
+    mkdirSync(held, { recursive: true });
+    const walk = (d) => {
+      for (const name of readdirSync(d, { withFileTypes: true })) {
+        const p = join(d, name.name);
+        if (name.isDirectory()) walk(p);
+        else
+          try {
+            rmSync(p, { force: true });
+          } catch {
+            renameSync(p, join(held, `${Date.now()}-${Math.random().toString(36).slice(2)}-${name.name}`));
+          }
+      }
+    };
+    walk(dir);
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/** Sets the app's environment for the fakes (wdio's onPrepare, and before each spec file). */
 export function prepareAgents() {
-  rmSync(fakeDir, { recursive: true, force: true });
-  rmSync(agentHome, { recursive: true, force: true });
+  try {
+    rmSync(join(out, "held"), { recursive: true, force: true });
+  } catch {
+    // An exe moved there may still be running; it goes on a later run.
+  }
+  remove(fakeDir);
+  remove(agentHome);
   mkdirSync(fakeDir, { recursive: true });
   for (const [rel, text] of Object.entries(SENTINELS)) {
     const p = join(agentHome, rel);
