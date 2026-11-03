@@ -173,7 +173,7 @@ e2e *spec: e2e-build
         *) shared+=(--spec "specs/$s.e2e.mjs") ;;
       esac
     done
-    run --spec specs/hello.e2e.mjs || {
+    EMMET_E2E_GATE=1 run --spec specs/hello.e2e.mjs || {
       echo "e2e: hello failed, so this app or machine can't run E2E (see its error); the other specs didn't run" >&2
       exit 1
     }

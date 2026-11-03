@@ -20,6 +20,7 @@ const bench = process.env.EMMET_BENCH === "1";
 // environment, only the Python interpreter the shared one downloaded (uv would download the same), and the library
 // from lib/library-server.mjs. `just e2e` runs it after the shared run.
 const firstRun = process.env.EMMET_E2E_FIRST_RUN === "1";
+const gate = process.env.EMMET_E2E_GATE === "1";
 const fresh = join(out, "first-run-data");
 
 /** The specs this run takes. */
@@ -40,9 +41,10 @@ export const config = {
   reporters: ["spec"],
   logLevel: "warn",
   // One retry is allowed in E2E only (plan section 16).
-  // First run can't be tried again on the data dir its first try set up.
-  specFileRetries: bench || firstRun ? 0 : 1,
-  mochaOpts: { timeout: bench ? 600_000 : 120_000 },
+  // First run can't be tried again on the data dir its first try set up. hello alone (EMMET_E2E_GATE=1, just e2e) is
+  // the gate: a machine that can't draw the window fails it at once, with no retry and nothing after the first failure.
+  specFileRetries: bench || firstRun || gate ? 0 : 1,
+  mochaOpts: { timeout: bench ? 600_000 : 120_000, bail: gate },
   async onPrepare() {
     const shared = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
     process.env.EMMET_DATA_DIR = shared;
@@ -110,6 +112,6 @@ export const config = {
   async beforeTest() {
     const visible = () => browser.execute(() => document.visibilityState === "visible");
     if (await visible()) return;
-    await browser.waitUntil(visible, { timeout: 15_000, interval: 1000, timeoutMsg: "WebKit isn't drawing the app's window: it's minimized or hidden, or covered while the switch that keeps a covered window drawing is missing (apps/desktop/src-tauri/src/e2e.rs). E2E needs the window on screen" });
+    await browser.waitUntil(visible, { timeout: 15_000, interval: 1000, timeoutMsg: "WebKit isn't drawing the app's window: it's minimized or hidden, on another Space or behind a full-screen app, or covered while the switch that keeps a covered window drawing is missing (apps/desktop/src-tauri/src/e2e.rs). E2E needs the window on screen" });
   },
 };
