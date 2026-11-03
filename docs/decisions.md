@@ -725,3 +725,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   one pin over all its findings' parts, naming their count; a click opens the rule's first finding in Checks. Step
   size, step order, and the library rules get no pin. Replaces 4C's "pins for the worst five findings". Rejected: one
   pin per rule including step size, and a pin per place finding up to five.
+- **Two CI faults fixed in 4C's PR, then Windows CI once more** (Barry, through AskUserQuestion, 2026-11-02). The
+  manual Windows run stopped before E2E: hosted Windows took 720 ms for a warm `emmet run` against tests/it's 400 ms,
+  and the hosted Mac's `just check` ran clippy before a fresh checkout had built apps/desktop/dist (main's scheduled
+  run failed the same way). Now `just check` builds the frontend when dist is missing, and warm_run_is_fast reports
+  on hosted runners and enforces 400 ms on the self-hosted Mac, as perf.e2e.mjs does. Rejected: a separate `ci:` PR
+  first, and leaving 4C's Windows half unticked.

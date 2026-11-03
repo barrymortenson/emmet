@@ -47,6 +47,8 @@ dev *project:
 # unsafe code only where D-50 allows it.
 check:
     cargo fmt --all --check
+    # Clippy compiles the desktop crate, which embeds apps/desktop/dist: a fresh checkout (a hosted runner) builds it.
+    [[ -d apps/desktop/dist ]] || pnpm -r build
     cargo clippy --workspace --all-targets --locked -- -D warnings
     pnpm -r typecheck
     pnpm exec eslint .
