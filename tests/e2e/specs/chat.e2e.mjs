@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { instances, invoke, open, screenshots } from "../lib/app.mjs";
 import { agentConfigHashes, fakeDir, scenario } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
+import { nightlyIt } from "../tiers.mjs";
 
 const projects = { claude: projectDir("chat"), codex: projectDir("chat-codex") };
 const NAME = { claude: "Claude", codex: "Codex" };
@@ -320,9 +321,9 @@ describe("switching agents", () => {
 });
 
 describe("the chat overall", () => {
-  // The window measures from the host having the event to the change being in the DOM; the next frame paints it, so
-  // the budget is 50 ms less one 60 Hz frame.
-  it("adds under 50 ms between an agent event and its pixels", async () => {
+  // The two timing checks run nightly (tests/e2e/tiers.mjs). The window measures from the host having the event to the
+  // change being in the DOM; the next frame paints it, so the budget is 50 ms less one 60 Hz frame.
+  nightlyIt("adds under 50 ms between an agent event and its pixels", async () => {
     const all = await browser.execute(() => window.__emmet.chatLatency());
     // Every event but the rung 1 builds' (whose time is the viewer's, logged by that test).
     const ms = [...all];
@@ -334,7 +335,7 @@ describe("the chat overall", () => {
     expect(p95).toBeLessThan(50 - 17);
   });
 
-  it("stays smooth at 1,000 messages", async () => {
+  nightlyIt("stays smooth at 1,000 messages", async () => {
     // A project whose history holds 1,000 messages: 500 asks and 500 replies, in one conversation.
     const dir = projects.codex;
     const chatDir = join(dir, ".emmet", "chat");

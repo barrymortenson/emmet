@@ -1,9 +1,9 @@
 name: ci
 
 # A PR's own pushes only: the merge to main was already tested as the PR's merge commit, so main doesn't run it again.
-# Everything runs weekly, by hand, and on a PR labeled full-ci (from its next push: a labeled trigger would make the
-# labeler the actor, and send someone else's commits to the self-hosted Mac); otherwise scripts/ci-scope.sh picks
-# what the change can break (plan section 16).
+# Everything a PR can run runs weekly, by hand, and on a PR labeled full-ci (from its next push: a labeled trigger
+# would make the labeler the actor, and send someone else's commits to the self-hosted Mac); otherwise
+# scripts/ci-scope.sh picks what the change can break (plan section 16). nightly.yml runs the rest.
 on:
   pull_request:
   schedule:
@@ -39,7 +39,6 @@ jobs:
       windows: ${{ steps.scope.outputs.windows }}
       e2e_windows: ${{ steps.scope.outputs.e2e_windows }}
       nsis: ${{ steps.scope.outputs.nsis }}
-      bench: ${{ steps.scope.outputs.bench }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -130,7 +129,7 @@ jobs:
         env:
           EMMET_CI_BASE: ${{ needs.scope.outputs.base }}
           EMMET_CI_FULL: ${{ needs.scope.outputs.full == 'true' && '1' || '' }}
-      # Screenshots (light and dark), renders, visual diffs, the leak and bench numbers.
+      # Screenshots, renders, and visual diffs.
       - name: E2E output
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -198,11 +197,10 @@ jobs:
           name: emmet-windows-vm
           path: vm/
           retention-days: 7
-      # Windows E2E (about 5 minutes) only when the native side or the specs change, or with everything else.
+      # Windows E2E: the specs for paths and processes (tests/e2e/tiers.mjs windows), only when the native side or the
+      # specs change, or with everything else.
       - if: needs.scope.outputs.e2e_windows == 'true'
-        run: just e2e
-      - if: needs.scope.outputs.bench == 'true'
-        run: just bench
+        run: just e2e windows
       - name: E2E output
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -287,7 +285,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || 'origin/main' }}
           HEAD: ${{ github.event.pull_request.head.sha || 'HEAD' }}
         run: scripts/dco-check.sh "$BASE" "$HEAD"
-      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs tests/scripts/contrast-check.test.mjs
+      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/e2e-tiers.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs tests/scripts/contrast-check.test.mjs
 
   # The one required check: green only when scope and plan passed and each OS job (and nsis) passed or was scoped out.
   ci:

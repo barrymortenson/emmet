@@ -687,3 +687,26 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **H-27, part 2: the after renders are better** (Barry, through AskUserQuestion). The technique prompts went from 4
   figure_clearance findings in the baseline to 0 at the end on both agents, and both stations centered their benches
   between the columns and stood the canopy at the booth's door height, unprompted (`docs/evals/2026-10-31-technique.md`).
+
+## 2026-11-03: CI runs what proves the app works
+
+- **Lean tests and scoped CI** (Barry, through AskUserQuestion: "the ci should also only run what is needed for the
+  changes in the app"). PR runs had passed section 16's own budget (a full Mac run took 16 minutes, and 19 of the
+  last 60 runs failed, nearly all in Mac E2E). Now:
+  - **E2E in tiers** (`tests/e2e/tiers.mjs`): core (opening a project, slider to viewer, a broken model and its
+    recovery, chat with each fake agent, trust, a killed run, versions, import, Checks, render through MCP, and the
+    visual scenes) for any change that reaches the app; each area's specs when its code changes; and a nightly tier
+    (the frozen screens and dock states as screenshots, memory over 100 changes, chat's two timing checks) that runs
+    daily with everything else. Nothing was deleted: the nightly tier still runs every day. `hello` runs first and
+    alone, stops the run when it fails, and fails in a second when WebKit throttles the window to 30 fps; `just e2e`
+    stops at once on a locked screen and keeps the display awake.
+  - **The Rust integration tests are one binary.** macOS scanned each newly built test binary on its first launch,
+    about 10 s each (measured 2026-11-03); the 36 binaries spent more time starting than testing. Three timing checks
+    run alone after the suite, and the technique library's 408 builds run only when the techniques, the DSL, the
+    engine, or ldraw-mini change. `emmet eval`'s test gets its own data dir, since the agent tests' bus now holds the
+    shared one for the whole binary.
+  - **"Everything" means a toolchain or lockfile change** (and weekly, and `full-ci`). A justfile or workflow change
+    runs the checks and core E2E. The bench and the release-protocol build move to `nightly.yml`'s daily E2E job.
+  - **Windows E2E runs the specs for paths and processes** (`just e2e windows`), and hosted runners report timing
+    budgets without failing on them.
+  Rejected: deleting the nightly tier outright, and doing this on 4C's branch.

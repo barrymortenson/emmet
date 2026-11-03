@@ -21,4 +21,28 @@ describe("the app window", () => {
     console.log(`startup: interactive ${ms} ms after the process started`);
     expect(ms).toBeLessThan(10_000);
   });
+
+  // WebKit sometimes draws the window at 30 fps on this Mac (a throttle a restart clears, 2026-11-02), and then the
+  // chat and keyboard specs time out one by one. hello runs first, alone (just e2e), so say it here, in a second. A
+  // hosted runner's shared VM draws when it can; only this Mac is held to it.
+  it("draws at the display's rate", async () => {
+    const ms = await browser.execute(
+      () =>
+        new Promise((resolve) => {
+          let n = 0;
+          let t0 = 0;
+          const tick = (t) => {
+            if (n === 0) t0 = t;
+            if (++n < 31) requestAnimationFrame(tick);
+            else resolve((t - t0) / 30);
+          };
+          requestAnimationFrame(tick);
+        }),
+    );
+    console.log(`frame interval: ${ms.toFixed(1)} ms with nothing drawn`);
+    if (process.env.RUNNER_ENVIRONMENT === "github-hosted") return;
+    if (ms >= 25) {
+      throw new Error(`WebKit draws a frame every ${ms.toFixed(1)} ms, a 30 fps throttle or worse: restart this Mac, then run again`);
+    }
+  });
 });

@@ -142,8 +142,8 @@ pub fn sha256(bytes: &[u8]) -> String {
     sha2::Sha256::digest(bytes).iter().map(|b| format!("{b:02x}")).collect()
 }
 
-/// The data dir most tests share, with ldraw-mini installed from a local zip and the parts index built, once per
-/// test binary (cargo runs the binaries one after another).
+/// The data dir most tests share, with ldraw-mini installed from a local zip and the parts index built, once per run
+/// of the test binary.
 pub fn shared_library() -> &'static Path {
     static DATA: OnceLock<PathBuf> = OnceLock::new();
     DATA.get_or_init(|| {
@@ -222,20 +222,34 @@ pub fn build_mini_pack(out: &Path, date: &str) -> Value {
     v["data"].clone()
 }
 
+/// A data dir beside the shared one, `<shared>-<suffix>`, with ldraw-mini and Python. It lasts between runs, as the
+/// shared one does, so the setup is paid once.
+fn data_beside(suffix: &str) -> PathBuf {
+    let base = std::env::var_os("EMMET_DATA_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| target_dir().parent().expect("target/").join("it-data"));
+    let mut name = base.file_name().expect("a data dir name").to_os_string();
+    name.push(format!("-{suffix}"));
+    let data = base.with_file_name(name);
+    std::fs::create_dir_all(&data).expect("create test dir");
+    install_library(&data);
+    setup_python(&data);
+    data
+}
+
+/// A data dir like [`shared_data`] whose bus nothing holds. The agent tests' hub (agents.rs) keeps a bus on the shared
+/// data dir for the whole test binary, and `emmet eval` refuses a data dir with a bus, since it answers on its own.
+pub fn eval_data() -> &'static Path {
+    static DATA: OnceLock<PathBuf> = OnceLock::new();
+    DATA.get_or_init(|| data_beside("eval"))
+}
+
 /// A second shared data dir like [`shared_data`] (ldraw-mini and Python), plus the parts data pack built from
 /// rebrickable-mini and installed through its signature check: for the tests that opt in to availability.
 pub fn shared_data_with_parts() -> &'static Path {
     static DATA: OnceLock<PathBuf> = OnceLock::new();
     DATA.get_or_init(|| {
-        let base = std::env::var_os("EMMET_DATA_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| target_dir().parent().expect("target/").join("it-data"));
-        let mut name = base.file_name().expect("a data dir name").to_os_string();
-        name.push("-parts");
-        let data = base.with_file_name(name);
-        std::fs::create_dir_all(&data).expect("create test dir");
-        install_library(&data);
-        setup_python(&data);
+        let data = data_beside("parts");
         let pack = temp_dir("mini-pack");
         build_mini_pack(&pack, MINI_PACK_DATE);
         let out = emmet()
