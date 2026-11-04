@@ -742,5 +742,5 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   (the videos, forums, and blogs he learned from, no longer the books) and H-29. Its size is L, down from XL.
   Its new techniques meet 3E's building rules (an audit row, keep-clear boxes, and T1 to T5 still clean); a project's
   seed lives in `emmet.toml`, and a project without one builds as before; `techniques/` becomes a project source
-  (section 07). These came from the PR's review and are proposed for Barry's approval with the PR.
+  (section 07). These came from the PR's review; Barry approved all three (2026-11-03, through AskUserQuestion).
   Rejected: merging the old branch as written, and dropping 6C.
