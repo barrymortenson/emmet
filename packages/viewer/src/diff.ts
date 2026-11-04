@@ -9,7 +9,15 @@ export interface Placement {
   matrix: number[];
   step: number;
   submodel: string[];
+  /** Inside a sub-assembly, each copy it's in, outermost first, with the parent step that places it. */
+  copies?: { id: string; step: number }[];
   src?: string;
+}
+
+/** The main model's step a part goes in: the step that places its outermost copy, or its own step. A part inside a
+ * sub-assembly has the sub-assembly's own step in `step`. */
+export function topStep(p: Pick<Placement, "step" | "copies">): number {
+  return p.copies?.length ? p.copies[0]!.step : p.step;
 }
 
 export interface Diff {
@@ -17,12 +25,13 @@ export interface Diff {
   removed: Placement[];
   /** Same part and color, a new matrix. */
   moved: Placement[];
-  /** A new color or a new part under the same id: it changes bucket. */
+  /** A new color or a new part under the same id (in the viewer it stays in its bucket when the finish is the same). */
   recolored: Placement[];
   unchanged: number;
 }
 
-/** The (part, color) bucket a placement draws in. */
+/** A placement's part and color: what the diff compares to tell a recolor from a move (the viewer's buckets are by part
+ * and finish; see dirtyBuckets' `key`). */
 export function bucketKey(p: Pick<Placement, "part" | "color">): string {
   return `${p.part.toLowerCase()}|${p.color}`;
 }
@@ -51,14 +60,19 @@ export function diffPlacements(before: Iterable<Placement>, after: Iterable<Plac
   return diff;
 }
 
-/** The buckets a diff touches: each one has to be rewritten, and every other bucket stays as it is. */
-export function dirtyBuckets(diff: Diff, before: ReadonlyMap<string, Placement>): Set<string> {
+/** The buckets a diff touches: each one has to be rewritten, and every other bucket stays as it is. `key` is how
+ * the viewer groups placements (by part and finish, so a recolor may stay in its bucket). */
+export function dirtyBuckets(
+  diff: Diff,
+  before: ReadonlyMap<string, Placement>,
+  key: (p: Placement) => string = bucketKey,
+): Set<string> {
   const keys = new Set<string>();
-  for (const p of [...diff.added, ...diff.removed, ...diff.moved]) keys.add(bucketKey(p));
+  for (const p of [...diff.added, ...diff.removed, ...diff.moved]) keys.add(key(p));
   for (const p of diff.recolored) {
-    keys.add(bucketKey(p));
+    keys.add(key(p));
     const was = before.get(p.id);
-    if (was) keys.add(bucketKey(was));
+    if (was) keys.add(key(was));
   }
   return keys;
 }

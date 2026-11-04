@@ -706,6 +706,67 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   figure_clearance findings in the baseline to 0 at the end on both agents, and both stations centered their benches
   between the columns and stood the canopy at the booth's door height, unprompted (`docs/evals/2026-10-31-technique.md`).
 
+## 2026-10-31, session 4C
+
+- **Box select and the layer cut-away** (Barry, through AskUserQuestion; the frozen viewer design doesn't show
+  them). Shift-drag in the viewer draws a box that selects the parts in it. The cut-away is in the View menu, Cut Away
+  Above (`⌥↓` lowers the cut a layer, `⌥↑` raises it), and while it's on a bar over the viewer names the layers shown,
+  with lower, raise, and Show all, as the version bar does. Rejected: a slider always on the viewer's right edge, and
+  two more mode buttons in the view switch.
+- **Screenshot copies, and the toast offers Save** (Barry, through AskUserQuestion; the frozen view switch has one
+  Screenshot button). A click copies a PNG of what the viewer shows to the clipboard at once, and the toast, "Copied a
+  picture of the model", offers Save to file, which writes it where exports go and then offers Show in folder. The
+  View menu has Copy Screenshot and Save Screenshot. Rejected: a two-item menu on the button, and saving first with
+  Copy in the toast.
+- **One bucket per part and finish, not per part and color** (4C, from the profile). The 2,000-part town block drew
+  in 647 calls, against section 13's ~300, because each (part, color) bucket draws its faces, edges, and conditional
+  lines. The finish's material is now white and each instance carries its color (faces, and the edges' softened edge
+  color), so a part in many solid colors is one bucket: 229 draw calls for the 2,018-part block and 272 for the
+  Cottage. Transparent colors bucket by alpha and glowing ones by color, since the material holds those. Section 13
+  and ADR 0008 say so. Rejected: merging parts into one geometry per color, which breaks the diff by id and the
+  per-part highlight.
+- **Renders always draw the full detail and the ground shadow** (4C), whatever the window's quality, so an agent's
+  render, a baseline, and an export look the same on every machine.
+- **Pins for the worst five findings** (4C): a pin for each finding with parts, errors first, at most five. A model
+  with hundreds of findings made a pin each and slowed every frame the camera moved.
+- **Design change note 004 approved as written** (Barry, through AskUserQuestion, 2026-11-01): Replay build in the
+  view switch, the hover tooltip, shift-drag's outline, the cut-away bar, up to five finding pins, the step's parts box
+  with sub-assembly boxes and a leader, and Settings' quality pick and Build animation row
+  (`docs/design/changes/004-4c-viewer.md`).
+- **4C's Windows half: the PR opens now, and Windows CI runs once on the branch** (Barry, through AskUserQuestion,
+  2026-11-01). The macOS halves of Done when 1 and 2 are ticked; a manual CI run with its "windows" box checked
+  reports the hosted Windows numbers and writes Windows baselines from its artifact. Rejected: leaving Windows wholly
+  to the Windows pass, as 4A and 4B did, and holding the PR until then.
+- **One pin per rule, and only for rules about a place** (Barry, through AskUserQuestion, 2026-11-02). A model with
+  many step-size warnings showed five pins, each "A step adds more parts than the age allows", stacked over the
+  model's middle. Now each rule about where parts are (floating, collision, weak connection, figure clearance) gets
+  one pin over all its findings' parts, naming their count; a click opens the rule's first finding in Checks. Step
+  size, step order, and the library rules get no pin. Replaces 4C's "pins for the worst five findings". Rejected: one
+  pin per rule including step size, and a pin per place finding up to five.
+- **Two CI faults fixed in 4C's PR, then Windows CI once more** (Barry, through AskUserQuestion, 2026-11-02). The
+  manual Windows run stopped before E2E: hosted Windows took 720 ms for a warm `emmet run` against tests/it's 400 ms,
+  and the hosted Mac's `just check` ran clippy before a fresh checkout had built apps/desktop/dist (main's scheduled
+  run failed the same way). Now `just check` builds the frontend when dist is missing, and warm_run_is_fast reports
+  on hosted runners and enforces 400 ms on the self-hosted Mac, as perf.e2e.mjs does. Rejected: a separate `ci:` PR
+  first, and leaving 4C's Windows half unticked.
+- **Hosted CI jobs get 45 minutes** (Barry, through AskUserQuestion, 2026-11-02). The rerun passed all of Windows'
+  `just test` (21 minutes, cold) and was stopped at 25 building the E2E app; the hosted Mac stopped at 20. A full run
+  on a hosted runner now has 45 minutes for the windows job and the mac job; the warm self-hosted Mac keeps 20.
+- **Windows E2E runs perf, and Windows CI runs once more on 4C's branch** (Barry, through AskUserQuestion,
+  2026-11-03). Run 41566073449's E2E failed in setup on Windows' locked fake claude.exe (fixed in bbb0e63), and main's
+  Windows tier had no perf spec, so no Windows run could report section 13's numbers. `perf` joins
+  `tests/e2e/tiers.mjs`'s Windows list (hosted runners report the budgets without failing on them), and one manual run
+  with Windows checks the fix, the Windows numbers, and the six Windows baselines. Rejected: the run without perf, which
+  leaves Done when 1 without Windows numbers, and merging with both Windows halves unticked.
+- **Windows' budgets go to the Windows pass; its baselines hold in 4C** (Barry, through AskUserQuestion, 2026-11-03).
+  Run 41773913493 passed all of Windows' visual tests against the six baselines. Its perf spec reported a first load
+  of 9.0 s (budget 6 s) and slider to viewer 1.9 s (budget 3 s) for the 2,018-part block, on a hosted runner with no
+  GPU; the build animation never started there (nor on the hosted Mac, most likely reduced motion in the runner
+  images), and the job hit its 45-minute cap before the orbit and animation numbers. Done when 2 is ticked for
+  Windows; Done when 1's Windows half stays unticked, with those numbers, for the Windows pass on real hardware.
+  Rejected: forcing the animation under reduced motion for the measurement and running Windows again, and profiling
+  the hosted runner's first load in 4C.
+
 ## 2026-11-03: CI runs what proves the app works
 
 - **Lean tests and scoped CI** (Barry, through AskUserQuestion: "the ci should also only run what is needed for the

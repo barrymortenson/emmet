@@ -21,6 +21,7 @@ fn main() {
         "open_version_as_new",
         "export",
         "reveal_export",
+        "save_screenshot",
         "get_prefs",
         "set_prefs",
         "pick_projects_folder",

@@ -73,7 +73,8 @@ jobs:
     # from a branch in this repo when he triggered the run. Forks, Dependabot, someone else's push to Barry's PR, and
     # manual runs use hosted macos-latest. GitHub's == ignores case; tests/scripts/ci.test.mjs does too.
     runs-on: ${{ fromJSON((github.repository == 'barrymortenson/emmet' && github.actor == 'barrymortenson' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'barrymortenson'))) && '["self-hosted","macOS","emmet"]' || '"macos-latest"') }}
-    timeout-minutes: 20
+    # 20 minutes on the warm self-hosted Mac; a hosted runner starts cold, and a full run there takes longer.
+    timeout-minutes: ${{ fromJSON((github.repository == 'barrymortenson/emmet' && github.actor == 'barrymortenson' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'barrymortenson'))) && '20' || '45') }}
     needs: scope
     if: needs.scope.outputs.mac == 'true'
     steps:
@@ -149,7 +150,9 @@ jobs:
     needs: scope
     if: needs.scope.outputs.windows == 'true'
     runs-on: windows-latest
-    timeout-minutes: 25
+    # A full run (just test, then the E2E build and specs) starts cold on a hosted runner: just test alone took 21
+    # minutes on 2026-11-02.
+    timeout-minutes: 45
     defaults:
       run:
         # Git Bash, so just finds bash (see justfile).

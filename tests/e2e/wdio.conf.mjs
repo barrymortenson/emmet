@@ -57,6 +57,15 @@ export const config = {
     process.env.EMMET_E2E_PICK_FILE = join(out, "pick.txt");
     // The app reopens its last project at launch; the run starts from none, as hello expects.
     rmSync(join(shared, "recent.json"), { force: true });
+    // Each run starts with the viewer's own settings (quality by the GPU, the build animation on): a spec that
+    // changes them, or a run that stopped in the middle of one, mustn't change the next run's screenshots.
+    const settings = join(shared, "settings.json");
+    if (existsSync(settings)) {
+      const s = JSON.parse(readFileSync(settings, "utf8"));
+      delete s.viewer_quality;
+      delete s.build_animation;
+      writeFileSync(settings, `${JSON.stringify(s, null, 2)}\n`);
+    }
     // Old-library checks and Update the library download ldraw-mini from here too.
     await startLibrary(shared);
     if (firstRun) {

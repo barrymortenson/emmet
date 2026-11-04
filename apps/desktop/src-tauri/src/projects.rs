@@ -535,6 +535,38 @@ pub async fn export(app: AppHandle, format: ExportFormat) -> Result<Exported, Bo
     })
 }
 
+/// Save Screenshot (the screenshot toast's Save to file): the viewer's PNG, sent as base64, into Downloads beside the
+/// exports, named for the project ("Cottage.png"). Only a PNG is written.
+#[tauri::command]
+#[specta::specta]
+pub async fn save_screenshot(app: AppHandle, png: String) -> Result<Exported, Box<Problem>> {
+    let state = app.state::<AppState>();
+    let project = state.project()?;
+    let bytes = emmet_core::base64::decode(&png)
+        .filter(|b| b.starts_with(b"\x89PNG\r\n\x1a\n"))
+        .ok_or_else(|| Problem::internal("The screenshot wasn't a picture Emmet could save."))?;
+    let downloads = app
+        .path()
+        .download_dir()
+        .map_err(|e| Problem::internal(e.to_string()))?;
+    let folder = crate::prefs::in_words(&app, &downloads);
+    let path = unique_file(&downloads, &format!("{}.png", file_name(&project.config.name)));
+    let out = path.clone();
+    blocking(move || {
+        std::fs::create_dir_all(&downloads).map_err(|e| emmet_core::envelope::Error::io(&downloads, e))?;
+        Ok(emmet_core::fsx::write_atomic(&out, &bytes)?)
+    })
+    .await?;
+    *LAST_EXPORT.lock().expect("export") = Some(path.clone());
+    Ok(Exported {
+        file: path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default(),
+        folder,
+    })
+}
+
 /// `file` in `dir`, or "name 2.ext", "name 3.ext", … when that's taken.
 fn unique_file(dir: &Path, file: &str) -> PathBuf {
     let p = Path::new(file);

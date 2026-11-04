@@ -52,7 +52,24 @@ function Segmented<T extends string>({ label, value, items, onChange, id }: { la
 const LAST = "last";
 const DEFAULT = "default";
 
-export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCopied }: { info: AppInfo | null; prefs: PrefsView | null; onPrefs: (p: PrefsView) => void; onClose: () => void; onAgentsChanged: () => void; onCopied: (copied: boolean) => void }) {
+export function Settings({
+  info,
+  prefs,
+  autoQuality,
+  onPrefs,
+  onClose,
+  onAgentsChanged,
+  onCopied,
+}: {
+  info: AppInfo | null;
+  prefs: PrefsView | null;
+  /** What "auto" quality picked for this computer's graphics: Settings shows it until the user picks one. */
+  autoQuality: string | null;
+  onPrefs: (p: PrefsView) => void;
+  onClose: () => void;
+  onAgentsChanged: () => void;
+  onCopied: (copied: boolean) => void;
+}) {
   const [cli, setCli] = useState<CliStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [key, setKey] = useState("");
@@ -167,7 +184,16 @@ export function Settings({ info, prefs, onPrefs, onClose, onAgentsChanged, onCop
           />
         </Row>
         <Row label="Viewer quality">
-          <Segmented<string> label="Viewer quality" id="viewer-quality" value={prefs.prefs.viewer_quality} items={[["fast", "Fast"], ["balanced", "Balanced"], ["best", "Best"]]} onChange={(v) => void set({ viewer_quality: v })} />
+          <Segmented<string>
+            label="Viewer quality"
+            id="viewer-quality"
+            value={prefs.prefs.viewer_quality === "auto" ? (autoQuality ?? "balanced") : prefs.prefs.viewer_quality}
+            items={[["fast", "Fast"], ["balanced", "Balanced"], ["best", "Best"]]}
+            onChange={(v) => void set({ viewer_quality: v })}
+          />
+        </Row>
+        <Row label="Build animation">
+          <Segmented<string> label="Build animation" id="build-animation" value={prefs.prefs.build_animation} items={[["animated", "Animated"], ["fast", "Fast"], ["off", "Off"]]} onChange={(v) => void set({ build_animation: v })} />
         </Row>
       </section>
       <section className="panel-section">

@@ -227,7 +227,7 @@ const CORE = "hello,viewer,panel,chat,checks,trust,runs,versions,import,render,v
 for (const [change, specs] of [
   ["README.md", ""],
   ["scripts/plan-check.mjs", ""],
-  ["packages/viewer/src/index.ts", CORE],
+  ["packages/viewer/src/index.ts", `${CORE},interact,animate,perf`],
   ["crates/emmet-core/src/lib.rs", CORE],
   ["crates/emmet-agent/src/session.rs", `${CORE},chatgpt,setup,bus`],
   ["apps/desktop/src/Panel.tsx", `${CORE},keyboard`],
@@ -242,7 +242,7 @@ for (const [change, specs] of [
 
 test("ci scope: a full run runs core and every area, not the by-hand tier", { skip: process.platform === "win32" }, () => {
   const specs = scopeOut(null, { EMMET_CI_FULL: "1" }).e2e_specs.split(",");
-  for (const s of ["hello", "viewer", "chat", "chatgpt", "keyboard", "first-run"]) assert.ok(specs.includes(s), s);
+  for (const s of ["hello", "viewer", "interact", "perf", "chat", "chatgpt", "keyboard", "first-run"]) assert.ok(specs.includes(s), s);
   for (const s of ["leak", "screens", "dock", "bench"]) assert.ok(!specs.includes(s), s);
 });
 

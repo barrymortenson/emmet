@@ -32,6 +32,14 @@ function windowsMenus(run: (a: Action) => void, can: (a: Action) => boolean): [s
         item("view:right", "Right"),
         item("frame", "Frame"),
         "-",
+        item("cut:down", "Cut away above"),
+        item("cut:up", "Raise the cut-away"),
+        item("cut:off", "Show all layers"),
+        "-",
+        item("replay", "Replay build"),
+        item("screenshot:copy", "Copy screenshot"),
+        item("screenshot:save", "Save screenshot"),
+        "-",
         item("tab:options", "Options"),
         item("tab:checks", "Checks"),
         item("tab:parts", "Parts"),
@@ -243,7 +251,8 @@ export function Titlebar({
           ))}
         </ToggleGroup.Root>
         <IconButton icon="scan" label="Frame the model (F)" size="sm" onClick={() => run("frame")} disabled={!hasProject} id="frame" />
-        <IconButton icon="camera" label="Screenshot" size="sm" disabled id="screenshot" />
+        <IconButton icon="camera" label="Screenshot" size="sm" onClick={() => run("screenshot:copy")} disabled={!can("screenshot:copy")} id="screenshot" />
+        <IconButton icon="play" label="Replay build" size="sm" onClick={() => run("replay")} disabled={!can("replay")} id="replay" />
       </div>
       <span data-tauri-drag-region />
       {windows && <CaptionButtons />}

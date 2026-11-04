@@ -200,6 +200,15 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   `.posts`, `.underside`), as attributes of the z they always returned.
 - Five technique prompts (`docs/spec/ladder.md`, T1 to T5) that `emmet eval` runs, scored on their figure_clearance
   findings.
+- The viewer, polished (session 4C): every LDraw finish (solid, transparent, chrome, pearl, metal, matte metal, rubber, glow) in a
+  studio light rig with reflections, neutral tone mapping, and a ground shadow at Best; low-detail studs when a stud is
+  only a few pixels across; quality presets picked by the GPU until Settings says otherwise. Hovering names a part and its color, a
+  click picks it (shift, ⌘, or Ctrl adds or takes away), shift-drag's box picks what's in it, the cut-away hides everything above a layer
+  (View menu, `⌥↓` `⌥↑`), Screenshot copies the view and its toast saves it, the viewer's keys orbit and zoom, and a
+  finding's pin opens it in Checks. A step outlines its new parts and draws its parts box and any sub-assembly's box
+  with numbered sub-steps. The build animation drops, fades, lifts away, and glides, with Replay build, Skip, and
+  Settings' Animated, Fast, and Off. A 2,018-part stress model (`tests/fixtures/projects/scene-stress`), six visual
+  baselines, and `tests/e2e/specs/{interact,animate,perf}.e2e.mjs`, which holds section 13's 2,000-part budgets.
 
 ### Security
 
@@ -211,6 +220,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 ### Fixed
 
 - The chat's history and the agent's transcripts never write through a link a project carries (4B).
+- The steps showed a sub-assembly's parts by their own sub-step, so a step hid parts of a copy it had put on, and
+  showed parts of copies placed later (4C).
 
 - headlights' lenses floated 0.2 studs in front of their bricks, bracket_side_panel hung its panel on the brackets'
   backs, and grass_edge's example cliff stood on nothing; the checks that let them through are stricter now (3D).
@@ -223,6 +234,9 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   Windows (1F, found in its Windows hand check).
 
 ### Changed
+
+- The viewer draws one bucket per part and finish, each instance carrying its color: 229 draw calls for the
+  2,018-part town block, from 647, and 272 for the Cottage, from 523 (4C).
 
 - The Cottage template is rebuilt as the MVP's example (3D, Barry's yes): a stone-and-plaster cottage with a bay
   window, a porch, a dormer, an outside chimney, two furnished rooms, a roof that lifts off as one piece, and a garden,

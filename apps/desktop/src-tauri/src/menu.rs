@@ -102,7 +102,17 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     ] {
         view = view.item(&item(app, &format!("view:{id}"), text, None)?);
     }
-    view = view.item(&item(app, "frame", "Frame", None)?).item(&sep()?);
+    view = view
+        .item(&item(app, "frame", "Frame", None)?)
+        .item(&sep()?)
+        .item(&item(app, "cut:down", "Cut Away Above", None)?)
+        .item(&item(app, "cut:up", "Raise Cut-Away", None)?)
+        .item(&item(app, "cut:off", "Show All Layers", None)?)
+        .item(&sep()?)
+        .item(&item(app, "replay", "Replay Build", None)?)
+        .item(&item(app, "screenshot:copy", "Copy Screenshot", None)?)
+        .item(&item(app, "screenshot:save", "Save Screenshot", None)?)
+        .item(&sep()?);
     for (i, (id, text)) in [
         ("options", "Options"),
         ("checks", "Checks"),

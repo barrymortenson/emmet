@@ -17,6 +17,19 @@ const update = process.env.EMMET_UPDATE_BASELINES === "1";
 
 export const stats = () => browser.execute(() => window.__emmet.viewer().stats());
 export const camera = () => browser.execute(() => window.__emmet.viewer().cameraMatrix());
+/** The camera once the orbit controls' damping has settled: the same for 5 frames running. */
+export const restingCamera = () =>
+  browser.execute(async () => {
+    const v = window.__emmet.viewer();
+    let last = JSON.stringify(v.cameraMatrix());
+    for (let i = 0, same = 0; i < 300 && same < 5; i++) {
+      await v.nextFrame();
+      const now = JSON.stringify(v.cameraMatrix());
+      same = now === last ? same + 1 : 0;
+      last = now;
+    }
+    return JSON.parse(last);
+  });
 /** The generation of the scene on screen (-1 before the first). */
 export const shown = () => browser.execute(() => window.__emmet.shown());
 

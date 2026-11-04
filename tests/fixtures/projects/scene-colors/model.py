@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from emmet_dsl import Model, model
 
-# (part, color, x, y, z, rot): solid, transparent, and pearl parts, slopes, and round parts on a plate.
+# (part, color, x, y, z, rot): solid, transparent, pearl, chrome, metal, rubber, and glowing parts, slopes, and round
+# parts on a plate.
 PARTS = [
     ("3958", "Light Bluish Gray", 0, 0, 0, 0),
     ("3001", "Red", 0, 0, 1, 0),
@@ -17,6 +18,13 @@ PARTS = [
     ("6141", "Trans-Yellow", 4, 5, 1, 0),
     ("3068b", "White", 0, 6, 1, 0),
     ("3024", "Black", 5, 5, 1, 0),
+    # A second plate for the metals, rubber, and glow.
+    ("3958", "Light Bluish Gray", 6, 0, 0, 0),
+    ("6141", "Chrome Silver", 7, 1, 1, 0),
+    ("3062b", "Chrome Gold", 9, 1, 1, 0),
+    ("3005", "Metallic Silver", 11, 1, 1, 0),
+    ("4032a", "Rubber Black", 7, 3, 1, 0),
+    ("3062b", "Glow In Dark Opaque", 10, 4, 1, 0),
 ]
 
 

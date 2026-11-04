@@ -14,8 +14,14 @@ const PROJECTS = {
   leak: [["", "cottage"]],
   render: [["", "cottage"], ["other", "scene-colors"]],
   runs: [["", "scene-grid"]],
-  visual: [["", "cottage"], ["scene-colors", "scene-colors"], ["scene-grid", "scene-grid"]],
-  bench: [["", "cottage"], ["grid500", "scene-grid"], ["grid2000", "scene-grid", { count: 2000 }]],
+  visual: [["", "cottage"], ["scene-colors", "scene-colors"], ["scene-grid", "scene-grid"], ["scene-stress", "scene-stress"]],
+  bench: [
+    ["", "cottage"],
+    ["rung1", "scene-stress", { buildings: 1, floors: 1 }],
+    ["rung2", "scene-stress", { buildings: 4, floors: 1 }],
+    ["stress", "scene-stress"],
+    ["grid2000", "scene-grid", { count: 2000 }],
+  ],
   chat: [["", "agent"], ["codex", "agent"]],
   dock: [["", "cottage"]],
   bus: [["", "cottage"]],
@@ -27,6 +33,9 @@ const PROJECTS = {
   import: [["", "cottage"]],
   versions: [["", "cottage"]],
   keyboard: [["", "cottage"]],
+  interact: [["", "cottage"], ["floating", "broken-floating"], ["pins", "pins-grouped"], ["town", "scene-stress", { buildings: 2, floors: 1 }]],
+  animate: [["", "cottage"]],
+  perf: [["", "scene-stress"]],
   screens: [["", "cottage"], ["floating", "broken-floating"], ["untrusted", "cottage-untrusted"]],
 };
 

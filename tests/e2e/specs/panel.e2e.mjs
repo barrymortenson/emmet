@@ -105,13 +105,19 @@ describe("the options panel", () => {
     await expect($("#steps-head")).toHaveText(`Step ${total} of ${total}`);
     await click("#steps-tree [data-n='3']");
     await expect($("#steps-head")).toHaveText(`Step 3 of ${total}`);
-    const upTo3 = scene.placements.filter((p) => p.step <= 3).length;
-    await browser.waitUntil(async () => (await stats()).instances === upTo3, { timeout: 10_000, timeoutMsg: `the viewer didn't show the ${upTo3} parts up to step 3` });
+    // A sub-assembly's parts go in at the step that places the copy (their own step is the sub-assembly's); the later
+    // steps' parts stay loaded but hidden.
+    const upTo3 = scene.placements.filter((p) => (p.copies?.[0]?.step ?? p.step) <= 3).length;
+    const shownNow = async () => {
+      const s = await stats();
+      return s.instances - s.hidden;
+    };
+    await browser.waitUntil(async () => (await shownNow()) === upTo3, { timeout: 10_000, timeoutMsg: `the viewer didn't show the ${upTo3} parts up to step 3` });
     // The windows: five copies, every one of their parts highlighted.
     await click("#steps-tree [data-sub='window.ldr']");
     const copies = scene.placements.filter((p) => p.submodel.includes("window.ldr")).map((p) => p.id).sort();
     expect((await browser.execute(() => window.__emmet.viewer().highlighted())).sort()).toEqual(copies);
-    await browser.waitUntil(async () => (await stats()).instances === scene.placements.length, { timeout: 10_000 });
+    await browser.waitUntil(async () => (await shownNow()) === scene.placements.length, { timeout: 10_000 });
   });
 
   it("exports the parts list into Downloads, and says so", async () => {

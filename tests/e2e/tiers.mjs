@@ -19,8 +19,8 @@ export const CORE = ["viewer", "panel", "chat", "checks", "trust", "runs", "vers
 
 /** Each area: the paths that are its code, and the specs that cover it beyond core. */
 export const AREAS = {
-  // The viewer package. Session 4C adds its interaction, animation, and budget specs here.
-  viewer: { paths: /^packages\/viewer\//, specs: [] },
+  // The viewer package: picking and the camera, the build animation, and the load and frame budgets (session 4C).
+  viewer: { paths: /^packages\/viewer\//, specs: ["interact", "animate", "perf"] },
   // The agent bridge, the bus, the MCP host, and the chat UI around them.
   agent: {
     paths:
@@ -38,8 +38,9 @@ export const AREAS = {
 };
 
 /** Windows E2E (a manual run while D-43 pauses Windows): what behaves differently there, paths, processes, the
- * sidecars, and Python under uv. The UI and the viewer run the same JS in WebView2, so the Mac covers the rest. */
-export const WINDOWS = ["viewer", "chat", "setup", "runs", "trust", "versions", "import", "render", "visual"];
+ * sidecars, and Python under uv, plus perf, since section 13's budgets hold on both OSes and WebView2 draws with its
+ * own GPU path. The UI runs the same JS in WebView2, so the Mac covers the rest. */
+export const WINDOWS = ["viewer", "chat", "setup", "runs", "trust", "versions", "import", "render", "visual", "perf"];
 
 /** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes. */
 export const EXTRA = ["screens", "dock", "leak"];

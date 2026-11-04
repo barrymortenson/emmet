@@ -8,6 +8,7 @@ import {
   Camera,
   Check,
   ChevronDown,
+  ChevronUp,
   CircleCheck,
   Clock,
   Copy,
@@ -18,6 +19,7 @@ import {
   FolderOpen,
   Gauge,
   Info,
+  Layers,
   List,
   Lock,
   LogIn,
@@ -30,6 +32,7 @@ import {
   MessagesSquare,
   Minus,
   OctagonAlert,
+  Play,
   Plus,
   RefreshCw,
   RotateCcwClock,
@@ -49,6 +52,7 @@ import {
 import { DropdownMenu, Menubar, Progress as RadixProgress, Select, Tooltip as RadixTooltip } from "radix-ui";
 import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from "react";
 import brick from "./assets/glyphs/brick.svg?raw";
+import collision from "./assets/glyphs/collision.svg?raw";
 import floating from "./assets/glyphs/floating.svg?raw";
 import submodel from "./assets/glyphs/submodel.svg?raw";
 
@@ -59,6 +63,9 @@ const LUCIDE: Record<string, LucideIcon> = {
   "book-open": BookOpen,
   box: Box,
   camera: Camera,
+  "chevron-up": ChevronUp,
+  layers: Layers,
+  play: Play,
   check: Check,
   "chevron-down": ChevronDown,
   "circle-check": CircleCheck,
@@ -97,10 +104,10 @@ const LUCIDE: Record<string, LucideIcon> = {
 
 /** Emmet's own glyphs (docs/design/icons.md): their drawing, from the committed SVGs. */
 const GLYPHS: Record<string, string> = Object.fromEntries(
-  Object.entries({ brick, floating, submodel }).map(([k, svg]) => [k, svg.slice(svg.indexOf(">", svg.indexOf("<svg")) + 1, svg.lastIndexOf("</svg>"))]),
+  Object.entries({ brick, collision, floating, submodel }).map(([k, svg]) => [k, svg.slice(svg.indexOf(">", svg.indexOf("<svg")) + 1, svg.lastIndexOf("</svg>"))]),
 );
 
-export type IconName = keyof typeof LUCIDE | "brick" | "floating" | "submodel";
+export type IconName = keyof typeof LUCIDE | "brick" | "collision" | "floating" | "submodel";
 type Size = "sm" | "lg" | "xl";
 
 /** A lucide icon or an Emmet glyph, in the text color; always aria-hidden (the control around it has the name). */
