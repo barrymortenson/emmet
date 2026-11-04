@@ -5,7 +5,7 @@
 //! Both agents run in one test, one after the other: each run holds the data dir's bus.
 
 use emmet_it::agents::fake_bin;
-use emmet_it::{emmet, envelope, shared_data, temp_dir};
+use emmet_it::{emmet, envelope, eval_data, temp_dir};
 
 #[test]
 fn a_dry_run_scores_rung_1_with_each_fake_agent() {
@@ -21,7 +21,7 @@ fn a_dry_run_scores_rung_1_with_each_fake_agent() {
         let run = emmet()
             .arg("--json")
             .arg("--data-dir")
-            .arg(shared_data())
+            .arg(eval_data())
             .args(["eval", "--rung", "1", "--agent", cli, "--dry-run", "--out"])
             .arg(&out)
             .arg("--work")
@@ -93,7 +93,7 @@ fn a_rung_without_an_eval_yet_is_a_usage_error() {
         &emmet()
             .arg("--json")
             .arg("--data-dir")
-            .arg(shared_data())
+            .arg(eval_data())
             .args(["eval", "--rung", "3", "--agent", "claude", "--dry-run"])
             .output()
             .unwrap(),

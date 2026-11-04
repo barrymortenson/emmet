@@ -56,6 +56,21 @@ export function VirtualList({ rows, className, id, label }: { rows: Row[]; class
     update();
   };
 
+  // A resize is applied on the next frame, never inside the observer's own callback: laying out again there makes
+  // WebKit report "ResizeObserver loop completed with undelivered notifications" as an uncaught error (CI, 2026-11-03).
+  const frames = useRef(new Map<string, number>());
+  const nextFrame = (name: string, fn: () => void) => {
+    if (frames.current.has(name)) return;
+    frames.current.set(
+      name,
+      requestAnimationFrame(() => {
+        frames.current.delete(name);
+        fn();
+      }),
+    );
+  };
+  useEffect(() => () => frames.current.forEach((id) => cancelAnimationFrame(id)), []);
+
   // Each drawn row's height, as it lays out and whenever it changes (a streaming message grows).
   const observer = useRef<ResizeObserver | null>(null);
   if (!observer.current && typeof ResizeObserver !== "undefined") {
@@ -69,7 +84,7 @@ export function VirtualList({ rows, className, id, label }: { rows: Row[]; class
           changed = true;
         }
       }
-      if (changed) remeasured((n) => n + 1);
+      if (changed) nextFrame("rows", () => remeasured((n) => n + 1));
     });
   }
   const measure = useCallback((el: HTMLDivElement | null) => {
@@ -89,10 +104,12 @@ export function VirtualList({ rows, className, id, label }: { rows: Row[]; class
   useEffect(() => {
     const el = box.current;
     if (!el || typeof ResizeObserver === "undefined") return;
-    const r = new ResizeObserver(() => {
-      follow();
-      update();
-    });
+    const r = new ResizeObserver(() =>
+      nextFrame("box", () => {
+        follow();
+        update();
+      }),
+    );
     r.observe(el);
     return () => r.disconnect();
   }, []);

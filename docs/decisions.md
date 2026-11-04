@@ -491,6 +491,24 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace, rotating_platform, ball_joint_arm.
   98 accepted in all, of 100 candidates in five batches.
 
+## 2026-10-28, planning session 6C
+
+- **Technique library v2 is session 6C, after 5A.** Asked where the next technique session goes, now that 3C's
+  library is in: it needs 5A's eval to measure whether agents use techniques and whether builds vary. Barry chose
+  a Phase 6 session after 5A, beside 6A and 6B, over a third Phase 5 session before G2 and over a backlog session
+  after launch. 7B comes after it, so 1.0 ships with it. He added that Emmet must stay creative: it comes up with
+  its own wall designs, or has many options, so its builds don't look alike. That is 6C's variety work and its
+  variety eval.
+- **Technique sources for 6C (D-54).** Asked where v2 may take its methods from, Barry chose the miner's top
+  motifs as ideas (D-48 stands), more of his own instruction books (then a 6C step; 3D later read all 92 booklets, D-51), and LEGO's online building
+  instructions, and added forums, blogs, and videos where builders explain how they build (roads and track
+  dressing are methods he learned that way): "many people do things different but that is what we want to
+  collect." All are read for methods only, and each technique cites its sources by set number or URL; no text,
+  picture, model file, or author's name goes into the repo. He didn't choose deriving techniques from OMR models
+  with credit, so D-48 holds.
+- This plan never merged. The 2026-11-03 entry below rewrote it, and its D-50, H-26, and H-27 are now D-54, H-28,
+  and H-29.
+
 ## 2026-10-29, CI
 
 - **E2E beside Barry's work (D-50).** WebKit stops drawing a covered window, so E2E on the self-hosted Mac failed with
@@ -734,3 +752,42 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **Hosted CI jobs get 45 minutes** (Barry, through AskUserQuestion, 2026-11-02). The rerun passed all of Windows'
   `just test` (21 minutes, cold) and was stopped at 25 building the E2E app; the hosted Mac stopped at 20. A full run
   on a hosted runner now has 45 minutes for the windows job and the mac job; the warm self-hosted Mac keeps 20.
+
+## 2026-11-03: CI runs what proves the app works
+
+- **Lean tests and scoped CI** (Barry, through AskUserQuestion: "the ci should also only run what is needed for the
+  changes in the app"). PR runs had passed section 16's own budget (a full Mac run took 16 minutes, and 19 of the
+  last 60 runs failed, nearly all in Mac E2E). Now:
+  - **E2E in tiers** (`tests/e2e/tiers.mjs`): core (opening a project, slider to viewer, a broken model and its
+    recovery, chat with each fake agent, trust, a killed run, versions, import, Checks, render through MCP, and the
+    visual scenes) for any change that reaches the app; each area's specs when its code changes; and an extra tier
+    (the frozen screens and dock states as screenshots, memory over 100 changes, chat's two timing checks) that runs
+    by hand (`just e2e all`), and in CI only when its own spec or baselines change. Nothing was deleted. `hello` runs first and
+    alone, stops the run when it fails, and fails in a second when WebKit throttles the window to 30 fps; `just e2e`
+    stops at once on a locked screen and keeps the display awake.
+  - **The Rust integration tests are one binary.** macOS scanned each newly built test binary on its first launch,
+    about 10 s each (measured 2026-11-03); the 36 binaries spent more time starting than testing. Three timing checks
+    run alone after the suite, and the technique library's 408 builds run only when the techniques, the DSL, the
+    engine, or ldraw-mini change. `emmet eval`'s test gets its own data dir, since the agent tests' bus now holds the
+    shared one for the whole binary.
+  - **"Everything" means a toolchain or lockfile change** (and weekly, and `full-ci`). A justfile or workflow change
+    runs the checks and core E2E. The release-protocol build runs when `apps/desktop/src-tauri/` changes, as before; the bench runs by hand.
+  - **Windows E2E runs the specs for paths and processes** (`just e2e windows`), and hosted runners report timing
+    budgets without failing on them.
+  - **No daily E2E job** (Barry, 2026-11-03: "I don't want a daily job to run"). The first version of this PR added
+    one to `nightly.yml` at 19:00 UTC; it's gone, and `nightly.yml` runs only the validator corpus, as before.
+  Rejected: deleting the extra tier outright, a daily E2E job, and doing this on 4C's branch.
+
+## 2026-11-03, session 6C rewritten
+
+- **6C is rewritten against what 3D and 3E built** (Barry, through AskUserQuestion: "Rewrite 6C"). The 6C plan of
+  2026-10-28 never merged, and later decisions took its ids (D-50 for CI, H-26 and H-27 for 3D and 3E). It keeps the variety work (several
+  approaches for each of 25 jobs, style arguments, a seed from the project, "Make it yours", and the variety eval), the
+  online sources (now D-54), project techniques, technique search, measuring technique use, and the principles and
+  assemblies. It drops what 3D
+  did: Barry's instruction books (all 92 booklets) and the guides for each scale and style. Its YOU steps are H-28
+  (the videos, forums, and blogs he learned from, no longer the books) and H-29. Its size is L, down from XL.
+  Its new techniques meet 3E's building rules (an audit row, keep-clear boxes, and T1 to T5 still clean); a project's
+  seed lives in `emmet.toml`, and a project without one builds as before; `techniques/` becomes a project source
+  (section 07). These came from the PR's review; Barry approved all three (2026-11-03, through AskUserQuestion).
+  Rejected: merging the old branch as written, and dropping 6C.
