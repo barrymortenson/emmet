@@ -805,3 +805,12 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   seed lives in `emmet.toml`, and a project without one builds as before; `techniques/` becomes a project source
   (section 07). These came from the PR's review; Barry approved all three (2026-11-03, through AskUserQuestion).
   Rejected: merging the old branch as written, and dropping 6C.
+
+## 2026-11-04, the photo rung's subjects
+
+- **Photo to model takes a photo of anything, and the photo rung tests real objects** (Barry, through
+  AskUserQuestion: "Three real objects"). The rung's three subjects (H-23) are real objects of different kinds,
+  none of them brick models: for example a building, a vehicle, and a small household object. Brick models were the
+  easy case (the agent can count studs in the photo) and would mostly have measured that, not turning real things
+  into bricks. 4D's goal now says "a photo of anything"; the rung's scoring (section 16.1) is unchanged.
+  Rejected: one brick model as a baseline plus two real objects, and the plan's two brick models and one building.
