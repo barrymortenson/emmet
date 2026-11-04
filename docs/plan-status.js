@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-11-01",
+  updated: "2026-11-03",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -181,11 +181,13 @@ window.EMMET_STATUS = {
       note: "Barry 2026-10-31 (D-43): merged with the Windows halves of Done when 1 and 2 waiting for the Windows pass"
     },
     "4C": {
-      status: "review",
-      pr: 50,
-      branch: "bmortenson/s4c-viewer-polish-performance",
-      started: "2026-10-31",
-      note: "Barry 2026-11-03 (D-43): the Windows baselines pass (run 41773913493); Windows' budgets wait for the Windows pass on real hardware (hosted, no GPU: first load 9.0 s, slider 1.9 s; no orbit or animation numbers)",
+      status: "done", pr: 50, branch: "bmortenson/s4c-viewer-polish-performance", started: "2026-10-31",
+      evidence: [
+        "CI ci check green #50 (run 41780549656: mac, 18 of 18 E2E specs; perf at 2,018 parts: first load 792 ms, slider 647 ms, orbit 13.9 ms, 273 draw calls)",
+        "tests/e2e/specs/{perf,visual,interact,animate,leak}.e2e.mjs; before and after bench in docs/spec/sessions/4C/",
+        "Windows: the six baselines in tests/e2e/baselines/windows/ pass in manual run 41773913493 (visual.e2e.mjs, 8 passing)"
+      ],
+      note: "Barry 2026-11-03 (D-43): merged with Windows' budgets waiting for the Windows pass on real hardware (hosted, no GPU: first load 9.0 s, slider 1.9 s; no orbit or animation numbers). Open in the PR: a sub-assembly's leader goes missing in small windows, and keyboard.e2e.mjs's Esc test is flaky"
     },
     "4D": { status: "todo" },
     "4E": { status: "todo" },
