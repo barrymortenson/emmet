@@ -14,7 +14,12 @@ import { fileURLToPath } from "node:url";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 // What the rung 1 runs write: the cottage template, the hand-written rung 1 reference (1D's emmet eval dry run).
-const cottage = readFileSync(join(here, "../../crates/emmet-core/templates/cottage/model.py"), "utf8");
+// The cottage template's code without its comment lines: the fixtures need the model, and the comments credit people by
+// name (a fixture may not carry one).
+const cottage = readFileSync(join(here, "../../crates/emmet-core/templates/cottage/model.py"), "utf8")
+  .split("\n")
+  .filter((l) => !l.trim().startsWith("#"))
+  .join("\n");
 // Rung 1's prompt: the quoted lines of its own section only (up to the next heading), not the rungs after it.
 const rung1 = readFileSync(join(here, "../../docs/spec/ladder.md"), "utf8")
   .split("## Rung 1")[1]

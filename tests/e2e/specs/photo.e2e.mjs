@@ -76,7 +76,9 @@ function forgetPhotoNotice() {
   let s = {};
   try {
     s = JSON.parse(readFileSync(file, "utf8"));
-  } catch {}
+  } catch {
+    // No settings yet: nothing to forget.
+  }
   s.tips_seen = (s.tips_seen ?? []).filter((t) => t !== "photo");
   writeFileSync(file, JSON.stringify(s, null, 2));
 }
