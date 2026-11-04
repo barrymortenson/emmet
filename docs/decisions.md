@@ -758,6 +758,14 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   `tests/e2e/tiers.mjs`'s Windows list (hosted runners report the budgets without failing on them), and one manual run
   with Windows checks the fix, the Windows numbers, and the six Windows baselines. Rejected: the run without perf, which
   leaves Done when 1 without Windows numbers, and merging with both Windows halves unticked.
+- **Windows' budgets go to the Windows pass; its baselines hold in 4C** (Barry, through AskUserQuestion, 2026-11-03).
+  Run 41773913493 passed all of Windows' visual tests against the six baselines. Its perf spec reported a first load
+  of 9.0 s (budget 6 s) and slider to viewer 1.9 s (budget 3 s) for the 2,018-part block, on a hosted runner with no
+  GPU; the build animation never started there (nor on the hosted Mac, most likely reduced motion in the runner
+  images), and the job hit its 45-minute cap before the orbit and animation numbers. Done when 2 is ticked for
+  Windows; Done when 1's Windows half stays unticked, with those numbers, for the Windows pass on real hardware.
+  Rejected: forcing the animation under reduced motion for the measurement and running Windows again, and profiling
+  the hosted runner's first load in 4C.
 
 ## 2026-11-03: CI runs what proves the app works
 
