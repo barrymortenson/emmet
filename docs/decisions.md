@@ -491,6 +491,24 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace, rotating_platform, ball_joint_arm.
   98 accepted in all, of 100 candidates in five batches.
 
+## 2026-10-28, planning session 6C
+
+- **Technique library v2 is session 6C, after 5A.** Asked where the next technique session goes, now that 3C's
+  library is in: it needs 5A's eval to measure whether agents use techniques and whether builds vary. Barry chose
+  a Phase 6 session after 5A, beside 6A and 6B, over a third Phase 5 session before G2 and over a backlog session
+  after launch. 7B comes after it, so 1.0 ships with it. He added that Emmet must stay creative: it comes up with
+  its own wall designs, or has many options, so its builds don't look alike. That is 6C's variety work and its
+  variety eval.
+- **Technique sources for 6C (D-54).** Asked where v2 may take its methods from, Barry chose the miner's top
+  motifs as ideas (D-48 stands), more of his own instruction books (then a 6C step; 3D later read all 92 booklets, D-51), and LEGO's online building
+  instructions, and added forums, blogs, and videos where builders explain how they build (roads and track
+  dressing are methods he learned that way): "many people do things different but that is what we want to
+  collect." All are read for methods only, and each technique cites its sources by set number or URL; no text,
+  picture, model file, or author's name goes into the repo. He didn't choose deriving techniques from OMR models
+  with credit, so D-48 holds.
+- This plan never merged. The 2026-11-03 entry below rewrote it, and its D-50, H-26, and H-27 are now D-54, H-28,
+  and H-29.
+
 ## 2026-10-29, CI
 
 - **E2E beside Barry's work (D-50).** WebKit stops drawing a covered window, so E2E on the self-hosted Mac failed with
@@ -712,3 +730,17 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   - **No daily E2E job** (Barry, 2026-11-03: "I don't want a daily job to run"). The first version of this PR added
     one to `nightly.yml` at 19:00 UTC; it's gone, and `nightly.yml` runs only the validator corpus, as before.
   Rejected: deleting the extra tier outright, a daily E2E job, and doing this on 4C's branch.
+
+## 2026-11-03, session 6C rewritten
+
+- **6C is rewritten against what 3D and 3E built** (Barry, through AskUserQuestion: "Rewrite 6C"). The 6C plan of
+  2026-10-28 never merged, and later decisions took its ids (D-50 for CI, H-26 and H-27 for 3D and 3E). It keeps the variety work (several
+  approaches for each of 25 jobs, style arguments, a seed from the project, "Make it yours", and the variety eval), the
+  online sources (now D-54), project techniques, technique search, measuring technique use, and the principles and
+  assemblies. It drops what 3D
+  did: Barry's instruction books (all 92 booklets) and the guides for each scale and style. Its YOU steps are H-28
+  (the videos, forums, and blogs he learned from, no longer the books) and H-29. Its size is L, down from XL.
+  Its new techniques meet 3E's building rules (an audit row, keep-clear boxes, and T1 to T5 still clean); a project's
+  seed lives in `emmet.toml`, and a project without one builds as before; `techniques/` becomes a project source
+  (section 07). These came from the PR's review; Barry approved all three (2026-11-03, through AskUserQuestion).
+  Rejected: merging the old branch as written, and dropping 6C.

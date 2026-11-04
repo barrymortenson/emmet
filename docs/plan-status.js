@@ -188,6 +188,7 @@ window.EMMET_STATUS = {
     "5B": { status: "todo" },
     "6A": { status: "todo" },
     "6B": { status: "todo" },
+    "6C": { status: "todo" },
     "7A": { status: "todo" },
     "7B": { status: "todo" },
     "8D": { status: "backlog" },
@@ -224,7 +225,9 @@ window.EMMET_STATUS = {
     "H-26": { status: "done", date: "2026-10-30", note: "all 13 batches accepted (260 of 260); the Cottage and design change note 002 approved" },
     "H-27": { status: "done", date: "2026-10-31", note: "the building rules approved as written; the technique prompts' before and after renders judged better and approved (docs/evals/2026-10-31-technique.md); both through AskUserQuestion" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },
-    "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" }
+    "H-25": { status: "not-needed", note: "Antigravity is out of the MVP (Barry 2026-10-26, D-43)" },
+    "H-28": { status: "todo" },
+    "H-29": { status: "todo" }
   },
   blockers: [],
   gates: {
