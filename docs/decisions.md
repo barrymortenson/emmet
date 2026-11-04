@@ -752,6 +752,12 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **Hosted CI jobs get 45 minutes** (Barry, through AskUserQuestion, 2026-11-02). The rerun passed all of Windows'
   `just test` (21 minutes, cold) and was stopped at 25 building the E2E app; the hosted Mac stopped at 20. A full run
   on a hosted runner now has 45 minutes for the windows job and the mac job; the warm self-hosted Mac keeps 20.
+- **Windows E2E runs perf, and Windows CI runs once more on 4C's branch** (Barry, through AskUserQuestion,
+  2026-11-03). Run 41566073449's E2E failed in setup on Windows' locked fake claude.exe (fixed in bbb0e63), and main's
+  Windows tier had no perf spec, so no Windows run could report section 13's numbers. `perf` joins
+  `tests/e2e/tiers.mjs`'s Windows list (hosted runners report the budgets without failing on them), and one manual run
+  with Windows checks the fix, the Windows numbers, and the six Windows baselines. Rejected: the run without perf, which
+  leaves Done when 1 without Windows numbers, and merging with both Windows halves unticked.
 
 ## 2026-11-03: CI runs what proves the app works
 
