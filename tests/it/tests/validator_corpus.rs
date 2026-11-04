@@ -189,7 +189,7 @@ fn a_submodel_placed_off_its_model_is_disconnected() {
 ///
 /// ```sh
 /// scripts/omr-corpus /tmp/omr && EMMET_CORPUS_DIR=/tmp/omr EMMET_CORPUS_DATA=<data dir> \
-///   cargo test -p emmet-it --test validator_corpus -- --ignored corpus_nightly --nocapture
+///   cargo test -p emmet-it --test it -- --ignored corpus_nightly --nocapture
 /// ```
 #[test]
 #[ignore]

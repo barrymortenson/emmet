@@ -7,7 +7,7 @@
 // dir is the one the integration tests share (ldraw-mini and Python, from target/debug/prepare-data). Screenshots,
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
-import { cpSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { agentHome, prepareAgents, startOpenAi, stopOpenAi } from "./lib/agents.mjs";
 import { webContentPids } from "./lib/memory.mjs";
@@ -20,6 +20,9 @@ const bench = process.env.EMMET_BENCH === "1";
 // environment, only the Python interpreter the shared one downloaded (uv would download the same), and the library
 // from lib/library-server.mjs. `just e2e` runs it after the shared run.
 const firstRun = process.env.EMMET_E2E_FIRST_RUN === "1";
+const gate = process.env.EMMET_E2E_GATE === "1";
+/** Written when the window stopped drawing (beforeTest), and cleared when a run starts. */
+const blind = join(out, "blind.txt");
 const fresh = join(out, "first-run-data");
 
 /** The specs this run takes. */
@@ -40,13 +43,15 @@ export const config = {
   reporters: ["spec"],
   logLevel: "warn",
   // One retry is allowed in E2E only (plan section 16).
-  // First run can't be tried again on the data dir its first try set up.
-  specFileRetries: bench || firstRun ? 0 : 1,
-  mochaOpts: { timeout: bench ? 600_000 : 120_000 },
+  // First run can't be tried again on the data dir its first try set up. hello alone (EMMET_E2E_GATE=1, just e2e) is
+  // the gate: a machine that can't draw the window fails it at once, with no retry and nothing after the first failure.
+  specFileRetries: bench || firstRun || gate ? 0 : 1,
+  mochaOpts: { timeout: bench ? 600_000 : 120_000, bail: gate },
   async onPrepare() {
     const shared = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
     process.env.EMMET_DATA_DIR = shared;
     process.env.EMMET_E2E_OUT = out;
+    rmSync(blind, { force: true });
     // Open… reads its pick from here in a debug build (src-tauri/src/projects.rs), since WebDriver can't drive the
     // system's file dialog.
     process.env.EMMET_E2E_PICK_FILE = join(out, "pick.txt");
@@ -108,8 +113,21 @@ export const config = {
   // apps/desktop/src-tauri/src/e2e.rs), and every wait on the next frame hangs until it shows: say so in seconds, not
   // one timeout per test.
   async beforeTest() {
+    // Once a test found the window not drawing, the rest of the run fails at once: CI run 41674006035 waited 15 s and
+    // then a test's timeout, test by test, until the job's 20 minutes ran out. A hook's error doesn't stop its test, so
+    // the spec's worker exits, and each later spec file's worker exits as it starts.
+    const stop = (message) => {
+      console.error(`e2e: ${message}`);
+      process.exit(1);
+    };
+    if (existsSync(blind)) stop(readFileSync(blind, "utf8"));
     const visible = () => browser.execute(() => document.visibilityState === "visible");
     if (await visible()) return;
-    await browser.waitUntil(visible, { timeout: 15_000, interval: 1000, timeoutMsg: "WebKit isn't drawing the app's window: it's minimized or hidden, or covered while the switch that keeps a covered window drawing is missing (apps/desktop/src-tauri/src/e2e.rs). E2E needs the window on screen" });
+    try {
+      await browser.waitUntil(visible, { timeout: 15_000, interval: 1000, timeoutMsg: "WebKit isn't drawing the app's window: it's minimized or hidden, on another Space or behind a full-screen app, or covered while the switch that keeps a covered window drawing is missing (apps/desktop/src-tauri/src/e2e.rs). E2E needs the window on screen" });
+    } catch (e) {
+      writeFileSync(blind, `${e.message}. The rest of this run stops here.`);
+      stop(readFileSync(blind, "utf8"));
+    }
   },
 };

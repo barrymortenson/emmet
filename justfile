@@ -67,12 +67,15 @@ build-app:
 
 # Integration tests, fastest first. `just test --changed` runs only those affected by the paths changed since
 # EMMET_CI_BASE or the merge-base with main (a toolchain or root config change runs them all); any other argument
-# filters test names. It builds only when a suite needs the build. Written for bash 3.2, macOS's /bin/bash.
+# filters test names. It builds only when a suite needs the build. tests/it is one test binary, run in three passes:
+# the suite; the technique library's 400-odd builds, only when a change can break them; and the three timing checks,
+# alone and one at a time, so the suite's other processes don't slow them. Written for bash 3.2, macOS's /bin/bash.
 test *args:
     #!/usr/bin/env bash
     set -euo pipefail
     args="{{ args }}"
     all=(scripts python viewer desktop rust)
+    techniques=1
     if [[ "$args" == "--changed" ]]; then
       base=${EMMET_CI_BASE:-$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD)}
       # Separate steps, so a base that isn't a commit fails here instead of reading as "nothing changed".
@@ -89,6 +92,8 @@ test *args:
         # The Rust integration tests also embed or read the DSL, data/, the fixtures, the fake agents and their
         # transcripts, and docs/spec/mcp/.
         if pick '^(crates/|tests/it/|tests/fixtures/|tests/fake-agents/|tests/replay/|python/emmet_dsl/src/|data/|docs/spec/mcp/|apps/desktop/src-tauri/|Cargo\.)'; then all+=(rust); fi
+        # The techniques build and validate through the DSL and the engine, on ldraw-mini.
+        pick '^(data/techniques/|python/emmet_dsl/src/|crates/emmet-core/|crates/emmet-cli/src/main\.rs$|tests/it/(src/|tests/techniques\.rs$)|tests/fixtures/ldraw-mini/)' || techniques=0
       fi
       args=""
       echo "test --changed: ${all[*]:-nothing}"
@@ -115,23 +120,66 @@ test *args:
         # --fail-if-no-match: without it a renamed package is a silent pass.
         viewer) tests_in "packages/viewer/test/*.test.mjs" && pnpm --filter @emmet/viewer --fail-if-no-match exec node --test ${node_filter[@]+"${node_filter[@]}"} "test/*.test.mjs" ;;
         desktop) tests_in "apps/desktop/test/*.test.mjs" && pnpm --filter @emmet/desktop --fail-if-no-match exec node --test ${node_filter[@]+"${node_filter[@]}"} "test/*.test.mjs" ;;
-        rust) cargo test --workspace --locked -- $args ;;
+        rust)
+          if [[ -n "$args" ]]; then
+            cargo test --workspace --locked -- $args
+          else
+            timing="run::warm_run_is_fast search::search_is_fast library::verify_detects_a_changed_file_and_reindexes"
+            skip=(--skip techniques::)
+            for t in $timing; do skip+=(--skip "$t"); done
+            cargo test --workspace --locked -- "${skip[@]}"
+            if [[ $techniques == 1 ]]; then cargo test -p emmet-it --locked --test it -- techniques::; else echo "test: the techniques can't change here; skipped"; fi
+            cargo test -p emmet-it --locked --test it -- --test-threads=1 $timing
+          fi ;;
       esac
     done
 
 # App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server and the E2E hooks, driven by
-# WebdriverIO. `just e2e viewer` runs one spec file from tests/e2e/specs/. The app is built inside the workspace build
-# (it embeds the frontend by default), so after `just test` only the webdriver feature's crates and the app build again.
+# WebdriverIO. tests/e2e/tiers.mjs says which specs: `just e2e` runs core and every area, `just e2e all` adds the
+# extra tier (by hand only), `just e2e viewer,chat` runs those, and `just e2e --changed` what the changes since main
+# can break (as CI does). hello runs first on its own, and when it fails nothing else runs. The app is built inside
+# the workspace build (it embeds the frontend by default), so after `just test` only the webdriver feature's crates
+# and the app build again.
 e2e *spec: e2e-build
     #!/usr/bin/env bash
     set -euo pipefail
+    arg="{{ spec }}"
+    if [[ "$arg" == --changed ]]; then
+      base=${EMMET_CI_BASE:-$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD)}
+      diff=$(git diff --name-only "$base")
+      specs=$( { echo "$diff"; git ls-files --others --exclude-standard; } | node tests/e2e/tiers.mjs --changed)
+    else
+      specs=$(node tests/e2e/tiers.mjs "$arg")
+    fi
+    [[ "$arg" == all ]] && export EMMET_E2E_ALL=1
+    if [[ -z "$specs" ]]; then echo "e2e: nothing to run"; exit 0; fi
+    echo "e2e: $specs"
+    # WebKit draws nothing on a locked screen or a sleeping display, and every spec would time out one by one: say so
+    # now. Then keep the display awake for the run (caffeinate -u wakes it).
+    if [[ "$(uname -s)" == Darwin ]]; then
+      if ioreg -n Root -d1 -a | grep -A1 CGSSessionScreenIsLocked | grep -q '<true/>'; then
+        echo "e2e: this Mac's screen is locked, and WebKit doesn't draw on a locked screen. Unlock it and run again." >&2
+        exit 1
+      fi
+      caffeinate -u -t 1
+      caffeinate -d -i -w $$ &
+    fi
     run() { pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs "$@"; }
-    # First run starts the app on its own fresh data dir (wdio.conf.mjs), so it's a second run of the app.
-    case "{{ spec }}" in
-      "") run; EMMET_E2E_FIRST_RUN=1 run ;;
-      first-run) EMMET_E2E_FIRST_RUN=1 run ;;
-      *) run --spec "specs/{{ spec }}.e2e.mjs" ;;
-    esac
+    shared=(); first_run=0
+    for s in ${specs//,/ }; do
+      case $s in
+        hello) ;;
+        first-run) first_run=1 ;;
+        *) shared+=(--spec "specs/$s.e2e.mjs") ;;
+      esac
+    done
+    EMMET_E2E_GATE=1 run --spec specs/hello.e2e.mjs || {
+      echo "e2e: hello failed, so this app or machine can't run E2E (see its error); the other specs didn't run" >&2
+      exit 1
+    }
+    if [[ ${#shared[@]} -gt 0 ]]; then run "${shared[@]}"; fi
+    # First run starts the app on its own fresh data dir (wdio.conf.mjs), so it's a run of its own.
+    if [[ $first_run == 1 ]]; then EMMET_E2E_FIRST_RUN=1 run; fi
 
 # The E2E build: the frontend with EMMET_E2E=1, then the workspace with emmet-desktop's `webdriver` feature (never in
 # a release build; main.rs refuses it without debug assertions).
@@ -141,20 +189,20 @@ e2e-build:
     cargo build --workspace --locked --features emmet-desktop/webdriver
 
 # What CI's mac job runs, scoped by scripts/ci-scope.sh to what the changes since main can break: lint and secrets
-# always; the affected tests; E2E, the release-protocol build, and the audits only when their paths changed. CI runs it,
-# so there is no need to run it locally before a push. EMMET_CI_FULL=1 runs everything, as CI does weekly.
+# always; the affected tests; the E2E specs tests/e2e/tiers.mjs picks; the audits when deny.toml changes; the
+# release-protocol build when the native side changes. CI runs it, so there is no need to run it locally before a push.
+# EMMET_CI_FULL=1 runs everything a PR can, as CI does weekly. The bench and the extra E2E tier are by hand only.
 ci:
     #!/usr/bin/env bash
     set -euo pipefail
     eval "$(scripts/ci-scope.sh)"
-    echo "ci scope: full=$full deps=$deps e2e=$e2e_mac build_app=$build_app bench=$bench"
+    echo "ci scope: full=$full deps=$deps build_app=$build_app e2e=${e2e_specs:-none}"
     just check
     gitleaks git --redact --no-banner .
     if [[ $deps == true ]]; then cargo deny check && pnpm audit --prod; fi
     if [[ $full == true ]]; then just test; else just test --changed; fi
     if [[ $build_app == true ]]; then just build-app; fi
-    if [[ $e2e_mac == true ]]; then just e2e; fi
-    if [[ $bench == true ]]; then just bench; fi
+    if [[ $e2e_mac == true ]]; then just e2e "$e2e_specs"; fi
     echo "ci: ok"
 
 # A live eval (plan section 16.1): `just eval --rung 1 --agent claude` (or codex). One run through the real CLI on
@@ -182,7 +230,7 @@ bench *what:
     fi
     if [[ -z "$what" || "$what" == validator ]]; then
       cargo build --release --locked -p emmet-cli
-      cargo test --release --locked -p emmet-it --test validator_bench -- --ignored --nocapture
+      cargo test --release --locked -p emmet-it --test it -- --ignored validator_bench:: --nocapture
     fi
 
 # A release build without a release (scripts/release-dry.sh): a universal .dmg on macOS (--sign: Developer ID,

@@ -135,8 +135,8 @@ test("the aggregate ci check needs every other job, runs always, and lets only t
   }
 });
 
-/** scripts/ci-scope.sh's answers after committing a base, then changing `change` (null: nothing). */
-function scope(change, env = {}) {
+/** scripts/ci-scope.sh's output after committing a base, then changing `change` (null: nothing). */
+function scopeOut(change, env = {}) {
   const { dir, git } = tempRepo();
   writeFiles(dir, { "README.md": "", "crates/a.rs": "" });
   git("add", "-A");
@@ -147,7 +147,12 @@ function scope(change, env = {}) {
     env: { EMMET_CI_BASE: "", EMMET_CI_FULL: "", EMMET_CI_WINDOWS: "", ...env },
   });
   assert.equal(r.code, 0, r.out);
-  const out = Object.fromEntries(r.out.trim().split("\n").map((l) => l.split("=")));
+  return Object.fromEntries(r.out.trim().split("\n").map((l) => l.split("=")));
+}
+
+/** The jobs and steps scripts/ci-scope.sh turns on for `change`. */
+function scope(change, env = {}) {
+  const out = scopeOut(change, env);
   return Object.keys(out).filter((k) => out[k] === "true").join(" ") || "nothing";
 }
 
@@ -171,8 +176,10 @@ for (const [change, runs] of [
   ["deny.toml", "mac deps"],
   ["scripts/release-dry.sh", "mac"],
   ["apps/desktop/src-tauri/tauri.release.conf.json", "mac e2e_mac build_app"],
-  ["Cargo.lock", "full mac deps e2e_mac build_app bench"],
-  [".github/workflows/ci.yml", "full mac deps e2e_mac build_app bench"],
+  ["Cargo.lock", "full mac deps e2e_mac build_app"],
+  // How CI runs: the checks and core E2E, not everything (plan section 16).
+  [".github/workflows/ci.yml", "mac e2e_mac"],
+  ["justfile", "mac e2e_mac"],
 ]) {
   test(`ci scope: ${change ?? "no change"} runs ${runs}`, { skip: process.platform === "win32" }, () => {
     assert.equal(scope(change), runs);
@@ -191,10 +198,10 @@ for (const [change, runs] of [
 }
 
 test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the changes to those after it", { skip: process.platform === "win32" }, () => {
-  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac deps e2e_mac build_app bench");
+  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac deps e2e_mac build_app");
   assert.equal(
     scope(null, { EMMET_CI_FULL: "1", EMMET_CI_WINDOWS: "1" }),
-    "full mac windows deps e2e_mac e2e_windows build_app nsis bench",
+    "full mac windows deps e2e_mac e2e_windows build_app nsis",
   );
   const { dir, git } = tempRepo();
   writeFiles(dir, { "crates/a.rs": "" });
@@ -213,6 +220,30 @@ test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the ch
   assert.match(at(green), /^mac=false$/m);
   const bad = run("bash", [join(ROOT, "scripts/ci-scope.sh")], { cwd: dir, env: { EMMET_CI_BASE: "0".repeat(40), EMMET_CI_FULL: "" } });
   assert.notEqual(bad.code, 0, "a base that isn't a commit must fail, not scope to nothing");
+});
+
+// The E2E specs come from tests/e2e/tiers.mjs: core for anything that reaches the app, plus the areas that changed.
+const CORE = "hello,viewer,panel,chat,checks,trust,runs,versions,import,render,visual";
+for (const [change, specs] of [
+  ["README.md", ""],
+  ["scripts/plan-check.mjs", ""],
+  ["packages/viewer/src/index.ts", CORE],
+  ["crates/emmet-core/src/lib.rs", CORE],
+  ["crates/emmet-agent/src/session.rs", `${CORE},chatgpt,setup,bus`],
+  ["apps/desktop/src/Panel.tsx", `${CORE},keyboard`],
+  ["apps/desktop/src/FirstRun.tsx", `${CORE},keyboard,first-run`],
+  ["tests/e2e/specs/leak.e2e.mjs", `${CORE},leak`],
+  [".github/workflows/ci.yml", CORE],
+]) {
+  test(`ci scope: ${change} runs E2E ${specs || "nothing"}`, { skip: process.platform === "win32" }, () => {
+    assert.equal(scopeOut(change).e2e_specs, specs);
+  });
+}
+
+test("ci scope: a full run runs core and every area, not the by-hand tier", { skip: process.platform === "win32" }, () => {
+  const specs = scopeOut(null, { EMMET_CI_FULL: "1" }).e2e_specs.split(",");
+  for (const s of ["hello", "viewer", "chat", "chatgpt", "keyboard", "first-run"]) assert.ok(specs.includes(s), s);
+  for (const s of ["leak", "screens", "dock", "bench"]) assert.ok(!specs.includes(s), s);
 });
 
 test("DCO runs on every event but a push to main, so the hosted fallback's ci check covers sign-offs", () => {

@@ -6,6 +6,12 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 publish.workspace = true
+# One test binary, tests/main.rs, with each file in tests/ as a module (see there).
+autotests = false
+
+[[test]]
+name = "it"
+path = "tests/main.rs"
 
 # The harness in src/ is shared by every test file in tests/, so the test dependencies are normal ones.
 [dependencies]

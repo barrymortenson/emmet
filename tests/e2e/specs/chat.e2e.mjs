@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { instances, invoke, open, screenshots } from "../lib/app.mjs";
 import { agentConfigHashes, fakeDir, scenario } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
+import { extraIt } from "../tiers.mjs";
 
 const projects = { claude: projectDir("chat"), codex: projectDir("chat-codex") };
 const NAME = { claude: "Claude", codex: "Codex" };
@@ -52,12 +53,17 @@ async function history(open = true) {
 }
 
 /** Starts a fresh conversation with `kind`, whose fake plays `name` when the first message starts it. */
-async function start(kind, name) {
-  // A turn a failed test left running ends first.
+/** Ends a turn a failed test left running. The app is shared by every spec file and by a spec's retry, so a turn
+ * stuck at its approval would otherwise hold up every test after it (CI run 41668024117). */
+async function endStuckTurn() {
   if ((await chat()).running) {
     await invoke("chat_stop").catch(() => {});
     await idle();
   }
+}
+
+async function start(kind, name) {
+  await endStuckTurn();
   await history(false);
   scenario(kind, name);
   await waitFor("no agent", async () => (await chat()).agent != null);
@@ -128,16 +134,22 @@ for (const kind of ["claude", "codex"]) {
     it("shows the agent and who pays", async () => {
       await open(projects[kind]);
       await instances(8);
+      await endStuckTurn();
       if ((await chat()).agent !== kind) await pick(kind);
       await waitFor("the picker didn't show the agent", async () => (await $("#agent-picker").getText()) === NAME[kind]);
       if (kind === "claude") {
         await expect($("#plan-badge")).toHaveText(expect.stringMatching(/^Max plan( · \d+%)?$/), { wait: 10_000 });
         // A key in the user's environment bills instead of the plan (ADR 0001): the dock says so before a turn.
         writeFileSync(join(fakeDir, "claude-auth.json"), '{"loggedIn":true,"authMethod":"api_key","apiKeySource":"ANTHROPIC_API_KEY"}');
-        await choose("#agent-picker", '[data-menu="agents-again"]');
-        await waitFor("the dock didn't say the key bills", async () => (await log()).includes("will bill the API key in ANTHROPIC_API_KEY"));
-        rmSync(join(fakeDir, "claude-auth.json"));
-        await choose("#agent-picker", '[data-menu="agents-again"]');
+        try {
+          await choose("#agent-picker", '[data-menu="agents-again"]');
+          await waitFor("the dock didn't say the key bills", async () => (await log()).includes("will bill the API key in ANTHROPIC_API_KEY"));
+        } finally {
+          // Back to the plan even when the check fails: the shared app would show the key's warning in every later
+          // spec's screenshots (versions and import, CI run 41668024117).
+          rmSync(join(fakeDir, "claude-auth.json"), { force: true });
+          await choose("#agent-picker", '[data-menu="agents-again"]');
+        }
         await waitFor("the warning stayed", async () => !(await log()).includes("will bill the API key"));
       } else {
         await expect($("#plan-badge")).toHaveText("API key", { wait: 10_000 });
@@ -320,9 +332,10 @@ describe("switching agents", () => {
 });
 
 describe("the chat overall", () => {
-  // The window measures from the host having the event to the change being in the DOM; the next frame paints it, so
-  // the budget is 50 ms less one 60 Hz frame.
-  it("adds under 50 ms between an agent event and its pixels", async () => {
+  // The two timing checks run by hand, with `just e2e all` (tests/e2e/tiers.mjs). The window measures from the host
+  // having the event to the change being in the DOM; the next frame paints it, so the budget is 50 ms less one 60 Hz
+  // frame.
+  extraIt("adds under 50 ms between an agent event and its pixels", async () => {
     const all = await browser.execute(() => window.__emmet.chatLatency());
     // Every event but the rung 1 builds' (whose time is the viewer's, logged by that test).
     const ms = [...all];
@@ -334,7 +347,7 @@ describe("the chat overall", () => {
     expect(p95).toBeLessThan(50 - 17);
   });
 
-  it("stays smooth at 1,000 messages", async () => {
+  extraIt("stays smooth at 1,000 messages", async () => {
     // A project whose history holds 1,000 messages: 500 asks and 500 replies, in one conversation.
     const dir = projects.codex;
     const chatDir = join(dir, ".emmet", "chat");
