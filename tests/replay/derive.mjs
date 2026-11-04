@@ -15,8 +15,10 @@ import { fileURLToPath } from "node:url";
 const here = fileURLToPath(new URL(".", import.meta.url));
 // What the rung 1 runs write: the cottage template, the hand-written rung 1 reference (1D's emmet eval dry run).
 const cottage = readFileSync(join(here, "../../crates/emmet-core/templates/cottage/model.py"), "utf8");
+// Rung 1's prompt: the quoted lines of its own section only (up to the next heading), not the rungs after it.
 const rung1 = readFileSync(join(here, "../../docs/spec/ladder.md"), "utf8")
   .split("## Rung 1")[1]
+  .split("\n## ")[0]
   .split("\n")
   .filter((l) => l.startsWith(">"))
   .map((l) => l.slice(1).trim())
@@ -66,6 +68,10 @@ const pick = (lines, pred, nth = 0) => {
   if (!found[nth]) throw new Error(`no line #${nth} matches ${pred}`);
   return clone(found[nth]);
 };
+// The photo rung's dry run (4D): a first draft from angle a that ends asking for another angle, as the doctrine says,
+// then angle b as the next turn, run, and validate. The photos are placeholders, as transcripts keep them.
+const askAngle = "A first draft is up: 93 parts, 0 errors, with the depth a guess. Can you send a photo from the side?";
+const fromBoth = "Built it from both photos: 93 parts, 0 errors. Sliders: width, depth, wall rows, wall color, roof color, chimney.";
 const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code, signal: null, ...(crash && { crash }) } } });
 
 // ---------------------------------------------------------------------------------------------------------- Claude
@@ -142,6 +148,43 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     result("toolu_validate", placeholder),
     text("msg_0007", finished),
     done(finished),
+    exit(0),
+  ]);
+
+  const photoUser = (text, angle) => ({
+    t: 0,
+    dir: "in",
+    msg: {
+      type: "user",
+      message: {
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: "image/jpeg", data: `<image sha256:angle-${angle} 0 bytes>` } },
+          { type: "text", text },
+        ],
+      },
+    },
+  });
+  save("claude", "photo", "tool-call.jsonl", "the photo rung: angle a, a first draft, a request for another angle; angle b, run, validate", [
+    meta,
+    photoUser("Build this.", "a"),
+    init,
+    use("msg_0001", "toolu_write", "Write", { file_path: "<WS>/project/model.py", content: cottage }),
+    result("toolu_write", "File created successfully at: <WS>/project/model.py"),
+    ...search("msg_0002", "toolu_search1", "mcp__emmet__run_model"),
+    use("msg_0003", "toolu_run1", "mcp__emmet__run_model", {}),
+    result("toolu_run1", placeholder),
+    text("msg_0004", askAngle),
+    done(askAngle),
+    photoUser("Here's another angle.", "b"),
+    init,
+    use("msg_0005", "toolu_run2", "mcp__emmet__run_model", {}),
+    result("toolu_run2", placeholder),
+    ...search("msg_0006", "toolu_search2", "mcp__emmet__validate"),
+    use("msg_0007", "toolu_validate", "mcp__emmet__validate", {}),
+    result("toolu_validate", placeholder),
+    text("msg_0008", fromBoth),
+    done(fromBoth),
     exit(0),
   ]);
 
@@ -344,6 +387,36 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     ...tool("emmet", "run_model", {}, 2),
     ...tool("emmet", "validate", {}, 3),
     ...finish(finished),
+  ]);
+  const photoTurn = (lines, text, angle) =>
+    lines.map((l) => {
+      const c = clone(l);
+      if (c.dir === "in" && c.msg.method === "turn/start")
+        c.msg.params.input = [
+          { type: "localImage", path: `<WS>/project/refs/angle-${angle}.jpg` },
+          { type: "text", text },
+        ];
+      return c;
+    });
+  // The second turn: turn/start again, with every request id after the first turn's.
+  const photoAt = head.findIndex((l) => l.dir === "in" && l.msg.method === "turn/start");
+  const shift = (lines, by) =>
+    lines.map((l) => {
+      const c = clone(l);
+      if (c.dir === "in" && c.msg.id != null) c.msg.id += by;
+      if (c.dir === "out" && c.msg.id != null && !c.msg.method) c.msg.id += by;
+      return c;
+    });
+  const firstEnd = finish(askAngle).filter((l) => !(l.dir === "note" && l.msg.exit));
+  save("codex", "photo", "tool-call.jsonl, permissions-untrusted.jsonl", "the photo rung: angle a, a first draft, a request for another angle; angle b, run, validate", [
+    ...photoTurn(head, "Build this.", "a"),
+    ...write,
+    ...tool("emmet", "run_model", {}, 1),
+    ...firstEnd,
+    ...shift(photoTurn(head.slice(photoAt), "Here's another angle.", "b"), 10),
+    ...tool("emmet", "run_model", {}, 2),
+    ...tool("emmet", "validate", {}, 3),
+    ...finish(fromBoth),
   ]);
   const edit = change.map((l) => {
     const c = clone(l);

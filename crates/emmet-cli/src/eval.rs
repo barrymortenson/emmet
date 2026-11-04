@@ -5,7 +5,8 @@
 //! tools and edits to the model files and deny everything else. `--dry-run` is for the fake agents in CI: no keychain,
 //! no question before it starts. A turn is one tool call; questions are `ask_user` calls, so they count.
 //!
-//! It runs rung 1 and the technique prompts T1 to T5 (3E); 5A adds the other rungs.
+//! It runs rung 1 and the technique prompts T1 to T5 (3E); the photo rung is eval_photo.rs (4D); 5A adds the other
+//! rungs.
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, Write};
@@ -22,7 +23,7 @@ use serde::Serialize;
 use serde_json::Value;
 
 /// The ladder (prompts, features, answer scripts), as the docs have it.
-const LADDER: &str = include_str!("../../../docs/spec/ladder.md");
+pub(crate) const LADDER: &str = include_str!("../../../docs/spec/ladder.md");
 
 /// Rung 1's budget (plan section 16.1).
 const BUDGET: Duration = Duration::from_secs(10 * 60);
@@ -328,45 +329,9 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         project.write_config()?;
     }
 
-    let hub = Hub::default();
-    let route = hub.clone();
-    let _bus = emmet_bus::Server::start(data, move |msg| {
-        use emmet_bus::{Message, Reply};
-        let answer = match msg {
-            Message::Approve { session, request } => route.approve(&session, request),
-            Message::Ask { session, question } => route.ask(&session, question),
-            Message::Notes { session } => route.take_notes(&session),
-            // render falls back to render mode, and highlight has no window to show.
-            _ => return Reply::undelivered("emmet eval has no window"),
-        };
-        match answer {
-            Some(a) => Reply {
-                delivered: true,
-                answer: Some(a),
-                ..Default::default()
-            },
-            None => Reply::undelivered("that session isn't the eval's"),
-        }
-    })?;
-    let emmet = std::env::current_exe().map_err(|e| Error::internal(format!("this emmet's path: {e}")))?;
-    let session_id = format!("eval{}", emmet_core::fsx::random_hex(1));
-    let cfg = SessionConfig {
-        id: session_id.clone(),
-        project: project.root.clone(),
-        data: data.root().to_path_buf(),
-        emmet,
-        resume: None,
-        model: None,
-        effort: None,
-        env,
-        hub: hub.clone(),
-        native_steer: true,
-        openai_key,
-    };
-    let mut session = adapter
-        .start(cfg)
-        .map_err(|e| Error::internal(format!("starting {}: {}", opts.agent.label(), e.message)))?;
-    let events = session.events();
+    let live = start(data, opts.agent, adapter.as_ref(), &project.root, env, openai_key)?;
+    let (mut session, events, session_id) = (live.session, live.events, live.id);
+    let _bus = live.bus;
     let mut run = Run {
         agent: opts.agent.label().into(),
         cli_version: detection.version.clone(),
@@ -540,6 +505,71 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         offer_fixture(opts.agent, &report)?;
     }
     Ok(report)
+}
+
+/// An agent session the eval drives: the eval holds the data dir's bus, answering questions and approvals itself.
+pub(crate) struct Live {
+    pub session: Box<dyn emmet_agent::Session>,
+    pub events: emmet_agent::EventStream,
+    pub id: String,
+    pub bus: emmet_bus::Server,
+}
+
+/// Starts `adapter`'s CLI in `root` the way the app does, with the eval's own bus routing `approve`, `ask_user`, and
+/// redirect notes to the session's hub.
+pub(crate) fn start(
+    data: &DataDir,
+    agent: AgentKind,
+    adapter: &dyn emmet_agent::AgentAdapter,
+    root: &Path,
+    env: Vec<(String, String)>,
+    openai_key: Option<String>,
+) -> Result<Live> {
+    let hub = Hub::default();
+    let route = hub.clone();
+    let bus = emmet_bus::Server::start(data, move |msg| {
+        use emmet_bus::{Message, Reply};
+        let answer = match msg {
+            Message::Approve { session, request } => route.approve(&session, request),
+            Message::Ask { session, question } => route.ask(&session, question),
+            Message::Notes { session } => route.take_notes(&session),
+            // render falls back to render mode, and highlight has no window to show.
+            _ => return Reply::undelivered("emmet eval has no window"),
+        };
+        match answer {
+            Some(a) => Reply {
+                delivered: true,
+                answer: Some(a),
+                ..Default::default()
+            },
+            None => Reply::undelivered("that session isn't the eval's"),
+        }
+    })?;
+    let emmet = std::env::current_exe().map_err(|e| Error::internal(format!("this emmet's path: {e}")))?;
+    let session_id = format!("eval{}", emmet_core::fsx::random_hex(1));
+    let cfg = SessionConfig {
+        id: session_id.clone(),
+        project: root.to_path_buf(),
+        data: data.root().to_path_buf(),
+        emmet,
+        resume: None,
+        model: None,
+        effort: None,
+        env,
+        hub: hub.clone(),
+        native_steer: true,
+        openai_key,
+    };
+    let mut session = adapter
+        .start(cfg)
+        .map_err(|e| Error::internal(format!("starting {}: {}", agent.label(), e.message)))?;
+    let events = session.events();
+    Ok(Live {
+        session,
+        events,
+        id: session_id,
+        bus,
+    })
 }
 
 /// The run scored per section 16.1 (rung 1).
@@ -983,7 +1013,7 @@ fn offer_fixture(agent: AgentKind, r: &Report) -> Result<()> {
 }
 
 /// The repo this emmet was built from (eval is a dev tool).
-fn repo_dir() -> Result<PathBuf> {
+pub(crate) fn repo_dir() -> Result<PathBuf> {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     emmet_core::fsx::canonical(&dir).map_err(|e| Error::io(&dir, e))
 }
@@ -1011,7 +1041,7 @@ fn dir_name(rung: &str) -> String {
     }
 }
 
-fn name(agent: AgentKind) -> &'static str {
+pub(crate) fn name(agent: AgentKind) -> &'static str {
     match agent {
         AgentKind::Claude => "claude",
         AgentKind::Codex => "codex",

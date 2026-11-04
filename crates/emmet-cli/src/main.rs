@@ -3,6 +3,7 @@
 //! prints the result, as the JSON envelope with `--json` or as text.
 
 mod eval;
+mod eval_photo;
 mod guide;
 mod host;
 mod mcp;
@@ -197,6 +198,15 @@ enum Command {
         /// Where to make the run's project (default: a new temp folder).
         #[arg(long, value_name = "DIR")]
         work: Option<PathBuf>,
+        /// The photo rung's subject (data/ladder/photo/subjects.toml).
+        #[arg(long)]
+        subject: Option<String>,
+        /// The photo rung: score this hand session's project instead of running one (it sends nothing to an agent).
+        #[arg(long, value_name = "PROJECT")]
+        score: Option<PathBuf>,
+        /// The photo rung: Barry's scores for proportions, recognizability, and buildability, 0 to 2 each ("2,1,2").
+        #[arg(long, value_name = "P,R,B", value_parser = eval_photo::parse_rubric)]
+        rubric: Option<[u8; 3]>,
     },
     /// The app-internal `emmet_host` MCP server for a chat session: approve and ask_user, over the bus.
     #[command(hide = true)]
@@ -716,7 +726,15 @@ fn main() -> ExitCode {
             yes,
             out,
             work,
+            subject,
+            score,
+            rubric,
         } => {
+            let agent_kind = match agent {
+                AgentArg::Claude => emmet_agent::AgentKind::Claude,
+                AgentArg::Codex => emmet_agent::AgentKind::Codex,
+            };
+            let photo = rung.eq_ignore_ascii_case("photo") || rung.eq_ignore_ascii_case("p");
             let opts = eval::Options {
                 rung: rung.clone(),
                 agent: match agent {
@@ -728,7 +746,31 @@ fn main() -> ExitCode {
                 out: out.clone(),
                 work: work.clone(),
             };
-            let result = data.and_then(|d| eval::eval(&d, &opts));
+            let result = data.and_then(|d| {
+                if photo {
+                    let subject = subject.clone().ok_or_else(|| {
+                        emmet_core::envelope::Error::new(
+                            emmet_core::envelope::ErrorCode::ParamInvalid,
+                            "The photo rung needs a subject.",
+                            "Pass --subject: lamp, e-bike, bradbury, or truck.",
+                        )
+                    })?;
+                    eval_photo::eval(
+                        &d,
+                        &eval_photo::Options {
+                            agent: agent_kind,
+                            subject,
+                            dry_run: *dry_run,
+                            score: score.clone(),
+                            rubric: *rubric,
+                            out: out.clone(),
+                            work: work.clone(),
+                        },
+                    )
+                } else {
+                    eval::eval(&d, &opts)
+                }
+            });
             let pass = result.as_ref().is_ok_and(|r| r.pass);
             let code = finish(&cli, started, result.into(), |r| {
                 let mut lines = vec![format!(
