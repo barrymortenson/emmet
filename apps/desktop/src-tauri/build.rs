@@ -49,6 +49,8 @@ fn main() {
         "open_plans",
         "agents",
         "chat_send",
+        "chat_attach",
+        "chat_photo",
         "chat_steer",
         "chat_note",
         "chat_stop",

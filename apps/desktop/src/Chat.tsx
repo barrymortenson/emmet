@@ -21,6 +21,7 @@ import {
   events,
   type ModelChoice,
   type Origin,
+  type PhotoView,
   type Problem,
   type ProjectView,
   type Question,
@@ -32,6 +33,7 @@ import {
 import { AgentSetup } from "./Agents";
 import { LimitCard } from "./ChatGpt";
 import { Markdown } from "./markdown";
+import { ACCEPT, convert, isPhoto } from "./photos";
 import { editedFiles, effortName, fileCard, isEdit, isHidden, modelName, toolCard, doing, toolName } from "./summaries";
 import { AlertCard, Badge, Button, Choose, Icon, IconButton, type IconName, Kbd, MenuItems, Resizable, Spinner, TextField } from "./ui";
 import { limitWarning, PlanBadge, until } from "./Usage";
@@ -50,7 +52,7 @@ const FROM: Record<Origin, [IconName, string]> = {
 
 type Item =
   | { k: "divider"; key: string; text: string }
-  | { k: "user"; key: string; text: string; from: Origin | null; note?: string; delivered?: SteerPath | null; at: number }
+  | { k: "user"; key: string; text: string; from: Origin | null; note?: string; delivered?: SteerPath | null; at: number; photos?: string[] }
   | { k: "agent" | "thinking"; key: string; message: string; text: string }
   | { k: "tool"; key: string; id: string; name: string; input: unknown; result: { ok: boolean; summary: string } | null }
   | { k: "file"; key: string; path: string; change: "added" | "modified" | "removed"; tool?: string }
@@ -83,7 +85,7 @@ type Chat = {
 
 type Action =
   | { type: "load"; state: ChatState; live: boolean }
-  | { type: "user"; text: string; from: Origin | null; note?: string; at: number }
+  | { type: "user"; text: string; from: Origin | null; note?: string; at: number; photos?: string[] }
   | { type: "event"; event: AgentEvent; at: number }
   | { type: "divider"; text: string }
   | { type: "decided"; id: string; how: Decision }
@@ -198,7 +200,7 @@ function reduce(c: Chat, a: Action): Chat {
         // Each conversation starts with no turn running: an earlier one's last turn is over.
         s = { ...s, running: false, question: null, crashed: false };
         for (const r of v.records) {
-          if (r.user != null) s = reduce(s, { type: "user", text: r.user, from: r.from ?? null, at: r.at ?? 0 });
+          if (r.user != null) s = reduce(s, { type: "user", text: r.user, from: r.from ?? null, at: r.at ?? 0, photos: r.photos });
           else if (r.event) s = apply(s, r.event, r.at ?? 0);
           else if (r.decided) s = reduce(s, { type: "decided", id: r.decided.id, how: r.decided.decision });
           else if (r.answered) s = reduce(s, { type: "answered", id: r.answered.id, answer: r.answered.text });
@@ -210,7 +212,7 @@ function reduce(c: Chat, a: Action): Chat {
     case "user": {
       const delivered = a.note ? (c.early[a.note] ?? null) : undefined;
       const turn = a.note ? {} : { running: true, began: a.at, stopped: false, crashed: false };
-      return { ...c, ...turn, n: c.n + 1, items: [...c.items, { k: "user", key: `k${c.n}`, text: a.text, from: a.from, note: a.note, delivered, at: a.at }] };
+      return { ...c, ...turn, n: c.n + 1, items: [...c.items, { k: "user", key: `k${c.n}`, text: a.text, from: a.from, note: a.note, delivered, at: a.at, photos: a.photos?.length ? a.photos : undefined }] };
     }
     case "event":
       return apply(c, a.event, a.at);
@@ -290,10 +292,27 @@ type Props = {
   onAgent: (kind: AgentKind | null) => void;
   /** Whether the agent is working (tips wait until it's done). */
   onBusy: (busy: boolean) => void;
+  /** Opens the compare view on a photo the user sent (`refs/<name>.jpg`). */
+  onPhoto: (path: string) => void;
 };
 
-export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsChanged, context, onSettings, onUndone, onAgent, onBusy }: Props) {
+/** A photo attached in the composer, saved in refs/ and waiting for Send. */
+type Attached = PhotoView & { name: string; url: string };
+
+/** What the first photo shows once (4D): where it goes, and under whose terms. */
+const PHOTO_NOTICE: Record<AgentKind, string> = {
+  claude: "Your photo goes to Claude Code, under Anthropic's terms.",
+  codex: "Your photo goes to Codex, under OpenAI's terms.",
+};
+
+export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsChanged, context, onSettings, onUndone, onAgent, onBusy, onPhoto }: Props) {
   const [chat, dispatch] = useReducer(reduce, empty);
+  const [attached, setAttached] = useState<Attached[]>([]);
+  const [attaching, setAttaching] = useState(0);
+  const [dropping, setDropping] = useState(false);
+  /** The photo notice's one sentence: null until known, then whether it's been shown. */
+  const [noticed, setNoticed] = useState<boolean | null>(null);
+  const picker = useRef<HTMLInputElement | null>(null);
   const [agents, setAgents] = useState<AgentView[] | null>(null);
   const [state, setState] = useState<ChatState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -388,9 +407,10 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     return r.status === "ok";
   };
 
-  /** Sends `t`: a turn, a redirect while the agent works, or the open question's Other answer. */
-  const send = async (t: string, from: Origin | null = null, detail: string | null = null) => {
-    t = t.trim();
+  /** Sends `t`: a turn, a redirect while the agent works, or the open question's Other answer. Photos start a turn:
+   * with no words, they go as "Build this." */
+  const send = async (t: string, from: Origin | null = null, detail: string | null = null, photos: string[] = []) => {
+    t = t.trim() || (photos.length ? "Build this." : "");
     if (!t) return;
     const ctx = { ...context(), detail };
     // While a question is open, what the user types is its Other answer (plan section 10).
@@ -409,12 +429,12 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
       else setError(r.error.message);
       return;
     }
-    dispatch({ type: "user", text: t, from, at: Date.now() });
+    dispatch({ type: "user", text: t, from, at: Date.now(), photos });
     const before = session.current;
     // The conversation the message goes to, so its first events (Codex's model, on the plan or not) are taken while
     // chatSend is still starting the agent, and an agent Start fresh just closed isn't.
     session.current ??= state?.sessions.at(-1)?.info.id ?? null;
-    const call = commands.chatSend(t, ctx, from);
+    const call = commands.chatSend(t, ctx, from, photos);
     sending.current = call;
     starting.current = true;
     const r = await call.finally(() => {
@@ -432,10 +452,67 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     }
   };
 
+  // A photo starts a turn, so it waits while the agent works or a question is open (a redirect and an answer are
+  // words).
+  const photoWait = chat.question ? "Answer the question first, then attach the photo." : chat.running ? `Attach the photo when ${who} has finished.` : null;
   const submit = () => {
+    if (attaching) return;
     const t = text;
+    const photos = photoWait ? [] : attached.map((p) => p.path);
     setText("");
-    void send(t);
+    if (photos.length) setAttached([]);
+    void send(t, null, null, photos);
+  };
+
+  useEffect(() => {
+    void commands.tipsSeen().then((seen) => setNoticed(seen.includes("photo")));
+  }, []);
+  useEffect(() => setAttached([]), [project.root]);
+
+  /** Converts each photo, then saves it in refs/ (the host cleans it again); a chip each, until Send. */
+  const attach = async (files: File[]) => {
+    const photos = files.filter(isPhoto);
+    if (!photos.length) return setError(files.length ? "Emmet takes photos as JPEG, PNG, or HEIC." : null);
+    if (photoWait) return setError(photoWait);
+    setError(null);
+    for (const f of photos) {
+      setAttaching((n) => n + 1);
+      try {
+        const c = await convert(f);
+        const r = await commands.chatAttach(c.name, c.jpeg);
+        if (r.status === "error") setError(`${r.error.message} ${r.error.hint}`.trim());
+        else setAttached((a) => (a.some((x) => x.path === r.data.path) ? a : [...a, { ...r.data, name: c.name, url: c.url }]));
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setAttaching((n) => n - 1);
+      }
+    }
+    input.current?.focus();
+  };
+  const onPaste = (e: React.ClipboardEvent) => {
+    const files = [...e.clipboardData.files].filter(isPhoto);
+    if (!files.length) return;
+    e.preventDefault();
+    void attach(files);
+  };
+  const dragging = (e: React.DragEvent) => e.dataTransfer.types.includes("Files");
+  const onDragOver = (e: React.DragEvent) => {
+    if (!dragging(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    setDropping(true);
+  };
+  const onDrop = (e: React.DragEvent) => {
+    if (!dragging(e)) return;
+    e.preventDefault();
+    setDropping(false);
+    void attach([...e.dataTransfer.files]);
+  };
+  const showNotice = noticed === false && attached.length > 0 && !!kind;
+  const dismissNotice = () => {
+    setNoticed(true);
+    void commands.tipSeen("photo");
   };
   // Stop as the first message is still on its way waits for it, so the agent it starts is the one stopped.
   const stop = () => void (async () => {
@@ -580,6 +657,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         if (await run(() => commands.chatAnswer(id, { choices, other }))) dispatch({ type: "answered", id, answer: [...choices, ...(other ? [other] : [])].join(", ") });
       },
       restart: () => void restart(),
+      photo: onPhoto,
     };
   }
 
@@ -736,18 +814,56 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
           </div>
         )
       )}
-      <div className="composer" data-c="composer">
+      <div className="composer" data-c="composer" data-drop={dropping || undefined} onDragOver={onDragOver} onDragLeave={() => setDropping(false)} onDrop={onDrop}>
+        {showNotice && (
+          <p className="composer-notice small" id="photo-notice">
+            <Icon name="info" size="sm" />
+            <span>{PHOTO_NOTICE[kind!]}</span>
+            <Button label="Got it" variant="quiet" size="sm" compact id="photo-notice-ok" onClick={dismissNotice} />
+          </p>
+        )}
+        {(attached.length > 0 || attaching > 0) && (
+          <ul className="composer-photos" aria-label="Attached photos" id="composer-photos">
+            {attached.map((p) => (
+              <li key={p.path} className="photo-chip" data-path={p.path}>
+                <img src={p.url} alt="" />
+                <span className="photo-chip-name">{p.name}</span>
+                <IconButton icon="x" size="sm" label={`Remove ${p.name}`} onClick={() => setAttached((a) => a.filter((x) => x.path !== p.path))} />
+              </li>
+            ))}
+            {attaching > 0 && (
+              <li className="photo-chip" data-busy>
+                <Spinner label="Attaching the photo" />
+              </li>
+            )}
+          </ul>
+        )}
         <textarea
           id="chat-input"
           ref={input}
           rows={text.includes("\n") || text.length > 80 ? 3 : 1}
-          placeholder={chat.running && !chat.question ? `Redirect ${who}…` : `Ask ${who} to build or change something`}
+          placeholder={chat.running && !chat.question ? `Redirect ${who}…` : attached.length ? "Build this, or say what to make of it" : `Ask ${who} to build or change something`}
           aria-label={chat.question ? "Your answer, in your own words" : chat.running ? `A message for ${who} while it works` : "Message"}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKey}
+          onPaste={onPaste}
         />
         <div className="composer-bar">
+          <IconButton icon="paperclip" size="sm" label={photoWait ?? "Attach a photo"} id="chat-attach" disabled={!!photoWait || !kind} onClick={() => picker.current?.click()} />
+          <input
+            ref={picker}
+            type="file"
+            accept={ACCEPT}
+            multiple
+            hidden
+            id="chat-attach-input"
+            onChange={(e) => {
+              const files = [...(e.target.files ?? [])];
+              e.target.value = "";
+              void attach(files);
+            }}
+          />
           <span className="composer-model">
             <Popover.Root>
               <Popover.Trigger asChild>
@@ -766,7 +882,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
             </Popover.Root>
           </span>
           <span className="grow" />
-          <Button label="Send" variant="primary" size="sm" icon="send" id="chat-send" disabled={!text.trim() || !kind} onClick={submit} />
+          <Button label="Send" variant="primary" size="sm" icon="send" id="chat-send" disabled={(!text.trim() && !(attached.length && !photoWait)) || !kind || attaching > 0} onClick={submit} />
         </div>
       </div>
     </section>
@@ -824,7 +940,29 @@ type Actions = {
   decide: (id: string, d: Decision) => void;
   answer: (id: string, choices: string[], other: string | null) => void;
   restart: () => void;
+  photo: (path: string) => void;
 };
+
+/** The photos read back for the chat, once each per window. */
+const photoUrls = new Map<string, Promise<string | null>>();
+
+/** A photo the user sent, small; a click opens the compare view. */
+function PhotoThumb({ path, onOpen }: { path: string; onOpen: () => void }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    if (!photoUrls.has(path)) photoUrls.set(path, commands.chatPhoto(path).then((r) => (r.status === "ok" ? r.data : null)));
+    void photoUrls.get(path)!.then((u) => live && setUrl(u));
+    return () => {
+      live = false;
+    };
+  }, [path]);
+  return (
+    <button type="button" className="message-photo" data-path={path} title="Compare with the model" aria-label="Your photo: compare it with the model" onClick={onOpen}>
+      {url ? <img src={url} alt="" /> : <Icon name="image" />}
+    </button>
+  );
+}
 
 /** The history's rows: three or more finished steps fold into one line once the turn moves past them (note 2). */
 function fold(items: Item[], who: AgentKind, chat: Chat, actions: () => Actions): Row[] {
@@ -886,6 +1024,13 @@ function Message({ item, who, chat, actions, line, active }: { item: Item; who: 
               <Icon name={FROM[item.from][0]} size="sm" />
               {FROM[item.from][1]}
             </span>
+          )}
+          {item.photos && (
+            <div className="message-photos">
+              {item.photos.map((p) => (
+                <PhotoThumb key={p} path={p} onOpen={() => actions.photo(p)} />
+              ))}
+            </div>
           )}
           <p>{item.text}</p>
           {item.delivered && (

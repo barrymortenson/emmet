@@ -56,6 +56,8 @@
     "allow-open-plans",
     "allow-agents",
     "allow-chat-send",
+    "allow-chat-attach",
+    "allow-chat-photo",
     "allow-chat-steer",
     "allow-chat-note",
     "allow-chat-stop",

@@ -664,6 +664,8 @@ async fn rules_and_api_return_the_doctrine_and_the_dsl() {
         "user_notes",
         "2,000 parts",
         "one tip per reply",
+        "Building from a photo",
+        "asking for a photo from the side",
     ] {
         assert!(
             doctrine.to_lowercase().contains(&must.to_lowercase()),

@@ -149,6 +149,8 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             crate::setup::open_plans,
             crate::chat::agents,
             crate::chat::chat_send,
+            crate::chat::chat_attach,
+            crate::chat::chat_photo,
             crate::chat::chat_steer,
             crate::chat::chat_note,
             crate::chat::chat_stop,
@@ -314,7 +316,10 @@ pub fn run() {
             let window = WebviewWindowBuilder::new(tauri_app, "main", WebviewUrl::default())
                 .title(if dev { "Emmet DEV" } else { "Emmet" })
                 .inner_size(1280.0, 800.0)
-                .min_inner_size(960.0, 600.0);
+                .min_inner_size(960.0, 600.0)
+                // A photo dropped on the chat reaches the page as an HTML5 file (4D), so no path crosses IPC: Tauri's
+                // own handler would hand the page the file's path instead.
+                .disable_drag_drop_handler();
             #[cfg(target_os = "macos")]
             let window = window
                 .title_bar_style(tauri::TitleBarStyle::Overlay)
