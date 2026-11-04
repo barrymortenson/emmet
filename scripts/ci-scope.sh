@@ -5,8 +5,8 @@
 # e2e_windows, build_app, nsis. e2e_specs is the comma-separated list tests/e2e/tiers.mjs picks. The changes are those
 # since EMMET_CI_BASE (CI sets it to the last green commit of the PR, or the PR's base), else since the merge-base with
 # origin/main, plus uncommitted and untracked files. EMMET_CI_FULL=1, or a change to the toolchain or a lockfile, runs
-# everything a PR can (Windows only with EMMET_CI_WINDOWS=1, while it's paused); the bench, the nightly E2E tier, and
-# the release-protocol build run in nightly.yml. A change to the justfile or a workflow runs the checks and core E2E.
+# everything a PR can (Windows only with EMMET_CI_WINDOWS=1, while it's paused); the bench and the by-hand E2E tier
+# run only by hand (just bench, just e2e all). A change to the justfile or a workflow runs the checks and core E2E.
 # Written for bash 3.2.
 set -euo pipefail
 # The tiers come from this checkout, whichever repo is being scoped (tests/scripts/ci.test.mjs scopes temp repos).
@@ -46,7 +46,7 @@ fi
 winflag windows '^(crates/|apps/desktop/src-tauri/|tests/(it|fixtures|replay|e2e|fake-agents)/|python/emmet_dsl/src/|data/)'
 flag deps '^deny\.toml$'
 # The E2E specs (tests/e2e/tiers.mjs): core for anything that reaches the app, each area that changed, and a spec whose
-# own file changed. Everything but the nightly tier on a full run.
+# own file changed. Everything but the by-hand tier on a full run.
 if [[ $full == true ]]; then
   specs=$(node "$tiers")
 else
@@ -58,7 +58,7 @@ echo "e2e_specs=$specs"
 # Windows E2E: the specs that cover paths and processes (tests/e2e/tiers.mjs windows), when the native side, the agent
 # bridge, or the specs change.
 winflag e2e_windows '^(apps/desktop/src-tauri/|tests/e2e/|crates/emmet-agent/|tests/fake-agents/)'
-# The release-protocol build: nightly, and a full run.
-echo "build_app=$full"
+# The release-protocol build (the custom protocol and the embedded frontend), when the native side changes.
+flag build_app '^apps/desktop/src-tauri/'
 # The unsigned NSIS installer (release-dry on Windows): a release build, so only when the release files change.
 winflag nsis '^(scripts/release-dry\.sh|apps/desktop/src-tauri/tauri\.release\.conf\.json)$'

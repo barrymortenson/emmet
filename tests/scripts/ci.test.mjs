@@ -64,22 +64,10 @@ for (const [why, github] of [
   test(`${why} runs on hosted macos-latest`, () => assert.equal(runsOn(github), "macos-latest"));
 }
 
-// nightly.yml (3A): the corpus and daily E2E jobs reach the Mac for the schedule and Barry's own PRs, as ci.yml's mac
-// job does.
+// nightly.yml (3A): the corpus job reaches the Mac for the schedule and Barry's own PRs, as ci.yml's mac job does.
 const nightly = readFileSync(join(workflows, "nightly.yml"), "utf8");
-const nightlyRunsOn = (job) =>
-  nightly.match(new RegExp(`^ {2}${job}:\\n(?: {4}(?:#|if:).*\\n)*? {4}runs-on: \\$\\{\\{ (.+) \\}\\}$`, "m"))?.[1];
-const nightlyExpr = nightlyRunsOn("corpus");
+const nightlyExpr = nightly.match(/^ {2}corpus:\n(?: {4}#.*\n)*? {4}runs-on: \$\{\{ (.+) \}\}$/m)?.[1];
 test("nightly.yml's corpus job has a runs-on expression", () => assert.ok(nightlyExpr, "corpus job runs-on not found"));
-test("nightly.yml's daily E2E job reaches the Mac exactly as the corpus does", () =>
-  assert.equal(nightlyRunsOn("e2e"), nightlyExpr));
-test("nightly.yml runs each job on its own schedule", () => {
-  const crons = [...nightly.matchAll(/- cron: "([^"]+)"/g)].map((m) => m[1]);
-  assert.equal(crons.length, 2);
-  for (const [job, cron] of [["corpus", crons[0]], ["e2e", crons[1]]]) {
-    assert.match(nightly, new RegExp(`^ {2}${job}:\\n {4}if: github\\.event_name != 'schedule' \\|\\| github\\.event\\.schedule == '${cron.replaceAll("*", "\\*")}'$`, "m"), job);
-  }
-});
 // Without bash's pipefail, `cargo test … | tee` passes whatever the test does.
 test("nightly.yml's steps run in bash with pipefail", () =>
   assert.match(nightly, /^ {4}defaults:\n {6}run:\n {8}shell: bash$/m));
@@ -180,14 +168,14 @@ for (const [change, runs] of [
   ["packages/viewer/src/index.ts", "mac e2e_mac"],
   ["crates/emmet-core/src/lib.rs", "mac e2e_mac"],
   ["python/emmet_dsl/src/emmet_dsl/model.py", "mac e2e_mac"],
-  ["apps/desktop/src-tauri/src/main.rs", "mac e2e_mac"],
+  ["apps/desktop/src-tauri/src/main.rs", "mac e2e_mac build_app"],
   ["tests/e2e/specs/viewer.e2e.mjs", "mac e2e_mac"],
   ["crates/emmet-agent/src/session.rs", "mac e2e_mac"],
   ["tests/fake-agents/src/lib.rs", "mac e2e_mac"],
   ["tests/replay/claude/plain-turn.jsonl", "mac e2e_mac"],
   ["deny.toml", "mac deps"],
   ["scripts/release-dry.sh", "mac"],
-  ["apps/desktop/src-tauri/tauri.release.conf.json", "mac e2e_mac"],
+  ["apps/desktop/src-tauri/tauri.release.conf.json", "mac e2e_mac build_app"],
   ["Cargo.lock", "full mac deps e2e_mac build_app"],
   // How CI runs: the checks and core E2E, not everything (plan section 16).
   [".github/workflows/ci.yml", "mac e2e_mac"],
@@ -252,7 +240,7 @@ for (const [change, specs] of [
   });
 }
 
-test("ci scope: a full run runs core and every area, not the nightly tier", { skip: process.platform === "win32" }, () => {
+test("ci scope: a full run runs core and every area, not the by-hand tier", { skip: process.platform === "win32" }, () => {
   const specs = scopeOut(null, { EMMET_CI_FULL: "1" }).e2e_specs.split(",");
   for (const s of ["hello", "viewer", "chat", "chatgpt", "keyboard", "first-run"]) assert.ok(specs.includes(s), s);
   for (const s of ["leak", "screens", "dock", "bench"]) assert.ok(!specs.includes(s), s);

@@ -136,10 +136,10 @@ test *args:
 
 # App E2E (plan section 16, ADR 0002): a debug build with the embedded WebDriver server and the E2E hooks, driven by
 # WebdriverIO. tests/e2e/tiers.mjs says which specs: `just e2e` runs core and every area, `just e2e all` adds the
-# nightly ones, `just e2e viewer,chat` runs those, and `just e2e --changed` what the changes since main can break (as
-# CI does). hello runs first on its own, and when it fails nothing else runs. The app is built inside the workspace
-# build (it embeds the frontend by default), so after `just test` only the webdriver feature's crates and the app build
-# again.
+# extra tier (by hand only), `just e2e viewer,chat` runs those, and `just e2e --changed` what the changes since main
+# can break (as CI does). hello runs first on its own, and when it fails nothing else runs. The app is built inside
+# the workspace build (it embeds the frontend by default), so after `just test` only the webdriver feature's crates
+# and the app build again.
 e2e *spec: e2e-build
     #!/usr/bin/env bash
     set -euo pipefail
@@ -151,7 +151,7 @@ e2e *spec: e2e-build
     else
       specs=$(node tests/e2e/tiers.mjs "$arg")
     fi
-    [[ "$arg" == all ]] && export EMMET_E2E_NIGHTLY=1
+    [[ "$arg" == all ]] && export EMMET_E2E_ALL=1
     if [[ -z "$specs" ]]; then echo "e2e: nothing to run"; exit 0; fi
     echo "e2e: $specs"
     # WebKit draws nothing on a locked screen or a sleeping display, and every spec would time out one by one: say so
@@ -190,8 +190,8 @@ e2e-build:
 
 # What CI's mac job runs, scoped by scripts/ci-scope.sh to what the changes since main can break: lint and secrets
 # always; the affected tests; the E2E specs tests/e2e/tiers.mjs picks; the audits when deny.toml changes; the
-# release-protocol build on a full run. CI runs it, so there is no need to run it locally before a push.
-# EMMET_CI_FULL=1 runs everything a PR can, as CI does weekly; nightly.yml runs the rest (the bench, the nightly E2E).
+# release-protocol build when the native side changes. CI runs it, so there is no need to run it locally before a push.
+# EMMET_CI_FULL=1 runs everything a PR can, as CI does weekly. The bench and the extra E2E tier are by hand only.
 ci:
     #!/usr/bin/env bash
     set -euo pipefail

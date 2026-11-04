@@ -3,8 +3,8 @@
 //
 // - core: the flows that prove the app works. Any change that can reach the app runs them.
 // - an area: specs for one part of the app, run when that part changes (or the spec itself does).
-// - nightly: design states, memory, and timing checks. The nightly workflow runs every spec, these included, and a
-//   test inside a core or area spec can be nightly-only too (nightlyIt).
+// - extra: design states, memory, and timing checks, run by hand (`just e2e all`), and by CI only when their own spec
+//   or baselines change. A test inside a core or area spec can be extra too (extraIt).
 //
 // scripts/ci-scope.sh and `just e2e` both ask this file, and tests/scripts/e2e-tiers.test.mjs checks that every spec
 // file has a tier. `node tests/e2e/tiers.mjs [--changed | all | core | windows | <spec,...>]` prints the specs to run,
@@ -41,10 +41,10 @@ export const AREAS = {
  * sidecars, and Python under uv. The UI and the viewer run the same JS in WebView2, so the Mac covers the rest. */
 export const WINDOWS = ["viewer", "chat", "setup", "runs", "trust", "versions", "import", "render", "visual"];
 
-/** Nightly only (and by hand): the frozen screens and dock states as screenshots, memory over 100 changes. */
-export const NIGHTLY = ["screens", "dock", "leak"];
+/** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes. */
+export const EXTRA = ["screens", "dock", "leak"];
 
-/** Not an E2E run: `just bench` runs it, nightly. */
+/** Not an E2E run: `just bench` runs it, by hand. */
 export const BENCH = "bench";
 
 /** First run starts the app on its own fresh data dir, so it's a run of its own (wdio.conf.mjs). */
@@ -60,15 +60,15 @@ const areaSpecs = () => Object.values(AREAS).flatMap((a) => a.specs);
 
 /** Every spec in a tier, for the check that none is missing. */
 export function tiered() {
-  return [GATE, ...CORE, ...areaSpecs(), ...NIGHTLY, BENCH];
+  return [GATE, ...CORE, ...areaSpecs(), ...EXTRA, BENCH];
 }
 
-/** True when the nightly-only tests run: `just e2e all` and the nightly workflow. */
-export const nightly = process.env.EMMET_E2E_NIGHTLY === "1";
+/** True when the extra tests run: `just e2e all`. */
+export const extra = process.env.EMMET_E2E_ALL === "1";
 
-/** A test that runs only nightly: it shows as pending in a PR's run, never silently gone. */
-export function nightlyIt(title, fn) {
-  return (nightly ? globalThis.it : globalThis.it.skip)(title, fn);
+/** A test that runs only with `just e2e all`: it shows as pending in a PR's run, never silently gone. */
+export function extraIt(title, fn) {
+  return (extra ? globalThis.it : globalThis.it.skip)(title, fn);
 }
 
 /** The specs a set of changed paths runs: nothing when none can reach the app, else core plus each area changed,
@@ -90,9 +90,9 @@ export function forChanges(paths) {
   return order([...pick]);
 }
 
-/** What `just e2e` runs with no argument (and a full CI run): core and every area. `all` adds nightly. */
-export function every(withNightly = false) {
-  return order([GATE, ...CORE, ...areaSpecs(), ...(withNightly ? NIGHTLY : [])]);
+/** What `just e2e` runs with no argument (and a full CI run): core and every area. `all` adds the extra tier. */
+export function every(withExtra = false) {
+  return order([GATE, ...CORE, ...areaSpecs(), ...(withExtra ? EXTRA : [])]);
 }
 
 /** hello first, first-run last (its own run), the rest in tier order. */

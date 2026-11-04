@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { AREAS, CORE, GATE, NIGHTLY, WINDOWS, every, forChanges, tiered } from "../e2e/tiers.mjs";
+import { AREAS, CORE, GATE, EXTRA, WINDOWS, every, forChanges, tiered } from "../e2e/tiers.mjs";
 import { ROOT } from "./helpers.mjs";
 
 const specs = readdirSync(join(ROOT, "tests/e2e/specs"))
@@ -19,8 +19,8 @@ test("every spec file is in exactly one tier, and every tier names a spec file",
   assert.equal(new Set(all).size, all.length, "a spec is in two tiers");
 });
 
-test("Windows runs specs from core and the areas, never the nightly tier", () => {
-  for (const s of WINDOWS) assert.ok(tiered().includes(s) && !NIGHTLY.includes(s), s);
+test("Windows runs specs from core and the areas, never the extra tier", () => {
+  for (const s of WINDOWS) assert.ok(tiered().includes(s) && !EXTRA.includes(s), s);
 });
 
 test("prose and scripts run no E2E; any app change runs hello and core, hello first", () => {
@@ -29,7 +29,7 @@ test("prose and scripts run no E2E; any app change runs hello and core, hello fi
     const got = forChanges([path]);
     assert.equal(got[0], GATE, path);
     for (const s of CORE) assert.ok(got.includes(s), `${path}: ${s}`);
-    for (const s of NIGHTLY) assert.ok(!got.includes(s), `${path}: ${s}`);
+    for (const s of EXTRA) assert.ok(!got.includes(s), `${path}: ${s}`);
   }
 });
 
@@ -40,7 +40,7 @@ test("an area's change adds its specs, and only its own", () => {
   for (const [name, area] of Object.entries(AREAS)) assert.ok(area.paths instanceof RegExp, name);
 });
 
-test("a spec's own change runs it, the nightly ones too; the harness runs every area", () => {
+test("a spec's own change runs it, the extra ones too; the harness runs every area", () => {
   assert.ok(forChanges(["tests/e2e/specs/screens.e2e.mjs"]).includes("screens"));
   assert.ok(forChanges(["tests/e2e/baselines/macos/screens/start-light.png"]).includes("screens"));
   assert.ok(!forChanges(["tests/e2e/specs/bench.e2e.mjs"]).includes("bench"), "the bench is just bench's");

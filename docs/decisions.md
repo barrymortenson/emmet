@@ -695,9 +695,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   last 60 runs failed, nearly all in Mac E2E). Now:
   - **E2E in tiers** (`tests/e2e/tiers.mjs`): core (opening a project, slider to viewer, a broken model and its
     recovery, chat with each fake agent, trust, a killed run, versions, import, Checks, render through MCP, and the
-    visual scenes) for any change that reaches the app; each area's specs when its code changes; and a nightly tier
+    visual scenes) for any change that reaches the app; each area's specs when its code changes; and an extra tier
     (the frozen screens and dock states as screenshots, memory over 100 changes, chat's two timing checks) that runs
-    daily with everything else. Nothing was deleted: the nightly tier still runs every day. `hello` runs first and
+    by hand (`just e2e all`), and in CI only when its own spec or baselines change. Nothing was deleted. `hello` runs first and
     alone, stops the run when it fails, and fails in a second when WebKit throttles the window to 30 fps; `just e2e`
     stops at once on a locked screen and keeps the display awake.
   - **The Rust integration tests are one binary.** macOS scanned each newly built test binary on its first launch,
@@ -706,7 +706,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
     engine, or ldraw-mini change. `emmet eval`'s test gets its own data dir, since the agent tests' bus now holds the
     shared one for the whole binary.
   - **"Everything" means a toolchain or lockfile change** (and weekly, and `full-ci`). A justfile or workflow change
-    runs the checks and core E2E. The bench and the release-protocol build move to `nightly.yml`'s daily E2E job.
+    runs the checks and core E2E. The release-protocol build runs when `apps/desktop/src-tauri/` changes, as before; the bench runs by hand.
   - **Windows E2E runs the specs for paths and processes** (`just e2e windows`), and hosted runners report timing
     budgets without failing on them.
-  Rejected: deleting the nightly tier outright, and doing this on 4C's branch.
+  - **No daily E2E job** (Barry, 2026-11-03: "I don't want a daily job to run"). The first version of this PR added
+    one to `nightly.yml` at 19:00 UTC; it's gone, and `nightly.yml` runs only the validator corpus, as before.
+  Rejected: deleting the extra tier outright, a daily E2E job, and doing this on 4C's branch.
