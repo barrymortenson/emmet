@@ -229,7 +229,7 @@ window.EMMET_STATUS = {
     "H-20": { status: "done", date: "2026-10-24", note: "Commercial Terms accepted through the Console account; legal page read 2026-10-24. No description to Anthropic (Barry 2026-10-25, D-37)" },
     "H-21": { status: "done", date: "2026-10-24", note: "keychain items emmet-eval-anthropic and emmet-eval-openai exist, with spend caps set" },
     "H-22": { status: "done", date: "2026-10-28", note: "98 of 100 candidates accepted on five review pages (docs/techniques/candidates/batch-1 to 5); rejected: wheel_axle, wheel_arch; docs/decisions.md" },
-    "H-23": { status: "todo" },
+    "H-23": { status: "done", date: "2026-11-04", note: "four real objects (a leg lamp, an e-bike, the Bradbury Building, a small pickup), two angles each; web photos kept in the gitignored data/ladder/photo/local/, hashed in data/ladder/photo/subjects.toml; docs/decisions.md" },
     "H-26": { status: "done", date: "2026-10-30", note: "all 13 batches accepted (260 of 260); the Cottage and design change note 002 approved" },
     "H-27": { status: "done", date: "2026-10-31", note: "the building rules approved as written; the technique prompts' before and after renders judged better and approved (docs/evals/2026-10-31-technique.md); both through AskUserQuestion" },
     "H-24": { status: "not-needed", note: "no note to Rebrickable; Q-14 settled by reading the Terms (Barry 2026-10-24)" },

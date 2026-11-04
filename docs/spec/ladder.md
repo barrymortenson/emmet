@@ -69,8 +69,11 @@ benches; a ticket booth; at least 250 parts.
 
 ## Rung P: Photo to model
 
-Three subjects Barry photographs himself, two angles each (H-23): two brick models and one real building, no people.
-The photos live in `data/ladder/photo/` once H-23 is done (4D).
+Four real objects of different kinds, none of them brick models, two angles each (H-23): a leg lamp, a moto-style
+e-bike, the Bradbury Building, and a small pickup truck. `data/ladder/photo/subjects.toml` lists them with Barry's
+descriptions, their part ranges, and each image's SHA-256. The images are web photos Barry doesn't hold the rights to,
+so they stay in the gitignored `data/ladder/photo/local/` on his Mac; `emmet eval --rung photo` refuses to run live
+without them or when a hash differs, and `--dry-run` uses generated images.
 
 **Prompt** (exact text, with the subject's first photo attached):
 
@@ -79,7 +82,12 @@ The photos live in `data/ladder/photo/` once H-23 is done (4D).
 **Features:** a model that reads as the subject at a glance, from real parts, in proportions measured in studs.
 
 **Scoring:** per subject, Barry scores proportions, recognizability, and buildability from 0 to 2 each with the photo
-beside the render. A subject passes at 4 of 6 or more with 0 validator errors; the rung passes when 2 of the 3 pass.
+beside the render (the compare view, on Barry's Mac). A subject passes at 4 of 6 or more with 0 validator errors; the
+rung passes when 3 of the 4 pass. The G2 report shows the renders and scores, not the reference photos.
+
+**Part ranges:** 50-300 for the lamp, the e-bike, and the truck; 1,500-3,000 for the Bradbury Building, which is a
+detailed modular building at minifigure scale. The prompt doesn't say so: the doctrine has the agent ask about scale
+when a photo leaves it open, and the Bradbury's own answer gives it. A subject's own answers are tried first.
 
 **Answer script:**
 

@@ -814,3 +814,23 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   easy case (the agent can count studs in the photo) and would mostly have measured that, not turning real things
   into bricks. 4D's goal now says "a photo of anything"; the rung's scoring (section 16.1) is unchanged.
   Rejected: one brick model as a baseline plus two real objects, and the plan's two brick models and one building.
+- **The photo rung's images stay local** (Barry, 2026-11-04, through AskUserQuestion: "Keep these, local only").
+  Barry's subjects are web images he doesn't hold the rights to, so they never enter the public repo. They live in
+  a gitignored `data/ladder/photo/local/`; the repo commits only `data/ladder/photo/subjects.toml` (each subject's
+  name, Barry's description, its answers, which image is angle a or b, and each image's SHA-256, so a G2 run proves
+  it used the same photos). CI's dry run uses generated images. Barry scores on his Mac with the compare view; the
+  G2 report shows the renders, not the reference photos. Rejected: openly licensed photos from Wikimedia Commons
+  (the subjects would likely change), and Barry taking his own photos.
+- **Four subjects; the rung passes at 3 of 4** (Barry, 2026-11-04, through AskUserQuestion). A leg lamp (the tall
+  floor version), a moto-style e-bike, the Bradbury Building, and a small pickup truck. Each subject
+  is one more run per agent. Rejected: 2 of 4, and dropping a subject.
+- **D-38's G2 budget is 14 runs, up from 12** (Barry, 2026-11-04, through AskUserQuestion: "Four subjects, 14
+  runs"). D-38 counts each photo subject as a run per agent; the agent first said four subjects cost the same, which
+  was wrong, and asked again. Rejected: three subjects and 12 runs.
+- **The Bradbury is a detailed modular building at minifigure scale, 1,500-3,000 parts, and the agent has to ask**
+  (Barry, 2026-11-04, through AskUserQuestion: "Answer it when asked"). The prompt stays "Build this."; the subject's
+  answer script gives the scale when the agent asks. Rejected: saying it in the prompt, and keeping it at 50-300.
+- **The images for each angle** (Barry, 2026-11-04, through AskUserQuestion: "Floor lamp"): the floor leg lamp, with
+  the table version as its angle b, labeled as a smaller version of the same lamp; the truck's front and rear
+  three-quarter shots (the shot with dimension labels is dropped, since it hands the agent the measurements); the
+  e-bike's three-quarter shot, then its side profile; the Bradbury's street corner, then the aerial.
