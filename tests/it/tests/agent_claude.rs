@@ -13,7 +13,7 @@ use insta::assert_json_snapshot;
 const CLAUDE: AgentKind = AgentKind::Claude;
 
 fn turn(text: &str) -> UserTurn {
-    UserTurn { text: text.into() }
+    UserTurn::text(text)
 }
 
 fn is_tool(name: &'static str) -> impl Fn(&AgentEvent) -> bool {
@@ -856,4 +856,60 @@ fn rung2_from_barrys_session_replays() {
         .filter(|e| matches!(e, AgentEvent::ToolCall { name, .. } if name == "mcp__emmet__run_model"))
         .count();
     assert!(runs >= 3, "it built in stages: {runs} runs");
+}
+
+/// 4D's Done when 1 and 2: a photo saved from a geotagged original reaches Claude Code as a stream-JSON image block
+/// (base64 JPEG, the saved file's own bytes, no metadata) before the text, and the transcript keeps a placeholder.
+#[test]
+fn a_photo_reaches_claude_code_without_its_metadata() {
+    let rig = Rig::new("claude-photo", "claude", "plain-turn");
+    let saved = emmet_core::refs::save(&rig.project, "IMG_2424.jpg", &crate::refs::geotagged()).unwrap();
+    let file = rig.project.join(&saved.path);
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(UserTurn {
+        text: "Build this.".into(),
+        images: vec![file.clone()],
+    })
+    .unwrap();
+    let events = ev.turn();
+    s.close();
+    assert!(matches!(events.last(), Some(AgentEvent::TurnDone { .. })), "{events:?}");
+    let user = rig
+        .received()
+        .into_iter()
+        .find(|m| m["type"] == "user")
+        .expect("the message");
+    let content = &user["message"]["content"];
+    assert_eq!(content.as_array().unwrap().len(), 2, "{content}");
+    assert_eq!(content[0]["type"], "image");
+    assert_eq!(content[0]["source"]["type"], "base64");
+    assert_eq!(content[0]["source"]["media_type"], "image/jpeg");
+    let sent = emmet_core::base64::decode(content[0]["source"]["data"].as_str().unwrap()).unwrap();
+    assert_eq!(sent, std::fs::read(&file).unwrap());
+    assert_eq!(crate::refs::has_metadata(&sent), None);
+    assert_eq!(content[1], serde_json::json!({ "type": "text", "text": "Build this." }));
+    // The transcript names the photo by its hash; its bytes stay out.
+    let logged = rig.written().into_iter().find(|m| m["type"] == "user").unwrap();
+    let data = logged["message"]["content"][0]["source"]["data"].as_str().unwrap();
+    let hash = emmet_core::fsx::sha256_hex(&sent);
+    assert_eq!(data, format!("<image sha256:{hash} {} bytes>", sent.len()));
+}
+
+/// A geotagged photo copied into refs/ by hand never goes out: the turn fails before the CLI reads a line.
+#[test]
+fn a_photo_that_still_has_metadata_is_refused() {
+    let rig = Rig::new("claude-photo-raw", "claude", "plain-turn");
+    std::fs::create_dir_all(rig.project.join("refs")).unwrap();
+    let raw = rig.project.join("refs/raw.jpg");
+    std::fs::write(&raw, crate::refs::geotagged()).unwrap();
+    let (mut s, _ev) = rig.start(CLAUDE);
+    let e = s
+        .send(UserTurn {
+            text: "Build this.".into(),
+            images: vec![raw],
+        })
+        .unwrap_err();
+    s.close();
+    assert!(e.message.contains("still has its metadata"), "{}", e.message);
+    assert!(rig.received().is_empty());
 }

@@ -150,6 +150,20 @@ pub struct SessionConfig {
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 pub struct UserTurn {
     pub text: String,
+    /// Photos sent with the text (4D): JPEG files the app has already cleaned and saved in the project's `refs/`
+    /// (`emmet_core::refs`). Claude Code gets each as an image content block, Codex as a `localImage` input item.
+    #[serde(default)]
+    pub images: Vec<PathBuf>,
+}
+
+impl UserTurn {
+    /// A turn of text alone.
+    pub fn text(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            images: Vec::new(),
+        }
+    }
 }
 
 /// What the user sees in the app when they send a message (plan section 14: "the agent sees what you selected"), and

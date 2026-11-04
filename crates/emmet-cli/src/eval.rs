@@ -380,9 +380,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
     );
     let started = Instant::now();
     session
-        .send(UserTurn {
-            text: rung.prompt.clone(),
-        })
+        .send(UserTurn::text(rung.prompt.clone()))
         .map_err(|e| Error::internal(format!("sending the prompt: {}", e.message)))?;
     let mut stopped = false;
     loop {

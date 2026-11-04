@@ -38,6 +38,36 @@ pub fn redact(s: &str, secrets: &[String]) -> Option<String> {
     )
 }
 
+/// `msg` with each inline image's bytes replaced by a placeholder naming its hash and size (4D): a transcript stays a
+/// readable size, and a replay fixture never carries a photo. Claude Code's image blocks are the only inline images
+/// Emmet writes (Codex reads its photos from `refs/`).
+pub fn without_images(msg: &Value) -> Value {
+    match msg {
+        Value::Object(map) => {
+            let mut out = serde_json::Map::new();
+            for (k, v) in map {
+                out.insert(k.clone(), without_images(v));
+            }
+            if map.get("type").and_then(Value::as_str) == Some("base64")
+                && let Some(data) = map.get("data").and_then(Value::as_str)
+            {
+                let bytes = emmet_core::base64::decode(data).unwrap_or_default();
+                out.insert(
+                    "data".into(),
+                    Value::String(format!(
+                        "<image sha256:{} {} bytes>",
+                        emmet_core::fsx::sha256_hex(&bytes),
+                        bytes.len()
+                    )),
+                );
+            }
+            Value::Object(out)
+        }
+        Value::Array(items) => Value::Array(items.iter().map(without_images).collect()),
+        other => other.clone(),
+    }
+}
+
 impl Transcript {
     /// Opens (appends to) the session's transcript. A transcript that can't be written isn't fatal: the chat goes on
     /// without one.
