@@ -834,3 +834,13 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   the table version as its angle b, labeled as a smaller version of the same lamp; the truck's front and rear
   three-quarter shots (the shot with dimension labels is dropped, since it hands the agent the measurements); the
   e-bike's three-quarter shot, then its side profile; the Bradbury's street corner, then the aerial.
+- **G2's live eval runs are Barry's hand sessions on his plans, not scripted runs on API keys** (Barry, 2026-11-04:
+  "These runs should be using my plans not the api"; then through AskUserQuestion: "Hand sessions on plans"). A
+  scripted `just eval` run on a plan has no basis in the terms matrix: Anthropic says developers building products
+  "should use API key authentication", and the chat pane bills a plan only for turns the user starts. So at G2 Barry
+  runs each rung himself in the app on his Claude and ChatGPT plans, types the prompt, gives the answer script's
+  answers himself (attaching a photo's second angle when asked), and `emmet eval --score <project>` scores the
+  finished project and its transcript, sending nothing to an agent. 14 hand sessions. The terms matrix splits its
+  "Automated runs" row: scripted spikes stay on the API keys (H-21), and live evals from G2 are the chat pane on his
+  plan. D-38's G2 line, section 16's Live eval row, 16.1, H-09, and the `emmet eval` row in section 09 say so.
+  Rejected: keeping scripted runs on the API keys, and plans by hand with the keys for any rung left over.
