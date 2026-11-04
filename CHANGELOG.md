@@ -209,15 +209,27 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   with numbered sub-steps. The build animation drops, fades, lifts away, and glides, with Replay build, Skip, and
   Settings' Animated, Fast, and Off. A 2,018-part stress model (`tests/fixtures/projects/scene-stress`), six visual
   baselines, and `tests/e2e/specs/{interact,animate,perf}.e2e.mjs`, which holds section 13's 2,000-part budgets.
+- Photo to model (session 4D): drop, paste, or pick a photo (JPEG, PNG, or HEIC on macOS) in the chat, and the agent
+  builds a brick version of it. Each photo is scaled to a 2,048 px long edge and re-encoded as JPEG within every
+  provider's limits, saved in the project's `refs/`, and sent as image content to Claude Code and as `localImage`
+  items to Codex. The first photo says once where it goes and under whose terms. A sent photo opens the compare view,
+  beside the model, without moving the camera. The doctrine says how to build from a photo and when to ask for
+  another angle. `emmet eval --rung photo --subject <id>` runs the photo rung's dry run with the fake agents
+  (`--dry-run`) or scores Barry's hand session (`--score <project> --rubric P,R,B`), sending nothing to an agent.
 
 ### Security
 
+- A photo keeps none of its metadata: Emmet drops every EXIF (GPS included), XMP, ICC, IPTC, and comment segment
+  before it saves or sends one, and refuses one in `refs/` that still has any (4D).
 - emmet-bus authenticates both ways: the token never crosses the socket, each request and reply proves it bound to a
   fresh nonce and the message, and a seen nonce is refused. The Windows pipe is user-only (ADR 0009).
 - ChatGPT tokens live only in the OS keychain, and a session's API key or access token is replaced with `<redacted>`
   in its transcript and chat wherever the CLI echoed it; leak tests grep every output for every token (ADR 0011).
 
 ### Fixed
+
+- `tests/replay/derive.mjs` gave the derived rung 1 fixtures every quoted prompt after rung 1's, the later rungs' too;
+  it reads rung 1's section alone (4D).
 
 - The chat's history and the agent's transcripts never write through a link a project carries (4B).
 - The steps showed a sub-assembly's parts by their own sub-step, so a step hid parts of a copy it had put on, and

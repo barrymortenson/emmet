@@ -156,6 +156,9 @@ enum Seen {
     Event(AgentEvent),
 }
 
+/// A session's messages and events in order, each with its time (Unix ms).
+type Timeline = Vec<(f64, Seen)>;
+
 /// What the scores read from a session.
 #[derive(Debug, Default)]
 struct Observed {
@@ -343,7 +346,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
 }
 
 /// The newest conversation with `agent` in the project's `.emmet/chat/`, as the app wrote it.
-fn read_session(project: &Project, agent: AgentKind) -> Result<(Run, Vec<(f64, Seen)>)> {
+fn read_session(project: &Project, agent: AgentKind) -> Result<(Run, Timeline)> {
     let chat = project.root.join(".emmet/chat");
     let sessions_path = chat.join("sessions.json");
     let sessions: Value = std::fs::read_to_string(&sessions_path)
@@ -426,7 +429,7 @@ fn dry_run(
     opts: &Options,
     subject: &Subject,
     shared: &[(Vec<String>, String)],
-) -> Result<(Project, Run, Vec<(f64, Seen)>)> {
+) -> Result<(Project, Run, Timeline)> {
     let env: Vec<(String, String)> = std::env::vars().collect();
     let adapter = emmet_agent::adapter(opts.agent, &env, data.root());
     if adapter.detect().path.is_none() {

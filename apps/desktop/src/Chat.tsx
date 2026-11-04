@@ -464,9 +464,6 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     void send(t, null, null, photos);
   };
 
-  useEffect(() => {
-    void commands.tipsSeen().then((seen) => setNoticed(seen.includes("photo")));
-  }, []);
   useEffect(() => setAttached([]), [project.root]);
 
   /** Converts each photo, then saves it in refs/ (the host cleans it again); a chip each, until Send. */
@@ -475,6 +472,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     if (!photos.length) return setError(files.length ? "Emmet takes photos as JPEG, PNG, or HEIC." : null);
     if (photoWait) return setError(photoWait);
     setError(null);
+    // The first photo of a message: has this user seen the notice (in any project or window)?
+    if (!attached.length) void commands.tipsSeen().then((seen) => setNoticed(seen.includes("photo")));
     for (const f of photos) {
       setAttaching((n) => n + 1);
       try {

@@ -23,6 +23,7 @@ const PROJECTS = {
     ["grid2000", "scene-grid", { count: 2000 }],
   ],
   chat: [["", "agent"], ["codex", "agent"]],
+  photo: [["", "agent"], ["codex", "agent"]],
   dock: [["", "cottage"]],
   bus: [["", "cottage"]],
   chatgpt: [["", "agent"]],
