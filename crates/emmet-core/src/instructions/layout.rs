@@ -631,8 +631,8 @@ pub fn book(src: &Sources, paper: Paper) -> Result<Book> {
     for (i, page) in pages.iter_mut().enumerate().skip(1) {
         let n = i as u32 + 1;
         page.number = Some(n);
-        let x = if n % 2 == 0 { MARGIN } else { pw - MARGIN };
-        let align = if n % 2 == 0 { Align::Start } else { Align::End };
+        let x = if n.is_multiple_of(2) { MARGIN } else { pw - MARGIN };
+        let align = if n.is_multiple_of(2) { Align::Start } else { Align::End };
         page.items
             .push(text(x, ph - MARGIN + 4.0, 11.0, false, MUTED, align, &n.to_string()));
     }
