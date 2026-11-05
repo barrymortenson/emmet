@@ -1667,7 +1667,7 @@ section 21 splits the work into phases and sessions. Follow AGENTS.md. Rules:
 <tr><td><a href="#phase-1">1 · Spike: prove the loop</a></td><td>From the app, a prompt to <b>either</b> agent builds rung 1 from real parts, live in the viewer, with sliders and a basic check that feeds back to the agent; a signed, notarized build; agents installed and signed in without a terminal; the <span class="pill gate">G1</span> go/no-go from the test results.</td><td><a href="#session-1a">1A</a> <a href="#session-1b">1B</a> <a href="#session-1c">1C</a> <a href="#session-1d">1D</a> <a href="#session-1e">1E</a> <a href="#session-1f">1F</a></td></tr>
 <tr><td><a href="#phase-2">2 · Design</a></td><td>Three clickable directions, Barry's pick (UX-1), then a frozen design system and every screen and state, signed (UX-2).</td><td><a href="#session-2a">2A</a> <a href="#session-2b">2B</a></td></tr>
 <tr><td><a href="#phase-3">3 · Engine MVP</a></td><td>Validator v1 that meets its precision, recall, and speed targets; DSL v1, steps, BOM, colors and availability, techniques; a hand-written rung 2 reference model that validates clean; a technique library mined from official models; build guides from the instruction books; good building technique by default, with a library that doesn't hold models back.</td><td><a href="#session-3a">3A</a> <a href="#session-3b">3B</a> <a href="#session-3c">3C</a> <a href="#session-3d">3D</a> <a href="#session-3e">3E</a></td></tr>
-<tr><td><a href="#phase-4">4 · App MVP</a></td><td>The full app to the frozen design: shell and first run, the full chat and agent UX, and a polished viewer within budget; photo to model; native PDF instructions. Rung 2 passes in replay and in Barry's hand session; its live run is part of G2.</td><td><a href="#session-4a">4A</a> <a href="#session-4b">4B</a> <a href="#session-4c">4C</a> <a href="#session-4d">4D</a> <a href="#session-4e">4E</a> <a href="#session-4f">4F</a></td></tr>
+<tr><td><a href="#phase-4">4 · App MVP</a></td><td>The full app to the frozen design: shell and first run, the full chat and agent UX, and a polished viewer within budget; photo to model; Technic frames and display vehicles; native PDF instructions. Rung 2 passes in replay and in Barry's hand session; its live run is part of G2.</td><td><a href="#session-4a">4A</a> <a href="#session-4b">4B</a> <a href="#session-4c">4C</a> <a href="#session-4d">4D</a> <a href="#session-4e">4E</a> <a href="#session-4f">4F</a> <a href="#session-4g">4G</a></td></tr>
 <tr><td><a href="#phase-5">5 · Quality gate: working proof of concept</a></td><td>The integration, E2E, and eval suites are complete; Windows, performance, and security are hardened; rung 3 and the photo rung pass; Barry's Windows pass; <span class="pill gate">G2</span>: the POC works, and the MVP exit criteria in section 02 hold.</td><td><a href="#session-5a">5A</a> <a href="#session-5b">5B</a></td></tr>
 <tr><td><a href="#phase-6">6 · Release and beta</a></td><td>A signed, auto-updating release pipeline publishing GitHub Releases; beta readiness (guide, exports, LPub3D hand-off, diagnostics); beta testers on both OSes; technique library v2, with many ways to build each thing and builds that don't look alike.</td><td><a href="#session-6a">6A</a> <a href="#session-6b">6B</a> <a href="#session-6c">6C</a></td></tr>
 <tr><td><a href="#phase-7">7 · Website and public launch</a></td><td>emmetbuilder.com live on Cloudflare; the provider terms re-checked; 1.0 released; launch posts.</td><td><a href="#session-7a">7A</a> <a href="#session-7b">7B</a></td></tr>
@@ -2272,7 +2272,7 @@ weaken a technique's test to get it green.</code></pre></details>
 <div class="phase" id="phase-4" data-phase="4">
 <div class="ph-top"><span class="pnum">Phase 4</span><h3>App MVP</h3></div>
 <div class="pbar"><i></i></div>
-<p>Build the app to the frozen design. 4A lays the shell and first run; then 4B (chat and agent UX) and 4C (viewer polish and performance) run in parallel. 4D (photo to model) follows 4B, and 4E (native PDF instructions) follows 4C. 4F (Antigravity in the chat pane) is skipped for the MVP (D-43), so the full chat covers Claude Code and Codex, and Antigravity comes after the MVP (Phase 8). The phase ends with rung 2 passing in replay and in Barry's hand session on each agent; its live eval run waits for G2.</p>
+<p>Build the app to the frozen design. 4A lays the shell and first run; then 4B (chat and agent UX) and 4C (viewer polish and performance) run in parallel. 4D (photo to model) follows 4B, and 4E (native PDF instructions) follows 4C. 4G (Technic frames and display vehicles) follows 4D, from Barry's first photo hand check, so the photo rung's vehicles have what they need before G2 (2026-11-04). 4F (Antigravity in the chat pane) is skipped for the MVP (D-43), so the full chat covers Claude Code and Codex, and Antigravity comes after the MVP (Phase 8). The phase ends with rung 2 passing in replay and in Barry's hand session on each agent; its live eval run waits for G2.</p>
 <div class="ph-you"><b>Your steps for this phase</b><ul>
 <li><span class="pill you">YOU</span> UX-2 must be signed (H-08) before 4A.</li>
 <li><span class="pill you">YOU</span> <b>H-23</b>: photograph the three photo-rung subjects, two angles each, before 4D starts.</li>
@@ -2286,6 +2286,7 @@ weaken a technique's test to get it green.</code></pre></details>
 <tr data-session="4D"><td><a href="#session-4d">4D</a></td><td>Photo to model</td><td>4B</td><td>4C, 4E</td><td>L</td></tr>
 <tr data-session="4E"><td><a href="#session-4e">4E</a></td><td>Native PDF instructions</td><td>4C</td><td>4D</td><td>L</td></tr>
 <tr data-session="4F"><td><a href="#session-4f">4F</a></td><td>Antigravity in the chat pane</td><td>1F</td><td>any</td><td>M</td></tr>
+<tr data-session="4G"><td><a href="#session-4g">4G</a></td><td>Technic frames and display vehicles</td><td>4D</td><td>4E</td><td>M</td></tr>
 </table></div>
 
 <div class="session" id="session-4a" data-session="4A" data-phase="4" data-title="App shell to the frozen design, plus first run" data-after="2B 3A 3B 1F" data-waits="H-08" data-waits-merge="" data-read="07, 12, 14, 15, 16">
@@ -2431,6 +2432,33 @@ fake agents and my hand sessions; the live photo rung runs at G2.</code></pre></
 rung 2 with visual baselines on both OSes. Ask me to check a printed copy before the PR is ready.</code></pre></details>
 </div>
 
+<div class="session" id="session-4g" data-session="4G" data-phase="4" data-title="Technic frames and display vehicles" data-after="4D" data-waits="" data-waits-merge="" data-read="08, 11, 14, 16">
+<h4><span class="s-id">4G</span> Technic frames and display vehicles<span class="s-meta">after 4D · alongside 4E · size M</span></h4>
+<p class="goal"><b>Goal:</b> The agent builds angled Technic structures (a frame, a fork, a swingarm, a linkage) as surely as it builds a wall, so a display vehicle from a photo looks like a good official set. Barry's e-bike hand check in 4D (2026-11-04) spent about 20 minutes test-building to learn which way a beam's holes face and whether its pins were seated, and ended with 198 parts and 40 problems.</p>
+<div class="s-dh">What gets built</div>
+<ul class="build">
+<li><b>Connection data:</b> every Technic beam, liftarm, brick with holes, pin, and axle in the index gets its holes and its pin and axle points, each with its axis (the connector data of #29 and #36), and <code>part_info</code> gives them in studs and plates in the DSL's frame. The agent never builds a probe to find a hole.</li>
+<li><b>The DSL:</b> a beam placed by its holes, at an angle on a triangle that lands on holes (3-4-5, 5-12-13), and pins and axles seated in named holes. The names are chosen in the session and documented in <code>api</code>.</li>
+<li><b>The validator:</b> a pin or axle in a hole is a connection, so an angled beam pinned at two holes is held; a pin left out of its hole is a finding; a pin in its hole is no collision.</li>
+<li><b>Display-vehicle techniques:</b> a motorbike frame, a suspension fork, a swingarm with its shock, a chain drive on sprockets, a disc brake, handlebars with grips and levers, and a display stand with a nameplate, each tested like 3C's. The large guide gets a "Display bikes" section beside "Display cars".</li>
+</ul>
+<div class="s-dh">Done when</div>
+<ul class="done">
+<li><code>part_info</code> gives the holes and axes of every Technic part in the index (a test checks 20 of them against their LDraw geometry).</li>
+<li>A beam placed by its holes at a 5-12-13 angle seats a pin at each end and validates clean; a pin out of its hole is a finding (tests).</li>
+<li>Each new technique passes its test and validates clean, and Barry accepts them in the PR.</li>
+<li>In Barry's hand session, the photo rung's e-bike builds 600 or more parts that validate clean.</li>
+</ul>
+<div class="s-dh">What good looks like</div>
+<ul class="good">
+<li>The agent builds the e-bike's frame without a probe build, and its first build comes within a minute.</li>
+<li>Barry's rubric scores the e-bike and the truck at least 2 on every line.</li>
+</ul>
+<details class="prompt"><summary>Prompt for the agent</summary><pre><code>Execute session 4G. Start with the Technic connection data and part_info, then the DSL's beams placed by their
+holes with seated pins and the validator's pin connections, then the display-vehicle techniques and the large
+guide's bikes. Test it against the photo rung's e-bike in my hand session.</code></pre></details>
+</div>
+
 <div class="session" id="session-4f" data-session="4F" data-phase="4" data-title="Antigravity in the chat pane" data-after="1F" data-waits="" data-waits-merge="" data-read="03, 10, 15, 16">
 <h4><span class="s-id">4F</span> Antigravity in the chat pane<span class="s-meta">after 1F · alongside any · size M</span></h4>
 <p class="goal"><b>Skipped for the MVP (D-43):</b> Antigravity comes after it, with Cursor and Grok (Phase 8). <b>Goal:</b> Antigravity joins Claude Code and Codex in the chat pane: the user's own unmodified <code>agy</code> on their own Google sign-in (D-42).</p>
@@ -2469,12 +2497,12 @@ for the hand sessions on my Google sign-in; they become the replay fixtures.</co
 </ul></div>
 <div class="table-wrap"><table>
 <tr><th>Session</th><th>Builds</th><th>After</th><th>Can run alongside</th><th>Size</th></tr>
-<tr data-session="5A"><td><a href="#session-5a">5A</a></td><td>Integration, E2E, and eval completion</td><td>3C, 3E, 4B–4E</td><td>5B</td><td>L</td></tr>
-<tr data-session="5B"><td><a href="#session-5b">5B</a></td><td>Windows, performance, and security hardening</td><td>3C, 4B–4E</td><td>5A</td><td>L</td></tr>
+<tr data-session="5A"><td><a href="#session-5a">5A</a></td><td>Integration, E2E, and eval completion</td><td>3C, 3E, 4B–4E, 4G</td><td>5B</td><td>L</td></tr>
+<tr data-session="5B"><td><a href="#session-5b">5B</a></td><td>Windows, performance, and security hardening</td><td>3C, 4B–4E, 4G</td><td>5A</td><td>L</td></tr>
 </table></div>
 
-<div class="session" id="session-5a" data-session="5A" data-phase="5" data-title="Integration, E2E and eval completion" data-after="3C 3E 4B 4C 4D 4E" data-waits="H-11" data-waits-merge="H-09" data-read="02, 09, 11, 14, 16">
-<h4><span class="s-id">5A</span> Integration, E2E and eval completion<span class="s-meta">after 3C, 3E, 4B–4E · alongside 5B · size L · YOU: H-09 before merge</span></h4>
+<div class="session" id="session-5a" data-session="5A" data-phase="5" data-title="Integration, E2E and eval completion" data-after="3C 3E 4B 4C 4D 4E 4G" data-waits="H-11" data-waits-merge="H-09" data-read="02, 09, 11, 14, 16">
+<h4><span class="s-id">5A</span> Integration, E2E and eval completion<span class="s-meta">after 3C, 3E, 4B–4E, 4G · alongside 5B · size L · YOU: H-09 before merge</span></h4>
 <p class="goal"><b>Goal:</b> Every user-visible behavior is covered by a test you can find, the eval scores all three rungs objectively, and CI is green, fast, and quiet.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
@@ -2502,8 +2530,8 @@ count, and the expected time and cost) and fold the results into the report and 
 transcripts and propose the smallest DSL, doctrine, or validator change; ask before changing thresholds.</code></pre></details>
 </div>
 
-<div class="session" id="session-5b" data-session="5B" data-phase="5" data-title="Windows, performance and security hardening" data-after="3C 4B 4C 4D 4E" data-waits="" data-waits-merge="H-10" data-read="12, 13, 15, 16, 17">
-<h4><span class="s-id">5B</span> Windows, performance and security hardening<span class="s-meta">after 3C, 4B–4E · alongside 5A · size L · YOU: H-10 before merge</span></h4>
+<div class="session" id="session-5b" data-session="5B" data-phase="5" data-title="Windows, performance and security hardening" data-after="3C 4B 4C 4D 4E 4G" data-waits="" data-waits-merge="H-10" data-read="12, 13, 15, 16, 17">
+<h4><span class="s-id">5B</span> Windows, performance and security hardening<span class="s-meta">after 3C, 4B–4E, 4G · alongside 5A · size L · YOU: H-10 before merge</span></h4>
 <p class="goal"><b>Goal:</b> Close the known Windows bug classes, meet every performance budget on both OSes, and finish a written security review with every control tested.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">

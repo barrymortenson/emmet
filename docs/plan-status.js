@@ -191,6 +191,7 @@ window.EMMET_STATUS = {
     },
     "4D": { status: "in-progress", branch: "bmortenson/s4d-photo-to-model", started: "2026-11-04" },
     "4E": { status: "todo" },
+    "4G": { status: "todo" },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
     "5B": { status: "todo" },

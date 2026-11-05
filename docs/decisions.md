@@ -868,3 +868,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **A turn cut off by Emmet closing says so** (Barry, 2026-11-04: "on the screen there was no indication it was still
   working"). The agent's rebuild of `just dev` restarted the app mid-turn; read back, the chat now ends with "Claude's
   turn stopped when Emmet closed." instead of going quiet.
+- **A new session, 4G, before G2: Technic frames and display vehicles** (Barry, 2026-11-04, through
+  AskUserQuestion: "New session before G2"). The e-bike retry, with the new doctrine, aimed at a Technic frame and
+  spent about 20 minutes test-building: Emmet can't say which way a beam's holes face or whether a pin is seated, and
+  has no motorbike techniques. 4G adds the connection data to `part_info`, beams placed by their holes with seated
+  pins, the validator's pin connections, and display-vehicle techniques. It follows 4D, runs beside 4E, and 5A and 5B
+  wait for it. Rejected: moving it into 6C after G2, and waiting for G2 to show the gap.
