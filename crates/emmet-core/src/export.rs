@@ -60,7 +60,7 @@ pub fn export(data: &DataDir, project: &Project, format: Format, out: Option<&Pa
     };
     let target: PathBuf = match out {
         Some(p) => p.to_path_buf(),
-        None => project.root.join("build/export").join(format.file_name(&model)),
+        None => crate::instructions::own_export(project, &crate::fsx::file_name(&format.file_name(&model)))?,
     };
     crate::fsx::write_atomic(&target, text.as_bytes())?;
     Ok(Exported {

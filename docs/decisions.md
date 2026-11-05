@@ -889,3 +889,6 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   should be above the parts"), in the PDF and, through AskUserQuestion ("Match it in the app"), in the viewer's step
   view too, so the screen and the printout read the same. Plan section 08 says so; design change note 006 records it.
   Rejected: the PDF only.
+- **Emmet writes the PDF itself** (D-55, 2026-11-05; ADR 0014): no PDF crate (a new dependency) and no webview
+  print-to-PDF (two native paths that don't paginate alike); the pictures go in as the webview's JPEGs, and the text in
+  Helvetica, unembedded. Within plan section 06's options, with no new dependency (rule 6).

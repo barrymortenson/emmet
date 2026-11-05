@@ -109,9 +109,10 @@ export const commands = {
 	instructionsJobs: () => typedError<Jobs, Problem>(__TAURI_INVOKE("instructions_jobs")),
 	/**
 	 *  Export → Instructions → PDF, second half: lays the book out from what the window drew and writes it into
-	 *  Downloads, named for the project ("Cottage instructions.pdf"), on the paper the window's locale uses.
+	 *  Downloads, named for the project ("Cottage instructions.pdf"), on the paper the window's locale uses (`locale`,
+	 *  navigator.language: Letter for "en-US", A4 for "en-GB").
 	 */
-	exportInstructions: (paper: Paper, jobs: Jobs, drawn: Drawn) => typedError<Exported, Problem>(__TAURI_INVOKE("export_instructions", { paper, jobs, drawn })),
+	exportInstructions: (locale: string, jobs: Jobs, drawn: Drawn) => typedError<Exported, Problem>(__TAURI_INVOKE("export_instructions", { locale, jobs, drawn })),
 	/**  The last book Export → Instructions laid out, or null (the E2E page baselines). */
 	lastBook: () => __TAURI_INVOKE<Book | null>("last_book"),
 	/**

@@ -50,15 +50,11 @@ impl<'a> Pdf<'a> {
         let at = self.objects[&n];
         let body = &self.bytes[at..];
         let text = String::from_utf8_lossy(&body[..body.len().min(4096)]).into_owned();
-        let dict = text
-            .split("\nstream\n")
-            .next()
-            .unwrap()
-            .split("\nendobj")
-            .next()
-            .unwrap()
-            .to_string();
-        if !text.contains("\nstream\n") || dict.contains("endobj") {
+        // Its dictionary ends at its stream or at its endobj, whichever comes first.
+        let end = text.find("\nendobj").unwrap_or(text.len());
+        let stream = text.find("\nstream\n").filter(|s| *s < end);
+        let dict = text[..stream.unwrap_or(end)].to_string();
+        if stream.is_none() {
             return (dict, None);
         }
         let len: usize = dict
@@ -234,17 +230,26 @@ fn the_rung_2_station_matches_its_steps() {
     check_book(&dir, &pdf);
 }
 
-/// What good looks like 2: a 500-part model exports in under 30 seconds (the scene-stress town, four buildings).
+/// What good looks like 2: a 500-part model exports in under 30 seconds. Rung 1's Cottage is the harder case: 903
+/// parts in 160 steps and 13 sub-assemblies, every one of them a picture. Also 4E's Done when 2 for rung 1.
 #[test]
-fn a_500_part_model_exports_in_under_30_seconds() {
-    let dir = project("scene-stress");
-    std::fs::write(dir.join("params.json"), r#"{"buildings": 4, "floors": 1}"#).unwrap();
+fn the_cottage_exports_in_under_30_seconds_and_matches_its_steps() {
+    let dir = emmet_it::temp_dir("instructions-cottage").join("cottage");
+    let out = emmet_it::emmet()
+        .arg("--json")
+        .arg("--data-dir")
+        .arg(emmet_it::shared_data())
+        .arg("new")
+        .arg(&dir)
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{}", emmet_it::text(&out));
     let (v, code) = emmet_in(&dir, &["run"]);
     assert_eq!(code, 0, "{v}");
     let parts = v["data"]["parts"].as_u64().unwrap();
-    assert!((450..=650).contains(&parts), "{parts} parts");
+    assert!(parts >= 500, "{parts} parts");
     let started = Instant::now();
-    let (_, pdf) = export(&dir, "a4");
+    let (_, pdf) = export(&dir, "letter");
     let took = started.elapsed().as_secs_f64();
     let pages = check_book(&dir, &pdf);
     println!(
@@ -255,4 +260,46 @@ fn a_500_part_model_exports_in_under_30_seconds() {
     if std::env::var("RUNNER_ENVIRONMENT").as_deref() != Ok("github-hosted") {
         assert!(took < 30.0, "the export took {took:.1} s");
     }
+}
+
+/// A step whose new parts are out of sight turns the model, and its page shows the turn icon (the only path drawn
+/// 2.2 points wide).
+#[test]
+fn parts_behind_a_wall_turn_the_model() {
+    let dir = project("turn-wall");
+    let (_, pdf) = export(&dir, "a4");
+    check_book(&dir, &pdf);
+    let text = String::from_utf8_lossy(&pdf);
+    assert_eq!(text.matches(" 2.2 w").count(), 1, "one turn icon");
+    // Drawn just after step 3's number: the bricks behind the wall.
+    let icon = text.find(" 2.2 w").unwrap();
+    let before = &text[..icon];
+    let last_step = before.rfind("/F1 32 Tf").unwrap();
+    assert!(
+        before[last_step..].contains("(3) Tj"),
+        "the turn icon isn't with step 3"
+    );
+}
+
+/// A shared project can carry a build/ of its own: an export never writes through a link in it.
+#[cfg(unix)]
+#[test]
+fn an_export_never_writes_through_a_linked_folder() {
+    let dir = project("submodel-x4");
+    let (v, code) = emmet_in(&dir, &["run"]);
+    assert_eq!(code, 0, "{v}");
+    let elsewhere = emmet_it::temp_dir("linked-export");
+    std::fs::create_dir_all(&elsewhere).unwrap();
+    let _ = std::fs::remove_dir_all(dir.join("build/export"));
+    std::os::unix::fs::symlink(&elsewhere, dir.join("build/export")).unwrap();
+    for format in ["ldr", "pdf"] {
+        let (v, code) = emmet_in(&dir, &["export", "--format", format]);
+        assert_ne!(code, 0, "{format}: {v}");
+        assert_eq!(v["error"]["code"], "IO_ERROR", "{v}");
+    }
+    assert_eq!(
+        std::fs::read_dir(&elsewhere).unwrap().count(),
+        0,
+        "something was written through the link"
+    );
 }

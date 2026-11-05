@@ -528,15 +528,17 @@ pub async fn instructions_jobs(app: AppHandle) -> Result<emmet_core::instruction
 static LAST_BOOK: Mutex<Option<emmet_core::instructions::Book>> = Mutex::new(None);
 
 /// Export → Instructions → PDF, second half: lays the book out from what the window drew and writes it into
-/// Downloads, named for the project ("Cottage instructions.pdf"), on the paper the window's locale uses.
+/// Downloads, named for the project ("Cottage instructions.pdf"), on the paper the window's locale uses (`locale`,
+/// navigator.language: Letter for "en-US", A4 for "en-GB").
 #[tauri::command]
 #[specta::specta]
 pub async fn export_instructions(
     app: AppHandle,
-    paper: emmet_core::instructions::Paper,
+    locale: String,
     jobs: emmet_core::instructions::Jobs,
     drawn: emmet_core::instructions::Drawn,
 ) -> Result<Exported, Box<Problem>> {
+    let paper = emmet_core::instructions::Paper::for_locale(&locale);
     let state = app.state::<AppState>();
     let (data, project) = (state.data.clone(), state.project()?);
     let downloads = app

@@ -37,6 +37,7 @@ const PROJECTS = {
   interact: [["", "cottage"], ["floating", "broken-floating"], ["pins", "pins-grouped"], ["town", "scene-stress", { buildings: 2, floors: 1 }]],
   animate: [["", "cottage"]],
   perf: [["", "scene-stress"]],
+  instructions: [["", "cottage"], ["rung2", "rung2-claude"]],
   screens: [["", "cottage"], ["floating", "broken-floating"], ["untrusted", "cottage-untrusted"]],
 };
 

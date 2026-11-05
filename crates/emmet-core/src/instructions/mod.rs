@@ -276,15 +276,11 @@ pub fn write(
     let bytes = pdf::write(&book, &project.config.name);
     let target: PathBuf = match out {
         Some(p) => p.to_path_buf(),
-        // The name is the project's own (a shared project's emmet.toml says it): one plain file name, in build/ (which
-        // mustn't be a link), never a path.
-        None => {
-            let dir = project.build_dir()?.join("export");
-            dir.join(format!(
-                "{} instructions.pdf",
-                crate::fsx::file_name(&project.config.name)
-            ))
-        }
+        // The name is the project's own (a shared project's emmet.toml says it): one plain file name, never a path.
+        None => own_export(
+            project,
+            &format!("{} instructions.pdf", crate::fsx::file_name(&project.config.name)),
+        )?,
     };
     crate::fsx::write_atomic(&target, &bytes)?;
     Ok((
@@ -313,4 +309,17 @@ pub(crate) fn part_index(jobs: &Jobs) -> BTreeMap<(String, u32), usize> {
         .enumerate()
         .map(|(i, p)| ((p.part.clone(), p.color), i))
         .collect()
+}
+
+/// `build/export/<name>` for Emmet to write: neither folder, nor the file, may be a link (a shared project may carry
+/// a build/ of its own).
+pub(crate) fn own_export(project: &Project, name: &str) -> Result<PathBuf> {
+    crate::fsx::own_file(&project.root, &["build", "export"], name).ok_or_else(|| {
+        Error::new(
+            ErrorCode::IoError,
+            "build/export/ in this project is a link or a file, not a folder; Emmet won't write through it.",
+            "Delete build/ and run again; Emmet recreates it.",
+        )
+        .at_file("build/export")
+    })
 }

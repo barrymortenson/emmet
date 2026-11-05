@@ -31,6 +31,7 @@ import { Compare } from "./Compare";
 import { findingWords, fixRequest } from "./Checks";
 import { About, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
+import { drawBook } from "./instructions";
 import { type Action, actionFor, windows } from "./keys";
 import { base64, json, library, placements } from "./library";
 import { rebuildRequest, rebuildWords } from "./Options";
@@ -509,6 +510,35 @@ export function App() {
     if (e) say(`Saved “${e.file}” to ${e.folder}`, { label: "Show in folder", run: () => void act(commands.revealExport()) });
   };
 
+  // Export → Instructions → PDF (4E): the host says what to draw, a hidden viewer draws it here, and the host lays
+  // the book out and writes it into Downloads, on the paper this locale uses.
+  const drawing = useRef(false);
+  const exportInstructions = async () => {
+    if (drawing.current || !scene) return;
+    drawing.current = true;
+    tipSeen("export");
+    try {
+      const jobs = await act(commands.instructionsJobs());
+      if (!jobs) return;
+      say("Drawing the instructions");
+      let shown = 0;
+      let drawn;
+      try {
+        drawn = await drawBook(placements(scene), jobs, (done, total) => {
+          // A new toast every tenth, not every picture.
+          if (done - shown >= total / 10) say(`Drawing the instructions: ${Math.round((100 * (shown = done)) / total)} %`);
+        });
+      } catch (e) {
+        say(`Emmet couldn't draw the instructions: ${e instanceof Error ? e.message : String(e)}`);
+        return;
+      }
+      const e = await act(commands.exportInstructions(navigator.language, jobs, drawn));
+      if (e) say(`Saved “${e.file}” to ${e.folder}`, { label: "Show in folder", run: () => void act(commands.revealExport()) });
+    } finally {
+      drawing.current = false;
+    }
+  };
+
   const can = (a: Action): boolean => {
     if (["help:guide"].includes(a)) return false;
     if (["agent:switch", "agent:model", "undo-turn", "agent:usage", "agent:fresh", "history"].includes(a)) return !!project && !firstRun;
@@ -902,6 +932,7 @@ export function App() {
               exportOpen={exportOpen}
               onExportOpen={setExportOpen}
               onExport={(f) => void exportAs(f)}
+              onInstructions={() => void exportInstructions()}
               onPickFinding={(f: Finding) => {
                 tipSeen("finding");
                 toggle(`finding:${f.id}`, f.parts, "issue");
