@@ -535,6 +535,70 @@ pub async fn export(app: AppHandle, format: ExportFormat) -> Result<Exported, Bo
     })
 }
 
+/// Export → Instructions → PDF, first half: what the window draws for the book (session 4E). The project's own
+/// build, run first if it's stale.
+#[tauri::command]
+#[specta::specta]
+pub async fn instructions_jobs(app: AppHandle) -> Result<emmet_core::instructions::Jobs, Box<Problem>> {
+    let state = app.state::<AppState>();
+    let (data, project) = (state.data.clone(), state.project()?);
+    blocking(move || Ok(emmet_core::instructions::project_jobs(&data, &project)?)).await
+}
+
+/// The last book laid out, for the E2E page baselines (they draw its pages in the webview).
+static LAST_BOOK: Mutex<Option<emmet_core::instructions::Book>> = Mutex::new(None);
+
+/// Export → Instructions → PDF, second half: lays the book out from what the window drew and writes it into
+/// Downloads, named for the project ("Cottage instructions.pdf"), on the paper the window's locale uses.
+#[tauri::command]
+#[specta::specta]
+pub async fn export_instructions(
+    app: AppHandle,
+    paper: emmet_core::instructions::Paper,
+    jobs: emmet_core::instructions::Jobs,
+    drawn: emmet_core::instructions::Drawn,
+) -> Result<Exported, Box<Problem>> {
+    let state = app.state::<AppState>();
+    let (data, project) = (state.data.clone(), state.project()?);
+    let downloads = app
+        .path()
+        .download_dir()
+        .map_err(|e| Problem::internal(e.to_string()))?;
+    let folder = crate::prefs::in_words(&app, &downloads);
+    let path = unique_file(
+        &downloads,
+        &format!("{} instructions.pdf", file_name(&project.config.name)),
+    );
+    if path.parent() != Some(downloads.as_path()) {
+        return Err(Problem::internal(format!(
+            "Emmet won't write {} outside Downloads.",
+            path.display()
+        )));
+    }
+    let out = path.clone();
+    let book = blocking(move || {
+        std::fs::create_dir_all(&downloads).map_err(|e| emmet_core::envelope::Error::io(&downloads, e))?;
+        Ok(emmet_core::instructions::write(&data, &project, &jobs, &drawn, paper, Some(&out))?.1)
+    })
+    .await?;
+    *LAST_BOOK.lock().expect("book") = Some(book);
+    *LAST_EXPORT.lock().expect("export") = Some(path.clone());
+    Ok(Exported {
+        file: path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default(),
+        folder,
+    })
+}
+
+/// The last book Export → Instructions laid out, or null (the E2E page baselines).
+#[tauri::command]
+#[specta::specta]
+pub fn last_book() -> Option<emmet_core::instructions::Book> {
+    LAST_BOOK.lock().expect("book").clone()
+}
+
 /// Save Screenshot (the screenshot toast's Save to file): the viewer's PNG, sent as base64, into Downloads beside the
 /// exports, named for the project ("Cottage.png"). Only a PNG is written.
 #[tauri::command]

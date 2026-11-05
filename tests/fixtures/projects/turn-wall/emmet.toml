@@ -1,0 +1,5 @@
+# A test fixture (tests/it): parts built behind a wall, which the instructions turn the model to show.
+schema = 1
+name = "Turn wall"
+created_by = "m:0000000000000000"
+library = "ldraw-mini"

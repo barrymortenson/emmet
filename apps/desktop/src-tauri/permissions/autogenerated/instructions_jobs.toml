@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-instructions-jobs"
+description = "Enables the instructions_jobs command without any pre-configured scope."
+commands.allow = ["instructions_jobs"]
+
+[[permission]]
+identifier = "deny-instructions-jobs"
+description = "Denies the instructions_jobs command without any pre-configured scope."
+commands.deny = ["instructions_jobs"]

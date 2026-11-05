@@ -12,6 +12,7 @@ pub mod envelope;
 pub mod export;
 pub mod fsx;
 pub mod index;
+pub mod instructions;
 pub mod ldraw;
 pub mod library;
 pub mod ops;

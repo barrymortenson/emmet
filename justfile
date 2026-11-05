@@ -126,7 +126,7 @@ test *args:
           if [[ -n "$args" ]]; then
             cargo test --workspace --locked -- $args
           else
-            timing="run::warm_run_is_fast search::search_is_fast library::verify_detects_a_changed_file_and_reindexes"
+            timing="run::warm_run_is_fast search::search_is_fast library::verify_detects_a_changed_file_and_reindexes instructions::a_500_part_model_exports_in_under_30_seconds"
             skip=(--skip techniques::)
             for t in $timing; do skip+=(--skip "$t"); done
             cargo test --workspace --locked -- "${skip[@]}"
