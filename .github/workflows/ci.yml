@@ -151,8 +151,9 @@ jobs:
     if: needs.scope.outputs.windows == 'true'
     runs-on: windows-latest
     # A full run (just test, then the E2E build and specs) starts cold on a hosted runner: just test alone took 21
-    # minutes on 2026-11-02.
-    timeout-minutes: 45
+    # minutes on 2026-11-02, and the specs reached the last one at minute 35 on 2026-11-05. The instructions spec's two
+    # books draw in software here, so the job gets 75 minutes (Barry, 2026-11-05; by hand only while D-43 pauses it).
+    timeout-minutes: 75
     defaults:
       run:
         # Git Bash, so just finds bash (see justfile).

@@ -892,3 +892,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **Emmet writes the PDF itself** (D-55, 2026-11-05; ADR 0014): no PDF crate (a new dependency) and no webview
   print-to-PDF (two native paths that don't paginate alike); the pictures go in as the webview's JPEGs, and the text in
   Helvetica, unembedded. Within plan section 06's options, with no new dependency (rule 6).
+- **The page baselines' pixel width is 200** (Barry, 2026-11-05, through AskUserQuestion: "Every page, 200 px
+  wide"): every page of both books, at about 6 MB a set per OS. Rejected: the first, 320 px set (15 MB), and a sample
+  of pages.
+- **The hosted Windows job gets 75 minutes** (Barry, 2026-11-05, through AskUserQuestion: "Raise cap, run once"): run
+  42086110115 reached the instructions spec at minute 35 of 45, and its books draw in software on that runner. The job
+  runs by hand only while D-43 pauses Windows. Rejected: leaving the Windows baselines to the Windows pass, and rung 2
+  only on Windows.
