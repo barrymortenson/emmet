@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-11-03",
+  updated: "2026-11-04",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -189,7 +189,7 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-11-03 (D-43): merged with Windows' budgets waiting for the Windows pass on real hardware (hosted, no GPU: first load 9.0 s, slider 1.9 s; no orbit or animation numbers). Open in the PR: a sub-assembly's leader goes missing in small windows, and keyboard.e2e.mjs's Esc test is flaky"
     },
-    "4D": { status: "in-progress", branch: "bmortenson/s4d-photo-to-model", started: "2026-11-04" },
+    "4D": { status: "review", branch: "bmortenson/s4d-photo-to-model", started: "2026-11-04", pr: 53 },
     "4E": { status: "todo" },
     "4G": { status: "todo" },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
