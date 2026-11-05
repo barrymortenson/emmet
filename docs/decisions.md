@@ -882,3 +882,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   about 2:35 into its own time (the scale question waited 5:49 for Barry), so "a first draft within a minute" isn't
   met yet, and 4G is the fix. Codex, the truck's front three-quarter shot: "A light blue Ford Maverick crew-cab pickup
   with black trim, silver steel wheels, and a short open bed", in 0:22; the saved copy in `refs/` has no metadata.
+
+## 2026-11-05, session 4E
+
+- **The step number goes over the parts box** (Barry, 2026-11-05, on the rung 1 PDF prototype: "the step number
+  should be above the parts"), in the PDF and, through AskUserQuestion ("Match it in the app"), in the viewer's step
+  view too, so the screen and the printout read the same. Plan section 08 says so; design change note 006 records it.
+  Rejected: the PDF only.

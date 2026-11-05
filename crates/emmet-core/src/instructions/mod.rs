@@ -276,10 +276,15 @@ pub fn write(
     let bytes = pdf::write(&book, &project.config.name);
     let target: PathBuf = match out {
         Some(p) => p.to_path_buf(),
-        None => project
-            .root
-            .join("build/export")
-            .join(format!("{} instructions.pdf", project.config.name)),
+        // The name is the project's own (a shared project's emmet.toml says it): one plain file name, in build/ (which
+        // mustn't be a link), never a path.
+        None => {
+            let dir = project.build_dir()?.join("export");
+            dir.join(format!(
+                "{} instructions.pdf",
+                crate::fsx::file_name(&project.config.name)
+            ))
+        }
     };
     crate::fsx::write_atomic(&target, &bytes)?;
     Ok((

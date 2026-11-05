@@ -160,9 +160,9 @@ function Pin({ viewer, pin, tick, onPin }: { viewer: Viewer; pin: PinGroup; tick
   );
 }
 
-/** A step as the instruction books draw it (plan section 08): its parts box with each new part's picture and count,
- * the step number, and each sub-assembly it puts on in its own box, with its parts and numbered sub-steps and a leader
- * to its first copy. */
+/** A step as the instruction books draw it (plan section 08): the step number over its parts box with each new
+ * part's picture and count, and each sub-assembly it puts on in its own box, with its parts and numbered sub-steps and
+ * a leader to its first copy. */
 function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: Scene; step: StepView; tick: number }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const subs = step.subs
@@ -204,6 +204,7 @@ function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: 
   return (
     <>
       <div className="step-view" data-c="parts-box" aria-label={`Step ${step.n}`} id="step-view" ref={ref}>
+        <span className="step-number">{step.n}</span>
         {step.items.length > 0 && (
           <div className="parts-box" id="parts-box">
             {step.items.map((i) => (
@@ -214,7 +215,6 @@ function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: 
             ))}
           </div>
         )}
-        <span className="step-number">{step.n}</span>
         {subs.map(({ s, model }) => (
           <SubAssembly key={s.file} scene={scene} file={s.file} copy={s.ids[0] ?? ""} name={model.name} steps={model.steps} count={s.count} />
         ))}

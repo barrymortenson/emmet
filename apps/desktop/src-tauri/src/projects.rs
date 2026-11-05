@@ -5,6 +5,7 @@
 //! path: the host picks files in its own dialogs, makes folders in the projects folder, and reveals the last export
 //! itself.
 
+use emmet_core::fsx::file_name;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -108,28 +109,6 @@ fn bad(message: impl Into<String>, hint: impl Into<String>) -> Box<Problem> {
         hint: hint.into(),
         ..*Problem::internal(message)
     })
-}
-
-/// A name as one plain file or folder name: no separators, no characters Windows refuses, no control characters, and
-/// no leading dots (so never "." or ".."). A project's name comes from its emmet.toml, which a shared project writes.
-fn file_name(name: &str) -> String {
-    let clean: String = name
-        .chars()
-        .map(|c| {
-            if c.is_control() || "/\\:*?\"<>|".contains(c) {
-                ' '
-            } else {
-                c
-            }
-        })
-        .collect();
-    let words = clean.split_whitespace().collect::<Vec<_>>().join(" ");
-    let clean = words.trim_start_matches(['.', ' ']);
-    if clean.is_empty() {
-        "Model".into()
-    } else {
-        clean.to_string()
-    }
 }
 
 /// A folder in `parent` named `base`, or "`base` 2", "`base` 3", … when that's taken.

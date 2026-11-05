@@ -155,8 +155,8 @@ const SUB_NUMBER: f64 = 18.0;
 const NUMBER_COLUMN: f64 = 54.0;
 const SUB_NUMBER_COLUMN: f64 = 26.0;
 const CALLOUT_PAD: f64 = 10.0;
-/** A step's picture is at most this share of the page's height: two steps to a page. */
-const STEP_HEIGHT: f64 = 0.4;
+/** A step's number and a one-row parts box over its picture: two such steps fit a page. */
+const STEP_HEAD: f64 = NUMBER + 4.0 + 2.0 * BOX_PAD + PIC + COUNT + 3.0 + 6.0;
 
 /// Images, each once.
 struct Images {
@@ -294,24 +294,27 @@ impl Ctx<'_> {
         } else {
             (NUMBER, NUMBER_COLUMN)
         };
-        let (mut items, bw, bh) = self.parts_box(&step.parts, max_w);
-        let head = if bh > 0.0 { bh + 4.0 } else { 0.0 };
+        // The step number at the top, its parts box under it (Barry 2026-11-05), then the build. The number's text
+        // goes into the page after the box's counts, so a page reads each box's counts, then its step.
+        let top = number + 4.0;
+        let (parts, bw, bh) = self.parts_box(&step.parts, max_w);
+        let mut items: Vec<Item> = parts.iter().map(|i| shift(i, 0.0, top)).collect();
+        let head = top + if bh > 0.0 { bh + 6.0 } else { 0.0 };
         let (pw, ph) = picture_size(d, scale, max_w - column);
         items.push(text(
             0.0,
-            head + number * 0.86,
+            number * 0.86,
             number,
             false,
             INK,
             Align::Start,
             &step.n.to_string(),
         ));
-        let mut side = number + 4.0;
         if turned {
-            items.extend(turn_icon(2.0, head + side + 2.0, 24.0));
-            side += 30.0;
+            let x = font::width(&step.n.to_string(), number, false) + 10.0;
+            items.extend(turn_icon(x, (number - 24.0) / 2.0, 24.0));
         }
-        let (px, py) = (column, head + 2.0);
+        let (px, py) = (0.0, head);
         let image = self.images.add(&d.picture);
         items.push(Item::Image {
             image,
@@ -330,10 +333,10 @@ impl Ctx<'_> {
                 ARROW,
             ));
         }
-        let mut reach = column + pw;
+        let mut reach = pw;
         if let Some(z) = &d.zoom {
             // Beside the picture when there's room, else over the picture's corner farthest from what it shows.
-            let free = max_w - column - pw - 10.0;
+            let free = max_w - pw - 10.0;
             let beside = free >= 90.0;
             let zw = if beside {
                 free.min(170.0)
@@ -392,7 +395,7 @@ impl Ctx<'_> {
             .collect();
         Block {
             w: reach.max(bw),
-            h: head + 2.0 + ph.max(side),
+            h: head + ph,
             items,
             copies,
         }
@@ -521,7 +524,7 @@ pub fn book(src: &Sources, paper: Paper) -> Result<Book> {
     let fit = |d: &DrawnStep| {
         let ldu = d.ldu.max(1e-6);
         let (w, h) = (f64::from(d.picture.width) / ldu, f64::from(d.picture.height) / ldu);
-        ((content_w - NUMBER_COLUMN) / w.max(1e-6)).min(content_h * STEP_HEIGHT / h.max(1e-6))
+        ((content_w - NUMBER_COLUMN) / w.max(1e-6)).min(((content_h - GAP) / 2.0 - STEP_HEAD) / h.max(1e-6))
     };
 
     let mut pages = vec![cover(src, &mut ctx, pw, ph)];
