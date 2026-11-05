@@ -189,7 +189,15 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-11-03 (D-43): merged with Windows' budgets waiting for the Windows pass on real hardware (hosted, no GPU: first load 9.0 s, slider 1.9 s; no orbit or animation numbers). Open in the PR: a sub-assembly's leader goes missing in small windows, and keyboard.e2e.mjs's Esc test is flaky"
     },
-    "4D": { status: "review", branch: "bmortenson/s4d-photo-to-model", started: "2026-11-04", pr: 53 },
+    "4D": {
+      status: "done", pr: 53, branch: "bmortenson/s4d-photo-to-model", started: "2026-11-04",
+      evidence: [
+        "CI ci check green #53 (run 41958923746: mac in 8m13s, plan, scope; windows and nsis paused, D-43)",
+        "tests/it/tests/{agent_claude,agent_codex,refs,eval}.rs: photos reach both agents with no metadata, geotagged fixture, photo rung dry run and hand-session scoring",
+        "tests/e2e/specs/photo.e2e.mjs with each fake agent: attach, send, saved refs/, compare view; Barry's hand checks of Claude Code and Codex 2026-11-04"
+      ],
+      note: "The first draft within a minute isn't met (about 2:35 of agent time on the e-bike); 4G is the fix, before G2"
+    },
     "4E": { status: "todo" },
     "4G": { status: "todo" },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
