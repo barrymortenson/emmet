@@ -229,7 +229,7 @@ for (const [change, specs] of [
   ["scripts/plan-check.mjs", ""],
   ["packages/viewer/src/index.ts", `${CORE},interact,animate,perf`],
   ["crates/emmet-core/src/lib.rs", CORE],
-  ["crates/emmet-agent/src/session.rs", `${CORE},chatgpt,setup,bus`],
+  ["crates/emmet-agent/src/session.rs", `${CORE},chatgpt,setup,bus,photo`],
   ["apps/desktop/src/Panel.tsx", `${CORE},keyboard`],
   ["apps/desktop/src/FirstRun.tsx", `${CORE},keyboard,first-run`],
   ["tests/e2e/specs/leak.e2e.mjs", `${CORE},leak`],

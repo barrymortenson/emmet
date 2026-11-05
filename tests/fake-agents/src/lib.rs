@@ -145,6 +145,14 @@ pub fn read() -> Option<Value> {
             Ok(0) | Err(_) => return None,
             Ok(_) if line.trim().is_empty() => continue,
             Ok(_) => {
+                // Every line as it arrived, for tests that check what reached the CLI (a photo's bytes, 4D): the
+                // transcript keeps a placeholder instead.
+                if let Some(dir) = std::env::var_os("EMMET_FAKE_DIR") {
+                    let path = PathBuf::from(dir).join("stdin.jsonl");
+                    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
+                        let _ = f.write_all(line.as_bytes());
+                    }
+                }
                 return Some(
                     serde_json::from_str(line.trim())
                         .unwrap_or_else(|e| fail(format!("the adapter wrote non-JSON: {e}"))),

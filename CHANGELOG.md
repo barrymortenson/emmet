@@ -209,15 +209,34 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   with numbered sub-steps. The build animation drops, fades, lifts away, and glides, with Replay build, Skip, and
   Settings' Animated, Fast, and Off. A 2,018-part stress model (`tests/fixtures/projects/scene-stress`), six visual
   baselines, and `tests/e2e/specs/{interact,animate,perf}.e2e.mjs`, which holds section 13's 2,000-part budgets.
+- Photo to model (session 4D): drop, paste, or pick a photo (JPEG, PNG, or HEIC on macOS) in the chat, and the agent
+  builds a brick version of it. Each photo is scaled to a 2,048 px long edge and re-encoded as JPEG within every
+  provider's limits, saved in the project's `refs/`, and sent as image content to Claude Code and as `localImage`
+  items to Codex. The first photo says once where it goes and under whose terms. A sent photo opens the compare view,
+  beside the model, without moving the camera. The doctrine says how to build from a photo and when to ask for
+  another angle. `emmet eval --rung photo --subject <id>` runs the photo rung's dry run with the fake agents
+  (`--dry-run`) or scores Barry's hand session (`--score <project> --rubric P,R,B`), sending nothing to an agent.
 
 ### Security
 
+- A photo keeps none of its metadata: Emmet keeps only what a decoder needs (so every EXIF with its GPS, XMP, ICC,
+  IPTC, comment, unknown segment, and anything after the image is dropped) before it saves or sends one, and
+  refuses one in `refs/` that still has any, naming it, before the message is saved (4D).
+- A photo is saved in the project only when it's sent, so one removed from the composer never reaches `refs/`,
+  where the agent looks; transcripts keep no image bytes either way, and `chat_photo` reads nothing over 3.75 MB
+  and no link (4D review).
 - emmet-bus authenticates both ways: the token never crosses the socket, each request and reply proves it bound to a
   fresh nonce and the message, and a seen nonce is refused. The Windows pipe is user-only (ADR 0009).
 - ChatGPT tokens live only in the OS keychain, and a session's API key or access token is replaced with `<redacted>`
   in its transcript and chat wherever the CLI echoed it; leak tests grep every output for every token (ADR 0011).
 
 ### Fixed
+
+- A double click on the title row maximizes the window, as other apps' do: the capability now allows Tauri's
+  drag-region command for it (4D).
+- A turn cut off by Emmet closing or restarting ends with a note that says so, instead of the dock going quiet (4D).
+- `tests/replay/derive.mjs` gave the derived rung 1 fixtures every quoted prompt after rung 1's, the later rungs' too;
+  it reads rung 1's section alone (4D).
 
 - The chat's history and the agent's transcripts never write through a link a project carries (4B).
 - The steps showed a sub-assembly's parts by their own sub-step, so a step hid parts of a copy it had put on, and
@@ -235,6 +254,12 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
+- The agent builds a finished model by default: the doctrine's "Finished, not basic" has it build at High detail and a
+  good set's size when Detail and Pieces are Any, and "Keep it lean" now means few tool calls, never few parts. The
+  first draft still comes within a minute, for any subject. The photo rung's part ranges are a display set's (4D).
+- A command the agent runs is said in words from what it does ("Looked through the project", "Tried the model"),
+  never "Ran a command"; a quiet stretch after a step says "Thinking", then bench words ("Sorting parts", "Choosing
+  colors") every 15 seconds (4D).
 - The viewer draws one bucket per part and finish, each instance carrying its color: 229 draw calls for the
   2,018-part town block, from 647, and 272 for the Cottage, from 523 (4C).
 

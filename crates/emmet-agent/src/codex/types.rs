@@ -45,7 +45,13 @@ pub struct ThreadResumeParams {
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum UserInput {
-    Text { text: String },
+    Text {
+        text: String,
+    },
+    /// A photo on disk (4D): the schema's `LocalImageUserInput`.
+    LocalImage {
+        path: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -139,7 +145,12 @@ pub fn sent_examples() -> Vec<(&'static str, Value)> {
             "v2/TurnStartParams.json",
             to(&TurnStartParams {
                 thread_id: "t".into(),
-                input: vec![UserInput::Text { text: "hi".into() }],
+                input: vec![
+                    UserInput::LocalImage {
+                        path: "/p/refs/photo-0123456789ab.jpg".into(),
+                    },
+                    UserInput::Text { text: "hi".into() },
+                ],
                 effort: Some("medium".into()),
             }),
         ),

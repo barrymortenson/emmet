@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-chat-photo"
+description = "Enables the chat_photo command without any pre-configured scope."
+commands.allow = ["chat_photo"]
+
+[[permission]]
+identifier = "deny-chat-photo"
+description = "Denies the chat_photo command without any pre-configured scope."
+commands.deny = ["chat_photo"]

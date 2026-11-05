@@ -654,7 +654,11 @@ async fn rules_and_api_return_the_doctrine_and_the_dsl() {
         "Build in visible stages",
         "Run → validate → render → fix",
         "Show a draft in the first minute",
+        "Don't design the whole model before you write any of it",
         "Keep it lean",
+        "Lean means few tool calls, never few parts",
+        "Finished, not basic",
+        "Match the photo's detail",
         "Real parts for real things",
         "Build like a designer",
         "Sized for the figure",
@@ -664,6 +668,8 @@ async fn rules_and_api_return_the_doctrine_and_the_dsl() {
         "user_notes",
         "2,000 parts",
         "one tip per reply",
+        "Building from a photo",
+        "asking for a photo from the side",
     ] {
         assert!(
             doctrine.to_lowercase().contains(&must.to_lowercase()),

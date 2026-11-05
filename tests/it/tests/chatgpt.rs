@@ -529,10 +529,7 @@ fn a_crash_report_hides_the_token() {
     let token = plan.record(ID).unwrap()["access_token"].as_str().unwrap().to_string();
     let rig = Rig::new("chatgpt-crash", "codex", "derived-plan-echo-token-crash").with_plan(&plan);
     let (mut s, mut ev) = rig.start(AgentKind::Codex);
-    s.send(UserTurn {
-        text: "Reply with exactly the word: ready".into(),
-    })
-    .unwrap();
+    s.send(UserTurn::text("Reply with exactly the word: ready")).unwrap();
     let events = ev.exit();
     let crash = events
         .iter()
@@ -570,19 +567,13 @@ fn no_token_reaches_any_output() {
     plan.signed_in(None);
     let rig = Rig::new("chatgpt-leak", "codex", "derived-plan-echo-token").with_plan(&plan);
     let (mut s, mut ev) = rig.start(AgentKind::Codex);
-    s.send(UserTurn {
-        text: "Reply with exactly the word: ready".into(),
-    })
-    .unwrap();
+    s.send(UserTurn::text("Reply with exactly the word: ready")).unwrap();
     let mut events = ev.turn();
     let first = plan.record(ID).unwrap();
     expire_in(&plan, 600);
     // The restarted app-server resumes the thread: resume.jsonl's second process.
     rig.scenario("codex", "", "resume");
-    s.send(UserTurn {
-        text: "Reply with exactly the word: ready".into(),
-    })
-    .unwrap();
+    s.send(UserTurn::text("Reply with exactly the word: ready")).unwrap();
     events.extend(ev.turn());
     let second = plan.record(ID).unwrap();
     s.close();

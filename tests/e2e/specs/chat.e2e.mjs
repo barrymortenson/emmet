@@ -390,6 +390,37 @@ describe("the chat overall", () => {
     rmSync(join(chatDir, "sessions.json"));
   });
 
+  it("says so when a turn was cut off by Emmet closing", async () => {
+    // A history whose last turn has no end: Emmet quit or restarted mid-turn (a rebuild under `just dev` does it too).
+    const dir = projectDir("chat-cut");
+    const chatDir = join(dir, ".emmet", "chat");
+    mkdirSync(chatDir, { recursive: true });
+    const id = `c${"cd".repeat(16)}`;
+    writeFileSync(join(chatDir, "sessions.json"), JSON.stringify({ sessions: [{ id, kind: "claude", started: Date.now() }] }));
+    const lines = [
+      { at: 1, user: "Build a wall." },
+      { at: 2, event: { type: "tool_call", id: "t1", name: "mcp__emmet__run_model", input: {} } },
+      { at: 3, event: { type: "tool_result", id: "t1", ok: true, summary: "Built 12 parts in 1 step" } },
+    ];
+    writeFileSync(join(chatDir, `${id}.jsonl`), `${lines.map((l) => JSON.stringify(l)).join("\n")}\n`);
+    await open(dir);
+    await browser.execute(() => window.__emmet.reloadChat());
+    await browser.waitUntil(async () => (await browser.execute(() => document.getElementById("dock")?.innerText ?? "")).includes("Claude's turn stopped when Emmet closed."), {
+      timeout: 10_000,
+      timeoutMsg: "no word that the turn was cut off",
+    });
+    expect(await (await $("#chat-status")).isExisting()).toBe(false);
+    expect((await browser.execute(() => window.__emmet.chat())).running).toBe(false);
+    // A turn that finished says nothing of the kind.
+    lines.push({ at: 4, event: { type: "turn_done", reason: "completed" } });
+    writeFileSync(join(chatDir, `${id}.jsonl`), `${lines.map((l) => JSON.stringify(l)).join("\n")}\n`);
+    await browser.execute(() => window.__emmet.reloadChat());
+    await browser.waitUntil(async () => !(await browser.execute(() => document.getElementById("dock")?.innerText ?? "")).includes("stopped when Emmet closed"), {
+      timeout: 10_000,
+      timeoutMsg: "a finished turn still says it was cut off",
+    });
+  });
+
   it("leaves the user's agent configs untouched", async () => {
     expect(agentConfigHashes()).toEqual(before);
     expect(Object.keys(before).length).toBeGreaterThan(3);

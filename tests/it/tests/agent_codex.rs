@@ -18,7 +18,7 @@ const CODEX: AgentKind = AgentKind::Codex;
 const KEY: &str = "sk-test-not-a-real-key";
 
 fn turn(text: &str) -> UserTurn {
-    UserTurn { text: text.into() }
+    UserTurn::text(text)
 }
 
 /// A rig with an API key in its keychain, as Settings → Agents leaves it.
@@ -1138,4 +1138,35 @@ fn rung2_from_barrys_session_replays() {
         serde_json::from_str(&std::fs::read_to_string(rig.project.join("build/placements.json")).unwrap()).unwrap();
     // 230 in 4B; the canopy's six columns each gained a Brick 1 x 1 in 3E, to stand 6 bricks and clear a door.
     assert_eq!(placements["parts"].as_array().unwrap().len(), 236);
+}
+
+/// 4D's Done when 1 and 2: a photo reaches the Codex app-server as a `localImage` input item naming the saved file in
+/// refs/ (which has no metadata), before the text.
+#[test]
+fn a_photo_reaches_codex_as_a_local_image() {
+    let rig = rig("codex-photo", "plain-turn");
+    let saved = emmet_core::refs::save(&rig.project, "IMG_2424.jpg", &crate::refs::geotagged()).unwrap();
+    let file = rig.project.join(&saved.path);
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(UserTurn {
+        text: "Build this.".into(),
+        images: vec![file.clone()],
+    })
+    .unwrap();
+    let events = ev.turn();
+    s.close();
+    assert!(matches!(events.last(), Some(AgentEvent::TurnDone { .. })), "{events:?}");
+    let start = rig
+        .received()
+        .into_iter()
+        .find(|m| m["method"] == "turn/start")
+        .expect("turn/start");
+    assert_eq!(
+        start["params"]["input"],
+        serde_json::json!([
+            { "type": "localImage", "path": file.display().to_string() },
+            { "type": "text", "text": "Build this." },
+        ])
+    );
+    assert_eq!(crate::refs::has_metadata(&std::fs::read(&file).unwrap()), None);
 }

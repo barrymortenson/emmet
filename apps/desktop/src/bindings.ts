@@ -129,7 +129,19 @@ export const commands = {
 	 *  conversation). `context` is what the user sees (the selection and the view) and the details behind a message the
 	 *  app wrote (`from`); the history keeps the plain words. Returns the session the events come from.
 	 */
-	chatSend: (text: string, context: TurnContext, from: Origin | null) => typedError<string, Problem>(__TAURI_INVOKE("chat_send", { text, context, from })),
+	chatSend: (text: string, context: TurnContext, from: Origin | null, photos: string[]) => typedError<string, Problem>(__TAURI_INVOKE("chat_send", { text, context, from, photos })),
+	/**
+	 *  A photo the user is sending (4D), as the page made it: a JPEG, base64-encoded, already scaled and re-encoded. The
+	 *  page calls this at Send, not when the photo is attached, so a photo the user removes never reaches the project.
+	 *  Emmet cleans it again (only what a decoder needs is kept), checks it against the providers' limits, and saves it in
+	 *  the project's `refs/`; the page sends the returned path with the message.
+	 */
+	chatAttach: (name: string, jpeg: string) => typedError<PhotoView, Problem>(__TAURI_INVOKE("chat_attach", { name, jpeg })),
+	/**
+	 *  A saved photo (4D) as a data URL, for the chat and the compare view: only a `.jpg` file in this project's own
+	 *  `refs/`, no bigger than a photo Emmet saves (`refs::resolve`).
+	 */
+	chatPhoto: (path: string) => typedError<string, Problem>(__TAURI_INVOKE("chat_photo", { path })),
 	/**  A redirect while the agent works (D-33): returns the note, which `NoteDelivered` marks once it's out. */
 	chatSteer: (text: string, context: TurnContext) => typedError<UserNote, Problem>(__TAURI_INVOKE("chat_steer", { text, context })),
 	/**  Changes a redirect that hasn't gone out, or withdraws it (`text` null). False if it's already delivered. */
@@ -408,6 +420,8 @@ export type ChatRecord = {
 	decided?: Decided | null,
 	/**  The user's answer to a question card, in their words. */
 	answered?: Answered | null,
+	/**  The photos sent with the user's message (4D): their paths in the project, `refs/<name>.jpg`. */
+	photos?: string[],
 };
 
 export type ChatState = {
@@ -616,6 +630,14 @@ export type PartsProgress = {
 	step: string,
 	done: number,
 	total: number | null,
+};
+
+/**  A photo saved in `refs/`. */
+export type PhotoView = {
+	/**  `refs/<name>.jpg`, what the message names. */
+	path: string,
+	width: number,
+	height: number,
 };
 
 /**  A copy of a sub-assembly: its id (`towers/2`) and the parent model's step that places it. */

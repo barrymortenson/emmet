@@ -18,7 +18,7 @@ use serde_json::{Value, json};
 
 use crate::chatgpt::{AGENT_NAME, ChatGpt, CodexUse};
 use crate::claude::shorten;
-use crate::session::{Engine, Io, Protocol, session_dir, set_env};
+use crate::session::{Engine, Io, Photo, Protocol, session_dir, set_env};
 use crate::{
     AgentAdapter, AgentError, AgentErrorCode, AgentEvent, AgentKind, Answer, ApprovalKind, Billing, Decision,
     Detection, DoneReason, EventStream, Result, Session, SessionConfig, SteerPath, UsageSnapshot, UserNote, UserTurn,
@@ -506,8 +506,8 @@ struct CodexProto {
     sent: HashMap<u64, Sent>,
     thread: Option<String>,
     turn: Option<String>,
-    /// Turns sent before the thread exists.
-    waiting: Vec<String>,
+    /// Turns sent before the thread exists: the text and its photos' paths.
+    waiting: Vec<(String, Vec<PathBuf>)>,
     /// Stop before turn/start answered: interrupt as soon as the turn has an id.
     interrupt_when_known: bool,
     /// Open approval requests by Emmet's id: (the request's JSON-RPC id, its method, its params).
@@ -528,16 +528,24 @@ impl CodexProto {
         io.write(json!({ "id": self.next, "method": method, "params": params }));
     }
 
-    fn start_turn(&mut self, text: &str, io: &mut Io) {
+    /// A turn's input: each photo as a `localImage` item (the app-server reads the file in `refs/`), then the text.
+    fn start_turn(&mut self, text: &str, photos: &[PathBuf], io: &mut Io) {
         let Some(thread) = self.thread.clone() else {
-            self.waiting.push(text.to_string());
+            self.waiting.push((text.to_string(), photos.to_vec()));
             return;
         };
         self.usage = (0, 0);
         self.failed = false;
+        let mut input: Vec<UserInput> = photos
+            .iter()
+            .map(|p| UserInput::LocalImage {
+                path: p.display().to_string(),
+            })
+            .collect();
+        input.push(UserInput::Text { text: text.into() });
         let p = TurnStartParams {
             thread_id: thread,
-            input: vec![UserInput::Text { text: text.into() }],
+            input,
             effort: self.effort.clone(),
         };
         self.request("turn/start", to(&p), Sent::Turn, io);
@@ -628,8 +636,8 @@ impl CodexProto {
                 if let Some(models) = self.models.take() {
                     io.emit(AgentEvent::Models { models });
                 }
-                for text in std::mem::take(&mut self.waiting) {
-                    self.start_turn(&text, io);
+                for (text, photos) in std::mem::take(&mut self.waiting) {
+                    self.start_turn(&text, &photos, io);
                 }
             }
             (Sent::Turn, None) => {
@@ -985,8 +993,9 @@ impl Protocol for CodexProto {
         self.request("initialize", to(&p), Sent::Initialize, io);
     }
 
-    fn send(&mut self, text: &str, io: &mut Io) {
-        self.start_turn(text, io);
+    fn send(&mut self, text: &str, photos: &[Photo], io: &mut Io) {
+        let paths: Vec<PathBuf> = photos.iter().map(|p| p.path.clone()).collect();
+        self.start_turn(text, &paths, io);
     }
 
     /// 0B: turn/steer reaches the model at its next step, in the same turn.

@@ -28,6 +28,7 @@ mod parts_data;
 mod paths;
 mod python;
 mod python_setup;
+mod refs;
 mod render;
 mod run;
 mod runner;

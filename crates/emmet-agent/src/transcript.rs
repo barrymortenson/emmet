@@ -38,6 +38,43 @@ pub fn redact(s: &str, secrets: &[String]) -> Option<String> {
     )
 }
 
+/// `msg` with each inline image's bytes replaced by a placeholder naming its hash and size (4D): a transcript stays a
+/// readable size, and a replay fixture never carries a photo. Both ways: the image blocks Emmet sends Claude Code, and
+/// what the CLI sends back when the agent reads a photo or a render (an image block in a tool result, or Claude
+/// Code's `tool_use_result.file.base64`).
+pub fn without_images(msg: &Value) -> Value {
+    match msg {
+        Value::Object(map) => {
+            let mut out = serde_json::Map::new();
+            for (k, v) in map {
+                out.insert(k.clone(), without_images(v));
+            }
+            let block = map.get("type").and_then(Value::as_str) == Some("base64");
+            let keys: &[&str] = if block { &["data", "base64"] } else { &["base64"] };
+            for &key in keys {
+                if let Some(data) = map.get(key).and_then(Value::as_str) {
+                    out.insert(key.into(), Value::String(placeholder(data)));
+                }
+            }
+            Value::Object(out)
+        }
+        Value::Array(items) => Value::Array(items.iter().map(without_images).collect()),
+        other => other.clone(),
+    }
+}
+
+/// An image's placeholder: its hash and size, or how long it was when it isn't base64 at all.
+fn placeholder(data: &str) -> String {
+    match emmet_core::base64::decode(data) {
+        Some(bytes) => format!(
+            "<image sha256:{} {} bytes>",
+            emmet_core::fsx::sha256_hex(&bytes),
+            bytes.len()
+        ),
+        None => format!("<image: not base64, {} chars>", data.len()),
+    }
+}
+
 impl Transcript {
     /// Opens (appends to) the session's transcript. A transcript that can't be written isn't fatal: the chat goes on
     /// without one.

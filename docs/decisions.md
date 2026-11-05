@@ -805,3 +805,80 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   seed lives in `emmet.toml`, and a project without one builds as before; `techniques/` becomes a project source
   (section 07). These came from the PR's review; Barry approved all three (2026-11-03, through AskUserQuestion).
   Rejected: merging the old branch as written, and dropping 6C.
+
+## 2026-11-04, the photo rung's subjects
+
+- **Photo to model takes a photo of anything, and the photo rung tests real objects** (Barry, through
+  AskUserQuestion: "Three real objects"). The rung's three subjects (H-23) are real objects of different kinds,
+  none of them brick models: for example a building, a vehicle, and a small household object. Brick models were the
+  easy case (the agent can count studs in the photo) and would mostly have measured that, not turning real things
+  into bricks. 4D's goal now says "a photo of anything"; the rung's scoring (section 16.1) is unchanged.
+  Rejected: one brick model as a baseline plus two real objects, and the plan's two brick models and one building.
+- **The photo rung's images stay local** (Barry, 2026-11-04, through AskUserQuestion: "Keep these, local only").
+  Barry's subjects are web images he doesn't hold the rights to, so they never enter the public repo. They live in
+  a gitignored `data/ladder/photo/local/`; the repo commits only `data/ladder/photo/subjects.toml` (each subject's
+  name, Barry's description, its answers, which image is angle a or b, and each image's SHA-256, so a G2 run proves
+  it used the same photos). CI's dry run uses generated images. Barry scores on his Mac with the compare view; the
+  G2 report shows the renders, not the reference photos. Rejected: openly licensed photos from Wikimedia Commons
+  (the subjects would likely change), and Barry taking his own photos.
+- **Four subjects; the rung passes at 3 of 4** (Barry, 2026-11-04, through AskUserQuestion). A leg lamp (the tall
+  floor version), a moto-style e-bike, the Bradbury Building, and a small pickup truck. Each subject
+  is one more run per agent. Rejected: 2 of 4, and dropping a subject.
+- **D-38's G2 budget is 14 runs, up from 12** (Barry, 2026-11-04, through AskUserQuestion: "Four subjects, 14
+  runs"). D-38 counts each photo subject as a run per agent; the agent first said four subjects cost the same, which
+  was wrong, and asked again. Rejected: three subjects and 12 runs.
+- **The Bradbury is a detailed modular building at minifigure scale, 1,500-3,000 parts, and the agent has to ask**
+  (Barry, 2026-11-04, through AskUserQuestion: "Answer it when asked"). The prompt stays "Build this."; the subject's
+  answer script gives the scale when the agent asks. Rejected: saying it in the prompt, and keeping it at 50-300.
+- **The images for each angle** (Barry, 2026-11-04, through AskUserQuestion: "Floor lamp"): the floor leg lamp, with
+  the table version as its angle b, labeled as a smaller version of the same lamp; the truck's front and rear
+  three-quarter shots (the shot with dimension labels is dropped, since it hands the agent the measurements); the
+  e-bike's three-quarter shot, then its side profile; the Bradbury's street corner, then the aerial.
+- **G2's live eval runs are Barry's hand sessions on his plans, not scripted runs on API keys** (Barry, 2026-11-04:
+  "These runs should be using my plans not the api"; then through AskUserQuestion: "Hand sessions on plans"). A
+  scripted `just eval` run on a plan has no basis in the terms matrix: Anthropic says developers building products
+  "should use API key authentication", and the chat pane bills a plan only for turns the user starts. So at G2 Barry
+  runs each rung himself in the app on his Claude and ChatGPT plans, types the prompt, gives the answer script's
+  answers himself (attaching a photo's second angle when asked), and `emmet eval --score <project>` scores the
+  finished project and its transcript, sending nothing to an agent. 14 hand sessions. The terms matrix splits its
+  "Automated runs" row: scripted spikes stay on the API keys (H-21), and live evals from G2 are the chat pane on his
+  plan. D-38's G2 line, section 16's Live eval row, 16.1, H-09, and the `emmet eval` row in section 09 say so.
+  Rejected: keeping scripted runs on the API keys, and plans by hand with the keys for any rung left over.
+
+## 2026-11-04, what the first hand check showed
+
+- **Emmet builds a finished, detailed model by default, not a basic one** (Barry, 2026-11-04, on the e-bike hand
+  check: "we want this to build a detailed complex design not something so basic"). The agent built a 165-part e-bike
+  from stacked plain bricks; a good display set of a dirt bike has its fork, brakes, chain, panels, and stand. The
+  doctrine's "Keep it lean" now means few tool calls, never few parts, and a new "Finished, not basic" section has the
+  agent build at High detail and a set's size when Detail and Pieces are Any, list what makes the subject itself and
+  give each part real parts, and shape it rather than stack it. "Show a draft in the first minute" now covers any
+  subject, and says not to plan the whole model before writing any of it (the e-bike's first build came at 7:36).
+- **The photo rung's part ranges are set-sized** (Barry, 2026-11-04, through AskUserQuestion: "Set-sized ranges"):
+  the lamp 300-1,000, the e-bike 600-2,000, the truck 800-2,500, and the Bradbury 1,500-3,000 as before, so a basic
+  model fails. Rejected: floors only, and keeping 50-300 with the rubric judging detail.
+- **A command's card says what it did** (Barry, 2026-11-04: "ran a command is too technical, we should either having
+  it say in plain words what it is doing or have a set of words like sorting bricks, choosing colors, finding
+  pieces"). The card reads the command and says it in words ("Looked through the project", "Tried the model",
+  "Installed a tool"); one it can't read says "Worked on the project", with bench words ("Sorting parts", "Choosing
+  colors") while it runs. The status after a step says "Thinking", then a new bench word every 15 seconds, so a long
+  quiet stretch still shows the agent is working. "Pieces" stays "parts", as content.md has it.
+- **A double click on the title row maximizes the window** (Barry, 2026-11-04). The capability allows Tauri's
+  drag-region command for it (`core:window:allow-internal-toggle-maximize`); without it the double click was refused.
+- **A turn cut off by Emmet closing says so** (Barry, 2026-11-04: "on the screen there was no indication it was still
+  working"). The agent's rebuild of `just dev` restarted the app mid-turn; read back, the chat now ends with "Claude's
+  turn stopped when Emmet closed." instead of going quiet.
+- **A new session, 4G, before G2: Technic frames and display vehicles** (Barry, 2026-11-04, through
+  AskUserQuestion: "New session before G2"). The e-bike retry, with the new doctrine, aimed at a Technic frame and
+  spent about 20 minutes test-building: Emmet can't say which way a beam's holes face or whether a pin is seated, and
+  has no motorbike techniques. 4G adds the connection data to `part_info`, beams placed by their holes with seated
+  pins, the validator's pin connections, and display-vehicle techniques. It follows 4D, runs beside 4E, and 5A and 5B
+  wait for it. Rejected: moving it into 6C after G2, and waiting for G2 to show the gap.
+- **Design change note 005 is accepted as built** (Barry, 2026-11-04, through AskUserQuestion: "Yes, as built"),
+  after the screenshots and his hand checks: the photo chips, the first-use line, Send with a photo and no words, the
+  paperclip waiting while the agent works, the sent photo in its message, and the compare view.
+- **4D's hand checks** (Barry, 2026-11-04). Claude Code, the e-bike side shot: it sized the bike from the photo,
+  asked for a front or back photo at the end, and finished at 39:57 with 426 parts and 0 errors; its first build came
+  about 2:35 into its own time (the scale question waited 5:49 for Barry), so "a first draft within a minute" isn't
+  met yet, and 4G is the fix. Codex, the truck's front three-quarter shot: "A light blue Ford Maverick crew-cab pickup
+  with black trim, silver steel wheels, and a short open bed", in 0:22; the saved copy in `refs/` has no metadata.

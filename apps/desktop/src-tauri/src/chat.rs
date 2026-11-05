@@ -20,6 +20,7 @@ use emmet_agent::{
     UsageSnapshot, UserNote, UserTurn,
 };
 use emmet_core::project::Project;
+use emmet_core::refs;
 use emmet_core::versions;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
@@ -91,6 +92,9 @@ pub struct ChatRecord {
     /// The user's answer to a question card, in their words.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub answered: Option<Answered>,
+    /// The photos sent with the user's message (4D): their paths in the project, `refs/<name>.jpg`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub photos: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -717,6 +721,7 @@ fn pump(app: &AppHandle, project: &Project, id: &str, run: u64, kind: AgentKind,
                 event: Some(event.clone()),
                 decided: None,
                 answered: None,
+                photos: Vec::new(),
             },
         );
         let seq = state.chat.seq.fetch_add(1, Ordering::SeqCst);
@@ -757,12 +762,28 @@ pub async fn chat_send(
     text: String,
     context: TurnContext,
     from: Option<Origin>,
+    photos: Vec<String>,
 ) -> Result<String, Box<Problem>> {
-    blocking(app, move |app| send(app, text, context, from)).await
+    blocking(app, move |app| send(app, text, context, from, photos)).await
 }
 
-fn send(app: &AppHandle, text: String, context: TurnContext, from: Option<Origin>) -> Result<String, Box<Problem>> {
+fn send(
+    app: &AppHandle,
+    text: String,
+    context: TurnContext,
+    from: Option<Origin>,
+    photos: Vec<String>,
+) -> Result<String, Box<Problem>> {
     let project = open_project(app)?;
+    // Each photo the page names must be a file in this project's own refs/ (every IPC path is checked), and still a
+    // clean JPEG within the limits: checked before the message is saved, so a photo that fails never shows as sent.
+    let images = photos
+        .iter()
+        .map(|p| refs::resolve(&project.root, p))
+        .collect::<Result<Vec<_>, _>>()?;
+    for image in &images {
+        refs::check(image)?;
+    }
     let id = ensure_live(app, &project)?;
     let state = app.state::<AppState>();
     // Before the agent touches anything: the version Undo turn goes back to. One the project can't keep (read-only, a
@@ -802,15 +823,64 @@ fn send(app: &AppHandle, text: String, context: TurnContext, from: Option<Origin
                 event: None,
                 decided: None,
                 answered: None,
+                photos: photos.clone(),
             },
         );
         l.session
             .send(UserTurn {
                 text: context.prompt(&text),
+                images,
             })
             .map_err(agent_problem)
     })?;
     Ok(id)
+}
+
+/// A photo the user is sending (4D), as the page made it: a JPEG, base64-encoded, already scaled and re-encoded. The
+/// page calls this at Send, not when the photo is attached, so a photo the user removes never reaches the project.
+/// Emmet cleans it again (only what a decoder needs is kept), checks it against the providers' limits, and saves it in
+/// the project's `refs/`; the page sends the returned path with the message.
+#[tauri::command]
+#[specta::specta]
+pub async fn chat_attach(app: AppHandle, name: String, jpeg: String) -> Result<PhotoView, Box<Problem>> {
+    blocking(app, move |app| {
+        let project = open_project(app)?;
+        // Base64 of more than the largest photo is refused before it's decoded.
+        if jpeg.len() > refs::MAX_BYTES.div_ceil(3) * 4 {
+            return Err(problem("The photo is over 3.75 MB."));
+        }
+        let bytes = emmet_core::base64::decode(&jpeg).ok_or_else(|| problem("The photo didn't arrive whole."))?;
+        let saved = refs::save(&project.root, &name, &bytes)?;
+        Ok(PhotoView {
+            path: saved.path,
+            width: saved.width,
+            height: saved.height,
+        })
+    })
+    .await
+}
+
+/// A saved photo (4D) as a data URL, for the chat and the compare view: only a `.jpg` file in this project's own
+/// `refs/`, no bigger than a photo Emmet saves (`refs::resolve`).
+#[tauri::command]
+#[specta::specta]
+pub async fn chat_photo(app: AppHandle, path: String) -> Result<String, Box<Problem>> {
+    blocking(app, move |app| {
+        let project = open_project(app)?;
+        let file = refs::resolve(&project.root, &path)?;
+        let bytes = std::fs::read(&file).map_err(|e| problem(format!("The photo can't be read: {e}")))?;
+        Ok(format!("data:image/jpeg;base64,{}", emmet_core::base64::encode(&bytes)))
+    })
+    .await
+}
+
+/// A photo saved in `refs/`.
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct PhotoView {
+    /// `refs/<name>.jpg`, what the message names.
+    pub path: String,
+    pub width: u32,
+    pub height: u32,
 }
 
 /// A redirect while the agent works (D-33): returns the note, which `NoteDelivered` marks once it's out.
@@ -830,6 +900,7 @@ pub async fn chat_steer(app: AppHandle, text: String, context: TurnContext) -> R
                     event: None,
                     decided: None,
                     answered: None,
+                    photos: Vec::new(),
                 },
             );
             Ok(note)
@@ -871,6 +942,7 @@ pub fn chat_respond(app: AppHandle, id: String, decision: Decision) -> Result<()
                 event: None,
                 decided: Some(Decided { id, decision }),
                 answered: None,
+                photos: Vec::new(),
             },
         );
         Ok(())
@@ -898,6 +970,7 @@ pub fn chat_answer(app: AppHandle, id: String, answer: Answer) -> Result<(), Box
                 event: None,
                 decided: None,
                 answered: Some(Answered { id, text }),
+                photos: Vec::new(),
             },
         );
         Ok(())

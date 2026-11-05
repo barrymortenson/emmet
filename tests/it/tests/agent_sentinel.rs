@@ -45,7 +45,7 @@ fn hash_tree(root: &Path) -> BTreeMap<String, String> {
 }
 
 fn turn(text: &str) -> UserTurn {
-    UserTurn { text: text.into() }
+    UserTurn::text(text)
 }
 
 /// Answers every card and question in a turn the first way it can.

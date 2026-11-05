@@ -93,6 +93,11 @@ window.EMMET_GEN = ${JSON.stringify({ lucide: version, glyphs: Object.keys(glyph
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+  // The one argument is an output path; a flag is a mistake ("--check" once became a file of that name, 4D).
+  if (process.argv[2]?.startsWith("-")) {
+    console.error(`design-frozen: takes an output path, not ${process.argv[2]}`);
+    process.exit(2);
+  }
   const out = process.argv[2] ?? OUT;
   const text = await generate();
   writeFileSync(out, text);

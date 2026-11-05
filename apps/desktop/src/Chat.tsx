@@ -32,7 +32,8 @@ import {
 import { AgentSetup } from "./Agents";
 import { LimitCard } from "./ChatGpt";
 import { Markdown } from "./markdown";
-import { editedFiles, effortName, fileCard, isEdit, isHidden, modelName, toolCard, doing, toolName } from "./summaries";
+import { ACCEPT, type Converted, convert, isPhoto } from "./photos";
+import { benchWord, editedFiles, effortName, fileCard, isEdit, isHidden, modelName, toolCard, doing, toolName } from "./summaries";
 import { AlertCard, Badge, Button, Choose, Icon, IconButton, type IconName, Kbd, MenuItems, Resizable, Spinner, TextField } from "./ui";
 import { limitWarning, PlanBadge, until } from "./Usage";
 import { type Row, VirtualList } from "./virtual";
@@ -50,7 +51,7 @@ const FROM: Record<Origin, [IconName, string]> = {
 
 type Item =
   | { k: "divider"; key: string; text: string }
-  | { k: "user"; key: string; text: string; from: Origin | null; note?: string; delivered?: SteerPath | null; at: number }
+  | { k: "user"; key: string; text: string; from: Origin | null; note?: string; delivered?: SteerPath | null; at: number; photos?: string[] }
   | { k: "agent" | "thinking"; key: string; message: string; text: string }
   | { k: "tool"; key: string; id: string; name: string; input: unknown; result: { ok: boolean; summary: string } | null }
   | { k: "file"; key: string; path: string; change: "added" | "modified" | "removed"; tool?: string }
@@ -66,6 +67,8 @@ type Chat = {
   /** When the turn began (Date.now()), for the status's time; and how long the last one took. */
   began: number | null;
   took: number | null;
+  /** When the agent last sent anything, so a long quiet stretch can say so. */
+  heard: number | null;
   question: string | null;
   stopped: boolean;
   crashed: boolean;
@@ -83,7 +86,7 @@ type Chat = {
 
 type Action =
   | { type: "load"; state: ChatState; live: boolean }
-  | { type: "user"; text: string; from: Origin | null; note?: string; at: number }
+  | { type: "user"; text: string; from: Origin | null; note?: string; at: number; photos?: string[] }
   | { type: "event"; event: AgentEvent; at: number }
   | { type: "divider"; text: string }
   | { type: "decided"; id: string; how: Decision }
@@ -96,6 +99,7 @@ const empty: Chat = {
   running: false,
   began: null,
   took: null,
+  heard: null,
   question: null,
   stopped: false,
   crashed: false,
@@ -198,22 +202,26 @@ function reduce(c: Chat, a: Action): Chat {
         // Each conversation starts with no turn running: an earlier one's last turn is over.
         s = { ...s, running: false, question: null, crashed: false };
         for (const r of v.records) {
-          if (r.user != null) s = reduce(s, { type: "user", text: r.user, from: r.from ?? null, at: r.at ?? 0 });
+          if (r.user != null) s = reduce(s, { type: "user", text: r.user, from: r.from ?? null, at: r.at ?? 0, photos: r.photos });
           else if (r.event) s = apply(s, r.event, r.at ?? 0);
           else if (r.decided) s = reduce(s, { type: "decided", id: r.decided.id, how: r.decided.decision });
           else if (r.answered) s = reduce(s, { type: "answered", id: r.answered.id, answer: r.answered.text });
         }
       });
-      // A chat read back that isn't running: its last turn is over (a crash shows only while it's live).
-      return a.live ? s : { ...s, running: false, question: null, crashed: false, took: null };
+      // A chat read back that isn't running: its last turn is over (a crash shows only while it's live). A turn that never
+      // finished was cut off when Emmet closed or restarted: say so, or the dock just goes quiet mid-turn (Barry 2026-11-04).
+      if (a.live) return s;
+      const last = a.state.sessions[a.state.sessions.length - 1]?.info.kind;
+      const cut: Item[] = s.running ? [{ k: "note", key: `k${s.n}`, text: `${last === "codex" ? "Codex" : "Claude"}'s turn stopped when Emmet closed. The model is as it was at its last build; send a message to carry on.` }] : [];
+      return { ...s, running: false, question: null, crashed: false, took: null, n: s.n + cut.length, items: [...s.items, ...cut] };
     }
     case "user": {
       const delivered = a.note ? (c.early[a.note] ?? null) : undefined;
       const turn = a.note ? {} : { running: true, began: a.at, stopped: false, crashed: false };
-      return { ...c, ...turn, n: c.n + 1, items: [...c.items, { k: "user", key: `k${c.n}`, text: a.text, from: a.from, note: a.note, delivered, at: a.at }] };
+      return { ...c, ...turn, n: c.n + 1, items: [...c.items, { k: "user", key: `k${c.n}`, text: a.text, from: a.from, note: a.note, delivered, at: a.at, photos: a.photos?.length ? a.photos : undefined }] };
     }
     case "event":
-      return apply(c, a.event, a.at);
+      return { ...apply(c, a.event, a.at), heard: a.at };
     case "restarted":
       return { ...c, crashed: false, took: null };
     case "divider":
@@ -242,15 +250,17 @@ function clock(ms: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** What the agent is doing now, in the present (note 1): the running tool, thinking, or writing. */
-function activity(items: Item[]): string {
+/** What the agent is doing now, in the present (note 1): the running tool, thinking, or writing. After a step, the agent
+ * is working out the next one, often for minutes with nothing to show: "Thinking", then words from the bench, a new one
+ * every 15 seconds, so the line shows it's still going (Barry 2026-11-04). `quiet` is how long since it last sent. */
+function activity(items: Item[], quiet: number): string {
   for (let i = items.length - 1; i >= 0; i--) {
     const it = items[i]!;
-    if (it.k === "tool" && !it.result) return doing(it.name);
+    if (it.k === "tool" && !it.result) return doing(it.name, it.input);
+    if (it.k === "tool" || it.k === "file") return quiet < 20_000 ? "Thinking" : benchWord(Math.floor((quiet - 20_000) / 15_000));
     if (it.k === "thinking") return "Thinking";
     if (it.k === "agent") return "Writing";
     if (it.k === "user") return "Reading your message";
-    if (it.k === "tool" || it.k === "file") return "Working";
   }
   return "Working";
 }
@@ -290,10 +300,29 @@ type Props = {
   onAgent: (kind: AgentKind | null) => void;
   /** Whether the agent is working (tips wait until it's done). */
   onBusy: (busy: boolean) => void;
+  /** Opens the compare view on a photo the user sent (`refs/<name>.jpg`). */
+  onPhoto: (path: string) => void;
 };
 
-export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsChanged, context, onSettings, onUndone, onAgent, onBusy }: Props) {
+/** A photo attached in the composer, saved in refs/ and waiting for Send. */
+/** A photo in the composer: converted in the page, and saved in refs/ only when it's sent, so one the user removes
+ * never reaches the project, where the agent could look at it (4D review). */
+type Attached = Converted & { key: string };
+
+/** What the first photo shows once (4D): where it goes, and under whose terms. */
+const PHOTO_NOTICE: Record<AgentKind, string> = {
+  claude: "Your photo goes to Claude Code, under Anthropic's terms.",
+  codex: "Your photo goes to Codex, under OpenAI's terms.",
+};
+
+export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsChanged, context, onSettings, onUndone, onAgent, onBusy, onPhoto }: Props) {
   const [chat, dispatch] = useReducer(reduce, empty);
+  const [attached, setAttached] = useState<Attached[]>([]);
+  const [attaching, setAttaching] = useState(0);
+  const [dropping, setDropping] = useState(false);
+  /** The photo notice's one sentence: null until known, then whether it's been shown. */
+  const [noticed, setNoticed] = useState<boolean | null>(null);
+  const picker = useRef<HTMLInputElement | null>(null);
   const [agents, setAgents] = useState<AgentView[] | null>(null);
   const [state, setState] = useState<ChatState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -388,17 +417,19 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     return r.status === "ok";
   };
 
-  /** Sends `t`: a turn, a redirect while the agent works, or the open question's Other answer. */
-  const send = async (t: string, from: Origin | null = null, detail: string | null = null) => {
-    t = t.trim();
-    if (!t) return;
+  /** Sends `t`: a turn, a redirect while the agent works, or the open question's Other answer. Photos start a turn:
+   * with no words, they go as "Build this." */
+  /** Sends `t` with the saved `photos`; false when the message didn't go. */
+  const send = async (t: string, from: Origin | null = null, detail: string | null = null, photos: string[] = []): Promise<boolean> => {
+    t = t.trim() || (photos.length ? "Build this." : "");
+    if (!t) return false;
     const ctx = { ...context(), detail };
     // While a question is open, what the user types is its Other answer (plan section 10).
     if (chat.question && !from) {
       const id = chat.question;
       // Answered once the agent has it: a failed answer leaves the card open to try again.
       if (await run(() => commands.chatAnswer(id, { choices: [], other: t }))) dispatch({ type: "answered", id, answer: t });
-      return;
+      return true;
     }
     if (chat.running) {
       // A redirect typed while the message before it is still reaching the agent waits for it: otherwise the agent,
@@ -407,14 +438,15 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
       const r = await commands.chatSteer(t, ctx);
       if (r.status === "ok") dispatch({ type: "user", text: t, from, note: r.data.id, at: Date.now() });
       else setError(r.error.message);
-      return;
+      return r.status === "ok";
     }
-    dispatch({ type: "user", text: t, from, at: Date.now() });
+    // A photo the host refuses (changed on disk since it was saved) fails before anything is shown or saved as sent.
+    dispatch({ type: "user", text: t, from, at: Date.now(), photos });
     const before = session.current;
     // The conversation the message goes to, so its first events (Codex's model, on the plan or not) are taken while
     // chatSend is still starting the agent, and an agent Start fresh just closed isn't.
     session.current ??= state?.sessions.at(-1)?.info.id ?? null;
-    const call = commands.chatSend(t, ctx, from);
+    const call = commands.chatSend(t, ctx, from, photos);
     sending.current = call;
     starting.current = true;
     const r = await call.finally(() => {
@@ -423,19 +455,108 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     if (r.status === "error") {
       setError(`${r.error.message} ${r.error.hint}`.trim());
       dispatch({ type: "event", event: { type: "turn_done", reason: "failed" }, at: Date.now() });
-      return;
+      return false;
     }
     setError(null);
     if (before !== r.data) {
       session.current = r.data;
       void commands.chatState().then(setState);
     }
+    return true;
   };
 
-  const submit = () => {
+  // A photo starts a turn, so it waits while the agent works or a question is open (a redirect and an answer are
+  // words).
+  const photoWait = chat.question ? "Answer the question first, then attach the photo." : chat.running ? `Attach the photo when ${who} has finished.` : null;
+  const submit = async () => {
+    if (attaching) return;
     const t = text;
+    const photos = photoWait ? [] : attached;
     setText("");
-    void send(t);
+    if (!photos.length) return void send(t);
+    // The photos are saved now, as they go (the host cleans each again and checks it against the limits). Until the
+    // message is sent, the composer keeps them and the words: a failure leaves both to try again.
+    setAttached([]);
+    setAttaching(photos.length);
+    const paths: string[] = [];
+    try {
+      for (const p of photos) {
+        const r = await commands.chatAttach(p.name, p.jpeg);
+        if (r.status === "error") throw new Error(`${p.name}: ${r.error.message} ${r.error.hint}`.trim());
+        paths.push(r.data.path);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setText((now) => now || t);
+      setAttached((now) => [...photos, ...now]);
+      return;
+    } finally {
+      setAttaching(0);
+    }
+    if (!(await send(t, null, null, paths))) {
+      setText((now) => now || t);
+      setAttached((now) => [...photos, ...now]);
+    }
+  };
+
+  // A photo still converting when the user opens another project belongs to the first one: dropped, not attached here.
+  const generation = useRef(0);
+  useEffect(() => {
+    generation.current++;
+    setAttached([]);
+  }, [project.root]);
+
+  /** Converts each photo in the page (upright, scaled, re-encoded as a JPEG): a chip each, until Send. */
+  const attach = async (files: File[]) => {
+    const photos = files.filter(isPhoto);
+    const skipped = files.filter((f) => !isPhoto(f)).map((f) => f.name);
+    if (!photos.length) return setError(files.length ? "Emmet takes photos as JPEG, PNG, or HEIC." : null);
+    if (photoWait) return setError(photoWait);
+    const failed: string[] = skipped.length ? [`Skipped ${skipped.join(", ")}: not a photo.`] : [];
+    setError(failed[0] ?? null);
+    // The first photo of a message: has this user seen the notice (in any project or window)? If that can't be read,
+    // the notice shows: it says where photos go.
+    if (!attached.length) void commands.tipsSeen().then((seen) => setNoticed(seen.includes("photo")), () => setNoticed(false));
+    const at = generation.current;
+    for (const f of photos) {
+      setAttaching((n) => n + 1);
+      try {
+        const c = await convert(f);
+        if (generation.current !== at) return;
+        setAttached((a) => (a.some((x) => x.jpeg === c.jpeg) ? a : [...a, { ...c, key: `p${keys.current++}` }]));
+      } catch (e) {
+        failed.push(`${f.name}: ${e instanceof Error ? e.message : String(e)}`);
+        setError(failed.join(" "));
+      } finally {
+        setAttaching((n) => n - 1);
+      }
+    }
+    input.current?.focus();
+  };
+  const keys = useRef(0);
+  const onPaste = (e: React.ClipboardEvent) => {
+    const files = [...e.clipboardData.files].filter(isPhoto);
+    if (!files.length) return;
+    e.preventDefault();
+    void attach(files);
+  };
+  const dragging = (e: React.DragEvent) => e.dataTransfer.types.includes("Files");
+  const onDragOver = (e: React.DragEvent) => {
+    if (!dragging(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    setDropping(true);
+  };
+  const onDrop = (e: React.DragEvent) => {
+    if (!dragging(e)) return;
+    e.preventDefault();
+    setDropping(false);
+    void attach([...e.dataTransfer.files]);
+  };
+  const showNotice = noticed === false && attached.length > 0 && !!kind;
+  const dismissNotice = () => {
+    setNoticed(true);
+    void commands.tipSeen("photo");
   };
   // Stop as the first message is still on its way waits for it, so the agent it starts is the one stopped.
   const stop = () => void (async () => {
@@ -580,6 +701,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         if (await run(() => commands.chatAnswer(id, { choices, other }))) dispatch({ type: "answered", id, answer: [...choices, ...(other ? [other] : [])].join(", ") });
       },
       restart: () => void restart(),
+      photo: onPhoto,
     };
   }
 
@@ -587,7 +709,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   // says it.
   const quiet = !!card && !pending;
   let status: { tone: string; line: string; time?: string; icon?: IconName } | null = null;
-  if (chat.running && !chat.question && !(last?.k === "approval" && !last.decided)) status = { tone: "busy", line: activity(chat.items), time: chat.began ? clock(now - chat.began) : undefined };
+  if (chat.running && !chat.question && !(last?.k === "approval" && !last.decided)) status = { tone: "busy", line: activity(chat.items, chat.heard ? now - chat.heard : 0), time: chat.began ? clock(now - chat.began) : undefined };
   else if (chat.crashed) status = { tone: "bad", line: `${kind ? CLI[kind] : "The agent"} stopped unexpectedly`, icon: "octagon-alert" };
   else if (limit) status = { tone: "attn", line: "Claude's plan limit", icon: "gauge" };
   else if (chat.stopped) status = { tone: "muted", line: "Stopped by you", icon: "square" };
@@ -631,7 +753,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
-      submit();
+      void submit();
     } else if (e.key === "Escape" && chat.running) {
       e.preventDefault();
       stop();
@@ -736,18 +858,56 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
           </div>
         )
       )}
-      <div className="composer" data-c="composer">
+      <div className="composer" data-c="composer" data-drop={dropping || undefined} onDragOver={onDragOver} onDragLeave={() => setDropping(false)} onDrop={onDrop}>
+        {showNotice && (
+          <p className="composer-notice small" id="photo-notice">
+            <Icon name="info" size="sm" />
+            <span>{PHOTO_NOTICE[kind!]}</span>
+            <Button label="Got it" variant="quiet" size="sm" compact id="photo-notice-ok" onClick={dismissNotice} />
+          </p>
+        )}
+        {(attached.length > 0 || attaching > 0) && (
+          <ul className="composer-photos" aria-label="Attached photos" id="composer-photos">
+            {attached.map((p) => (
+              <li key={p.key} className="photo-chip" data-photo={p.name}>
+                <img src={p.url} alt="" />
+                <span className="photo-chip-name">{p.name}</span>
+                <IconButton icon="x" size="sm" label={`Remove ${p.name}`} onClick={() => setAttached((a) => a.filter((x) => x.key !== p.key))} />
+              </li>
+            ))}
+            {attaching > 0 && (
+              <li className="photo-chip" data-busy>
+                <Spinner label="Attaching the photo" />
+              </li>
+            )}
+          </ul>
+        )}
         <textarea
           id="chat-input"
           ref={input}
           rows={text.includes("\n") || text.length > 80 ? 3 : 1}
-          placeholder={chat.running && !chat.question ? `Redirect ${who}…` : `Ask ${who} to build or change something`}
+          placeholder={chat.running && !chat.question ? `Redirect ${who}…` : attached.length ? "Build this, or say what to make of it" : `Ask ${who} to build or change something`}
           aria-label={chat.question ? "Your answer, in your own words" : chat.running ? `A message for ${who} while it works` : "Message"}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKey}
+          onPaste={onPaste}
         />
         <div className="composer-bar">
+          <IconButton icon="paperclip" size="sm" label={photoWait ?? "Attach a photo"} id="chat-attach" disabled={!!photoWait || !kind} onClick={() => picker.current?.click()} />
+          <input
+            ref={picker}
+            type="file"
+            accept={ACCEPT}
+            multiple
+            hidden
+            id="chat-attach-input"
+            onChange={(e) => {
+              const files = [...(e.target.files ?? [])];
+              e.target.value = "";
+              void attach(files);
+            }}
+          />
           <span className="composer-model">
             <Popover.Root>
               <Popover.Trigger asChild>
@@ -766,7 +926,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
             </Popover.Root>
           </span>
           <span className="grow" />
-          <Button label="Send" variant="primary" size="sm" icon="send" id="chat-send" disabled={!text.trim() || !kind} onClick={submit} />
+          <Button label="Send" variant="primary" size="sm" icon="send" id="chat-send" disabled={(!text.trim() && !(attached.length && !photoWait)) || !kind || attaching > 0} onClick={() => void submit()} />
         </div>
       </div>
     </section>
@@ -824,7 +984,47 @@ type Actions = {
   decide: (id: string, d: Decision) => void;
   answer: (id: string, choices: string[], other: string | null) => void;
   restart: () => void;
+  photo: (path: string) => void;
 };
+
+/** The photos read back for the chat, once each per window. */
+/** Sent photos' data URLs, the most recent few (each is up to 5 MB); a failure isn't kept, so it's tried again. */
+const photoUrls = new Map<string, Promise<string | null>>();
+function photoUrl(path: string): Promise<string | null> {
+  let p = photoUrls.get(path);
+  if (p) {
+    photoUrls.delete(path);
+    photoUrls.set(path, p);
+    return p;
+  }
+  p = commands.chatPhoto(path).then(
+    (r) => (r.status === "ok" ? r.data : null),
+    () => null,
+  );
+  photoUrls.set(path, p);
+  void p.then((u) => {
+    if (u == null) photoUrls.delete(path);
+  });
+  while (photoUrls.size > 24) photoUrls.delete(photoUrls.keys().next().value!);
+  return p;
+}
+
+/** A photo the user sent, small; a click opens the compare view. */
+function PhotoThumb({ path, onOpen }: { path: string; onOpen: () => void }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    void photoUrl(path).then((u) => live && setUrl(u));
+    return () => {
+      live = false;
+    };
+  }, [path]);
+  return (
+    <button type="button" className="message-photo" data-path={path} title="Compare with the model" aria-label="Your photo: compare it with the model" onClick={onOpen}>
+      {url ? <img src={url} alt="" /> : <Icon name="image" />}
+    </button>
+  );
+}
 
 /** The history's rows: three or more finished steps fold into one line once the turn moves past them (note 2). */
 function fold(items: Item[], who: AgentKind, chat: Chat, actions: () => Actions): Row[] {
@@ -886,6 +1086,13 @@ function Message({ item, who, chat, actions, line, active }: { item: Item; who: 
               <Icon name={FROM[item.from][0]} size="sm" />
               {FROM[item.from][1]}
             </span>
+          )}
+          {item.photos && (
+            <div className="message-photos">
+              {item.photos.map((p) => (
+                <PhotoThumb key={p} path={p} onOpen={() => actions.photo(p)} />
+              ))}
+            </div>
           )}
           <p>{item.text}</p>
           {item.delivered && (

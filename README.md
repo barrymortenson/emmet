@@ -95,6 +95,7 @@ points git at the hooks in `.githooks/`. On Windows, run `just` from Git Bash.
 | `just e2e [spec]` | Build the debug app with the embedded WebDriver server and run the E2E specs (`just e2e hello` runs one) |
 | `just bench` | The viewer's load, update, and orbit timings in the real app |
 | `just eval --rung 1 --agent claude` | One live eval run on the eval API key (bills it; asks first). Quit the app first |
+| `just eval --rung photo --subject truck --agent claude --score <project>` | Scores your hand session of a photo rung subject; sends nothing to an agent |
 | `just release-dry [--sign]` | A universal macOS `.dmg` (signed and notarized with `--sign`); on Windows, the NSIS installer |
 | `just screenshots`, `just release` | Not yet; each one names the session that adds it |
 

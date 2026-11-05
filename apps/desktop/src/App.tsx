@@ -27,6 +27,7 @@ import {
   type VersionView,
 } from "./bindings";
 import { type Ask, Dock, DockBoundary } from "./Chat";
+import { Compare } from "./Compare";
 import { findingWords, fixRequest } from "./Checks";
 import { About, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
@@ -107,6 +108,10 @@ export function App() {
   const [exportOpen, setExportOpen] = useState(false);
   const [versions, setVersions] = useState<VersionView[] | null>(null);
   const [compare, setCompare] = useState<{ v: VersionView; scene: Scene } | null>(null);
+  /** The photo beside the model (4D's compare view), by its path in refs/. */
+  const [photo, setPhoto] = useState<string | null>(null);
+  const closePhoto = useCallback(() => setPhoto(null), []);
+  useEffect(() => setPhoto(null), [ui.project?.root]);
   comparing.current = compare != null;
   const [toast, setToast] = useState<{ text: string; action?: { label: string; run: () => void }; n: number } | null>(null);
   const [online, setOnline] = useState(navigator.onLine);
@@ -744,7 +749,8 @@ export function App() {
           <div className="app-main">
             {!windows && titlebar}
             {banner}
-            <section className="viewer" data-c="viewer" aria-label={`3D view of ${name}`} id="viewer" tabIndex={-1} ref={viewerBox}>
+            <section className="viewer" data-c="viewer" aria-label={`3D view of ${name}`} id="viewer" tabIndex={-1} ref={viewerBox} data-photo={photo ? "" : undefined}>
+              {photo && <Compare path={photo} onClose={closePhoto} />}
               {compare && (
                 <div className="viewer-bar" role="status" id="version-bar">
                   <Icon name="rotate-ccw-clock" />
@@ -840,7 +846,7 @@ export function App() {
                 layers={layers}
                 animating={animating}
                 findings={findings ?? []}
-                showPins={!compare && step == null}
+                showPins={!compare && !photo && step == null}
                 onPin={(f) => {
                   tipSeen("finding");
                   setTab("checks");
@@ -865,6 +871,7 @@ export function App() {
                 onAgent={setChatKind}
                 onBusy={setAgentBusy}
                 onUndone={(saved, who) => say(`Undid ${who}'s last turn. The model before is version ${saved.n}.`)}
+                onPhoto={setPhoto}
               />
               </DockBoundary>
             )}

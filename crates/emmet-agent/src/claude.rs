@@ -14,7 +14,7 @@ use std::time::Duration;
 
 use serde_json::{Value, json};
 
-use crate::session::{Engine, Io, Protocol, no_window, session_dir, set_env};
+use crate::session::{Engine, Io, Photo, Protocol, no_window, session_dir, set_env};
 use crate::{
     AgentAdapter, AgentError, AgentErrorCode, AgentEvent, AgentKind, Billing, Decision, Detection, DoneReason, Result,
     Session, SessionConfig, UsageSnapshot, UserNote, detect,
@@ -277,6 +277,22 @@ fn user_message(text: &str) -> Value {
     json!({ "type": "user", "message": { "role": "user", "content": text } })
 }
 
+/// A user message with photos (4D): stream-JSON's image content blocks, base64 JPEG, then the text, as Anthropic's
+/// Messages API takes them (the terms matrix's image input row).
+fn user_message_with(text: &str, photos: &[Photo]) -> Value {
+    let mut content: Vec<Value> = photos
+        .iter()
+        .map(|p| {
+            json!({
+                "type": "image",
+                "source": { "type": "base64", "media_type": "image/jpeg", "data": emmet_core::base64::encode(&p.jpeg) },
+            })
+        })
+        .collect();
+    content.push(json!({ "type": "text", "text": text }));
+    json!({ "type": "user", "message": { "role": "user", "content": content } })
+}
+
 /// A tool result's text, shortened for a card.
 fn summary(content: &Value) -> String {
     let text = match content {
@@ -300,9 +316,13 @@ pub(crate) fn shorten(s: &str, max: usize) -> String {
 }
 
 impl Protocol for ClaudeProto {
-    fn send(&mut self, text: &str, io: &mut Io) {
+    fn send(&mut self, text: &str, photos: &[Photo], io: &mut Io) {
         self.interrupted = false;
-        io.write(user_message(text));
+        io.write(if photos.is_empty() {
+            user_message(text)
+        } else {
+            user_message_with(text, photos)
+        });
     }
 
     /// 0B: a user message written mid-turn reaches the model at its next step, in the same turn.

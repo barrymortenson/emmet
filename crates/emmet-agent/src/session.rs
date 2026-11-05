@@ -43,10 +43,35 @@ impl Io {
     }
 }
 
+/// A photo on its way to the CLI (4D): where it is (Codex reads the file itself) and its bytes (Claude Code gets them
+/// in the message).
+pub(crate) struct Photo {
+    pub path: PathBuf,
+    pub jpeg: Vec<u8>,
+}
+
+/// Reads each photo a turn names, checked again (`emmet_core::refs::check`): a file that's gone, isn't a JPEG within
+/// the limits, or still carries metadata (one copied into `refs/` by hand: Codex would read the file as it is) fails
+/// the turn before anything reaches the CLI, naming the file.
+fn read_photos(paths: &[PathBuf]) -> Result<Vec<Photo>> {
+    paths
+        .iter()
+        .map(|path| {
+            let jpeg = emmet_core::refs::check(path)
+                .map_err(|e| AgentError::new(AgentErrorCode::Io, format!("{} {}", e.message, e.hint)))?;
+            Ok(Photo {
+                path: path.clone(),
+                jpeg,
+            })
+        })
+        .collect()
+}
+
 pub(crate) trait Protocol: Send {
     /// The CLI's opening messages (Codex's handshake); Claude Code writes nothing until the first turn.
     fn start(&mut self, _io: &mut Io) {}
-    fn send(&mut self, text: &str, io: &mut Io);
+    /// Starts a turn: `photos` go with the text, before it.
+    fn send(&mut self, text: &str, photos: &[Photo], io: &mut Io);
     /// Delivers a note mid-turn in the CLI's own protocol. False if it can't now; the engine tries again at the next
     /// step, and the note goes out as the next turn if the turn ends first.
     fn steer(&mut self, note: &UserNote, io: &mut Io) -> bool;
@@ -177,7 +202,7 @@ impl Shared {
 
     fn apply(&self, s: &mut State, io: Io) {
         for v in io.writes {
-            s.transcript.write("in", v.clone());
+            s.transcript.write("in", crate::transcript::without_images(&v));
             if let Some(stdin) = s.stdin.as_mut() {
                 let line = format!("{v}\n");
                 // A failed write means the CLI is gone; the reader reports the exit.
@@ -252,7 +277,7 @@ impl Shared {
         s.stopped = false;
         s.running = true;
         let mut io = Io::default();
-        s.proto.send(&text, &mut io);
+        s.proto.send(&text, &[], &mut io);
         for n in notes {
             io.emit(AgentEvent::NoteDelivered {
                 id: n.id,
@@ -281,7 +306,7 @@ impl Shared {
             let mut s = self.state.lock().expect("state");
             match serde_json::from_str::<Value>(&line) {
                 Ok(msg) => {
-                    s.transcript.write("out", msg.clone());
+                    s.transcript.write("out", crate::transcript::without_images(&msg));
                     let mut io = Io::default();
                     s.proto.on_message(msg, &mut io);
                     self.apply(&mut s, io);
@@ -363,16 +388,23 @@ impl Session for Engine {
         if s.exited {
             return Err(self.shared.closed());
         }
-        // A message sent while the agent works is a redirect.
+        // A message sent while the agent works is a redirect, and a redirect is words: a photo starts a turn.
         if s.running {
             drop(s);
+            if !turn.images.is_empty() {
+                return Err(AgentError::new(
+                    AgentErrorCode::Io,
+                    "A photo goes with a new message: send it when the agent has finished.",
+                ));
+            }
             return self.steer(&turn.text).map(|_| ());
         }
         drop(s);
+        let photos = read_photos(&turn.images)?;
         self.shared.run(|s, io| {
             s.running = true;
             s.stopped = false;
-            s.proto.send(&turn.text, io);
+            s.proto.send(&turn.text, &photos, io);
         });
         Ok(())
     }
@@ -435,7 +467,7 @@ impl Session for Engine {
         if !s.running {
             s.running = true;
             s.stopped = false;
-            s.proto.send(text, &mut io);
+            s.proto.send(text, &[], &mut io);
             io.emit(AgentEvent::NoteDelivered {
                 id: note.id.clone(),
                 path: SteerPath::NextTurn,

@@ -43,8 +43,9 @@ const QUALITY: [&str; 4] = ["auto", "fast", "balanced", "best"];
 const PACE: [&str; 3] = ["animated", "fast", "off"];
 const AGENTS: [&str; 2] = ["claude", "codex"];
 const CLAUDE_MODELS: [&str; 4] = ["fable", "opus", "sonnet", "haiku"];
-/// The tips the app teaches, one at a time (plan section 14): the first knob, the first finding, the first export.
-const TIPS: [&str; 3] = ["knob", "finding", "export"];
+/// The tips the app teaches, one at a time (plan section 14): the first knob, the first finding, the first export; and
+/// the one sentence the first photo shows (4D).
+const TIPS: [&str; 4] = ["knob", "finding", "export", "photo"];
 
 fn read(data: &DataDir) -> Map<String, Value> {
     std::fs::read_to_string(data.settings())
