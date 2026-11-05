@@ -96,6 +96,9 @@ describe("building instructions", function () {
   this.timeout(BOOK_TIMEOUT);
   for (const { rung, dir, file } of BOOKS) {
     it(`exports ${rung} as a PDF into Downloads, and every page matches its baseline`, async () => {
+      // wdio.conf.mjs starts each spec with no Downloads in the test home. macOS's Downloads is HOME's, made on write;
+      // Windows names it only when it exists (Tauri says "unknown path"), so it's made here.
+      mkdirSync(join(agentHome, "Downloads"), { recursive: true });
       await open(dir);
       await browser.execute(() => {
         delete window.__book;
