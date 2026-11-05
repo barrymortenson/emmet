@@ -85,8 +85,9 @@ without them or when a hash differs, and `--dry-run` uses generated images.
 beside the render (the compare view, on Barry's Mac). A subject passes at 4 of 6 or more with 0 validator errors; the
 rung passes when 3 of the 4 pass. The G2 report shows the renders and scores, not the reference photos.
 
-**Part ranges:** 50-300 for the lamp, the e-bike, and the truck; 1,500-3,000 for the Bradbury Building, which is a
-detailed modular building at minifigure scale. The prompt doesn't say so: the doctrine has the agent ask about scale
+**Part ranges:** what a good display set of each has, so a basic model fails (Barry, 2026-11-04): the lamp
+300-1,000, the e-bike 600-2,000, the truck 800-2,500, and the Bradbury Building 1,500-3,000, a detailed modular
+building at minifigure scale. The prompt doesn't say so: the doctrine has the agent ask about scale
 when a photo leaves it open, and the Bradbury's own answer gives it. A subject's own answers are tried first.
 
 **Answer script:**

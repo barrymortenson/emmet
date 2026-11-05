@@ -22,7 +22,7 @@ const PROJECTS = {
     ["stress", "scene-stress"],
     ["grid2000", "scene-grid", { count: 2000 }],
   ],
-  chat: [["", "agent"], ["codex", "agent"]],
+  chat: [["", "agent"], ["codex", "agent"], ["cut", "agent"]],
   photo: [["", "agent"], ["codex", "agent"]],
   dock: [["", "cottage"]],
   bus: [["", "cottage"]],

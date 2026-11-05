@@ -844,3 +844,27 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   "Automated runs" row: scripted spikes stay on the API keys (H-21), and live evals from G2 are the chat pane on his
   plan. D-38's G2 line, section 16's Live eval row, 16.1, H-09, and the `emmet eval` row in section 09 say so.
   Rejected: keeping scripted runs on the API keys, and plans by hand with the keys for any rung left over.
+
+## 2026-11-04, what the first hand check showed
+
+- **Emmet builds a finished, detailed model by default, not a basic one** (Barry, 2026-11-04, on the e-bike hand
+  check: "we want this to build a detailed complex design not something so basic"). The agent built a 165-part e-bike
+  from stacked plain bricks; a good display set of a dirt bike has its fork, brakes, chain, panels, and stand. The
+  doctrine's "Keep it lean" now means few tool calls, never few parts, and a new "Finished, not basic" section has the
+  agent build at High detail and a set's size when Detail and Pieces are Any, list what makes the subject itself and
+  give each part real parts, and shape it rather than stack it. "Show a draft in the first minute" now covers any
+  subject, and says not to plan the whole model before writing any of it (the e-bike's first build came at 7:36).
+- **The photo rung's part ranges are set-sized** (Barry, 2026-11-04, through AskUserQuestion: "Set-sized ranges"):
+  the lamp 300-1,000, the e-bike 600-2,000, the truck 800-2,500, and the Bradbury 1,500-3,000 as before, so a basic
+  model fails. Rejected: floors only, and keeping 50-300 with the rubric judging detail.
+- **A command's card says what it did** (Barry, 2026-11-04: "ran a command is too technical, we should either having
+  it say in plain words what it is doing or have a set of words like sorting bricks, choosing colors, finding
+  pieces"). The card reads the command and says it in words ("Looked through the project", "Tried the model",
+  "Installed a tool"); one it can't read says "Worked on the project", with bench words ("Sorting parts", "Choosing
+  colors") while it runs. The status after a step says "Thinking", then a new bench word every 15 seconds, so a long
+  quiet stretch still shows the agent is working. "Pieces" stays "parts", as content.md has it.
+- **A double click on the title row maximizes the window** (Barry, 2026-11-04). The capability allows Tauri's
+  drag-region command for it (`core:window:allow-internal-toggle-maximize`); without it the double click was refused.
+- **A turn cut off by Emmet closing says so** (Barry, 2026-11-04: "on the screen there was no indication it was still
+  working"). The agent's rebuild of `just dev` restarted the app mid-turn; read back, the chat now ends with "Claude's
+  turn stopped when Emmet closed." instead of going quiet.

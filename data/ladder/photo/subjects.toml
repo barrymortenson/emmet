@@ -2,13 +2,14 @@
 #
 # The photo rung's subjects (docs/spec/ladder.md, rung P; H-23). The images are web photos Barry doesn't hold the
 # rights to, so they stay in the gitignored local/ folder beside this file and never enter the repo. The SHA-256 of
-# each one proves a G2 run used the same photos. The agent never sees `description`: it gets angle a and "Build this.",
+# each one proves a G2 run used the same photos. `parts` is what a good display set of the subject has (Barry
+# 2026-11-04): a basic model fails the rung. The agent never sees `description`: it gets angle a and "Build this.",
 # and angle b only if it asks. `answers` are tried before the rung's shared answer script.
 
 [[subject]]
 id = "lamp"
 description = "The leg lamp from the movie A Christmas Story, the tall floor version"
-parts = [50, 300]
+parts = [300, 1000]
 images = [
   { angle = "a", file = "lamp-a.png", sha256 = "6be839f7f4e13a75dcfa53970f74d85acb914897cbc5ee6db444c0cfccabb337" },
   { angle = "b", file = "lamp-b.png", sha256 = "e0ac4d1107d54e53c827a85db46e09e66e2756b63f26f10439222564b48674d4",
@@ -18,7 +19,7 @@ images = [
 [[subject]]
 id = "e-bike"
 description = "A modern moto-style electric bicycle"
-parts = [50, 300]
+parts = [600, 2000]
 images = [
   { angle = "a", file = "e-bike-a.png", sha256 = "5d9acb1fab96e7f0b0c95e6125d9ebdac17fa8cd604cd9f40ec0fd6f699b9827" },
   { angle = "b", file = "e-bike-b.png", sha256 = "61c3b52fc9f020a5bd0818f0623890fe91d8392e16aa7c7b55cd3861f62b09aa" },
@@ -39,7 +40,7 @@ images = [
 [[subject]]
 id = "truck"
 description = "A small four-door pickup truck"
-parts = [50, 300]
+parts = [800, 2500]
 images = [
   { angle = "a", file = "truck-a.png", sha256 = "8d6d0f31b88e84f5bbf3e8d66c1955ee594c5360b5ffc340dfa86ed115e0af33" },
   { angle = "b", file = "truck-b.png", sha256 = "f100e04ca70af7832606b31f4263a1d79b700f18eeb4fe8cdacfbc61156a842e" },

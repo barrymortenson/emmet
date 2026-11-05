@@ -107,16 +107,96 @@ const CLI: Record<string, Words> = {
   Read: { icon: "book-open", doing: "Reading the project", done: () => "Read the project", detail: (i) => fileWords(str(i, "file_path")).what },
   Glob: { icon: "search", doing: "Looking through the project", done: () => "Looked through the project" },
   Grep: { icon: "search", doing: "Looking through the project", done: () => "Looked through the project" },
-  Bash: { icon: "terminal", doing: "Running a command", done: () => "Ran a command", failed: "A command failed" },
-  PowerShell: { icon: "terminal", doing: "Running a command", done: () => "Ran a command", failed: "A command failed" },
-  shell: { icon: "terminal", doing: "Running a command", done: () => "Ran a command", failed: "A command failed" },
-  commandExecution: { icon: "terminal", doing: "Running a command", done: () => "Ran a command", failed: "A command failed" },
   WebFetch: { icon: "external-link", doing: "Opening a web page", done: () => "Opened a web page", detail: (i) => host(str(i, "url")) },
   WebSearch: { icon: "search", doing: "Searching the web", done: () => "Searched the web" },
   TodoWrite: { icon: "list", doing: "Planning", done: () => "Made a plan" },
 };
 
 const DEFAULT: Words = { icon: "box", doing: "Working", done: () => "Used a tool" };
+
+/** The tools that run a command on the user's computer (Claude Code's Bash and PowerShell, Codex's shell). */
+const SHELLS = new Set(["Bash", "PowerShell", "shell", "commandExecution"]);
+
+/** What a command does, in words (Barry 2026-11-04: "Ran a command" says nothing). The closed line never shows it. */
+type Kind = { icon: IconName; doing: string; done: string; failed: string };
+const KINDS = {
+  install: { icon: "download", doing: "Installing a tool", done: "Installed a tool", failed: "Couldn't install a tool" },
+  build: { icon: "box", doing: "Building", done: "Built the model", failed: "The build failed" },
+  check: { icon: "circle-check", doing: "Checking the model", done: "Checked the model", failed: "Couldn't check the model" },
+  parts: { icon: "search", doing: "Looking for parts", done: "Looked for parts", failed: "Couldn't look up the parts" },
+  colors: { icon: "search", doing: "Looking up colors", done: "Looked up colors", failed: "Couldn't look up the colors" },
+  look: { icon: "eye", doing: "Looking at the model", done: "Looked at the model", failed: "Couldn't look at the model" },
+  count: { icon: "list", doing: "Counting the parts", done: "Counted the parts", failed: "Couldn't count the parts" },
+  steps: { icon: "list", doing: "Reading the steps", done: "Read the steps", failed: "Couldn't read the steps" },
+  export: { icon: "file-up", doing: "Exporting the model", done: "Exported the model", failed: "The export failed" },
+  rules: { icon: "book-open", doing: "Reading Emmet's rules", done: "Read Emmet's rules", failed: "Couldn't read Emmet's rules" },
+  try: { icon: "play", doing: "Trying the model", done: "Tried the model", failed: "The model didn't run" },
+  math: { icon: "sliders-horizontal", doing: "Working out the sizes", done: "Worked out the sizes", failed: "Couldn't work out the sizes" },
+  web: { icon: "download", doing: "Downloading", done: "Downloaded a file", failed: "The download didn't work" },
+  versions: { icon: "rotate-ccw-clock", doing: "Looking at the versions", done: "Looked at the versions", failed: "Couldn't read the versions" },
+  tidy: { icon: "folder-open", doing: "Tidying the project's files", done: "Tidied the project's files", failed: "Couldn't change the project's files" },
+  read: { icon: "search", doing: "Looking through the project", done: "Looked through the project", failed: "Couldn't look through the project" },
+  wait: { icon: "clock", doing: "Waiting", done: "Waited", failed: "Stopped waiting" },
+} satisfies Record<string, Kind>;
+/** Which kind wins when one command does several things: what the user would most want to hear about. */
+const ORDER: (keyof typeof KINDS)[] = ["install", "export", "build", "try", "check", "look", "parts", "colors", "count", "steps", "rules", "web", "math", "versions", "tidy", "read", "wait"];
+
+/** While a command no one can read runs: words from the bench, chosen by the command so they hold still. */
+const BENCH = ["Sorting parts", "Finding parts", "Choosing colors", "Counting studs", "Lining up the rows", "Snapping parts together"];
+const UNKNOWN: Omit<Kind, "doing"> = { icon: "box", done: "Worked on the project", failed: "A step didn't work" };
+
+const EMMET_CMD: Record<string, keyof typeof KINDS> = {
+  run: "build", build: "build", check: "check", validate: "check", search: "parts", part: "parts", colors: "colors",
+  render: "look", bom: "count", steps: "steps", export: "export", rules: "rules", api: "rules", guide: "rules", technique: "rules",
+};
+const READS = new Set(["ls", "cat", "head", "tail", "less", "more", "find", "tree", "grep", "rg", "ag", "wc", "file", "stat", "du", "pwd", "which", "diff", "jq", "awk", "sort", "uniq", "cut", "Get-ChildItem", "Get-Content", "Select-String", "dir", "type", "gci", "gc"]);
+const TIDIES = new Set(["mkdir", "cp", "mv", "rm", "rmdir", "touch", "ln", "chmod", "tee", "Copy-Item", "Move-Item", "Remove-Item", "New-Item", "Set-Content"]);
+const INSTALLERS = /^(pip3?|pipx|uv|npm|pnpm|yarn|brew|cargo|gem|winget|choco|apt(-get)?)$/;
+
+/** The words of one simple command, without what wraps it: "cd x", a variable set before it, "sudo", "time". */
+function program(segment: string): string[] {
+  const w = segment.trim().split(/\s+/).filter(Boolean).map((t) => t.replace(/^["']|["']$/g, ""));
+  while (w.length && (/^[A-Za-z_][A-Za-z0-9_]*=/.test(w[0]!) || ["sudo", "time", "env", "command", "exec", "nohup"].includes(w[0]!))) w.shift();
+  if (w[0]) w[0] = w[0].replace(/^.*[\\/]/, "").replace(/\.exe$/i, "");
+  return w;
+}
+
+function kindOf(w: string[]): keyof typeof KINDS | null {
+  const [p, a = "", b = ""] = w;
+  if (!p || ["cd", "echo", "printf", "true", "set", "export", "source", "."].includes(p)) return null;
+  if (INSTALLERS.test(p) && /^(install|add|i|sync)$/.test(a === "pip" ? b : a)) return "install";
+  if (p === "emmet") return EMMET_CMD[a] ?? null;
+  if (p === "uv" && a === "run") return kindOf(w.slice(w[2] === "--" ? 3 : 2));
+  if (/^(python[0-9.]*|py|pytest)$/.test(p)) return w.some((t) => /(^|[\\/])model\.py$|^models[\\/]|emmet_dsl/.test(t)) ? "try" : "math";
+  if (/^(bc|expr|node|ruby|perl)$/.test(p)) return "math";
+  if (/^(curl|wget|Invoke-WebRequest|iwr)$/.test(p)) return "web";
+  if (p === "git") return "versions";
+  if (p === "sed") return w.some((t) => /^-i/.test(t)) ? "tidy" : "read";
+  if (READS.has(p)) return "read";
+  if (TIDIES.has(p)) return "tidy";
+  if (/^(sleep|Start-Sleep)$/.test(p)) return "wait";
+  return null;
+}
+
+/** A shell's command as the user would hear it. A wrapped one ("/bin/zsh -lc 'ls'", Codex's way) is read inside. */
+function commandWords(input: Input): Kind {
+  let cmd = Array.isArray(input["command"]) ? list(input["command"]).join(" ") : str(input, "command");
+  const wrapped = cmd.match(/^\S*?(?:ba|z)?sh(?:\.exe)?\s+-l?c\s+(['"])([\s\S]*)\1\s*$/);
+  if (wrapped) cmd = wrapped[2]!;
+  const kinds = cmd
+    .replace(/<<-?\s*['"]?(\w+)['"]?[\s\S]*?\n\1\b/g, "")
+    .split(/&&|\|\||[;|\n]/)
+    .map((s) => kindOf(program(s)))
+    .filter((k): k is keyof typeof KINDS => k != null);
+  const k = ORDER.find((o) => kinds.includes(o));
+  if (k) return KINDS[k];
+  let h = 0;
+  for (const c of cmd) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return { ...UNKNOWN, doing: benchWord(h) };
+}
+
+/** The `n`th of the bench's words, round and round. */
+export const benchWord = (n: number) => BENCH[n % BENCH.length]!;
 
 /** Edits, which show as file cards. */
 const EDITS = new Set(["Edit", "MultiEdit", "Write", "NotebookEdit", "apply_patch", "fileChange"]);
@@ -137,22 +217,26 @@ export const toolName = (name: string) => name.replace(/^mcp__emmet(?:_host)?__/
 export const isEdit = (name: string) => EDITS.has(name);
 export const isHidden = (name: string) => HIDDEN.has(toolName(name));
 
-function words(name: string): Words {
+function words(name: string, input: Input = {}): Words {
+  if (SHELLS.has(name)) {
+    const k = commandWords(input);
+    return { icon: k.icon, doing: k.doing, done: () => k.done, failed: k.failed };
+  }
   const n = toolName(name);
   return (n !== name ? EMMET[n] : CLI[name]) ?? EMMET[n] ?? DEFAULT;
 }
 
 /** A tool card: its icon, its title (what was done, or what it's doing while it runs), and the detail. */
 export function toolCard(name: string, input: unknown, result: { ok: boolean; summary: string } | null): { icon: IconName; title: string; detail: string } {
-  const w = words(name);
   const i = (input ?? {}) as Input;
+  const w = words(name, i);
   if (!result) return { icon: w.icon, title: w.doing, detail: w.detail?.(i, "") ?? "" };
   if (!result.ok) return { icon: w.icon, title: w.failed ?? `${w.doing} didn't work`, detail: "" };
   return { icon: w.icon, title: w.done(i, result.summary), detail: w.detail?.(i, result.summary) ?? "" };
 }
 
-/** What the status line says while `name` runs. */
-export const doing = (name: string) => words(name).doing;
+/** What the status line says while `name` runs with `input`. */
+export const doing = (name: string, input?: unknown) => words(name, (input ?? {}) as Input).doing;
 
 /** A project file in words: what it is ("the model") and the noun for it. models/door.py is the door sub-assembly. */
 export function fileWords(path: string): { what: string; noun: string } {

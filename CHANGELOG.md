@@ -228,6 +228,9 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Fixed
 
+- A double click on the title row maximizes the window, as other apps' do: the capability now allows Tauri's
+  drag-region command for it (4D).
+- A turn cut off by Emmet closing or restarting ends with a note that says so, instead of the dock going quiet (4D).
 - `tests/replay/derive.mjs` gave the derived rung 1 fixtures every quoted prompt after rung 1's, the later rungs' too;
   it reads rung 1's section alone (4D).
 
@@ -247,6 +250,12 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
+- The agent builds a finished model by default: the doctrine's "Finished, not basic" has it build at High detail and a
+  good set's size when Detail and Pieces are Any, and "Keep it lean" now means few tool calls, never few parts. The
+  first draft still comes within a minute, for any subject. The photo rung's part ranges are a display set's (4D).
+- A command the agent runs is said in words from what it does ("Looked through the project", "Tried the model"),
+  never "Ran a command"; a quiet stretch after a step says "Thinking", then bench words ("Sorting parts", "Choosing
+  colors") every 15 seconds (4D).
 - The viewer draws one bucket per part and finish, each instance carrying its color: 229 draw calls for the
   2,018-part town block, from 647, and 272 for the Cottage, from 523 (4C).
 

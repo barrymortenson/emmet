@@ -27,8 +27,8 @@ export const AREAS = {
       /^(crates\/emmet-(agent|bus)\/|crates\/emmet-cli\/src\/(mcp|host)\.rs$|crates\/emmet-core\/src\/refs\.rs$|tests\/(fake-agents|replay)\/|tests\/fixtures\/photos\/|apps\/desktop\/src\/(Agents|Chat|ChatGpt|Usage|Compare)\.tsx$|apps\/desktop\/src\/photos\.ts$|apps\/desktop\/src-tauri\/src\/(chat|chatgpt|setup)\.rs$)/,
     specs: ["chatgpt", "setup", "bus", "photo"],
   },
-  // The shell: menus and keys, which every screen shares.
-  shell: { paths: /^apps\/desktop\/(src\/|src-tauri\/src\/menu\.rs$)/, specs: ["keyboard"] },
+  // The shell: menus and keys, which every screen shares, and what the window may do (the capabilities).
+  shell: { paths: /^apps\/desktop\/(src\/|src-tauri\/src\/menu\.rs$|src-tauri\/capabilities\/)/, specs: ["keyboard"] },
   // First run: the library download and the Python setup, on a fresh data dir.
   "first-run": {
     paths:

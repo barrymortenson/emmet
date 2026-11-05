@@ -34,7 +34,7 @@ import { AgentSetup } from "./Agents";
 import { LimitCard } from "./ChatGpt";
 import { Markdown } from "./markdown";
 import { ACCEPT, convert, isPhoto } from "./photos";
-import { editedFiles, effortName, fileCard, isEdit, isHidden, modelName, toolCard, doing, toolName } from "./summaries";
+import { benchWord, editedFiles, effortName, fileCard, isEdit, isHidden, modelName, toolCard, doing, toolName } from "./summaries";
 import { AlertCard, Badge, Button, Choose, Icon, IconButton, type IconName, Kbd, MenuItems, Resizable, Spinner, TextField } from "./ui";
 import { limitWarning, PlanBadge, until } from "./Usage";
 import { type Row, VirtualList } from "./virtual";
@@ -68,6 +68,8 @@ type Chat = {
   /** When the turn began (Date.now()), for the status's time; and how long the last one took. */
   began: number | null;
   took: number | null;
+  /** When the agent last sent anything, so a long quiet stretch can say so. */
+  heard: number | null;
   question: string | null;
   stopped: boolean;
   crashed: boolean;
@@ -98,6 +100,7 @@ const empty: Chat = {
   running: false,
   began: null,
   took: null,
+  heard: null,
   question: null,
   stopped: false,
   crashed: false,
@@ -206,8 +209,12 @@ function reduce(c: Chat, a: Action): Chat {
           else if (r.answered) s = reduce(s, { type: "answered", id: r.answered.id, answer: r.answered.text });
         }
       });
-      // A chat read back that isn't running: its last turn is over (a crash shows only while it's live).
-      return a.live ? s : { ...s, running: false, question: null, crashed: false, took: null };
+      // A chat read back that isn't running: its last turn is over (a crash shows only while it's live). A turn that never
+      // finished was cut off when Emmet closed or restarted: say so, or the dock just goes quiet mid-turn (Barry 2026-11-04).
+      if (a.live) return s;
+      const last = a.state.sessions[a.state.sessions.length - 1]?.info.kind;
+      const cut: Item[] = s.running ? [{ k: "note", key: `k${s.n}`, text: `${last === "codex" ? "Codex" : "Claude"}'s turn stopped when Emmet closed. The model is as it was at its last build; send a message to carry on.` }] : [];
+      return { ...s, running: false, question: null, crashed: false, took: null, n: s.n + cut.length, items: [...s.items, ...cut] };
     }
     case "user": {
       const delivered = a.note ? (c.early[a.note] ?? null) : undefined;
@@ -215,7 +222,7 @@ function reduce(c: Chat, a: Action): Chat {
       return { ...c, ...turn, n: c.n + 1, items: [...c.items, { k: "user", key: `k${c.n}`, text: a.text, from: a.from, note: a.note, delivered, at: a.at, photos: a.photos?.length ? a.photos : undefined }] };
     }
     case "event":
-      return apply(c, a.event, a.at);
+      return { ...apply(c, a.event, a.at), heard: a.at };
     case "restarted":
       return { ...c, crashed: false, took: null };
     case "divider":
@@ -244,15 +251,17 @@ function clock(ms: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** What the agent is doing now, in the present (note 1): the running tool, thinking, or writing. */
-function activity(items: Item[]): string {
+/** What the agent is doing now, in the present (note 1): the running tool, thinking, or writing. After a step, the agent
+ * is working out the next one, often for minutes with nothing to show: "Thinking", then words from the bench, a new one
+ * every 15 seconds, so the line shows it's still going (Barry 2026-11-04). `quiet` is how long since it last sent. */
+function activity(items: Item[], quiet: number): string {
   for (let i = items.length - 1; i >= 0; i--) {
     const it = items[i]!;
-    if (it.k === "tool" && !it.result) return doing(it.name);
+    if (it.k === "tool" && !it.result) return doing(it.name, it.input);
+    if (it.k === "tool" || it.k === "file") return quiet < 20_000 ? "Thinking" : benchWord(Math.floor((quiet - 20_000) / 15_000));
     if (it.k === "thinking") return "Thinking";
     if (it.k === "agent") return "Writing";
     if (it.k === "user") return "Reading your message";
-    if (it.k === "tool" || it.k === "file") return "Working";
   }
   return "Working";
 }
@@ -664,7 +673,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   // says it.
   const quiet = !!card && !pending;
   let status: { tone: string; line: string; time?: string; icon?: IconName } | null = null;
-  if (chat.running && !chat.question && !(last?.k === "approval" && !last.decided)) status = { tone: "busy", line: activity(chat.items), time: chat.began ? clock(now - chat.began) : undefined };
+  if (chat.running && !chat.question && !(last?.k === "approval" && !last.decided)) status = { tone: "busy", line: activity(chat.items, chat.heard ? now - chat.heard : 0), time: chat.began ? clock(now - chat.began) : undefined };
   else if (chat.crashed) status = { tone: "bad", line: `${kind ? CLI[kind] : "The agent"} stopped unexpectedly`, icon: "octagon-alert" };
   else if (limit) status = { tone: "attn", line: "Claude's plan limit", icon: "gauge" };
   else if (chat.stopped) status = { tone: "muted", line: "Stopped by you", icon: "square" };

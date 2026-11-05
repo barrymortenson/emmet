@@ -25,6 +25,25 @@ describe("the keyboard map", () => {
     await open(dir);
   });
 
+  it("a double click on the title row maximizes the window, and another restores it", async () => {
+    // Tauri's drag region turns a double click into its own maximize command, which the capability has to allow (4D).
+    // macOS zooms on the second click's mouseup, as its own title bars do; Windows on its mousedown.
+    const maximized = () => browser.execute(() => window.__TAURI_INTERNALS__.invoke("plugin:window|is_maximized", { label: "main" }));
+    const doubleClick = () =>
+      browser.execute(() => {
+        const bar = document.querySelector(".titlebar");
+        const r = bar.getBoundingClientRect();
+        const at = { bubbles: true, cancelable: true, button: 0, detail: 2, clientX: r.left + 8, clientY: r.top + r.height / 2 };
+        bar.dispatchEvent(new MouseEvent("mousedown", at));
+        bar.dispatchEvent(new MouseEvent("mouseup", at));
+      });
+    const was = await maximized();
+    await doubleClick();
+    await browser.waitUntil(async () => (await maximized()) !== was, { timeout: 5_000, timeoutMsg: "the double click didn't maximize the window" });
+    await doubleClick();
+    await browser.waitUntil(async () => (await maximized()) === was, { timeout: 5_000, timeoutMsg: "the second double click didn't restore it" });
+  });
+
   it("⌘1–⌘4 pick the panel's tabs", async () => {
     for (const [i, tab] of ["options", "checks", "parts", "steps"].entries()) {
       await press(mod, String(i + 1));
