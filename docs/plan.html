@@ -2434,12 +2434,12 @@ rung 2 with visual baselines on both OSes. Ask me to check a printed copy before
 
 <div class="session" id="session-4g" data-session="4G" data-phase="4" data-title="Technic frames and display vehicles" data-after="4D" data-waits="" data-waits-merge="" data-read="08, 11, 14, 16">
 <h4><span class="s-id">4G</span> Technic frames and display vehicles<span class="s-meta">after 4D · alongside 4E · size M</span></h4>
-<p class="goal"><b>Goal:</b> The agent builds angled Technic structures (a frame, a fork, a swingarm, a linkage) as surely as it builds a wall, so a display vehicle from a photo looks like a good official set. Barry's e-bike hand check in 4D (2026-11-04) spent about 20 minutes test-building to learn which way a beam's holes face and whether its pins were seated, and ended with 198 parts and 40 problems.</p>
+<p class="goal"><b>Goal:</b> The agent builds angled Technic structures (a frame, a fork, a swingarm, a linkage) as surely as it builds a wall, so a display vehicle from a photo looks like a good official set. Barry's e-bike hand check in 4D (2026-11-04) spent about 20 minutes test-building to learn which way a beam's holes face and whether its pins were seated, and finished at 39:57 with 426 parts, 0 errors, and 2 false warnings, short of the e-bike's 600-part floor.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
 <li><b>Connection data:</b> every Technic beam, liftarm, brick with holes, pin, and axle in the index gets its holes and its pin and axle points, each with its axis (the connector data of #29 and #36), and <code>part_info</code> gives them in studs and plates in the DSL's frame. The agent never builds a probe to find a hole.</li>
 <li><b>The DSL:</b> a beam placed by its holes, at an angle on a triangle that lands on holes (3-4-5, 5-12-13), and pins and axles seated in named holes. The names are chosen in the session and documented in <code>api</code>.</li>
-<li><b>The validator:</b> a pin or axle in a hole is a connection, so an angled beam pinned at two holes is held; a pin left out of its hole is a finding; a pin in its hole is no collision.</li>
+<li><b>The validator:</b> a pin or axle in a hole is a connection, so an angled beam pinned at two holes is held; a pin left out of its hole is a finding; a pin in its hole is no collision. The same for what the e-bike retry had to mark allowed or left as warnings: a wheel on an axle through its hub (flagged "hangs on one stud"), an axle through a hub (flagged as an overlap), and a chain on its sprockets.</li>
 <li><b>Display-vehicle techniques:</b> a motorbike frame, a suspension fork, a swingarm with its shock, a chain drive on sprockets, a disc brake, handlebars with grips and levers, and a display stand with a nameplate, each tested like 3C's. The large guide gets a "Display bikes" section beside "Display cars".</li>
 </ul>
 <div class="s-dh">Done when</div>
