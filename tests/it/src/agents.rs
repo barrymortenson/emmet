@@ -235,7 +235,6 @@ impl Rig {
         serde_json::from_str(&text).expect("record JSON")
     }
 
-    /// Every line Emmet wrote to the CLI, from the session's transcript.
     /// Every line the fake read from the adapter, as it arrived (the transcript keeps placeholders for photos).
     pub fn received(&self) -> Vec<Value> {
         std::fs::read_to_string(self.fake.join("stdin.jsonl"))
@@ -245,6 +244,7 @@ impl Rig {
             .collect()
     }
 
+    /// Every line Emmet wrote to the CLI, from the session's transcript.
     pub fn written(&self) -> Vec<Value> {
         let path = self
             .project

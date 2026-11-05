@@ -188,14 +188,17 @@ fn observe(seen: &[(f64, Seen)]) -> Observed {
     };
     let mut runs: Vec<String> = Vec::new();
     let mut photo_turns = 0;
+    let mut users = 0;
     // The agent's words since the last message: a turn that ends asking for another angle.
     let mut words = String::new();
     for (at, s) in seen {
         match s {
             Seen::User { photos } => {
+                users += 1;
                 if *photos > 0 {
                     photo_turns += 1;
-                    if photo_turns == 1 && o.turns == 0 && o.questions.is_empty() {
+                    // Built from the photo: the session's first message carried it, before any step or question.
+                    if users == 1 && o.turns == 0 && o.questions.is_empty() {
                         o.from_photo = true;
                     }
                     if photo_turns >= 2 {
@@ -391,11 +394,17 @@ fn read_session(project: &Project, agent: AgentKind) -> Result<(Run, Timeline)> 
         ),
         ..Default::default()
     };
-    for line in text.lines() {
-        let Ok(r) = serde_json::from_str::<Value>(line) else {
+    // Lines this build can't read (a chat from an older or newer Emmet) are counted and reported, so a score never
+    // quietly misses them.
+    let mut unread = 0;
+    for line in text.lines().filter(|l| !l.trim().is_empty()) {
+        let Some((r, at)) = serde_json::from_str::<Value>(line)
+            .ok()
+            .and_then(|r| r["at"].as_f64().map(|at| (r, at)))
+        else {
+            unread += 1;
             continue;
         };
-        let at = r["at"].as_f64().unwrap_or(0.0);
         if r["user"].is_string() {
             let photos = r["photos"].as_array().map_or(0, Vec::len);
             seen.push((at, Seen::User { photos }));
@@ -417,7 +426,15 @@ fn read_session(project: &Project, agent: AgentKind) -> Result<(Run, Timeline)> 
                 _ => {}
             }
             seen.push((at, Seen::Event(e)));
+        } else if r.get("event").is_some_and(|e| !e.is_null()) {
+            unread += 1;
         }
+    }
+    if unread > 0 {
+        let lines = if unread == 1 { "line" } else { "lines" };
+        run.errors.push(format!(
+            "{unread} {lines} of the chat couldn't be read, so the scores may miss steps"
+        ));
     }
     Ok((run, seen))
 }
@@ -614,10 +631,10 @@ fn score(data: &DataDir, project: &Project, subject: &Subject, o: &Observed, rub
     let checked = built
         .as_ref()
         .ok()
-        .and(emmet_core::ops::check_build(data, project, &[]).ok());
+        .map(|_| emmet_core::ops::check_build(data, project, &[]));
     let parts = built.as_ref().map(|r| r.parts).unwrap_or(0);
     match (&built, &checked) {
-        (Ok(r), Some(v)) => push(
+        (Ok(r), Some(Ok(v))) => push(
             "Runs and validates with 0 errors",
             true,
             v.errors() == 0,
@@ -628,12 +645,13 @@ fn score(data: &DataDir, project: &Project, subject: &Subject, o: &Observed, rub
                 v.errors()
             ),
         ),
-        (Ok(_), None) => push(
+        (Ok(_), Some(Err(e))) => push(
             "Runs and validates with 0 errors",
             true,
             false,
-            "the validator couldn't run".into(),
+            format!("the validator couldn't run: {}", e.message),
         ),
+        (Ok(_), None) => unreachable!("a model that built is checked"),
         (Err(e), _) => push(
             "Runs and validates with 0 errors",
             true,
@@ -653,9 +671,9 @@ fn score(data: &DataDir, project: &Project, subject: &Subject, o: &Observed, rub
         true,
         o.from_photo,
         if o.from_photo {
-            "the first message carried angle a".into()
+            "the session's first message carried the photo".into()
         } else {
-            "the first message had no photo".into()
+            "the session's first message had no photo, or a step came before it".into()
         },
     );
     push(
@@ -674,7 +692,7 @@ fn score(data: &DataDir, project: &Project, subject: &Subject, o: &Observed, rub
         false,
         o.draft_seconds.is_some_and(|s| s <= DRAFT_SECONDS),
         match o.draft_seconds {
-            Some(s) => format!("the first build ran {s} s after the photo (≤ {DRAFT_SECONDS} s)"),
+            Some(s) => format!("the first build ran {s} s after the first message (≤ {DRAFT_SECONDS} s)"),
             None => "no build ran".into(),
         },
     );
@@ -757,6 +775,14 @@ fn write_report(path: &Path, subject: &Subject, r: &Report, o: &Observed, opts: 
             s.push(format!("- \"{q}\""));
         }
     }
+    if !r.run.errors.is_empty() {
+        s.push(String::new());
+        s.push("Errors:".into());
+        s.push(String::new());
+        for e in &r.run.errors {
+            s.push(format!("- {e}"));
+        }
+    }
     s.push(String::new());
     s.push("The agent's last message:".into());
     s.push(String::new());
@@ -767,7 +793,13 @@ fn write_report(path: &Path, subject: &Subject, r: &Report, o: &Observed, opts: 
     }
     s.push(format!("<!-- /eval:{tag} -->"));
     let section = s.join("\n");
-    let text = match std::fs::read_to_string(path).ok() {
+    // Only a missing report is a new one: one that can't be read isn't written over.
+    let existing = match std::fs::read_to_string(path) {
+        Ok(text) => Some(text),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+        Err(e) => return Err(Error::internal(format!("{} can't be read: {e}", path.display()))),
+    };
+    let text = match existing {
         // An earlier run of this subject and agent today stays (D-38's one rerun after a fix): this one follows it.
         Some(text) if text.contains(&format!("<!-- eval:{tag} -->")) => {
             let n = (1..)

@@ -50,30 +50,18 @@ pub(crate) struct Photo {
     pub jpeg: Vec<u8>,
 }
 
-/// Reads each photo a turn names. They were cleaned when they were saved, and are checked again here: a file that's
-/// gone, isn't a JPEG within the limits, or still carries metadata (one copied into `refs/` by hand: Codex would read
-/// the file as it is) fails the turn before anything reaches the CLI.
+/// Reads each photo a turn names, checked again (`emmet_core::refs::check`): a file that's gone, isn't a JPEG within
+/// the limits, or still carries metadata (one copied into `refs/` by hand: Codex would read the file as it is) fails
+/// the turn before anything reaches the CLI, naming the file.
 fn read_photos(paths: &[PathBuf]) -> Result<Vec<Photo>> {
     paths
         .iter()
         .map(|path| {
-            let bytes = std::fs::read(path).map_err(|e| {
-                AgentError::new(
-                    AgentErrorCode::Io,
-                    format!("The photo {} can't be read: {e}", path.display()),
-                )
-            })?;
-            let clean =
-                emmet_core::refs::prepare(&bytes).map_err(|e| AgentError::new(AgentErrorCode::Io, e.message))?;
-            if clean.jpeg != bytes {
-                return Err(AgentError::new(
-                    AgentErrorCode::Io,
-                    format!("The photo {} still has its metadata; attach it again.", path.display()),
-                ));
-            }
+            let jpeg = emmet_core::refs::check(path)
+                .map_err(|e| AgentError::new(AgentErrorCode::Io, format!("{} {}", e.message, e.hint)))?;
             Ok(Photo {
                 path: path.clone(),
-                jpeg: clean.jpeg,
+                jpeg,
             })
         })
         .collect()
@@ -318,7 +306,7 @@ impl Shared {
             let mut s = self.state.lock().expect("state");
             match serde_json::from_str::<Value>(&line) {
                 Ok(msg) => {
-                    s.transcript.write("out", msg.clone());
+                    s.transcript.write("out", crate::transcript::without_images(&msg));
                     let mut io = Io::default();
                     s.proto.on_message(msg, &mut io);
                     self.apply(&mut s, io);

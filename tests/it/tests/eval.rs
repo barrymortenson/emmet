@@ -392,13 +392,53 @@ fn scoring_a_hand_session_reads_its_chat_and_checks_the_photos() {
     };
     assert_eq!(
         detail("First draft within a minute"),
-        "the first build ran 20 s after the photo (≤ 60 s)"
+        "the first build ran 20 s after the first message (≤ 60 s)"
     );
     assert_eq!(detail("Asked for another angle"), "asked, and got angle b");
-    assert_eq!(detail("Built from the photo"), "the first message carried angle a");
+    assert_eq!(
+        detail("Built from the photo"),
+        "the session's first message carried the photo"
+    );
     assert_eq!(v["data"]["run"]["billing"], "Max plan", "{v}");
     let (v, code) = envelope(&score("2,1,1"));
     assert_eq!((code, &v["data"]["pass"]), (0, &serde_json::json!(true)), "{v}");
+    // A session that opened with words and a reply, the photo after: not built from the photo. A line this build can't
+    // read is reported, not passed over.
+    let opened = [
+        serde_json::json!({ "at": t0, "user": "Can you build from photos?" }),
+        serde_json::json!({ "at": t0 + 2_000.0, "event": { "type": "text", "message": "m0", "delta": "Yes: send one." } }),
+        serde_json::json!({ "at": t0 + 3_000.0, "event": { "type": "turn_done", "reason": "completed" } }),
+        serde_json::json!({ "at": t0 + 4_000.0, "event": { "type": "from_a_newer_emmet" } }),
+    ];
+    std::fs::write(
+        chat.join("s1.jsonl"),
+        opened
+            .iter()
+            .chain(&records)
+            .map(|r| format!("{r}\n"))
+            .collect::<String>(),
+    )
+    .unwrap();
+    let (v, _) = envelope(&score("2,1,1"));
+    let scores = &v["data"]["scores"];
+    let built = scores
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["name"] == "Built from the photo")
+        .unwrap();
+    assert_eq!(built["pass"], false, "{v}");
+    assert!(
+        v["data"]["run"]["errors"]
+            .to_string()
+            .contains("1 line of the chat couldn't be read"),
+        "{v}"
+    );
+    std::fs::write(
+        chat.join("s1.jsonl"),
+        records.iter().map(|r| format!("{r}\n")).collect::<String>(),
+    )
+    .unwrap();
     // A photo on this Mac that isn't the one the manifest names: nothing is scored.
     std::fs::write(photos.join("local/truck-b.jpg"), fixture("a")).unwrap();
     let (v, code) = envelope(&score("2,2,2"));

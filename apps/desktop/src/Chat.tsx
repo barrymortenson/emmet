@@ -21,7 +21,6 @@ import {
   events,
   type ModelChoice,
   type Origin,
-  type PhotoView,
   type Problem,
   type ProjectView,
   type Question,
@@ -33,7 +32,7 @@ import {
 import { AgentSetup } from "./Agents";
 import { LimitCard } from "./ChatGpt";
 import { Markdown } from "./markdown";
-import { ACCEPT, convert, isPhoto } from "./photos";
+import { ACCEPT, type Converted, convert, isPhoto } from "./photos";
 import { benchWord, editedFiles, effortName, fileCard, isEdit, isHidden, modelName, toolCard, doing, toolName } from "./summaries";
 import { AlertCard, Badge, Button, Choose, Icon, IconButton, type IconName, Kbd, MenuItems, Resizable, Spinner, TextField } from "./ui";
 import { limitWarning, PlanBadge, until } from "./Usage";
@@ -306,7 +305,9 @@ type Props = {
 };
 
 /** A photo attached in the composer, saved in refs/ and waiting for Send. */
-type Attached = PhotoView & { name: string; url: string };
+/** A photo in the composer: converted in the page, and saved in refs/ only when it's sent, so one the user removes
+ * never reaches the project, where the agent could look at it (4D review). */
+type Attached = Converted & { key: string };
 
 /** What the first photo shows once (4D): where it goes, and under whose terms. */
 const PHOTO_NOTICE: Record<AgentKind, string> = {
@@ -418,16 +419,17 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
 
   /** Sends `t`: a turn, a redirect while the agent works, or the open question's Other answer. Photos start a turn:
    * with no words, they go as "Build this." */
-  const send = async (t: string, from: Origin | null = null, detail: string | null = null, photos: string[] = []) => {
+  /** Sends `t` with the saved `photos`; false when the message didn't go. */
+  const send = async (t: string, from: Origin | null = null, detail: string | null = null, photos: string[] = []): Promise<boolean> => {
     t = t.trim() || (photos.length ? "Build this." : "");
-    if (!t) return;
+    if (!t) return false;
     const ctx = { ...context(), detail };
     // While a question is open, what the user types is its Other answer (plan section 10).
     if (chat.question && !from) {
       const id = chat.question;
       // Answered once the agent has it: a failed answer leaves the card open to try again.
       if (await run(() => commands.chatAnswer(id, { choices: [], other: t }))) dispatch({ type: "answered", id, answer: t });
-      return;
+      return true;
     }
     if (chat.running) {
       // A redirect typed while the message before it is still reaching the agent waits for it: otherwise the agent,
@@ -436,8 +438,9 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
       const r = await commands.chatSteer(t, ctx);
       if (r.status === "ok") dispatch({ type: "user", text: t, from, note: r.data.id, at: Date.now() });
       else setError(r.error.message);
-      return;
+      return r.status === "ok";
     }
+    // A photo the host refuses (changed on disk since it was saved) fails before anything is shown or saved as sent.
     dispatch({ type: "user", text: t, from, at: Date.now(), photos });
     const before = session.current;
     // The conversation the message goes to, so its first events (Codex's model, on the plan or not) are taken while
@@ -452,52 +455,85 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     if (r.status === "error") {
       setError(`${r.error.message} ${r.error.hint}`.trim());
       dispatch({ type: "event", event: { type: "turn_done", reason: "failed" }, at: Date.now() });
-      return;
+      return false;
     }
     setError(null);
     if (before !== r.data) {
       session.current = r.data;
       void commands.chatState().then(setState);
     }
+    return true;
   };
 
   // A photo starts a turn, so it waits while the agent works or a question is open (a redirect and an answer are
   // words).
   const photoWait = chat.question ? "Answer the question first, then attach the photo." : chat.running ? `Attach the photo when ${who} has finished.` : null;
-  const submit = () => {
+  const submit = async () => {
     if (attaching) return;
     const t = text;
-    const photos = photoWait ? [] : attached.map((p) => p.path);
+    const photos = photoWait ? [] : attached;
     setText("");
-    if (photos.length) setAttached([]);
-    void send(t, null, null, photos);
+    if (!photos.length) return void send(t);
+    // The photos are saved now, as they go (the host cleans each again and checks it against the limits). Until the
+    // message is sent, the composer keeps them and the words: a failure leaves both to try again.
+    setAttached([]);
+    setAttaching(photos.length);
+    const paths: string[] = [];
+    try {
+      for (const p of photos) {
+        const r = await commands.chatAttach(p.name, p.jpeg);
+        if (r.status === "error") throw new Error(`${p.name}: ${r.error.message} ${r.error.hint}`.trim());
+        paths.push(r.data.path);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setText((now) => now || t);
+      setAttached((now) => [...photos, ...now]);
+      return;
+    } finally {
+      setAttaching(0);
+    }
+    if (!(await send(t, null, null, paths))) {
+      setText((now) => now || t);
+      setAttached((now) => [...photos, ...now]);
+    }
   };
 
-  useEffect(() => setAttached([]), [project.root]);
+  // A photo still converting when the user opens another project belongs to the first one: dropped, not attached here.
+  const generation = useRef(0);
+  useEffect(() => {
+    generation.current++;
+    setAttached([]);
+  }, [project.root]);
 
-  /** Converts each photo, then saves it in refs/ (the host cleans it again); a chip each, until Send. */
+  /** Converts each photo in the page (upright, scaled, re-encoded as a JPEG): a chip each, until Send. */
   const attach = async (files: File[]) => {
     const photos = files.filter(isPhoto);
+    const skipped = files.filter((f) => !isPhoto(f)).map((f) => f.name);
     if (!photos.length) return setError(files.length ? "Emmet takes photos as JPEG, PNG, or HEIC." : null);
     if (photoWait) return setError(photoWait);
-    setError(null);
-    // The first photo of a message: has this user seen the notice (in any project or window)?
-    if (!attached.length) void commands.tipsSeen().then((seen) => setNoticed(seen.includes("photo")));
+    const failed: string[] = skipped.length ? [`Skipped ${skipped.join(", ")}: not a photo.`] : [];
+    setError(failed[0] ?? null);
+    // The first photo of a message: has this user seen the notice (in any project or window)? If that can't be read,
+    // the notice shows: it says where photos go.
+    if (!attached.length) void commands.tipsSeen().then((seen) => setNoticed(seen.includes("photo")), () => setNoticed(false));
+    const at = generation.current;
     for (const f of photos) {
       setAttaching((n) => n + 1);
       try {
         const c = await convert(f);
-        const r = await commands.chatAttach(c.name, c.jpeg);
-        if (r.status === "error") setError(`${r.error.message} ${r.error.hint}`.trim());
-        else setAttached((a) => (a.some((x) => x.path === r.data.path) ? a : [...a, { ...r.data, name: c.name, url: c.url }]));
+        if (generation.current !== at) return;
+        setAttached((a) => (a.some((x) => x.jpeg === c.jpeg) ? a : [...a, { ...c, key: `p${keys.current++}` }]));
       } catch (e) {
-        setError((e as Error).message);
+        failed.push(`${f.name}: ${e instanceof Error ? e.message : String(e)}`);
+        setError(failed.join(" "));
       } finally {
         setAttaching((n) => n - 1);
       }
     }
     input.current?.focus();
   };
+  const keys = useRef(0);
   const onPaste = (e: React.ClipboardEvent) => {
     const files = [...e.clipboardData.files].filter(isPhoto);
     if (!files.length) return;
@@ -717,7 +753,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
-      submit();
+      void submit();
     } else if (e.key === "Escape" && chat.running) {
       e.preventDefault();
       stop();
@@ -833,10 +869,10 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         {(attached.length > 0 || attaching > 0) && (
           <ul className="composer-photos" aria-label="Attached photos" id="composer-photos">
             {attached.map((p) => (
-              <li key={p.path} className="photo-chip" data-path={p.path}>
+              <li key={p.key} className="photo-chip" data-photo={p.name}>
                 <img src={p.url} alt="" />
                 <span className="photo-chip-name">{p.name}</span>
-                <IconButton icon="x" size="sm" label={`Remove ${p.name}`} onClick={() => setAttached((a) => a.filter((x) => x.path !== p.path))} />
+                <IconButton icon="x" size="sm" label={`Remove ${p.name}`} onClick={() => setAttached((a) => a.filter((x) => x.key !== p.key))} />
               </li>
             ))}
             {attaching > 0 && (
@@ -890,7 +926,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
             </Popover.Root>
           </span>
           <span className="grow" />
-          <Button label="Send" variant="primary" size="sm" icon="send" id="chat-send" disabled={(!text.trim() && !(attached.length && !photoWait)) || !kind || attaching > 0} onClick={submit} />
+          <Button label="Send" variant="primary" size="sm" icon="send" id="chat-send" disabled={(!text.trim() && !(attached.length && !photoWait)) || !kind || attaching > 0} onClick={() => void submit()} />
         </div>
       </div>
     </section>
@@ -952,15 +988,33 @@ type Actions = {
 };
 
 /** The photos read back for the chat, once each per window. */
+/** Sent photos' data URLs, the most recent few (each is up to 5 MB); a failure isn't kept, so it's tried again. */
 const photoUrls = new Map<string, Promise<string | null>>();
+function photoUrl(path: string): Promise<string | null> {
+  let p = photoUrls.get(path);
+  if (p) {
+    photoUrls.delete(path);
+    photoUrls.set(path, p);
+    return p;
+  }
+  p = commands.chatPhoto(path).then(
+    (r) => (r.status === "ok" ? r.data : null),
+    () => null,
+  );
+  photoUrls.set(path, p);
+  void p.then((u) => {
+    if (u == null) photoUrls.delete(path);
+  });
+  while (photoUrls.size > 24) photoUrls.delete(photoUrls.keys().next().value!);
+  return p;
+}
 
 /** A photo the user sent, small; a click opens the compare view. */
 function PhotoThumb({ path, onOpen }: { path: string; onOpen: () => void }) {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    if (!photoUrls.has(path)) photoUrls.set(path, commands.chatPhoto(path).then((r) => (r.status === "ok" ? r.data : null)));
-    void photoUrls.get(path)!.then((u) => live && setUrl(u));
+    void photoUrl(path).then((u) => live && setUrl(u));
     return () => {
       live = false;
     };

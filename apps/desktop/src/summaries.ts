@@ -141,7 +141,8 @@ const KINDS = {
 /** Which kind wins when one command does several things: what the user would most want to hear about. */
 const ORDER: (keyof typeof KINDS)[] = ["install", "export", "build", "try", "check", "look", "parts", "colors", "count", "steps", "rules", "web", "math", "versions", "tidy", "read", "wait"];
 
-/** While a command no one can read runs: words from the bench, chosen by the command so they hold still. */
+/** Words from the bench: while a command no one can read runs (chosen by the command, so they hold still), and in a
+ * quiet stretch after a step (the dock's status, a new one every 15 seconds). */
 const BENCH = ["Sorting parts", "Finding parts", "Choosing colors", "Counting studs", "Lining up the rows", "Snapping parts together"];
 const UNKNOWN: Omit<Kind, "doing"> = { icon: "box", done: "Worked on the project", failed: "A step didn't work" };
 
@@ -153,7 +154,8 @@ const READS = new Set(["ls", "cat", "head", "tail", "less", "more", "find", "tre
 const TIDIES = new Set(["mkdir", "cp", "mv", "rm", "rmdir", "touch", "ln", "chmod", "tee", "Copy-Item", "Move-Item", "Remove-Item", "New-Item", "Set-Content"]);
 const INSTALLERS = /^(pip3?|pipx|uv|npm|pnpm|yarn|brew|cargo|gem|winget|choco|apt(-get)?)$/;
 
-/** The words of one simple command, without what wraps it: "cd x", a variable set before it, "sudo", "time". */
+/** The words of one simple command, without what wraps it: a variable set before it, "sudo", "time", "env", and the
+ * program's folder and ".exe". ("cd x" is a command of its own once the line is split, and says nothing.) */
 function program(segment: string): string[] {
   const w = segment.trim().split(/\s+/).filter(Boolean).map((t) => t.replace(/^["']|["']$/g, ""));
   while (w.length && (/^[A-Za-z_][A-Za-z0-9_]*=/.test(w[0]!) || ["sudo", "time", "env", "command", "exec", "nohup"].includes(w[0]!))) w.shift();

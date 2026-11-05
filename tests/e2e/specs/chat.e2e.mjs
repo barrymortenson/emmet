@@ -411,6 +411,14 @@ describe("the chat overall", () => {
     });
     expect(await (await $("#chat-status")).isExisting()).toBe(false);
     expect((await browser.execute(() => window.__emmet.chat())).running).toBe(false);
+    // A turn that finished says nothing of the kind.
+    lines.push({ at: 4, event: { type: "turn_done", reason: "completed" } });
+    writeFileSync(join(chatDir, `${id}.jsonl`), `${lines.map((l) => JSON.stringify(l)).join("\n")}\n`);
+    await browser.execute(() => window.__emmet.reloadChat());
+    await browser.waitUntil(async () => !(await browser.execute(() => document.getElementById("dock")?.innerText ?? "")).includes("stopped when Emmet closed"), {
+      timeout: 10_000,
+      timeoutMsg: "a finished turn still says it was cut off",
+    });
   });
 
   it("leaves the user's agent configs untouched", async () => {

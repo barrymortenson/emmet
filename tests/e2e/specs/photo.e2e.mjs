@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Photo to model in the app (session 4D) with each fake agent: a geotagged photo dropped on the composer and another
 // pasted into it become chips, the first one says once where photos go, and Send takes them to the agent as image
-// content (Claude Code) or localImage items (Codex), with no metadata left, saved in the project's refs/. A sent photo
-// opens the compare view beside the model, and neither opening nor closing it moves the camera.
+// content (Claude Code) or localImage items (Codex), with no metadata left, saved in the project's refs/ only as they're
+// sent (a removed one never is). The host cleans what the page hands it again, and refuses a path outside refs/. A
+// sent photo opens the compare view beside the model, and neither opening nor closing it moves the camera.
 import { $, expect } from "@wdio/globals";
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { camera, instances, invoke, open, screenshots } from "../lib/app.mjs";
 import { fakeDir, scenario } from "../lib/agents.mjs";
@@ -21,7 +22,14 @@ async function waitFor(what, test, timeout = 30_000) {
   await browser.waitUntil(test, { timeout, interval: 50, timeoutMsg: `${what}; the dock says:\n${await log()}` });
 }
 const idle = () => waitFor("the turn never ended", async () => !(await chat()).running);
-const chips = () => browser.execute(() => [...document.querySelectorAll("#composer-photos .photo-chip[data-path]")].map((c) => c.dataset.path));
+const chips = () => browser.execute(() => [...document.querySelectorAll("#composer-photos .photo-chip[data-photo]")].map((c) => c.dataset.photo));
+const saved = (dir) => {
+  try {
+    return readdirSync(join(dir, "refs")).sort();
+  } catch {
+    return [];
+  }
+};
 
 /** A file in the page, dropped on the composer as Finder drops one (the window's own drop handler is off, 4D). */
 async function drop(name, b64, type = "image/jpeg") {
@@ -91,6 +99,8 @@ for (const kind of ["claude", "codex"]) {
     it("attaches a dropped and a pasted photo, says once where they go, and sends them cleaned", async () => {
       // Claude's run is the user's first photo: the notice is due again (the data dir outlives a run and a retry).
       if (kind === "claude") forgetPhotoNotice();
+      // The project outlives a run: its refs/ starts empty, so what Send saves is all there is.
+      rmSync(join(projects[kind], "refs"), { recursive: true, force: true });
       await open(projects[kind]);
       await instances(8);
       scenario(kind, "plain-turn");
@@ -117,17 +127,30 @@ for (const kind of ["claude", "codex"]) {
       // A file that isn't a photo is turned away in words.
       await drop("notes.txt", Buffer.from("not a photo").toString("base64"), "text/plain");
       await waitFor("no word about the text file", async () => (await log()).includes("Emmet takes photos as JPEG, PNG, or HEIC."));
-      const paths = await chips();
-      for (const p of paths) {
-        expect(p).toMatch(/^refs\/[a-z0-9-]+-[0-9a-f]{12}\.jpg$/);
-        expect(metadata(readFileSync(join(projects[kind], p)))).toBeUndefined();
-      }
+      expect(await chips()).toEqual(["IMG_2424.jpg", "side.jpg"]);
+      // A third, removed before Send, is never saved; nothing is, until Send.
+      await drop("removed.jpg", photo("angle-b.jpg"));
+      await waitFor("the third photo never became a chip", async () => (await chips()).length === 3);
+      await (await $('#composer-photos [aria-label="Remove removed.jpg"]')).click();
+      await waitFor("the removed photo's chip stayed", async () => (await chips()).length === 2);
+      expect(saved(projects[kind])).toEqual([]);
 
       before = lines();
       await (await $("#chat-send")).click();
+      // The photos are saved, then the message goes: wait for the agent to have it, then for its turn to end.
+      const sent = (m) => m.type === "user" || m.method === "turn/start";
+      await waitFor("the message never reached the agent", async () => received(before).some(sent));
       await idle();
       expect(await chips()).toEqual([]);
-      const turn = received(before).find((m) => m.type === "user" || m.method === "turn/start");
+      // Saved as they were sent, in the order they were attached, and nothing else.
+      const files = saved(projects[kind]);
+      expect(files.length).toBe(2);
+      const paths = ["img-2424", "side"].map((slug) => `refs/${files.find((f) => f.startsWith(`${slug}-`))}`);
+      for (const p of paths) {
+        expect(p).toMatch(/^refs\/(img-2424|side)-[0-9a-f]{12}\.jpg$/);
+        expect(metadata(readFileSync(join(projects[kind], p)))).toBeUndefined();
+      }
+      const turn = received(before).find(sent);
       if (kind === "claude") {
         const content = turn.message.content;
         expect(content.map((b) => b.type)).toEqual(["image", "image", "text"]);
@@ -146,8 +169,16 @@ for (const kind of ["claude", "codex"]) {
         expect(turn.params.input[2].type).toBe("text");
         expect(turn.params.input[2].text).toMatch(/^Build this\.(\n\n\[Emmet context\]|$)/);
       }
-      const saved = readdirSync(join(projects[kind], "refs"));
-      expect(saved.length).toBe(2);
+    });
+
+    it("cleans what the page hands it again, and reads only photos in the project's own refs/", async () => {
+      // Past the page's canvas: the host's own cleaning, with the geotagged original as is.
+      const r = await invoke("chat_attach", { name: "IMG_2424.jpg", jpeg: photo("geotagged.jpg") });
+      expect(metadata(readFileSync(join(projects[kind], r.path)))).toBeUndefined();
+      for (const path of ["refs/../model.py", "model.py", "/etc/hosts", "refs/missing.jpg"]) {
+        await expect(invoke("chat_photo", { path })).rejects.toThrow();
+      }
+      await expect(invoke("chat_send", { text: "Build this.", context: { detail: null }, from: null, photos: ["refs/../model.py"] })).rejects.toThrow();
     });
 
     it("opens a sent photo beside the model without moving the camera", async () => {

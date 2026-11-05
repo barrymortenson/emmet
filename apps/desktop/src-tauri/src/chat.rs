@@ -775,11 +775,15 @@ fn send(
     photos: Vec<String>,
 ) -> Result<String, Box<Problem>> {
     let project = open_project(app)?;
-    // Each photo the page names must be one Emmet saved in this project's refs/ (every IPC path is checked).
+    // Each photo the page names must be a file in this project's own refs/ (every IPC path is checked), and still a
+    // clean JPEG within the limits: checked before the message is saved, so a photo that fails never shows as sent.
     let images = photos
         .iter()
         .map(|p| refs::resolve(&project.root, p))
         .collect::<Result<Vec<_>, _>>()?;
+    for image in &images {
+        refs::check(image)?;
+    }
     let id = ensure_live(app, &project)?;
     let state = app.state::<AppState>();
     // Before the agent touches anything: the version Undo turn goes back to. One the project can't keep (read-only, a
@@ -832,14 +836,19 @@ fn send(
     Ok(id)
 }
 
-/// A photo the user attached (4D), as the page made it: a JPEG, base64-encoded, already scaled and re-encoded.
-/// Emmet cleans it again (every metadata segment dropped), checks it against the providers' limits, and saves it in
+/// A photo the user is sending (4D), as the page made it: a JPEG, base64-encoded, already scaled and re-encoded. The
+/// page calls this at Send, not when the photo is attached, so a photo the user removes never reaches the project.
+/// Emmet cleans it again (only what a decoder needs is kept), checks it against the providers' limits, and saves it in
 /// the project's `refs/`; the page sends the returned path with the message.
 #[tauri::command]
 #[specta::specta]
 pub async fn chat_attach(app: AppHandle, name: String, jpeg: String) -> Result<PhotoView, Box<Problem>> {
     blocking(app, move |app| {
         let project = open_project(app)?;
+        // Base64 of more than the largest photo is refused before it's decoded.
+        if jpeg.len() > refs::MAX_BYTES.div_ceil(3) * 4 {
+            return Err(problem("The photo is over 3.75 MB."));
+        }
         let bytes = emmet_core::base64::decode(&jpeg).ok_or_else(|| problem("The photo didn't arrive whole."))?;
         let saved = refs::save(&project.root, &name, &bytes)?;
         Ok(PhotoView {
@@ -851,7 +860,8 @@ pub async fn chat_attach(app: AppHandle, name: String, jpeg: String) -> Result<P
     .await
 }
 
-/// A saved photo (4D) as a data URL, for the chat and the compare view: only a JPEG in this project's `refs/`.
+/// A saved photo (4D) as a data URL, for the chat and the compare view: only a `.jpg` file in this project's own
+/// `refs/`, no bigger than a photo Emmet saves (`refs::resolve`).
 #[tauri::command]
 #[specta::specta]
 pub async fn chat_photo(app: AppHandle, path: String) -> Result<String, Box<Problem>> {

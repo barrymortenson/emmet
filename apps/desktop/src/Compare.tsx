@@ -14,11 +14,14 @@ export function Compare({ path, onClose }: { path: string; onClose: () => void }
     let live = true;
     setUrl(null);
     setFailed(null);
-    void commands.chatPhoto(path).then((r) => {
-      if (!live) return;
-      if (r.status === "ok") setUrl(r.data);
-      else setFailed(r.error.message);
-    });
+    commands.chatPhoto(path).then(
+      (r) => {
+        if (!live) return;
+        if (r.status === "ok") setUrl(r.data);
+        else setFailed(`${r.error.message} ${r.error.hint}`.trim());
+      },
+      (e) => live && setFailed(e instanceof Error ? e.message : String(e)),
+    );
     return () => {
       live = false;
     };

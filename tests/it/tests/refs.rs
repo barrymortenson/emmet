@@ -60,6 +60,19 @@ fn a_geotagged_photo_is_saved_without_its_metadata() {
     // The same photo again is the same file.
     assert_eq!(refs::save(&root, "IMG_2424.jpg", &src).unwrap(), saved);
     assert_eq!(std::fs::read_dir(root.join("refs")).unwrap().count(), 1);
+    // One opened and saved in another app since (which can put metadata back) fails the send-time check, naming
+    // the file, and attaching the photo again writes it clean.
+    let file = root.join(&saved.path);
+    std::fs::write(&file, &src).unwrap();
+    let e = refs::check(&file).unwrap_err();
+    assert!(
+        e.message.contains(saved.path.trim_start_matches("refs/")) && e.message.contains("metadata"),
+        "{}",
+        e.message
+    );
+    refs::save(&root, "IMG_2424.jpg", &src).unwrap();
+    assert_eq!(refs::check(&file).unwrap(), std::fs::read(&file).unwrap());
+    assert_eq!(has_metadata(&std::fs::read(&file).unwrap()), None);
 }
 
 #[test]
@@ -74,6 +87,11 @@ fn a_photo_over_the_limits_or_not_a_jpeg_is_refused() {
     wide[sof + 7..sof + 9].copy_from_slice(&3000u16.to_be_bytes());
     let e = refs::save(&root, "wide.jpg", &wide).unwrap_err();
     assert!(e.message.contains("3000 × 48"), "{}", e.message);
+    // The long edge exactly at the limit is fine (the page scales to it); one more pixel isn't.
+    wide[sof + 7..sof + 9].copy_from_slice(&2049u16.to_be_bytes());
+    assert!(refs::prepare(&wide).is_err());
+    wide[sof + 7..sof + 9].copy_from_slice(&2048u16.to_be_bytes());
+    assert_eq!(refs::prepare(&wide).unwrap().width, 2048);
     assert!(!root.join("refs").exists() || std::fs::read_dir(root.join("refs")).unwrap().count() == 0);
 }
 
@@ -113,5 +131,13 @@ fn only_a_photo_in_the_projects_own_refs_resolves() {
         std::os::unix::fs::symlink(&other, linked.join("refs")).unwrap();
         assert!(refs::resolve(&linked, &saved.path).is_err());
         assert!(refs::save(&linked, "b.jpg", &geotagged()).is_err());
+        // A link inside refs/ to a file elsewhere resolves nothing either (chat_photo would read what it points at).
+        let secret = other.join("id_ed25519");
+        std::fs::write(&secret, "a key").unwrap();
+        std::os::unix::fs::symlink(&secret, root.join("refs/key.jpg")).unwrap();
+        assert!(refs::resolve(&root, "refs/key.jpg").is_err());
     }
+    // Nothing bigger than a photo Emmet saves is read.
+    std::fs::write(root.join("refs/huge.jpg"), vec![0u8; refs::MAX_BYTES + 1]).unwrap();
+    assert!(refs::resolve(&root, "refs/huge.jpg").is_err());
 }

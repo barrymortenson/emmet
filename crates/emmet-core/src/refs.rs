@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! Reference photos (4D): what the user attaches in the chat, saved in the project's `refs/` folder so the project
 //! stays reproducible. The app converts every photo to JPEG first (PNG, JPEG, and HEIC in; the webview re-encodes
-//! it); this module is the guarantee that no metadata goes further: it walks the JPEG's segments and drops every
-//! APPn and COM segment (EXIF with its GPS block, XMP, ICC, IPTC, maker notes, comments) before the file is saved or
-//! sent, keeping only a bare JFIF header and Adobe's color-transform flag. It also holds every image to the limits
-//! the providers document (docs/spec/sessions/4D.md): a long edge of at most 2,048 px and at most 3.75 MB.
+//! it); this module is the guarantee that no metadata goes further: it walks the JPEG's segments and keeps only what
+//! a decoder needs (the frame, the tables, the scans, a bare JFIF header, and Adobe's color-transform flag), so every
+//! APPn and COM segment (EXIF with its GPS block, XMP, ICC, IPTC, maker notes, comments), any other segment, and
+//! anything after the end of the image is dropped before the file is saved or sent. It also holds every image to the
+//! tightest limits that fit every provider's (docs/spec/sessions/4D.md): a long edge of at most 2,048 px and at most
+//! 3.75 MiB.
 
 use std::path::{Path, PathBuf};
 
@@ -15,10 +17,11 @@ use crate::fsx;
 
 /// The folder in a project that holds reference photos.
 pub const DIR: &str = "refs";
-/// The longest edge an attachment may have, in pixels: OpenAI's `high` detail fits 2048 × 2048, and Claude takes up to
-/// 2,576 (3,000 when a request has more than 20 images).
+/// The longest edge an attachment may have, in pixels: OpenAI's `high` detail fits 2048 × 2048; Claude caps at 8,000
+/// (3,000 when a request has more than 20 images) and downscales past 2,576.
 pub const MAX_EDGE: u32 = 2048;
-/// The largest attachment, in bytes: 5 MB once base64-encoded, Claude's smallest documented per-image limit (Bedrock).
+/// The largest attachment, in bytes (3.75 MiB): 5 MB once base64-encoded, Claude's smallest documented per-image limit
+/// (Bedrock).
 pub const MAX_BYTES: usize = 3_932_160;
 
 /// A photo saved in `refs/`.
@@ -47,8 +50,10 @@ fn bad(message: impl Into<String>) -> Error {
     )
 }
 
-/// `bytes` as a JPEG with every APPn and COM segment dropped (a JFIF header without its thumbnail, and Adobe's
-/// color-transform segment, stay). Fails on anything that isn't a whole baseline or progressive JPEG.
+/// `bytes` as a JPEG with only what a decoder needs: the frame, the quantization, Huffman, and arithmetic tables, the
+/// restart interval, the scans, a JFIF header without its thumbnail, and Adobe's color-transform segment. Every other
+/// segment, and anything after the first end-of-image marker, is dropped. Fails on anything that isn't a whole JPEG
+/// with a frame and a scan.
 pub fn clean_jpeg(bytes: &[u8]) -> Result<Clean> {
     if bytes.len() < 4 || bytes[0] != 0xFF || bytes[1] != 0xD8 {
         return Err(bad("That isn't a JPEG."));
@@ -120,10 +125,12 @@ pub fn clean_jpeg(bytes: &[u8]) -> Result<Clean> {
             0xDA => {
                 out.extend_from_slice(segment);
                 scanned = true;
-                // The entropy-coded data runs to the next marker that isn't a stuffed 0xFF00 or a restart.
+                // The entropy-coded data runs to the next marker that isn't a stuffed 0xFF00 or a restart (fill bytes,
+                // more 0xFF, may come before either).
                 let start = i;
                 while i + 1 < bytes.len() {
-                    if bytes[i] == 0xFF && bytes[i + 1] != 0x00 && !(0xD0..=0xD7).contains(&bytes[i + 1]) {
+                    let next = bytes[i + 1];
+                    if bytes[i] == 0xFF && next != 0x00 && next != 0xFF && !(0xD0..=0xD7).contains(&next) {
                         break;
                     }
                     i += 1;
@@ -133,7 +140,12 @@ pub fn clean_jpeg(bytes: &[u8]) -> Result<Clean> {
                 }
                 out.extend_from_slice(&bytes[start..i]);
             }
-            _ => out.extend_from_slice(segment),
+            // The tables a decoder needs: quantization, Huffman, arithmetic conditioning, the restart interval, and the
+            // number of lines.
+            0xDB | 0xC4 | 0xCC | 0xDD | 0xDC => out.extend_from_slice(segment),
+            // Anything else (JPGn, the reserved and hierarchical markers) could carry any bytes: dropped. A photo the
+            // app made never has one; a hand-copied one that needed it no longer matches and is refused when sent.
+            _ => {}
         }
     }
     let Some((width, height)) = size.filter(|(w, h)| *w > 0 && *h > 0) else {
@@ -164,7 +176,7 @@ pub fn prepare(bytes: &[u8]) -> Result<Clean> {
             ErrorCode::ParamInvalid,
             format!(
                 "The photo is {:.1} MB; the agents take at most 3.75 MB.",
-                clean.jpeg.len() as f64 / 1e6
+                clean.jpeg.len() as f64 / 1_048_576.0
             ),
             "Attach it again: Emmet compresses it when it attaches it.",
         ));
@@ -193,8 +205,9 @@ fn slug(name: &str) -> String {
     if out.is_empty() { "photo".into() } else { out }
 }
 
-/// Saves a photo in `<root>/refs/`, cleaned and checked: `<name>-<hash>.jpg`, so the same photo attached twice is one
-/// file. `name` is the file's own name, for the slug only.
+/// Saves a photo in `<root>/refs/`, cleaned and checked: `<name>-<hash>.jpg`, so the same photo attached twice under
+/// the same name is one file. `name` is the file's own name, for the slug only. A file of that name whose bytes differ
+/// (opened and saved in another app, which can add metadata back) is written again.
 pub fn save(root: &Path, name: &str, bytes: &[u8]) -> Result<RefImage> {
     let clean = prepare(bytes)?;
     let hash = fsx::sha256_hex(&clean.jpeg);
@@ -206,7 +219,7 @@ pub fn save(root: &Path, name: &str, bytes: &[u8]) -> Result<RefImage> {
             "Emmet never writes through a link in a project. Remove or rename refs, then attach the photo again.",
         )
     })?;
-    if !path.is_file() {
+    if std::fs::read(&path).ok().as_deref() != Some(&clean.jpeg[..]) {
         fsx::write_atomic(&path, &clean.jpeg)?;
     }
     Ok(RefImage {
@@ -217,8 +230,36 @@ pub fn save(root: &Path, name: &str, bytes: &[u8]) -> Result<RefImage> {
     })
 }
 
-/// The file a ref names, checked: `refs/<name>.jpg` exactly (one level, no `..`), a regular file that resolves inside
-/// the project's own `refs/`. The app checks every path the page sends with this before reading or sending it.
+/// A saved photo's bytes, checked again before they're sent: still a JPEG within the limits, and still clean. One
+/// copied into `refs/` by hand, or edited since, fails here, naming the file, before anything reaches an agent (Codex
+/// reads the file as it is).
+pub fn check(path: &Path) -> Result<Vec<u8>> {
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let bytes = std::fs::read(path).map_err(|e| {
+        Error::new(
+            ErrorCode::IoError,
+            format!("The photo {name} can't be read: {e}"),
+            "Attach the photo again.",
+        )
+    })?;
+    let clean = prepare(&bytes).map_err(|e| Error::new(e.code, format!("The photo {name}: {}", e.message), e.hint))?;
+    if clean.jpeg != bytes {
+        return Err(Error::new(
+            ErrorCode::ParamInvalid,
+            format!("The photo {name} still has its metadata."),
+            "Attach it again: Emmet removes it when it attaches a photo.",
+        ));
+    }
+    Ok(bytes)
+}
+
+/// The file a ref names, checked: `refs/<name>.jpg` exactly (one level, no `..`), a regular file (not a link) no
+/// bigger than [`MAX_BYTES`] that resolves inside the project's own `refs/`. It checks the path, not the bytes:
+/// [`check`] does that before a photo is sent. The app checks every path the page sends with this before reading or
+/// sending it.
 pub fn resolve(root: &Path, rel: &str) -> Result<PathBuf> {
     let not_ref = || {
         Error::new(
@@ -238,7 +279,8 @@ pub fn resolve(root: &Path, rel: &str) -> Result<PathBuf> {
     }
     let path = dir.join(name);
     match std::fs::symlink_metadata(&path) {
-        Ok(m) if m.is_file() => Ok(path),
+        // No bigger than a photo Emmet saves: nothing larger is read, sent, or shown.
+        Ok(m) if m.is_file() && m.len() <= MAX_BYTES as u64 => Ok(path),
         _ => Err(not_ref()),
     }
 }
@@ -310,6 +352,24 @@ mod tests {
         assert!(c.jpeg.ends_with(&[
             0xFF, 0xC4, 0x00, 0x04, 7, 7, 0xFF, 0xDA, 0x00, 0x08, 1, 1, 0, 0, 63, 0, 4, 5, 0xFF, 0xD9
         ]));
+    }
+
+    #[test]
+    fn fill_bytes_in_a_scan_are_kept() {
+        let src = jpeg(&[(0xC0, SOF)], &[1, 0xFF, 0xFF, 0xD0, 2]);
+        assert_eq!(clean_jpeg(&src).unwrap().jpeg, src);
+    }
+
+    #[test]
+    fn drops_unknown_segments_and_whatever_follows_the_image() {
+        // A JPGn segment holding a location, and what phones append after EOI (a second image with its own EXIF).
+        let mut src = jpeg(&[(0xF0, b"GPS 34.05N"), (0xDD, &[0, 4]), (0xC0, SOF)], &[1, 2]);
+        src.extend_from_slice(&[
+            0xFF, 0xD8, 0xFF, 0xE1, 0x00, 0x08, b'E', b'x', b'i', b'f', b'G', b'P', 0xFF, 0xD9,
+        ]);
+        let c = clean_jpeg(&src).unwrap();
+        assert_eq!(c.jpeg, jpeg(&[(0xDD, &[0, 4]), (0xC0, SOF)], &[1, 2]));
+        assert!(!c.jpeg.windows(2).any(|w| w == b"GP"));
     }
 
     #[test]

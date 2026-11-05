@@ -170,10 +170,20 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
       },
     },
   });
-  save("claude", "photo", "tool-call.jsonl", "the photo rung: angle a, a first draft, a request for another angle; angle b, run, validate", [
+  // The agent looks at the photo again in refs/ (the doctrine says to), and Claude Code hands it back as an image
+  // block, with its bytes in tool_use_result too: the transcript keeps neither (4D).
+  const looked = (() => {
+    const jpeg = "/9j/2Q=="; // FF D8 FF D9
+    const l = result("toolu_look", [{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: jpeg } }]);
+    l.msg.tool_use_result = { type: "image", file: { base64: jpeg, type: "image/jpeg", originalSize: 4 } };
+    return l;
+  })();
+  save("claude", "photo", "tool-call.jsonl", "the photo rung: angle a, a look at it in refs/, a first draft, a request for another angle; angle b, run, validate", [
     meta,
     photoUser("Build this.", "a"),
     init,
+    use("msg_0000", "toolu_look", "Read", { file_path: "<WS>/project/refs/photo.jpg" }),
+    looked,
     use("msg_0001", "toolu_write", "Write", { file_path: "<WS>/project/model.py", content: cottage }),
     result("toolu_write", "File created successfully at: <WS>/project/model.py"),
     ...search("msg_0002", "toolu_search1", "mcp__emmet__run_model"),

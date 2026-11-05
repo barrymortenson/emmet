@@ -219,8 +219,12 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Security
 
-- A photo keeps none of its metadata: Emmet drops every EXIF (GPS included), XMP, ICC, IPTC, and comment segment
-  before it saves or sends one, and refuses one in `refs/` that still has any (4D).
+- A photo keeps none of its metadata: Emmet keeps only what a decoder needs (so every EXIF with its GPS, XMP, ICC,
+  IPTC, comment, unknown segment, and anything after the image is dropped) before it saves or sends one, and
+  refuses one in `refs/` that still has any, naming it, before the message is saved (4D).
+- A photo is saved in the project only when it's sent, so one removed from the composer never reaches `refs/`,
+  where the agent looks; transcripts keep no image bytes either way, and `chat_photo` reads nothing over 3.75 MB
+  and no link (4D review).
 - emmet-bus authenticates both ways: the token never crosses the socket, each request and reply proves it bound to a
   fresh nonce and the message, and a seen nonce is refused. The Windows pipe is user-only (ADR 0009).
 - ChatGPT tokens live only in the OS keychain, and a session's API key or access token is replaced with `<redacted>`

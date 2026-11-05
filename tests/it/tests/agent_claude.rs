@@ -895,6 +895,40 @@ fn a_photo_reaches_claude_code_without_its_metadata() {
     assert_eq!(data, format!("<image sha256:{hash} {} bytes>", sent.len()));
 }
 
+/// A photo the agent reads back from refs/ comes back from Claude Code as base64 (an image block in the tool result, and
+/// `tool_use_result.file.base64`); the transcript keeps placeholders for both, as it does for the photos Emmet sends.
+#[test]
+fn the_transcript_keeps_no_image_bytes_either_way() {
+    let rig = Rig::new("claude-photo-look", "claude", "derived-photo");
+    let saved = emmet_core::refs::save(&rig.project, "IMG_2424.jpg", &crate::refs::geotagged()).unwrap();
+    let (mut s, mut ev) = rig.start(CLAUDE);
+    s.send(UserTurn {
+        text: "Build this.".into(),
+        images: vec![rig.project.join(&saved.path)],
+    })
+    .unwrap();
+    let events = ev.turn();
+    s.close();
+    assert!(matches!(events.last(), Some(AgentEvent::TurnDone { .. })), "{events:?}");
+    let path = rig
+        .project
+        .join(".emmet/transcripts")
+        .join(format!("{}.jsonl", rig.cfg.id));
+    let text = std::fs::read_to_string(path).unwrap();
+    let sent = emmet_core::base64::encode(&std::fs::read(rig.project.join(&saved.path)).unwrap());
+    assert!(!text.contains(&sent[..64]), "the photo Emmet sent is in the transcript");
+    assert!(
+        !text.contains("/9j/2Q=="),
+        "the photo the agent read is in the transcript"
+    );
+    let empty = emmet_core::fsx::sha256_hex(&[0xFF, 0xD8, 0xFF, 0xD9]);
+    assert_eq!(
+        text.matches(&format!("<image sha256:{empty} 4 bytes>")).count(),
+        2,
+        "{text}"
+    );
+}
+
 /// A geotagged photo copied into refs/ by hand never goes out: the turn fails before the CLI reads a line.
 #[test]
 fn a_photo_that_still_has_metadata_is_refused() {
