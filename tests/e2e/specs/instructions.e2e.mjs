@@ -87,7 +87,13 @@ function drawPage(i, width) {
   );
 }
 
-describe("building instructions", () => {
+// A book is hundreds of renders: about 20 s on a Mac's GPU, minutes on a hosted runner's software renderer (WebView2 on
+// WARP), so the export gets EXPORT_WAIT and a test BOOK_TIMEOUT, past wdio.conf.mjs's two minutes.
+const EXPORT_WAIT = 480_000;
+const BOOK_TIMEOUT = 600_000;
+
+describe("building instructions", function () {
+  this.timeout(BOOK_TIMEOUT);
   for (const { rung, dir, file } of BOOKS) {
     it(`exports ${rung} as a PDF into Downloads, and every page matches its baseline`, async () => {
       await open(dir);
@@ -98,7 +104,7 @@ describe("building instructions", () => {
       await browser.keys([process.platform === "darwin" ? "Meta" : "Control", "e"]);
       await (await $("[data-menu='pdf']")).waitForDisplayed();
       await click("[data-menu='pdf']");
-      await expect($("#toast")).toHaveText(expect.stringContaining(`Saved “${file}” to Downloads`), { wait: 180_000 });
+      await expect($("#toast")).toHaveText(expect.stringContaining(`Saved “${file}” to Downloads`), { wait: EXPORT_WAIT });
       const pdf = join(agentHome, "Downloads", file);
       expect(readFileSync(pdf).subarray(0, 8).toString("latin1")).toBe("%PDF-1.4");
       const pages = await browser.execute(async () => {
