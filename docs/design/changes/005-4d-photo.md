@@ -19,4 +19,5 @@ dark.
 
 ## Barry's yes
 
-Waiting for Barry's yes, through AskUserQuestion, after the screenshots.
+Yes, as built (Barry, 2026-11-04, through AskUserQuestion, after the screenshots and his hand checks with Claude Code
+and Codex).

@@ -874,3 +874,11 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   has no motorbike techniques. 4G adds the connection data to `part_info`, beams placed by their holes with seated
   pins, the validator's pin connections, and display-vehicle techniques. It follows 4D, runs beside 4E, and 5A and 5B
   wait for it. Rejected: moving it into 6C after G2, and waiting for G2 to show the gap.
+- **Design change note 005 is accepted as built** (Barry, 2026-11-04, through AskUserQuestion: "Yes, as built"),
+  after the screenshots and his hand checks: the photo chips, the first-use line, Send with a photo and no words, the
+  paperclip waiting while the agent works, the sent photo in its message, and the compare view.
+- **4D's hand checks** (Barry, 2026-11-04). Claude Code, the e-bike side shot: it sized the bike from the photo,
+  asked for a front or back photo at the end, and finished at 39:57 with 426 parts and 0 errors; its first build came
+  about 2:35 into its own time (the scale question waited 5:49 for Barry), so "a first draft within a minute" isn't
+  met yet, and 4G is the fix. Codex, the truck's front three-quarter shot: "A light blue Ford Maverick crew-cab pickup
+  with black trim, silver steel wheels, and a short open bed", in 0:22; the saved copy in `refs/` has no metadata.
