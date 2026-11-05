@@ -198,7 +198,7 @@ window.EMMET_STATUS = {
       ],
       note: "The first draft within a minute isn't met (about 2:35 of agent time on the e-bike); 4G is the fix, before G2"
     },
-    "4E": { status: "todo" },
+    "4E": { status: "in-progress", branch: "bmortenson/s4e-native-pdf-instructions", started: "2026-11-04" },
     "4G": { status: "todo" },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
