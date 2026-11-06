@@ -20,8 +20,6 @@ const ZOOM = 480;
 /** A step's picture prints at most about 4.2 inches tall and 6.6 wide (layout.rs): this many pixels is ~150 dpi. */
 const MAX_HEIGHT = 640;
 const MAX_WIDTH = 1100;
-/** How far a cut edge fades, as a share of the picture's shorter side. */
-const FEATHER = 0.07;
 /** Room around the crop, in pixels, for the outline. */
 const PAD = 10;
 /** The step outline's width in pixels: about 0.6 mm on a printed page. */
@@ -104,7 +102,6 @@ async function drawRun(viewer: Viewer, run: Run, jobs: Jobs, background: Rgb, ti
     // The drawn pixels, within the box the camera frames (a frame inside a big layout has model to every edge).
     const drawn = await alphaBox(end.png, PAD);
     const crop = within(drawn, end.framed, PAD);
-    const feather = crop.w < drawn.w - 1 || crop.h < drawn.h - 1;
     const ldu = pixelsPerLdu(end, jobs.step_size);
     for (const [i, s] of group.entries()) {
       const r = s.n === last ? end : await viewer.render({ ...base, step: s.n, report: reported(s) });
@@ -113,7 +110,7 @@ async function drawRun(viewer: Viewer, run: Run, jobs: Jobs, background: Rgb, ti
         queue.splice(g + 1, 0, { steps: group.slice(i), frame, hidden: { n: s.n, ids: s.new } });
         break;
       }
-      out.push(await step(viewer, s, r, crop, ldu, turn, background, feather));
+      out.push(await step(viewer, s, r, crop, ldu, turn, background));
       tick();
     }
   }
@@ -227,7 +224,7 @@ function pixelsPerLdu(r: Rendered, size: number): number {
   return size / (2 * d * Math.tan((r.camera.fov * Math.PI) / 360));
 }
 
-async function step(viewer: Viewer, s: StepJob, r: Rendered, crop: Box, ldu: number, turn: number, background: Rgb, feather: boolean): Promise<DrawnStep> {
+async function step(viewer: Viewer, s: StepJob, r: Rendered, crop: Box, ldu: number, turn: number, background: Rgb): Promise<DrawnStep> {
   // No more pixels than a page prints at about 150 dpi.
   const k = Math.min(1, MAX_HEIGHT / crop.h, MAX_WIDTH / crop.w);
   const at = (p: [number, number]): [number, number] => [(p[0] - crop.x) * k, (p[1] - crop.y) * k];
@@ -251,7 +248,7 @@ async function step(viewer: Viewer, s: StepJob, r: Rendered, crop: Box, ldu: num
     const [x, y] = at([mean(centers.map((c) => c[0])), mean(centers.map((c) => c[1]))]);
     zoom = { picture: await jpeg(z.png, { x: 0, y: 0, w: ZOOM, h: ZOOM }, [255, 255, 255]), x, y };
   }
-  return { n: s.n, picture: await jpeg(r.png, crop, background, k, feather), ldu: ldu * k, turn, copies, arrows, zoom };
+  return { n: s.n, picture: await jpeg(r.png, crop, background, k), ldu: ldu * k, turn, copies, arrows, zoom };
 }
 
 /** An arrow beside a part, pointing the way it moves on, ending at its edge. */
@@ -314,44 +311,20 @@ function square(b: Box): Box {
   return { x: b.x - (side - b.w) / 2, y: b.y - (side - b.h) / 2, w: side, h: side };
 }
 
-/** The crop of a transparent PNG on `background`, as a JPEG. */
-/** The crop of a transparent PNG on `background`, scaled by `k`, as a JPEG. With `feather`, its edges fade into the
- * background: a close frame cuts through the model, and a soft edge reads as "and so on" where a hard one reads as a
- * wall. */
-async function jpeg(png: Uint8Array, crop: Box, background: Rgb, k = 1, feather = false): Promise<Picture> {
+/** The crop of a transparent PNG on `background`, scaled by `k`, as a JPEG. A close frame's cut edges stay sharp: a
+ * faded edge made the parts along it look blurred in print (Barry, 2026-11-05). */
+async function jpeg(png: Uint8Array, crop: Box, background: Rgb, k = 1): Promise<Picture> {
   const img = await bitmap(png);
   const w = Math.max(1, Math.round(crop.w * k));
   const h = Math.max(1, Math.round(crop.h * k));
-  const art = new Canvas2d(w, h);
-  art.ctx.imageSmoothingQuality = "high";
-  // The whole image, moved and scaled (WebKit draws nothing for a source rectangle that runs past the image, as a
-  // part's square crop can).
-  art.ctx.drawImage(img, -crop.x * k, -crop.y * k, img.width * k, img.height * k);
-  img.close();
-  if (feather) {
-    const edge = Math.round(Math.min(w, h) * FEATHER);
-    const mask = new Canvas2d(w, h);
-    mask.ctx.fillRect(0, 0, w, h);
-    mask.ctx.globalCompositeOperation = "destination-out";
-    for (const [x0, y0, x1, y1, rx, ry, rw, rh] of [
-      [0, 0, edge, 0, 0, 0, edge, h],
-      [w, 0, w - edge, 0, w - edge, 0, edge, h],
-      [0, 0, 0, edge, 0, 0, w, edge],
-      [0, h, 0, h - edge, 0, h - edge, w, edge],
-    ] as const) {
-      const g = mask.ctx.createLinearGradient(x0, y0, x1, y1);
-      g.addColorStop(0, "rgba(0, 0, 0, 1)");
-      g.addColorStop(1, "rgba(0, 0, 0, 0)");
-      mask.ctx.fillStyle = g;
-      mask.ctx.fillRect(rx, ry, rw, rh);
-    }
-    art.ctx.globalCompositeOperation = "destination-in";
-    art.ctx.drawImage(mask.canvas, 0, 0);
-  }
   const c = new Canvas2d(w, h);
   c.ctx.fillStyle = `rgb(${background[0]}, ${background[1]}, ${background[2]})`;
   c.ctx.fillRect(0, 0, w, h);
-  c.ctx.drawImage(art.canvas, 0, 0);
+  c.ctx.imageSmoothingQuality = "high";
+  // The whole image, moved and scaled (WebKit draws nothing for a source rectangle that runs past the image, as a
+  // part's square crop can).
+  c.ctx.drawImage(img, -crop.x * k, -crop.y * k, img.width * k, img.height * k);
+  img.close();
   const blob = await c.blob("image/jpeg", QUALITY);
   return { jpeg: base64(new Uint8Array(await blob.arrayBuffer())), width: w, height: h };
 }

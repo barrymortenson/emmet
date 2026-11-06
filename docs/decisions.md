@@ -899,3 +899,6 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   42086110115 reached the instructions spec at minute 35 of 45, and its books draw in software on that runner. The job
   runs by hand only while D-43 pauses Windows. Rejected: leaving the Windows baselines to the Windows pass, and rung 2
   only on Windows.
+- **Rung 2 is legible printed on A4 and Letter** (Barry, 2026-11-05, through AskUserQuestion, on pages 1, 2, 32, 45,
+  and 48 of each: "it is legible on both"). His one change: "the blur around the edges of the image ... makes the part
+  look blurry", so a close frame's cut edges are no longer faded (ADR 0014). 4E's Done when 1.

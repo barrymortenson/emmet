@@ -40,7 +40,8 @@ a page shows.
 - **The camera follows the work** (section 08: "the camera stays put through a run of steps"): a run of steps shares a
   frame, the steps' new parts with room around them, or the whole build when that's not much more; the run ends when
   the frame would grow past 1.6 times its first size, or when a step wants a much closer look. A step whose new parts
-  are out of sight starts a run that may turn the model (the turn icon). A close frame's cut edges fade out.
+  are out of sight starts a run that may turn the model (the turn icon). A close frame's cut edges stay sharp: faded
+  ones made the parts along them look blurred in print (Barry's printout check, 2026-11-05).
 - **Render mode's window opts out of WebKit's background throttling**
   (`background_throttling(BackgroundThrottlingPolicy::Disabled)`, macOS 14+). A hidden page's process runs at
   background priority, and a book's 400 pictures crawled at one every few seconds; a single render never noticed.
