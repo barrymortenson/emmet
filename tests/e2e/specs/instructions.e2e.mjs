@@ -92,6 +92,27 @@ function drawPage(i, width) {
 const EXPORT_WAIT = 480_000;
 const BOOK_TIMEOUT = 600_000;
 
+/** Waits for the export's "Saved" toast, logging each toast and problem on the way ("Drawing the instructions: 40 %"),
+ * so a slow or stuck export says how far it got. */
+async function exported(rung, file) {
+  const start = Date.now();
+  const seen = [];
+  const say = (what) => {
+    seen.push(`${Math.round((Date.now() - start) / 1000)} s: ${what}`);
+    console.log(`${rung}: ${seen.at(-1)}`);
+  };
+  let last = "";
+  for (;;) {
+    const now = await browser.execute(() =>
+      ["toast", "app-problem"].map((id) => document.getElementById(id)?.textContent?.trim() ?? "").join(" | "),
+    );
+    if (now !== last) say((last = now) || "(nothing showing)");
+    if (now.includes(`Saved “${file}” to Downloads`)) return;
+    if (Date.now() - start > EXPORT_WAIT) throw new Error(`${rung}: no "Saved" toast in ${EXPORT_WAIT / 1000} s; ${seen.join("; ")}`);
+    await browser.pause(2000);
+  }
+}
+
 describe("building instructions", function () {
   this.timeout(BOOK_TIMEOUT);
   for (const { rung, dir, file } of BOOKS) {
@@ -107,7 +128,7 @@ describe("building instructions", function () {
       await browser.keys([process.platform === "darwin" ? "Meta" : "Control", "e"]);
       await (await $("[data-menu='pdf']")).waitForDisplayed();
       await click("[data-menu='pdf']");
-      await expect($("#toast")).toHaveText(expect.stringContaining(`Saved “${file}” to Downloads`), { wait: EXPORT_WAIT });
+      await exported(rung, file);
       const pdf = join(agentHome, "Downloads", file);
       expect(readFileSync(pdf).subarray(0, 8).toString("latin1")).toBe("%PDF-1.4");
       const pages = await browser.execute(async () => {
