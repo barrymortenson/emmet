@@ -107,7 +107,9 @@ async function exported(rung, file) {
       ["toast", "app-problem"].map((id) => document.getElementById(id)?.textContent?.trim() ?? "").join(" | "),
     );
     if (now !== last) say((last = now) || "(nothing showing)");
-    if (now.includes(`Saved “${file}” to Downloads`)) return;
+    // "to Downloads", or on Windows the whole path: Windows' home folder isn't the test home the app runs with.
+    const to = now.split(`Saved “${file}” to `)[1];
+    if (to && /^(.*[\\/])?Downloads/.test(to)) return;
     if (Date.now() - start > EXPORT_WAIT) throw new Error(`${rung}: no "Saved" toast in ${EXPORT_WAIT / 1000} s; ${seen.join("; ")}`);
     await browser.pause(2000);
   }
