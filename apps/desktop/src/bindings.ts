@@ -113,7 +113,7 @@ export const commands = {
 	 *  navigator.language: Letter for "en-US", A4 for "en-GB").
 	 */
 	exportInstructions: (locale: string, jobs: Jobs, drawn: Drawn) => typedError<Exported, Problem>(__TAURI_INVOKE("export_instructions", { locale, jobs, drawn })),
-	/**  The last book Export → Instructions laid out, or null (the E2E page baselines). */
+	/**  The last book Export → Instructions laid out, or null (the E2E page baselines; always null in a release build). */
 	lastBook: () => __TAURI_INVOKE<Book | null>("last_book"),
 	/**
 	 *  Installs the library when it's missing or older than the pinned one, with its progress as [`PartsProgress`]
@@ -571,7 +571,7 @@ export type Drawn = {
 
 export type DrawnStep = {
 	n: number,
-	/**  The build up to the step, its new parts outlined, cropped the same for every step of its group. */
+	/**  The build up to the step, its new parts outlined, cropped the same for every step of its camera run. */
 	picture: Picture,
 	/**  The picture's pixels per LDU at the model's center: how big a brick is, for one scale through the book. */
 	ldu: number | null,
@@ -855,7 +855,7 @@ export type Run = {
 	copy: string,
 	/**  How deep the sub-assembly sits: 0 for one the main model places. */
 	depth: number,
-	/**  The steps in order, in groups that share one camera (a run of steps under one title). */
+	/**  The steps in order, grouped by title (the webview flattens them and picks its own camera runs). */
 	groups: StepJob[][],
 };
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The pictures for building instructions (session 4E, ADR 0014): every job emmet_core::instructions asks for, drawn
 // through viewer.render by one hidden viewer, as JPEGs on the color they'll sit on, with what the layout needs to
-// know about each: the crop (the same for a group of steps, so the model stays put), the scale, the turn, where each
+// know about each: the crop (the same for a camera run of steps, so the model stays put), the scale, the turn, where each
 // sub-assembly copy goes, arrows for parts that don't go on from above, and a zoom box for new parts out of sight.
 // The app's Export → Instructions and render mode's book job (emmet export --format pdf) both draw through here.
 import { type Extent, type Placement, type RenderOptions, type Rendered, type Sighting, type Viewer, createViewer } from "@emmet/viewer";
@@ -17,7 +17,8 @@ const TURN_GAIN = 0.15;
 /** A quick render to choose the turn or the zoom's angle. */
 const PROBE = 192;
 const ZOOM = 480;
-/** A step's picture prints at most about 4.2 inches tall and 6.6 wide (layout.rs): this many pixels is ~150 dpi. */
+/** A step's picture prints at most about 3.8 inches tall (A4) and 6.9 wide (Letter) (layout.rs's fit): this many
+ * pixels is about 160 to 185 dpi. */
 const MAX_HEIGHT = 640;
 const MAX_WIDTH = 1100;
 /** Room around the crop, in pixels, for the outline. */
@@ -40,7 +41,7 @@ export async function drawBook(all: Placement[], jobs: Jobs, progress?: (done: n
   try {
     await viewer.load(all);
     const shot = await viewer.render({ view: "iso", size: jobs.cover_size, transparent: true });
-    const cover = await jpeg(shot.png, await alphaBox(shot.png, PAD * 2), rgb(jobs.page_background));
+    const cover = await jpeg(shot.png, await alphaBox(shot.png, PAD * 2, "The cover"), rgb(jobs.page_background));
     tick();
     const runs: DrawnStep[][] = [];
     for (const run of jobs.runs) {
@@ -52,7 +53,7 @@ export async function drawBook(all: Placement[], jobs: Jobs, progress?: (done: n
     for (const p of jobs.parts) {
       await viewer.update([{ id: "p", part: p.part, color: p.color, matrix: IDENTITY, step: 1, submodel: [] }]);
       const r = await viewer.render({ view: "iso", size: jobs.part_size, transparent: true, shadow: false });
-      parts.push(await jpeg(r.png, square(await alphaBox(r.png, 4)), rgb(jobs.part_background)));
+      parts.push(await jpeg(r.png, square(await alphaBox(r.png, 4, `Part ${p.part}`)), rgb(jobs.part_background)));
       tick();
     }
     return { cover, runs, parts };
@@ -100,7 +101,7 @@ async function drawRun(viewer: Viewer, run: Run, jobs: Jobs, background: Rgb, ti
     }
     const base = options(turn);
     // The drawn pixels, within the box the camera frames (a frame inside a big layout has model to every edge).
-    const drawn = await alphaBox(end.png, PAD);
+    const drawn = await alphaBox(end.png, PAD, `Step ${last}`);
     const crop = within(drawn, end.framed, PAD);
     const ldu = pixelsPerLdu(end, jobs.step_size);
     for (const [i, s] of group.entries()) {
@@ -225,7 +226,7 @@ function pixelsPerLdu(r: Rendered, size: number): number {
 }
 
 async function step(viewer: Viewer, s: StepJob, r: Rendered, crop: Box, ldu: number, turn: number, background: Rgb): Promise<DrawnStep> {
-  // No more pixels than a page prints at about 150 dpi.
+  // No more pixels than a page prints at about 160 to 185 dpi (MAX_HEIGHT, MAX_WIDTH).
   const k = Math.min(1, MAX_HEIGHT / crop.h, MAX_WIDTH / crop.w);
   const at = (p: [number, number]): [number, number] => [(p[0] - crop.x) * k, (p[1] - crop.y) * k];
   const report = r.report ?? {};
@@ -277,8 +278,10 @@ async function bitmap(png: Uint8Array): Promise<ImageBitmap> {
   return createImageBitmap(new Blob([png as BlobPart], { type: "image/png" }));
 }
 
-/** The box around a picture's drawn (not transparent) pixels, grown by `pad`; the whole picture when it's empty. */
-async function alphaBox(png: Uint8Array, pad: number): Promise<Box> {
+/** The box around a picture's drawn (not transparent) pixels, grown by `pad`. Every picture a book asks for has
+ * something in it, so an empty one (`what`) is an error, not a blank page: the GPU's context lost mid-book draws
+ * nothing from then on. */
+async function alphaBox(png: Uint8Array, pad: number, what: string): Promise<Box> {
   const img = await bitmap(png);
   const { width: w, height: h } = img;
   const c = new Canvas2d(w, h);
@@ -297,7 +300,8 @@ async function alphaBox(png: Uint8Array, pad: number): Promise<Box> {
     }
   }
   img.close();
-  if (x1 < 0) return { x: 0, y: 0, w, h };
+  c.free();
+  if (x1 < 0) throw new Error(`${what} drew nothing. Export the instructions again.`);
   x0 = Math.max(0, x0 - pad);
   y0 = Math.max(0, y0 - pad);
   x1 = Math.min(w - 1, x1 + pad);
@@ -326,6 +330,7 @@ async function jpeg(png: Uint8Array, crop: Box, background: Rgb, k = 1): Promise
   c.ctx.drawImage(img, -crop.x * k, -crop.y * k, img.width * k, img.height * k);
   img.close();
   const blob = await c.blob("image/jpeg", QUALITY);
+  c.free();
   return { jpeg: base64(new Uint8Array(await blob.arrayBuffer())), width: w, height: h };
 }
 
@@ -337,9 +342,22 @@ class Canvas2d {
     this.canvas = document.createElement("canvas");
     this.canvas.width = w;
     this.canvas.height = h;
-    this.ctx = this.canvas.getContext("2d", { willReadFrequently: true })!;
+    const ctx = this.canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) throw new Error("The webview ran out of canvas memory. Export the instructions again.");
+    this.ctx = ctx;
   }
+  /** Hands the canvas's memory back now, not when it's collected: a book makes three canvases a picture. */
+  free() {
+    this.canvas.width = this.canvas.height = 0;
+  }
+  /** As `type`, or an error: toBlob quietly makes a PNG for a type it can't, and the PDF takes the bytes as a JPEG. */
   blob(type: string, quality: number): Promise<Blob> {
-    return new Promise((resolve, reject) => this.canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("the webview couldn't encode the JPEG"))), type, quality));
+    return new Promise((resolve, reject) =>
+      this.canvas.toBlob(
+        (b) => (b?.type === type ? resolve(b) : reject(new Error(b ? `The webview made a ${b.type}, not a ${type}.` : "The webview couldn't encode the JPEG."))),
+        type,
+        quality,
+      ),
+    );
   }
 }

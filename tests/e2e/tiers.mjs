@@ -29,9 +29,11 @@ export const AREAS = {
   },
   // The shell: menus and keys, which every screen shares, and what the window may do (the capabilities).
   shell: { paths: /^apps\/desktop\/(src\/|src-tauri\/src\/menu\.rs$|src-tauri\/capabilities\/)/, specs: ["keyboard"] },
-  // Building instructions (4E): the pictures drawn for a book, its layout, and the PDF, against per-page baselines.
+  // Building instructions (4E): the pictures drawn for a book, its layout, and the PDF, against per-page baselines; and
+  // the export command that writes it (projects.rs) and the steps it's laid out from.
   instructions: {
-    paths: /^(crates\/emmet-core\/src\/instructions\/|packages\/viewer\/src\/|apps\/desktop\/src\/instructions\.ts$|tests\/e2e\/baselines\/[^/]+\/instructions\/)/,
+    paths:
+      /^(crates\/emmet-core\/src\/(instructions\/|steps\.rs$)|packages\/viewer\/src\/|apps\/desktop\/src\/(instructions|render)\.ts$|apps\/desktop\/src-tauri\/src\/projects\.rs$|tests\/e2e\/(baselines\/[^/]+\/instructions\/|specs\/instructions\.e2e\.mjs$))/,
     specs: ["instructions"],
   },
   // First run: the library download and the Python setup, on a fresh data dir.

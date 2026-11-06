@@ -17,7 +17,7 @@ a page shows.
    each laid out by its own engine, so the two OSes' PDFs differ; the system font is embedded, which needs a license
    read for SF Pro and Segoe UI. Rejected.
 2. **A Rust PDF crate** (`pdf-writer`, `printpdf`). A new dependency for what this book needs: pages, rectangles, lines,
-   text in one font, and JPEG images. Rejected: option 3 does that in about 300 lines.
+   text in two standard fonts, and JPEG images. Rejected: option 3 does that in about 300 lines.
 3. **Emmet writes the PDF itself** (chosen). `emmet_core::instructions::pdf`: PDF 1.4 objects and a cross-reference
    table, each page a content stream, the pictures as the webview's JPEGs unchanged (`DCTDecode`, no decoding), text in
    Helvetica and Helvetica-Bold.
@@ -36,7 +36,7 @@ a page shows.
   in the repo (an OFL face, a license note) and subsetting or about 300 KB a book; nothing on these pages needs it.
 - **JPEG, not PNG.** A PNG needs inflating to split its alpha, and the code has no inflate of its own; the webview's
   JPEG goes in as it is. Each picture is drawn on the color it sits on (the page, a sub-assembly's box, a parts box),
-  so there's no alpha. Quality 0.7, and no more pixels than about 150 dpi at the printed size.
+  so there's no alpha. Quality 0.7, and no more pixels than about 160 to 185 dpi at the printed size.
 - **The camera follows the work** (section 08: "the camera stays put through a run of steps"): a run of steps shares a
   frame, the steps' new parts with room around them, or the whole build when that's not much more; the run ends when
   the frame would grow past 1.6 times its first size, or when a step wants a much closer look. A step whose new parts
@@ -48,12 +48,12 @@ a page shows.
 
 ## Results
 
-macOS (Apple M5 Max, debug build, `emmet export --format pdf` through render mode, 2026-11-05):
+macOS (Apple M5 Max, debug build, `emmet export --format pdf` through render mode, 2026-11-06):
 
 | Model | Parts | Steps | Pages | Time | File |
 |---|---|---|---|---|---|
-| Rung 1, the Cottage | 903 | 160 | 106 (Letter) | 15 s | 30 MB |
-| Rung 2, the station (`rung2-claude`) | 289 | 78 | 49 (A4) | 8.5 s | 15 MB |
+| Rung 1, the Cottage | 905 | 160 | 106 (Letter) | 16.9 s | 31 MB |
+| Rung 2, the station (`rung2-claude`) | 289 | 78 | 49 (A4) | 7.3 s | 16 MB |
 
 Most of a file is the step pictures (each about 150 to 270 KB): studs compress poorly. Official instruction PDFs of
 sets this size run 15 to 40 MB. Preview and PDFKit open every page; the read-back test (`tests/it/tests/instructions.rs`)

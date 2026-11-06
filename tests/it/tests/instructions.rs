@@ -171,23 +171,32 @@ fn check_book(dir: &Path, pdf: &[u8]) -> usize {
         .map(|s| (s["n"].as_u64().unwrap() as u32, counts(&s["parts"])))
         .collect();
     assert_eq!(main, want, "the main steps on the pages aren't steps.json's");
-    // Each sub-assembly's steps, in its box before the step that puts it on, each time a step puts it on.
+    // Each sub-assembly's steps, in its box before the step that puts it on, each time a step puts it on; a
+    // sub-assembly inside one gets its own box first (a chair before the table set it goes into).
+    fn walk(steps: &Value, placed: &Value, subs: &mut Vec<(u32, Vec<String>)>, callouts: &mut Vec<String>) {
+        let model = steps["submodels"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|m| m["file"] == placed["file"])
+            .unwrap();
+        for sub in model["steps"].as_array().unwrap() {
+            for inner in sub["submodels"].as_array().unwrap() {
+                walk(steps, inner, subs, callouts);
+            }
+        }
+        for sub in model["steps"].as_array().unwrap() {
+            subs.push((sub["n"].as_u64().unwrap() as u32, counts(&sub["parts"])));
+        }
+        if placed["count"].as_u64().unwrap() > 1 {
+            callouts.push(format!("{}x", placed["count"]));
+        }
+    }
     let mut want_subs = Vec::new();
     let mut want_callouts = Vec::new();
     for s in steps["steps"].as_array().unwrap() {
         for placed in s["submodels"].as_array().unwrap() {
-            let model = steps["submodels"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .find(|m| m["file"] == placed["file"])
-                .unwrap();
-            for sub in model["steps"].as_array().unwrap() {
-                want_subs.push((sub["n"].as_u64().unwrap() as u32, counts(&sub["parts"])));
-            }
-            if placed["count"].as_u64().unwrap() > 1 {
-                want_callouts.push(format!("{}x", placed["count"]));
-            }
+            walk(&steps, placed, &mut want_subs, &mut want_callouts);
         }
     }
     assert_eq!(
@@ -223,6 +232,57 @@ fn a_sub_assembly_built_four_times_is_one_box_marked_4x() {
     assert!(String::from_utf8_lossy(&pdf).contains("/MediaBox [0 0 612 792]"));
 }
 
+// A table set built apart, with its chair built apart inside it: the chair's box (2x) comes before the table set's,
+// and both before the step that puts the table set on. The chair's steps were drawn but never laid out.
+#[test]
+fn a_sub_assembly_inside_a_sub_assembly_gets_its_own_box() {
+    let dir = project("nested-submodel");
+    let (_, pdf) = export(&dir, "letter");
+    check_book(&dir, &pdf);
+    let steps: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("build/steps.json")).unwrap()).unwrap();
+    let nested = steps["submodels"].as_array().unwrap().iter().any(|m| {
+        m["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| !s["submodels"].as_array().unwrap().is_empty())
+    });
+    assert!(nested, "the fixture should nest a sub-assembly: {steps}");
+}
+
+// An agent changed the model while the window drew the book's pictures: the pictures and the parts boxes would come
+// from two different builds, so writing refuses, before anything is laid out.
+#[test]
+fn a_model_changed_while_drawing_is_refused() {
+    use emmet_core::{data::DataDir, instructions, project::Project};
+    let dir = project("submodel-x4");
+    let (_, code) = emmet_in(&dir, &["run"]);
+    assert_eq!(code, 0);
+    let data = DataDir::at(emmet_it::shared_data());
+    let jobs = instructions::project_jobs(&data, &Project::find(Some(&dir)).unwrap()).unwrap();
+    let (v, code) = emmet_in(&dir, &["params", "--set", "rows=5"]);
+    assert_eq!(code, 0, "{v}");
+    let (v, code) = emmet_in(&dir, &["run"]);
+    assert_eq!(code, 0, "{v}");
+    let picture = instructions::Picture {
+        jpeg: String::new(),
+        width: 1,
+        height: 1,
+    };
+    let drawn = instructions::Drawn {
+        cover: picture,
+        runs: Vec::new(),
+        parts: Vec::new(),
+    };
+    let project = Project::find(Some(&dir)).unwrap();
+    let err = instructions::write(&data, &project, &jobs, &drawn, instructions::Paper::Letter, None).unwrap_err();
+    assert_eq!(
+        err.message, "The model changed while Emmet drew the instructions.",
+        "{err:?}"
+    );
+    assert!(!dir.join("build/export").exists(), "nothing was written");
+}
+
 #[test]
 fn the_rung_2_station_matches_its_steps() {
     let dir = project("rung2-claude");
@@ -230,7 +290,7 @@ fn the_rung_2_station_matches_its_steps() {
     check_book(&dir, &pdf);
 }
 
-/// What good looks like 2: a 500-part model exports in under 30 seconds. Rung 1's Cottage is the harder case: 903
+/// What good looks like 2: a 500-part model exports in under 30 seconds. Rung 1's Cottage is the harder case: 905
 /// parts in 160 steps and 13 sub-assemblies, every one of them a picture. Also 4E's Done when 2 for rung 1.
 #[test]
 fn the_cottage_exports_in_under_30_seconds_and_matches_its_steps() {

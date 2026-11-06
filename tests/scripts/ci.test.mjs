@@ -229,6 +229,7 @@ for (const [change, specs] of [
   ["scripts/plan-check.mjs", ""],
   ["packages/viewer/src/index.ts", `${CORE},interact,animate,perf,instructions`],
   ["crates/emmet-core/src/instructions/layout.rs", `${CORE},instructions`],
+  ["apps/desktop/src-tauri/src/projects.rs", `${CORE},instructions`],
   ["crates/emmet-core/src/lib.rs", CORE],
   ["crates/emmet-agent/src/session.rs", `${CORE},chatgpt,setup,bus,photo`],
   ["apps/desktop/src/Panel.tsx", `${CORE},keyboard`],

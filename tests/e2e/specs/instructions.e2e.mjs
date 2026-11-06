@@ -16,7 +16,8 @@ import { decode, encode } from "../lib/png.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const PAGE_WIDTH = 200;
-/** As visual.e2e.mjs: at most this share of a page's pixels may differ past pixelmatch's threshold. */
+/** Twice visual.e2e.mjs's (JPEG pictures and canvas text): at most this share of a page's pixels may differ past
+ * pixelmatch's threshold. */
 const TOLERANCE = 0.002;
 const baselines = join(repo, "tests", "e2e", "baselines", os, "instructions");
 const update = process.env.EMMET_UPDATE_BASELINES === "1";

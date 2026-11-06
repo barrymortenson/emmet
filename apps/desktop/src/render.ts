@@ -12,7 +12,7 @@ export async function renderMode(): Promise<void> {
     if (!job) throw new Error("this window has no render job");
     if (job.book) {
       // A book's pictures (emmet export --format pdf).
-      await commands.renderBookDone(await drawBook(placements(job.scene), job.book, (done, total) => void commands.renderProgress(done, total)));
+      await commands.renderBookDone(await drawBook(placements(job.scene), job.book, (done, total) => void commands.renderProgress(done, total).catch(console.error)));
       return;
     }
     const canvas = document.createElement("canvas");

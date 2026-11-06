@@ -451,16 +451,23 @@ pub async fn open_version_as_new(app: AppHandle, n: u32) -> Result<ProjectView, 
     crate::app::open(&app, &dir)
 }
 
+/// The Downloads folder, or a problem that says so: Tauri's own error is "unknown path".
+fn downloads(app: &AppHandle) -> Result<std::path::PathBuf, Box<Problem>> {
+    app.path().download_dir().map_err(|_| {
+        let mut p = Problem::internal("Emmet can't find your Downloads folder.");
+        p.code = "IO_ERROR".into();
+        p.hint = "Check that your user folder has a Downloads folder, then export again.".into();
+        p
+    })
+}
+
 /// Export (⌘E): writes the parts list or the model into Downloads, named for the project ("Cottage parts.csv").
 #[tauri::command]
 #[specta::specta]
 pub async fn export(app: AppHandle, format: ExportFormat) -> Result<Exported, Box<Problem>> {
     let state = app.state::<AppState>();
     let (data, project) = (state.data.clone(), state.project()?);
-    let downloads = app
-        .path()
-        .download_dir()
-        .map_err(|e| Problem::internal(e.to_string()))?;
+    let downloads = downloads(&app)?;
     let folder = crate::prefs::in_words(&app, &downloads);
     let name = file_name(&project.config.name);
     let file = match format {
@@ -524,7 +531,8 @@ pub async fn instructions_jobs(app: AppHandle) -> Result<emmet_core::instruction
     blocking(move || Ok(emmet_core::instructions::project_jobs(&data, &project)?)).await
 }
 
-/// The last book laid out, for the E2E page baselines (they draw its pages in the webview).
+/// The last book laid out, for the E2E page baselines (they draw its pages in the webview). Debug builds only: it holds
+/// every picture, tens of MB a book.
 static LAST_BOOK: Mutex<Option<emmet_core::instructions::Book>> = Mutex::new(None);
 
 /// Export → Instructions → PDF, second half: lays the book out from what the window drew and writes it into
@@ -541,10 +549,7 @@ pub async fn export_instructions(
     let paper = emmet_core::instructions::Paper::for_locale(&locale);
     let state = app.state::<AppState>();
     let (data, project) = (state.data.clone(), state.project()?);
-    let downloads = app
-        .path()
-        .download_dir()
-        .map_err(|e| Problem::internal(e.to_string()))?;
+    let downloads = downloads(&app)?;
     let folder = crate::prefs::in_words(&app, &downloads);
     let path = unique_file(
         &downloads,
@@ -562,7 +567,9 @@ pub async fn export_instructions(
         Ok(emmet_core::instructions::write(&data, &project, &jobs, &drawn, paper, Some(&out))?.1)
     })
     .await?;
-    *LAST_BOOK.lock().expect("book") = Some(book);
+    if cfg!(debug_assertions) {
+        *LAST_BOOK.lock().expect("book") = Some(book);
+    }
     *LAST_EXPORT.lock().expect("export") = Some(path.clone());
     Ok(Exported {
         file: path
@@ -573,7 +580,7 @@ pub async fn export_instructions(
     })
 }
 
-/// The last book Export → Instructions laid out, or null (the E2E page baselines).
+/// The last book Export → Instructions laid out, or null (the E2E page baselines; always null in a release build).
 #[tauri::command]
 #[specta::specta]
 pub fn last_book() -> Option<emmet_core::instructions::Book> {
@@ -590,10 +597,7 @@ pub async fn save_screenshot(app: AppHandle, png: String) -> Result<Exported, Bo
     let bytes = emmet_core::base64::decode(&png)
         .filter(|b| b.starts_with(b"\x89PNG\r\n\x1a\n"))
         .ok_or_else(|| Problem::internal("The screenshot wasn't a picture Emmet could save."))?;
-    let downloads = app
-        .path()
-        .download_dir()
-        .map_err(|e| Problem::internal(e.to_string()))?;
+    let downloads = downloads(&app)?;
     let folder = crate::prefs::in_words(&app, &downloads);
     let path = unique_file(&downloads, &format!("{}.png", file_name(&project.config.name)));
     let out = path.clone();

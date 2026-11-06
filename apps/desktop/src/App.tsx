@@ -514,7 +514,9 @@ export function App() {
   // the book out and writes it into Downloads, on the paper this locale uses.
   const drawing = useRef(false);
   const exportInstructions = async () => {
-    if (drawing.current || !scene) return;
+    // Say why a click does nothing.
+    if (drawing.current) return say("Emmet is already drawing the instructions.");
+    if (!scene) return say("Build the model first: the instructions are drawn from it.");
     drawing.current = true;
     tipSeen("export");
     try {

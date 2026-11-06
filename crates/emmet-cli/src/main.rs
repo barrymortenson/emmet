@@ -161,7 +161,7 @@ enum Command {
     Export {
         #[arg(long, value_enum)]
         format: ExportFormat,
-        /// The PDF's paper: a4 or letter (default: letter in the US, Canada, and Mexico, from the locale; else a4).
+        /// The PDF's paper: a4 or letter (default: from the locale, letter where it's the usual paper: the US, Canada, Mexico, and a few more; else a4).
         #[arg(long, value_enum)]
         paper: Option<PaperArg>,
         /// Where to write it; by default build/export/.

@@ -39,9 +39,10 @@ pub fn write(book: &Book, title: &str) -> Vec<u8> {
     }
     w.object(
         5,
-        format!("<< /Title {} /Producer (Emmet) >>", string(title)).as_bytes(),
+        format!("<< /Title {} /Producer (Emmet) >>", text_string(title)).as_bytes(),
     );
     for (i, img) in book.images.iter().enumerate() {
+        // instructions::write checked every picture decodes to a JPEG.
         let jpeg = crate::base64::decode(&img.jpeg).unwrap_or_default();
         let head = format!(
             "<< /Type /XObject /Subtype /Image /Width {} /Height {} /ColorSpace /DeviceRGB /BitsPerComponent 8 \
@@ -144,6 +145,17 @@ fn rgb(c: Rgb) -> String {
 }
 
 /// A PDF string in WinAnsiEncoding, with `(`, `)`, and `\` escaped and bytes past ASCII as octal escapes.
+/// A text string outside a page (the document's title): UTF-16BE with its byte order mark, which every reader shows as
+/// written. WinAnsi bytes there read as PDFDocEncoding, where a curly apostrophe is a trademark sign.
+fn text_string(s: &str) -> String {
+    let mut out = String::from("<FEFF");
+    for unit in s.encode_utf16() {
+        let _ = write!(out, "{unit:04X}");
+    }
+    out.push('>');
+    out
+}
+
 fn string(s: &str) -> String {
     let mut out = String::from("(");
     for c in s.chars() {
@@ -312,4 +324,16 @@ fn paint_end(s: &mut String, fill: Option<Rgb>, stroke: Option<Rgb>) {
         (true, false) => "f\n",
         _ => "S\n",
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn text_is_escaped_and_the_title_is_utf_16() {
+        assert_eq!(string("A (b) \\ c"), "(A \\(b\\) \\\\ c)");
+        assert_eq!(string("Caf\u{e9} \u{2014}"), "(Caf\\351 \\227)");
+        assert_eq!(text_string("Dad\u{2019}s"), "<FEFF00440061006420190073>");
+    }
 }

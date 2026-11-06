@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! The pages, by section 08's step rules, as a display list in points from the page's top left (y down): a cover, the
-//! steps (the step number under its parts box, the build with its new parts outlined, a sub-assembly in its own box
+//! steps (the step number over its parts box, the build with its new parts outlined, a sub-assembly in its own box
 //! with numbered sub-steps and a line to where it goes, arrows, zoom boxes, the turn icon), the parts list, and page
 //! numbers. [`super::pdf`] writes it; the E2E page baselines draw the same list.
 
@@ -41,12 +41,16 @@ impl Paper {
     /// Letter where it's the usual paper (the US, Canada, Mexico, and a few more), A4 everywhere else, from a locale
     /// like "en-US" or "en_US.UTF-8".
     pub fn for_locale(locale: &str) -> Paper {
+        // The region is the two-letter subtag after the language (and script), before any extension ("-u-…"):
+        // "en-US", "zh-Hant-TW", "en-US-u-ca-gregory". None ("en", "C") is A4.
         let region = locale
             .split(['.', '@'])
             .next()
             .unwrap_or("")
-            .rsplit(['-', '_'])
-            .next()
+            .split(['-', '_'])
+            .skip(1)
+            .take_while(|t| t.len() > 1)
+            .find(|t| t.len() == 2 && t.chars().all(|c| c.is_ascii_alphabetic()))
             .unwrap_or("")
             .to_ascii_uppercase();
         if [
@@ -287,7 +291,8 @@ impl Ctx<'_> {
         (items, w, h)
     }
 
-    /// One step: its parts box, its number under it, and the build beside the number at `scale` points per LDU.
+    /// One step: its number (the turn icon beside it), its parts box under it, then the build at `scale` points per LDU,
+    /// with a zoom box beside or over it.
     fn step(&mut self, step: &Step, d: &DrawnStep, scale: f64, turned: bool, sub: bool, max_w: f64) -> Block {
         let (number, column) = if sub {
             (SUB_NUMBER, SUB_NUMBER_COLUMN)
@@ -562,25 +567,19 @@ pub fn book(src: &Sources, paper: Paper) -> Result<Book> {
         let mut puts_on = Vec::new();
         for placed in &step.submodels {
             flush(&mut rows, &mut pending);
-            let Some(run) = src
-                .jobs
-                .runs
-                .iter()
-                .position(|r| r.file.eq_ignore_ascii_case(&placed.file))
+            let Some((at, sub_rows)) = sub_assembly(
+                &mut ctx,
+                src,
+                &placed.file,
+                placed.count,
+                content_w,
+                fit(d),
+                &mut callouts,
+                0,
+            )?
             else {
                 continue;
             };
-            let Some(model) = src
-                .steps
-                .submodels
-                .iter()
-                .find(|m| m.file.eq_ignore_ascii_case(&placed.file))
-            else {
-                continue;
-            };
-            let at = callouts.len();
-            callouts.push(Callout { count: placed.count });
-            let sub_rows = callout_rows(&mut ctx, &model.steps, &drawn.runs[run], content_w, fit(d), at)?;
             rows.extend(sub_rows);
             if let Some(last) = rows.last_mut() {
                 last.keep_with_next = true;
@@ -649,6 +648,60 @@ pub fn book(src: &Sources, paper: Paper) -> Result<Book> {
     })
 }
 
+/// A sub-assembly's box, `count` times: the boxes of the sub-assemblies its sub-steps put on first (a chair before the
+/// table set it goes into), then its own. Its index in `callouts` and the rows, or None when the book has no pictures
+/// of it.
+#[allow(clippy::too_many_arguments)]
+fn sub_assembly(
+    ctx: &mut Ctx,
+    src: &Sources,
+    file: &str,
+    count: usize,
+    content_w: f64,
+    scale: f64,
+    callouts: &mut Vec<Callout>,
+    depth: usize,
+) -> Result<Option<(usize, Vec<Row>)>> {
+    // A file that puts itself on would never end; LDraw forbids it, and so does this.
+    if depth > 16 {
+        return Ok(None);
+    }
+    let Some(run) = src.jobs.runs.iter().position(|r| r.file.eq_ignore_ascii_case(file)) else {
+        return Ok(None);
+    };
+    let Some(model) = src.steps.submodels.iter().find(|m| m.file.eq_ignore_ascii_case(file)) else {
+        return Ok(None);
+    };
+    let mut rows = Vec::new();
+    for sub in &model.steps {
+        for placed in &sub.submodels {
+            if let Some((_, inner)) = sub_assembly(
+                ctx,
+                src,
+                &placed.file,
+                placed.count,
+                content_w,
+                scale,
+                callouts,
+                depth + 1,
+            )? {
+                rows.extend(inner);
+            }
+        }
+    }
+    let at = callouts.len();
+    callouts.push(Callout { count });
+    rows.extend(callout_rows(
+        ctx,
+        &model.steps,
+        &ctx.drawn.runs[run],
+        content_w,
+        scale,
+        at,
+    )?);
+    Ok(Some((at, rows)))
+}
+
 /// A sub-assembly's sub-steps as rows inside its box: each a small step block, several to a row.
 fn callout_rows(
     ctx: &mut Ctx,
@@ -664,8 +717,8 @@ fn callout_rows(
         ));
     }
     let inner = content_w - 2.0 * CALLOUT_PAD;
-    // No smaller than the step that puts it on, so a small unit reads; its largest sub-step no more than a third of the box
-    // wide (or the whole box, for a unit too wide for that) and 150 points tall.
+    // Its largest sub-step a third of the box wide and at most 150 points tall, but no smaller than the step that puts
+    // it on, so a small unit reads; that floor can make a sub-step wider (up to the box) or taller.
     let fit = drawn
         .iter()
         .map(|d| {
@@ -726,7 +779,7 @@ fn paginate(rows: Vec<Row>, callouts: &[Callout], content_w: f64, content_h: f64
     let mut pages: Vec<Page> = Vec::new();
     let mut items: Vec<Item> = Vec::new();
     let mut y = 0.0;
-    // Each callout's box on this page: (top, bottom).
+    // Each callout's box on this page: (its callout, top, bottom).
     let mut boxes: Vec<(usize, f64, f64)> = Vec::new();
     let finish = |items: &mut Vec<Item>, boxes: &mut Vec<(usize, f64, f64)>, pages: &mut Vec<Page>| {
         let mut page = Vec::new();
@@ -975,6 +1028,27 @@ mod tests {
             Item::Path { points, .. } => points.iter().fold((x, y), |(x, y), p| (x.max(p[0]), y.max(p[1]))),
             Item::Text { .. } => (x, y),
         })
+    }
+
+    #[test]
+    fn the_locale_picks_the_paper() {
+        for (locale, paper) in [
+            ("en-US", Paper::Letter),
+            ("en_US.UTF-8", Paper::Letter),
+            ("fr_CA", Paper::Letter),
+            ("es-MX", Paper::Letter),
+            ("en-US-u-ca-gregory", Paper::Letter),
+            ("en-GB", Paper::A4),
+            ("de_DE.UTF-8", Paper::A4),
+            ("zh-Hant-TW", Paper::A4),
+            ("sr_RS@latin", Paper::A4),
+            ("es-419", Paper::A4),
+            ("en", Paper::A4),
+            ("C", Paper::A4),
+            ("", Paper::A4),
+        ] {
+            assert_eq!(Paper::for_locale(locale), paper, "{locale}");
+        }
     }
 
     // Rung 2's bench, page 32: sub-step 1's zoom box, beside a short, wide picture, ran out of the sub-assembly's box

@@ -2,7 +2,7 @@
 //! Building instructions as a PDF (plan sections 08 and 14, session 4E, ADR 0014), in three parts:
 //!
 //! 1. [`jobs`]: what a book needs drawn, from build/steps.json and build/placements.json: the cover, every step of the
-//!    main model and of each sub-assembly (in groups that share a camera), and every part × color in a parts box.
+//!    main model and of each sub-assembly (in title groups; the webview picks the camera runs), and every part × color.
 //! 2. The webview draws them through `viewer.render` (apps/desktop/src/instructions.ts) and returns [`Drawn`]: JPEGs,
 //!    and what the layout needs to know about each picture.
 //! 3. [`book`] lays the pages out by section 08's step rules as a display list, and [`pdf::write`] writes it.
@@ -59,7 +59,7 @@ pub struct Run {
     pub copy: String,
     /// How deep the sub-assembly sits: 0 for one the main model places.
     pub depth: u32,
-    /// The steps in order, in groups that share one camera (a run of steps under one title).
+    /// The steps in order, grouped by title (the webview flattens them and picks its own camera runs).
     pub groups: Vec<Vec<StepJob>>,
 }
 
@@ -103,7 +103,7 @@ pub struct Picture {
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 pub struct DrawnStep {
     pub n: u32,
-    /// The build up to the step, its new parts outlined, cropped the same for every step of its group.
+    /// The build up to the step, its new parts outlined, cropped the same for every step of its camera run.
     pub picture: Picture,
     /// The picture's pixels per LDU at the model's center: how big a brick is, for one scale through the book.
     pub ldu: f64,
@@ -204,7 +204,7 @@ pub fn jobs(steps: &Steps, placements: &[Placement]) -> Jobs {
     }
 }
 
-/// Consecutive steps with the same title group share a camera.
+/// Consecutive steps with the same title group, in order.
 fn groups<'a>(steps: impl Iterator<Item = (&'a str, StepJob)>) -> Vec<Vec<StepJob>> {
     let mut out: Vec<Vec<StepJob>> = Vec::new();
     let mut last: Option<&str> = None;
@@ -261,6 +261,17 @@ pub fn write(
     out: Option<&Path>,
 ) -> Result<(Written, Book)> {
     let steps = crate::steps::steps(data, project)?;
+    // The pictures were drawn from `jobs`, a minute or more ago, while an agent may have changed the model: a book of
+    // the old pictures with the new parts boxes would say nothing was wrong.
+    let (placements, _) = crate::ops::built_placements(project)?;
+    if crate::instructions::jobs(&steps, &placements) != *jobs {
+        return Err(Error::new(
+            ErrorCode::ParamInvalid,
+            "The model changed while Emmet drew the instructions.",
+            "Export the instructions again.",
+        ));
+    }
+    check(jobs, drawn)?;
     let bom = crate::ops::bom_build(data, project, crate::bom::ColorNames::preferred(data))?;
     let book = book(
         &Sources {
@@ -294,7 +305,38 @@ pub fn write(
     ))
 }
 
-/// The BOM's lines by part and color, for the parts boxes.
+/// What was drawn is what `jobs` asked for: every run's steps in order, every part, and every picture a JPEG.
+fn check(jobs: &Jobs, drawn: &Drawn) -> Result<()> {
+    let shaped = drawn.runs.len() == jobs.runs.len()
+        && drawn.parts.len() == jobs.parts.len()
+        && jobs
+            .runs
+            .iter()
+            .zip(&drawn.runs)
+            .all(|(r, d)| r.groups.iter().flatten().map(|s| s.n).eq(d.iter().map(|s| s.n)));
+    if !shaped {
+        return Err(Error::internal(
+            "The webview drew a different set of pictures than the book asked for.",
+        ));
+    }
+    let steps = drawn.runs.iter().flatten();
+    let pictures = std::iter::once(&drawn.cover)
+        .chain(steps.clone().map(|s| &s.picture))
+        .chain(steps.filter_map(|s| s.zoom.as_ref().map(|z| &z.picture)))
+        .chain(&drawn.parts);
+    for p in pictures {
+        let jpeg = crate::base64::decode(&p.jpeg).unwrap_or_default();
+        if !jpeg.starts_with(&[0xFF, 0xD8, 0xFF]) || p.width == 0 || p.height == 0 {
+            return Err(Error::internal(format!(
+                "The webview sent a {} x {} picture that isn't a JPEG.",
+                p.width, p.height
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// The BOM's lines by part and color, for the parts list's color names.
 pub(crate) fn names(bom: &Bom) -> HashMap<(String, u32), (String, String)> {
     bom.lines
         .iter()
@@ -322,4 +364,38 @@ pub(crate) fn own_export(project: &Project, name: &str) -> Result<PathBuf> {
         )
         .at_file("build/export")
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // A picture the webview couldn't encode went into the PDF as an empty image, and the export said it was saved.
+    #[test]
+    fn a_picture_that_isnt_a_jpeg_is_an_error() {
+        let jobs = Jobs {
+            step_size: STEP_SIZE,
+            part_size: PART_SIZE,
+            cover_size: COVER_SIZE,
+            runs: Vec::new(),
+            parts: Vec::new(),
+            page_background: [255; 3],
+            callout_background: [255; 3],
+            part_background: [255; 3],
+        };
+        let drawn = |jpeg: &[u8]| Drawn {
+            cover: Picture {
+                jpeg: crate::base64::encode(jpeg),
+                width: 1,
+                height: 1,
+            },
+            runs: Vec::new(),
+            parts: Vec::new(),
+        };
+        assert!(check(&jobs, &drawn(&[0xFF, 0xD8, 0xFF, 0xE0])).is_ok());
+        for bad in [&b""[..], b"\x89PNG\r\n"] {
+            let err = check(&jobs, &drawn(bad)).unwrap_err();
+            assert!(err.message.contains("isn't a JPEG"), "{err:?}");
+        }
+    }
 }
