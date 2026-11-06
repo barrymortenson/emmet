@@ -902,3 +902,13 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **Rung 2 is legible printed on A4 and Letter** (Barry, 2026-11-05, through AskUserQuestion, on pages 1, 2, 32, 45,
   and 48 of each: "it is legible on both"). His one change: "the blur around the edges of the image ... makes the part
   look blurry", so a close frame's cut edges are no longer faded (ADR 0014). 4E's Done when 1.
+
+## 2026-11-06, session 4E
+
+- **4E's Windows page baselines wait for the Windows pass** (Barry, 2026-11-06, through AskUserQuestion: "Defer to
+  Windows pass"). On the hosted Windows runner, the PDF read-back tests pass through render mode (run 42122932036),
+  and the app's Export → PDF saves both books (run 42159781016: the Cottage in 171 s, rung 2 in 88 s, drawn in
+  software); the page baselines were never written there, as the spec missed Windows' "Saved" toast (it names the
+  folder by its path; fixed in 75661bb). Done when 2b stays unticked for Windows in the PR. Rejected: a fifth manual
+  Windows run now.
+

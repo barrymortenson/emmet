@@ -59,7 +59,11 @@ Most of a file is the step pictures (each about 150 to 270 KB): studs compress p
 sets this size run 15 to 40 MB. Preview and PDFKit open every page; the read-back test (`tests/it/tests/instructions.rs`)
 checks the cross-reference table, the pages, and that every picture is a JPEG.
 
-Windows: see the 4E PR (the manual Windows run, D-43).
+Windows (the hosted runner, no GPU: WebView2 draws in software, 2026-11-05 and 06, manual runs under D-43): the
+read-back tests pass, the Cottage's export included, through render mode (run 42122932036), and the app's Export →
+PDF saves the Cottage in 171 s and rung 2 in 88 s (run 42159781016). The PDF is written by the same Rust code, in the
+same base-14 fonts, with no native path of its own; what differs is how long the webview takes to draw. Windows' page
+baselines and its time on real hardware wait for the Windows pass (Barry, 2026-11-06).
 
 ## Rerun
 
