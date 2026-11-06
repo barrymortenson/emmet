@@ -334,16 +334,19 @@ impl Ctx<'_> {
             ));
         }
         let mut reach = pw;
+        let mut bottom = head + ph;
         if let Some(z) = &d.zoom {
-            // Beside the picture when there's room, else over the picture's corner farthest from what it shows.
-            let free = max_w - pw - 10.0;
+            // Beside the picture, and no taller than it, when there's room; else over the picture's corner farthest
+            // from what it shows. Either way the block holds it: a box past the block ran out of a sub-assembly's box.
+            let aspect = f64::from(z.picture.height) / f64::from(z.picture.width.max(1));
+            let free = (max_w - pw - 10.0).min(170.0).min(ph / aspect);
             let beside = free >= 90.0;
             let zw = if beside {
-                free.min(170.0)
+                free
             } else {
-                (pw * 0.34).clamp(70.0, 170.0)
+                (pw * 0.34).clamp(70.0, 170.0).min((ph - 8.0).max(40.0) / aspect)
             };
-            let zh = zw * f64::from(z.picture.height) / f64::from(z.picture.width.max(1));
+            let zh = zw * aspect;
             let at = [px + z.x * sx, py + z.y * sy];
             let (zx, zy) = if beside {
                 reach += 10.0 + zw;
@@ -387,6 +390,7 @@ impl Ctx<'_> {
                 w: zw,
                 h: zh,
             });
+            bottom = bottom.max(zy + zh + 3.0);
         }
         let copies = d
             .copies
@@ -395,7 +399,7 @@ impl Ctx<'_> {
             .collect();
         Block {
             w: reach.max(bw),
-            h: head + ph,
+            h: bottom,
             items,
             copies,
         }
@@ -947,4 +951,79 @@ fn parts_pages(src: &Sources, ctx: &mut Ctx, content_w: f64, content_h: f64) -> 
         pages.push(Page { number: None, items });
     }
     pages
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::instructions::{Spot, Zoom};
+
+    fn picture(width: u32, height: u32) -> Picture {
+        Picture {
+            jpeg: String::new(),
+            width,
+            height,
+        }
+    }
+
+    /// The farthest right and down any box, picture, or line in `items` reaches.
+    fn reach(items: &[Item]) -> (f64, f64) {
+        items.iter().fold((0.0_f64, 0.0_f64), |(x, y), it| match it {
+            Item::Rect { x: ix, y: iy, w, h, .. } | Item::Image { x: ix, y: iy, w, h, .. } => {
+                (x.max(ix + w), y.max(iy + h))
+            }
+            Item::Path { points, .. } => points.iter().fold((x, y), |(x, y), p| (x.max(p[0]), y.max(p[1]))),
+            Item::Text { .. } => (x, y),
+        })
+    }
+
+    // Rung 2's bench, page 32: sub-step 1's zoom box, beside a short, wide picture, ran out of the sub-assembly's box
+    // and across the lines to where the copies go.
+    #[test]
+    fn a_zoom_box_stays_inside_its_step() {
+        let drawn = Drawn {
+            cover: picture(1, 1),
+            runs: Vec::new(),
+            parts: Vec::new(),
+        };
+        let step = Step {
+            n: 1,
+            title: String::new(),
+            group: String::new(),
+            part_ids: Vec::new(),
+            parts: Vec::new(),
+            submodels: Vec::new(),
+        };
+        for (pw, ph, max_w) in [(300, 100, 500.0), (300, 60, 500.0), (300, 40, 320.0), (300, 200, 320.0)] {
+            let d = DrawnStep {
+                n: 1,
+                picture: picture(pw, ph),
+                ldu: 1.0,
+                turn: 0,
+                copies: Vec::<Spot>::new(),
+                arrows: Vec::new(),
+                zoom: Some(Zoom {
+                    picture: picture(480, 480),
+                    x: 10.0,
+                    y: 10.0,
+                }),
+            };
+            let mut ctx = Ctx {
+                drawn: &drawn,
+                images: Images {
+                    list: Vec::new(),
+                    parts: HashMap::new(),
+                },
+                parts: Default::default(),
+            };
+            let block = ctx.step(&step, &d, 1.0, false, true, max_w);
+            let (x, y) = reach(&block.items);
+            assert!(
+                x <= block.w + 3.0 && y <= block.h,
+                "{pw} x {ph} in {max_w}: reaches ({x}, {y}), block {} x {}",
+                block.w,
+                block.h
+            );
+        }
+    }
 }
