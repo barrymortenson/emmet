@@ -8,7 +8,8 @@ were regenerated, and each example validates clean, figure_clearance included (`
 also checks this table has a row for every technique).
 
 Four readers drafted a row each from the code; the verdicts and every fix were checked against the code and tested.
-**331 fine, 39 fixed, 8 limited by design.** Beyond the 4B station's canopy and
+**331 fine, 39 fixed, 8 limited by design.** Session 4G added seven display-bike techniques, each fine at display
+scale, where no figure has to fit. Beyond the 4B station's canopy and
 porches, the audit found doorways that kept nothing clear or were too low for a figure (`portcullis` was 6 plates,
 `cave_mouth` about 10, `brick_built_arch` 3), seats with no room declared, a colonnade 9 plates high, a footbridge whose
 posts left 1 stud between them, three vehicles whose seat faced the rear a quarter stud off the grid, and cabs 5 plates
@@ -70,6 +71,7 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `car_wheels` | none | — | — | — | fine | — |
 | `cargo_pallet` | none | — | — | — | fine | — |
 | `cave_mouth` | walk-through | opening 4 wide (x+2..x+6): jambs 2 courses (z..z+6), then the arch 15254 (1 x 6 x 2) from z+6 to z+12; the docstring gives the opening as 'a little over 3 bricks' (about 10 plates); the dark back wall 2 studs in (y+2), so the mouth is 2 deep; 75-degree slopes … | all hard-coded: two jamb courses set the opening's height; no argument for it | returns the top only; not the opening's top | fixed | jambs (5 by default; the mouth was about 10 plates high, now 15); keeps the front clear; returns .door_top and .door |
+| `chain_drive` | none | display scale: no figure (4G) | — | — | fine | — |
 | `chamfered_door_portal` | walk-through | opening 4 wide (x+2..x+6) in an 8-long wall 2 thick (y..y+2); height=5 bricks (15 plates; 3 to 8); 3039 slopes at the foot (z..z+3) and 3660b at the head (z+12..z+15) take a stud each side, so the full 4 studs are clear z+3..z+12 and the middle 2 up to z+15 … | opening width 4 and the chamfer pieces | returns the lintel's top; not the opening's top (door_top) or footprint | fixed | height 6 by default (was 5), lining up with a 1 x 4 x 6 door; keeps the way through its 2-thick wall clear; returns .door_top and .door |
 | `checker_light_wall` | none | — | — | — | fine | — |
 | `chimney_stack` | none | — | — | — | fine | — |
@@ -108,7 +110,9 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `davit_lifeboat` | none | — | — | — | fine | — |
 | `dentil_band` | none | — | — | — | fine | — |
 | `dirt_path` | walk-on | a path 2 studs wide, surface z+1 | — | — | fine | — |
+| `disc_brake` | none | display scale: no figure (4G) | — | — | fine | — |
 | `display_case_counter` | walk-past | counter 2 deep x length 4; top plate z+7, tiles at z+8 (surface z+9) | — | — | fine | — |
+| `display_stand_nameplate` | none | display scale: no figure (4G) | — | — | fine | — |
 | `dock_pier` | walk-on | deck width 4 (2 to 8), planks' top z + 3*height + 3 (z+9 by default); piles under it | — | returns the planks' top | fine | — |
 | `dome_from_quarters` | none | — | — | — | fine | — |
 | `dome_window_hood` | none | — | — | — | fine | — |
@@ -160,6 +164,7 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `greeble_strip` | none | — | — | — | fine | — |
 | `half_roof_hinge` | none | — | — | — | fine | — |
 | `half_timber_band` | none | — | — | — | fine | — |
+| `handlebars` | none | display scale: no figure (4G) | — | — | fine | — |
 | `hang_on_side_panel` | none | — | — | — | fine | — |
 | `hangar_chevron_floor` | walk-on | plates + tiles, top z+2 | — | — | fine | — |
 | `hanging_planter` | walk-past | arms 1 x 3 plates reach 2 studs out from the facade at the caller's z; pot + leaves + bloom about 5 plates over the arm | — | — | fine | — |
@@ -215,6 +220,7 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `mini_dormer` | none | — | — | — | fine | — |
 | `module_link_block` | none | — | — | — | fine | — |
 | `mossy_stone_block` | none | — | — | — | fine | — |
+| `motorbike_frame` | none | display scale: no figure (4G) | — | — | fine | — |
 | `mowed_pitch` | none | — | — | — | fine | — |
 | `muzzle_and_nose` | none | — | — | — | fine | — |
 | `oars` | none | — | — | — | fine | — |
@@ -334,6 +340,8 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `studs_up_snow_roof` | none | — | — | — | fine | — |
 | `sunken_pond_bank` | none | — | — | — | fine | — |
 | `surf_line` | none | — | — | — | fine | — |
+| `suspension_fork` | none | display scale: no figure (4G) | — | — | fine | — |
+| `swingarm_shock` | none | display scale: no figure (4G) | — | — | fine | — |
 | `table_and_chairs` | sit | chair 1 x 1, seat top 3 plates (bracket 36840 at z + 2); table top 5 plates (round: 2 x 2 round tile, underside z + 4; long: tile on a 2 x 4 plate whose underside is z + 3); set 4 x 4 (round) or 6 x 4 (long) | seat (3 plates) and top (5 plates) heights hard-coded in _chair and _set; chair spots in SEATS | returns the set's Handle only, not the chairs' (x, y) and facing | fixed | each chair keeps a stud at each side and 9 plates over its seat clear (the table is where the legs go, by design) |
 | `tail_lights` | none | — | — | — | fine | — |
 | `tapered_deck` | none | — | — | — | fine | — |

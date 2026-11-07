@@ -31,6 +31,24 @@ studs up, the floor a brick above it (`large_display_wheel`). Headlights 2 studs
 tail lights, a grille of grille tiles across 6 to 10 studs in a chrome frame (`ring_light_grille`,
 `round_tail_light_cluster`, `side_vent_grille`, `flared_exhaust`). Steering through a rack (`steering_rack`).
 
+## Display bikes (1:6 to 1:10)
+
+A motorbike, a dirt bike, or a moto-style e-bike: about 38 to 45 studs long on motorcycle wheels (88517c01, 12.6
+studs across), standing on a stand with a nameplate. Its skeleton is Technic beams on edge, never stacked bricks, and
+every joint is a pin or an axle in a hole: part_info gives a part's holes by name, `m.beam` lays a beam from one hole
+to another on a whole-stud triangle (3-4-5, 5-12-13), and `m.insert` seats a pin or an axle in a named hole, so no
+test build is needed to find a hole. Build it in this order:
+
+- The stand, then the frame hung on its post (`display_stand_nameplate`, `motorbike_frame`): a triangle of beams a
+  side, the head raked forward on a 5-12-13 line.
+- The swingarm with its shock and the rear wheel, then the chain on its sprockets (`swingarm_shock`, `chain_drive`).
+- The fork with its shocks and the front wheel, its brakes, and the bars with their grips and levers
+  (`suspension_fork`, `disc_brake`, `handlebars`).
+- Then the bodywork, on the frame's holes and hung from it, in the subject's colors: the tank or the e-bike's battery
+  in the frame's triangle, the motor, the seat and its subframe, side panels and number boards, fenders over both
+  wheels, lights, the exhaust, footpegs, and mirrors. The skeleton is about 200 parts; the rest is what makes it this
+  bike, so expect 600 to 2,000 in all.
+
 ## Other subjects
 
 A large building or object: a stand or base with a nameplate (`smooth_display_base`); see `guide sculpture` for round

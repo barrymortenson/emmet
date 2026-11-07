@@ -26,7 +26,10 @@ Read the guide, then run → validate → render → fix, every time:
    change. Where the prompt and a guide disagree, the prompt wins.
 1. Find parts with `search_parts` ("brick 1x4", "slope 45 2 x 2"), all a stage needs in one call (`more` takes the
    other queries). Each result gives the part's size in studs and plates, which is enough to place it; call
-   `part_info` only when you need what search doesn't say.
+   `part_info` only when you need what search doesn't say. For Technic beams, bricks with holes, pins, and axles,
+   `part_info` names every hole with where it is and which way it runs: place them by their holes (`m.beam` on a
+   whole-stud triangle, `m.insert` for a pin or an axle, `m.add(..., hole=)`), never by guessing offsets or test
+   builds.
 2. Write `model.py`: one `@model` function. Name two to five of its parameters as knobs, `@model(knobs=[...])`, up
    to eight for a detailed model like the Cottage: the ones that change the model's character (how worn it looks, a
    feature on or off, a season or a style of roof or wall, a count of floors or windows, a `seed` for another
@@ -122,6 +125,8 @@ steps; its example validates clean in the library's tests, and you validate your
   cockpit_canopy, hatch_on_hinge, landing_leg, turret, radar_dish, antenna_mast, solar_panel, control_console.
 - Mechanisms that move: gear_pair, worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace,
   rotating_platform, ball_joint_arm.
+- Display bikes (`guide large`): display_stand_nameplate, motorbike_frame, swingarm_shock, chain_drive,
+  suspension_fork, disc_brake, handlebars.
 - Small tricks: jumper_offset (half a stud over).
 - Let the helpers do the counting: `m.wall` for walls with openings and interlocking corners, `m.row` and `m.fill`
   for runs and floors of the longest pieces, `m.stack`, `m.grid`, `m.repeat`, and `m.mirror`. `Brick(2, 4)`,

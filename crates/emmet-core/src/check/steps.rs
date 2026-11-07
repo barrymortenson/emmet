@@ -295,6 +295,11 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize, misplaced: &HashSet<usize>) ->
             continue;
         }
         mates.insert(other);
+        // A pin or axle in a hole that runs through its mate can be pushed in through the mate from its far side (a
+        // pin through one beam into the next, 4G): that mate doesn't fix the way in.
+        if c.a == i && c.shaft.is_some() && c.toward_b.is_none() {
+            continue;
+        }
         if let Some(w) = if c.a == i { c.toward_a } else { c.toward_b } {
             ways.push((w, other));
         }
