@@ -216,6 +216,14 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   beside the model, without moving the camera. The doctrine says how to build from a photo and when to ask for
   another angle. `emmet eval --rung photo --subject <id>` runs the photo rung's dry run with the fake agents
   (`--dry-run`) or scores Barry's hand session (`--score <project> --rubric P,R,B`), sending nothing to an agent.
+- Technic by holes (session 4G): part_info, `emmet part`, and the DSL name every Technic pin hole, axle hole, pin,
+  and axle of a part, with where it is and which way it runs; `Handle.hole`, `m.add(..., hole=)`, `m.beam` (a beam
+  laid from one hole to another on a whole-stud triangle), and `m.insert` (a pin or an axle seated in a named hole).
+  The validator takes an axle through a wheel's hub as no collision and a wheel on its axle as no weak connection, a
+  pin or axle must be in its hole to hold, and a pin that misses its hole gets a hint that names the hole. Seven
+  display-bike techniques (motorbike_frame, swingarm_shock, suspension_fork, chain_drive, disc_brake, handlebars,
+  display_stand_nameplate) and the large guide's Display bikes. ldraw-mini moves to LDraw 2026-10, the release Emmet
+  pins.
 - Building instructions as a PDF (session 4E): Export → Instructions → PDF in the app, and `emmet export --format pdf
   [--paper a4|letter]`, with no LPub3D needed. A cover; the steps, two to a page, each with its number over its parts
   box and its new parts outlined in red; a camera that stays put through a run of steps and follows the work; each
