@@ -37,6 +37,24 @@ The (x, y, z) corner of the part's body with the lowest values.
 
 The (x, y, z) corner of the part's body with the highest values; the next part can sit at max's z.
 
+### Handle.hole(name)
+
+The part's Technic hole, pin, or axle called `name` (part_info's "1" to "n"), where it is in the model: its
+middle `.at` (x, y, z) in studs, studs, plates, its `.axis`, `.kind`, and `.length` in studs. Seat a pin in it
+with Model.insert, or put another part's hole on it with Model.add(..., hole=).
+
+### Handle.holes (property)
+
+Every Technic hole, pin, and axle of the part, where each is in the model (see Handle.hole).
+
+## class Hole
+
+A Technic point of a placed part, in the model's frame: what Handle.hole returns.
+
+name: its name in part_info ("1" to "n"). kind: "pin_hole", "axle_hole", "pin", "axle", or "pin_axle". at: its
+middle, (x, y, z) in studs, studs, plates. axis: a unit direction along it, in the DSL's axes. length: in studs (a
+beam's hole is 1, a thin liftarm's 0.5). part and id: the part it belongs to.
+
 ## class Model
 
 A brick model built from LDraw parts in the DSL frame: x right and y back in studs, z up in plates.
@@ -47,13 +65,42 @@ Everything added inside is one build step (LDraw `0 STEP`). A step opened inside
 "<outer>: <inner>" ("<outer>, <inner>" when the outer title has a colon; just the inner title when it already
 starts with the outer one), so a technique's own steps group under the step that uses it.
 
-### Model.add(part: str, color, at=(0, 0, 0), rot: int | Rot = 0, id: str | None = None) -> Handle
+### Model.add(part: str, color, at=(0, 0, 0), rot: int | Rot = 0, id: str | None = None, hole=None) -> Handle
 
 Places one part so the minimum corner of its body (studs excluded), after rotation, is at `at`.
 
 part: an LDraw id ("3001") or a helper (Brick(2, 4)). color: a name in any spelling, or an LDraw code. at:
 (x, y, z) in studs, studs, plates. rot: quarter turns counterclockwise about z, seen from above, or a Rot. id:
-a stable name; by default "<step>/<n>".
+a stable name; by default "<step>/<n>". hole: one of the part's Technic holes (part_info names them): `at` is
+then where that hole's middle goes, not the footprint corner. A wheel goes on an axle this way, its hub's hole
+at a point on the axle.
+
+### Model.beam(part: str, color, at, run: float, rise: float = 0, axis: str = 'y', holes=(1, None), id: str | None = None) -> Handle
+
+Lays a Technic beam (or any part with two holes side by side) by its holes: hole holes[0] at `at`, and the
+beam running `run` studs along and `rise` studs up to its far hole, so a triangle whose sides are whole studs
+lands both ends on holes: run 4, rise 3 reaches a hole 5 along; run 12, rise 5 one 13 along (a 15-hole beam,
+holes 1 and 14).
+
+at: (x, y, z) in studs, studs, plates, where hole holes[0]'s middle goes (part_info and Handle.hole say where
+holes are). run and rise: in studs, both of them, from that hole to the far one (a rise of 5 studs is 12.5
+plates). axis: which way the holes run: "y" for a beam on edge in the x-z plane (run along x, rise up z), "x"
+for one in the y-z plane (run along y), "z" for a beam lying flat (run along x, rise along y). holes: the two
+holes it's laid by; the far one by default is whichever hole the run and rise reach. Returns its Handle, whose
+.hole(n) gives each hole where it landed.
+
+### Model.insert(part: str, color, hole, out: str | None = None, out_by: float | None = None, point=None, id=None) -> Handle
+
+Seats a pin, an axle, or an axle pin in a hole: `hole` is a Handle's hole (beam.hole(3)). It sticks out of
+the hole's face on the `out` side by `out_by` studs; by default its far end is flush with the hole's other face
+(a 2-long pin in a beam: 1 out, ready for the next beam; an axle 3: 2 out).
+
+out: "+y", "-y", … along the hole's axis, or "+" and "-"; by default the positive way along it. out_by: studs
+past the face, from 0 to the part's length (a 3-long pin through the middle of three beams: out_by=1). A 3/4
+pin goes in by its long end, an axle pin (3749) by its pin end (by its axle end into an axle hole), and a pin or
+axle on a part (a pin with a stop bush, an axle stub on a hub) by its free end. point:
+which of the part's pins or axles, when it has more than one. The hole already says where its part is, so
+Model.repeat doesn't move it again. Returns the part's Handle.
 
 ### Model.add_raw(part: str, color, matrix, id: str | None = None) -> Handle
 

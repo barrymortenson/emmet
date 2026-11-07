@@ -6,7 +6,7 @@
 use emmet_core::data::DataDir;
 use emmet_core::ldraw::geometry::{LibFiles, Measurer};
 use emmet_core::ldraw::{Line, normalize_ref};
-use emmet_it::{emmet, emmet_in, emmet_json, shared_data, shared_library, temp_dir, text};
+use emmet_it::{emmet, emmet_in, emmet_json, project, shared_data, shared_library, temp_dir, text};
 use glam::{DMat3, DVec3};
 use serde_json::Value;
 
@@ -183,6 +183,11 @@ fn every_technic_beam_brick_pin_and_axle_has_points() {
     assert!(checked >= 40, "only {checked} Technic parts in ldraw-mini");
 }
 
+/// The technic-brace golden project (`fault` as its docstring says), checked, with its connections.
+fn brace(params: &[&str]) -> (Value, i32) {
+    checked(&project("technic-brace"), params)
+}
+
 /// A project of `body` (the lines of the @model function after `m = Model()`), checked.
 fn check_of(name: &str, body: &str, params: &[&str]) -> (Value, i32) {
     let dir = temp_dir(&format!("technic-{name}")).join("p");
@@ -200,25 +205,30 @@ fn check_of(name: &str, body: &str, params: &[&str]) -> (Value, i32) {
     std::fs::write(
         dir.join("model.py"),
         format!(
-            "from emmet_dsl import Hole, Model, model\n\n\n@model\ndef build(fault: int = 0):\n    \"\"\"{name}.\"\"\"\n    \
+            "from emmet_dsl import Model, model\n\n\n@model\ndef build():\n    \"\"\"{name}.\"\"\"\n    \
              m = Model()\n{body}    return m\n"
         ),
     )
     .unwrap();
+    checked(&dir, params)
+}
+
+/// `emmet check` in a project after setting `params`, with the connections (`links`) when it ran.
+fn checked(dir: &std::path::Path, params: &[&str]) -> (Value, i32) {
     if !params.is_empty() {
         let mut args = vec!["params"];
         for p in params {
             args.extend(["--set", p]);
         }
-        let (v, code) = emmet_in(&dir, &args);
+        let (v, code) = emmet_in(dir, &args);
         assert_eq!(code, 0, "{v}");
     }
-    let (v, code) = emmet_in(&dir, &["check"]);
+    let (v, code) = emmet_in(dir, &["check"]);
     if code == 0 {
         // The connections, for the tests that need them.
         let lib = LibFiles::probe(&DataDir::at(shared_data()).ldraw());
         let index = emmet_core::index::Index::ensure(&DataDir::at(shared_data())).unwrap();
-        let project = emmet_core::project::Project::find(Some(&dir)).unwrap();
+        let project = emmet_core::project::Project::find(Some(dir)).unwrap();
         let (placements, _) = emmet_core::ops::built_placements(&project).unwrap();
         let links = emmet_core::check::links(&index, &lib, &placements).unwrap();
         let mut v = v;
@@ -228,28 +238,9 @@ fn check_of(name: &str, body: &str, params: &[&str]) -> (Value, i32) {
     (v, code)
 }
 
-/// A 15-hole beam on the table, a 15-hole brace from its hole 1 rising 5 studs over 12 to its hole 14, and a 7-hole
-/// beam level on the brace's top end, each pinned. `fault` 1 puts the top pin half a stud off the brace's hole; 2 puts
-/// it in the top beam pointing away from the brace, so the brace's hole 14 is empty.
-const BRACE: &str = r#"with m.step("Base"):
-    base = m.beam("32278", "Black", at=(0, 0.5, 1.25), run=14, id="base")
-with m.step("Brace"):
-    m.insert("2780", "Black", base.hole(1), out="+y", id="pin/low")
-    brace = m.beam("32278", "Red", at=(0, 1.5, 1.25), run=12, rise=5, id="brace")
-with m.step("Top"):
-    h = brace.hole(14)
-    if fault == 1:
-        h = Hole(h.name, h.kind, (h.at[0] + 0.5, h.at[1], h.at[2]), h.axis, h.length, h.part, h.id)
-    if fault == 2:
-        top = m.beam("32524", "Black", at=(12, 2.5, 13.75), run=6, id="top")
-        m.insert("2780", "Black", top.hole(1), out="+y", id="pin/high")
-    else:
-        m.insert("2780", "Black", h, out="+y", id="pin/high")
-        m.beam("32524", "Black", at=(12, 2.5, 13.75), run=6, id="top")"#;
-
 #[test]
 fn a_beam_on_a_5_12_13_triangle_seats_a_pin_at_each_end() {
-    let (v, code) = check_of("brace", BRACE, &[]);
+    let (v, code) = brace(&[]);
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
     // Each pin holds both beams it passes through.
@@ -274,7 +265,7 @@ fn a_beam_on_a_5_12_13_triangle_seats_a_pin_at_each_end() {
 #[test]
 fn a_pin_out_of_its_hole_is_a_finding_that_names_the_hole() {
     // Half a stud to one side: it runs into the brace's body, and nothing holds it or the top beam.
-    let (v, _) = check_of("brace-off", BRACE, &["fault=1"]);
+    let (v, _) = brace(&["fault=1"]);
     let findings = v["data"]["findings"].as_array().unwrap();
     let rules: Vec<&str> = findings.iter().map(|f| f["rule"].as_str().unwrap()).collect();
     assert!(rules.contains(&"collision") && rules.contains(&"floating"), "{v:#}");
@@ -289,7 +280,7 @@ fn a_pin_out_of_its_hole_is_a_finding_that_names_the_hole() {
         }
     }
     // In the top beam but not the brace: the top beam and its pin hang on nothing.
-    let (v, _) = check_of("brace-out", BRACE, &["fault=2"]);
+    let (v, _) = brace(&["fault=2"]);
     let findings = v["data"]["findings"].as_array().unwrap();
     assert_eq!(findings.len(), 1, "{v:#}");
     assert_eq!(findings[0]["rule"], "floating");
