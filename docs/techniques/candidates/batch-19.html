@@ -1,0 +1,175 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique candidates: batch-19</title>
+<style>
+  :root { color-scheme: light dark; --bg: #ffffff; --fg: #1d1d1f; --muted: #5f5f66; --line: #e4e4ea; --soft: #f6f6f8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #17181c; --fg: #ececf1; --muted: #a2a4ad; --line: #30323a; --soft: #202228; } }
+  body { margin: 0 auto; max-width: 1040px; padding: 24px; font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  header p { color: var(--muted); max-width: 760px; }
+  .card { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .shot { background: var(--soft); border-radius: 8px; min-height: 320px; display: grid; place-items: center; }
+  h2 { font-size: 17px; margin: 0 0 6px; } .n { color: var(--muted); font-weight: 400; }
+  .why { color: var(--muted); } .note { border-left: 3px solid var(--line); padding-left: 10px; } dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 10px 0; }
+  dt { color: var(--muted); } dd { margin: 0; } .pick { display: flex; gap: 16px; align-items: center; }
+  .pick input[type=text] { flex: 1; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+  footer { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0; display: flex; gap: 12px; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--soft); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Technique candidates: batch-19</h1>
+  <p>7 display-bike techniques for Emmet's technique library (session 4G), made from the e-bike hand check: a display motorbike's skeleton built by its holes, every joint a pin or an axle in a hole. Each picture is a render of the technique's example, which validates with no findings on ldraw-mini (its test); the seven together make the 203-part skeleton below, which validates clean too. They're written from general building knowledge, not from any model's file. Every one starts as Accept: switch the ones you don't want, add a note if it helps, then copy your answers and paste them to Claude.</p>
+  <p><img src="batch-19/skeleton-iso.png" alt="The seven techniques together: a motorbike skeleton on its stand" width="320" height="320"> <img src="batch-19/skeleton-front.png" alt="The skeleton from the side" width="320" height="320"></p>
+</header>
+<section class="card" data-n="1">
+  <div class="shot"><img src="../../../data/techniques/motorbike_frame.png" alt="The example of motorbike_frame" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">1</span> <code>motorbike_frame</code></h2>
+    <p>A triangle of Technic beams on edge a side, the steering head raked on a 5-12-13 line, joined by axles through the pivot and the head.</p>
+    <p class="why">The skeleton every display bike hangs on, so the swingarm, fork, chain, and bodywork go on holes, not guesses.</p>
+    <p class="note"><b>Note:</b> Sides 8 studs apart; the right side goes together first, then the pivot axle, the left side onto it, and the head axle. With on= (the stand&#x27;s hole) the pivot axle goes through the stand first.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>pin_color</code>, <code>axle_color</code>, <code>on</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/motorbike_frame.py"><code>data/techniques/motorbike_frame.py</code></a></dd>
+      <dt>Parts</dt><dd><code>32278</code> + <code>32524</code> + <code>40490</code> + <code>2780</code> + <code>3737</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for motorbike_frame">
+      <label><input type="radio" name="d1" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d1" value="reject"> Reject</label>
+      <input type="text" name="note1" placeholder="Note (optional)" aria-label="Note for motorbike_frame">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="2">
+  <div class="shot"><img src="../../../data/techniques/swingarm_shock.png" alt="The example of swingarm_shock" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">2</span> <code>swingarm_shock</code></h2>
+    <p>The rear swingarm on the frame&#x27;s pivot axle, a center shock absorber from the arms up to the frame, and the rear wheel on its axle.</p>
+    <p class="why">A display bike&#x27;s rear end: the arms slope down to the wheel, and the shock sets their angle.</p>
+    <p class="note"><b>Note:</b> The shock is 5.5 studs between holes, which no two whole-stud holes are; the arms hang on one axle, so the technique works out the angle (about 24.5 degrees down) that makes the shock fit both axles.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>wheel</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/swingarm_shock.py"><code>data/techniques/swingarm_shock.py</code></a></dd>
+      <dt>Parts</dt><dd><code>32525</code> + <code>73129</code> + <code>3737</code> + <code>3705</code> + <code>88517c01</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for swingarm_shock">
+      <label><input type="radio" name="d2" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d2" value="reject"> Reject</label>
+      <input type="text" name="note2" placeholder="Note (optional)" aria-label="Note for swingarm_shock">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="3">
+  <div class="shot"><img src="../../../data/techniques/suspension_fork.png" alt="The example of suspension_fork" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">3</span> <code>suspension_fork</code></h2>
+    <p>Each fork leg an upper beam on the head axle, a shock absorber beside it, and a lower beam on the same raked line, with the front wheel on an axle at the bottom.</p>
+    <p class="why">A raked telescopic fork that reads as suspension, built on the 5-12-13 rake so every joint is a pin in a hole.</p>
+    <p class="note"><b>Note:</b> The legs sit outside the frame on the head axle; the front wheel comes out level with the rear wheel to within a plate. The upper leg&#x27;s hole 1 is for the handlebars and the lower leg&#x27;s hole 2 for a brake caliper.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>wheel</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/suspension_fork.py"><code>data/techniques/suspension_fork.py</code></a></dd>
+      <dt>Parts</dt><dd><code>32316</code> + <code>73129</code> + <code>2780</code> + <code>3737</code> + <code>88517c01</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for suspension_fork">
+      <label><input type="radio" name="d3" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d3" value="reject"> Reject</label>
+      <input type="text" name="note3" placeholder="Note (optional)" aria-label="Note for suspension_fork">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="4">
+  <div class="shot"><img src="../../../data/techniques/chain_drive.png" alt="The example of chain_drive" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">4</span> <code>chain_drive</code></h2>
+    <p>Sprockets on the swingarm&#x27;s pivot and the rear axle, and a chain of Technic chain links round them in whole links.</p>
+    <p class="why">The chain a motorbike or e-bike shows on its right side.</p>
+    <p class="note"><b>Note:</b> The links clip to each other and the sprockets hold the loop; no allow is needed (the e-bike retry allowed it). The sprockets go on after the axles here.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>swingarm</code>, <code>sprocket_color</code>, <code>chain_color</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/chain_drive.py"><code>data/techniques/chain_drive.py</code></a></dd>
+      <dt>Parts</dt><dd><code>4019</code> + <code>3711</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for chain_drive">
+      <label><input type="radio" name="d4" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d4" value="reject"> Reject</label>
+      <input type="text" name="note4" placeholder="Note (optional)" aria-label="Note for chain_drive">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="5">
+  <div class="shot"><img src="../../../data/techniques/disc_brake.png" alt="The example of disc_brake" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">5</span> <code>disc_brake</code></h2>
+    <p>A brake disc on the front axle inside each fork leg, and a red caliper on the leg across the disc&#x27;s rim.</p>
+    <p class="why">Front disc brakes, the detail that says sports bike.</p>
+    <p class="note"><b>Note:</b> One side or both (both by default).</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>fork</code>, <code>disc_color</code>, <code>caliper_color</code>, <code>both</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/disc_brake.py"><code>data/techniques/disc_brake.py</code></a></dd>
+      <dt>Parts</dt><dd><code>65416</code> + <code>6632</code> + <code>32002</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for disc_brake">
+      <label><input type="radio" name="d5" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d5" value="reject"> Reject</label>
+      <input type="text" name="note5" placeholder="Note (optional)" aria-label="Note for disc_brake">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="6">
+  <div class="shot"><img src="../../../data/techniques/handlebars.png" alt="The example of handlebars" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">6</span> <code>handlebars</code></h2>
+    <p>Clip-on bars out of each fork leg&#x27;s top hole, with a lever reaching forward and a grip on the end.</p>
+    <p class="why">Handlebars with grips and levers, at the bike&#x27;s full width.</p>
+    <p class="note"><b>Note:</b> The levers droop 20 degrees by default; the grips are axle joiners on the bars&#x27; last stud.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>fork</code>, <code>color</code>, <code>grip_color</code>, <code>lever_color</code>, <code>droop</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/handlebars.py"><code>data/techniques/handlebars.py</code></a></dd>
+      <dt>Parts</dt><dd><code>3705</code> + <code>6632</code> + <code>59443</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for handlebars">
+      <label><input type="radio" name="d6" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d6" value="reject"> Reject</label>
+      <input type="text" name="note6" placeholder="Note (optional)" aria-label="Note for handlebars">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="7">
+  <div class="shot"><img src="../../../data/techniques/display_stand_nameplate.png" alt="The example of display_stand_nameplate" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">7</span> <code>display_stand_nameplate</code></h2>
+    <p>A tiled base with a nameplate on its front edge and a post that holds the bike up by its pivot axle, its wheels just clear of the base.</p>
+    <p class="why">A display stand like a set&#x27;s, so the bike stands upright and the model has its name on the front.</p>
+    <p class="note"><b>Note:</b> The stand sets the pivot&#x27;s height (it returns it): build the frame there with on=, and both wheels clear the base by under a plate.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>back</code>, <code>lift</code>, <code>color</code>, <code>top_color</code>, <code>name_color</code>, <code>post_color</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/display_stand_nameplate.py"><code>data/techniques/display_stand_nameplate.py</code></a></dd>
+      <dt>Parts</dt><dd><code>3004</code> + <code>3023b</code> + <code>3700</code> + <code>6636</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for display_stand_nameplate">
+      <label><input type="radio" name="d7" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d7" value="reject"> Reject</label>
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for display_stand_nameplate">
+    </div>
+  </div>
+</section>
+<footer><button type="button" id="copy">Copy my answers</button><span id="done" aria-live="polite"></span></footer>
+<script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    const lines = [...document.querySelectorAll(".card")].map((c) => {
+      const n = c.dataset.n, name = c.querySelector("code").textContent;
+      const d = c.querySelector("input[type=radio]:checked").value, note = c.querySelector("input[type=text]").value.trim();
+      return n + " " + name + ": " + d + (note ? " (" + note + ")" : "");
+    });
+    await navigator.clipboard.writeText("batch-19" + "\n" + lines.join("\n"));
+    document.getElementById("done").textContent = "Copied. Paste it to Claude.";
+  });
+</script>
+</body>
+</html>
