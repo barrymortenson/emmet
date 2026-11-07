@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Plan section 13's budgets at 2,000 parts, on the 2,018-part town block (tests/fixtures/projects/scene-stress),
-// enforced on the self-hosted Mac (session 4C Done when 1): first load with an empty part cache ≤ 6 s, slider →
-// updated viewer ≤ 3 s, orbit frame ≤ 25 ms, frame during a build animation of the whole model ≤ 25 ms, and draw
-// calls under ~300. Hosted runners draw WebGL on the CPU, so there the numbers are only reported (the bench's table
-// has them all, at every size).
+// enforced on real hardware, off hosted runners (session 4C Done when 1): first load with an empty part cache ≤ 6 s,
+// slider → updated viewer ≤ 3 s, orbit frame ≤ 25 ms, frame during a build animation of the whole model ≤ 25 ms, and
+// draw calls under ~300. Hosted runners draw WebGL on the CPU, so there the numbers are only reported (the bench's
+// table has them all, at every size).
 import { expect } from "@wdio/globals";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

@@ -912,3 +912,23 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   folder by its path; fixed in 75661bb). Done when 2b stays unticked for Windows in the PR. Rejected: a fifth manual
   Windows run now.
 
+## 2026-11-06: CI's Mac jobs move to GitHub's hosted Macs
+
+- **The PR's Mac jobs run on GitHub's hosted `macos-15`, not the self-hosted Mac** (Barry, 2026-11-06, through
+  AskUserQuestion: "GitHub's Macs"). Of about 32 PR runs on the self-hosted Mac since 2026-10-30, about 17 failed,
+  and at least 9 of those were the Mac rather than the code. E2E needs the window on screen, so these all failed a
+  run: a locked screen, a sleeping display, the window on another Space, a local `just e2e` driving CI's app over the
+  same WebDriver port, and WebKit's 30 fps throttle. The runner is a laptop, too, so a shut lid left runs queued for
+  7 to 18 hours. Hosted Macs are free for this public repo, and nothing Barry does on his Mac can fail them. This
+  changes D-13 and D-50 for ci.yml only: nightly.yml's corpus job and releases keep the self-hosted Mac.
+  `ci-hosted-mac.yml`, the manual fallback, is gone, since ci.yml is now that.
+  Rejected: a dedicated Mac mini (the steadiest, but it costs the machine), a macOS VM on this MacBook (a new tool,
+  and it still stops with the lid shut), and keeping the laptop runner with only guards.
+- **What changes with it.** The checks and tests (`just ci checks`) and the E2E (`just ci e2e`) run as two jobs side
+  by side, `mac` and `mac-e2e`, and Windows splits the same way (`windows` and `windows-e2e`). Each builds the
+  workspace once: the techniques and timing passes use `--workspace --test it`, since `-p emmet-it` picked other
+  features and rebuilt about 60 crates. A failed run saves its Rust cache too, and Windows turns Defender's scan off
+  for the build. The E2E window is 1024 × 640 everywhere (a hosted Mac's 1024 × 768 screen fits 1024 × 672 at most,
+  which is what D-50's trial hit), and window baselines shrink by the screen's pixel ratio, so one set holds on a
+  Retina Mac and a 1x hosted one. Section 13's budgets are enforced only off hosted runners, as before, so they're
+  checked by hand on real hardware (`just test`, `just e2e perf`, `just bench`); hosted runs report the numbers.
