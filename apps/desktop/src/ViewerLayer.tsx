@@ -162,7 +162,7 @@ function Pin({ viewer, pin, tick, onPin }: { viewer: Viewer; pin: PinGroup; tick
 
 /** A step as the instruction books draw it (plan section 08): the step number over its parts box with each new
  * part's picture and count, and each sub-assembly it puts on in its own box, with its parts and numbered sub-steps and
- * a leader to its first copy. */
+ * a leader to the first copy it can reach. */
 function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: Scene; step: StepView; tick: number }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const subs = step.subs
@@ -183,23 +183,16 @@ function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: 
     const host = ref.current?.parentElement;
     const first = subs[0];
     if (!el || !host || !viewer || !first) return setLeader(null);
-    const to = viewer.screenPoint(first.s.ids.slice(0, 1));
-    if (!to?.visible) return setLeader(null);
     const hr = host.getBoundingClientRect();
     const sr = el.getBoundingClientRect();
-    // Down from the box's foot, then across to the copy; or, for a copy no lower than the box, across from the box's
-    // right edge, then up or down to it. The arrowhead points the way the last run goes.
-    const below = to.y > sr.bottom - hr.top;
-    const x0 = below ? sr.left - hr.left + 24 : sr.right - hr.left;
-    const y0 = below ? sr.bottom - hr.top : (sr.top + sr.bottom) / 2 - hr.top;
-    if (below) {
-      const d = to.x >= x0 ? 1 : -1;
-      setLeader(`M${x0} ${y0}V${to.y}H${to.x - 4 * d}M${to.x - 12 * d} ${to.y - 5}L${to.x - 3 * d} ${to.y}L${to.x - 12 * d} ${to.y + 5}`);
-    } else {
-      if (to.x <= x0) return setLeader(null);
-      const d = to.y >= y0 ? 1 : -1;
-      setLeader(`M${x0} ${y0}H${to.x}V${to.y - 4 * d}M${to.x - 5} ${to.y - 12 * d}L${to.x} ${to.y - 3 * d}L${to.x + 5} ${to.y - 12 * d}`);
+    // The first copy the leader can reach: a copy behind the box itself has no line to it (in a small window the
+    // street lamps' first copy sat under the box, and the step had no leader at all, though seven others showed).
+    let path: string | null = null;
+    for (const id of first.s.ids) {
+      const to = viewer.screenPoint([id]);
+      if (to?.visible && (path = route(to, sr, hr))) break;
     }
+    setLeader(path);
   }, [tick, layout, viewer, step]);
   return (
     <>
@@ -226,6 +219,23 @@ function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: 
       )}
     </>
   );
+}
+
+/** The leader from a sub-assembly's box (`box`, in the page's coordinates like `host`) to a copy at `to`, in the
+ * host's coordinates: down from the box's foot, then across to the copy; or, for a copy no lower than the box, across
+ * from the box's right edge, then up or down to it. The arrowhead points the way the last run goes. Null when neither
+ * route reaches it (the copy is beside or behind the box, to its left). */
+function route(to: { x: number; y: number }, box: DOMRect, host: DOMRect): string | null {
+  const below = to.y > box.bottom - host.top;
+  const x0 = below ? box.left - host.left + 24 : box.right - host.left;
+  const y0 = below ? box.bottom - host.top : (box.top + box.bottom) / 2 - host.top;
+  if (below) {
+    const d = to.x >= x0 ? 1 : -1;
+    return `M${x0} ${y0}V${to.y}H${to.x - 4 * d}M${to.x - 12 * d} ${to.y - 5}L${to.x - 3 * d} ${to.y}L${to.x - 12 * d} ${to.y + 5}`;
+  }
+  if (to.x <= x0) return null;
+  const d = to.y >= y0 ? 1 : -1;
+  return `M${x0} ${y0}H${to.x}V${to.y - 4 * d}M${to.x - 5} ${to.y - 12 * d}L${to.x} ${to.y - 3 * d}L${to.x + 5} ${to.y - 12 * d}`;
 }
 
 function SubAssembly({ scene, file, copy, name, steps, count }: { scene: Scene; file: string; copy: string; name: string; steps: StepView[]; count: number }) {
