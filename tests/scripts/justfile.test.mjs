@@ -48,7 +48,8 @@ test("just test runs every suite under /bin/bash", { skip }, () => {
   assert.match(r.calls, /^pnpm --filter @emmet\/viewer --fail-if-no-match exec node --test test\/\*\.test\.mjs$/m);
   assert.match(r.calls, /^pnpm --filter @emmet\/desktop --fail-if-no-match exec node --test test\/\*\.test\.mjs$/m);
   // tests/it in three passes: the suite, the techniques, and the timing checks alone, one at a time.
-  const timing = "run::warm_run_is_fast search::search_is_fast library::verify_detects_a_changed_file_and_reindexes";
+  const timing = "run::warm_run_is_fast search::search_is_fast library::verify_detects_a_changed_file_and_reindexes" +
+    " instructions::the_cottage_exports_in_under_30_seconds_and_matches_its_steps";
   const skips = timing.split(" ").map((t) => `--skip ${t}`).join(" ");
   assert.ok(r.calls.includes(`cargo test --workspace --locked -- --skip techniques:: ${skips}\n`), r.calls);
   assert.match(r.calls, /^cargo test --workspace --locked --test it -- techniques::$/m);

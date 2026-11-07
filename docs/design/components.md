@@ -222,8 +222,8 @@ the placeholder says why.
 ## The viewer
 
 ### `parts-box`
-A step as instruction books draw it (section 08): the parts box (each new part's picture and count), the step number
-under it (44 px, light), and a sub-assembly in its own box with its parts and numbered sub-steps, with a leader line
+A step as instruction books draw it (section 08): the step number (44 px, light), the parts box under it (each new
+part's picture and count; design change note 006), and a sub-assembly in its own box with its parts and numbered sub-steps, with a leader line
 to where it goes (4C draws it from the part's screen position).
 
 ### `pin`

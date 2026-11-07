@@ -169,7 +169,9 @@ color in `build/colors.json` says whether any part was `produced` in it.
 
 - `model.mpd`: the main model's `0 FILE <model>.ldr`, then one `0 FILE` per submodel. Each part or copy is preceded
   by `0 !EMMET ID <id> SRC <file>:<line>`, each titled step starts with `0 !EMMET STEP <title>`, and every step ends
-  with `0 STEP`. Other LDraw tools ignore the `!EMMET` lines.
+  with `0 STEP`. Other LDraw tools ignore the `!EMMET` lines. `emmet export --format pdf [--paper a4|letter]` writes the building instructions,
+`build/export/<name> instructions.pdf`, with its pictures drawn by the app's render mode (ADR 0014); the paper
+defaults to Letter where the locale is the US, Canada, or Mexico (and a few more), else A4.
 - `placements.json`: `{ schema, model, parts: [{ id, part, color, matrix, step, submodel, copies?, src }], allow?,
   ground?, keep_clear? }`. `matrix` is the 4 × 4 LDraw transform in LDU, column-major (three.js `Matrix4.fromArray`
   order). `allow` and `ground` are what `m.allow` and `m.ground` recorded, with every copy's ids; `keep_clear` is each

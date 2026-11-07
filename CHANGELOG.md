@@ -216,6 +216,13 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   beside the model, without moving the camera. The doctrine says how to build from a photo and when to ask for
   another angle. `emmet eval --rung photo --subject <id>` runs the photo rung's dry run with the fake agents
   (`--dry-run`) or scores Barry's hand session (`--score <project> --rubric P,R,B`), sending nothing to an agent.
+- Building instructions as a PDF (session 4E): Export → Instructions → PDF in the app, and `emmet export --format pdf
+  [--paper a4|letter]`, with no LPub3D needed. A cover; the steps, two to a page, each with its number over its parts
+  box and its new parts outlined in red; a camera that stays put through a run of steps and follows the work; each
+  sub-assembly in a framed box with numbered sub-steps, "2x" when the step puts on two, and a line to where it goes;
+  arrows for parts that go on sideways, zoom boxes for parts out of sight, and the turn icon when the model turns; the
+  parts list with part ids and color names; page numbers. A4 or Letter by the locale. Emmet writes the PDF itself
+  (ADR 0014): the Cottage's 106 pages take 16 s.
 
 ### Security
 
@@ -253,6 +260,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   Windows (1F, found in its Windows hand check).
 
 ### Changed
+
+- A step's number is over its parts box, on screen and in the PDF (Barry, 2026-11-05; design change note 006).
 
 - The agent builds a finished model by default: the doctrine's "Finished, not basic" has it build at High detail and a
   good set's size when Detail and Pieces are Any, and "Keep it lean" now means few tool calls, never few parts. The

@@ -29,6 +29,13 @@ export const AREAS = {
   },
   // The shell: menus and keys, which every screen shares, and what the window may do (the capabilities).
   shell: { paths: /^apps\/desktop\/(src\/|src-tauri\/src\/menu\.rs$|src-tauri\/capabilities\/)/, specs: ["keyboard"] },
+  // Building instructions (4E): the pictures drawn for a book, its layout, and the PDF, against per-page baselines; and
+  // the export command that writes it (projects.rs) and the steps it's laid out from.
+  instructions: {
+    paths:
+      /^(crates\/emmet-core\/src\/(instructions\/|steps\.rs$)|packages\/viewer\/src\/|apps\/desktop\/src\/(instructions|render)\.ts$|apps\/desktop\/src-tauri\/src\/projects\.rs$|tests\/e2e\/(baselines\/[^/]+\/instructions\/|specs\/instructions\.e2e\.mjs$))/,
+    specs: ["instructions"],
+  },
   // First run: the library download and the Python setup, on a fresh data dir.
   "first-run": {
     paths:
@@ -40,7 +47,7 @@ export const AREAS = {
 /** Windows E2E (a manual run while D-43 pauses Windows): what behaves differently there, paths, processes, the
  * sidecars, and Python under uv, plus perf, since section 13's budgets hold on both OSes and WebView2 draws with its
  * own GPU path. The UI runs the same JS in WebView2, so the Mac covers the rest. */
-export const WINDOWS = ["viewer", "chat", "setup", "runs", "trust", "versions", "import", "render", "visual", "perf"];
+export const WINDOWS = ["viewer", "chat", "setup", "runs", "trust", "versions", "import", "render", "visual", "perf", "instructions"];
 
 /** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes. */
 export const EXTRA = ["screens", "dock", "leak"];

@@ -258,8 +258,10 @@ jobs:
     needs: scope
     if: needs.scope.outputs.e2e_windows == 'true'
     runs-on: windows-latest
-    # The E2E build from a cold cache (about 15 minutes) and the specs, which draw in software here.
-    timeout-minutes: 60
+    # The E2E build from a cold cache (about 15 minutes) and the specs, which draw in software here: the instructions
+    # spec's two books took 171 and 88 s to export on 2026-11-06, so the job gets 75 minutes (Barry, 2026-11-05; by hand
+    # only while D-43 pauses it).
+    timeout-minutes: 75
     defaults:
       run:
         # Git Bash, so just finds bash (see justfile).

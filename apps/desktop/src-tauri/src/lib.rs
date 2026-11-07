@@ -5,6 +5,7 @@
 //! `Emmet [project] [--data-dir dir]` opens the app, with `project` open if given.
 //! `Emmet --render <project> --view iso --size 1024 --out file.png [--highlight a,b] [--data-dir dir]` renders the
 //! project's last build in a hidden window, writes the PNG (and the camera next to it as .json), and exits (ADR 0005).
+//! `Emmet --render <project> --instructions jobs.json --out drawn.json` draws a book's pictures instead (4E).
 
 pub mod app;
 pub mod chat;
@@ -31,6 +32,8 @@ use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
 /// Render mode gives up after this long, so a stuck webview can't hang `emmet render`.
 const RENDER_TIMEOUT: Duration = Duration::from_secs(100);
+/// A book's pictures take longer (emmet waits 900 s for them).
+const BOOK_TIMEOUT: Duration = Duration::from_secs(880);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct RenderArgs {
@@ -39,6 +42,8 @@ pub struct RenderArgs {
     pub size: u32,
     pub out: PathBuf,
     pub highlight: Vec<String>,
+    /// A book's jobs to draw instead of one view (`--instructions <jobs.json>`).
+    pub instructions: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -53,6 +58,7 @@ pub fn parse_args(args: impl IntoIterator<Item = String>) -> Result<Args, String
     let mut it = args.into_iter();
     let (mut data_dir, mut open, mut render) = (None, None, None::<PathBuf>);
     let (mut view, mut size, mut out, mut highlight) = ("iso".to_string(), 1024u32, None, Vec::new());
+    let mut instructions = None;
     while let Some(a) = it.next() {
         let mut value = |name: &str| it.next().ok_or_else(|| format!("{name} needs a value"));
         match a.as_str() {
@@ -65,6 +71,7 @@ pub fn parse_args(args: impl IntoIterator<Item = String>) -> Result<Args, String
                     .map_err(|_| "--size needs a number of pixels")?
             }
             "--out" => out = Some(PathBuf::from(value("--out")?)),
+            "--instructions" => instructions = Some(PathBuf::from(value("--instructions")?)),
             "--highlight" => {
                 highlight = value("--highlight")?
                     .split(',')
@@ -90,6 +97,7 @@ pub fn parse_args(args: impl IntoIterator<Item = String>) -> Result<Args, String
             size: size.clamp(16, 4096),
             out: out.ok_or("--render needs --out <file.png>")?,
             highlight,
+            instructions,
         }),
         None => None,
     };
@@ -139,6 +147,11 @@ pub fn specta() -> tauri_specta::Builder<tauri::Wry> {
             render_job,
             render_done,
             render_failed,
+            render_book_done,
+            render_progress,
+            crate::projects::instructions_jobs,
+            crate::projects::export_instructions,
+            crate::projects::last_book,
             crate::setup::setup,
             crate::setup::agent_install,
             crate::setup::claude_sign_in,
@@ -216,6 +229,20 @@ pub fn started() -> std::time::Instant {
     *STARTED.get_or_init(std::time::Instant::now)
 }
 
+/// Ends render mode's book job: writes what the window drew as JSON, and exits.
+fn finish_book(drawn: &emmet_core::instructions::Drawn) {
+    let Some(out) = RENDER_OUT.get() else { return };
+    let text = serde_json::to_string(drawn).expect("drawn serializes");
+    let code = match emmet_core::fsx::write_atomic(out, text.as_bytes()) {
+        Ok(()) => 0,
+        Err(e) => {
+            eprintln!("render failed: {}", e.message);
+            1
+        }
+    };
+    std::process::exit(code);
+}
+
 /// Ends render mode: writes the PNG and camera, or reports the failure, and exits.
 fn finish_render(result: Result<(String, serde_json::Value), String>) {
     let Some(out) = RENDER_OUT.get() else { return };
@@ -254,7 +281,13 @@ pub fn run() {
     let render = match &args.render {
         Some(r) => {
             let _ = RENDER_OUT.set(std::path::absolute(&r.out).unwrap_or_else(|_| r.out.clone()));
-            match app::render_job_for(&r.project, &r.view, r.size, r.highlight.clone()) {
+            match app::render_job_for(
+                &r.project,
+                &r.view,
+                r.size,
+                r.highlight.clone(),
+                r.instructions.as_deref(),
+            ) {
                 Ok(job) => Some(job),
                 Err(e) => {
                     eprintln!("render failed: {e}");
@@ -302,10 +335,18 @@ pub fn run() {
                     .title("Emmet render")
                     .inner_size(size, size)
                     .visible(false)
+                    // WebKit runs a hidden page's process at background priority (macOS 14+ lets an app opt out),
+                    // and a book's 400 pictures crawled at a picture every few seconds (4E, ADR 0014).
+                    .background_throttling(tauri::utils::config::BackgroundThrottlingPolicy::Disabled)
                     .build()?;
-                std::thread::spawn(|| {
-                    std::thread::sleep(RENDER_TIMEOUT);
-                    finish_render(Err(format!("no render after {} s", RENDER_TIMEOUT.as_secs())));
+                let timeout = if job.book.is_some() {
+                    BOOK_TIMEOUT
+                } else {
+                    RENDER_TIMEOUT
+                };
+                std::thread::spawn(move || {
+                    std::thread::sleep(timeout);
+                    finish_render(Err(format!("no render after {} s", timeout.as_secs())));
                 });
                 return Ok(());
             }

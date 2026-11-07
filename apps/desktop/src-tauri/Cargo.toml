@@ -19,7 +19,7 @@ path = "src/main.rs"
 tauri-build.workspace = true
 
 [dependencies]
-emmet-core.workspace = true
+emmet-core = { workspace = true, features = ["specta"] }
 emmet-agent = { workspace = true, features = ["specta"] }
 emmet-bus.workspace = true
 notify.workspace = true

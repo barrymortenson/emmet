@@ -16,10 +16,15 @@ schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
+specta = { workspace = true, optional = true }
 thiserror.workspace = true
 toml.workspace = true
 ureq.workspace = true
 zip.workspace = true
+
+[features]
+# specta::Type on the instructions' job and result types, for the app's generated TypeScript bindings.
+specta = ["dep:specta"]
 
 [lints]
 workspace = true
