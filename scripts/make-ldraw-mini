@@ -20,8 +20,8 @@ import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:f
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const RELEASE = "2026-09";
-const ZIP_SHA256 = "f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2";
+const RELEASE = "2026-10";
+const ZIP_SHA256 = "023083918da2d3697c794fb4267975509584f3611b993095874206a803fa610f";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "tests/fixtures/ldraw-mini");
 const EXTRA = ["LDConfig.ldr", "CAreadme.txt", "CAlicense.txt", "CAlicense4.txt"];

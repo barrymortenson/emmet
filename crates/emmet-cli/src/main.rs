@@ -671,6 +671,9 @@ fn main() -> ExitCode {
                 if let Some(a) = &p.part.alias_of {
                     s.push_str(&format!("\nuse instead: {a}"));
                 }
+                if !p.holes.is_empty() {
+                    s.push_str(&format!("\n{}", emmet_core::technic::holes_text(&p.holes)));
+                }
                 s
             })
         }

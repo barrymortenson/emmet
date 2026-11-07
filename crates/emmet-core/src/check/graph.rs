@@ -25,6 +25,10 @@ const GRIP: f64 = 0.6;
 const CELL: f64 = 10.0;
 /// A bar's radius (3.2 mm).
 const BAR: f64 = 4.0;
+/// The shortest bore a Technic pin or axle hole has (a thin liftarm's); an anti-stud's is shorter.
+const BORE: f64 = 6.0;
+/// The shortest shaft a Technic pin or axle has (every one has 16 or more); a bar's stop and a stud are shorter.
+const PIN: f64 = 12.0;
 
 /// A connector of a placed part, in the world.
 #[derive(Debug, Clone)]
@@ -50,6 +54,9 @@ pub struct Connection {
     /// its part, an anti-stud's far end in its): the way each part was put on.
     pub toward_a: Option<DVec3>,
     pub toward_b: Option<DVec3>,
+    /// A pin, axle, or bar in a hole (not a stud): the male's whole shaft, from its start to its end, and its widest
+    /// radius. Its part may overlap the other anywhere along it: an axle runs on through a hub's bore past its seat.
+    pub shaft: Option<(DVec3, DVec3, f64)>,
 }
 
 /// Every placement's connectors in the world. `parts[i]` is placement i's matrix and connectors (empty for an
@@ -263,12 +270,15 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
                 return fail("no overlap");
             }
             // A stud goes all the way in; a pin, axle, or bar holds once half in (files put wheels on their pins a
-            // little short).
+            // little short); one that slides holds anywhere along the hole.
             let need = if stud(a) { shorter - TOLERANCE } else { shorter / 2.0 };
             if !(a.slide || b.slide) && overlap < need {
                 return fail("not all the way in");
             }
             let mut grip = 0.0f64;
+            // How much of a pin's or axle's shaft (a stud's width) is in the hole's bore, or of its collar in the hole's
+            // counterbore (a pin pushed in to its collar).
+            let mut shaft = 0.0f64;
             for (sa, sb, l) in sections_over(a, b, dot) {
                 if l <= TOLERANCE || sa.shape == Shape::Flex || sb.shape == Shape::Flex {
                     continue;
@@ -285,14 +295,32 @@ fn try_mate(a: &Connector, b: &Connector) -> Result<Connection, &'static str> {
                 if (sa.radius - sb.radius).abs() <= GRIP || sb.shape == Shape::Axle && bar {
                     grip += l;
                 }
+                if [6.0, 8.0]
+                    .iter()
+                    .any(|r| (sa.radius - r).abs() <= GRIP && (sb.radius - r).abs() <= GRIP)
+                {
+                    shaft += l;
+                }
             }
             if grip <= TOLERANCE {
                 return fail("no grip");
+            }
+            // A pin or axle that slides still has to be in the hole (4G): some of its shaft in the bore, or its collar in
+            // the counterbore (official files often place a pin with its collar 1 LDU in, the next beam's joint a hair
+            // too wide), not only its tip in the hole's mouth.
+            let bore = |c: &Connector, len: f64| {
+                c.secs
+                    .iter()
+                    .any(|s| (s.radius - 6.0).abs() <= GRIP && s.len >= len - 1e-6)
+            };
+            if (a.slide || b.slide) && bore(a, PIN) && bore(b, BORE) && shaft <= TOLERANCE {
+                return fail("not all the way in");
             }
             let r = a.secs.iter().map(|s| s.radius).fold(0.0, f64::max);
             Ok(Connection {
                 toward_a: (!a.open.0 && a.open.1).then_some(-a.axis),
                 toward_b: (b.open.0 && !b.open.1).then_some(b.axis),
+                shaft: (!stud(a) && !stud(b)).then(|| (a.pos, end(a), r)),
                 ..seat(b.pos + b.axis * (lo + hi) / 2.0, b.axis, r, overlap, Kind::Cyl)
             })
         }
@@ -311,6 +339,7 @@ fn seat(at: DVec3, axis: DVec3, radius: f64, len: f64, kind: Kind) -> Connection
         len,
         toward_a: None,
         toward_b: None,
+        shaft: None,
     }
 }
 
@@ -458,6 +487,27 @@ mod tests {
         };
         assert!(mate(&wheel_pin, &wheel(-5.0)).is_some());
         assert!(mate(&wheel_pin, &wheel(-7.0)).is_none());
+    }
+
+    #[test]
+    fn a_sliding_pin_holds_only_once_it_is_in_its_hole() {
+        // A pin 24 LDU long, centered, along -Y from y = 12 (its long end, then its collar), and a beam's hole (which
+        // slides) 20 deep on its long end: 3 LDU of the pin in the hole (1 of its shaft in the hole's bore, past the
+        // mouth) is a pin left out of it (4G); 10 LDU, half the hole, holds.
+        let hole = "!LDCAD SNAP_CYL [gender=F] [caps=none] [secs=R 8 2 R 6 16 R 8 2] [center=true] [slide=true]";
+        let pin = at(
+            "!LDCAD SNAP_CYL [gender=M] [caps=none] [secs=L_ 6.25 2 R 6 16 R 8 2 R 6 4] [center=true]",
+            DVec3::ZERO,
+        );
+        assert!(mate(&pin, &at(hole, DVec3::new(0.0, 19.0, 0.0))).is_none());
+        assert!(mate(&pin, &at(hole, DVec3::new(0.0, 12.0, 0.0))).is_some());
+        // A bar slides through anywhere it reaches.
+        let bar = at(
+            "!LDCAD SNAP_CYL [gender=M] [caps=none] [secs=R 4 40] [center=true]",
+            DVec3::ZERO,
+        );
+        let bar_hole = "!LDCAD SNAP_CYL [gender=F] [caps=none] [secs=R 4 8] [center=true] [slide=true]";
+        assert!(mate(&bar, &at(bar_hole, DVec3::new(0.0, -21.0, 0.0))).is_some());
     }
 
     #[test]

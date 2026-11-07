@@ -13,6 +13,7 @@ import re
 from dataclasses import dataclass, field
 
 from . import frame
+from . import technic as _technic
 from .errors import EmmetError, caller
 
 MAX_PARTS = 20_000
@@ -101,6 +102,30 @@ class Handle:
     def max(self) -> tuple:
         """The (x, y, z) corner of the part's body with the highest values; the next part can sit at max's z."""
         return self._p.box[1]
+
+    def hole(self, name):
+        """The part's Technic hole, pin, or axle called `name` (part_info's "1" to "n"), where it is in the model: its
+        middle `.at` (x, y, z) in studs, studs, plates, its `.axis`, `.kind`, and `.length` in studs. Seat a pin in it
+        with Model.insert, or put another part's hole on it with Model.add(..., hole=)."""
+        file, line = caller()
+        ctx = active
+        rel = ctx.rel(file) if ctx else file
+        if self._p.sub is not None or ctx is None:
+            raise EmmetError(
+                "MODEL_EXEC_FAILED",
+                f"{self._p.id} is a submodel copy, which has no holes of its own.",
+                "Use the holes of the parts inside it, from the handles its function got.",
+                rel,
+                line,
+            )
+        return _technic.hole_of(ctx, self._p, name, rel, line)
+
+    @property
+    def holes(self) -> list:
+        """Every Technic hole, pin, and axle of the part, where each is in the model (see Handle.hole)."""
+        if self._p.sub is not None or active is None:
+            return []
+        return _technic.world_holes(active, self._p)
 
     def __repr__(self) -> str:
         return f"<{self._p.part} {self._p.id} at {self.min}>"
@@ -213,23 +238,158 @@ class Model:
 
     # Placing parts
 
-    def add(self, part: str, color, at=(0, 0, 0), rot: int | Rot = 0, id: str | None = None) -> Handle:
+    def add(self, part: str, color, at=(0, 0, 0), rot: int | Rot = 0, id: str | None = None, hole=None) -> Handle:
         """Places one part so the minimum corner of its body (studs excluded), after rotation, is at `at`.
 
         part: an LDraw id ("3001") or a helper (Brick(2, 4)). color: a name in any spelling, or an LDraw code. at:
         (x, y, z) in studs, studs, plates. rot: quarter turns counterclockwise about z, seen from above, or a Rot. id:
-        a stable name; by default "<step>/<n>".
+        a stable name; by default "<step>/<n>". hole: one of the part's Technic holes (part_info names them): `at` is
+        then where that hole's middle goes, not the footprint corner. A wheel goes on an axle this way, its hub's hole
+        at a point on the axle.
         """
         file, line = caller()
         ctx = self._ctx("Model.add", file, line)
         rel = ctx.rel(file)
-        _rotation(rot, rel, line)
+        r_dsl = _rotation(rot, rel, line)
         at = _point(at, rel, line)
         part_id = ctx.part_id(part, rel, line)
         code = ctx.color(color, rel, line)
         body = ctx.body(part_id, rel, line)
+        if hole is not None:
+            at = _technic.corner_for_hole(ctx, part_id, body, hole, at, r_dsl, rel, line)
         _count(ctx, 1, rel, line)
         return self._put(part_id, code, body, at, rot, id, rel, line, None)
+
+    def beam(
+        self,
+        part: str,
+        color,
+        at,
+        run: float,
+        rise: float = 0,
+        axis: str = "y",
+        holes=(1, None),
+        id: str | None = None,
+    ) -> Handle:
+        """Lays a Technic beam (or any part with two holes side by side) by its holes: hole holes[0] at `at`, and the
+        beam running `run` studs along and `rise` studs up to its far hole, so a triangle whose sides are whole studs
+        lands both ends on holes: run 4, rise 3 reaches a hole 5 along; run 12, rise 5 one 13 along (a 15-hole beam,
+        holes 1 and 14).
+
+        at: (x, y, z) in studs, studs, plates, where hole holes[0]'s middle goes (part_info and Handle.hole say where
+        holes are). run and rise: in studs, both of them, from that hole to the far one (a rise of 5 studs is 12.5
+        plates). axis: which way the holes run: "y" for a beam on edge in the x-z plane (run along x, rise up z), "x"
+        for one in the y-z plane (run along y), "z" for a beam lying flat (run along x, rise along y). holes: the two
+        holes it's laid by; the far one by default is whichever hole the run and rise reach. Returns its Handle, whose
+        .hole(n) gives each hole where it landed."""
+        file, line = caller()
+        ctx = self._ctx("Model.beam", file, line)
+        rel = ctx.rel(file)
+        at = _point(at, rel, line)
+        for name, v in (("run", run), ("rise", rise)):
+            if not isinstance(v, int | float) or isinstance(v, bool):
+                raise EmmetError(
+                    "MODEL_EXEC_FAILED",
+                    f"{name}={v!r} isn't a number of studs.",
+                    "Give run and rise in studs.",
+                    rel,
+                    line,
+                )
+        normal, along, up = _technic.plane(axis, rel, line)
+        if not isinstance(holes, tuple | list) or len(holes) != 2:
+            raise EmmetError(
+                "MODEL_EXEC_FAILED",
+                f"holes={holes!r} isn't two holes.",
+                "Give the hole that goes at `at` and the far one, like holes=(1, 14), or holes=(1, None).",
+                rel,
+                line,
+            )
+        part_id = ctx.part_id(part, rel, line)
+        code = ctx.color(color, rel, line)
+        body = ctx.body(part_id, rel, line)
+        _count(ctx, 1, rel, line)
+        direction = _technic._unit(tuple(run * along[i] + rise * up[i] for i in range(3)))
+        at = tuple(at[i] + self._offset[i] for i in range(3))
+
+        def pose(params):
+            p_at, p_dir, p_normal = params
+            return _technic.beam_pose(ctx, part_id, p_at, p_dir, p_normal, tuple(holes), run, rise, rel, line)
+
+        def reflect(params, k, about):
+            p_at, p_dir, p_normal = params
+            return (
+                _technic.reflect_point(p_at, k, about),
+                _technic.reflect_dir(p_dir, k),
+                _technic.reflect_dir(p_normal, k),
+            )
+
+        return self._posed(part_id, code, body, id, rel, line, pose, (at, direction, normal), reflect, self._mirrors)
+
+    def insert(
+        self, part: str, color, hole, out: str | None = None, out_by: float | None = None, point=None, id=None
+    ) -> Handle:
+        """Seats a pin, an axle, or an axle pin in a hole: `hole` is a Handle's hole (beam.hole(3)). It sticks out of
+        the hole's face on the `out` side by `out_by` studs; by default its far end is flush with the hole's other face
+        (a 2-long pin in a beam: 1 out, ready for the next beam; an axle 3: 2 out).
+
+        out: "+y", "-y", … along the hole's axis, or "+" and "-"; by default the positive way along it. out_by: studs
+        past the face, from 0 to the part's length (a 3-long pin through the middle of three beams: out_by=1). A 3/4
+        pin goes in by its long end, an axle pin (3749) by its pin end (by its axle end into an axle hole), and a pin or
+        axle on a part (a pin with a stop bush, an axle stub on a hub) by its free end. point:
+        which of the part's pins or axles, when it has more than one. The hole already says where its part is, so
+        Model.repeat doesn't move it again. Returns the part's Handle."""
+        file, line = caller()
+        ctx = self._ctx("Model.insert", file, line)
+        rel = ctx.rel(file)
+        if not isinstance(hole, _technic.Hole):
+            raise EmmetError(
+                "MODEL_EXEC_FAILED",
+                f"hole={hole!r} isn't a hole.",
+                "Pass a placed part's hole: beam.hole(3), where beam is what m.add or m.beam returned.",
+                rel,
+                line,
+            )
+        o = _technic.out_direction(hole, out, rel, line)
+        part_id = ctx.part_id(part, rel, line)
+        code = ctx.color(color, rel, line)
+        body = ctx.body(part_id, rel, line)
+        _count(ctx, 1, rel, line)
+
+        def pose(params):
+            p_hole, p_o = params
+            return _technic.insert_pose(ctx, part_id, p_hole, p_o, out_by, point, rel, line)
+
+        def reflect(params, k, about):
+            p_hole, p_o = params
+            h = _technic.Hole(
+                p_hole.name,
+                p_hole.kind,
+                _technic.reflect_point(p_hole.at, k, about),
+                _technic.reflect_dir(p_hole.axis, k),
+                p_hole.length,
+                p_hole.part,
+                p_hole.id,
+                p_hole.pending,
+            )
+            return h, _technic.reflect_dir(p_o, k)
+
+        return self._posed(part_id, code, body, id, rel, line, pose, (hole, o), reflect, self._mirrors)
+
+    def _posed(self, part, code, body, id, rel, line, pose, params, reflect, mirrors) -> Handle:
+        """A part placed by an LDraw pose that pose(params) works out, and its image under each open mirror (params
+        reflected across the plane). Before emmet has sent the part, a stand-in at the origin keeps the pass going."""
+        if not mirrors:
+            found = pose(params)
+            pos, r = found if found is not None else ((0.0, 0.0, 0.0), frame.quarter_turns(0))
+            box = frame.box_in_dsl(frame.transform_box(r, pos, body))
+            return self._record(Placed("", part, code, pos, r, body, box, rel, line), id, rel, line)
+        (axis, about), rest = mirrors[0], mirrors[1:]
+        if id is None:
+            id = self._default_id(None)
+        first = self._posed(part, code, body, id, rel, line, pose, params, reflect, rest)
+        k = 0 if axis == "x" else 1
+        self._posed(part, code, body, f"{id}-mirror-{axis}", rel, line, pose, reflect(params, k, about), reflect, rest)
+        return first
 
     def add_raw(self, part: str, color, matrix, id: str | None = None) -> Handle:
         """The escape hatch: places a part by an LDraw transform, in LDU in LDraw's frame (−Y up), as the 12 numbers

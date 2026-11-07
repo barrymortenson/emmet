@@ -35,6 +35,7 @@ mod run;
 mod runner;
 mod search;
 mod setup;
+mod technic;
 mod techniques;
 mod validator_bench;
 mod validator_corpus;

@@ -14,10 +14,12 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+use crate::check::connectors::Scanner;
 use crate::data::DataDir;
 use crate::envelope::{Details, Error, ErrorCode, Result};
 use crate::fsx::write_atomic;
 use crate::index::Index;
+use crate::ldraw::geometry::Measurer;
 use crate::project::Project;
 
 /// Caps from plan section 15.
@@ -155,7 +157,9 @@ fn run_inner(
 
     let geometry_path = build.join("part-geometry.json");
     let (mut geometry, mut helpers) = read_geometry(&geometry_path);
-    refresh_geometry(&index, &mut geometry, &mut helpers)?;
+    let lib = crate::ldraw::geometry::LibFiles::probe(&data.ldraw());
+    let mut scanner = Scanner::new(Measurer::new(&lib));
+    refresh_geometry(&index, &mut scanner, &mut geometry, &mut helpers)?;
     let manifest = json!({
         "inputs_hash": hash,
         "emmet": crate::version(),
@@ -231,7 +235,7 @@ fn run_inner(
             match index.part(&id)? {
                 Some(part) => match part.body_box {
                     Some(body) => {
-                        geometry.insert(part.id.clone(), json!({ "name": part.name, "body": body }));
+                        geometry.insert(part.id.clone(), entry(&mut scanner, &part, body));
                     }
                     // Without a body box the part can't be placed by its footprint; placing it at a zero box would
                     // put it in the wrong spot without a word.
@@ -322,6 +326,33 @@ fn write_colors(data: &DataDir, index: &Index, build: &Path) -> Result<()> {
     Ok(())
 }
 
+/// A part's entry in part-geometry.json: its name, its body box, and its Technic points in its LDraw frame (4G), each
+/// as its name, kind, middle, axis, and length in LDU, and `closed` for a pin or axle whose start is its part's body.
+fn entry(scanner: &mut Scanner, part: &crate::index::Part, body: [f64; 6]) -> Value {
+    let points = crate::technic::points(&scanner.connectors(&format!("{}.dat", part.id)));
+    if points.is_empty() {
+        return json!({ "name": part.name, "body": body });
+    }
+    let n = |v: f64| (v * 1000.0).round() / 1000.0 + 0.0;
+    let holes: Vec<Value> = points
+        .iter()
+        .map(|p| {
+            let mut v = json!({
+                "name": p.name,
+                "kind": p.kind,
+                "mid": [n(p.mid.x), n(p.mid.y), n(p.mid.z)],
+                "axis": [n(p.axis.x), n(p.axis.y), n(p.axis.z)],
+                "len": n(p.len),
+            });
+            if p.closed {
+                v["closed"] = json!(true);
+            }
+            v
+        })
+        .collect();
+    json!({ "name": part.name, "body": body, "holes": holes })
+}
+
 /// part-geometry.json: the body boxes by part id, and the part helpers resolved so far ("brick 2x4" → 3001).
 fn read_geometry(path: &Path) -> (BTreeMap<String, Value>, BTreeMap<String, Value>) {
     let file = std::fs::read_to_string(path)
@@ -336,6 +367,7 @@ fn read_geometry(path: &Path) -> (BTreeMap<String, Value>, BTreeMap<String, Valu
 /// resolves the helpers again, since the library may have changed.
 fn refresh_geometry(
     index: &Index,
+    scanner: &mut Scanner,
     geometry: &mut BTreeMap<String, Value>,
     helpers: &mut BTreeMap<String, Value>,
 ) -> Result<()> {
@@ -351,7 +383,7 @@ fn refresh_geometry(
         if let Some(part) = index.part(&id)?
             && let Some(body) = part.body_box
         {
-            geometry.insert(part.id.clone(), json!({ "name": part.name, "body": body }));
+            geometry.insert(part.id.clone(), entry(scanner, &part, body));
         }
     }
     Ok(())

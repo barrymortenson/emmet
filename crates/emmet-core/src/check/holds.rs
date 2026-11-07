@@ -72,6 +72,7 @@ pub(super) fn underside_links(
                     len: c.len(),
                     toward_a: Some(-c.axis),
                     toward_b: Some(c.axis),
+                    shaft: None,
                 });
             }
         }

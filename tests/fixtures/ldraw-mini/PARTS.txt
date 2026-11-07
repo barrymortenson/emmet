@@ -266,3 +266,16 @@
 # Session 4B, rung 1 replayed from 1D's live runs
 60593c01    # Claude Code's windows
 30178c01    # Codex's door
+
+# Technic by holes (4G): part_info's holes checked against their geometry, beams laid by their holes, pins and axles
+# in them, wheels on axles, and the display-vehicle techniques
+32525 41239 32140 32526 6632 60483    # beams 11 and 13, bent liftarms, thin liftarm 3, liftarm 2
+43093 32054 87082                     # axle pin with friction, long pin with stop bush, long pin with pin hole
+6536 32184 42003 32039 59443          # cross blocks, axle connector, axle joiner
+3737 44294                            # axles 10 and 7
+73129   # Technic Shock Absorber 6.5L
+4019    # Technic Gear 16 Tooth (sprocket)
+3711    # Technic Chain Link
+65416   # Technic Brake Disc 6 x 6
+88517c01  # Wheel 17 x 75 Motorcycle with tire
+4586 65803 7222 8168                  # connector overrides (data/connections/technic.toml)

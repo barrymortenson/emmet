@@ -11,6 +11,7 @@ mod collision;
 pub mod connectors;
 pub mod graph;
 mod holds;
+mod pins;
 pub mod proxy;
 mod steps;
 mod structure;

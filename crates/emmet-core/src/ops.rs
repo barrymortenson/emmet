@@ -71,8 +71,9 @@ pub fn search_parts(data: &DataDir, query: &str, category: Option<&str>, limit: 
 pub struct PartInfo {
     #[serde(flatten)]
     pub part: Part,
-    /// Connector summary; null until connectors arrive (3A), so an empty list always means "none".
-    pub connectors: Option<Vec<String>>,
+    /// Its Technic pin holes, axle holes, pins, and axles, named "1" to "n", from the corner of its footprint at
+    /// rot=0 in studs and plates (4G); empty for a part with none.
+    pub holes: Vec<crate::technic::Hole>,
     /// LDraw codes of the colors the part was made in (the parts data pack); null without the pack or a Rebrickable
     /// mapping, so an empty list always means "none".
     pub produced_colors: Option<Vec<u32>>,
@@ -92,15 +93,25 @@ pub fn part_info(data: &DataDir, id: &str) -> Result<PartInfo> {
                 ),
                 None => (None, None),
             };
+            let holes = part_holes(data, &part);
             Ok(PartInfo {
                 part,
-                connectors: None,
+                holes,
                 produced_colors,
                 alternates,
             })
         }
         None => Err(unknown_part(&index, id)?),
     }
+}
+
+/// A part's Technic points as `part_info` gives them; none for a part without a body box to measure from.
+pub fn part_holes(data: &DataDir, part: &Part) -> Vec<crate::technic::Hole> {
+    let Some(body) = part.body_box else { return Vec::new() };
+    let lib = crate::ldraw::geometry::LibFiles::probe(&data.ldraw());
+    let mut scanner = crate::check::connectors::Scanner::new(crate::ldraw::geometry::Measurer::new(&lib));
+    let points = crate::technic::points(&scanner.connectors(&format!("{}.dat", part.id)));
+    crate::technic::holes(&points, body)
 }
 
 /// `UNKNOWN_PART` with the closest ids and the best search matches for `id`.

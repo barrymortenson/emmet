@@ -1,0 +1,12 @@
+0 Technic overrides in use: a 16 x 16 Technic brick with pins in its side holes, a Technic brick 1 x 2 and a
+0 connecting rod on them, an axle with a stop and an axle on a hub in its back holes (data/connections/technic.toml)
+0 Name: technic.ldr
+0 Author: Emmet
+1 72 160 -32 -160 1 0 0 0 1 0 0 0 1 65803.dat
+1 0 60 -14 0 0 0 -1 0 1 0 1 0 0 2780.dat
+1 4 60 -24 10 1 0 0 0 1 0 0 0 1 3700.dat
+1 0 120 -14 0 0 0 -1 0 1 0 1 0 0 2780.dat
+1 0 200 -14 0 0 0 -1 0 1 0 1 0 0 2780.dat
+1 0 200 -14 5 0 0 -1 -1 0 0 0 1 0 4586.dat
+1 272 335 -14 -60 1 0 0 0 1 0 0 0 1 8168.dat
+1 71 320 -14 -120 0 1 0 -1 0 0 0 0 1 7222.dat

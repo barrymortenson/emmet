@@ -35,7 +35,8 @@ pub const DSL_FILES: &[(&str, &str)] = dsl_files![
     "params.py",
     "parts.py",
     "rewrite.py",
-    "run.py"
+    "run.py",
+    "technic.py"
 ];
 
 macro_rules! technique_files {
