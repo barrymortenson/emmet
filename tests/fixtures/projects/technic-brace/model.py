@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """A Technic brace on a 5-12-13 triangle (4G): a 15-hole beam on the table, a 15-hole brace from its hole 1 rising
 5 studs over 12 to the brace's hole 14, and a 7-hole beam level on the brace's top end, each pinned."""
 
