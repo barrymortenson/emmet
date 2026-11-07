@@ -130,8 +130,10 @@ test *args:
             skip=(--skip techniques::)
             for t in $timing; do skip+=(--skip "$t"); done
             cargo test --workspace --locked -- "${skip[@]}"
-            if [[ $techniques == 1 ]]; then cargo test -p emmet-it --locked --test it -- techniques::; else echo "test: the techniques can't change here; skipped"; fi
-            cargo test -p emmet-it --locked --test it -- --test-threads=1 $timing
+            # --workspace --test it, not -p emmet-it: the same features as the pass above, so nothing builds again (-p
+            # picked other features for serde, tokio, and more, and rebuilt 60 crates: 5 minutes on hosted Windows).
+            if [[ $techniques == 1 ]]; then cargo test --workspace --locked --test it -- techniques::; else echo "test: the techniques can't change here; skipped"; fi
+            cargo test --workspace --locked --test it -- --test-threads=1 $timing
           fi ;;
       esac
     done
@@ -190,22 +192,27 @@ e2e-build:
     cd apps/desktop && EMMET_E2E=1 pnpm build
     cargo build --workspace --locked --features emmet-desktop/webdriver
 
-# What CI's mac job runs, scoped by scripts/ci-scope.sh to what the changes since main can break: lint and secrets
-# always; the affected tests; the E2E specs tests/e2e/tiers.mjs picks; the audits when deny.toml changes; the
-# release-protocol build when the native side changes. CI runs it, so there is no need to run it locally before a push.
-# EMMET_CI_FULL=1 runs everything a PR can, as CI does weekly. The bench and the extra E2E tier are by hand only.
-ci:
+# What CI's Mac jobs run, scoped by scripts/ci-scope.sh to what the changes since main can break. `just ci checks` (the
+# mac job): lint and secrets always, the affected tests, the audits when deny.toml changes, and the release-protocol
+# build when the native side changes. `just ci e2e` (the mac-e2e job, beside it): the E2E specs tests/e2e/tiers.mjs
+# picks. `just ci` runs both. CI runs it, so there is no need to run it locally before a push. EMMET_CI_FULL=1 runs
+# everything a PR can, as CI does weekly. The bench and the extra E2E tier are by hand only.
+ci part="":
     #!/usr/bin/env bash
     set -euo pipefail
+    part="{{ part }}"
+    case "$part" in "" | checks | e2e) ;; *) echo "ci: no part $part (checks or e2e)" >&2; exit 1 ;; esac
     eval "$(scripts/ci-scope.sh)"
     echo "ci scope: full=$full deps=$deps build_app=$build_app e2e=${e2e_specs:-none}"
-    just check
-    gitleaks git --redact --no-banner .
-    if [[ $deps == true ]]; then cargo deny check && pnpm audit --prod; fi
-    if [[ $full == true ]]; then just test; else just test --changed; fi
-    if [[ $build_app == true ]]; then just build-app; fi
-    if [[ $e2e_mac == true ]]; then just e2e "$e2e_specs"; fi
-    echo "ci: ok"
+    if [[ "$part" != e2e ]]; then
+      just check
+      gitleaks git --redact --no-banner .
+      if [[ $deps == true ]]; then cargo deny check && pnpm audit --prod; fi
+      if [[ $full == true ]]; then just test; else just test --changed; fi
+      if [[ $build_app == true ]]; then just build-app; fi
+    fi
+    if [[ "$part" != checks && $e2e_mac == true ]]; then just e2e "$e2e_specs"; fi
+    echo "ci${part:+ $part}: ok"
 
 # A live eval (plan section 16.1): `just eval --rung 1 --agent claude` (or codex). One run through the real CLI on
 # the eval API key from the keychain (H-21, D-37); it says what it bills and asks first (D-38), then writes

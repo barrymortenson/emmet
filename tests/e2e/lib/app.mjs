@@ -8,8 +8,9 @@ import pixelmatch from "pixelmatch";
 import { os, out, repo } from "./paths.mjs";
 import { decode, encode, shrink } from "./png.mjs";
 
-/** Window baselines are kept an eighth the size each way: small to commit, and a moved or restyled control still
- * changes far more than the tolerance. */
+/** Window baselines are kept an eighth the window's size each way, in CSS pixels: small to commit, and a moved or
+ * restyled control still changes far more than the tolerance. A 2x screen's screenshot shrinks twice as far, so one
+ * baseline holds on a Retina Mac and on a hosted runner's 1x screen. */
 const SHRINK = 8;
 /** At most this share of a window's pixels may differ: room for the antialiasing of text, not for a layout change. */
 const WINDOW_TOLERANCE = 0.01;
@@ -127,7 +128,7 @@ export async function screenshots(name, { baseline = false } = {}) {
     const file = join(dir, `${name}-${theme}.png`);
     await browser.saveScreenshot(file);
     if (baseline) {
-      const why = compare(`${name}-${theme}`, readFileSync(file));
+      const why = compare(`${name}-${theme}`, readFileSync(file), await browser.execute(() => window.devicePixelRatio));
       if (why) failed.push(why);
     }
   }
@@ -153,22 +154,35 @@ async function freshAgents() {
   );
 }
 
-/** Compares a window screenshot with its baseline; a reason when it doesn't match. */
-function compare(name, png) {
-  const small = shrink(decode(png), SHRINK);
+/** Compares a window screenshot (taken at `scale` device pixels per CSS pixel) with its baseline; a reason when it
+ * doesn't match. A screen that doesn't match also goes to tests/e2e/out/baselines/<os>/screens/, which CI uploads, so
+ * a change seen on a hosted runner can be checked and copied into tests/e2e/baselines. */
+function compare(name, png, scale) {
+  const k = SHRINK * Math.max(1, Math.round(scale));
+  const small = shrink(decode(png), k);
   const base = join(repo, "tests", "e2e", "baselines", os, "screens", `${name}.png`);
+  const candidate = () => {
+    const file = join(out, "baselines", os, "screens", `${name}.png`);
+    mkdirSync(join(file, ".."), { recursive: true });
+    writeFileSync(file, encode(small));
+  };
   if (update || !existsSync(base)) {
     mkdirSync(join(base, ".."), { recursive: true });
     writeFileSync(base, encode(small));
+    if (!update) candidate();
     return update ? null : `wrote a new baseline, ${base}; check it and commit it`;
   }
   const want = decode(readFileSync(base));
-  if (want.width !== small.width || want.height !== small.height) return `${name}: the window is ${small.width * SHRINK} × ${small.height * SHRINK}, the baseline ${want.width * SHRINK} × ${want.height * SHRINK}`;
+  if (want.width !== small.width || want.height !== small.height) {
+    candidate();
+    return `${name}: the window is ${small.width * SHRINK} × ${small.height * SHRINK} CSS pixels, the baseline ${want.width * SHRINK} × ${want.height * SHRINK}`;
+  }
   const diff = { width: small.width, height: small.height, data: Buffer.alloc(small.data.length) };
   const bad = pixelmatch(want.data, small.data, diff.data, small.width, small.height, { threshold: 0.1 });
   const share = bad / (small.width * small.height);
   console.log(`${name}: ${bad} pixels differ (${(share * 100).toFixed(2)} %)`);
   if (share <= WINDOW_TOLERANCE) return null;
+  candidate();
   const dir = join(out, "visual", os);
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, `${name}-diff.png`), encode(diff));

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// .github/workflows: the mac job reaches the self-hosted runner only for trusted events (D-13), every action is
-// pinned by SHA, and scripts/ci-scope.sh runs each OS job only when a change can break it. Evaluates the real runs-on
-// expression from ci.yml and runs the real scope script in a temp repo.
+// .github/workflows: ci.yml's Mac jobs run on GitHub's pinned macos-15 (Barry, 2026-11-06), nightly's corpus job reaches
+// the self-hosted runner only for trusted events (D-13), every action is pinned by SHA, and scripts/ci-scope.sh runs
+// each OS job only when a change can break it. Evaluates nightly's real runs-on expression and runs the real scope
+// script in a temp repo.
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -10,11 +11,9 @@ import { ROOT, run, tempRepo, writeFiles } from "./helpers.mjs";
 
 const workflows = join(ROOT, ".github/workflows");
 const ci = readFileSync(join(workflows, "ci.yml"), "utf8");
-const expr = ci.match(/^ {2}mac:\n(?: {4}#.*\n)*? {4}runs-on: \$\{\{ (.+) \}\}$/m)?.[1];
-
 // GitHub expressions in this one line use only ==, &&, ||, parentheses, '...' strings, and fromJSON. JS evaluates them
 // the same way (&& and || return an operand) once == becomes eq(), which ignores case as GitHub's == does.
-function runsOn(github, line = expr) {
+function runsOn(github, line) {
   const js = line
     .replace(/([\w.]+|'[^']*') == ([\w.]+|'[^']*')/g, "eq($1, $2)")
     .replaceAll("fromJSON", "JSON.parse");
@@ -38,33 +37,16 @@ const pr = (headRepo, author, actor = author) => ({
 });
 const SELF = ["self-hosted", "macOS", "emmet"];
 
-test("ci.yml has a mac runs-on expression", () => assert.ok(expr, "mac job runs-on not found"));
-
-test("Barry's PR from a branch in this repo runs on the self-hosted Mac", () => {
-  assert.deepEqual(runsOn(pr(REPO, BARRY)), SELF);
-});
-
-test("a push to main by Barry runs on the self-hosted Mac", () => {
-  assert.deepEqual(runsOn({ repository: REPO, actor: BARRY, event_name: "push", ref: "refs/heads/main", event: {} }), SELF);
-});
-
-test("GitHub's case-insensitive == also sends Barry's login in another case to the Mac, where the guard refuses it", () => {
-  assert.deepEqual(runsOn(pr(REPO, "BarryMortenson")), SELF);
-  assert.match(readFileSync(join(ROOT, "scripts/runner-guard.sh"), "utf8"), /\[\[ "\$\{GITHUB_ACTOR:-\}" == "\$owner" \]\]/);
-});
-
-for (const [why, github] of [
-  ["a fork PR", pr("someone/emmet", "someone")],
-  ["a fork PR Barry pushes to", pr("someone/emmet", "someone", BARRY)],
-  ["a Dependabot PR", pr(REPO, "dependabot[bot]")],
-  ["Barry's PR that someone else pushed to", pr(REPO, BARRY, "someone")],
-  ["a manual run", { repository: REPO, actor: BARRY, event_name: "workflow_dispatch", ref: "refs/heads/main", event: {} }],
-  ["a fork's own push", { repository: "someone/emmet", actor: BARRY, event_name: "push", ref: "refs/heads/main", event: {} }],
-]) {
-  test(`${why} runs on hosted macos-latest`, () => assert.equal(runsOn(github), "macos-latest"));
+// A hosted runner takes every event, so no event of anyone's reaches Barry's Mac through ci.yml.
+for (const job of ["mac", "mac-e2e"]) {
+  test(`ci.yml's ${job} job runs on hosted macos-15, never the self-hosted Mac`, () => {
+    assert.match(jobs[job], /^ {4}runs-on: macos-15$/m);
+    assert.doesNotMatch(jobs[job], /self-hosted|runner-guard/);
+  });
 }
+test("no ci.yml job runs on the self-hosted Mac", () => assert.doesNotMatch(ci, /self-hosted/));
 
-// nightly.yml (3A): the corpus job reaches the Mac for the schedule and Barry's own PRs, as ci.yml's mac job does.
+// nightly.yml (3A): the corpus job reaches the Mac for the schedule and Barry's own PRs.
 const nightly = readFileSync(join(workflows, "nightly.yml"), "utf8");
 const nightlyExpr = nightly.match(/^ {2}corpus:\n(?: {4}#.*\n)*? {4}runs-on: \$\{\{ (.+) \}\}$/m)?.[1];
 test("nightly.yml's corpus job has a runs-on expression", () => assert.ok(nightlyExpr, "corpus job runs-on not found"));
@@ -107,30 +89,21 @@ test("every action in every workflow is pinned by a full commit SHA", () => {
   }
 });
 
-test("the self-hosted mac job runs the runner guard, with the PR fields, right after checkout", () => {
-  const steps = jobs.mac.split(/\n {6}- /).slice(1);
-  const i = steps.findIndex((step) => /\n {10}scripts\/runner-guard\.sh\n/.test(step));
-  assert.ok(i > 0, "no step runs scripts/runner-guard.sh");
-  assert.match(steps[i], /if: runner\.environment == 'self-hosted'/);
-  assert.match(steps[i], /EMMET_PR_HEAD_REPO: \$\{\{ github\.event\.pull_request\.head\.repo\.full_name \}\}/);
-  assert.match(steps[i], /EMMET_PR_AUTHOR: \$\{\{ github\.event\.pull_request\.user\.login \}\}/);
-  for (const step of steps.slice(0, i)) assert.match(step, /^uses: actions\/checkout@/, `a step runs before the guard: ${step}`);
-});
-
 test("the aggregate ci check needs every other job, runs always, and lets only the OS jobs be skipped", () => {
   const others = Object.keys(jobs).filter((j) => j !== "ci");
   const agg = jobs.ci;
   assert.match(agg, /^ {4}if: always\(\)$/m, "without always() a failed job skips ci, and a skipped required check passes");
   assert.deepEqual(agg.match(/needs: \[(.*)\]/)[1].split(/,\s*/).sort(), [...others].sort());
-  assert.match(agg, /RESULTS: \$\{\{ needs\.scope\.result \}\} \$\{\{ needs\.mac\.result \}\} \$\{\{ needs\.windows\.result \}\} \$\{\{ needs\.plan\.result \}\} \$\{\{ needs\.nsis\.result \}\}\n/);
+  const order = ["scope", "mac", "mac-e2e", "windows", "windows-e2e", "plan", "nsis"];
+  assert.equal(agg.match(/RESULTS: (.*)\n/)[1], order.map((j) => `\${{ needs.${j}.result }}`).join(" "));
   const pattern = new RegExp(agg.match(/=~ (.+) \]\]/)[1].replaceAll("\\ ", " "));
-  for (const ok of ["success success success success success", "success skipped skipped success skipped", "success success skipped success skipped"]) {
+  for (const ok of ["success success success success success success success", "success skipped skipped skipped skipped success skipped", "success success skipped success skipped success skipped"]) {
     assert.match(ok, pattern, ok);
   }
-  for (const bad of ["skipped skipped skipped success skipped", "success failure skipped success skipped", "success skipped cancelled success skipped", "success success success skipped skipped", "success success success success failure"]) {
+  for (const bad of ["skipped skipped skipped skipped skipped success skipped", "success failure skipped skipped skipped success skipped", "success success failure skipped skipped success skipped", "success skipped skipped cancelled skipped success skipped", "success success success success failure success skipped", "success success success success success skipped skipped", "success success success success success success failure"]) {
     assert.doesNotMatch(bad, pattern, bad);
   }
-  for (const job of ["mac", "windows", "nsis"]) {
+  for (const job of ["mac", "mac-e2e", "windows", "windows-e2e", "nsis"]) {
     assert.match(jobs[job], /^ {4}needs: scope\n {4}if: needs\.scope\.outputs\.\w+ == 'true'$/m, job);
   }
 });
