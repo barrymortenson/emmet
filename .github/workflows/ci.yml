@@ -163,8 +163,8 @@ jobs:
           echo "reduce motion was: $(defaults read com.apple.universalaccess reduceMotion 2>&1 || true)"
           defaults write com.apple.universalaccess reduceMotion -bool false || true
       - run: just deps
-      # TEMPORARY (reverted in the next commit): every spec, with every window baseline rewritten for the artifact.
-      - run: just e2e all
+      # TEMPORARY (reverted next): first run, with its window baselines rewritten for the artifact.
+      - run: just e2e first-run
         env:
           EMMET_UPDATE_BASELINES: "1"
           EMMET_CI_BASE: ${{ needs.scope.outputs.base }}
