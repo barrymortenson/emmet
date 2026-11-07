@@ -51,12 +51,12 @@ test("just test runs every suite under /bin/bash", { skip }, () => {
   const timing = "run::warm_run_is_fast search::search_is_fast library::verify_detects_a_changed_file_and_reindexes";
   const skips = timing.split(" ").map((t) => `--skip ${t}`).join(" ");
   assert.ok(r.calls.includes(`cargo test --workspace --locked -- --skip techniques:: ${skips}\n`), r.calls);
-  assert.match(r.calls, /^cargo test -p emmet-it --locked --test it -- techniques::$/m);
-  assert.ok(r.calls.includes(`cargo test -p emmet-it --locked --test it -- --test-threads=1 ${timing}\n`), r.calls);
+  assert.match(r.calls, /^cargo test --workspace --locked --test it -- techniques::$/m);
+  assert.ok(r.calls.includes(`cargo test --workspace --locked --test it -- --test-threads=1 ${timing}\n`), r.calls);
 });
 
 test("just test --changed runs the techniques' builds only when a change can break them", { skip }, () => {
-  const techniques = /^cargo test -p emmet-it --locked --test it -- techniques::$/m;
+  const techniques = /^cargo test --workspace --locked --test it -- techniques::$/m;
   for (const change of ["crates/emmet-core/src/lib.rs", "data/techniques/a.py", "python/emmet_dsl/src/emmet_dsl/model.py"]) {
     const r = justTest(project(change), "--changed");
     assert.equal(r.code, 0, r.out);
@@ -109,4 +109,12 @@ test("just test fails when a suite's tests are missing", { skip }, () => {
   assert.notEqual(r.code, 0, r.out);
   assert.match(r.out, /test: no tests match packages\/viewer\/test\/\*\.test\.mjs/);
   assert.doesNotMatch(r.calls, /@emmet\/viewer/);
+});
+
+// CI's two Mac jobs run `just ci checks` and `just ci e2e`; a misspelled part would otherwise run both, or neither.
+test("just ci refuses a part it doesn't have", { skip }, () => {
+  const just = run("sh", ["-c", "command -v just"]).out.trim();
+  const r = run(just, ["--justfile", join(ROOT, "justfile"), "--working-directory", tempDir(), "ci", "check"]);
+  assert.notEqual(r.code, 0);
+  assert.match(r.out, /ci: no part check \(checks or e2e\)/);
 });

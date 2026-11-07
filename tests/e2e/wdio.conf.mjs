@@ -21,6 +21,8 @@ const bench = process.env.EMMET_BENCH === "1";
 // from lib/library-server.mjs. `just e2e` runs it after the shared run.
 const firstRun = process.env.EMMET_E2E_FIRST_RUN === "1";
 const gate = process.env.EMMET_E2E_GATE === "1";
+/** The E2E window's size in CSS pixels, on every machine. */
+const WINDOW = { width: 1024, height: 640 };
 /** Written when the window stopped drawing (beforeTest), and cleared when a run starts. */
 const blind = join(out, "blind.txt");
 const fresh = join(out, "first-run-data");
@@ -117,6 +119,9 @@ export const config = {
   // service's companion plugin (tauri-plugin-wdio) and waits 5 s on every command without it (ADR 0002).
   beforeSuite: async () => {
     await browser.tauri.switchWindow("main");
+    // Every run draws the same window: the screens' baselines (lib/app.mjs) depend on its size. A hosted Mac's screen
+    // is 1024 × 768 and fits a window 1024 × 672 at most, so the frozen design's 1280 × 800 can't be had there.
+    await browser.setWindowSize(WINDOW.width, WINDOW.height);
   },
   // WebKit stops drawing a minimized window (and a covered one, unless the app turned that off in
   // apps/desktop/src-tauri/src/e2e.rs), and every wait on the next frame hangs until it shows: say so in seconds, not

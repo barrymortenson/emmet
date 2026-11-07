@@ -22,6 +22,15 @@ describe("the app window", () => {
     expect(ms).toBeLessThan(10_000);
   });
 
+  // The viewer turns the build animation off under the system's Reduce motion (plan section 13), and then the animate
+  // and perf specs wait for a build that never plays. CI's mac-e2e job turns it off first ("Motion on").
+  it("runs on a machine with Reduce motion off", async () => {
+    const reduced = await browser.execute(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
+    console.log(`reduce motion: ${reduced ? "on" : "off"}`);
+    // Windows' animate and perf specs aren't held to this yet: the Windows pass checks what its hosted runner says.
+    if (reduced && process.platform === "darwin") throw new Error("this machine has Reduce motion on (System Settings → Accessibility → Display), so the build animation never plays: turn it off, then run again");
+  });
+
   // WebKit sometimes draws the window at 30 fps on this Mac (a throttle a restart clears, 2026-11-02), and then the
   // chat and keyboard specs time out one by one. hello runs first, alone (just e2e), so say it here, in a second. A
   // hosted runner's shared VM draws when it can; only this Mac is held to it.
