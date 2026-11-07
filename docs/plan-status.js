@@ -208,7 +208,7 @@ window.EMMET_STATUS = {
       ],
       note: "Barry 2026-11-06: the Windows page baselines wait for the Windows pass (Done when 2b unticked for Windows); Barry's build of a real rung 1 cottage from the PDF is still to do"
     },
-    "4G": { status: "todo" },
+    "4G": { status: "in-progress", branch: "bmortenson/s4g-technic-display-vehicles", started: "2026-11-07" },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
     "5B": { status: "todo" },
