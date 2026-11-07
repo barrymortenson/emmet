@@ -70,7 +70,7 @@ build-app:
 # Integration tests, fastest first. `just test --changed` runs only those affected by the paths changed since
 # EMMET_CI_BASE or the merge-base with main (a toolchain or root config change runs them all); any other argument
 # filters test names. It builds only when a suite needs the build. tests/it is one test binary, run in three passes:
-# the suite; the technique library's 400-odd builds, only when a change can break them; and the three timing checks,
+# the suite; the technique library's 400-odd builds, only when a change can break them; and the four timing checks,
 # alone and one at a time, so the suite's other processes don't slow them. Written for bash 3.2, macOS's /bin/bash.
 test *args:
     #!/usr/bin/env bash
@@ -126,7 +126,7 @@ test *args:
           if [[ -n "$args" ]]; then
             cargo test --workspace --locked -- $args
           else
-            timing="run::warm_run_is_fast search::search_is_fast library::verify_detects_a_changed_file_and_reindexes"
+            timing="run::warm_run_is_fast search::search_is_fast library::verify_detects_a_changed_file_and_reindexes instructions::the_cottage_exports_in_under_30_seconds_and_matches_its_steps"
             skip=(--skip techniques::)
             for t in $timing; do skip+=(--skip "$t"); done
             cargo test --workspace --locked -- "${skip[@]}"

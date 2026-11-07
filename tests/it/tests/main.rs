@@ -20,6 +20,7 @@ mod frame;
 mod guides;
 mod host;
 mod import;
+mod instructions;
 mod ladder;
 mod ldraw;
 mod library;

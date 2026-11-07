@@ -156,10 +156,14 @@ enum Command {
     Api,
     /// The build steps: each step's title, parts box, and sub-assemblies (runs the model first if needed).
     Steps,
-    /// Export the model: a flat LDraw .ldr, an .mpd with its submodels, or an LPub3D-ready .mpd.
+    /// Export the model: a flat LDraw .ldr, an .mpd with its submodels, an LPub3D-ready .mpd, or building
+    /// instructions as a PDF (drawn by the app's render mode).
     Export {
         #[arg(long, value_enum)]
         format: ExportFormat,
+        /// The PDF's paper: a4 or letter (default: from the locale, letter where it's the usual paper: the US, Canada, Mexico, and a few more; else a4).
+        #[arg(long, value_enum)]
+        paper: Option<PaperArg>,
         /// Where to write it; by default build/export/.
         #[arg(long)]
         out: Option<PathBuf>,
@@ -262,6 +266,14 @@ enum ExportFormat {
     Ldr,
     Mpd,
     Lpub3d,
+    /// Building instructions: a cover, the steps, and the parts list.
+    Pdf,
+}
+
+#[derive(Clone, Copy, PartialEq, clap::ValueEnum)]
+enum PaperArg {
+    A4,
+    Letter,
 }
 
 #[derive(Clone, Copy, PartialEq, clap::ValueEnum)]
@@ -689,7 +701,35 @@ fn main() -> ExitCode {
             out.project = root;
             finish(&cli, started, out, steps_text)
         }
-        Command::Export { format, out } => {
+        Command::Export {
+            format: ExportFormat::Pdf,
+            paper,
+            out,
+        } => {
+            let mut root = None;
+            let out = data.and_then(|d| {
+                let project = Project::find(cli.project.as_deref())?;
+                root = Some(project.root.display().to_string());
+                let paper = match paper {
+                    Some(PaperArg::A4) => emmet_core::instructions::Paper::A4,
+                    Some(PaperArg::Letter) => emmet_core::instructions::Paper::Letter,
+                    None => emmet_core::instructions::Paper::for_locale(&locale()),
+                };
+                let jobs = emmet_core::instructions::project_jobs(&d, &project)?;
+                let drawn = render::render_book(&d, &project, &jobs)?;
+                let (written, _) = emmet_core::instructions::write(&d, &project, &jobs, &drawn, paper, out.as_deref())?;
+                Ok(written)
+            });
+            let mut out = Output::from(out);
+            out.project = root;
+            finish(&cli, started, out, |w| {
+                format!(
+                    "Exported the instructions: {} pages on {} → {}",
+                    w.pages, w.paper, w.path
+                )
+            })
+        }
+        Command::Export { format, paper: _, out } => {
             let mut root = None;
             let out = data.and_then(|d| {
                 let project = Project::find(cli.project.as_deref())?;
@@ -697,7 +737,7 @@ fn main() -> ExitCode {
                 let format = match format {
                     ExportFormat::Ldr => emmet_core::export::Format::Ldr,
                     ExportFormat::Mpd => emmet_core::export::Format::Mpd,
-                    ExportFormat::Lpub3d => emmet_core::export::Format::Lpub3d,
+                    ExportFormat::Lpub3d | ExportFormat::Pdf => emmet_core::export::Format::Lpub3d,
                 };
                 emmet_core::export::export(&d, &project, format, out.as_deref())
             });
@@ -1147,4 +1187,13 @@ fn print_error(e: &Error) {
         }
     }
     eprintln!("help: {}", e.hint);
+}
+
+/// The locale the paper follows: LC_ALL, then LC_PAPER, then LANG (macOS GUI apps set none, so the app asks the
+/// webview instead).
+fn locale() -> String {
+    ["LC_ALL", "LC_PAPER", "LANG"]
+        .iter()
+        .find_map(|k| std::env::var(k).ok().filter(|v| !v.is_empty()))
+        .unwrap_or_default()
 }

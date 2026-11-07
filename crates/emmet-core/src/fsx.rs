@@ -140,3 +140,25 @@ pub fn canonical(path: &Path) -> std::io::Result<std::path::PathBuf> {
     }
     Ok(c)
 }
+
+/// A name as one plain file or folder name: no separators, no characters Windows refuses, no control characters, and
+/// no leading dots (so never "." or ".."). A project's name comes from its emmet.toml, which a shared project writes.
+pub fn file_name(name: &str) -> String {
+    let clean: String = name
+        .chars()
+        .map(|c| {
+            if c.is_control() || "/\\:*?\"<>|".contains(c) {
+                ' '
+            } else {
+                c
+            }
+        })
+        .collect();
+    let words = clean.split_whitespace().collect::<Vec<_>>().join(" ");
+    let clean = words.trim_start_matches(['.', ' ']);
+    if clean.is_empty() {
+        "Model".into()
+    } else {
+        clean.to_string()
+    }
+}

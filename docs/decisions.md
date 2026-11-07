@@ -883,6 +883,35 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   met yet, and 4G is the fix. Codex, the truck's front three-quarter shot: "A light blue Ford Maverick crew-cab pickup
   with black trim, silver steel wheels, and a short open bed", in 0:22; the saved copy in `refs/` has no metadata.
 
+## 2026-11-05, session 4E
+
+- **The step number goes over the parts box** (Barry, 2026-11-05, on the rung 1 PDF prototype: "the step number
+  should be above the parts"), in the PDF and, through AskUserQuestion ("Match it in the app"), in the viewer's step
+  view too, so the screen and the printout read the same. Plan section 08 says so; design change note 006 records it.
+  Rejected: the PDF only.
+- **Emmet writes the PDF itself** (D-55, 2026-11-05; ADR 0014): no PDF crate (a new dependency) and no webview
+  print-to-PDF (two native paths that don't paginate alike); the pictures go in as the webview's JPEGs, and the text in
+  Helvetica, unembedded. Within plan section 06's options, with no new dependency (rule 6).
+- **The page baselines' pixel width is 200** (Barry, 2026-11-05, through AskUserQuestion: "Every page, 200 px
+  wide"): every page of both books, at about 6 MB a set per OS. Rejected: the first, 320 px set (15 MB), and a sample
+  of pages.
+- **The hosted Windows job gets 75 minutes** (Barry, 2026-11-05, through AskUserQuestion: "Raise cap, run once"): run
+  42086110115 reached the instructions spec at minute 35 of 45, and its books draw in software on that runner. The job
+  runs by hand only while D-43 pauses Windows. Rejected: leaving the Windows baselines to the Windows pass, and rung 2
+  only on Windows.
+- **Rung 2 is legible printed on A4 and Letter** (Barry, 2026-11-05, through AskUserQuestion, on pages 1, 2, 32, 45,
+  and 48 of each: "it is legible on both"). His one change: "the blur around the edges of the image ... makes the part
+  look blurry", so a close frame's cut edges are no longer faded (ADR 0014). 4E's Done when 1.
+
+## 2026-11-06, session 4E
+
+- **4E's Windows page baselines wait for the Windows pass** (Barry, 2026-11-06, through AskUserQuestion: "Defer to
+  Windows pass"). On the hosted Windows runner, the PDF read-back tests pass through render mode (run 42122932036),
+  and the app's Export → PDF saves both books (run 42159781016: the Cottage in 171 s, rung 2 in 88 s, drawn in
+  software); the page baselines were never written there, as the spec missed Windows' "Saved" toast (it names the
+  folder by its path; fixed in 75661bb). Done when 2b stays unticked for Windows in the PR. Rejected: a fifth manual
+  Windows run now.
+
 ## 2026-11-06: CI's Mac jobs move to GitHub's hosted Macs
 
 - **The PR's Mac jobs run on GitHub's hosted `macos-15`, not the self-hosted Mac** (Barry, 2026-11-06, through

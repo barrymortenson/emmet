@@ -167,30 +167,82 @@ fn app_binary() -> Option<PathBuf> {
 
 /// `Emmet --render <project> --view … --size … --out …` in a hidden window, then the PNG it wrote.
 fn render_mode(data: &DataDir, project: &Project, view: &str, size: u32, highlight: &[String]) -> Result<Png> {
-    let app = app_binary()
-        .ok_or_else(|| unavailable("The Emmet app isn't installed next to emmet, so render mode can't run."))?;
-    // One file per render: an MCP server can render several views at once.
+    let out = scratch(project, "png")?;
+    run_app(data, project, &out, RENDER_MODE_TIMEOUT, "The render", |cmd| {
+        cmd.args(["--view", view, "--size", &size.to_string()]);
+        if !highlight.is_empty() {
+            cmd.args(["--highlight", &highlight.join(",")]);
+        }
+    })?;
+    let bytes = std::fs::read(&out).map_err(|_| unavailable("The render wrote no PNG"))?;
+    let _ = std::fs::remove_file(&out);
+    let camera = std::fs::read_to_string(out.with_extension("json"))
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok());
+    let _ = std::fs::remove_file(out.with_extension("json"));
+    Ok(Png {
+        info: info(view, size, "render-mode", camera, highlight.to_vec(), &bytes),
+        bytes,
+    })
+}
+
+/// How long render mode may take to draw a book (a 500-part model's takes seconds; a cold WebView2 on CI, minutes).
+const BOOK_TIMEOUT: Duration = Duration::from_secs(900);
+
+/// Every picture a book needs, drawn by render mode's hidden window (`--instructions <jobs.json>`; session 4E).
+pub fn render_book(
+    data: &DataDir,
+    project: &Project,
+    jobs: &emmet_core::instructions::Jobs,
+) -> Result<emmet_core::instructions::Drawn> {
+    let input = scratch(project, "jobs.json")?;
+    let text = serde_json::to_string(jobs).expect("jobs serialize");
+    emmet_core::fsx::write_atomic(&input, text.as_bytes())?;
+    let out = scratch(project, "json")?;
+    let ran = run_app(data, project, &out, BOOK_TIMEOUT, "Drawing the instructions", |cmd| {
+        cmd.arg("--instructions").arg(&input);
+    });
+    let _ = std::fs::remove_file(&input);
+    ran?;
+    let text = std::fs::read_to_string(&out).map_err(|_| unavailable("Render mode wrote no pictures"))?;
+    let _ = std::fs::remove_file(&out);
+    serde_json::from_str(&text).map_err(|e| Error::internal(format!("render mode's pictures don't parse: {e}")))
+}
+
+/// A file of its own under build/renders/ for one render mode run: an MCP server can render several at once.
+fn scratch(project: &Project, ext: &str) -> Result<PathBuf> {
     static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let n = N.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
     let out = project
         .build_dir()?
         .join("renders")
-        .join(format!(".render-{}-{n}.png", std::process::id()));
+        .join(format!(".render-{}-{n}.{ext}", std::process::id()));
     std::fs::create_dir_all(out.parent().expect("renders/")).map_err(|e| Error::io(&out, e))?;
     let _ = std::fs::remove_file(&out);
+    Ok(out)
+}
+
+/// Runs `Emmet --render <project> … --out <out>` and waits for it, at most `timeout`; `what` names it in errors.
+fn run_app(
+    data: &DataDir,
+    project: &Project,
+    out: &Path,
+    timeout: Duration,
+    what: &str,
+    args: impl FnOnce(&mut Command),
+) -> Result<()> {
+    let app = app_binary()
+        .ok_or_else(|| unavailable("The Emmet app isn't installed next to emmet, so render mode can't run."))?;
     let mut cmd = Command::new(&app);
-    cmd.arg("--render")
-        .arg(&project.root)
-        .args(["--view", view, "--size", &size.to_string(), "--out"])
-        .arg(&out)
+    cmd.arg("--render").arg(&project.root);
+    args(&mut cmd);
+    cmd.arg("--out")
+        .arg(out)
         .arg("--data-dir")
         .arg(data.root())
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::piped());
-    if !highlight.is_empty() {
-        cmd.args(["--highlight", &highlight.join(",")]);
-    }
     let mut child = cmd
         .spawn()
         .map_err(|e| unavailable(format!("Can't start {}: {e}", app.display())))?;
@@ -204,7 +256,7 @@ fn render_mode(data: &DataDir, project: &Project, view: &str, size: u32, highlig
     let status = loop {
         match child.try_wait() {
             Ok(Some(s)) => break Some(s),
-            Ok(None) if started.elapsed() > RENDER_MODE_TIMEOUT => {
+            Ok(None) if started.elapsed() > timeout => {
                 let _ = child.kill();
                 let _ = child.wait();
                 break None;
@@ -232,25 +284,10 @@ fn render_mode(data: &DataDir, project: &Project, view: &str, size: u32, highlig
         unavailable(if said.is_empty() { why } else { format!("{why}: {said}") })
     };
     match status {
-        None => {
-            return Err(failed(format!(
-                "The render took over {} s",
-                RENDER_MODE_TIMEOUT.as_secs()
-            )));
-        }
-        Some(s) if !s.success() => return Err(failed("The render failed".into())),
-        Some(_) => {}
+        None => Err(failed(format!("{what} took over {} s", timeout.as_secs()))),
+        Some(s) if !s.success() => Err(failed(format!("{what} failed"))),
+        Some(_) => Ok(()),
     }
-    let bytes = std::fs::read(&out).map_err(|_| failed("The render wrote no PNG".into()))?;
-    let _ = std::fs::remove_file(&out);
-    let camera = std::fs::read_to_string(out.with_extension("json"))
-        .ok()
-        .and_then(|t| serde_json::from_str(&t).ok());
-    let _ = std::fs::remove_file(out.with_extension("json"));
-    Ok(Png {
-        info: info(view, size, "render-mode", camera, highlight.to_vec(), &bytes),
-        bytes,
-    })
 }
 
 /// The default output path: build/renders/<view>.png.

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-last-book"
+description = "Enables the last_book command without any pre-configured scope."
+commands.allow = ["last_book"]
+
+[[permission]]
+identifier = "deny-last-book"
+description = "Denies the last_book command without any pre-configured scope."
+commands.deny = ["last_book"]

@@ -5,6 +5,7 @@
 //! path: the host picks files in its own dialogs, makes folders in the projects folder, and reveals the last export
 //! itself.
 
+use emmet_core::fsx::file_name;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -108,28 +109,6 @@ fn bad(message: impl Into<String>, hint: impl Into<String>) -> Box<Problem> {
         hint: hint.into(),
         ..*Problem::internal(message)
     })
-}
-
-/// A name as one plain file or folder name: no separators, no characters Windows refuses, no control characters, and
-/// no leading dots (so never "." or ".."). A project's name comes from its emmet.toml, which a shared project writes.
-fn file_name(name: &str) -> String {
-    let clean: String = name
-        .chars()
-        .map(|c| {
-            if c.is_control() || "/\\:*?\"<>|".contains(c) {
-                ' '
-            } else {
-                c
-            }
-        })
-        .collect();
-    let words = clean.split_whitespace().collect::<Vec<_>>().join(" ");
-    let clean = words.trim_start_matches(['.', ' ']);
-    if clean.is_empty() {
-        "Model".into()
-    } else {
-        clean.to_string()
-    }
 }
 
 /// A folder in `parent` named `base`, or "`base` 2", "`base` 3", … when that's taken.
@@ -472,16 +451,23 @@ pub async fn open_version_as_new(app: AppHandle, n: u32) -> Result<ProjectView, 
     crate::app::open(&app, &dir)
 }
 
+/// The Downloads folder, or a problem that says so: Tauri's own error is "unknown path".
+fn downloads(app: &AppHandle) -> Result<std::path::PathBuf, Box<Problem>> {
+    app.path().download_dir().map_err(|_| {
+        let mut p = Problem::internal("Emmet can't find your Downloads folder.");
+        p.code = "IO_ERROR".into();
+        p.hint = "Check that your user folder has a Downloads folder, then export again.".into();
+        p
+    })
+}
+
 /// Export (⌘E): writes the parts list or the model into Downloads, named for the project ("Cottage parts.csv").
 #[tauri::command]
 #[specta::specta]
 pub async fn export(app: AppHandle, format: ExportFormat) -> Result<Exported, Box<Problem>> {
     let state = app.state::<AppState>();
     let (data, project) = (state.data.clone(), state.project()?);
-    let downloads = app
-        .path()
-        .download_dir()
-        .map_err(|e| Problem::internal(e.to_string()))?;
+    let downloads = downloads(&app)?;
     let folder = crate::prefs::in_words(&app, &downloads);
     let name = file_name(&project.config.name);
     let file = match format {
@@ -535,6 +521,72 @@ pub async fn export(app: AppHandle, format: ExportFormat) -> Result<Exported, Bo
     })
 }
 
+/// Export → Instructions → PDF, first half: what the window draws for the book (session 4E). The project's own
+/// build, run first if it's stale.
+#[tauri::command]
+#[specta::specta]
+pub async fn instructions_jobs(app: AppHandle) -> Result<emmet_core::instructions::Jobs, Box<Problem>> {
+    let state = app.state::<AppState>();
+    let (data, project) = (state.data.clone(), state.project()?);
+    blocking(move || Ok(emmet_core::instructions::project_jobs(&data, &project)?)).await
+}
+
+/// The last book laid out, for the E2E page baselines (they draw its pages in the webview). Debug builds only: it holds
+/// every picture, tens of MB a book.
+static LAST_BOOK: Mutex<Option<emmet_core::instructions::Book>> = Mutex::new(None);
+
+/// Export → Instructions → PDF, second half: lays the book out from what the window drew and writes it into
+/// Downloads, named for the project ("Cottage instructions.pdf"), on the paper the window's locale uses (`locale`,
+/// navigator.language: Letter for "en-US", A4 for "en-GB").
+#[tauri::command]
+#[specta::specta]
+pub async fn export_instructions(
+    app: AppHandle,
+    locale: String,
+    jobs: emmet_core::instructions::Jobs,
+    drawn: emmet_core::instructions::Drawn,
+) -> Result<Exported, Box<Problem>> {
+    let paper = emmet_core::instructions::Paper::for_locale(&locale);
+    let state = app.state::<AppState>();
+    let (data, project) = (state.data.clone(), state.project()?);
+    let downloads = downloads(&app)?;
+    let folder = crate::prefs::in_words(&app, &downloads);
+    let path = unique_file(
+        &downloads,
+        &format!("{} instructions.pdf", file_name(&project.config.name)),
+    );
+    if path.parent() != Some(downloads.as_path()) {
+        return Err(Problem::internal(format!(
+            "Emmet won't write {} outside Downloads.",
+            path.display()
+        )));
+    }
+    let out = path.clone();
+    let book = blocking(move || {
+        std::fs::create_dir_all(&downloads).map_err(|e| emmet_core::envelope::Error::io(&downloads, e))?;
+        Ok(emmet_core::instructions::write(&data, &project, &jobs, &drawn, paper, Some(&out))?.1)
+    })
+    .await?;
+    if cfg!(debug_assertions) {
+        *LAST_BOOK.lock().expect("book") = Some(book);
+    }
+    *LAST_EXPORT.lock().expect("export") = Some(path.clone());
+    Ok(Exported {
+        file: path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default(),
+        folder,
+    })
+}
+
+/// The last book Export → Instructions laid out, or null (the E2E page baselines; always null in a release build).
+#[tauri::command]
+#[specta::specta]
+pub fn last_book() -> Option<emmet_core::instructions::Book> {
+    LAST_BOOK.lock().expect("book").clone()
+}
+
 /// Save Screenshot (the screenshot toast's Save to file): the viewer's PNG, sent as base64, into Downloads beside the
 /// exports, named for the project ("Cottage.png"). Only a PNG is written.
 #[tauri::command]
@@ -545,10 +597,7 @@ pub async fn save_screenshot(app: AppHandle, png: String) -> Result<Exported, Bo
     let bytes = emmet_core::base64::decode(&png)
         .filter(|b| b.starts_with(b"\x89PNG\r\n\x1a\n"))
         .ok_or_else(|| Problem::internal("The screenshot wasn't a picture Emmet could save."))?;
-    let downloads = app
-        .path()
-        .download_dir()
-        .map_err(|e| Problem::internal(e.to_string()))?;
+    let downloads = downloads(&app)?;
     let folder = crate::prefs::in_words(&app, &downloads);
     let path = unique_file(&downloads, &format!("{}.png", file_name(&project.config.name)));
     let out = path.clone();

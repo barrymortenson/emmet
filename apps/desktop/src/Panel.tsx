@@ -57,6 +57,8 @@ export type PanelProps = {
   exportOpen: boolean;
   onExportOpen: (open: boolean) => void;
   onExport: (f: ExportFormat) => void;
+  /** Instructions → PDF. */
+  onInstructions: () => void;
   onPickFinding: (f: Finding) => void;
   onAsk: (f: Finding) => void;
   onAllow: (f: Finding) => void;
@@ -129,8 +131,7 @@ export function Panel(p: PanelProps) {
                     { label: "Model" },
                     { id: "mpd", icon: "box", text: "LDraw .mpd", sub: "Opens in Studio, LDCad, and LeoCAD", onSelect: () => p.onExport("mpd") },
                     { label: "Instructions" },
-                    // The PDF is 4E's.
-                    { id: "pdf", icon: "file-text", text: "PDF", sub: "Step pages, A4 or Letter", disabled: true, onSelect: () => {} },
+                    { id: "pdf", icon: "file-text", text: "PDF", sub: "Step pages, A4 or Letter", onSelect: p.onInstructions },
                     { id: "lpub3d", icon: "file-text", text: "LPub3D-ready file", sub: "For your own layout", onSelect: () => p.onExport("lpub3d") },
                   ]}
                 />

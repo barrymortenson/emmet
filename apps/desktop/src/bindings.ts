@@ -98,6 +98,23 @@ export const commands = {
 	renderDone: (png: string, camera: Value) => __TAURI_INVOKE<void>("render_done", { png, camera }),
 	/**  Render mode: why the render failed. Exits with an error. */
 	renderFailed: (message: string) => __TAURI_INVOKE<void>("render_failed", { message }),
+	/**  Render mode: a book's pictures. Writes them where `--out` says and exits. */
+	renderBookDone: (drawn: Drawn) => __TAURI_INVOKE<void>("render_book_done", { drawn }),
+	/**  Render mode: how many of a book's pictures are drawn, on stderr (emmet reads the last line when it fails). */
+	renderProgress: (done: number, total: number) => __TAURI_INVOKE<void>("render_progress", { done, total }),
+	/**
+	 *  Export → Instructions → PDF, first half: what the window draws for the book (session 4E). The project's own
+	 *  build, run first if it's stale.
+	 */
+	instructionsJobs: () => typedError<Jobs, Problem>(__TAURI_INVOKE("instructions_jobs")),
+	/**
+	 *  Export → Instructions → PDF, second half: lays the book out from what the window drew and writes it into
+	 *  Downloads, named for the project ("Cottage instructions.pdf"), on the paper the window's locale uses (`locale`,
+	 *  navigator.language: Letter for "en-US", A4 for "en-GB").
+	 */
+	exportInstructions: (locale: string, jobs: Jobs, drawn: Drawn) => typedError<Exported, Problem>(__TAURI_INVOKE("export_instructions", { locale, jobs, drawn })),
+	/**  The last book Export → Instructions laid out, or null (the E2E page baselines; always null in a release build). */
+	lastBook: () => __TAURI_INVOKE<Book | null>("last_book"),
 	/**
 	 *  Installs the library when it's missing or older than the pinned one, with its progress as [`PartsProgress`]
 	 *  events (a stopped download picks up where it stopped next time), sets Python up, then rebuilds the open project.
@@ -287,6 +304,8 @@ export type AgentView = {
 	warning: string | null,
 };
 
+export type Align = "start" | "middle" | "end";
+
 export type AllowedView = {
 	rule: string,
 	parts: string[],
@@ -335,6 +354,11 @@ export type ApprovalKind =
 /**  Any other tool. */
 "tool";
 
+export type Arrow = {
+	from: [(number | null), (number | null)],
+	to: [(number | null), (number | null)],
+};
+
 /**  Who pays for the session's model requests (D-35): shown in the picker and the chat header. */
 export type Billing = 
 /**  The user's subscription; `name` is its plan ("Max") when the CLI says. */
@@ -362,6 +386,15 @@ export type BomLine = {
 	qty: number,
 	/**  available, color_unavailable, part_unavailable, or unknown (never read as unavailable). */
 	availability: string,
+};
+
+export type Book = {
+	paper: Paper,
+	width: number | null,
+	height: number | null,
+	pages: Page[],
+	/**  Every picture once (a part's is shared by every parts box it's in). */
+	images: Picture[],
 };
 
 /**  The build settings (plan section 14), each null until set ("Any"). */
@@ -528,6 +561,30 @@ export type DoneReason = "completed" |
 /**  The CLI exited mid-turn. */
 "crashed";
 
+/**  What the webview drew, in the order of [`Jobs`]. */
+export type Drawn = {
+	cover: Picture,
+	/**  One per run, each with its steps in order. */
+	runs: DrawnStep[][],
+	parts: Picture[],
+};
+
+export type DrawnStep = {
+	n: number,
+	/**  The build up to the step, its new parts outlined, cropped the same for every step of its camera run. */
+	picture: Picture,
+	/**  The picture's pixels per LDU at the model's center: how big a brick is, for one scale through the book. */
+	ldu: number | null,
+	/**  Quarter turns of the model from the first step's view. */
+	turn: number,
+	/**  Where each copy the step puts on is in the picture (pixels). */
+	copies: Spot[],
+	/**  Arrows for parts that don't go on from above, in the picture's pixels. */
+	arrows: Arrow[],
+	/**  A closer look at new parts that are hidden in the picture, and where they are in it. */
+	zoom: Zoom | null,
+};
+
 export type ExportFormat = "csv" | "rebrickable" | "bricklink-xml" | "mpd" | "lpub3d";
 
 /**  What an export wrote: the file's name and where, in words ("Downloads"). */
@@ -557,6 +614,31 @@ export type Finding = {
 	source: SourceLine[],
 	message: string,
 	hint: string,
+};
+
+/**  One thing drawn on a page, in points from its top left. */
+export type Item = { kind: "rect"; x: number | null; y: number | null; w: number | null; h: number | null; radius: number | null; fill: [number, number, number] | null; stroke: [number, number, number] | null; width: number | null } | 
+/**  A line through the points, or a closed shape. */
+{ kind: "path"; points: ([(number | null), (number | null)])[]; closed: boolean; fill: [number, number, number] | null; stroke: [number, number, number] | null; width: number | null } | 
+/**  Helvetica (or bold), `y` at the baseline. */
+{ kind: "text"; x: number | null; y: number | null; size: number | null; bold: boolean; color: [number, number, number]; align: Align; text: string } | { kind: "image"; image: number; x: number | null; y: number | null; w: number | null; h: number | null };
+
+/**  What the webview draws for one book. */
+export type Jobs = {
+	step_size: number,
+	part_size: number,
+	cover_size: number,
+	/**  The main model first, then each sub-assembly. */
+	runs: Run[],
+	/**  Each part × color a parts box or the parts list shows. */
+	parts: PartJob[],
+	/**
+	 *  What's behind the pictures, so a JPEG sits on its box without an edge: the page (the cover and the main
+	 *  model's steps), a sub-assembly's box, and the parts box.
+	 */
+	page_background: [number, number, number],
+	callout_background: [number, number, number],
+	part_background: [number, number, number],
 };
 
 /**  The chat that's running. */
@@ -601,6 +683,14 @@ export type Origin =
 /**  "Make it parametric" on an imported file. */
 "import";
 
+export type Page = {
+	/**  The number printed at its foot (none on the cover). */
+	number: number | null,
+	items: Item[],
+};
+
+export type Paper = "a4" | "letter";
+
 export type ParamSpec = {
 	name: string,
 	/**  int, float, bool, choice, or color. */
@@ -624,6 +714,11 @@ export type ParamsView = {
 	values: { [key in string]: Value },
 };
 
+export type PartJob = {
+	part: string,
+	color: number,
+};
+
 /**  What first run is doing: the library download (`done` of `total` bytes), then Python (no amounts). */
 export type PartsProgress = {
 	/**  library or python. */
@@ -636,6 +731,13 @@ export type PartsProgress = {
 export type PhotoView = {
 	/**  `refs/<name>.jpg`, what the message names. */
 	path: string,
+	width: number,
+	height: number,
+};
+
+/**  A JPEG, base64. */
+export type Picture = {
+	jpeg: string,
 	width: number,
 	height: number,
 };
@@ -741,6 +843,20 @@ export type RenderJob = {
 	view: string,
 	size: number,
 	highlight: string[],
+	/**  A book's pictures to draw instead (`--instructions`). */
+	book: Jobs | null,
+};
+
+/**  One scene's steps: the main model's, or one copy of a sub-assembly's. */
+export type Run = {
+	/**  "" for the main model, else the sub-assembly's file in model.mpd. */
+	file: string,
+	/**  The copy drawn: its parts are the placements whose `copies[depth]` is this id. "" for the main model. */
+	copy: string,
+	/**  How deep the sub-assembly sits: 0 for one the main model places. */
+	depth: number,
+	/**  The steps in order, grouped by title (the webview flattens them and picks its own camera runs). */
+	groups: StepJob[][],
 };
 
 /**
@@ -828,6 +944,12 @@ export type SourceLine = {
 	text: string | null,
 };
 
+export type Spot = {
+	id: string,
+	x: number | null,
+	y: number | null,
+};
+
 /**  How a redirect reaches the agent (D-33, ADR 0001). */
 export type SteerPath = 
 /**  Mid-turn input in the CLI's own protocol, at its next step. */
@@ -841,6 +963,14 @@ export type StepItem = {
 	part: string,
 	color: number,
 	count: number,
+};
+
+export type StepJob = {
+	n: number,
+	/**  The ids of the parts the step adds, as the scene has them. */
+	new: string[],
+	/**  The sub-assembly copies it puts on: where each goes is the end of the line from its box. */
+	copies: string[],
 };
 
 export type StepSub = {
@@ -968,6 +1098,12 @@ export type VersionView = {
 	thumbnail: string | null,
 	/**  Whether it can be opened to compare (it has the build's placements). */
 	viewable: boolean,
+};
+
+export type Zoom = {
+	picture: Picture,
+	x: number | null,
+	y: number | null,
 };
 
 /* Tauri Specta runtime */

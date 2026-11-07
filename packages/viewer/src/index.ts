@@ -22,6 +22,7 @@ import {
   PerspectiveCamera,
   PlaneGeometry,
   Quaternion,
+  Ray,
   Raycaster,
   Scene,
   ShadowMaterial,
@@ -88,6 +89,37 @@ export interface RenderOptions {
   /** No background: the picture's pixels around the model are transparent (the Parts list's and the parts box's
    * pictures). */
   transparent?: boolean;
+  /** What the camera frames: the build up to this step (a run of steps shares one camera, so the model stays put from
+   * page to page), or these ids' box grown by two studs each way (a zoom box). By default the build up to `step`, or
+   * everything. */
+  frame?: number | string[] | Extent;
+  /** Quarter turns of the model around its vertical axis, as a builder turns it to work on another side: 2 shows the
+   * far corner. */
+  turn?: number;
+  /** The ground shadow (true by default; instructions draw none, as the books do). */
+  shadow?: boolean;
+  /** Ids (a part's, or a copy's for all its parts) to report on: where each is in the picture and how much of it is
+   * in sight. */
+  report?: string[];
+  /** The width of a step's outline in pixels (1.5 by default; a printed page needs it wider). */
+  outline?: number;
+}
+
+/** A box in the scene's frame (LDraw units, Y up), as `boxOf` gives it. */
+export interface Extent {
+  min: [number, number, number];
+  max: [number, number, number];
+}
+
+/** Where an id is in a render (pixels from the top left) and the share of it in sight, from 0 (hidden behind other
+ * parts, or out of the picture) to 1. */
+export interface Sighting {
+  box: [number, number, number, number];
+  center: [number, number];
+  seen: number;
+  /** For one part that doesn't go on from above (turned on its side, or upside down under something): the way it
+   * moves on, its own down, as a unit vector in the picture. */
+  moves?: [number, number];
 }
 
 /** Where a render's camera was, in the viewer's frame (Y up, LDraw units). */
@@ -101,6 +133,10 @@ export interface RenderCamera {
 export interface Rendered {
   png: Uint8Array;
   camera: RenderCamera;
+  /** For each id in `report` that's in the scene. */
+  report?: Record<string, Sighting>;
+  /** Where the box the camera frames is in the picture (pixels: left, top, right, bottom). */
+  framed: [number, number, number, number];
 }
 
 /** A point on the canvas, in CSS pixels from its top left; `visible` is false when it's behind the camera or off the
@@ -206,6 +242,9 @@ export interface Viewer {
    * highlighted: the window's camera,
    * canvas, and highlight don't change. Refuses when a part the scene uses failed or the last update failed. */
   render(options?: RenderOptions): Promise<Rendered>;
+  /** The box around the ids (a copy's id takes in its parts), or around the build up to `step`, or everything; null
+   * when there's nothing. For framing instruction steps. */
+  boxOf(ids?: string[], step?: number): Extent | null;
   /** A PNG of what the window shows, from its own camera, at `scale` times the canvas's size (a screenshot). */
   snapshot(scale?: number): Promise<Uint8Array>;
   /** Where the top of the ids' box is on the canvas (a finding's pin, a sub-assembly's leader), or null for none. */
@@ -245,6 +284,8 @@ const HOVER = 0.28;
 const SOFT_EDGES: Record<Theme, number> = { light: 0.18, dark: 0.32 };
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 const FOV = 35;
+/** A zoom box's frame: the ids' box grown by two studs each way, so the parts around them show where they are. */
+const ZOOM_MARGIN = 40;
 const PLATE = 8;
 /** A stud is 12 LDU across: under this many drawing-buffer (device) pixels on screen, per quality, its bucket draws
  * low-detail studs. */
@@ -842,7 +883,7 @@ class EmmetViewer implements Viewer {
   /** Draws a frame: the model, then while something is highlighted a veil of the background over it and the
    * highlighted parts again on top, in their own colors; then a step's new parts' outline. The highlighted parts keep
    * the depth test, so a part behind another stays behind it. */
-  private draw(r: WebGLRenderer, camera: PerspectiveCamera, theme: Theme): void {
+  private draw(r: WebGLRenderer, camera: PerspectiveCamera, theme: Theme, outline?: number): void {
     // A frame's passes count as one in stats().
     r.info.autoReset = false;
     r.info.reset();
@@ -859,7 +900,7 @@ class EmmetViewer implements Viewer {
       }
       if (this.step != null) {
         if (!this.outlineBuilt) this.buildOutline();
-        if (this.outlineRoot.children.length) this.outline.draw(r, this.outlineScene, camera, OUTLINE[theme], r.getPixelRatio());
+        if (this.outlineRoot.children.length) this.outline.draw(r, this.outlineScene, camera, OUTLINE[theme], outline ? outline / 1.5 : r.getPixelRatio());
       }
     } finally {
       r.autoClear = autoClear;
@@ -1288,7 +1329,8 @@ class EmmetViewer implements Viewer {
     camera: PerspectiveCamera,
     width: number,
     height: number,
-    state: { lit: Set<string>; mode: HighlightMode; step: number | null; cut: number | null; theme: Theme; background: Color | null },
+    state: { lit: Set<string>; mode: HighlightMode; step: number | null; cut: number | null; theme: Theme; background: Color | null; shadow?: boolean; outline?: number },
+    measure?: () => void,
   ): WebGLRenderer {
     const { renderer: r, environment } = this.offscreenRenderer();
     r.setPixelRatio(1);
@@ -1322,9 +1364,13 @@ class EmmetViewer implements Viewer {
       }
       this.overlayBuilt = false;
       this.outlineBuilt = false;
-      this.studio.key.castShadow = true;
-      this.fitShadow(r);
-      this.draw(r, camera, state.theme);
+      const shadowed = state.shadow ?? true;
+      this.studio.key.castShadow = shadowed;
+      if (shadowed) this.fitShadow(r);
+      else this.ground.visible = false;
+      this.draw(r, camera, state.theme, state.outline);
+      // With the render's state still in place: what's shown, and where.
+      measure?.();
     } finally {
       Object.assign(this, before);
       this.scene.background = background;
@@ -1358,22 +1404,137 @@ class EmmetViewer implements Viewer {
     const name = options.view ?? "iso";
     const view = VIEWS[name];
     if (!view) throw new Error(`there's no view '${String(name)}'`);
+    const turn = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (Math.round(options.turn ?? 0) * Math.PI) / 2);
+    const dir = view.dir.clone().applyQuaternion(turn);
+    const up = view.up.clone().applyQuaternion(turn);
     const camera = new PerspectiveCamera(FOV, 1, 1, 100_000);
-    camera.up.copy(view.up);
-    const box = this.bounds(undefined, options.step);
-    if (box.isEmpty()) camera.position.copy(view.dir).multiplyScalar(600);
-    else this.place(camera, box, view.dir, view.up);
-    const r = this.drawOffscreen(camera, size, size, {
-      lit: new Set(options.highlight ?? []),
-      mode: "select",
-      step: options.step ?? null,
-      cut: null,
-      theme: "light",
-      background: options.transparent ? null : RENDER_BACKGROUND,
-    });
+    camera.up.copy(up);
+    const frame = options.frame;
+    const box = Array.isArray(frame)
+      ? this.bounds(frame).expandByScalar(ZOOM_MARGIN)
+      : typeof frame === "object"
+        ? new Box3(new Vector3(...frame.min), new Vector3(...frame.max))
+        : this.bounds(undefined, frame ?? options.step);
+    if (box.isEmpty()) camera.position.copy(dir).multiplyScalar(600);
+    else this.place(camera, box, dir, up);
+    let report: Record<string, Sighting> | undefined;
+    const r = this.drawOffscreen(
+      camera,
+      size,
+      size,
+      {
+        lit: new Set(options.highlight ?? []),
+        mode: "select",
+        step: options.step ?? null,
+        cut: null,
+        theme: "light",
+        background: options.transparent ? null : RENDER_BACKGROUND,
+        shadow: options.shadow,
+        outline: options.outline,
+      },
+      options.report ? () => (report = this.sight(options.report!, camera, size)) : undefined,
+    );
     const png = await toPng(r);
     const target = box.isEmpty() ? new Vector3() : box.getCenter(new Vector3());
-    return { png, camera: { view: name, position: camera.position.toArray(), target: target.toArray(), fov: camera.fov } };
+    let framed: [number, number, number, number] = [0, 0, size, size];
+    if (!box.isEmpty()) {
+      let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < 8; i++) {
+        const p = new Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).project(camera);
+        const [x, y] = [((p.x + 1) / 2) * size, ((1 - p.y) / 2) * size];
+        [x0, y0, x1, y1] = [Math.min(x0, x), Math.min(y0, y), Math.max(x1, x), Math.max(y1, y)];
+      }
+      framed = [Math.max(0, x0), Math.max(0, y0), Math.min(size, x1), Math.min(size, y1)];
+    }
+    return {
+      png,
+      camera: { view: name, position: camera.position.toArray(), target: target.toArray(), fov: camera.fov },
+      framed,
+      ...(report ? { report } : {}),
+    };
+  }
+
+  /** Where each id is in a `size`-pixel render from `camera`, and how much of it is in sight: of the rays from the
+   * camera to points inside each of its parts (the center of its box, and its corners pulled 40 % in), the share that
+   * reach the part's box before any other shown part's. Boxes, not triangles: a ray through a 32 × 32 baseplate's
+   * studs costs 100,000 triangle tests, and the books only need to know whether a part is out of sight. */
+  private sight(ids: string[], camera: PerspectiveCamera, size: number): Record<string, Sighting> {
+    this.root.updateMatrixWorld(true);
+    camera.updateMatrixWorld();
+    const boxes = new Map<string, Box3>();
+    for (const [id] of this.where) {
+      const p = this.placements.get(id);
+      if (p && this.shows(p)) boxes.set(id, this.bounds([id]));
+    }
+    const pixel = (v: Vector3): [number, number] => {
+      const p = v.clone().project(camera);
+      return [((p.x + 1) / 2) * size, ((1 - p.y) / 2) * size];
+    };
+    const ray = new Ray();
+    const hit = new Vector3();
+    const out: Record<string, Sighting> = {};
+    for (const id of ids) {
+      const parts = this.where.has(id) ? [id] : [...this.where.keys()].filter((k) => k.startsWith(`${id}/`));
+      const shown = parts.filter((k) => boxes.has(k));
+      if (!shown.length) continue;
+      const box = this.bounds(shown);
+      let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+      const v = new Vector3();
+      for (let i = 0; i < 8; i++) {
+        v.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z);
+        const [x, y] = pixel(v);
+        [x0, y0, x1, y1] = [Math.min(x0, x), Math.min(y0, y), Math.max(x1, x), Math.max(y1, y)];
+      }
+      let seen = 0;
+      let tried = 0;
+      for (const part of shown) {
+        const own = boxes.get(part)!;
+        const center = own.getCenter(new Vector3());
+        const points = [center];
+        for (let i = 0; i < 8; i++) {
+          v.set(i & 1 ? own.max.x : own.min.x, i & 2 ? own.max.y : own.min.y, i & 4 ? own.max.z : own.min.z);
+          points.push(v.clone().lerp(center, 0.4));
+        }
+        for (const point of points) {
+          tried++;
+          const ndc = point.clone().project(camera);
+          if (Math.abs(ndc.x) > 1 || Math.abs(ndc.y) > 1) continue;
+          ray.origin.copy(camera.position);
+          ray.direction.copy(point).sub(camera.position).normalize();
+          const enter = ray.intersectBox(own, hit) ? hit.distanceTo(camera.position) : camera.position.distanceTo(point);
+          let blocked = false;
+          for (const [other, b] of boxes) {
+            if (other === part || !ray.intersectBox(b, hit)) continue;
+            // A box the ray enters before the part's own (a neighbor sharing a face doesn't count).
+            if (hit.distanceTo(camera.position) < enter - 1 && !b.containsPoint(point)) {
+              blocked = true;
+              break;
+            }
+          }
+          if (!blocked) seen++;
+        }
+      }
+      const mid = box.getCenter(new Vector3());
+      const center = pixel(mid);
+      out[id] = { box: [x0, y0, x1, y1], center, seen: tried ? seen / tried : 0 };
+      const p = parts.length === 1 && parts[0] === id ? this.placements.get(id) : undefined;
+      if (p) {
+        // Its own down (LDraw's +Y) in the model; a part whose down is the model's goes on from above.
+        const down = new Vector3(p.matrix[4] ?? 0, p.matrix[5] ?? 0, p.matrix[6] ?? 0).normalize();
+        if (down.y < 0.9) {
+          const along = down.transformDirection(this.root.matrixWorld).multiplyScalar(20).add(mid);
+          const [ax, ay] = pixel(along);
+          const len = Math.hypot(ax - center[0], ay - center[1]);
+          if (len > 1e-3) out[id]!.moves = [(ax - center[0]) / len, (ay - center[1]) / len];
+        }
+      }
+    }
+    return out;
+  }
+
+  boxOf(ids?: string[], step?: number): Extent | null {
+    const box = this.bounds(ids, step);
+    return box.isEmpty() ? null : { min: box.min.toArray(), max: box.max.toArray() };
   }
 
   snapshot(scale = 2): Promise<Uint8Array> {

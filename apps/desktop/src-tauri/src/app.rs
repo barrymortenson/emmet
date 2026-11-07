@@ -327,6 +327,8 @@ pub struct RenderJob {
     pub view: String,
     pub size: u32,
     pub highlight: Vec<String>,
+    /// A book's pictures to draw instead (`--instructions`).
+    pub book: Option<emmet_core::instructions::Jobs>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
@@ -1170,6 +1172,20 @@ pub fn render_done(png: String, camera: Value) {
     crate::finish_render(Ok((png, camera)));
 }
 
+/// Render mode: a book's pictures. Writes them where `--out` says and exits.
+#[tauri::command]
+#[specta::specta]
+pub fn render_book_done(drawn: emmet_core::instructions::Drawn) {
+    crate::finish_book(&drawn);
+}
+
+/// Render mode: how many of a book's pictures are drawn, on stderr (emmet reads the last line when it fails).
+#[tauri::command]
+#[specta::specta]
+pub fn render_progress(done: u32, total: u32) {
+    eprintln!("render progress {done} of {total}");
+}
+
 /// Render mode: why the render failed. Exits with an error.
 #[tauri::command]
 #[specta::specta]
@@ -1178,7 +1194,13 @@ pub fn render_failed(message: String) {
 }
 
 /// The render mode's job from `--render <project>`: the project's last build.
-pub fn render_job_for(dir: &Path, view: &str, size: u32, highlight: Vec<String>) -> Result<RenderJob, String> {
+pub fn render_job_for(
+    dir: &Path,
+    view: &str,
+    size: u32,
+    highlight: Vec<String>,
+    instructions: Option<&Path>,
+) -> Result<RenderJob, String> {
     let project = Project::find(Some(dir)).map_err(|e| e.message)?;
     let scene = read_scene(&project.root).ok_or_else(|| {
         format!(
@@ -1186,10 +1208,18 @@ pub fn render_job_for(dir: &Path, view: &str, size: u32, highlight: Vec<String>)
             project.root.display()
         )
     })?;
+    let book = match instructions {
+        Some(path) => {
+            let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+            Some(serde_json::from_str(&text).map_err(|e| format!("{}: {e}", path.display()))?)
+        }
+        None => None,
+    };
     Ok(RenderJob {
         scene,
         view: view.into(),
         size,
         highlight,
+        book,
     })
 }
