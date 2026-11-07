@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-11-06",
+  updated: "2026-11-07",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -198,7 +198,16 @@ window.EMMET_STATUS = {
       ],
       note: "The first draft within a minute isn't met (about 2:35 of agent time on the e-bike); 4G is the fix, before G2"
     },
-    "4E": { status: "review", branch: "bmortenson/s4e-native-pdf-instructions", started: "2026-11-04", pr: 54 },
+    "4E": {
+      status: "done", pr: 54, branch: "bmortenson/s4e-native-pdf-instructions", started: "2026-11-04",
+      evidence: [
+        "CI ci check green #54 (run 42346477386 on hosted macos-15: mac 8.3 min, mac-e2e 12 min, 19 of 19 E2E specs)",
+        "tests/it/tests/instructions.rs: rung 1 and rung 2 PDFs read back against steps.json; the Cottage (905 parts) in 16.9 s",
+        "tests/e2e/specs/instructions.e2e.mjs: 155 macOS page baselines in tests/e2e/baselines/macos/instructions/; ADR 0014",
+        "Barry's printout check 2026-11-05 on A4 and Letter: \"it is legible on both\""
+      ],
+      note: "Barry 2026-11-06: the Windows page baselines wait for the Windows pass (Done when 2b unticked for Windows); Barry's build of a real rung 1 cottage from the PDF is still to do"
+    },
     "4G": { status: "todo" },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
