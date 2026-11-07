@@ -155,8 +155,9 @@ async function freshAgents() {
 }
 
 /** Compares a window screenshot (taken at `scale` device pixels per CSS pixel) with its baseline; a reason when it
- * doesn't match. A screen that doesn't match also goes to tests/e2e/out/baselines/<os>/screens/, which CI uploads, so
- * a change seen on a hosted runner can be checked and copied into tests/e2e/baselines. */
+ * doesn't match. A screen that doesn't match, or one written with EMMET_UPDATE_BASELINES=1, also goes to
+ * tests/e2e/out/baselines/<os>/screens/, which CI uploads, so a hosted runner's screens can be checked and copied into
+ * tests/e2e/baselines. */
 function compare(name, png, scale) {
   const k = SHRINK * Math.max(1, Math.round(scale));
   const small = shrink(decode(png), k);
@@ -169,13 +170,13 @@ function compare(name, png, scale) {
   if (update || !existsSync(base)) {
     mkdirSync(join(base, ".."), { recursive: true });
     writeFileSync(base, encode(small));
-    if (!update) candidate();
+    candidate();
     return update ? null : `wrote a new baseline, ${base}; check it and commit it`;
   }
   const want = decode(readFileSync(base));
   if (want.width !== small.width || want.height !== small.height) {
     candidate();
-    return `${name}: the window is ${small.width * SHRINK} × ${small.height * SHRINK} CSS pixels, the baseline ${want.width * SHRINK} × ${want.height * SHRINK}`;
+    return `${name}: the window shrinks to ${small.width} × ${small.height} pixels, its baseline is ${want.width} × ${want.height}`;
   }
   const diff = { width: small.width, height: small.height, data: Buffer.alloc(small.data.length) };
   const bad = pixelmatch(want.data, small.data, diff.data, small.width, small.height, { threshold: 0.1 });
