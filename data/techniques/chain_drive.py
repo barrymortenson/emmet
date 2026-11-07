@@ -44,9 +44,8 @@ def _loop(rear, front):
             continue
         s -= run
         arc = math.pi * RADIUS
-        if (
-            s < arc
-        ):  # round the front sprocket, from the top over its front to the bottom
+        # Round the front sprocket, from the top over its front to the bottom.
+        if s < arc:
             a = math.atan2(nz, nx) - s / RADIUS
             out.append((dx + RADIUS * math.cos(a), dz + RADIUS * math.sin(a)))
             continue
