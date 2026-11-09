@@ -88,7 +88,8 @@ rung passes when 3 of the 4 pass. The G2 report shows the renders and scores, no
 **Part ranges:** what a good display set of each has, so a basic model fails (Barry, 2026-11-04): the lamp
 300-1,000, the e-bike 600-2,000, the truck 800-2,500, and the Bradbury Building 1,500-3,000, a detailed modular
 building at minifigure scale. The prompt doesn't say so: the doctrine has the agent ask about scale
-when a photo leaves it open, and the Bradbury's own answer gives it. A subject's own answers are tried first.
+when a photo leaves it open, and the Bradbury's own answer gives it, as the e-bike's does: a large display model on a
+stand, about 40 studs long (Barry, 2026-11-08). A subject's own answers are tried first.
 
 **Answer script:**
 

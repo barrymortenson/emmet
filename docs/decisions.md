@@ -944,3 +944,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **The seven display-bike techniques are accepted** (Barry, 2026-11-08, through AskUserQuestion: "Accept all 7"):
   motorbike_frame, swingarm_shock, suspension_fork, chain_drive, disc_brake, handlebars, and
   display_stand_nameplate, as built after the steering change (`docs/techniques/candidates/batch-19.html`).
+- **The e-bike is a large display model, and the agent has to ask** (Barry, 2026-11-08, through AskUserQuestion:
+  "Large display model"). The rung's general scale answer, "Minifigure scale", makes an e-bike about 6 studs long, short
+  of its 600-part floor; the e-bike's own answer in `data/ladder/photo/subjects.toml` is now "A large display model on
+  a stand, about 40 studs long, with lots of pieces", as the Bradbury has its own. Rejected: keeping "Minifigure
+  scale", and no answer.
