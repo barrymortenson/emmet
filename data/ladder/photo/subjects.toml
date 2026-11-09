@@ -21,7 +21,7 @@ id = "e-bike"
 description = "A modern moto-style electric bicycle"
 parts = [600, 2000]
 answers = [
-  { when = ["scale", "size", "how big"], answer = "A large display model on a stand, about 40 studs long, with lots of pieces" },
+  { when = ["scale", "size", "how big"], answer = "A large display model about 40 studs long, standing on its kickstand, with lots of pieces" },
 ]
 images = [
   { angle = "a", file = "e-bike-a.png", sha256 = "5d9acb1fab96e7f0b0c95e6125d9ebdac17fa8cd604cd9f40ec0fd6f699b9827" },

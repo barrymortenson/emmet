@@ -961,7 +961,8 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   the bike stand up. it is using a lot of the parts to make this and not focusing on the detail of the bike").
   `display_stand_nameplate` is gone, and `kickstand` takes its place: a beam swung down from the frame's left side to
   the table, level with the tires. The large guide says a bike stands on its wheels and kickstand with no base, and
-  the parts go into the bike; plan section 21's 4G text says so.
+  the parts go into the bike; plan section 21's 4G text says so. The e-bike's scale answer in
+  `data/ladder/photo/subjects.toml` says "standing on its kickstand" for "on a stand".
 - **New model asks its name and build settings first** (Barry, 2026-11-09: "when creating a new file it does not ask
   for a name or give you and chance to name it. Also I am thinking that the project settings should be be asked as a
   wizard or modal style new file setup, so the expectations of the new project, size, style, etc. are set at the
