@@ -962,3 +962,13 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   `display_stand_nameplate` is gone, and `kickstand` takes its place: a beam swung down from the frame's left side to
   the table, level with the tires. The large guide says a bike stands on its wheels and kickstand with no base, and
   the parts go into the bike; plan section 21's 4G text says so.
+- **New model asks its name and build settings first** (Barry, 2026-11-09: "when creating a new file it does not ask
+  for a name or give you and chance to name it. Also I am thinking that the project settings should be be asked as a
+  wizard or modal style new file setup, so the expectations of the new project, size, style, etc. are set at the
+  beginning, then the project settings are in the small summary at the top of the tweeks sidebar and can be edit
+  later if needed"; through AskUserQuestion, it goes in 4G: "Fold into 4G"). This reverses 4A's New with no dialog
+  (Barry's note 7) for a new model from a prompt: its card opens the New model dialog, which needs a name and offers
+  the six build settings, each Any until set, as Options has them (Age still brings its Detail and Pieces). Create
+  makes the folder by that name (a taken one gets "name 2") with `[build]` written. Options shows the settings as a
+  line of words with Change on every model, an empty one too. The Cottage example still opens with no dialog.
+  Rejected: its own branch and PR, and waiting until 4G merges.

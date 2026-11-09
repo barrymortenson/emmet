@@ -29,7 +29,7 @@ import {
 import { type Ask, Dock, DockBoundary } from "./Chat";
 import { Compare } from "./Compare";
 import { findingWords, fixRequest } from "./Checks";
-import { About, Settings, Shortcuts } from "./Dialogs";
+import { About, NewModel, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
 import { drawBook } from "./instructions";
 import { type Action, actionFor, windows } from "./keys";
@@ -41,7 +41,7 @@ import { Banner, Button, Icon, Resizable, when } from "./ui";
 import { partPicture } from "./pictures";
 import { ViewerLayer } from "./ViewerLayer";
 
-type Dialog = "settings" | "about" | "shortcuts" | null;
+type Dialog = "settings" | "about" | "shortcuts" | "new-model" | null;
 const PANEL = { min: 320, max: 520, start: 384 };
 /** A menu click and its key press can both arrive for one action: the second within this long is the same one. */
 const SAME_ACTION_MS = 250;
@@ -986,9 +986,10 @@ export function App() {
                 onAgentsChanged={() => setAgentsChanged((n) => n + 1)}
                 onSettings={() => setDialog("settings")}
                 onNew={async (kind) => {
+                  // A new model from a prompt asks for its name and build settings first (Barry 2026-11-09).
+                  if (kind === "empty") return setDialog("new-model");
                   setCreating(kind);
-                  if (!(await act(commands.newProject(kind)))) setCreating(null);
-                  else if (kind === "empty") setTimeout(() => document.getElementById("chat-input")?.focus(), 0);
+                  if (!(await act(commands.newProject(kind, null, null)))) setCreating(null);
                 }}
                 onOpen={() => run("open")}
                 creating={creating}
@@ -1003,6 +1004,15 @@ export function App() {
           {dialog === "settings" && <Settings info={info} prefs={prefs} autoQuality={autoQuality} onPrefs={setPrefs} onClose={() => setDialog(null)} onAgentsChanged={() => setAgentsChanged((n) => n + 1)} onCopied={(copied) => say(copied ? "Copied the diagnostics" : "Emmet couldn't copy the diagnostics to the clipboard.")} />}
           {dialog === "about" && <About info={info} theme={theme} onClose={() => setDialog(null)} />}
           {dialog === "shortcuts" && <Shortcuts onClose={() => setDialog(null)} />}
+          {dialog === "new-model" && (
+            <NewModel
+              onClose={() => setDialog(null)}
+              onCreated={() => {
+                setDialog(null);
+                setTimeout(() => document.getElementById("chat-input")?.focus(), 0);
+              }}
+            />
+          )}
         </div>
       </Toast.Provider>
     </Tooltip.Provider>

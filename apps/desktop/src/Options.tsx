@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The Options tab (plan section 14, docs/design/frozen): the build settings, which steer the agent (each Any until
-// set; a change waits in a bar with Undo and Rebuild, and Rebuild asks the agent to rework the model), then the model's
+// The Options tab (plan section 14, docs/design/frozen): the build settings, which steer the agent (the New model dialog
+// asks for them first; here they're a line of words with Change, each Any until set; a change waits in a bar with Undo
+// and Rebuild, and Rebuild asks the agent to rework the model), then the model's
 // knobs (Tweaks: the two to five parameters the model names with @model(knobs=...)), which change it at once: a moved knob is a draft (params.json) until Keep writes it into model.py as
 // its default, and Reset drops it. ⌘Z and ⇧⌘Z undo and redo a draft.
 import { Popover, Slider, Switch, ToggleGroup } from "radix-ui";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { type ColorView, commands, type ParamSpec, type ParamsView, type Problem, type Value } from "./bindings";
 import type { BuildSettings } from "./bindings";
 import { Badge, Button, Icon, Tip } from "./ui";
@@ -88,9 +89,21 @@ const AGE_PRESET: Record<string, { detail: string; pieces: string }> = {
 
 const ORDER: Key[] = ["base", "scale", "age", "detail", "pieces", "style"];
 const ANY = "Any";
+/** Every setting on Any: a new model's, until the New model dialog sets some. */
+export const ANY_SETTINGS: BuildSettings = { base: null, scale: null, age: null, detail: null, pieces: null, style: null };
+
+/** The settings with `k` set to `v` (Any is null); an age brings its usual Detail and Pieces. */
+export function withSetting(d: BuildSettings, k: Key, v: string | null): BuildSettings {
+  const next = { ...d, [k]: v === ANY ? null : v };
+  if (k === "age" && v && AGE_PRESET[v]) Object.assign(next, AGE_PRESET[v]);
+  return next;
+}
 
 const said = (v: string | null | undefined) => v ?? ANY;
-const words = (k: Key, v: string | null | undefined) => (v == null ? null : k === "pieces" ? `${BRIEF.pieces.options.find((o) => o.id === v)?.name ?? v} pieces` : k === "age" ? `Ages ${v}` : k === "detail" ? `${v} detail` : v);
+const words = (k: Key, v: string | null | undefined): string | null => (v == null ? null : k === "pieces" ? `${BRIEF.pieces.options.find((o) => o.id === v)?.name ?? v} pieces` : k === "age" ? `Ages ${v}` : k === "detail" ? `${v} detail` : v);
+
+/** The settings in a line of words: "Large · Ages 13+ · High detail · Space", or "Any" when none is set. */
+export const settingsWords = (s: BuildSettings) => ORDER.map((k) => words(k, s[k])).filter(Boolean).join(" · ") || ANY;
 
 /** What the chat shows for Rebuild (the agent gets rebuildRequest's details too): "Rework the model for the new build
  * settings: style Steampunk (was Town), detail Medium (was Low)." */
@@ -155,34 +168,89 @@ function Chips({ label, items, value, onChange, own, onRemove }: { label: string
   );
 }
 
+/** The settings' controls (all six, or `keys`), on `draft`: the Options panel's (with `moved`, what a change was) and
+ * the New model dialog's pages. */
+export function SettingsFields({ draft, set, moved = () => ({}), id = "settings-list", keys = ORDER }: { draft: BuildSettings; set: (k: Key, v: string | null) => void; moved?: (k: Key) => { moved?: boolean; was?: string }; id?: string; keys?: Key[] }) {
+  const [style, setStyle] = useState("");
+  const ownStyle = draft.style && !BRIEF.style.options.some((o) => o.id === draft.style) ? draft.style : undefined;
+  // In `keys` order: the dialog's second page leads with Age, which sets Detail and Pieces.
+  const fields: Record<Key, React.ReactNode> = {
+    base: (
+      <Setting name="Base" help={BRIEF.base.help} {...moved("base")}>
+        <Segmented label="Base" items={[{ id: ANY }, ...BRIEF.base.options]} value={said(draft.base)} onChange={(v) => set("base", v)} />
+      </Setting>
+    ),
+    scale: (
+      <Setting name="Scale" help={BRIEF.scale.help} {...moved("scale")}>
+        <Chips label="Scale" items={[{ id: ANY, sub: "The prompt decides" }, ...BRIEF.scale.options]} value={said(draft.scale)} onChange={(v) => set("scale", v)} />
+      </Setting>
+    ),
+    age: (
+      <Setting name="Age" help={BRIEF.age.help} {...moved("age")}>
+        <Segmented label="Age" items={[{ id: ANY }, ...BRIEF.age.options]} value={said(draft.age)} onChange={(v) => set("age", v)} />
+      </Setting>
+    ),
+    detail: (
+      <Setting name="Detail" help={BRIEF.detail.help} {...moved("detail")}>
+        <Segmented label="Detail" items={[{ id: ANY }, ...BRIEF.detail.options]} value={said(draft.detail)} onChange={(v) => set("detail", v)} />
+      </Setting>
+    ),
+    pieces: (
+      <Setting name="Pieces" help={BRIEF.pieces.help} {...moved("pieces")}>
+        <Chips label="Pieces" items={[{ id: ANY }, ...BRIEF.pieces.options]} value={said(draft.pieces)} onChange={(v) => set("pieces", v)} />
+      </Setting>
+    ),
+    style: (
+      <Setting name="Style" help={BRIEF.style.help} {...moved("style")}>
+        <Chips label="Style" items={BRIEF.style.options} value={draft.style ?? null} onChange={(v) => set("style", v)} own={ownStyle} onRemove={() => set("style", null)} />
+        <input
+          className="text-field"
+          data-c="text-field"
+          type="text"
+          placeholder="Your own, like steampunk or zen garden"
+          aria-label="Your own style"
+          value={style}
+          maxLength={60}
+          onChange={(e) => setStyle(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter takes the style, and doesn't submit the New model dialog's form.
+            if (e.key === "Enter") e.preventDefault();
+            if (e.key === "Enter" && style.trim()) {
+              set("style", style.trim());
+              setStyle("");
+            }
+          }}
+        />
+      </Setting>
+    ),
+  };
+  return (
+    <div className="settings-list" id={id}>
+      {keys.map((k) => (
+        <Fragment key={k}>{fields[k]}</Fragment>
+      ))}
+    </div>
+  );
+}
+
 export function BuildSettingsSection({
   saved,
-  fresh,
   disabled,
   onSave,
   onRebuild,
 }: {
   saved: BuildSettings;
-  /** An empty model: every setting open on Any. */
-  fresh: boolean;
   disabled: boolean;
   onSave: (s: BuildSettings) => Promise<boolean>;
   onRebuild: (before: BuildSettings, after: BuildSettings) => void;
 }) {
   const [draft, setDraft] = useState<BuildSettings>(saved);
   const [open, setOpen] = useState(false);
-  const [style, setStyle] = useState("");
   useEffect(() => setDraft(saved), [saved]);
   const changed = ORDER.filter((k) => (draft[k] ?? null) !== (saved[k] ?? null));
-  const full = fresh || open || changed.length > 0;
-  const set = (k: Key, v: string | null) =>
-    setDraft((d) => {
-      const next = { ...d, [k]: v === ANY ? null : v };
-      if (k === "age" && v && AGE_PRESET[v]) Object.assign(next, AGE_PRESET[v]);
-      return next;
-    });
+  const full = open || changed.length > 0;
+  const set = (k: Key, v: string | null) => setDraft((d) => withSetting(d, k, v));
   const moved = (k: Key) => (changed.includes(k) ? { moved: true, was: said(saved[k]) } : {});
-  const ownStyle = draft.style && !BRIEF.style.options.some((o) => o.id === draft.style) ? draft.style : undefined;
   const bar = changed.length > 0 && (
     <div className="pending-bar" id="settings-bar">
       <span>{changed.length} changed</span>
@@ -208,51 +276,16 @@ export function BuildSettingsSection({
             Build settings
           </span>
         </Tip>
-        {open && !fresh && !changed.length && <Button label="Done" variant="quiet" size="sm" onClick={() => setOpen(false)} />}
+        {open && !changed.length && <Button label="Done" variant="quiet" size="sm" onClick={() => setOpen(false)} />}
       </div>
       {bar}
       {!full ? (
         <div className="summary-row" id="settings-summary">
-          <span>{ORDER.map((k) => words(k, saved[k])).filter(Boolean).join(" · ") || ANY}</span>
+          <span>{settingsWords(saved)}</span>
           <Button label="Change" size="sm" onClick={() => setOpen(true)} disabled={disabled} id="settings-change" />
         </div>
       ) : (
-        <div className="settings-list" id="settings-list">
-          <Setting name="Base" help={BRIEF.base.help} {...moved("base")}>
-            <Segmented label="Base" items={[{ id: ANY }, ...BRIEF.base.options]} value={said(draft.base)} onChange={(v) => set("base", v)} />
-          </Setting>
-          <Setting name="Scale" help={BRIEF.scale.help} {...moved("scale")}>
-            <Chips label="Scale" items={[{ id: ANY, sub: "The prompt decides" }, ...BRIEF.scale.options]} value={said(draft.scale)} onChange={(v) => set("scale", v)} />
-          </Setting>
-          <Setting name="Age" help={BRIEF.age.help} {...moved("age")}>
-            <Segmented label="Age" items={[{ id: ANY }, ...BRIEF.age.options]} value={said(draft.age)} onChange={(v) => set("age", v)} />
-          </Setting>
-          <Setting name="Detail" help={BRIEF.detail.help} {...moved("detail")}>
-            <Segmented label="Detail" items={[{ id: ANY }, ...BRIEF.detail.options]} value={said(draft.detail)} onChange={(v) => set("detail", v)} />
-          </Setting>
-          <Setting name="Pieces" help={BRIEF.pieces.help} {...moved("pieces")}>
-            <Chips label="Pieces" items={[{ id: ANY }, ...BRIEF.pieces.options]} value={said(draft.pieces)} onChange={(v) => set("pieces", v)} />
-          </Setting>
-          <Setting name="Style" help={BRIEF.style.help} {...moved("style")}>
-            <Chips label="Style" items={BRIEF.style.options} value={draft.style ?? null} onChange={(v) => set("style", v)} own={ownStyle} onRemove={() => set("style", null)} />
-            <input
-              className="text-field"
-              data-c="text-field"
-              type="text"
-              placeholder="Your own, like steampunk or zen garden"
-              aria-label="Your own style"
-              value={style}
-              maxLength={60}
-              onChange={(e) => setStyle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && style.trim()) {
-                  set("style", style.trim());
-                  setStyle("");
-                }
-              }}
-            />
-          </Setting>
-        </div>
+        <SettingsFields draft={draft} set={set} moved={moved} />
       )}
     </section>
   );

@@ -225,7 +225,9 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   kickstand: a bike stands on its kickstand, not a base), sized to a photo through their options (the head, the swingarm's reach and drop, fat
   wheels, the bars' rise), with a fork that steers on a triple tree, and the large guide's Display bikes, which has
   the agent measure the photo first. ldraw-mini moves to LDraw 2026-10, the release Emmet
-  pins.
+  pins. In the app, New model from a prompt opens a dialog that asks the model's name and its build settings (scale,
+  age, detail, pieces, style, base) first, so the agent builds to them from its first turn; Options shows them as a
+  line of words with Change.
 - Building instructions as a PDF (session 4E): Export → Instructions → PDF in the app, and `emmet export --format pdf
   [--paper a4|letter]`, with no LPub3D needed. A cover; the steps, two to a page, each with its number over its parts
   box and its new parts outlined in red; a camera that stays put through a run of steps and follows the work; each

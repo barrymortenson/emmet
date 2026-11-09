@@ -53,6 +53,10 @@ body { position: relative; overflow: hidden; }
 /* Settings and About. */
 .settings-dialog { width: calc(var(--dialog-width) + var(--space-3xl)); }
 .settings-dialog .setting[data-inline] > .setting-name { font-weight: var(--weight-regular); }
+/* New model: its name, then the build settings as Options has them, with the room their chips need. */
+.new-model-dialog { width: calc(var(--dialog-width) + var(--space-3xl) * 2); }
+.new-model-form { display: grid; gap: var(--space-lg); }
+.new-model-form > .small { margin: 0; color: var(--fg-muted); }
 .settings-codex { display: grid; gap: var(--space-xs); }
 .settings-codex .settings, .settings-codex fieldset { display: grid; gap: var(--space-xs); padding: 0; margin: 0; border: 0; }
 .licenses { display: grid; gap: var(--space-sm); text-align: left; font-size: var(--text-sm); }

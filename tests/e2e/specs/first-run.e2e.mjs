@@ -3,7 +3,8 @@
 // against lib/library-server.mjs: welcome → the library download, which drops partway and picks up where it stopped
 // on Try again, then drops again after the user has gone on to Start, which says so with its own Try again → Python →
 // the agents (the fake CLIs, ready) → Start → the Cottage, built from Documents/Emmet with no dialog. Then ⌘N makes a
-// new model from a prompt: an empty baseplate. Each screen in both themes goes to tests/e2e/out/screens/.
+// new model from a prompt: the New model dialog asks its name and build settings (Barry 2026-11-09), and it's an empty
+// baseplate with those settings in Options' line of words. Each screen in both themes goes to tests/e2e/out/screens/.
 import { $, expect } from "@wdio/globals";
 import { copyFileSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -94,14 +95,46 @@ describe("first run", () => {
     if (real) console.log(`first run, real: the Cottage built ${Math.round((Date.now() - started) / 1000)} s after Get started`);
   });
 
-  it("makes a new model from a prompt with ⌘N: an empty baseplate, every build setting on Any", async () => {
+  it("makes a new model from a prompt with ⌘N: the dialog asks its name and build settings first", async () => {
     await browser.keys([mod, "n"]);
     await (await $("#start-prompt")).waitForClickable();
     await (await $("#start-prompt")).click();
-    await browser.waitUntil(() => browser.execute(() => window.__emmet.project()?.endsWith("New model")), { timeout: 60_000 });
-    expect(existsSync(join(agentHome, "Documents", "Emmet", "New model", "model.py"))).toBe(true);
+    await (await $("#new-model")).waitForDisplayed();
+    // Page 1, what it is. No name, no Next: New used to make "New model" with no dialog, and the user couldn't name it.
+    await expect($("#new-model-next")).toBeDisabled();
+    await expect($("#new-model-name")).toBeFocused();
+    await (await $("#new-model-name")).setValue("Fire station");
+    const choose = async (group, choice) => (await (await $(`#new-model [aria-label='${group}']`)).$(`button=${choice}`)).click();
+    await choose("Scale", "Midi");
+    // Enter in the style field takes the style; it doesn't go on to the next page.
+    await (await $("#new-model [aria-label='Your own style']")).setValue("Steampunk");
+    await browser.keys("Enter");
+    await expect($("#new-model [aria-label='Style'] [data-state='on']")).toHaveText(expect.stringContaining("Steampunk"));
+    await expect($("#new-model-name")).toBeDisplayed();
+    await screenshots("new-model-what", { baseline: !real });
+    await (await $("#new-model-next")).click();
+    // Page 2, who builds it and how big. Age leads here as in Options: 9+ brings Medium detail and Medium pieces.
+    await choose("Age", "9+");
+    await expect($("#new-model [aria-label='Detail'] [data-state='on']")).toHaveText("Medium");
+    await screenshots("new-model-size", { baseline: !real });
+    // Back keeps what page 1 had.
+    await (await $("#new-model-back")).click();
+    await expect($("#new-model-name")).toHaveValue("Fire station");
+    await (await $("#new-model-next")).click();
+    await expect($("#new-model [aria-label='Age'] [data-state='on']")).toHaveText("9+");
+    await (await $("#new-model-create")).click();
+    await browser.waitUntil(() => browser.execute(() => window.__emmet.project()?.endsWith("Fire station")), { timeout: 60_000 });
+    await expect($("#new-model")).not.toBeExisting();
+    const dir = join(agentHome, "Documents", "Emmet", "Fire station");
+    expect(existsSync(join(dir, "model.py"))).toBe(true);
+    const toml = readFileSync(join(dir, "emmet.toml"), "utf8");
+    expect(toml).toContain('name = "Fire station"');
+    for (const line of ['scale = "Midi"', 'age = "9+"', 'detail = "Medium"', 'pieces = "Medium"', 'style = "Steampunk"']) expect(toml).toContain(line);
+    expect(toml).not.toContain("base =");
     await browser.waitUntil(async () => (await text("#model-state .panel-head-text")) === "Empty", { timeout: 60_000 });
-    await expect($("#settings-list")).toBeDisplayed();
+    // Options shows them as a line of words with Change, not the whole list.
+    await expect($("#settings-summary")).toHaveText(expect.stringContaining("Midi · Ages 9+ · Medium detail · 250–1,000 pieces · Steampunk"));
+    await expect($("#settings-list")).not.toBeExisting();
     await expect($("#export-button")).not.toBeExisting();
     await screenshots("new-empty", { baseline: !real });
   });
@@ -110,7 +143,7 @@ describe("first run", () => {
     await browser.keys([mod, "e"]);
     await expect($("#export-button")).not.toBeExisting();
     const dir = join(agentHome, "Documents", "Emmet");
-    copyFileSync(join(dir, "Cottage", "model.py"), join(dir, "New model", "model.py"));
+    copyFileSync(join(dir, "Cottage", "model.py"), join(dir, "Fire station", "model.py"));
     await (await $("#export-button")).waitForDisplayed({ timeout: 60_000, timeoutMsg: "the model never built" });
     await browser.pause(500);
     await expect($("[data-menu='csv']")).not.toBeExisting();
