@@ -576,7 +576,10 @@ export function App() {
     else
       switch (a) {
         case "new":
-          setFirstRun("start");
+          // New is a new model from a prompt: its dialog, not the start screen again (Barry 2026-11-09). Until the parts
+          // and Python are set up, the start screen says they're getting ready.
+          if (ready) setDialog("new-model");
+          else setFirstRun("start");
           break;
         case "open":
           void act(commands.openDialog());

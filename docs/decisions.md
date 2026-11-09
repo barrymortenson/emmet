@@ -968,8 +968,11 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   wizard or modal style new file setup, so the expectations of the new project, size, style, etc. are set at the
   beginning, then the project settings are in the small summary at the top of the tweeks sidebar and can be edit
   later if needed"; through AskUserQuestion, it goes in 4G: "Fold into 4G"). This reverses 4A's New with no dialog
-  (Barry's note 7) for a new model from a prompt: its card opens the New model dialog, which needs a name and offers
-  the six build settings, each Any until set, as Options has them (Age still brings its Detail and Pieces). Create
+  (Barry's note 7) for a new model from a prompt: ⌘N (File → New) and the start screen's card open the New model
+  dialog, which needs a name and offers the six build settings on one page, each Any until set, as Options has them
+  (Age still brings its Detail and Pieces). Barry, the same day, on a two-page version: "this should not be a two step
+  option. Just open the dialog for the new blank model, do not show the welcome screen again. also make all the
+  questions on a single step"; so ⌘N no longer shows the start screen once the parts are set up. Create
   makes the folder by that name (a taken one gets "name 2") with `[build]` written. Options shows the settings as a
-  line of words with Change on every model, an empty one too. The Cottage example still opens with no dialog.
+  line of words with Change on every model, an empty one too. The Cottage example, on first run's start screen, still opens with no dialog.
   Rejected: its own branch and PR, and waiting until 4G merges.
