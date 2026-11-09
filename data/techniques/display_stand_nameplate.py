@@ -2,7 +2,7 @@
 """Display stand with a nameplate: a tiled base with a plaque on its front edge and a post that holds a display
 motorbike up by its swingarm pivot, its wheels just clear of the base.
 
-m.use("display_stand_nameplate", x, y, z=0, length=42, width=12, back=17, lift=26, color="Black",
+m.use("display_stand_nameplate", x, y, z=0, length=42, width=12, back=17, lift=26, under=None, color="Black",
 top_color="Dark Bluish Gray", name_color="Light Bluish Gray", post_color="Black", title="Stand") builds a base of two
 layers of plates, `length` studs along x from x - back and `width` across y centered on y, from z, bonded (the second
 layer's joints over the first's middles), tiled on top. A nameplate, two tiles 1 x 6 (6636) in name_color, sits in the
@@ -10,9 +10,13 @@ middle of the front edge (-y). A post of bricks 1 x 2 stands on the base at x, 2
 shock, in the plane a `motorbike_frame` leaves free at its pivot), `lift` plates of bricks and plates topped by a
 Technic brick 1 x 2 with a hole (3700) whose hole runs along y. It brings its own steps and returns a dict of "pivot"
 (x, y, z) and "post" (the post's hole): build the `motorbike_frame` with its pivot at "pivot" and on="post", and its
-pivot axle goes through the post first. At the defaults a frame with `swingarm_shock` and `suspension_fork` wheels has
-both wheels within a plate of the base, clear of it.
+pivot axle goes through the post first. `under` sets `lift` for you: how far the wheels' bottoms are below the pivot,
+in studs (the axles' drop plus the wheels' radius), and they stand clear of the tiles by under a plate. At the
+defaults a frame with `swingarm_shock` and `suspension_fork` wheels has both wheels within a plate of the base, clear
+of it.
 """
+
+import math
 
 from emmet_dsl import Brick, Plate, Tile
 from emmet_dsl.core import in_steps, row_actions
@@ -49,6 +53,7 @@ def build(
     width=12,
     back=17,
     lift=26,
+    under=None,
     color="Black",
     top_color="Dark Bluish Gray",
     name_color="Light Bluish Gray",
@@ -56,6 +61,9 @@ def build(
     title="Stand",
 ):
     """The base, the nameplate, and the post; returns where the post's hole is."""
+    if under is not None:
+        # The wheels' bottoms `under` studs below the pivot, at least on the tiles' top (2 plates up and a tile).
+        lift = math.ceil(under * 2.5 - 0.75 - 1e-6)
     x0, y0 = x - back, y - width // 2
     first = []
     for j in range(0, width, 2):

@@ -72,7 +72,8 @@ up beside a set from a store:
 
 - When Detail and Pieces are Any, build at High detail and at the size such a set has. The large and 1:8 guides give
   a part count; at other scales, aim for what a store set of the subject at that scale has. A shelf model of a bike
-  or a car is several hundred to a couple of thousand parts, never 150.
+  or a car is several hundred to a couple of thousand parts, never 150. Check the count against the guide's range
+  before the turn ends; if it's short, add what makes the subject itself.
 - Know what makes the subject itself, and give each one real parts as its stage comes. A motorbike has a suspension
   fork, disc brakes, a chain on sprockets, mudguards, a shaped tank and side panels, a seat, handlebars with grips and
   levers, lights, and a stand. A building has its cornices, window surrounds, and storefront.
@@ -126,7 +127,9 @@ steps; its example validates clean in the library's tests, and you validate your
 - Mechanisms that move: gear_pair, worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace,
   rotating_platform, ball_joint_arm.
 - Display bikes (`guide large`): display_stand_nameplate, motorbike_frame, swingarm_shock, chain_drive,
-  suspension_fork, disc_brake, handlebars.
+  suspension_fork, disc_brake, handlebars, sized to the photo through their options.
+- A technique's doc (`technique <name>`) is its whole interface: when one doesn't fit, use its options, or build that
+  part yourself. Never read Emmet's own source to work round one.
 - Small tricks: jumper_offset (half a stud over).
 - Let the helpers do the counting: `m.wall` for walls with openings and interlocking corners, `m.row` and `m.fill`
   for runs and floors of the longest pieces, `m.stack`, `m.grid`, `m.repeat`, and `m.mirror`. `Brick(2, 4)`,

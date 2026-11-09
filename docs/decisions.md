@@ -949,3 +949,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   of its 600-part floor; the e-bike's own answer in `data/ladder/photo/subjects.toml` is now "A large display model on
   a stand, about 40 studs long, with lots of pieces", as the Bradbury has its own. Rejected: keeping "Minifigure
   scale", and no answer.
+- **The bike techniques fit the photo, then the e-bike runs again** (Barry, 2026-11-09, through AskUserQuestion: "Fit
+  the photo, rerun"). His hand session (New model 8) built by holes with no probe build and a first build at 26 s,
+  validated with 0 findings, and stopped at 399 parts; his rubric was proportions 0, recognizability 1, buildability 2.
+  The techniques had fixed sizes (one thin motorcycle wheel, one frame and wheelbase, one rake, no bar height), so
+  every bike came out the same long, low motorcycle, and the agent read their source to work around them. They get
+  size options, the guide has the agent measure the photo first, and Barry runs the e-bike again. Rejected: opening
+  the PR with Done when 4 unticked.

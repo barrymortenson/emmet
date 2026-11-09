@@ -25,6 +25,8 @@
   <h1>Technique candidates: batch-19</h1>
   <p>7 display-bike techniques for Emmet's technique library (session 4G), made from the e-bike hand check: a display motorbike's skeleton built by its holes, every joint a pin or an axle in a hole. Each picture is a render of the technique's example, which validates with no findings on ldraw-mini (its test); the seven together make the 205-part skeleton below, which validates clean too. They're written from general building knowledge, not from any model's file. Every one starts as Accept: switch the ones you don't want, add a note if it helps, then copy your answers and paste them to Claude.</p>
   <p><img src="batch-19/skeleton-iso.png" alt="The seven techniques together: a motorbike skeleton on its stand" width="320" height="320"> <img src="batch-19/skeleton-front.png" alt="The skeleton from the side" width="320" height="320"></p>
+  <p>After your e-bike session (2026-11-09) they take a photo's proportions: the frame's head and lower corner, the swingarm's reach and drop, fat wheels, the bars' rise, the stand's height. The same seven, sized to the e-bike photo (208 parts, clean):</p>
+  <p><img src="batch-19/ebike-iso.png" alt="The skeleton sized to the e-bike photo" width="320" height="320"> <img src="batch-19/ebike-front.png" alt="The e-bike skeleton from the side" width="320" height="320"></p>
 </header>
 <section class="card" data-n="1">
   <div class="shot"><img src="../../../data/techniques/motorbike_frame.png" alt="The example of motorbike_frame" width="320" height="320"></div>
@@ -34,9 +36,9 @@
     <p class="why">The skeleton every display bike hangs on, so the swingarm, fork, chain, and bodywork go on holes, not guesses.</p>
     <p class="note"><b>Note:</b> Sides 8 studs apart; the right side goes together first, then the pivot axle, the left side onto it, and the steering head: a cross block on the head axle whose pin hole runs along the raked steering axis. With on= (the stand&#x27;s hole) the pivot axle goes through the stand first.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>pin_color</code>, <code>axle_color</code>, <code>on</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>head</code>, <code>bottom</code>, <code>rake</code>, <code>color</code>, <code>pin_color</code>, <code>axle_color</code>, <code>on</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/motorbike_frame.py"><code>data/techniques/motorbike_frame.py</code></a></dd>
-      <dt>Parts</dt><dd><code>32278</code> + <code>32524</code> + <code>40490</code> + <code>2780</code> + <code>3737</code> + <code>3707</code> + <code>6536</code></dd>
+      <dt>Parts</dt><dd><code>32523</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code> + <code>41239</code> + <code>32278</code> + <code>2780</code> + <code>3737</code> + <code>3707</code> + <code>6536</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for motorbike_frame">
       <label><input type="radio" name="d1" value="accept" checked> Accept</label>
@@ -53,9 +55,9 @@
     <p class="why">A display bike&#x27;s rear end: the arms slope down to the wheel, and the shock sets their angle.</p>
     <p class="note"><b>Note:</b> The shock is 5.5 studs between holes, which no two whole-stud holes are; the arms hang on one axle, so the technique works out the angle (about 24.5 degrees down) that makes the shock fit both axles.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>frame</code>, <code>color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>wheel</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>reach</code>, <code>drop</code>, <code>wheel</code>, <code>color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/swingarm_shock.py"><code>data/techniques/swingarm_shock.py</code></a></dd>
-      <dt>Parts</dt><dd><code>32525</code> + <code>73129</code> + <code>3737</code> + <code>3705</code> + <code>88517c01</code></dd>
+      <dt>Parts</dt><dd><code>32523</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code> + <code>41239</code> + <code>32278</code> + <code>73129</code> + <code>2780</code> + <code>3737</code> + <code>88517c01</code> + <code>44772c01</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for swingarm_shock">
       <label><input type="radio" name="d2" value="accept" checked> Accept</label>
@@ -72,9 +74,9 @@
     <p class="why">A display bike&#x27;s front end that turns with the bars, on a triple tree and a pivot, as you asked.</p>
     <p class="note"><b>Note:</b> Changed after your review: the steerer is the only joint between the fork and the frame (a test checks it), so the whole front end, bars included, turns. The front wheel comes out level with the rear wheel.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>frame</code>, <code>color</code>, <code>tube_color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>wheel</code>, <code>drop</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>drop</code>, <code>wheel</code>, <code>color</code>, <code>tube_color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/suspension_fork.py"><code>data/techniques/suspension_fork.py</code></a></dd>
-      <dt>Parts</dt><dd><code>4519</code> + <code>32524</code> + <code>3737</code> + <code>6536</code> + <code>73129</code> + <code>2780</code> + <code>88517c01</code></dd>
+      <dt>Parts</dt><dd><code>4519</code> + <code>32524</code> + <code>40490</code> + <code>3707</code> + <code>3737</code> + <code>3708</code> + <code>6536</code> + <code>73129</code> + <code>2780</code> + <code>88517c01</code> + <code>44772c01</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for suspension_fork">
       <label><input type="radio" name="d3" value="accept" checked> Accept</label>
@@ -91,9 +93,9 @@
     <p class="why">The chain a motorbike or e-bike shows on its right side.</p>
     <p class="note"><b>Note:</b> The links clip to each other and the sprockets hold the loop; no allow is needed (the e-bike retry allowed it). The sprockets go on after the axles here.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>frame</code>, <code>swingarm</code>, <code>sprocket_color</code>, <code>chain_color</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>swingarm</code>, <code>pedals</code>, <code>sprocket_color</code>, <code>chain_color</code>, <code>crank_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/chain_drive.py"><code>data/techniques/chain_drive.py</code></a></dd>
-      <dt>Parts</dt><dd><code>4019</code> + <code>3711</code></dd>
+      <dt>Parts</dt><dd><code>3737</code> + <code>3648b</code> + <code>4019</code> + <code>3711</code> + <code>6632</code> + <code>3749</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for chain_drive">
       <label><input type="radio" name="d4" value="accept" checked> Accept</label>
@@ -129,9 +131,9 @@
     <p class="why">Handlebars with grips and levers that turn with the fork.</p>
     <p class="note"><b>Note:</b> Changed after your review: the bars sit on the fork tubes, so they steer the fork. The levers droop 20 degrees by default; the grips are axle joiners on the bars&#x27; last stud.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>fork</code>, <code>color</code>, <code>grip_color</code>, <code>lever_color</code>, <code>droop</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>fork</code>, <code>rise</code>, <code>color</code>, <code>grip_color</code>, <code>lever_color</code>, <code>droop</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/handlebars.py"><code>data/techniques/handlebars.py</code></a></dd>
-      <dt>Parts</dt><dd><code>6536</code> + <code>3705</code> + <code>6632</code> + <code>59443</code></dd>
+      <dt>Parts</dt><dd><code>6536</code> + <code>3705</code> + <code>6632</code> + <code>59443</code> + <code>4519</code> + <code>32073</code> + <code>3706</code> + <code>44294</code> + <code>3707</code> + <code>3737</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for handlebars">
       <label><input type="radio" name="d6" value="accept" checked> Accept</label>
@@ -148,7 +150,7 @@
     <p class="why">A display stand like a set&#x27;s, so the bike stands upright and the model has its name on the front.</p>
     <p class="note"><b>Note:</b> The stand sets the pivot&#x27;s height (it returns it): build the frame there with on=, and both wheels clear the base by under a plate.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>back</code>, <code>lift</code>, <code>color</code>, <code>top_color</code>, <code>name_color</code>, <code>post_color</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>back</code>, <code>lift</code>, <code>under</code>, <code>color</code>, <code>top_color</code>, <code>name_color</code>, <code>post_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/display_stand_nameplate.py"><code>data/techniques/display_stand_nameplate.py</code></a></dd>
       <dt>Parts</dt><dd><code>3004</code> + <code>3023b</code> + <code>3700</code> + <code>6636</code></dd>
     </dl>

@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-10, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `023083918da2d3697c794fb4267975509584f3611b993095874206a803fa610f`). It is a test fixture for Emmet
-(plan section 12): 480 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 484 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -226,6 +226,9 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/48/1-48ring9.dat | Hi-Res Ring  9 x 0.0208 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4aring.dat | Adapter Ring Hi-Res to Normal 0.25 | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4chrd.dat | Hi-Res Chord 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/1-4con14.dat | Hi-Res Cone 14 x 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/1-4con15.dat | Hi-Res Cone 15 x 0.25 | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/1-4con19.dat | Hi-Res Cone 19 x 0.25 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4cyli.dat | Hi-Res Cylinder 0.25 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4cylo.dat | Hi-Res Cylinder Open 0.25 | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4disc.dat | Hi-Res Disc 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -258,16 +261,25 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/48/3-16cyli.dat | Hi-Res Cylinder 0.1875 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/3-16edge.dat | Hi-Res Circle 0.1875 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4aring.dat | Adapter Ring Hi-Res to Normal 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con10.dat | Hi-Res Cone 10 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4con11.dat | Hi-Res Cone 11 x 1.0 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con12.dat | Hi-Res Cone 12 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con30.dat | Hi-Res Cone 30 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con31.dat | Hi-Res Cone 31 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con35.dat | Hi-Res Cone 35 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4con36.dat | Hi-Res Cone 36 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4con41.dat | Hi-Res Cone 41 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con64.dat | Hi-Res Cone 64 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4con7.dat | Hi-Res Cone  7 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con8.dat | Hi-Res Cone  8 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4cyli.dat | Hi-Res Cylinder 1.0 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4cylo.dat | Hi-Res Cylinder Open 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4disc.dat | Hi-Res Disc 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4edge.dat | Hi-Res Circle 1.0 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring11.dat | Hi-Res Ring 11 x 1.0 | Niels Karsdorp [nielsk] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring12.dat | Hi-Res Ring 12 x 1.0 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring13.dat | Hi-Res Ring 13 x 1.0 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring14.dat | Hi-Res Ring 14 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring15.dat | Hi-Res Ring 15 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring16.dat | Hi-Res Ring 16 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring17.dat | Hi-Res Ring 17 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -275,6 +287,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/48/4-4ring26.dat | Hi-Res Ring 26 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring27.dat | Hi-Res Ring 27 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring30.dat | Hi-Res Ring 30 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring34.dat | Hi-Res Ring 34 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring37.dat | Hi-Res Ring 37 x 1.0 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring4.dat | Hi-Res Ring  4 x 1.0 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring6.dat | Hi-Res Ring  6 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -781,6 +794,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/3705.dat | Technic Axle  4 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3706.dat | Technic Axle  6 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3707.dat | Technic Axle  8 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/3708.dat | Technic Axle 12 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3710.dat | Plate  1 x  4 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3711.dat | Technic Chain Link | Fredrik Hareide [fhareide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3713.dat | Technic Bush with Two Flanges | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -868,6 +882,8 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/44302b.dat | Hinge Plate  1 x  2 Locking with Dual Finger on End Vertical without Groove on Short Side | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4460b.dat | Slope Brick 75  2 x  1 x  3 with Hollow Stud | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4477.dat | Plate  1 x 10 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/44772.dat | Wheel Rim 34 x 56 with 6 Spokes and 3 Pegholes | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/44772c01.dat | Wheel Rim 34 x 56 with 6 Spokes and 3 Pegholes with Tyre 44/ 44 x 56 Off Road | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4488.dat | Plate  2 x  2 with 1 Wheel Pin | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4490.dat | Arch  1 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4519.dat | Technic Axle  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -896,6 +912,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/52501.dat | Slope Brick 45  6 x  1 Double Inverted with Open Centre | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/53400.dat | Train Track 6 Studs Wide Curved | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/53401.dat | Train Track 6 Studs Wide Straight | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/54120.dat | Tyre 44/ 44 x 56 Off Road | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/54200.dat | Slope Brick 31  1 x  1 x  0.667 | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/54383.dat | Wing  3 x  6 Right | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/54384.dat | Wing  3 x  6 Left | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1167,6 +1184,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/43722as01.dat | ~Wing  2 x  3 Right without Chamfer without Studs and Top Face | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/44301s01.dat | ~Hinge Plate  1 x  2 Locking with Single Finger on End Vertical - Common Geometry | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4460s01.dat | ~Slope Brick 75  2 x  1 x  3 without Top Faces | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/44772s01.dat | ~Wheel Rim 34 x 56 with 6 Spokes / 3 Pegholes - 1/6 (Needs Work) | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4490s01.dat | ~Arch  1 x  3 without Four Sides | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4716s01.dat | ~Technic Worm Gear Thread Surface | Remco Braak [remco1974] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/s/4716s02.dat | ~Technic Worm Gear Body | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1185,6 +1203,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/53400s04.dat | ~Train Track 6 Studs Wide Curved - Clockwise End Sleeper | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/53401s01.dat | ~Train Track 6 Studs Wide Straight - Sleeper | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/53401s02.dat | ~Train Track 6 Studs Wide Straight - Interlocking Track End | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/54120s01.dat | ~Tyre 44/ 44 x 56 Off Road - 1/16 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/54200s01.dat | ~Slope Brick 31  1 x  1 x  0.667 without Sloped Face | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/54383s01.dat | ~Wing  3 x  6 Right without Studs | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/5520s01.dat | ~Tile  2 x  2 with Rounded End - Without Patternable Surfaces | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |

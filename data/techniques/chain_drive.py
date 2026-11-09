@@ -1,15 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Chain drive: a display motorbike's chain, a loop of Technic chain links around a sprocket on the swingarm's pivot
-and another on the rear wheel's axle.
+"""Chain drive: a display motorbike's or e-bike's chain, a loop of Technic chain links from a chainring on a crank
+axle through the frame to a sprocket on the rear wheel's axle, with crank arms and pedals.
 
-m.use("chain_drive", frame=frame, swingarm=swingarm, sprocket_color="Light Bluish Gray", chain_color="Black",
-title="Chain") takes what `motorbike_frame` and `swingarm_shock` returned. A gear 16 tooth (4019) goes on the pivot
-axle and another on the rear axle, both in the plane just inside the right arm (between the frame's top and bottom
-spars at the pivot, and between the arm and the wheel at the rear). Technic chain links (3711) run around them: two
-straight runs a stud above and below the swingarm's line, and half a turn round each sprocket, the loop's length split
-into whole links (about 0.8 studs each), each link turned toward the next so each one clips to the next and the
-sprockets hold the loop. The sprockets go on after the axles here; in a set's instructions they go on as each axle
-goes in. It brings its own steps (at most 8 links a step) and returns the number of links.
+m.use("chain_drive", frame=frame, swingarm=swingarm, pedals=True, sprocket_color="Light Bluish Gray",
+chain_color="Black", crank_color="Black", title="Chain") takes what `motorbike_frame` and `swingarm_shock` returned.
+An axle 10 (3737), the crank, goes through the frame's bottom spars a stud behind their lower corner (the bottom
+bracket), a stud out past each side of the frame. A gear 24 tooth (3648b), the chainring, goes on it and a gear 16
+tooth (4019) on the rear axle, both in the plane just inside the right arm. Technic chain links (3711) run round
+them: two straight runs, each tangent to both, and round each gear, the loop's length split into whole links (about
+0.8 studs each), each link turned toward the next, so each one clips to the next and the gears hold the loop. With
+pedals, a crank arm on each end of the crank (a Technic beam 3 x 0.5, 6632) carries an axle pin (3749) and a pedal (another 6632 across it); the right arm points forward and down, the left
+back and up. The gears go on after the axles here; in a set's
+instructions they go on as each axle goes in. It brings its own steps (at most 8 links a step) and returns the number
+of links.
 """
 
 import math
@@ -20,42 +23,55 @@ from emmet_dsl.core import in_steps
 PROVENANCE = """Emmet's own (session 4G), written from general building knowledge of Technic motorbikes. Not derived
 from any model file."""
 
-PARTS = ["4019", "3711"]
+PARTS = ["3737", "3648b", "4019", "3711", "6632", "3749"]
 
-RADIUS = 1.0  # a 16-tooth gear's pitch radius, in studs
+RING, SPROCKET = 1.5, 1.0  # the 24- and 16-tooth gears' pitch radii, in studs
 PITCH = 0.8  # a chain link's, in studs
 
 
 def _loop(rear, front):
-    """Points around the loop, PITCH apart (give or take what the loop's length needs), in studs (x, up) from the rear
-    sprocket's center: the top run forward, round the front sprocket, the bottom run back, round the rear."""
+    """Points round the loop, PITCH apart (give or take what its length needs), in studs (x, up): the top run forward
+    from the rear sprocket, round the chainring's front, the bottom run back, round the sprocket's back."""
     dx, dz = front[0] - rear[0], front[1] - rear[1]
-    run = math.hypot(dx, dz)
-    ex, ez = dx / run, dz / run
-    nx, nz = -ez, ex  # a quarter turn up from the run
-    total = 2 * run + 2 * math.pi * RADIUS
+    d = math.hypot(dx, dz)
+    ex, ez = dx / d, dz / d
+    nx, nz = -ez, ex  # a quarter turn up from the line between the centers
+    sb = (RING - SPROCKET) / d
+    cb = math.sqrt(1 - sb * sb)
+    up = (
+        nx * cb - ex * sb,
+        nz * cb - ez * sb,
+    )  # the top run's side, from either center
+    low = (-nx * cb - ex * sb, -nz * cb - ez * sb)
+    run = d * cb
+    beta = math.asin(sb)
+    front_arc, rear_arc = RING * (math.pi + 2 * beta), SPROCKET * (math.pi - 2 * beta)
+    total = 2 * run + front_arc + rear_arc
     n = round(total / PITCH)
     step = total / n
+    a_up, a_low = math.atan2(up[1], up[0]), math.atan2(low[1], low[0])
     out = []
     for i in range(n):
         s = i * step
         if s < run:  # the top run, rear to front
-            out.append((RADIUS * nx + s * ex, RADIUS * nz + s * ez))
+            p = (rear[0] + SPROCKET * up[0], rear[1] + SPROCKET * up[1])
+            q = (front[0] + RING * up[0], front[1] + RING * up[1])
+            out.append((p[0] + s * (q[0] - p[0]) / run, p[1] + s * (q[1] - p[1]) / run))
             continue
         s -= run
-        arc = math.pi * RADIUS
-        # Round the front sprocket, from the top over its front to the bottom.
-        if s < arc:
-            a = math.atan2(nz, nx) - s / RADIUS
-            out.append((dx + RADIUS * math.cos(a), dz + RADIUS * math.sin(a)))
+        if s < front_arc:  # round the chainring's front, from the top to the bottom
+            a = a_up - s / RING
+            out.append((front[0] + RING * math.cos(a), front[1] + RING * math.sin(a)))
             continue
-        s -= arc
+        s -= front_arc
         if s < run:  # the bottom run, front to rear
-            out.append((dx - RADIUS * nx - s * ex, dz - RADIUS * nz - s * ez))
+            p = (front[0] + RING * low[0], front[1] + RING * low[1])
+            q = (rear[0] + SPROCKET * low[0], rear[1] + SPROCKET * low[1])
+            out.append((p[0] + s * (q[0] - p[0]) / run, p[1] + s * (q[1] - p[1]) / run))
             continue
-        s -= run  # round the rear sprocket, from the bottom over its back to the top
-        a = math.atan2(-nz, -nx) - s / RADIUS
-        out.append((RADIUS * math.cos(a), RADIUS * math.sin(a)))
+        s -= run  # round the sprocket's back, from the bottom to the top
+        a = a_low - s / SPROCKET
+        out.append((rear[0] + SPROCKET * math.cos(a), rear[1] + SPROCKET * math.sin(a)))
     return out
 
 
@@ -63,33 +79,73 @@ def build(
     m,
     frame,
     swingarm,
+    pedals=True,
     sprocket_color="Light Bluish Gray",
     chain_color="Black",
+    crank_color="Black",
     title="Chain",
 ):
-    """The two sprockets and the chain round them; returns how many links it took."""
-    plane = frame["planes"]["down"]  # inside the right arm
-    x, _, z = frame["pivot"]
-    rx, _, rz = swingarm["rear_axle"]
-    with m.step(f"{title}: sprockets"):
-        for at in ((x, plane, z), (rx, plane, rz)):
-            m.add("4019", sprocket_color, at=at, rot=1, hole=1)
-    rear = (rx, rz / 2.5)
-    points = _loop(rear, (x, z / 2.5))
+    """The crank, the two gears, the chain round them, and the pedals; returns how many links it took."""
+    y = frame["y"]
+    plane = (
+        y - frame["width"] / 2 + 0.5
+    )  # inside the right arm (the top spar's plane, which is clear down here)
+    bracket = frame["bottom"].hole(
+        frame["lengths"][2]
+    )  # a stud behind the lower corner
+    with m.step(f"{title}: crank and gears"):
+        m.insert(
+            "3737",
+            crank_color,
+            bracket,
+            out="+y",
+            out_by=y + 5 - (bracket.at[1] + bracket.length / 2),
+        )
+        cx, _, cz = bracket.at
+        rx, _, rz = swingarm["rear_axle"]
+        m.add(
+            "3648b", sprocket_color, at=(cx, plane, cz), rot=1, hole=3
+        )  # its axle hole
+        m.add("4019", sprocket_color, at=(rx, plane, rz), rot=1, hole=1)
+    points = _loop((rx, rz / 2.5), (cx, cz / 2.5))
 
     def link(i):
         (px, pz), (qx, qz) = points[i], points[(i + 1) % len(points)]
         turn = math.atan2(-(qz - pz), -(qx - px))
         c, s = math.cos(turn), math.sin(turn)
-        at = dsl_frame.to_ldraw_point((rear[0] + px, plane, 2.5 * (rear[1] + pz)))
+        at = dsl_frame.to_ldraw_point((px, plane, 2.5 * pz))
         return lambda: m.add_raw("3711", chain_color, [*at, 1, 0, 0, 0, c, s, 0, -s, c])
 
     in_steps(m, f"{title}: links", [(1, link(i)) for i in range(len(points))])
+    if pedals:
+        with m.step(f"{title}: cranks and pedals"):
+            for s in (-1, 1):
+                # A crank arm on each end of the crank: the right one forward and down, the left back and up.
+                at = (cx, y + s * 4.75, cz)
+                arm = m.beam(
+                    "6632", crank_color, at=at, run=-1.6 * s, rise=1.2 * s, holes=(1, 3)
+                )
+                pin = m.insert(
+                    "3749",
+                    crank_color,
+                    arm.hole(3),
+                    out="-y" if s < 0 else "+y",
+                    out_by=1.5,
+                )
+                p = pin.hole(1).at
+                foot = (p[0], y + s * 6.25, p[2])
+                m.beam(
+                    "6632",
+                    crank_color,
+                    at=foot,
+                    to=(foot[0] + 1, foot[1], foot[2]),
+                    holes=(2, 3),
+                )
     return len(points)
 
 
 def example(m):
-    """A chain from the pivot to the rear wheel, on a frame and swingarm."""
+    """A chain from the crank to the rear wheel, on a frame and swingarm."""
     frame = m.use("motorbike_frame", x=10, y=6, z=27)
     swingarm = m.use("swingarm_shock", frame=frame)
     m.use("chain_drive", frame=frame, swingarm=swingarm)
