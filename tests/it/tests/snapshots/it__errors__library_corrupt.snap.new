@@ -10,7 +10,7 @@ expression: v
       "file": "[data]/ldraw/parts/3001.dat"
     },
     "hint": "Run emmet library install to put the library back.",
-    "message": "1 of 1269 library files are missing or changed: parts/3001.dat"
+    "message": "1 of 1288 library files are missing or changed: parts/3001.dat"
   },
   "meta": {
     "emmet": "[emmet]",
