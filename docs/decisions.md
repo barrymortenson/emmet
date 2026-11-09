@@ -932,3 +932,15 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   which is what D-50's trial hit), and window baselines shrink by the screen's pixel ratio, so one set holds on a
   Retina Mac and a 1x hosted one. Section 13's budgets are enforced only off hosted runners, as before, so they're
   checked by hand on real hardware (`just test`, `just e2e perf`, `just bench`); hosted runs report the numbers.
+
+## 2026-11-08, session 4G
+
+- **A display bike's fork steers, on a triple tree and a pivot** (Barry, 2026-11-08, on batch 19's review page: "the
+  handle bars should be able to turn, it needs a what is known as a triple tree, and pivit point"). The first fork
+  hung on a horizontal axle, so it could only nod. Now the frame's head is a bearing on the raked steering axis (a
+  cross block on the head axle), and `suspension_fork` turns in it: a steerer with upper and lower triple clamps, the
+  fork tubes through them, a slider and shock on each tube, and the front wheel. The bars sit on the tubes' tops. The
+  fork, brakes, and bars join the frame at the steerer alone, and a test checks it.
+- **The seven display-bike techniques are accepted** (Barry, 2026-11-08, through AskUserQuestion: "Accept all 7"):
+  motorbike_frame, swingarm_shock, suspension_fork, chain_drive, disc_brake, handlebars, and
+  display_stand_nameplate, as built after the steering change (`docs/techniques/candidates/batch-19.html`).
