@@ -23,9 +23,9 @@
 <body>
 <header>
   <h1>Technique candidates: batch-19</h1>
-  <p>7 display-bike techniques for Emmet's technique library (session 4G), made from the e-bike hand check: a display motorbike's skeleton built by its holes, every joint a pin or an axle in a hole. Each picture is a render of the technique's example, which validates with no findings on ldraw-mini (its test); the seven together make the 205-part skeleton below, which validates clean too. They're written from general building knowledge, not from any model's file. Every one starts as Accept: switch the ones you don't want, add a note if it helps, then copy your answers and paste them to Claude.</p>
+  <p>7 display-bike techniques for Emmet's technique library (session 4G), made from the e-bike hand check: a display motorbike's skeleton built by its holes, every joint a pin or an axle in a hole. Each picture is a render of the technique's example, which validates with no findings on ldraw-mini (its test); the seven together make the 108-part skeleton below, which validates clean too. They're written from general building knowledge, not from any model's file. Every one starts as Accept: switch the ones you don't want, add a note if it helps, then copy your answers and paste them to Claude.</p>
   <p><img src="batch-19/skeleton-iso.png" alt="The seven techniques together: a motorbike skeleton on its stand" width="320" height="320"> <img src="batch-19/skeleton-front.png" alt="The skeleton from the side" width="320" height="320"></p>
-  <p>After your e-bike session (2026-11-09) they take a photo's proportions: the frame's head and lower corner, the swingarm's reach and drop, fat wheels, the bars' rise, the stand's height. The same seven, sized to the e-bike photo (208 parts, clean):</p>
+  <p>After your e-bike session (2026-11-09) they take a photo's proportions: the frame's head and lower corner, the swingarm's reach and drop, fat wheels, the bars' rise. And it stands on a kickstand, not a base. The same seven, sized to the e-bike photo (103 parts, clean):</p>
   <p><img src="batch-19/ebike-iso.png" alt="The skeleton sized to the e-bike photo" width="320" height="320"> <img src="batch-19/ebike-front.png" alt="The e-bike skeleton from the side" width="320" height="320"></p>
 </header>
 <section class="card" data-n="1">
@@ -36,7 +36,7 @@
     <p class="why">The skeleton every display bike hangs on, so the swingarm, fork, chain, and bodywork go on holes, not guesses.</p>
     <p class="note"><b>Note:</b> Sides 8 studs apart; the right side goes together first, then the pivot axle, the left side onto it, and the steering head: a cross block on the head axle whose pin hole runs along the raked steering axis. With on= (the stand&#x27;s hole) the pivot axle goes through the stand first.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>head</code>, <code>bottom</code>, <code>rake</code>, <code>color</code>, <code>pin_color</code>, <code>axle_color</code>, <code>on</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>head</code>, <code>bottom</code>, <code>rake</code>, <code>color</code>, <code>pin_color</code>, <code>axle_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/motorbike_frame.py"><code>data/techniques/motorbike_frame.py</code></a></dd>
       <dt>Parts</dt><dd><code>32523</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code> + <code>41239</code> + <code>32278</code> + <code>2780</code> + <code>3737</code> + <code>3707</code> + <code>6536</code></dd>
     </dl>
@@ -143,21 +143,21 @@
   </div>
 </section>
 <section class="card" data-n="7">
-  <div class="shot"><img src="../../../data/techniques/display_stand_nameplate.png" alt="The example of display_stand_nameplate" width="320" height="320"></div>
+  <div class="shot"><img src="../../../data/techniques/kickstand.png" alt="The example of kickstand" width="320" height="320"></div>
   <div class="body">
-    <h2><span class="n">7</span> <code>display_stand_nameplate</code></h2>
-    <p>A tiled base with a nameplate on its front edge and a post that holds the bike up by its pivot axle, its wheels just clear of the base.</p>
-    <p class="why">A display stand like a set&#x27;s, so the bike stands upright and the model has its name on the front.</p>
-    <p class="note"><b>Note:</b> The stand sets the pivot&#x27;s height (it returns it): build the frame there with on=, and both wheels clear the base by under a plate.</p>
+    <h2><span class="n">7</span> <code>kickstand</code></h2>
+    <p>A side stand: a beam swung down and back from the frame&#x27;s left side so its foot meets the table level with the tires.</p>
+    <p class="why">The bike stands on its own wheels and kickstand, with no base, so the parts go into the bike.</p>
+    <p class="note"><b>Note:</b> Changed after your note (2026-11-09): it replaces the display stand and nameplate.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>length</code>, <code>width</code>, <code>back</code>, <code>lift</code>, <code>under</code>, <code>color</code>, <code>top_color</code>, <code>name_color</code>, <code>post_color</code>, <code>title</code></dd>
-      <dt>Technique</dt><dd><a href="../../../data/techniques/display_stand_nameplate.py"><code>data/techniques/display_stand_nameplate.py</code></a></dd>
-      <dt>Parts</dt><dd><code>3004</code> + <code>3023b</code> + <code>3700</code> + <code>6636</code></dd>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>swingarm</code>, <code>hole</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/kickstand.py"><code>data/techniques/kickstand.py</code></a></dd>
+      <dt>Parts</dt><dd><code>6558</code> + <code>32523</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code> + <code>41239</code> + <code>32278</code></dd>
     </dl>
-    <div class="pick" role="radiogroup" aria-label="Decision for display_stand_nameplate">
+    <div class="pick" role="radiogroup" aria-label="Decision for kickstand">
       <label><input type="radio" name="d7" value="accept" checked> Accept</label>
       <label><input type="radio" name="d7" value="reject"> Reject</label>
-      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for display_stand_nameplate">
+      <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for kickstand">
     </div>
   </div>
 </section>

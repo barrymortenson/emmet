@@ -112,7 +112,6 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `dirt_path` | walk-on | a path 2 studs wide, surface z+1 | — | — | fine | — |
 | `disc_brake` | none | display scale: no figure (4G) | — | — | fine | — |
 | `display_case_counter` | walk-past | counter 2 deep x length 4; top plate z+7, tiles at z+8 (surface z+9) | — | — | fine | — |
-| `display_stand_nameplate` | none | display scale: no figure (4G) | — | — | fine | — |
 | `dock_pier` | walk-on | deck width 4 (2 to 8), planks' top z + 3*height + 3 (z+9 by default); piles under it | — | returns the planks' top | fine | — |
 | `dome_from_quarters` | none | — | — | — | fine | — |
 | `dome_window_hood` | none | — | — | — | fine | — |
@@ -184,6 +183,7 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `item_launcher` | none | — | — | — | fine | — |
 | `jettied_floor` | none | — | — | — | fine | — |
 | `jumper_offset` | none | — | — | — | fine | — |
+| `kickstand` | none | display scale: no figure (4G) | — | — | fine | — |
 | `kitchen_counter` | none | — | — | — | fine | — |
 | `lamp_post` | walk-past | 1 x 1; foot 3062b (3 plates) + post height=5 bricks (2453b) + cone = 21 plates (7 bricks) | — | — | fine | — |
 | `lancet_window` | none | — | — | — | fine | — |

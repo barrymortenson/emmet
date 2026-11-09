@@ -1,18 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Chain drive: a display motorbike's or e-bike's chain, a loop of Technic chain links from a chainring on a crank
-axle through the frame to a sprocket on the rear wheel's axle, with crank arms and pedals.
+"""Chain drive: a display motorbike's or e-bike's chain, a loop of Technic chain links from a chainring on a crank axle
+through the frame to a sprocket on the rear wheel's axle, with crank arms and pedals.
 
 m.use("chain_drive", frame=frame, swingarm=swingarm, pedals=True, sprocket_color="Light Bluish Gray",
-chain_color="Black", crank_color="Black", title="Chain") takes what `motorbike_frame` and `swingarm_shock` returned.
-An axle 10 (3737), the crank, goes through the frame's bottom spars a stud behind their lower corner (the bottom
-bracket), a stud out past each side of the frame. A gear 24 tooth (3648b), the chainring, goes on it and a gear 16
-tooth (4019) on the rear axle, both in the plane just inside the right arm. Technic chain links (3711) run round
-them: two straight runs, each tangent to both, and round each gear, the loop's length split into whole links (about
-0.8 studs each), each link turned toward the next, so each one clips to the next and the gears hold the loop. With
-pedals, a crank arm on each end of the crank (a Technic beam 3 x 0.5, 6632) carries an axle pin (3749) and a pedal (another 6632 across it); the right arm points forward and down, the left
-back and up. The gears go on after the axles here; in a set's
-instructions they go on as each axle goes in. It brings its own steps (at most 8 links a step) and returns the number
-of links.
+chain_color="Black", crank_color="Black", title="Chain") takes what `motorbike_frame` and `swingarm_shock` returned. An
+axle 10 (3737), the crank, goes through the frame's bottom spars a stud behind their lower corner (the bottom bracket),
+a stud out past each side of the frame. A gear 24 tooth (3648b), the chainring, goes on it and a gear 16 tooth (4019) on
+the rear axle, both in the plane just inside the right arm. Technic chain links (3711) run round them: two straight
+runs, each tangent to both, and round each gear, the loop's length split into whole links (about 0.8 studs each), each
+link turned toward the next, so each one clips to the next and the gears hold the loop. With pedals, a crank arm on each
+end of the crank (a Technic beam 3 x 0.5, 6632) carries an axle pin (3749) and a pedal (another 6632 across it); the
+right arm points forward and down, the left back and up. The gears go on after the axles here; in a set's instructions
+they go on as each axle goes in. It brings its own steps (at most 8 links a step) and returns the number of links.
 """
 
 import math

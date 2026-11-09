@@ -2,18 +2,17 @@
 """Swingarm with its shocks: a display motorbike's rear swingarm on the frame's pivot axle, a shock absorber outside
 each arm from the arm up to the frame, and the rear wheel on its axle between the arms.
 
-m.use("swingarm_shock", frame=frame, reach=10, drop=4.15, wheel="motorcycle", color="Black", shock_color="Yellow",
-axle_color="Light Bluish Gray", title="Swingarm") takes the frame `motorbike_frame` returned. Two beams, one outside
-each side of the frame, hang on the pivot axle and slope down to the rear axle, `reach` studs back (6 to 14, even: an
-11-hole beam's 10 at the default), `drop` studs down there. Twin shock absorbers 6.5L (73129, their holes 5.5 studs
-apart), one outside each arm, are pinned (friction pins, 2780) to an arm hole and, at the top, to a shock mount: a
-3-hole beam (32523) pinned to a hole of the top spar, turned so the shock's 5.5 studs reach it. Of the arm's holes and
-the spar's, the pair that hangs the shocks steepest over the middle of the arm. Measure the photo: `reach` is the pivot to the
-rear axle, `drop` how far the axle is below the pivot. `wheel` is "motorcycle" (88517c01, 12.6 studs across, 2.4
-wide), "fat" (an off-road wheel and tire, 44772c01: 11.8 across, 5.5 wide), or None for the axle alone.
-It brings its own steps and returns a dict of "rear_axle" (the axle's middle, in the center plane), "arm" (the right
-arm's Handle), "angle" (degrees below level), "drop" (the axle's, below the pivot: give it to `suspension_fork`), and
-"radius" (the wheel's, in studs).
+m.use("swingarm_shock", frame=frame, reach=10, drop=4.15, wheel="motorcycle", color="Black", shock_color="Red",
+axle_color="Black", title="Swingarm") takes the frame `motorbike_frame` returned. Two beams, one outside each side of
+the frame, hang on the pivot axle and slope down to the rear axle, `reach` studs back (6 to 14, even: an 11-hole beam's
+10 at the default), `drop` studs down there. Twin shock absorbers 6.5L (73129, their holes 5.5 studs apart), one outside
+each arm, are pinned (friction pins, 2780) to an arm hole and, at the top, to a shock mount: a 3-hole beam (32523)
+pinned to a hole of the top spar, turned so the shock's 5.5 studs reach it. Of the arm's holes and the spar's, the pair
+that hangs the shocks steepest over the middle of the arm. Measure the photo: `reach` is the pivot to the rear axle,
+`drop` how far the axle is below the pivot. `wheel` is "motorcycle" (88517c01, 12.6 studs across, 2.4 wide), "fat" (an
+off-road wheel and tire, 44772c01: 11.8 across, 5.5 wide), or None for the axle alone. It brings its own steps and
+returns a dict of "rear_axle" (the axle's middle, in the center plane), "arm" (the right arm's Handle), "angle" (degrees
+below level), "drop" (the axle's, below the pivot: give it to `suspension_fork`), and "radius" (the wheel's, in studs).
 """
 
 import math
@@ -109,8 +108,8 @@ def build(
     drop=4.15,
     wheel="motorcycle",
     color="Black",
-    shock_color="Yellow",
-    axle_color="Light Bluish Gray",
+    shock_color="Red",
+    axle_color="Black",
     title="Swingarm",
 ):
     """The arms, the shocks and their mounts, and the rear axle (with the wheel); returns where the rear axle is."""

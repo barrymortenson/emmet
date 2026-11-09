@@ -34,24 +34,23 @@ tail lights, a grille of grille tiles across 6 to 10 studs in a chrome frame (`r
 ## Display bikes (1:6 to 1:10)
 
 A motorbike, a dirt bike, or a moto-style e-bike, about 30 to 45 studs long on motorcycle wheels or fat off-road ones
-(about 12 studs across), standing on a stand with a nameplate. Its skeleton is Technic beams on edge, never stacked
-bricks, and every joint is a pin or an axle in a hole: part_info gives a part's holes by name, `m.beam` lays a beam
-from one hole to another, and `m.insert` seats a pin or an axle in a named hole, so no test build is needed to find a
-hole.
+(about 12 studs across), standing on its wheels and its kickstand, with no base: the parts go into the bike. Its
+skeleton is Technic beams on edge, never stacked bricks, and every joint is a pin or an axle in a hole: part_info gives
+a part's holes by name, `m.beam` lays a beam from one hole to another, and `m.insert` seats a pin or an axle in a named
+hole, so no test build is needed to find a hole.
 
 Measure the photo before you write a line, with a wheel's diameter as the ruler (about 12 studs): the wheelbase (two
 diameters on an e-bike or a dirt bike, more on a road bike or a chopper), the swingarm's pivot from the rear axle,
 where the steering head and the frame's lower front corner are from the pivot, how far the fork leans, and how high
 the bars are. The techniques take those numbers, so the skeleton is this bike's, not a stock one: `motorbike_frame`'s
 head, bottom, and rake; `swingarm_shock`'s reach, drop, and wheel ("motorcycle" or "fat"); `suspension_fork`'s drop
-(the swingarm's) and wheel; `handlebars`' rise; and `display_stand_nameplate`'s under (the drop plus the wheel's
-radius). A technique's doc is its whole interface: if it doesn't fit, use its options, or build that part yourself.
-Build it in this order:
+(the swingarm's) and wheel; and `handlebars`' rise. Put the pivot the drop plus the wheel's radius above the table,
+so the wheels stand on it. A technique's doc is its whole interface: if it doesn't fit, use its options, or build that
+part yourself. Build it in this order:
 
-- The stand, then the frame hung on its post (`display_stand_nameplate`, `motorbike_frame`): a triangle of beams a
-  side, and a head bearing raked forward.
+- The frame (`motorbike_frame`): a triangle of beams a side, and a head bearing raked forward.
 - The swingarm with its twin shocks and the rear wheel, then the chain from the crank to the rear sprocket, with the
-  pedals (`swingarm_shock`, `chain_drive`).
+  pedals, and the kickstand (`swingarm_shock`, `chain_drive`, `kickstand`).
 - The fork, which steers: a triple tree on a steerer turning in the frame's head bearing, the fork tubes, their
   shocks, and the front wheel; then its brakes, and the bars on the tubes' tops with their grips and levers
   (`suspension_fork`, `disc_brake`, `handlebars`). Nothing else joins the fork to the frame, so the bars turn it.

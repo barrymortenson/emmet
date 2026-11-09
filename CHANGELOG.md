@@ -222,7 +222,7 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   The validator takes an axle through a wheel's hub as no collision and a wheel on its axle as no weak connection, a
   pin or axle must be in its hole to hold, and a pin that misses its hole gets a hint that names the hole. Seven
   display-bike techniques (motorbike_frame, swingarm_shock, suspension_fork, chain_drive, disc_brake, handlebars,
-  display_stand_nameplate), sized to a photo through their options (the head, the swingarm's reach and drop, fat
+  kickstand: a bike stands on its kickstand, not a base), sized to a photo through their options (the head, the swingarm's reach and drop, fat
   wheels, the bars' rise), with a fork that steers on a triple tree, and the large guide's Display bikes, which has
   the agent measure the photo first. ldraw-mini moves to LDraw 2026-10, the release Emmet
   pins.

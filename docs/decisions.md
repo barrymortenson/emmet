@@ -956,3 +956,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   every bike came out the same long, low motorcycle, and the agent read their source to work around them. They get
   size options, the guide has the agent measure the photo first, and Barry runs the e-bike again. Rejected: opening
   the PR with Done when 4 unticked.
+- **A display bike stands on its kickstand, not on a base** (Barry, 2026-11-09, before his second e-bike session: "it
+  is building a plate for the bike to sit on, this is not needed. a kickstand on the bike is all that is needed to make
+  the bike stand up. it is using a lot of the parts to make this and not focusing on the detail of the bike").
+  `display_stand_nameplate` is gone, and `kickstand` takes its place: a beam swung down from the frame's left side to
+  the table, level with the tires. The large guide says a bike stands on its wheels and kickstand with no base, and
+  the parts go into the bike; plan section 21's 4G text says so.

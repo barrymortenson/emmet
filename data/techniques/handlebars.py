@@ -1,17 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Handlebars: a display motorbike's bars on top of the fork tubes, so they turn with the fork, each with a grip on
-the end and a brake or clutch lever in front of it.
+"""Handlebars: a display motorbike's bars on top of the fork tubes, so they turn with the fork, each with a grip on the
+end and a brake or clutch lever in front of it.
 
 m.use("handlebars", fork=fork, rise=0, color="Black", grip_color="Black", lever_color="Light Bluish Gray", droop=20,
 title="Handlebars") takes what `suspension_fork` returned. With `rise` (3 to 8, or 10 studs) each fork tube carries a
-riser: a Technic axle joiner inline (59443) on its top and an axle `rise` studs long up out of it, for tall bars (a
-dirt bike's or an e-bike's). On each fork tube's top (or riser's), above the upper triple clamp, a Technic cross block
-1 x 2 (6536) turns the line to a pin hole across the bike a stud back of the tube, toward the
-rider; an axle 4 (3705) goes in from the inside and sticks 3 studs out: a bar. On it, from the block out: a lever, a
-Technic beam 3 x 0.5 (6632) on its end axle hole, reaching 2 studs forward and `droop` degrees down; a stud and a
-half of bare bar; and a grip, a Technic axle joiner inline (59443), 2 studs long, its inner half on the bar's last
-stud and its outer half past the end. It brings its own steps and returns the bar ends, (x, y, z) on the right then
-the left.
+riser: a Technic axle joiner inline (59443) on its top and an axle `rise` studs long up out of it, for tall bars (a dirt
+bike's or an e-bike's). On each fork tube's top (or riser's), above the upper triple clamp, a Technic cross block 1 x 2
+(6536) turns the line to a pin hole across the bike a stud back of the tube, toward the rider; an axle 4 (3705) goes in
+from the inside and sticks 3 studs out: a bar. On it, from the block out: a lever, a Technic beam 3 x 0.5 (6632) on its
+end axle hole, reaching 2 studs forward and `droop` degrees down; a stud and a half of bare bar; and a grip, a Technic
+axle joiner inline (59443), 2 studs long, its inner half on the bar's last stud and its outer half past the end. It
+brings its own steps and returns the bar ends, (x, y, z) on the right then the left.
 """
 
 import math

@@ -1,23 +1,22 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Suspension fork: a display motorbike's front fork that steers, a triple tree on a steerer turning in the frame's
-head bearing, two fork tubes through it, a shock absorber on each, and the front wheel between them.
+"""Suspension fork: a display motorbike's front fork that steers, a triple tree on a steerer turning in the frame's head
+bearing, two fork tubes through it, a shock absorber on each, and the front wheel between them.
 
-m.use("suspension_fork", frame=frame, drop=4.15, wheel="motorcycle", color="Black", tube_color="Light Bluish Gray",
-shock_color="Yellow", axle_color="Light Bluish Gray", title="Fork") takes the frame `motorbike_frame` returned. An
-axle 3 (4519), the steerer, goes through the frame's head bearing along the raked steering axis; on it, a stud above
-and a stud below the bearing, the upper and lower triple clamps, each a 7-hole beam (32524) across the bike with the
-steerer through its middle hole. The fork is held to the frame by the steerer alone, turning in the bearing's round
-hole, so it steers. The fork tubes, an axle 8 or 10 (3707, 3737: whichever reaches the sliders) through each clamp's
-end holes, run down parallel to the steering axis, 3 studs either side of the center, a stud above the upper clamp
-for `handlebars`. Low on each tube a
-Technic cross block 1 x 2 (6536), the slider, turns the line to a pin hole across the bike a stud forward of the tube;
-a shock absorber 6.5L (73129) hangs from it outside the tube (a friction pin, 2780), and an axle 10 through the
-shocks' lower holes carries the front wheel: "motorcycle", "fat", or None, as `swingarm_shock` has them (the
-"fat" wheel's fork is a stud wider each side, on 9-hole clamps and an axle 12). The sliders
-sit so the front axle is `drop` studs below the pivot: give it the swingarm's, and the wheels stand level. It brings its own steps and returns
-a dict of "front_axle" (the axle's middle, in the center plane), "tubes" (the fork tubes' Handles, the right one
-first), "shocks" (likewise), "clamps" (upper, lower), "rake" (a stud down the steering axis, as run and rise),
-"forward" (a stud square to it, forward), and "half" (the tubes' studs from the center).
+m.use("suspension_fork", frame=frame, drop=4.15, wheel="motorcycle", color="Black", tube_color="Black",
+shock_color="Red", axle_color="Black", title="Fork") takes the frame `motorbike_frame` returned. An axle 3 (4519), the
+steerer, goes through the frame's head bearing along the raked steering axis; on it, a stud above and a stud below the
+bearing, the upper and lower triple clamps, each a 7-hole beam (32524) across the bike with the steerer through its
+middle hole. The fork is held to the frame by the steerer alone, turning in the bearing's round hole, so it steers. The
+fork tubes, an axle 8 or 10 (3707, 3737: whichever reaches the sliders) through each clamp's end holes, run down
+parallel to the steering axis, 3 studs either side of the center, a stud above the upper clamp for `handlebars`. Low on
+each tube a Technic cross block 1 x 2 (6536), the slider, turns the line to a pin hole across the bike a stud forward of
+the tube; a shock absorber 6.5L (73129) hangs from it outside the tube (a friction pin, 2780), and an axle 10 through
+the shocks' lower holes carries the front wheel: "motorcycle", "fat", or None, as `swingarm_shock` has them (the "fat"
+wheel's fork is a stud wider each side, on 9-hole clamps and an axle 12). The sliders sit so the front axle is `drop`
+studs below the pivot: give it the swingarm's, and the wheels stand level. It brings its own steps and returns a dict of
+"front_axle" (the axle's middle, in the center plane), "tubes" (the fork tubes' Handles, the right one first), "shocks"
+(likewise), "clamps" (upper, lower), "rake" (a stud down the steering axis, as run and rise), "forward" (a stud square
+to it, forward), and "half" (the tubes' studs from the center).
 """
 
 PROVENANCE = """Emmet's own (session 4G), written from general building knowledge of Technic motorbikes and Barry's
@@ -49,9 +48,9 @@ def build(
     drop=4.15,
     wheel="motorcycle",
     color="Black",
-    tube_color="Light Bluish Gray",
-    shock_color="Yellow",
-    axle_color="Light Bluish Gray",
+    tube_color="Black",
+    shock_color="Red",
+    axle_color="Black",
     title="Fork",
 ):
     """The steerer, the triple clamps, the tubes, the sliders and shocks, and the front axle (with the wheel); returns

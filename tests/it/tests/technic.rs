@@ -387,15 +387,14 @@ m.use("handlebars", fork=fork)"#;
 }
 
 /// The display-bike techniques take a photo's proportions (Barry's e-bike hand session, 2026-11-09, came out the same
-/// long, low motorcycle as the defaults): a fat-tired e-bike with a short swingarm, a high head, and tall bars checks
-/// clean, its wheels about two diameters apart and level.
+/// long, low motorcycle as the defaults): a fat-tired e-bike with a short swingarm, a high head, and tall bars, on its
+/// wheels and its kickstand with no base, checks clean, its wheels about two diameters apart and level.
 #[test]
 fn a_bike_sized_to_its_photo_checks_clean() {
-    let body = r#"stand = m.use("display_stand_nameplate", x=17, y=6, length=34, back=13, under=2 + 5.92)
-x, y, z = stand["pivot"]
-frame = m.use("motorbike_frame", x=x, y=y, z=z, head=(12.2, 7.3), bottom=(3.1, -1.9), rake=23, on=stand["post"])
+    let body = r#"frame = m.use("motorbike_frame", x=10, y=6, z=2.5 * (2 + 5.92), head=(12.2, 7.3), bottom=(3.1, -1.9), rake=23)
 swingarm = m.use("swingarm_shock", frame=frame, reach=8, drop=2, wheel="fat")
 m.use("chain_drive", frame=frame, swingarm=swingarm)
+m.use("kickstand", frame=frame, swingarm=swingarm)
 fork = m.use("suspension_fork", frame=frame, drop=swingarm["drop"], wheel="fat")
 m.use("disc_brake", fork=fork)
 m.use("handlebars", fork=fork, rise=5)
