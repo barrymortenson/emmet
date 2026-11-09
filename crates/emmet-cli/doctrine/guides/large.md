@@ -40,10 +40,11 @@ to another on a whole-stud triangle (3-4-5, 5-12-13), and `m.insert` seats a pin
 test build is needed to find a hole. Build it in this order:
 
 - The stand, then the frame hung on its post (`display_stand_nameplate`, `motorbike_frame`): a triangle of beams a
-  side, the head raked forward on a 5-12-13 line.
+  side, and a head bearing raked forward on a 5-12-13 line.
 - The swingarm with its shock and the rear wheel, then the chain on its sprockets (`swingarm_shock`, `chain_drive`).
-- The fork with its shocks and the front wheel, its brakes, and the bars with their grips and levers
-  (`suspension_fork`, `disc_brake`, `handlebars`).
+- The fork, which steers: a triple tree on a steerer turning in the frame's head bearing, the fork tubes, their
+  shocks, and the front wheel; then its brakes, and the bars on the tubes' tops with their grips and levers
+  (`suspension_fork`, `disc_brake`, `handlebars`). Nothing else joins the fork to the frame, so the bars turn it.
 - Then the bodywork, on the frame's holes and hung from it, in the subject's colors: the tank or the e-bike's battery
   in the frame's triangle, the motor, the seat and its subframe, side panels and number boards, fenders over both
   wheels, lights, the exhaust, footpegs, and mirrors. The skeleton is about 200 parts; the rest is what makes it this

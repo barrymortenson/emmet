@@ -189,7 +189,7 @@ _PLANES = {
 
 
 def plane(axis, rel: str, line: int):
-    if axis not in _PLANES:
+    if not isinstance(axis, str) or axis not in _PLANES:
         raise EmmetError(
             "MODEL_EXEC_FAILED",
             f"axis={axis!r} isn't an axis.",
@@ -209,24 +209,15 @@ def _triangles(reach: float) -> str:
     )
 
 
-def beam_pose(ctx, part: str, at, direction, normal, holes, run, rise, rel: str, line: int):
-    """The LDraw (pos, rotation) that puts the part's hole holes[0] at the DSL point `at` and its far hole along
-    `direction` (a unit vector in space along the DSL's axes), its holes along `normal`. None while emmet hasn't sent
-    the part."""
+def beam_pose(ctx, part: str, at, direction, normal, holes, reach, said, rel: str, line: int):
+    """The LDraw (pos, rotation) that puts the part's hole holes[0] at the DSL point `at` and its far hole `reach`
+    studs along `direction` (a unit vector in space along the DSL's axes), hole holes[0] running along `normal`. `said`
+    names what set the reach, for messages ("A run of 12 and a rise of 6"). None while emmet hasn't sent the part."""
     pts = points(ctx, part)
     if pts is None:
         return None
     first, far = holes
     a = find(pts, first, part, rel, line)
-    reach = math.hypot(run, rise)
-    if reach < 1e-9:
-        raise EmmetError(
-            "MODEL_EXEC_FAILED",
-            "run=0 and rise=0 put both holes in one place.",
-            "Give the run and rise, in studs, from the first hole to the far one.",
-            rel,
-            line,
-        )
     on_line = [
         p for p in pts if p is not a and abs(abs(_dot(p["axis"], a["axis"])) - 1) < 1e-3 and p["kind"] in HOLE_KINDS
     ]
@@ -238,7 +229,7 @@ def beam_pose(ctx, part: str, at, direction, normal, holes, run, rise, rel: str,
             what = ", ".join(frame.num(g) for g in have) or "none"
             raise EmmetError(
                 "MODEL_EXEC_FAILED",
-                f"A run of {frame.num(run)} and a rise of {frame.num(rise)} reach {frame.num(round(reach, 3))} studs, "
+                f"{said} reach {frame.num(round(reach, 3))} studs, "
                 f"but {part}'s holes are {what} studs from hole {a['name']}.",
                 f"{_triangles(max(have, default=0))}; or use a longer beam.",
                 rel,
@@ -250,8 +241,8 @@ def beam_pose(ctx, part: str, at, direction, normal, holes, run, rise, rel: str,
     if abs(gap - reach) > 0.025:
         raise EmmetError(
             "MODEL_EXEC_FAILED",
-            f"{part}'s holes {a['name']} and {b['name']} are {frame.num(round(gap, 3))} studs apart, but a run of "
-            f"{frame.num(run)} and a rise of {frame.num(rise)} reach {frame.num(round(reach, 3))}.",
+            f"{part}'s holes {a['name']} and {b['name']} are {frame.num(round(gap, 3))} studs apart, but "
+            f"{said[0].lower()}{said[1:]} reach {frame.num(round(reach, 3))}.",
             f"{_triangles(gap)}.",
             rel,
             line,
@@ -261,8 +252,8 @@ def beam_pose(ctx, part: str, at, direction, normal, holes, run, rise, rel: str,
     if abs(_dot(u, v)) > 1e-3:
         raise EmmetError(
             "MODEL_EXEC_FAILED",
-            f"{part}'s holes {a['name']} and {b['name']} aren't side by side.",
-            "Pick two holes whose axes are parallel, across the part.",
+            f"{part}'s hole {b['name']} isn't square to hole {a['name']}'s axis.",
+            "Pick two holes side by side (a beam's), or a hole and one beside its axis (a cross block's).",
             rel,
             line,
         )
@@ -292,14 +283,25 @@ def _rotation_onto(a, b):
 
 
 def out_direction(hole: Hole, out, rel: str, line: int):
-    """The way a pin sticks out of `hole`, a unit vector along the hole's axis: "+y", "-x", …, or "+" and "-" along
-    the hole's own axis; by default the positive way along it."""
+    """The way a pin sticks out of `hole`, a unit vector along the hole's axis: "+y", "-x", …, "+" and "-" along the
+    hole's own axis, or a direction (x, y, z) along it; by default the positive way along it."""
     axis = hole.axis
     # The hole's axis, its largest part positive: "+".
     big = max(range(3), key=lambda i: abs(axis[i]))
     plus = axis if axis[big] > 0 else tuple(-v for v in axis)
     if out in (None, "+"):
         return plus
+    if isinstance(out, tuple | list) and len(out) == 3:
+        v = _unit(tuple(float(x) for x in out))
+        if abs(abs(_dot(v, axis)) - 1) > 1e-3:
+            raise EmmetError(
+                "MODEL_EXEC_FAILED",
+                f"out={tuple(out)!r} isn't along hole {hole.name} of {hole.id}, which runs along {axis_words(plus)}.",
+                "Give a direction along the hole's axis (hole.axis, or its opposite).",
+                rel,
+                line,
+            )
+        return v
     if out == "-":
         return tuple(-v for v in plus)
     if isinstance(out, str) and len(out) == 2 and out[0] in "+-" and out[1] in "xyz":

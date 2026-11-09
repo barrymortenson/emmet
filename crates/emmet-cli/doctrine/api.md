@@ -75,7 +75,7 @@ a stable name; by default "<step>/<n>". hole: one of the part's Technic holes (p
 then where that hole's middle goes, not the footprint corner. A wheel goes on an axle this way, its hub's hole
 at a point on the axle.
 
-### Model.beam(part: str, color, at, run: float, rise: float = 0, axis: str = 'y', holes=(1, None), id: str | None = None) -> Handle
+### Model.beam(part: str, color, at, run: float | None = None, rise: float = 0, axis='y', holes=(1, None), id: str | None = None, to=None) -> Handle
 
 Lays a Technic beam (or any part with two holes side by side) by its holes: hole holes[0] at `at`, and the
 beam running `run` studs along and `rise` studs up to its far hole, so a triangle whose sides are whole studs
@@ -86,16 +86,21 @@ at: (x, y, z) in studs, studs, plates, where hole holes[0]'s middle goes (part_i
 holes are). run and rise: in studs, both of them, from that hole to the far one (a rise of 5 studs is 12.5
 plates). axis: which way the holes run: "y" for a beam on edge in the x-z plane (run along x, rise up z), "x"
 for one in the y-z plane (run along y), "z" for a beam lying flat (run along x, rise along y). holes: the two
-holes it's laid by; the far one by default is whichever hole the run and rise reach. Returns its Handle, whose
+holes it's laid by; the far one by default is whichever hole the run and rise reach.
+
+to: instead of run and rise, the point (x, y, z) the far hole goes to; then axis may also be any direction
+(x, y, z) square to the beam, for holes along a raked line (a fork's triple clamp across a steering axis), and
+holes may be a hole and one beside its axis (a cross block's axle hole and pin hole). Returns its Handle, whose
 .hole(n) gives each hole where it landed.
 
-### Model.insert(part: str, color, hole, out: str | None = None, out_by: float | None = None, point=None, id=None) -> Handle
+### Model.insert(part: str, color, hole, out=None, out_by: float | None = None, point=None, id=None) -> Handle
 
 Seats a pin, an axle, or an axle pin in a hole: `hole` is a Handle's hole (beam.hole(3)). It sticks out of
 the hole's face on the `out` side by `out_by` studs; by default its far end is flush with the hole's other face
 (a 2-long pin in a beam: 1 out, ready for the next beam; an axle 3: 2 out).
 
-out: "+y", "-y", … along the hole's axis, or "+" and "-"; by default the positive way along it. out_by: studs
+out: "+y", "-y", … along the hole's axis, "+" and "-", or a direction (x, y, z) along it (hole.axis for a hole
+on a raked line); by default the positive way along it. out_by: studs
 past the face, from 0 to the part's length (a 3-long pin through the middle of three beams: out_by=1). A 3/4
 pin goes in by its long end, an axle pin (3749) by its pin end (by its axle end into an axle hole), and a pin or
 axle on a part (a pin with a stop bush, an axle stub on a hub) by its free end. point:

@@ -10,12 +10,16 @@ center plane y. Each side is a triangle of beams, their holes along y: a top spa
 studs over 12 from the pivot to the steering head, past the head by a hole; a bottom spar (7 holes, 32524) falling 5
 studs over 12 from the pivot for 6 of them; and a down tube (9 holes, 40490) from the bottom spar's end up 8 studs to
 the top spar's hole 12, pinned at both ends (friction pins, 2780): sides 11, 6, and 8, so the triangle can't rack.
-The right side (-y) goes together first, then an axle 10 long (3737) through its pivot, the left side onto that axle,
-and another through the head: each a stud out past each side, for the swingarm and the fork. On a stand, `on` is the
+The right side (-y) goes together first, then an axle 10 long (3737) through its pivot, a stud out past each side for
+the swingarm, and the left side onto that axle. The steering head is an axle 8 (3707) through the top spars' hole 15
+and, on it between the sides, a Technic cross block 1 x 2 (6536) whose pin hole, a stud forward along the top spar's
+line, runs along the steering axis, raked forward on a 5-12-13 line (about 22.6 degrees from upright): the bearing
+the fork's steerer turns in (`suspension_fork`). On a stand, `on` is the
 hole that holds the bike at its pivot (`display_stand_nameplate` returns it): the pivot axle goes through it first,
 and both sides onto the axle. From the outside in, each side's planes are the top spar's, the down tube's, and the bottom spar's; the
 swingarm and the fork go outside them, the chain inside the swingarm. It brings its own steps and returns the frame:
-a dict of "pivot" and "head" (the steering head, the top spar's hole 15), "y" (the center plane), "width",
+a dict of "pivot", "steering" (the bearing's pin hole) and "head" (its middle), "rake" (a stud down the steering axis,
+as run and rise) and "forward" (a stud square to it, along the top spar), "y" (the center plane), "width",
 "planes" (the y of the outside, top, down, and bottom planes on the right, -y side), and the right side's "top",
 "bottom", and "down" Handles, whose holes the other display-bike techniques use (`swingarm_shock`,
 `suspension_fork`, `chain_drive`, `display_stand_nameplate`).
@@ -24,9 +28,14 @@ a dict of "pivot" and "head" (the steering head, the top spar's hole 15), "y" (t
 PROVENANCE = """Emmet's own (session 4G), written from general building knowledge of Technic frames. Not derived from
 any model file."""
 
-PARTS = ["32278", "32524", "40490", "2780", "3737"]
+PARTS = ["32278", "32524", "40490", "2780", "3737", "3707", "6536"]
 
 WIDTH = 8
+RAKE = (5 / 13, -12 / 13)  # a stud down the steering axis: run, rise (studs)
+FORWARD = (
+    12 / 13,
+    5 / 13,
+)  # a stud along the top spar's line, square to the steering axis
 
 
 def _side(m, x, y, z, s, color, pin_color, title):
@@ -76,26 +85,38 @@ def build(
     title="Frame",
 ):
     """The two sides and the axles between them; returns the frame (see the module's doc)."""
-    # The right side, the pivot axle through it, the left side onto the axle, and the head axle: each axle a stud out
-    # past each side, for the swingarm and the fork. On a stand, the pivot axle goes through it first, and both sides
-    # onto the axle.
+    # The right side, the pivot axle through it (a stud out past each side, for the swingarm), the left side onto the
+    # axle, and the steering head. On a stand, the pivot axle goes through it first, and both sides onto the axle.
     if on is not None:
         with m.step(f"{title}: pivot axle"):
-            reach = (
-                on.at[1] - on.length / 2 - (y - WIDTH / 2 - 1)
-            )  # from the hole's -y face to the axle's end
+            # From the hole's -y face to the axle's end.
+            reach = on.at[1] - on.length / 2 - (y - WIDTH / 2 - 1)
             m.insert("3737", axle_color, on, out="-y", out_by=reach)
     planes, top, bottom, down = _side(m, x, y, z, -1, color, pin_color, title)
     if on is None:
         with m.step(f"{title}: pivot axle"):
             m.insert("3737", axle_color, top.hole(1), out="+y", out_by=WIDTH)
     _side(m, x, y, z, 1, color, pin_color, title)
-    with m.step(f"{title}: head axle"):
-        m.insert("3737", axle_color, top.hole(15), out="+y", out_by=WIDTH)
     head = top.hole(15).at
+    with m.step(f"{title}: steering head"):
+        # A cross block on the head axle between the sides: its pin hole, a stud forward along the top spar's line, runs
+        # along the steering axis (RAKE), the bearing the fork's steerer turns in.
+        bearing = m.beam(
+            "6536",
+            color,
+            at=(head[0], y, head[2]),
+            to=(head[0] + FORWARD[0], y, head[2] + 2.5 * FORWARD[1]),
+            axis="y",
+            holes=(2, 1),
+        )
+        m.insert("3707", axle_color, top.hole(15), out="+y", out_by=WIDTH - 1)
+    steering = bearing.hole(1)
     return {
         "pivot": (x, y, z),
-        "head": (head[0], y, head[2]),
+        "head": steering.at,
+        "steering": steering,
+        "rake": RAKE,
+        "forward": FORWARD,
         "y": y,
         "width": WIDTH,
         "planes": planes,

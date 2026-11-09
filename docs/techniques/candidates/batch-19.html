@@ -23,20 +23,20 @@
 <body>
 <header>
   <h1>Technique candidates: batch-19</h1>
-  <p>7 display-bike techniques for Emmet's technique library (session 4G), made from the e-bike hand check: a display motorbike's skeleton built by its holes, every joint a pin or an axle in a hole. Each picture is a render of the technique's example, which validates with no findings on ldraw-mini (its test); the seven together make the 203-part skeleton below, which validates clean too. They're written from general building knowledge, not from any model's file. Every one starts as Accept: switch the ones you don't want, add a note if it helps, then copy your answers and paste them to Claude.</p>
+  <p>7 display-bike techniques for Emmet's technique library (session 4G), made from the e-bike hand check: a display motorbike's skeleton built by its holes, every joint a pin or an axle in a hole. Each picture is a render of the technique's example, which validates with no findings on ldraw-mini (its test); the seven together make the 205-part skeleton below, which validates clean too. They're written from general building knowledge, not from any model's file. Every one starts as Accept: switch the ones you don't want, add a note if it helps, then copy your answers and paste them to Claude.</p>
   <p><img src="batch-19/skeleton-iso.png" alt="The seven techniques together: a motorbike skeleton on its stand" width="320" height="320"> <img src="batch-19/skeleton-front.png" alt="The skeleton from the side" width="320" height="320"></p>
 </header>
 <section class="card" data-n="1">
   <div class="shot"><img src="../../../data/techniques/motorbike_frame.png" alt="The example of motorbike_frame" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">1</span> <code>motorbike_frame</code></h2>
-    <p>A triangle of Technic beams on edge a side, the steering head raked on a 5-12-13 line, joined by axles through the pivot and the head.</p>
+    <p>A triangle of Technic beams on edge a side, joined by axles through the pivot and the head, with a head bearing raked on a 5-12-13 line for the fork to turn in.</p>
     <p class="why">The skeleton every display bike hangs on, so the swingarm, fork, chain, and bodywork go on holes, not guesses.</p>
-    <p class="note"><b>Note:</b> Sides 8 studs apart; the right side goes together first, then the pivot axle, the left side onto it, and the head axle. With on= (the stand&#x27;s hole) the pivot axle goes through the stand first.</p>
+    <p class="note"><b>Note:</b> Sides 8 studs apart; the right side goes together first, then the pivot axle, the left side onto it, and the steering head: a cross block on the head axle whose pin hole runs along the raked steering axis. With on= (the stand&#x27;s hole) the pivot axle goes through the stand first.</p>
     <dl>
       <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>color</code>, <code>pin_color</code>, <code>axle_color</code>, <code>on</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/motorbike_frame.py"><code>data/techniques/motorbike_frame.py</code></a></dd>
-      <dt>Parts</dt><dd><code>32278</code> + <code>32524</code> + <code>40490</code> + <code>2780</code> + <code>3737</code></dd>
+      <dt>Parts</dt><dd><code>32278</code> + <code>32524</code> + <code>40490</code> + <code>2780</code> + <code>3737</code> + <code>3707</code> + <code>6536</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for motorbike_frame">
       <label><input type="radio" name="d1" value="accept" checked> Accept</label>
@@ -68,13 +68,13 @@
   <div class="shot"><img src="../../../data/techniques/suspension_fork.png" alt="The example of suspension_fork" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">3</span> <code>suspension_fork</code></h2>
-    <p>Each fork leg an upper beam on the head axle, a shock absorber beside it, and a lower beam on the same raked line, with the front wheel on an axle at the bottom.</p>
-    <p class="why">A raked telescopic fork that reads as suspension, built on the 5-12-13 rake so every joint is a pin in a hole.</p>
-    <p class="note"><b>Note:</b> The legs sit outside the frame on the head axle; the front wheel comes out level with the rear wheel to within a plate. The upper leg&#x27;s hole 1 is for the handlebars and the lower leg&#x27;s hole 2 for a brake caliper.</p>
+    <p>A fork that steers: a triple tree (an upper and a lower clamp) on a steerer turning in the frame&#x27;s head bearing, two fork tubes through it, a shock on each, and the front wheel.</p>
+    <p class="why">A display bike&#x27;s front end that turns with the bars, on a triple tree and a pivot, as you asked.</p>
+    <p class="note"><b>Note:</b> Changed after your review: the steerer is the only joint between the fork and the frame (a test checks it), so the whole front end, bars included, turns. The front wheel comes out level with the rear wheel.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>frame</code>, <code>color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>wheel</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>color</code>, <code>tube_color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>wheel</code>, <code>drop</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/suspension_fork.py"><code>data/techniques/suspension_fork.py</code></a></dd>
-      <dt>Parts</dt><dd><code>32316</code> + <code>73129</code> + <code>2780</code> + <code>3737</code> + <code>88517c01</code></dd>
+      <dt>Parts</dt><dd><code>4519</code> + <code>32524</code> + <code>3737</code> + <code>6536</code> + <code>73129</code> + <code>2780</code> + <code>88517c01</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for suspension_fork">
       <label><input type="radio" name="d3" value="accept" checked> Accept</label>
@@ -106,13 +106,13 @@
   <div class="shot"><img src="../../../data/techniques/disc_brake.png" alt="The example of disc_brake" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">5</span> <code>disc_brake</code></h2>
-    <p>A brake disc on the front axle inside each fork leg, and a red caliper on the leg across the disc&#x27;s rim.</p>
+    <p>A brake disc on the front axle inside each shock, and a red caliper arm from the axle over the disc&#x27;s face.</p>
     <p class="why">Front disc brakes, the detail that says sports bike.</p>
     <p class="note"><b>Note:</b> One side or both (both by default).</p>
     <dl>
       <dt>Parameters</dt><dd><code>fork</code>, <code>disc_color</code>, <code>caliper_color</code>, <code>both</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/disc_brake.py"><code>data/techniques/disc_brake.py</code></a></dd>
-      <dt>Parts</dt><dd><code>65416</code> + <code>6632</code> + <code>32002</code></dd>
+      <dt>Parts</dt><dd><code>65416</code> + <code>6632</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for disc_brake">
       <label><input type="radio" name="d5" value="accept" checked> Accept</label>
@@ -125,13 +125,13 @@
   <div class="shot"><img src="../../../data/techniques/handlebars.png" alt="The example of handlebars" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">6</span> <code>handlebars</code></h2>
-    <p>Clip-on bars out of each fork leg&#x27;s top hole, with a lever reaching forward and a grip on the end.</p>
-    <p class="why">Handlebars with grips and levers, at the bike&#x27;s full width.</p>
-    <p class="note"><b>Note:</b> The levers droop 20 degrees by default; the grips are axle joiners on the bars&#x27; last stud.</p>
+    <p>Bars on top of the fork tubes, above the upper clamp, with a lever reaching forward and a grip on each end.</p>
+    <p class="why">Handlebars with grips and levers that turn with the fork.</p>
+    <p class="note"><b>Note:</b> Changed after your review: the bars sit on the fork tubes, so they steer the fork. The levers droop 20 degrees by default; the grips are axle joiners on the bars&#x27; last stud.</p>
     <dl>
       <dt>Parameters</dt><dd><code>fork</code>, <code>color</code>, <code>grip_color</code>, <code>lever_color</code>, <code>droop</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/handlebars.py"><code>data/techniques/handlebars.py</code></a></dd>
-      <dt>Parts</dt><dd><code>3705</code> + <code>6632</code> + <code>59443</code></dd>
+      <dt>Parts</dt><dd><code>6536</code> + <code>3705</code> + <code>6632</code> + <code>59443</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for handlebars">
       <label><input type="radio" name="d6" value="accept" checked> Accept</label>

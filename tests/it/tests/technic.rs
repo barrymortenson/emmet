@@ -353,3 +353,35 @@ fn beams_and_pins_that_cant_fit_say_why() {
         v["error"]
     );
 }
+
+/// The display bike's fork steers (Barry, on 4G's review page: the bars turn on a triple tree and a pivot): the fork,
+/// its brakes, and its bars join the frame at one joint only, the steerer turning in the frame's head bearing.
+#[test]
+fn the_fork_turns_on_its_steerer_alone() {
+    let body = r#"frame = m.use("motorbike_frame", x=0, y=8, z=27)
+fork = m.use("suspension_fork", frame=frame)
+m.use("disc_brake", fork=fork)
+m.use("handlebars", fork=fork)"#;
+    let (v, code) = check_of("steering", body, &[]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
+    let front = |id: &str| ["fork", "brakes", "handlebars"].iter().any(|p| id.starts_with(p));
+    let across: Vec<(String, String, String)> = v["links"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|l| {
+            let s = |i: usize| l[i].as_str().unwrap().to_string();
+            (s(0), s(1), s(2))
+        })
+        .filter(|(a, b, _)| front(a) != front(b))
+        .collect();
+    assert!(
+        !across.is_empty()
+            && across.iter().all(|(a, b, kind)| {
+                let (fork, frame) = if front(a) { (a, b) } else { (b, a) };
+                fork.starts_with("fork-steerer") && frame.starts_with("frame-steering-head") && kind == "cyl"
+            }),
+        "the fork joins the frame elsewhere too: {across:?}"
+    );
+}

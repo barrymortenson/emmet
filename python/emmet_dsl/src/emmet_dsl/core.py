@@ -265,11 +265,12 @@ class Model:
         part: str,
         color,
         at,
-        run: float,
+        run: float | None = None,
         rise: float = 0,
-        axis: str = "y",
+        axis="y",
         holes=(1, None),
         id: str | None = None,
+        to=None,
     ) -> Handle:
         """Lays a Technic beam (or any part with two holes side by side) by its holes: hole holes[0] at `at`, and the
         beam running `run` studs along and `rise` studs up to its far hole, so a triangle whose sides are whole studs
@@ -280,22 +281,16 @@ class Model:
         holes are). run and rise: in studs, both of them, from that hole to the far one (a rise of 5 studs is 12.5
         plates). axis: which way the holes run: "y" for a beam on edge in the x-z plane (run along x, rise up z), "x"
         for one in the y-z plane (run along y), "z" for a beam lying flat (run along x, rise along y). holes: the two
-        holes it's laid by; the far one by default is whichever hole the run and rise reach. Returns its Handle, whose
+        holes it's laid by; the far one by default is whichever hole the run and rise reach.
+
+        to: instead of run and rise, the point (x, y, z) the far hole goes to; then axis may also be any direction
+        (x, y, z) square to the beam, for holes along a raked line (a fork's triple clamp across a steering axis), and
+        holes may be a hole and one beside its axis (a cross block's axle hole and pin hole). Returns its Handle, whose
         .hole(n) gives each hole where it landed."""
         file, line = caller()
         ctx = self._ctx("Model.beam", file, line)
         rel = ctx.rel(file)
         at = _point(at, rel, line)
-        for name, v in (("run", run), ("rise", rise)):
-            if not isinstance(v, int | float) or isinstance(v, bool):
-                raise EmmetError(
-                    "MODEL_EXEC_FAILED",
-                    f"{name}={v!r} isn't a number of studs.",
-                    "Give run and rise in studs.",
-                    rel,
-                    line,
-                )
-        normal, along, up = _technic.plane(axis, rel, line)
         if not isinstance(holes, tuple | list) or len(holes) != 2:
             raise EmmetError(
                 "MODEL_EXEC_FAILED",
@@ -304,16 +299,74 @@ class Model:
                 rel,
                 line,
             )
+        if to is not None:
+            if run is not None:
+                raise EmmetError(
+                    "MODEL_EXEC_FAILED",
+                    "Model.beam got both run and to.",
+                    "Give run and rise, or to: the point the far hole goes to.",
+                    rel,
+                    line,
+                )
+            to = _point(to, rel, line)
+            gap = _technic._add(_technic._phys(to), _technic._phys(at), -1)
+            reach = math.sqrt(_technic._dot(gap, gap)) / frame.STUD
+            direction = _technic._unit(gap)
+            if isinstance(axis, str):
+                normal = _technic.plane(axis, rel, line)[0]
+            else:
+                try:
+                    normal = _technic._unit(tuple(float(v) for v in axis))
+                    if len(normal) != 3 or normal == (0.0, 0.0, 0.0):
+                        raise ValueError
+                except (TypeError, ValueError):
+                    raise EmmetError(
+                        "MODEL_EXEC_FAILED",
+                        f"axis={axis!r} isn't a direction.",
+                        'Give "x", "y", or "z", or a direction (x, y, z) square to the beam.',
+                        rel,
+                        line,
+                    ) from None
+            said = "at and to, which"
+        else:
+            for name, v in (("run", run), ("rise", rise)):
+                if not isinstance(v, int | float) or isinstance(v, bool):
+                    raise EmmetError(
+                        "MODEL_EXEC_FAILED",
+                        f"{name}={v!r} isn't a number of studs.",
+                        "Give run and rise in studs, or to: the point the far hole goes to.",
+                        rel,
+                        line,
+                    )
+            normal, along, up = _technic.plane(axis, rel, line)
+            reach = math.hypot(run, rise)
+            direction = _technic._unit(tuple(run * along[i] + rise * up[i] for i in range(3)))
+            said = f"A run of {frame.num(run)} and a rise of {frame.num(rise)}"
+        if reach < 1e-9:
+            raise EmmetError(
+                "MODEL_EXEC_FAILED",
+                "The beam's two holes would be in one place.",
+                "Give the run and rise (or to) from the first hole to the far one.",
+                rel,
+                line,
+            )
+        if abs(_technic._dot(direction, normal)) > 1e-3:
+            raise EmmetError(
+                "MODEL_EXEC_FAILED",
+                f"axis={axis!r} isn't square to the way the beam runs.",
+                "A beam's holes run across it: give an axis square to the line from at to its far hole.",
+                rel,
+                line,
+            )
         part_id = ctx.part_id(part, rel, line)
         code = ctx.color(color, rel, line)
         body = ctx.body(part_id, rel, line)
         _count(ctx, 1, rel, line)
-        direction = _technic._unit(tuple(run * along[i] + rise * up[i] for i in range(3)))
         at = tuple(at[i] + self._offset[i] for i in range(3))
 
         def pose(params):
             p_at, p_dir, p_normal = params
-            return _technic.beam_pose(ctx, part_id, p_at, p_dir, p_normal, tuple(holes), run, rise, rel, line)
+            return _technic.beam_pose(ctx, part_id, p_at, p_dir, p_normal, tuple(holes), reach, said, rel, line)
 
         def reflect(params, k, about):
             p_at, p_dir, p_normal = params
@@ -325,14 +378,13 @@ class Model:
 
         return self._posed(part_id, code, body, id, rel, line, pose, (at, direction, normal), reflect, self._mirrors)
 
-    def insert(
-        self, part: str, color, hole, out: str | None = None, out_by: float | None = None, point=None, id=None
-    ) -> Handle:
+    def insert(self, part: str, color, hole, out=None, out_by: float | None = None, point=None, id=None) -> Handle:
         """Seats a pin, an axle, or an axle pin in a hole: `hole` is a Handle's hole (beam.hole(3)). It sticks out of
         the hole's face on the `out` side by `out_by` studs; by default its far end is flush with the hole's other face
         (a 2-long pin in a beam: 1 out, ready for the next beam; an axle 3: 2 out).
 
-        out: "+y", "-y", … along the hole's axis, or "+" and "-"; by default the positive way along it. out_by: studs
+        out: "+y", "-y", … along the hole's axis, "+" and "-", or a direction (x, y, z) along it (hole.axis for a hole
+        on a raked line); by default the positive way along it. out_by: studs
         past the face, from 0 to the part's length (a 3-long pin through the middle of three beams: out_by=1). A 3/4
         pin goes in by its long end, an axle pin (3749) by its pin end (by its axle end into an axle hole), and a pin or
         axle on a part (a pin with a stop bush, an axle stub on a hub) by its free end. point:
