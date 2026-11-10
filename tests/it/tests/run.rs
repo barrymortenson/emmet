@@ -333,3 +333,64 @@ fn the_dsl_spec_example_runs() {
         "12 isn't on the steps of 8: {v}"
     );
 }
+
+/// A new model starts on the base the New model dialog's Base names (Barry 2026-11-10, on his third e-bike run: "I
+/// said none for the base but it still created a plate"): None has no parts, stands on the table, and checks clean;
+/// a size is that green baseplate; Any is the 32 x 32 one, as `emmet new` makes. Before, every one had the 32 x 32.
+#[test]
+fn a_new_model_starts_on_the_base_it_was_given() {
+    use emmet_core::data::DataDir;
+    use emmet_core::project::{BuildConfig, Project, Template};
+    let data = DataDir::at(shared_data());
+    for (base, plate) in [
+        (Some("None"), None),
+        (Some("16 × 16"), Some("3867")),
+        (Some("32 × 32"), Some("3811")),
+        (None, Some("3811")),
+    ] {
+        let build = BuildConfig {
+            base: base.map(String::from),
+            ..Default::default()
+        };
+        let dir = temp_dir("base").join("model");
+        Project::create(&data, &dir, Template::Empty(build.baseplate())).unwrap();
+        let (v, code) = emmet_in(&dir, &["run"]);
+        assert_eq!(code, 0, "{base:?}: {v}");
+        assert_eq!(
+            v["data"]["parts"].as_u64(),
+            Some(u64::from(plate.is_some())),
+            "{base:?}: {v}"
+        );
+        let mpd = std::fs::read_to_string(dir.join("build/model.mpd")).unwrap();
+        let parts: Vec<&str> = mpd
+            .lines()
+            .filter(|l| l.starts_with("1 "))
+            .filter_map(|l| l.split_whitespace().last())
+            .collect();
+        assert_eq!(
+            parts,
+            plate.map(|p| format!("{p}.dat")).into_iter().collect::<Vec<_>>(),
+            "{base:?}"
+        );
+        let (v, code) = emmet_in(&dir, &["check"]);
+        assert_eq!(code, 0, "{base:?}: {v}");
+        assert_eq!(v["data"]["findings"], serde_json::json!([]), "{base:?}: {v:#}");
+        // CARD.md says what it stands on.
+        let card = std::fs::read_to_string(dir.join("CARD.md")).unwrap();
+        let note = if plate.is_some() {
+            "z = 0.5"
+        } else {
+            "on the table: its lowest parts start at z = 0"
+        };
+        assert!(card.contains(note), "{base:?}: {card}");
+    }
+    // 48 x 48 isn't in ldraw-mini: the model names its part.
+    let build = BuildConfig {
+        base: Some("48 × 48".into()),
+        ..Default::default()
+    };
+    let dir = temp_dir("base").join("model");
+    Project::create(&data, &dir, Template::Empty(build.baseplate())).unwrap();
+    let model = std::fs::read_to_string(dir.join("model.py")).unwrap();
+    assert!(model.contains("\"4186\"") && model.contains("48 x 48"), "{model}");
+}

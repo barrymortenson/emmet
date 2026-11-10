@@ -4,7 +4,8 @@
 // on Try again, then drops again after the user has gone on to Start, which says so with its own Try again → Python →
 // the agents (the fake CLIs, ready) → Start → the Cottage, built from Documents/Emmet with no dialog. Then ⌘N makes a
 // new model from a prompt: the New model dialog, on one page, asks its name and build settings (Barry 2026-11-09), and
-// it's an empty baseplate with those settings in Options' line of words. Each screen in both themes goes to tests/e2e/out/screens/.
+// it starts on the base it names (None: no parts, on the viewer's ground grid; Barry 2026-11-10) with those settings
+// in Options' line of words. Each screen in both themes goes to tests/e2e/out/screens/.
 import { $, expect } from "@wdio/globals";
 import { copyFileSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -114,6 +115,8 @@ describe("first run", () => {
     // Age leads as in Options: 9+ brings Medium detail and Medium pieces. Every question is on the one page.
     await choose("Age", "9+");
     await expect($("#new-model [aria-label='Detail'] [data-state='on']")).toHaveText("Medium");
+    // No base: it starts with no parts, where it used to start on a 32 x 32 baseplate whatever Base said.
+    await choose("Base", "None");
     await expect($("#new-model-name")).toBeDisplayedInViewport();
     await expect($("#new-model-create")).toBeDisplayedInViewport();
     await screenshots("new-model", { baseline: !real });
@@ -124,11 +127,14 @@ describe("first run", () => {
     expect(existsSync(join(dir, "model.py"))).toBe(true);
     const toml = readFileSync(join(dir, "emmet.toml"), "utf8");
     expect(toml).toContain('name = "Fire station"');
-    for (const line of ['scale = "Midi"', 'age = "9+"', 'detail = "Medium"', 'pieces = "Medium"', 'style = "Steampunk"']) expect(toml).toContain(line);
-    expect(toml).not.toContain("base =");
+    for (const line of ['base = "None"', 'scale = "Midi"', 'age = "9+"', 'detail = "Medium"', 'pieces = "Medium"', 'style = "Steampunk"']) expect(toml).toContain(line);
+    expect(readFileSync(join(dir, "model.py"), "utf8")).not.toContain("3811");
     await browser.waitUntil(async () => (await text("#model-state .panel-head-text")) === "Empty", { timeout: 60_000 });
     // Options shows them as a line of words with Change, not the whole list.
-    await expect($("#settings-summary")).toHaveText(expect.stringContaining("Midi · Ages 9+ · Medium detail · 250–1,000 pieces · Steampunk"));
+    await expect($("#settings-summary")).toHaveText(expect.stringContaining("No base · Midi · Ages 9+ · Medium detail · 250–1,000 pieces · Steampunk"));
+    // Nothing in the viewer but the ground grid.
+    const stats = await browser.execute(() => window.__emmet.viewer().stats());
+    expect([stats.instances, stats.grid]).toEqual([0, true]);
     await expect($("#settings-list")).not.toBeExisting();
     await expect($("#export-button")).not.toBeExisting();
     await screenshots("new-empty", { baseline: !real });

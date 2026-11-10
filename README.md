@@ -24,7 +24,7 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
 - The app (session 1B): `just dev [project]` opens a project folder and shows its model in the 3D viewer
   ([`packages/viewer`](packages/viewer/README.md)). Edit `model.py` in any editor, or drag a slider in the params
   drawer, and the viewer updates in place without moving the camera; a broken model shows the error and its line
-  while the last good model stays. Plain UI for now; Phase 2 designs it.
+  while the last good model stays. The model stands on a faint stud grid on the table; pictures leave it out.
 - `emmet render [--view iso] [--size 1024] [--highlight ids] [--out file.png]`: a PNG through the open app over
   [emmet-bus](docs/spec/bus.md), or the app's hidden render mode when it isn't open. `emmet mcp` has `render` (image
   content) and `highlight` too.

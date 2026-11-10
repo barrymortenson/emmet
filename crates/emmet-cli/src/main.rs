@@ -405,7 +405,7 @@ fn main() -> ExitCode {
             let template = match (template, import) {
                 (_, Some(file)) => Template::Import(file.clone()),
                 (TemplateArg::Cottage, None) => Template::Cottage,
-                (TemplateArg::Empty, None) => Template::Empty,
+                (TemplateArg::Empty, None) => Template::empty(),
             };
             let out = data.and_then(|d| ops::new_project(&d, dir, template));
             let project = out.as_ref().ok().map(|c| c.project.clone());

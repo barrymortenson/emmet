@@ -320,7 +320,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         None => std::env::temp_dir().join(format!("emmet-eval-{}", emmet_core::fsx::random_hex(1))),
     };
     let root = work.join(format!("{}-{}", dir_name(&opts.rung), name(opts.agent)));
-    let created = emmet_core::ops::new_project(data, &root, Template::Empty)?;
+    let created = emmet_core::ops::new_project(data, &root, Template::empty())?;
     let mut project = Project::find(Some(Path::new(&created.project)))?;
     if technique {
         // The build settings the technique prompts run with (docs/spec/ladder.md).

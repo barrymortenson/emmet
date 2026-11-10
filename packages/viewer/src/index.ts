@@ -47,6 +47,7 @@ import {
   stagger,
 } from "./animate.js";
 import { type Diff, type Placement, bucketKey, diffPlacements, dirtyBuckets, topStep } from "./diff.js";
+import { Grid } from "./grid.js";
 import { type ColorInfo, type FinishMaterials, Finishes, LINE_COLOR, type Studio, addStudio, finishKey, studioRoom } from "./materials.js";
 import { Outline } from "./outline.js";
 import { type PartGeometry, PartCache, type PartSource, partKey, simplifyStuds } from "./parts.js";
@@ -207,6 +208,8 @@ export interface Stats {
   quality: Preset;
   pace: Pace;
   shadow: boolean;
+  /** Whether the window draws the ground grid (pictures never do). */
+  grid: boolean;
 }
 
 export interface Viewer {
@@ -363,6 +366,7 @@ class EmmetViewer implements Viewer {
   private finishes = new Finishes();
   private studio: Studio;
   private ground: Mesh<PlaneGeometry, ShadowMaterial>;
+  private grid: Grid;
   private placements = new Map<string, Placement>();
   private buckets = new Map<string, Bucket>();
   /** Where each id draws: its bucket and instance. */
@@ -436,6 +440,8 @@ class EmmetViewer implements Viewer {
     this.ground.receiveShadow = true;
     this.ground.visible = false;
     this.scene.add(this.ground);
+    this.grid = new Grid(this.theme);
+    this.scene.add(this.grid.mesh);
     this.overlayRoot.rotation.x = Math.PI;
     this.overlay.add(this.overlayRoot);
     addStudio(this.overlay, this.renderer, this.studio.environment);
@@ -684,6 +690,7 @@ class EmmetViewer implements Viewer {
     this.measure();
     if (this.cut != null && this.extent.bottom !== bottom) for (const b of this.buckets.values()) dirty.add(b.key);
     for (const k of dirty) this.writeBucket(k, members.get(k) ?? [], ghosts.get(k) ?? []);
+    this.fitGrid();
     if (animate) this.startAnimation(diff, before, ghosts);
     this.lastDiff = {
       added: diff.added.length,
@@ -1276,9 +1283,17 @@ class EmmetViewer implements Viewer {
     r.shadowMap.needsUpdate = true;
   }
 
+  /** The ground grid under the whole model (not only what's shown, so a step or the cut-away doesn't move it), or
+   * round the origin when there's no model. */
+  private fitGrid(): void {
+    const box = this.bounds();
+    this.grid.place(box.isEmpty() ? null : { minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z, bottom: box.min.y });
+  }
+
   setTheme(theme: Theme): void {
     this.theme = theme;
     this.scene.background = new Color(BACKGROUND[theme]);
+    this.grid.setTheme(theme);
     for (const b of this.buckets.values()) this.paint(b);
     this.invalidate();
   }
@@ -1341,6 +1356,7 @@ class EmmetViewer implements Viewer {
     let conditionals: Drawable[] = [];
     const motion = this.motion;
     const shadow = { cast: this.studio.key.castShadow, ground: this.ground.visible };
+    const grid = this.grid.mesh.visible;
     const ghosts = new Map<Bucket, Placement[]>();
     try {
       if (motion) {
@@ -1353,6 +1369,8 @@ class EmmetViewer implements Viewer {
       for (const d of conditionals) d.object.visible = true;
       Object.assign(this, { lit: state.lit, mode: state.mode, step: state.step, cut: state.cut, theme: state.theme, hovered: null });
       this.scene.background = state.background;
+      // The grid is the window's alone: pictures show the model on its shadow.
+      this.grid.mesh.visible = false;
       this.scene.environment = environment;
       this.overlay.environment = environment;
       this.finishes.setRoom(environment);
@@ -1379,6 +1397,7 @@ class EmmetViewer implements Viewer {
       this.finishes.setRoom(this.studio.environment);
       this.studio.key.castShadow = shadow.cast;
       this.ground.visible = shadow.ground;
+      this.grid.mesh.visible = grid;
       for (const d of conditionals) d.object.visible = false;
       for (const [b, g] of ghosts) b.ghosts = g;
       for (const b of this.buckets.values()) this.fill(b);
@@ -1659,6 +1678,7 @@ class EmmetViewer implements Viewer {
       quality: this.preset,
       pace: this.pace,
       shadow: this.renderer.shadowMap.enabled,
+      grid: this.grid.mesh.visible,
     };
   }
 
@@ -1700,6 +1720,7 @@ class EmmetViewer implements Viewer {
     this.veil.material.dispose();
     this.ground.geometry.dispose();
     this.ground.material.dispose();
+    this.grid.dispose();
     this.finishes.dispose();
     this.studio.dispose();
     this.cache.dispose();

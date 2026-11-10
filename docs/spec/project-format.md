@@ -53,7 +53,10 @@ reason = "held by hand in photos"
 The app writes `[build]` and `[[check.allow]]` (the build settings, which the New model dialog asks for with the
 model's name and Options changes later, and It's fine in Checks); a build setting
 doesn't change the model on its own: Rebuild asks the agent to rework the model for it. The one thing a setting does
-by itself is `[build] age`, which sets the step_size target: 4 parts a step for 4+, 12 for 18+, and 8 otherwise. Each `[[check.allow]]`
+by itself is `[build] age`, which sets the step_size target: 4 parts a step for 4+, 12 for 18+, and 8 otherwise.
+When the New model dialog makes the project, `[build] base` picks the starter model.py: None has no parts (the model
+stands on the table, at z = 0), 16 × 16, 32 × 32, or 48 × 48 is that green baseplate, and Any is the 32 × 32 one,
+as `emmet new` makes. Each `[[check.allow]]`
 moves each finding of that rule whose parts are all in `parts` from the findings to `allowed`, as `m.allow` does from
 the model (`docs/spec/validator.md`).
 

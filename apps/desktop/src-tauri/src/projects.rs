@@ -216,7 +216,9 @@ pub async fn new_project(
         NewKind::Empty => {
             let name = model_name(name.as_deref().unwrap_or("New model"))?;
             let build = checked(settings.unwrap_or_default())?;
-            create(app, &name, Template::Empty, Some(build)).await
+            // It starts on the baseplate Base names, or on the table with None (Barry 2026-11-10).
+            let base = build.baseplate();
+            create(app, &name, Template::Empty(base), Some(build)).await
         }
     }
 }

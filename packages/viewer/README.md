@@ -17,6 +17,9 @@ use this same code, so an agent's render is what the window shows.
 - **Materials and light** (`src/materials.ts`): every LDraw finish (solid, transparent, chrome, pearl, metal, matte
   metal, rubber, glow) with its own roughness, metalness, and reflections of a studio room (three's `RoomEnvironment`),
   a key, fill, and rim light, neutral tone mapping, and an optional ground shadow from the key.
+- **The ground grid** (`src/grid.ts`): a faint grid on the table under the model, a square a stud with a stronger
+  line every 8 studs, fading out with distance, in the theme's colors. It's the window's alone: `render()` and
+  `snapshot()` leave it out. `stats().grid` says whether it drew.
 - **Quality presets.** Fast (pixel ratio 1, no conditional lines, low-detail studs at any size), Balanced, and Best
   (the ground shadow). "auto" picks one by the GPU: Fast on a software renderer, Balanced on integrated graphics, Best
   otherwise.

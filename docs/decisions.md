@@ -996,3 +996,12 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   swingarm_shock, suspension_fork, chain_drive, disc_brake, handlebars, and kickstand, reworked so the wheels spring
   against their shocks and every axle is held, and bike_seat_rack, battery_case, and front_fender, new. Rejected:
   marking them one by one.
+- **A new model starts on the base its Base setting names, and the viewer draws a ground grid** (Barry, 2026-11-10,
+  starting his third e-bike session: "when I created the parts I said none for the base but it still created a plate
+  in the view ... this could be a ground transparent grid instead"; through AskUserQuestion: "Under every model"). The
+  New model dialog's Base now picks the starter model: None starts with no parts, on the table at z = 0, and 16 × 16,
+  32 × 32, or 48 × 48 starts on that green baseplate; Any keeps the 32 × 32 one, as `emmet new` does. The live viewer
+  draws a faint grid on the table under every model, a square a stud with a stronger line every 8 studs, fading out
+  with distance, in both themes. Pictures (renders for the agent, exports, instructions, and the camera button) keep
+  the plain background with only the shadow. Rejected: a grid only when the model has no baseplate, and only while
+  it's empty.

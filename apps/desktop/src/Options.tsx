@@ -100,7 +100,9 @@ export function withSetting(d: BuildSettings, k: Key, v: string | null): BuildSe
 }
 
 const said = (v: string | null | undefined) => v ?? ANY;
-const words = (k: Key, v: string | null | undefined): string | null => (v == null ? null : k === "pieces" ? `${BRIEF.pieces.options.find((o) => o.id === v)?.name ?? v} pieces` : k === "age" ? `Ages ${v}` : k === "detail" ? `${v} detail` : v);
+/** A setting in words; Base says it's the base ("No base", "32 × 32 base"), since "None" alone reads as nothing set. */
+const words = (k: Key, v: string | null | undefined): string | null =>
+  v == null ? null : k === "pieces" ? `${BRIEF.pieces.options.find((o) => o.id === v)?.name ?? v} pieces` : k === "age" ? `Ages ${v}` : k === "detail" ? `${v} detail` : k === "base" ? (v === "None" ? "No base" : `${v} base`) : v;
 
 /** The settings in a line of words: "Large · Ages 13+ · High detail · Space", or "Any" when none is set. */
 export const settingsWords = (s: BuildSettings) => ORDER.map((k) => words(k, s[k])).filter(Boolean).join(" · ") || ANY;
