@@ -1005,3 +1005,12 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   with distance, in both themes. Pictures (renders for the agent, exports, instructions, and the camera button) keep
   the plain background with only the shadow. Rejected: a grid only when the model has no baseplate, and only while
   it's empty.
+- **Detail never caps the part count; one more e-bike run** (Barry, 2026-11-10, through AskUserQuestion: "Fix
+  doctrine, run 4"). His third session (E-bike 4g 3) picked Pieces Medium by mistake ("I made a mistake chosing
+  medium") and ended at 261 parts with no findings. The agent had read that a Medium model is 600 to 1,000 parts, and
+  said: "That's low for the Medium pieces setting because Medium detail doesn't allow building sideways." So the
+  doctrine says Detail is the kind of finish, not the part count; building sideways for the shape is fine at any
+  Detail (only sideways textures wait for High); and under the Pieces range's upper half the agent keeps building at
+  the Detail it has, never stopping short and blaming Detail. The large guide says the same for its faces and its
+  display bikes. Barry runs a fourth session with Scale Large, Detail Medium, and Pieces Large. Rejected: running
+  again with no change, and rebuilding the third session's bike with Pieces Large.

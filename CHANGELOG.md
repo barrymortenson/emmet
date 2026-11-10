@@ -229,7 +229,7 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   bike_seat_rack (the seat and rack on a spine pinned to the top tubes, with the rear fender and tail lights),
   battery_case (the battery in the frame's triangle), and front_fender. The large guide's Display bikes has the agent
   measure the photo first, and the doctrine has it aim for the upper half of the Pieces setting's range, never its
-  floor. ldraw-mini moves to LDraw 2026-10, the release Emmet pins, and adds an axle 16 and a cross block 2 x 2. In
+  floor, whatever the Detail setting (Detail is the kind of finish, not the part count). ldraw-mini moves to LDraw 2026-10, the release Emmet pins, and adds an axle 16 and a cross block 2 x 2. In
   the app, New model from a prompt opens a dialog that asks the model's name and its build settings (scale, age,
   detail, pieces, style, base) first, so the agent builds to them from its first turn; Options shows them as a line of
   words with Change. Base picks the starter model (None: no parts; a size: that green baseplate), and the viewer

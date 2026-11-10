@@ -155,10 +155,15 @@ The app's Options write `emmet.toml`'s `[build]`, and each setting is Any until 
 the guides. Age: the step size (4 parts a step for 4+, 12 for 18+, 8 otherwise) and how fiddly the techniques may be
 (for 4+ and 6+, no sideways building and nothing on hinges at an angle). Detail (the Options' words): Low is bricks,
 plates, and slopes, with real doors and windows; Medium adds tiles, trim, and window frames (tiles on tops, sills and
-hoods, furniture inside); High adds textures, sideways building, and small details (clutter, landscaping). Pieces: its
-range is the size the user wants (Small 50–250, Medium 250–1,000, Large 1,000–2,500, Huge 2,500+); aim for its upper
-half, never its floor (a Medium model is 600 to 1,000 parts, not 250), and where the guide's range for the subject is
-higher, as high as the setting allows. A model at the bottom of its range is a basic one. Base: what the model stands
+hoods, furniture inside); High adds textures, sideways building, and small details (clutter, landscaping). Detail is
+the kind of finish, not the part count: building sideways for the shape itself (a large model's smooth faces, a
+vehicle's bodywork) is fine at any Detail, and only sideways textures wait for High. Pieces: its range is the size the
+user wants (Small 50–250, Medium 250–1,000, Large 1,000–2,500, Huge 2,500+); aim for its upper half, never its floor (a
+Medium model is 600 to 1,000 parts, not 250), and where the guide's range for the subject is higher, as high as the
+setting allows. A model at the bottom of its range is a basic one. Count the parts before you call it done; under the
+upper half, keep building at the Detail you have: fill out the main shapes (solid bodywork and panels rather than a bare
+frame, full-depth faces, the parts a real one has), until the count is in range. Never stop short and blame Detail.
+Base: what the model stands
 on. When the user changes them and presses Rebuild, call `guide` again and rework the model for the new settings,
 keeping what they still allow.
 
