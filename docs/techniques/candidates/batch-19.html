@@ -23,22 +23,20 @@
 <body>
 <header>
   <h1>Technique candidates: batch-19</h1>
-  <p>7 display-bike techniques for Emmet's technique library (session 4G), made from the e-bike hand check: a display motorbike's skeleton built by its holes, every joint a pin or an axle in a hole. Each picture is a render of the technique's example, which validates with no findings on ldraw-mini (its test); the seven together make the 108-part skeleton below, which validates clean too. They're written from general building knowledge, not from any model's file. Every one starts as Accept: switch the ones you don't want, add a note if it helps, then copy your answers and paste them to Claude.</p>
-  <p><img src="batch-19/skeleton-iso.png" alt="The seven techniques together: a motorbike skeleton on its stand" width="320" height="320"> <img src="batch-19/skeleton-front.png" alt="The skeleton from the side" width="320" height="320"></p>
-  <p>After your e-bike session (2026-11-09) they take a photo's proportions: the frame's head and lower corner, the swingarm's reach and drop, fat wheels, the bars' rise. And it stands on a kickstand, not a base. The same seven, sized to the e-bike photo (103 parts, clean):</p>
-  <p><img src="batch-19/ebike-iso.png" alt="The skeleton sized to the e-bike photo" width="320" height="320"> <img src="batch-19/ebike-front.png" alt="The e-bike skeleton from the side" width="320" height="320"></p>
+  <p>10 display-bike techniques for Emmet's technique library (session 4G), reworked after your second e-bike session (2026-11-09: 260 parts, rubric 1, 2, 1). The wheels now spring against their shocks instead of hanging on them, every axle has a bush, a half bush, a crank arm, or a cross block on it, the kickstand is on the left swingarm arm, and three new techniques carry the bodywork. Each picture is a render of the technique's example, which validates with no findings on ldraw-mini (its test). The ten together make the 232-part bike below, which validates clean; the agent adds the detail on top. They're written from general building knowledge, not from any model's file. Every one starts as Accept: switch the ones you don't want, add a note if it helps, then copy your answers and paste them to Claude.</p>
+  <p><img src="batch-19/bike-front.png" alt="The ten techniques together: the e-bike from the right" width="320" height="320"> <img src="batch-19/bike-back.png" alt="The e-bike from the left, on its kickstand" width="320" height="320"> <img src="batch-19/bike-iso.png" alt="The e-bike from the front right" width="320" height="320"></p>
 </header>
 <section class="card" data-n="1">
   <div class="shot"><img src="../../../data/techniques/motorbike_frame.png" alt="The example of motorbike_frame" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">1</span> <code>motorbike_frame</code></h2>
-    <p>A triangle of Technic beams on edge a side, joined by axles through the pivot and the head, with a head bearing raked on a 5-12-13 line for the fork to turn in.</p>
-    <p class="why">The skeleton every display bike hangs on, so the swingarm, fork, chain, and bodywork go on holes, not guesses.</p>
-    <p class="note"><b>Note:</b> Sides 8 studs apart; the right side goes together first, then the pivot axle, the left side onto it, and the steering head: a cross block on the head axle whose pin hole runs along the raked steering axis. With on= (the stand&#x27;s hole) the pivot axle goes through the stand first.</p>
+    <p>Five Technic beams on edge a side, fitted in whole studs to the photo&#x27;s head, crank, seat, and rear axle, with the top tube level.</p>
+    <p class="why">The skeleton everything else hangs on, shaped like this bike rather than a stock one, and level on top so the seat and battery go on its holes.</p>
+    <p class="note"><b>Note:</b> Every cross axle is held: the head axle by a thin liftarm each side, pinned to the down tube, which also stops the head bearing tipping; the pivot axle by the swingarm&#x27;s bushes; the crank axle by the crank arms; the shock mount by half bushes either side of the shock&#x27;s eye. The fit also picks the swingarm&#x27;s angle so the shock fits exactly.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>head</code>, <code>bottom</code>, <code>rake</code>, <code>color</code>, <code>pin_color</code>, <code>axle_color</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>x</code>, <code>y</code>, <code>z</code>, <code>head</code>, <code>5.4)</code>, <code>crank</code>, <code>-4.1)</code>, <code>seat</code>, <code>4.6)</code>, <code>rear</code>, <code>-3.6)</code>, <code>rake</code>, <code>color</code>, <code>pin_color</code>, <code>axle_color</code>, <code>lock_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/motorbike_frame.py"><code>data/techniques/motorbike_frame.py</code></a></dd>
-      <dt>Parts</dt><dd><code>32523</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code> + <code>41239</code> + <code>32278</code> + <code>2780</code> + <code>3737</code> + <code>3707</code> + <code>6536</code></dd>
+      <dt>Parts</dt><dd><code>32523</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code> + <code>41239</code> + <code>32278</code> + <code>2780</code> + <code>44294</code> + <code>3708</code> + <code>3737</code> + <code>3706</code> + <code>6632</code> + <code>6536</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for motorbike_frame">
       <label><input type="radio" name="d1" value="accept" checked> Accept</label>
@@ -51,13 +49,13 @@
   <div class="shot"><img src="../../../data/techniques/swingarm_shock.png" alt="The example of swingarm_shock" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">2</span> <code>swingarm_shock</code></h2>
-    <p>The rear swingarm on the frame&#x27;s pivot axle, a center shock absorber from the arms up to the frame, and the rear wheel on its axle.</p>
-    <p class="why">A display bike&#x27;s rear end: the arms slope down to the wheel, and the shock sets their angle.</p>
-    <p class="note"><b>Note:</b> The shock is 5.5 studs between holes, which no two whole-stud holes are; the arms hang on one axle, so the technique works out the angle (about 24.5 degrees down) that makes the shock fit both axles.</p>
+    <p>The rear swingarm on the pivot axle, one shock absorber in the middle from a cross axle a stud behind the pivot up to the frame, and the rear wheel.</p>
+    <p class="why">The rear wheel can only rise by squeezing the spring. Your note: the old twin shocks hung on mounts that swung free on one pin, so they did nothing.</p>
+    <p class="note"><b>Note:</b> A bush on each end of every axle (the pivot, the shock&#x27;s, the rear axle), outside the arms.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>frame</code>, <code>reach</code>, <code>drop</code>, <code>wheel</code>, <code>color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>reach</code>, <code>wheel</code>, <code>color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>bush_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/swingarm_shock.py"><code>data/techniques/swingarm_shock.py</code></a></dd>
-      <dt>Parts</dt><dd><code>32523</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code> + <code>41239</code> + <code>32278</code> + <code>73129</code> + <code>2780</code> + <code>3737</code> + <code>88517c01</code> + <code>44772c01</code></dd>
+      <dt>Parts</dt><dd><code>40490</code> + <code>32524</code> + <code>32525</code> + <code>41239</code> + <code>32278</code> + <code>73129</code> + <code>3708</code> + <code>3713</code> + <code>32123a</code> + <code>44772c01</code> + <code>88517c01</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for swingarm_shock">
       <label><input type="radio" name="d2" value="accept" checked> Accept</label>
@@ -70,13 +68,13 @@
   <div class="shot"><img src="../../../data/techniques/suspension_fork.png" alt="The example of suspension_fork" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">3</span> <code>suspension_fork</code></h2>
-    <p>A fork that steers: a triple tree (an upper and a lower clamp) on a steerer turning in the frame&#x27;s head bearing, two fork tubes through it, a shock on each, and the front wheel.</p>
-    <p class="why">A display bike&#x27;s front end that turns with the bars, on a triple tree and a pivot, as you asked.</p>
-    <p class="note"><b>Note:</b> Changed after your review: the steerer is the only joint between the fork and the frame (a test checks it), so the whole front end, bars included, turns. The front wheel comes out level with the rear wheel.</p>
+    <p>A fork that steers and springs: a triple tree on a steerer turning in the head bearing, fork tubes locked in it, a slider on each tube carrying the front axle, and a shock each side as the spring.</p>
+    <p class="why">Your note: the old fork hung the wheel on its shocks, so it wasn&#x27;t stable. Now the tubes guide the wheel and the shocks hold it down the fork.</p>
+    <p class="note"><b>Note:</b> Axle 16 tubes with a half bush above the upper clamp and below the lower one; the front axle comes out level with the rear one, half bushes on its ends.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>frame</code>, <code>drop</code>, <code>wheel</code>, <code>color</code>, <code>tube_color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>swingarm</code>, <code>wheel</code>, <code>color</code>, <code>tube_color</code>, <code>shock_color</code>, <code>axle_color</code>, <code>bush_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/suspension_fork.py"><code>data/techniques/suspension_fork.py</code></a></dd>
-      <dt>Parts</dt><dd><code>4519</code> + <code>32524</code> + <code>40490</code> + <code>3707</code> + <code>3737</code> + <code>3708</code> + <code>6536</code> + <code>73129</code> + <code>2780</code> + <code>88517c01</code> + <code>44772c01</code></dd>
+      <dt>Parts</dt><dd><code>3705</code> + <code>32123a</code> + <code>40490</code> + <code>32524</code> + <code>50451</code> + <code>6536</code> + <code>73129</code> + <code>2780</code> + <code>3708</code> + <code>3737</code> + <code>44772c01</code> + <code>88517c01</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for suspension_fork">
       <label><input type="radio" name="d3" value="accept" checked> Accept</label>
@@ -89,13 +87,13 @@
   <div class="shot"><img src="../../../data/techniques/chain_drive.png" alt="The example of chain_drive" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">4</span> <code>chain_drive</code></h2>
-    <p>Sprockets on the swingarm&#x27;s pivot and the rear axle, and a chain of Technic chain links round them in whole links.</p>
-    <p class="why">The chain a motorbike or e-bike shows on its right side.</p>
-    <p class="note"><b>Note:</b> The links clip to each other and the sprockets hold the loop; no allow is needed (the e-bike retry allowed it). The sprockets go on after the axles here.</p>
+    <p>A chainring on the frame&#x27;s crank axle, a sprocket on the rear axle, a loop of chain links round them, and crank arms with pedals.</p>
+    <p class="why">The chain the photo shows, in the plane inside the right swingarm arm.</p>
+    <p class="note"><b>Note:</b> The crank arms hold the crank axle&#x27;s ends.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>frame</code>, <code>swingarm</code>, <code>pedals</code>, <code>sprocket_color</code>, <code>chain_color</code>, <code>crank_color</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>swingarm</code>, <code>pedals</code>, <code>ring_color</code>, <code>sprocket_color</code>, <code>chain_color</code>, <code>crank_color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/chain_drive.py"><code>data/techniques/chain_drive.py</code></a></dd>
-      <dt>Parts</dt><dd><code>3737</code> + <code>3648b</code> + <code>4019</code> + <code>3711</code> + <code>6632</code> + <code>3749</code></dd>
+      <dt>Parts</dt><dd><code>3648b</code> + <code>4019</code> + <code>3711</code> + <code>6632</code> + <code>3749</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for chain_drive">
       <label><input type="radio" name="d4" value="accept" checked> Accept</label>
@@ -108,13 +106,13 @@
   <div class="shot"><img src="../../../data/techniques/disc_brake.png" alt="The example of disc_brake" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">5</span> <code>disc_brake</code></h2>
-    <p>A brake disc on the front axle inside each shock, and a red caliper arm from the axle over the disc&#x27;s face.</p>
-    <p class="why">Front disc brakes, the detail that says sports bike.</p>
-    <p class="note"><b>Note:</b> One side or both (both by default).</p>
+    <p>Brake discs on the front axle, between the hub and each slider, and one on the rear axle inside the left arm.</p>
+    <p class="why">The discs the photo&#x27;s bike has; their 3-stud radius sits inside the rim, clear of the tire.</p>
+    <p class="note"><b>Note:</b> There&#x27;s no separate caliper: there&#x27;s no room beside the slider, which stands in for it.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>fork</code>, <code>disc_color</code>, <code>caliper_color</code>, <code>both</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>fork</code>, <code>swingarm</code>, <code>disc_color</code>, <code>both</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/disc_brake.py"><code>data/techniques/disc_brake.py</code></a></dd>
-      <dt>Parts</dt><dd><code>65416</code> + <code>6632</code></dd>
+      <dt>Parts</dt><dd><code>65416</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for disc_brake">
       <label><input type="radio" name="d5" value="accept" checked> Accept</label>
@@ -127,13 +125,13 @@
   <div class="shot"><img src="../../../data/techniques/handlebars.png" alt="The example of handlebars" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">6</span> <code>handlebars</code></h2>
-    <p>Bars on top of the fork tubes, above the upper clamp, with a lever reaching forward and a grip on each end.</p>
-    <p class="why">Handlebars with grips and levers that turn with the fork.</p>
-    <p class="note"><b>Note:</b> Changed after your review: the bars sit on the fork tubes, so they steer the fork. The levers droop 20 degrees by default; the grips are axle joiners on the bars&#x27; last stud.</p>
+    <p>Bars on the fork tubes&#x27; tops with levers and grips, turning with the fork.</p>
+    <p class="why">The tall bars of the photo; the tubes stand above the upper clamp for them.</p>
+    <p class="note"><b>Note:</b> Each bar is now held by a half bush inside its mount, with the lever outside, so it can&#x27;t slide out.</p>
     <dl>
       <dt>Parameters</dt><dd><code>fork</code>, <code>rise</code>, <code>color</code>, <code>grip_color</code>, <code>lever_color</code>, <code>droop</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/handlebars.py"><code>data/techniques/handlebars.py</code></a></dd>
-      <dt>Parts</dt><dd><code>6536</code> + <code>3705</code> + <code>6632</code> + <code>59443</code> + <code>4519</code> + <code>32073</code> + <code>3706</code> + <code>44294</code> + <code>3707</code> + <code>3737</code></dd>
+      <dt>Parts</dt><dd><code>6536</code> + <code>3705</code> + <code>32123a</code> + <code>6632</code> + <code>59443</code> + <code>4519</code> + <code>32073</code> + <code>3706</code> + <code>44294</code> + <code>3707</code> + <code>3737</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for handlebars">
       <label><input type="radio" name="d6" value="accept" checked> Accept</label>
@@ -146,18 +144,75 @@
   <div class="shot"><img src="../../../data/techniques/kickstand.png" alt="The example of kickstand" width="320" height="320"></div>
   <div class="body">
     <h2><span class="n">7</span> <code>kickstand</code></h2>
-    <p>A side stand: a beam swung down and back from the frame&#x27;s left side so its foot meets the table level with the tires.</p>
-    <p class="why">The bike stands on its own wheels and kickstand, with no base, so the parts go into the bike.</p>
-    <p class="note"><b>Note:</b> Changed after your note (2026-11-09): it replaces the display stand and nameplate.</p>
+    <p>A beam pinned to the left swingarm arm and swung down and back to the table, level with the tires.</p>
+    <p class="why">Your note: the kickstand goes on the rear left swing arm, not the frame&#x27;s middle. The bike stands on its wheels and the stand (the left side, below).</p>
+    <p class="note"><b>Note:</b> A friction pin holds it at its angle, as on a set&#x27;s stand.</p>
     <dl>
-      <dt>Parameters</dt><dd><code>frame</code>, <code>swingarm</code>, <code>hole</code>, <code>color</code>, <code>title</code></dd>
+      <dt>Parameters</dt><dd><code>swingarm</code>, <code>hole</code>, <code>color</code>, <code>title</code></dd>
       <dt>Technique</dt><dd><a href="../../../data/techniques/kickstand.py"><code>data/techniques/kickstand.py</code></a></dd>
-      <dt>Parts</dt><dd><code>6558</code> + <code>32523</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code> + <code>41239</code> + <code>32278</code></dd>
+      <dt>Parts</dt><dd><code>2780</code> + <code>32316</code> + <code>32524</code> + <code>40490</code> + <code>32525</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for kickstand">
       <label><input type="radio" name="d7" value="accept" checked> Accept</label>
       <label><input type="radio" name="d7" value="reject"> Reject</label>
       <input type="text" name="note7" placeholder="Note (optional)" aria-label="Note for kickstand">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="8">
+  <div class="shot"><img src="../../../data/techniques/bike_seat_rack.png" alt="The example of bike_seat_rack" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">8</span> <code>bike_seat_rack</code></h2>
+    <p>New: a long flat seat and a rear rack with tail lights, and a rear fender over the wheel, on a spine of Technic bricks pinned along the level top tubes.</p>
+    <p class="why">The photo&#x27;s long seat and rack, which carry most of the bike&#x27;s look.</p>
+    <p class="note"><b>Note:</b> The rack&#x27;s underside and the fender go in from below, over the wheel, so they&#x27;re one section built on its own.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>seat</code>, <code>rack</code>, <code>color</code>, <code>rack_color</code>, <code>spine_color</code>, <code>light_color</code>, <code>fender</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/bike_seat_rack.py"><code>data/techniques/bike_seat_rack.py</code></a></dd>
+      <dt>Parts</dt><dd><code>3028</code> + <code>3033</code> + <code>3036</code> + <code>3958</code> + <code>3703</code> + <code>3894</code> + <code>3701</code> + <code>3702</code> + <code>2780</code> + <code>3022</code> + <code>3021</code> + <code>3020</code> + <code>3795</code> + <code>3034</code> + <code>3832</code> + <code>3024</code> + <code>3023</code> + <code>3623</code> + <code>3710</code> + <code>3666</code> + <code>3460</code> + <code>3070b</code> + <code>3069b</code> + <code>63864</code> + <code>2431</code> + <code>6636</code> + <code>4162</code> + <code>11477</code> + <code>98138</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for bike_seat_rack">
+      <label><input type="radio" name="d8" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d8" value="reject"> Reject</label>
+      <input type="text" name="note8" placeholder="Note (optional)" aria-label="Note for bike_seat_rack">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="9">
+  <div class="shot"><img src="../../../data/techniques/battery_case.png" alt="The example of battery_case" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">9</span> <code>battery_case</code></h2>
+    <p>New: the e-bike&#x27;s battery, courses of bricks hung under the spine in the frame&#x27;s triangle, each as long as the tubes leave room for at its height.</p>
+    <p class="why">The battery in the frame&#x27;s triangle, as on the photo&#x27;s bike.</p>
+    <p class="note"><b>Note:</b> A course of plates across ties it to the spine; the frame closes round it, so it&#x27;s one section put on whole.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>frame</code>, <code>seat</code>, <code>width</code>, <code>color</code>, <code>panel</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/battery_case.py"><code>data/techniques/battery_case.py</code></a></dd>
+      <dt>Parts</dt><dd><code>3666</code> + <code>3710</code> + <code>3023</code> + <code>3007</code> + <code>2456</code> + <code>3001</code> + <code>3002</code> + <code>3003</code> + <code>3832</code> + <code>3034</code> + <code>3795</code> + <code>3020</code> + <code>3021</code> + <code>3022</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for battery_case">
+      <label><input type="radio" name="d9" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d9" value="reject"> Reject</label>
+      <input type="text" name="note9" placeholder="Note (optional)" aria-label="Note for battery_case">
+    </div>
+  </div>
+</section>
+<section class="card" data-n="10">
+  <div class="shot"><img src="../../../data/techniques/front_fender.png" alt="The example of front_fender" width="320" height="320"></div>
+  <div class="body">
+    <h2><span class="n">10</span> <code>front_fender</code></h2>
+    <p>New: a high front fender, a blade of plates and tiles on brackets fixed to the fork tubes, so it turns with the fork and stays put as the wheel springs.</p>
+    <p class="why">The photo&#x27;s high front fender.</p>
+    <p class="note"><b>Note:</b> A cross block 2 x 2 on each tube holds an L-liftarm; two axles between them carry Technic bricks with their studs up the fork, and the blade sits on those.</p>
+    <dl>
+      <dt>Parameters</dt><dd><code>fork</code>, <code>length</code>, <code>color</code>, <code>top_color</code>, <code>bracket_color</code>, <code>title</code></dd>
+      <dt>Technique</dt><dd><a href="../../../data/techniques/front_fender.py"><code>data/techniques/front_fender.py</code></a></dd>
+      <dt>Parts</dt><dd><code>32291</code> + <code>2780</code> + <code>32140</code> + <code>44294</code> + <code>3707</code> + <code>32073</code> + <code>3706</code> + <code>32123a</code> + <code>3701</code> + <code>3020</code> + <code>3022</code> + <code>87079</code> + <code>3068b</code></dd>
+    </dl>
+    <div class="pick" role="radiogroup" aria-label="Decision for front_fender">
+      <label><input type="radio" name="d10" value="accept" checked> Accept</label>
+      <label><input type="radio" name="d10" value="reject"> Reject</label>
+      <input type="text" name="note10" placeholder="Note (optional)" aria-label="Note for front_fender">
     </div>
   </div>
 </section>
