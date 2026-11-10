@@ -87,7 +87,7 @@ hint says what to change.
 | `color_unavailable` | warning | a part in a color it was never made in: no element and no set inventory with it in that color | the closest colors (by RGB) that part was made in |
 | `obsolete_part` | warning | a `~Moved to` or obsolete part | the current id |
 | `alias_part` | info | an alias | the canonical id |
-| `figure_clearance` | warning | a part (not a figure, its accessories, an animal, a door leaf, or a sticker) whose collision proxy is more than 1 LDU inside a space the model keeps clear for a figure (`m.keep_clear`), at figure scale, large, or Any | the smallest move that clears it in a builder's words: raise it (when it hangs into the space from above) or move it sideways, without running into another part; or allow it with a reason |
+| `figure_clearance` | warning | a part (not a figure, its accessories, an animal, a door leaf, or a sticker) whose collision proxy is more than 1 LDU inside a space the model keeps clear for a figure (`m.keep_clear`), at figure scale, display, or Any | the smallest move that clears it in a builder's words: raise it (when it hangs into the space from above) or move it sideways, without running into another part; or allow it with a reason |
 
 part_unavailable and color_unavailable give one finding per part × color, naming every placement of it. They need the
 parts data pack: without one, or for a part or color with no Rebrickable mapping (ADR 0004's four rules), availability
@@ -107,7 +107,7 @@ hand. They go to `build/placements.json` as `keep_clear: [{ boxes: [[min x, min 
 src }]` in LDraw's frame, a submodel's once per copy. One finding per space names every part inside it. Door frames
 found in the parts index make no space: on the 67 official models with 1 x 4 x 6 door frames, a space found that way
 gave 269 findings, and still 90 cut to a 1-stud doorway, for counters, stairs, and walls official models put there
-(Barry, 2026-10-31). The rule is off when the Scale build setting is micro, micropolis, midi, or car 1:8. The golden is
+(Barry, 2026-10-31). The rule is off when the Size build setting is micro, micropolis, midi, or 1:8. The golden is
 `broken-figure-clearance` (a canopy a brick low beside a door, a bench against a column, a wall across a doorway, and
 a lamp in a path the model keeps clear); the recall test moves a bench against a post, lowers what stands over a
 door's approach a brick, and builds a wall across a doorway (`validator_mutations.rs`).

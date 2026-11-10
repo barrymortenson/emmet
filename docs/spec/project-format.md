@@ -38,10 +38,9 @@ timeout = 30                        # seconds a model may run, more than 0 and a
 
 [build]                             # the build settings, which steer the agent; each optional ("Any" until set)
 base = "32 × 32"                    # "None", "16 × 16", "32 × 32", or "48 × 48"
-scale = "Figure scale"              # "Micro", "Micropolis", "Midi", "Figure scale", "Large", or "Car 1:8"
+size = "Figure scale"               # "Micro", "Micropolis", "Midi", "Figure scale", "Display", or "1:8"
 age = "6+"                          # "4+", "6+", "9+", "13+", or "18+"
 detail = "Low"                      # "Low", "Medium", or "High"
-pieces = "Small"                    # "Small" (50–250), "Medium" (250–1,000), "Large" (1,000–2,500), "Huge" (2,500+)
 style = "Town"                      # a suggestion ("Town", "Medieval", …) or the user's own words
 
 [[check.allow]]                     # a finding the user has decided to allow; optional, any number
@@ -49,6 +48,11 @@ rule = "floating"
 parts = ["flag/1"]
 reason = "held by hand in photos"
 ```
+
+No setting names a part count: Size is how big the model is, Detail how far its finish goes, and the count is what
+they come to (Barry 2026-11-10). Before then, `[build]` had `scale` (with "Large" for Display and "Car 1:8" for 1:8)
+and `pieces`; emmet reads an older `scale` as the Size in today's words, ignores `pieces`, and the app drops both
+when it writes the file again.
 
 The app writes `[build]` and `[[check.allow]]` (the build settings, which the New model dialog asks for with the
 model's name and Options changes later, and It's fine in Checks); a build setting

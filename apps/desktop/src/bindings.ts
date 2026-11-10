@@ -404,10 +404,9 @@ export type Book = {
 /**  The build settings (plan section 14), each null until set ("Any"). */
 export type BuildSettings = {
 	base: string | null,
-	scale: string | null,
+	size: string | null,
 	age: string | null,
 	detail: string | null,
-	pieces: string | null,
 	style: string | null,
 };
 

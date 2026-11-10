@@ -106,13 +106,15 @@ describe("first run", () => {
     await expect($("#new-model-name")).toBeFocused();
     await (await $("#new-model-name")).setValue("Fire station");
     const choose = async (group, choice) => (await (await $(`#new-model [aria-label='${group}']`)).$(`button=${choice}`)).click();
-    await choose("Scale", "Midi");
+    // Size, not Scale and Pieces: one setting for how big it is, and no part count (Barry 2026-11-10).
+    await expect($("#new-model [aria-label='Pieces']")).not.toBeExisting();
+    await choose("Size", "Midi");
     // Enter in the style field takes the style; it doesn't create the model.
     await (await $("#new-model [aria-label='Your own style']")).setValue("Steampunk");
     await browser.keys("Enter");
     await expect($("#new-model [aria-label='Style'] [data-state='on']")).toHaveText(expect.stringContaining("Steampunk"));
     await expect($("#new-model")).toBeDisplayed();
-    // Age leads as in Options: 9+ brings Medium detail and Medium pieces. Every question is on the one page.
+    // Age leads as in Options: 9+ brings Medium detail. Every question is on the one page.
     await choose("Age", "9+");
     await expect($("#new-model [aria-label='Detail'] [data-state='on']")).toHaveText("Medium");
     // No base: it starts with no parts, where it used to start on a 32 x 32 baseplate whatever Base said.
@@ -127,11 +129,12 @@ describe("first run", () => {
     expect(existsSync(join(dir, "model.py"))).toBe(true);
     const toml = readFileSync(join(dir, "emmet.toml"), "utf8");
     expect(toml).toContain('name = "Fire station"');
-    for (const line of ['base = "None"', 'scale = "Midi"', 'age = "9+"', 'detail = "Medium"', 'pieces = "Medium"', 'style = "Steampunk"']) expect(toml).toContain(line);
+    for (const line of ['base = "None"', 'size = "Midi"', 'age = "9+"', 'detail = "Medium"', 'style = "Steampunk"']) expect(toml).toContain(line);
+    expect(toml).not.toContain("pieces");
     expect(readFileSync(join(dir, "model.py"), "utf8")).not.toContain("3811");
     await browser.waitUntil(async () => (await text("#model-state .panel-head-text")) === "Empty", { timeout: 60_000 });
     // Options shows them as a line of words with Change, not the whole list.
-    await expect($("#settings-summary")).toHaveText(expect.stringContaining("No base · Midi · Ages 9+ · Medium detail · 250–1,000 pieces · Steampunk"));
+    await expect($("#settings-summary")).toHaveText(expect.stringContaining("No base · Midi · Ages 9+ · Medium detail · Steampunk"));
     // Nothing in the viewer but the ground grid.
     const stats = await browser.execute(() => window.__emmet.viewer().stats());
     expect([stats.instances, stats.grid]).toEqual([0, true]);

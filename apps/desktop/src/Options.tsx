@@ -18,21 +18,23 @@ type Choice = { id: string; name?: string; sub?: string };
 /** The settings, their meanings, and their choices, as the frozen design names them (docs/design/shared/data.js). */
 const BRIEF: Record<Key, { label: string; help: string; options: Choice[] }> = {
   base: { label: "Base", help: "What it stands on", options: ["None", "16 × 16", "32 × 32", "48 × 48"].map((id) => ({ id })) },
-  scale: {
-    label: "Scale",
-    help: "What the details are sized for; the whole can be shortened to stay buildable",
+  // Size is Scale and Pieces made one (Barry 2026-11-10): how big it is, and so what its details are sized for. No
+  // setting names a part count; the count is what the size and the detail come to.
+  size: {
+    label: "Size",
+    help: "How big the model is, and so what its details are sized for; the part count is what that comes to",
     options: [
       { id: "Micro", sub: "1:100 and smaller, like the Titanic at 1:200" },
       { id: "Micropolis", sub: "The community micro city standard: 16 × 16 modules, two-stud roads, a brick about 9 feet tall" },
       { id: "Midi", sub: "Between micro and figure scale, like the Endurance" },
       { id: "Figure scale", sub: "Doors, seats, and rooms fit a 4-brick-tall figure; the whole is shortened, like most official sets" },
-      { id: "Large", sub: "Bigger than figure scale, like the large display cars" },
-      { id: "Car 1:8", sub: "A large car with gears, panels, and working steering" },
+      { id: "Display", sub: "A shelf showpiece bigger than figure scale, like the large display cars and bikes" },
+      { id: "1:8", sub: "The biggest: a Technic car or bike with gears, panels, and working steering" },
     ],
   },
   age: {
     label: "Age",
-    help: "Who builds it; sets the usual detail and pieces for that age",
+    help: "Who builds it; sets the usual detail for that age",
     options: [
       { id: "4+", sub: "Big pieces, few steps" },
       { id: "6+", sub: "More pieces, simple techniques" },
@@ -48,16 +50,6 @@ const BRIEF: Record<Key, { label: string; help: string; options: Choice[] }> = {
       { id: "Low", sub: "Bricks, plates, and slopes: quick to build" },
       { id: "Medium", sub: "Plus tiles, trim, and window frames" },
       { id: "High", sub: "Plus textures, sideways building, and small details" },
-    ],
-  },
-  pieces: {
-    label: "Pieces",
-    help: "How many pieces the model has",
-    options: [
-      { id: "Small", name: "50–250" },
-      { id: "Medium", name: "250–1,000" },
-      { id: "Large", name: "1,000–2,500" },
-      { id: "Huge", name: "2,500+" },
     ],
   },
   style: {
@@ -78,21 +70,21 @@ const BRIEF: Record<Key, { label: string; help: string; options: Choice[] }> = {
   },
 };
 
-/** Picking an age sets Detail and Pieces to what sets for that age usually have (Barry 2026-10-27). */
-const AGE_PRESET: Record<string, { detail: string; pieces: string }> = {
-  "4+": { detail: "Low", pieces: "Small" },
-  "6+": { detail: "Low", pieces: "Small" },
-  "9+": { detail: "Medium", pieces: "Medium" },
-  "13+": { detail: "High", pieces: "Large" },
-  "18+": { detail: "High", pieces: "Huge" },
+/** Picking an age sets Detail to what sets for that age usually have (Barry 2026-10-27). */
+const AGE_PRESET: Record<string, { detail: string }> = {
+  "4+": { detail: "Low" },
+  "6+": { detail: "Low" },
+  "9+": { detail: "Medium" },
+  "13+": { detail: "High" },
+  "18+": { detail: "High" },
 };
 
-const ORDER: Key[] = ["base", "scale", "age", "detail", "pieces", "style"];
+const ORDER: Key[] = ["base", "size", "age", "detail", "style"];
 const ANY = "Any";
 /** Every setting on Any: a new model's, until the New model dialog sets some. */
-export const ANY_SETTINGS: BuildSettings = { base: null, scale: null, age: null, detail: null, pieces: null, style: null };
+export const ANY_SETTINGS: BuildSettings = { base: null, size: null, age: null, detail: null, style: null };
 
-/** The settings with `k` set to `v` (Any is null); an age brings its usual Detail and Pieces. */
+/** The settings with `k` set to `v` (Any is null); an age brings its usual Detail. */
 export function withSetting(d: BuildSettings, k: Key, v: string | null): BuildSettings {
   const next = { ...d, [k]: v === ANY ? null : v };
   if (k === "age" && v && AGE_PRESET[v]) Object.assign(next, AGE_PRESET[v]);
@@ -102,9 +94,9 @@ export function withSetting(d: BuildSettings, k: Key, v: string | null): BuildSe
 const said = (v: string | null | undefined) => v ?? ANY;
 /** A setting in words; Base says it's the base ("No base", "32 × 32 base"), since "None" alone reads as nothing set. */
 const words = (k: Key, v: string | null | undefined): string | null =>
-  v == null ? null : k === "pieces" ? `${BRIEF.pieces.options.find((o) => o.id === v)?.name ?? v} pieces` : k === "age" ? `Ages ${v}` : k === "detail" ? `${v} detail` : k === "base" ? (v === "None" ? "No base" : `${v} base`) : v;
+  v == null ? null : k === "age" ? `Ages ${v}` : k === "detail" ? `${v} detail` : k === "base" ? (v === "None" ? "No base" : `${v} base`) : v;
 
-/** The settings in a line of words: "Large · Ages 13+ · High detail · Space", or "Any" when none is set. */
+/** The settings in a line of words: "Display · Ages 13+ · High detail · Space", or "Any" when none is set. */
 export const settingsWords = (s: BuildSettings) => ORDER.map((k) => words(k, s[k])).filter(Boolean).join(" · ") || ANY;
 
 /** What the chat shows for Rebuild (the agent gets rebuildRequest's details too): "Rework the model for the new build
@@ -170,21 +162,21 @@ function Chips({ label, items, value, onChange, own, onRemove }: { label: string
   );
 }
 
-/** The settings' controls (all six, or `keys`), on `draft`: the Options panel's (with `moved`, what a change was) and
+/** The settings' controls (all five, or `keys`), on `draft`: the Options panel's (with `moved`, what a change was) and
  * the New model dialog's pages. */
 export function SettingsFields({ draft, set, moved = () => ({}), id = "settings-list", keys = ORDER }: { draft: BuildSettings; set: (k: Key, v: string | null) => void; moved?: (k: Key) => { moved?: boolean; was?: string }; id?: string; keys?: Key[] }) {
   const [style, setStyle] = useState("");
   const ownStyle = draft.style && !BRIEF.style.options.some((o) => o.id === draft.style) ? draft.style : undefined;
-  // In `keys` order: the dialog's second page leads with Age, which sets Detail and Pieces.
+  // In `keys` order: Age leads its column in the dialog, since it sets Detail.
   const fields: Record<Key, React.ReactNode> = {
     base: (
       <Setting name="Base" help={BRIEF.base.help} {...moved("base")}>
         <Segmented label="Base" items={[{ id: ANY }, ...BRIEF.base.options]} value={said(draft.base)} onChange={(v) => set("base", v)} />
       </Setting>
     ),
-    scale: (
-      <Setting name="Scale" help={BRIEF.scale.help} {...moved("scale")}>
-        <Chips label="Scale" items={[{ id: ANY, sub: "The prompt decides" }, ...BRIEF.scale.options]} value={said(draft.scale)} onChange={(v) => set("scale", v)} />
+    size: (
+      <Setting name="Size" help={BRIEF.size.help} {...moved("size")}>
+        <Chips label="Size" items={[{ id: ANY, sub: "The prompt decides" }, ...BRIEF.size.options]} value={said(draft.size)} onChange={(v) => set("size", v)} />
       </Setting>
     ),
     age: (
@@ -195,11 +187,6 @@ export function SettingsFields({ draft, set, moved = () => ({}), id = "settings-
     detail: (
       <Setting name="Detail" help={BRIEF.detail.help} {...moved("detail")}>
         <Segmented label="Detail" items={[{ id: ANY }, ...BRIEF.detail.options]} value={said(draft.detail)} onChange={(v) => set("detail", v)} />
-      </Setting>
-    ),
-    pieces: (
-      <Setting name="Pieces" help={BRIEF.pieces.help} {...moved("pieces")}>
-        <Chips label="Pieces" items={[{ id: ANY }, ...BRIEF.pieces.options]} value={said(draft.pieces)} onChange={(v) => set("pieces", v)} />
       </Setting>
     ),
     style: (

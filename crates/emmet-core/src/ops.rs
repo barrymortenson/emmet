@@ -472,7 +472,7 @@ struct BuildExtras {
 }
 
 /// The validator's options for the project's current build: the allow entries from emmet.toml and the model, the
-/// model's ground parts and keep-clear spaces, the step target from the Age build setting, and whether the Scale build
+/// model's ground parts and keep-clear spaces, the step target from the Age build setting, and whether the Size build
 /// setting is one no figure fits.
 pub fn check_options(project: &Project) -> Result<crate::check::Options> {
     let path = project.root.join("build/placements.json");

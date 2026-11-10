@@ -31,8 +31,8 @@ fn guide(name: &str) -> Value {
 }
 
 #[test]
-fn every_scale_and_style_the_options_offer_has_a_guide() {
-    for (setting, kind) in [("scale", "scale"), ("style", "style")] {
+fn every_size_and_style_the_options_offer_has_a_guide() {
+    for (setting, kind) in [("size", "scale"), ("style", "style")] {
         let ids = options(setting);
         assert!(ids.len() >= 6, "{setting}: {ids:?}");
         for id in ids {
@@ -49,6 +49,9 @@ fn a_guide_answers_to_its_other_names() {
         ("Figure scale", "figure-scale"),
         ("minifig", "figure-scale"),
         ("Car 1:8", "car-1-8"),
+        // Size's words for them (Barry 2026-11-10).
+        ("Display", "large"),
+        ("1:8", "car-1-8"),
         ("voxel", "blocky"),
         ("sci-fi", "space"),
         ("garden", "landscaping"),
@@ -88,14 +91,14 @@ fn with_no_name_it_gives_the_guides_for_the_build_settings() {
         (names.join(" "), v)
     };
 
-    let (names, v) = with("[build]\nscale = \"Micropolis\"\nstyle = \"Town\"\n");
+    let (names, v) = with("[build]\nsize = \"Micropolis\"\nstyle = \"Town\"\n");
     assert_eq!(names, "micropolis town");
     assert!(
         v["data"].get("list").is_none() && v["data"].get("note").is_none(),
         "{v:#}"
     );
 
-    let (names, v) = with("[build]\nscale = \"Figure scale\"\nstyle = \"Steampunk harbor\"\n");
+    let (names, v) = with("[build]\nsize = \"Figure scale\"\nstyle = \"Steampunk harbor\"\n");
     assert_eq!(names, "figure-scale");
     assert!(
         v["data"]["note"].as_str().unwrap().contains("Steampunk harbor"),
@@ -103,17 +106,22 @@ fn with_no_name_it_gives_the_guides_for_the_build_settings() {
     );
     assert!(!v["data"]["list"].as_array().unwrap().is_empty());
 
-    // With no scale set, it's figure scale (the doctrine's default), so that guide comes too.
+    // An emmet.toml from before Size reads its Scale as the Size, "Large" as "Display", and its Pieces not at all.
+    let (names, _) = with("[build]\nscale = \"Large\"\npieces = \"Medium\"\nstyle = \"Town\"\n");
+    assert_eq!(names, "large town");
+    let (names, _) = with("[build]\nsize = \"Display\"\n");
+    assert_eq!(names, "large");
+    // With no size set, it's figure scale (the doctrine's default), so that guide comes too.
     let (names, _) = with("[build]\nstyle = \"Blocky\"\n");
     assert_eq!(names, "figure-scale blocky");
-    // A blank scale is no scale; a style that names a scale isn't a style, so it doesn't bring a second scale's guide.
-    let (names, v) = with("[build]\nscale = \"  \"\nstyle = \"minifig\"\n");
+    // A blank size is no size; a style that names a scale isn't a style, so it doesn't bring a second scale's guide.
+    let (names, v) = with("[build]\nsize = \"  \"\nstyle = \"minifig\"\n");
     assert_eq!(names, "figure-scale");
     assert!(v["data"]["note"].as_str().unwrap().contains("\"minifig\""), "{v:#}");
-    let (names, v) = with("[build]\nscale = \"Dollhouse\"\nstyle = \"Blocky\"\n");
+    let (names, v) = with("[build]\nsize = \"Dollhouse\"\nstyle = \"Blocky\"\n");
     assert_eq!(names, "blocky");
     assert!(
-        v["data"]["note"].as_str().unwrap().contains("scale \"Dollhouse\""),
+        v["data"]["note"].as_str().unwrap().contains("size \"Dollhouse\""),
         "{v:#}"
     );
     // A blank name is no name.
@@ -123,7 +131,7 @@ fn with_no_name_it_gives_the_guides_for_the_build_settings() {
     let (names, v) = with("");
     assert_eq!(names, "figure-scale");
     assert!(
-        v["data"]["note"].as_str().unwrap().contains("No scale or style is set"),
+        v["data"]["note"].as_str().unwrap().contains("No size or style is set"),
         "{v:#}"
     );
 }

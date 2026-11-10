@@ -80,12 +80,12 @@ wide). No post or column stands in line with a door: in its approach (rule 2).
 
 ## 6. Where the rules hold
 
-At figure scale and large, and when the Scale build setting is Any (Emmet builds at figure scale then). Not at micro,
-micropolis, midi, or car 1:8: no figure fits there, so `figure_clearance` is off and the guides for those scales don't
+At figure scale and display, and when the Size build setting is Any (Emmet builds at figure scale then). Not at
+micro, micropolis, midi, or 1:8: no figure fits there, so `figure_clearance` is off and the guides for those scales don't
 teach these rules. At large, a display model with no figure doors or seats has nothing to check; where it has them,
 they're for a figure.
 
-- Enforced by: **validator** (it reads the project's Scale build setting), **doctrine** (the guides).
+- Enforced by: **validator** (it reads the project's Size build setting), **doctrine** (the guides).
 
 ## How a finding reads
 

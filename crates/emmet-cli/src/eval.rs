@@ -325,7 +325,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
     if technique {
         // The build settings the technique prompts run with (docs/spec/ladder.md).
         project.config.build.base = Some("32 × 32".into());
-        project.config.build.scale = Some("Figure scale".into());
+        project.config.build.size = Some("Figure scale".into());
         project.write_config()?;
     }
 

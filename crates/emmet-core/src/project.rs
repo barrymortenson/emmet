@@ -34,24 +34,24 @@ pub struct Config {
 }
 
 /// `[build]`: the build settings (plan section 14's Options tab), which steer the agent; each is Any until set. The
-/// app writes them, a change asks the agent to rework the model, and the validator reads the Age.
+/// app writes them, a change asks the agent to rework the model, and the validator reads the Age and the Size. None
+/// names a part count: the agent builds to the Size and the Detail, and the count is what that comes to (Barry
+/// 2026-11-10, after Pieces and Scale pulled against each other).
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct BuildConfig {
     /// What it stands on: "None", "16 × 16", "32 × 32", or "48 × 48".
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub base: Option<String>,
-    /// What the details are sized for: "Micro", "Micropolis", "Midi", "Figure scale", "Large", or "Car 1:8".
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub scale: Option<String>,
+    /// What the model is sized to: "Micro", "Micropolis", "Midi", "Figure scale", "Display", or "1:8". It was Scale
+    /// (and Pieces, a part count, beside it) until 2026-11-10; an older emmet.toml's `scale` reads as it.
+    #[serde(default, alias = "scale", skip_serializing_if = "Option::is_none")]
+    pub size: Option<String>,
     /// The Age build setting: "4+", "6+", "9+", "13+", or "18+" (plan section 08's step rules).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub age: Option<String>,
     /// How much the agent adds beyond the shape: "Low", "Medium", or "High".
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub detail: Option<String>,
-    /// How many pieces: "Small" (50–250), "Medium" (250–1,000), "Large" (1,000–2,500), or "Huge" (2,500+).
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub pieces: Option<String>,
     /// The look: one of the suggestions ("Town", "Medieval", …) or the user's own words.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub style: Option<String>,
@@ -62,13 +62,24 @@ impl BuildConfig {
         *self == Self::default()
     }
 
-    /// The Scale setting is one no figure fits, where figure_clearance is off (docs/spec/building-rules.md, rule 6):
-    /// micro, micropolis, midi, or car 1:8. Figure scale, large, and Any keep it on.
+    /// The Size setting is one no figure fits, where figure_clearance is off (docs/spec/building-rules.md, rule 6):
+    /// micro, micropolis, midi, or 1:8. Figure scale, display, and Any keep it on.
     pub fn no_figures(&self) -> bool {
         matches!(
-            self.scale.as_deref().map(|s| s.trim().to_lowercase()).as_deref(),
-            Some("micro" | "micropolis" | "midi" | "car 1:8")
+            self.size.as_deref().map(|s| s.trim().to_lowercase()).as_deref(),
+            Some("micro" | "micropolis" | "midi" | "1:8")
         )
+    }
+
+    /// An older emmet.toml's settings in today's words: Scale's "Large" is Size's "Display", and "Car 1:8" is "1:8".
+    /// (Its `pieces`, a part count, is no setting now, and goes when the app writes the file again.)
+    fn upgrade(&mut self) {
+        let renamed = match self.size.as_deref().map(str::trim) {
+            Some("Large") => "Display",
+            Some("Car 1:8") => "1:8",
+            _ => return,
+        };
+        self.size = Some(renamed.into());
     }
 
     /// The baseplate a new empty model starts on, in studs square, by the Base setting: none for None, the size it
@@ -231,7 +242,7 @@ impl Project {
         let root = fsx::canonical(&root).map_err(|e| Error::io(&root, e))?;
         let path = root.join(MANIFEST_FILE);
         let text = std::fs::read_to_string(&path).map_err(|e| Error::io(&path, e))?;
-        let config: Config = toml::from_str(&text).map_err(|e| {
+        let mut config: Config = toml::from_str(&text).map_err(|e| {
             let line = e.span().map(|s| line_of(&text, s.start));
             Error::new(
                 ErrorCode::IoError,
@@ -244,6 +255,7 @@ impl Project {
                 ..Default::default()
             })
         })?;
+        config.build.upgrade();
         if config.schema > SCHEMA {
             return Err(Error::new(
                 ErrorCode::IoError,

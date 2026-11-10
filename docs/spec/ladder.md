@@ -169,7 +169,7 @@ Five prompts that tempt the building mistakes of Barry's 4B hand session of rung
 than the door beside it, a seat against a post, a column in front of a door, a lower roof that meets a wall across an
 opening. No prompt names any of them; the point is whether the agent builds well without being told. Each is a
 figure-scale build on one green 32 × 32 baseplate, run by `emmet eval --rung T1` (to T5) with the build settings Base
-32 × 32 and Scale Figure scale, once on `main` before 3E's changes (the baseline) and once at the end. The report,
+32 × 32 and Size Figure scale, once on `main` before 3E's changes (the baseline) and once at the end. The report,
 `docs/evals/<date>-technique.md`, counts each run's `figure_clearance` findings; a run's score is that count and its
 validator errors, not the size and features rung 1 and 2 score. Each run's budget is 20 minutes and 80 turns.
 

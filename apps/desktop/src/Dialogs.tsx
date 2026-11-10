@@ -337,8 +337,8 @@ export function Shortcuts({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** New model (from a prompt), on one page: its name, then its build settings, what it is (scale and style) beside who
- * builds it and how big (age, detail, pieces, and base). The agent knows them from its first turn, and the Options
+/** New model (from a prompt), on one page: its name, then its build settings, what it is (size and style) beside who
+ * builds it and what it stands on (age, detail, and base; Barry 2026-11-10 made Scale and Pieces one Size). The agent knows them from its first turn, and the Options
  * panel shows them as a line of words (Barry 2026-11-09). Every setting may stay Any; the name is needed. Create makes
  * the project (a taken name gets the next free "name 2"), and the window opens it. */
 export function NewModel({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
@@ -371,8 +371,8 @@ export function NewModel({ onClose, onCreated }: { onClose: () => void; onCreate
         </label>
         <p className="small">Set what you can now and the agent builds to it from the start; anything left on Any, it decides or asks. You can change them later in Options.</p>
         <div className="new-model-columns">
-          <SettingsFields draft={draft} set={set} keys={["scale", "style"]} id="new-model-what" />
-          <SettingsFields draft={draft} set={set} keys={["age", "detail", "pieces", "base"]} id="new-model-size" />
+          <SettingsFields draft={draft} set={set} keys={["size", "style"]} id="new-model-what" />
+          <SettingsFields draft={draft} set={set} keys={["age", "detail", "base"]} id="new-model-size" />
         </div>
         {problem && (
           <p className="notice" role="alert" id="new-model-problem">

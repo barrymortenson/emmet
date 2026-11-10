@@ -162,26 +162,26 @@ pub fn named(name: &str) -> Result<Guides> {
     })
 }
 
-/// The guides for a project's build settings (`None`: no project): the scale's (figure scale's when none is set, the
-/// doctrine's default) and the style's. A setting no guide of its kind answers to is the user's own words: a note,
+/// The guides for a project's build settings (`None`: no project): the Size's scale guide (figure scale's when none
+/// is set, the doctrine's default) and the style's. A setting no guide of its kind answers to is the user's own words: a note,
 /// and the list to choose from.
 pub fn for_build(build: Option<&BuildConfig>) -> Guides {
     let build = build.cloned().unwrap_or_default();
     // A setting is set when it has something besides spaces in it; the app trims them, a hand edit may not.
     let set = |v: &Option<String>| v.as_deref().map(str::trim).filter(|v| !v.is_empty()).map(String::from);
-    let (scale, style) = (set(&build.scale), set(&build.style));
+    let (size, style) = (set(&build.size), set(&build.style));
     let mut out = Guides {
         guides: vec![],
         list: vec![],
         note: None,
     };
     let mut notes = vec![];
-    if scale.is_none() {
+    if size.is_none() {
         out.guides
             .push(find(DEFAULT_SCALE, &[Kind::Scale]).expect("the figure-scale guide"));
     }
     for (setting, value, kinds) in [
-        ("scale", &scale, &[Kind::Scale][..]),
+        ("size", &size, &[Kind::Scale][..]),
         ("style", &style, &[Kind::Style, Kind::Subject][..]),
     ] {
         let Some(value) = value else { continue };
@@ -194,9 +194,9 @@ pub fn for_build(build: Option<&BuildConfig>) -> Guides {
             )),
         }
     }
-    if scale.is_none() && style.is_none() {
+    if size.is_none() && style.is_none() {
         notes.push(
-            "No scale or style is set in emmet.toml's [build], so this is figure scale's guide. When the prompt names a \
+            "No size or style is set in emmet.toml's [build], so this is figure scale's guide. When the prompt names a \
              scale or style (\"a micro city\", \"blocky\", \"like a video game\"), call guide with it too."
                 .into(),
         );

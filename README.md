@@ -42,7 +42,8 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
   and set data from Rebrickable, rebrickable.com); `emmet export --format ldr|mpd|lpub3d` writes the model for other
   LDraw tools, and `emmet export --format pdf [--paper a4|letter]` the building instructions; `emmet params --write-default <name>` makes a slider's value the default in `model.py`.
 - The app to the frozen design (session 4A): first run (the parts, Python, your agent, then the Cottage or a new model
-  from a prompt, which asks its name and build settings first), the options panel's Options, Checks, Parts, and Steps tabs, versions, imports, workspace trust,
+  from a prompt, which asks its name and build settings first: Size, Detail, Age, Style, and Base, with the part count
+  what they come to), the options panel's Options, Checks, Parts, and Steps tabs, versions, imports, workspace trust,
   Settings, About, and the keyboard map. `emmet version save|list|restore|open` keeps versions of a project's sources,
   and `emmet new <dir> --import <file.ldr|.mpd>` makes a project around an existing LDraw model.
 - CI on macOS and Windows, the license, SPDX, DCO, secret, and supply-chain checks, and the plan tracker check.

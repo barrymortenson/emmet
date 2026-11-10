@@ -189,7 +189,7 @@ pub struct Options {
     pub step_target: usize,
     /// The spaces a figure needs that the model declared (`m.keep_clear`).
     pub keep_clear: Vec<KeepClear>,
-    /// The Scale build setting is one no figure fits (micro, micropolis, midi, car 1:8): figure_clearance is off.
+    /// The Size build setting is one no figure fits (micro, micropolis, midi, 1:8): figure_clearance is off.
     pub no_figures: bool,
 }
 

@@ -23,10 +23,9 @@ use crate::app::{AppState, ParamsView, Problem, ProjectView, Scene};
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct BuildSettings {
     pub base: Option<String>,
-    pub scale: Option<String>,
+    pub size: Option<String>,
     pub age: Option<String>,
     pub detail: Option<String>,
-    pub pieces: Option<String>,
     pub style: Option<String>,
 }
 
@@ -34,10 +33,9 @@ impl From<&BuildConfig> for BuildSettings {
     fn from(b: &BuildConfig) -> Self {
         Self {
             base: b.base.clone(),
-            scale: b.scale.clone(),
+            size: b.size.clone(),
             age: b.age.clone(),
             detail: b.detail.clone(),
-            pieces: b.pieces.clone(),
             style: b.style.clone(),
         }
     }
@@ -46,10 +44,10 @@ impl From<&BuildConfig> for BuildSettings {
 /// Each setting's choices, as the frozen design names them (docs/design/shared/data.js). Style also takes the user's
 /// own words.
 pub const BASES: [&str; 4] = ["None", "16 × 16", "32 × 32", "48 × 48"];
-pub const SCALES: [&str; 6] = ["Micro", "Micropolis", "Midi", "Figure scale", "Large", "Car 1:8"];
+/// What the model is sized to: Scale and Pieces made one setting (Barry 2026-11-10); no setting names a part count.
+pub const SIZES: [&str; 6] = ["Micro", "Micropolis", "Midi", "Figure scale", "Display", "1:8"];
 pub const AGES: [&str; 5] = ["4+", "6+", "9+", "13+", "18+"];
 pub const DETAILS: [&str; 3] = ["Low", "Medium", "High"];
-pub const PIECES: [&str; 4] = ["Small", "Medium", "Large", "Huge"];
 /// The longest style the user may type.
 const STYLE_MAX: usize = 60;
 /// The longest name a new model may have.
@@ -65,10 +63,9 @@ fn checked(settings: BuildSettings) -> Result<BuildConfig, Box<Problem>> {
         _ => Ok(()),
     };
     check(&settings.base, "base", &BASES)?;
-    check(&settings.scale, "scale", &SCALES)?;
+    check(&settings.size, "size", &SIZES)?;
     check(&settings.age, "age", &AGES)?;
     check(&settings.detail, "detail", &DETAILS)?;
-    check(&settings.pieces, "pieces", &PIECES)?;
     let style = settings.style.as_deref().map(str::trim).filter(|s| !s.is_empty());
     if style.is_some_and(|s| s.chars().count() > STYLE_MAX || s.chars().any(char::is_control)) {
         return Err(bad(
@@ -78,10 +75,9 @@ fn checked(settings: BuildSettings) -> Result<BuildConfig, Box<Problem>> {
     }
     Ok(BuildConfig {
         base: settings.base,
-        scale: settings.scale,
+        size: settings.size,
         age: settings.age,
         detail: settings.detail,
-        pieces: settings.pieces,
         style: style.map(String::from),
     })
 }
@@ -739,17 +735,18 @@ mod tests {
         assert!(model_name("   ").is_err());
         assert!(model_name(&"x".repeat(NAME_MAX + 1)).is_err());
         let ok = BuildSettings {
-            scale: Some("Large".into()),
+            size: Some("Display".into()),
             style: Some("  steampunk ".into()),
             ..Default::default()
         };
         let build = checked(ok).unwrap();
-        assert_eq!(build.scale.as_deref(), Some("Large"));
+        assert_eq!(build.size.as_deref(), Some("Display"));
         assert_eq!(build.style.as_deref(), Some("steampunk"));
-        let bad_scale = BuildSettings {
-            scale: Some("Huge".into()),
+        // Scale's old "Large" isn't a Size: the Options panel offers only today's words.
+        let bad_size = BuildSettings {
+            size: Some("Large".into()),
             ..Default::default()
         };
-        assert!(checked(bad_scale).is_err());
+        assert!(checked(bad_size).is_err());
     }
 }

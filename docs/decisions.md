@@ -1014,3 +1014,21 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   the Detail it has, never stopping short and blaming Detail. The large guide says the same for its faces and its
   display bikes. Barry runs a fourth session with Scale Large, Detail Medium, and Pieces Large. Rejected: running
   again with no change, and rebuilding the third session's bike with Pieces Large.
+- **The build settings are Size and Detail; the part count is the outcome** (Barry, 2026-11-10, after his fourth
+  e-bike session, through AskUserQuestion: "Size + Detail"). Run 4 had Scale Large, Detail Medium, and Pieces Large and
+  ended at 301 parts, the agent saying it was "well under your Large pieces setting ... mostly because this bike is an
+  open frame with little bodywork." Barry: "even with the part count it is did not build it with more pieces, in fact
+  the model came out almost identical to the last few ... seems like that piece count is a hard goal with a medium
+  detail for object like a bike or a car, where as a large building or a sailing ship or very complex item could meet
+  it easier. I think our setting options need to have some realative contraints or becombined into a few options that
+  lets the ai know what we are going for with out the conflicting contraints, so may be focus on size and complexity
+  and let the piece count be open ended? This would make it simpler for the user also." So Scale and Pieces merge into
+  one setting, Size (what the model is sized to: Micro, Midi, Figure scale, Display, or 1:8), Detail stays as the
+  complexity, and Age, Style, and Base stay. No setting names a part count: the agent builds to the size and the
+  detail and says what the count came to, and still asks before a build over 2,000 parts. Rejected: keeping Scale and
+  turning Pieces into a Size by dimensions (the two can still disagree), and keeping Pieces as a soft guide.
+- **4G's Done when 4 is the photo rung's pass bar, on a new run** (Barry, 2026-11-10, through AskUserQuestion: "Rubric
+  bar, new run"). "600+ parts" set a part count the build settings no longer name. Done when 4 becomes: after the
+  settings change, in Barry's hand session, the e-bike at Size Display has 0 validator errors and scores 4 of 6 or
+  more (the photo rung's bar, docs/spec/ladder.md), its part count reported, not required. Rejected: scoring run 4 as
+  it is, and requiring Detail High.

@@ -65,9 +65,9 @@ interface: if it doesn't fit, use its options, or build that part yourself. Buil
 
 Every moving part works as the real one does: the wheels spring against the shocks (never hang on them), the fork
 turns, and every axle has a bush, a half bush, a crank arm, or a cross block on it, so nothing slides out. The
-techniques give about 230 parts; the rest is what makes it this bike. Count the parts before you call it done: a
-display bike is 600 to 2,000 at any Detail setting, in the upper half of the Pieces setting's range when there is
-one; a bike at 260 parts is the techniques with little added.
+techniques give about 230 parts; the rest is what makes it this bike. The count is what that comes to, not a
+target: a bike at 260 parts is the techniques with little added, so go back through the list above at the Detail you
+have (at Medium, the bodywork's shapes and colors; at High, its textures and small parts too).
 
 ## Other subjects
 

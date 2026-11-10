@@ -328,23 +328,26 @@ fn broken_color_unavailable_needs_the_pack() {
     assert_eq!(v["data"]["findings"], json!([]), "{v}");
 }
 
-/// figure_clearance holds at figure scale, large, and Any, and is off where no figure fits (building rule 6): the golden
-/// gives its four findings at Figure scale and none at Micro, Micropolis, Midi, or Car 1:8.
+/// figure_clearance holds at figure scale, display, and Any, and is off where no figure fits (building rule 6): the
+/// golden gives its four findings at Figure scale and none at Micro, Micropolis, Midi, or 1:8. An emmet.toml from
+/// before Size says it as Scale, Large and Car 1:8 included.
 #[test]
 fn figure_clearance_is_off_where_no_figure_fits() {
     let dir = project("broken-figure-clearance");
     let toml = std::fs::read_to_string(dir.join("emmet.toml")).unwrap();
-    for (scale, findings) in [
-        ("Figure scale", 4),
-        ("Large", 4),
-        ("Micro", 0),
-        ("Micropolis", 0),
-        ("Midi", 0),
-        ("Car 1:8", 0),
+    for (key, scale, findings) in [
+        ("size", "Figure scale", 4),
+        ("size", "Display", 4),
+        ("size", "Micro", 0),
+        ("size", "Micropolis", 0),
+        ("size", "Midi", 0),
+        ("size", "1:8", 0),
+        ("scale", "Large", 4),
+        ("scale", "Car 1:8", 0),
     ] {
         std::fs::write(
             dir.join("emmet.toml"),
-            format!("{toml}\n[build]\nscale = \"{scale}\"\n"),
+            format!("{toml}\n[build]\n{key} = \"{scale}\"\n"),
         )
         .unwrap();
         let (v, code) = check(&dir, &[]);
