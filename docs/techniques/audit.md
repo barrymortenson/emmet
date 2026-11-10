@@ -8,7 +8,7 @@ were regenerated, and each example validates clean, figure_clearance included (`
 also checks this table has a row for every technique).
 
 Four readers drafted a row each from the code; the verdicts and every fix were checked against the code and tested.
-**331 fine, 39 fixed, 8 limited by design.** Session 4G added seven display-bike techniques, each fine at display
+**331 fine, 39 fixed, 8 limited by design.** Session 4G added ten display-bike techniques, each fine at display
 scale, where no figure has to fit. Beyond the 4B station's canopy and
 porches, the audit found doorways that kept nothing clear or were too low for a figure (`portcullis` was 6 plates,
 `cave_mouth` about 10, `brick_built_arch` 3), seats with no room declared, a colonnade 9 plates high, a footbridge whose
@@ -38,6 +38,7 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `bare_stud_greeble` | none | — | — | — | fine | — |
 | `bartizan` | none | — | — | — | fine | — |
 | `baseplate_road` | walk-on | road width 9 (3 or more), surface z+1 | — | — | fine | — |
+| `battery_case` | none | display scale: no figure (4G) | — | — | fine | — |
 | `battlements` | walk-on | wall walk 1 stud wide (row y+1), returned z (z+1 with the tie); breastwork 1 brick + merlons 1 brick + cap, so the parapet stands about 7 plates over the walk | — | returns the walk's z, as a figure needs | fine | — |
 | `bay_window` | none | — | — | — | fine | — |
 | `beam_spine_floor` | none | — | — | — | fine | — |
@@ -45,6 +46,7 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `bench` | sit | 4 x 2, seat top 5 plates; the example's two benches stood front to front, each in the other's legroom | — | the room a seated figure needs (no keep-clear space) | fixed | keeps a seated figure's room clear (a stud at each end, 2 in front, 3 bricks over the seat); the example's benches stand back to back, not crowding each other's legroom |
 | `bermed_wall_reveal` | walk-through | a hill front for a door: wall rows=3 by default (9 plates, z..z+9); beam plate at z+3*rows; turf 2 deep from y-1 at z+3*rows+1, overhanging the face 1 stud; cheeks reach 2*rows studs out each end in rows y..y+2 | the turf always overhangs 1 stud at the wall's top; the wall has no opening (wall=True) | returns the turf's top only; takes no door top | fixed | rows 6 by default (was 3), reaching a 1 x 4 x 6 door's top so the turf clears its way; lower courses split into steps |
 | `big_round_eye` | none | — | — | — | fine | — |
+| `bike_seat_rack` | none | display scale: no figure (4G) | — | — | fine | — |
 | `blade_sign` | walk-past | a 5-brick clip column (z..z+15) in the wall; the sign, a 2 x 6 plate on edge, 15 plates tall from z and standing about 2 studs out from the wall face (SIGN_AT = (-0.2, -3)) | the sign spans the column's whole height from z (no lift above the column's base) | returns the column's top only; not the sign's footprint | limited: the caller sets z; at street level it hangs over a door's way through, so its docstring's z is the caller's to keep at or above the door top | — |
 | `block_beast` | none | — | — | — | fine | — |
 | `block_column` | none | — | — | — | fine | — |
@@ -148,6 +150,7 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `fountain_court` | none | — | — | — | fine | — |
 | `four_wide_car` | sit | seat 4079 at (x+8, y+1, z+6), its seat surface z+7, facing -x; windscreen 3823 at x+6 to x+8 from z+6, roof plate at z+12: 5 plates over the seat surface; cab sides 3004 at y and y+3 (two courses, z+6 to z+12) | windscreen and roof height hard-coded at deck+1 (z+6) and the roof at z+12; cab sides 2 courses | returns only the roof top; not the seat's position | fixed | tall=True by default: a course under the windscreen and the roof puts the roof 9 plates over the seat (was 5); the seat faces the front; returns .underside and .seat |
 | `front_bumper` | none | — | — | — | fine | — |
+| `front_fender` | none | display scale: no figure (4G) | — | — | fine | — |
 | `front_grille` | none | — | — | — | fine | — |
 | `front_hinged_hood` | none | — | — | — | fine | — |
 | `gable_roof` | none | — | — | — | fine | — |

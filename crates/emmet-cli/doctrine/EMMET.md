@@ -127,7 +127,8 @@ steps; its example validates clean in the library's tests, and you validate your
 - Mechanisms that move: gear_pair, worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace,
   rotating_platform, ball_joint_arm.
 - Display bikes (`guide large`): motorbike_frame, swingarm_shock, chain_drive, kickstand, suspension_fork,
-  disc_brake, handlebars, sized to the photo through their options. A bike stands on its kickstand, not a base.
+  disc_brake, front_fender, handlebars, bike_seat_rack, battery_case, sized to the photo through their options. A bike
+  stands on its kickstand, not a base.
 - A technique's doc (`technique <name>`) is its whole interface: when one doesn't fit, use its options, or build that
   part yourself. Never read Emmet's own source to work round one.
 - Small tricks: jumper_offset (half a stud over).
@@ -154,9 +155,12 @@ The app's Options write `emmet.toml`'s `[build]`, and each setting is Any until 
 the guides. Age: the step size (4 parts a step for 4+, 12 for 18+, 8 otherwise) and how fiddly the techniques may be
 (for 4+ and 6+, no sideways building and nothing on hinges at an angle). Detail (the Options' words): Low is bricks,
 plates, and slopes, with real doors and windows; Medium adds tiles, trim, and window frames (tiles on tops, sills and
-hoods, furniture inside); High adds textures, sideways building, and small details (clutter, landscaping). Pieces: stay inside its range (Small 50–250, Medium 250–1,000, Large 1,000–2,500,
-Huge 2,500+). Base: what the model stands on. When the user changes them and presses Rebuild, call `guide` again and
-rework the model for the new settings, keeping what they still allow.
+hoods, furniture inside); High adds textures, sideways building, and small details (clutter, landscaping). Pieces: its
+range is the size the user wants (Small 50–250, Medium 250–1,000, Large 1,000–2,500, Huge 2,500+); aim for its upper
+half, never its floor (a Medium model is 600 to 1,000 parts, not 250), and where the guide's range for the subject is
+higher, as high as the setting allows. A model at the bottom of its range is a basic one. Base: what the model stands
+on. When the user changes them and presses Rebuild, call `guide` again and rework the model for the new settings,
+keeping what they still allow.
 
 ## Sized for the figure, not to the ratio
 

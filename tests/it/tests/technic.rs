@@ -354,19 +354,21 @@ fn beams_and_pins_that_cant_fit_say_why() {
     );
 }
 
-/// The display bike's fork steers (Barry, on 4G's review page: the bars turn on a triple tree and a pivot): the fork,
-/// its brakes, and its bars join the frame at one joint only, the steerer turning in the frame's head bearing.
-#[test]
-fn the_fork_turns_on_its_steerer_alone() {
-    let body = r#"frame = m.use("motorbike_frame", x=0, y=8, z=27)
-fork = m.use("suspension_fork", frame=frame)
-m.use("disc_brake", fork=fork)
-m.use("handlebars", fork=fork)"#;
-    let (v, code) = check_of("steering", body, &[]);
-    assert_eq!(code, 0, "{v}");
-    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
-    let front = |id: &str| ["fork", "brakes", "handlebars"].iter().any(|p| id.starts_with(p));
-    let across: Vec<(String, String, String)> = v["links"]
+/// A whole display e-bike from the bike techniques at their defaults, which fit a fat-tire e-bike's photo.
+const BIKE: &str = r#"frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
+swingarm = m.use("swingarm_shock", frame=frame)
+fork = m.use("suspension_fork", frame=frame, swingarm=swingarm)
+m.use("chain_drive", frame=frame, swingarm=swingarm)
+m.use("kickstand", swingarm=swingarm)
+m.use("handlebars", fork=fork)
+m.use("disc_brake", fork=fork, swingarm=swingarm)
+seat = m.use("bike_seat_rack", frame=frame)
+m.use("battery_case", frame=frame, seat=seat)
+m.use("front_fender", fork=fork)"#;
+
+/// The connections of a checked model, as (a, b, kind).
+fn links_of(v: &Value) -> Vec<(String, String, String)> {
+    v["links"]
         .as_array()
         .unwrap()
         .iter()
@@ -374,34 +376,209 @@ m.use("handlebars", fork=fork)"#;
             let s = |i: usize| l[i].as_str().unwrap().to_string();
             (s(0), s(1), s(2))
         })
-        .filter(|(a, b, _)| front(a) != front(b))
-        .collect();
+        .collect()
+}
+
+/// The links between a group of parts and the rest, as (the group's part, the other part, kind).
+fn crossing(links: &[(String, String, String)], inside: impl Fn(&str) -> bool) -> Vec<(String, String, String)> {
+    links
+        .iter()
+        .filter(|(a, b, _)| inside(a) != inside(b))
+        .map(|(a, b, k)| {
+            if inside(a) {
+                (a.clone(), b.clone(), k.clone())
+            } else {
+                (b.clone(), a.clone(), k.clone())
+            }
+        })
+        .collect()
+}
+
+/// The display bike's fork steers (Barry, on 4G's review page: the bars turn on a triple tree and a pivot): the fork,
+/// its front wheel, brakes, fender, and bars join the frame at one joint only, the steerer turning in the head bearing.
+#[test]
+fn the_fork_turns_on_its_steerer_alone() {
+    let body = r#"frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
+swingarm = m.use("swingarm_shock", frame=frame)
+fork = m.use("suspension_fork", frame=frame, swingarm=swingarm)
+m.use("disc_brake", fork=fork)
+m.use("front_fender", fork=fork)
+m.use("handlebars", fork=fork)"#;
+    let (v, code) = check_of("steering", body, &[]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
+    let front = |id: &str| {
+        ["fork", "brakes", "front-fender", "handlebars"]
+            .iter()
+            .any(|p| id.starts_with(p))
+    };
+    let across = crossing(&links_of(&v), front);
     assert!(
         !across.is_empty()
-            && across.iter().all(|(a, b, kind)| {
-                let (fork, frame) = if front(a) { (a, b) } else { (b, a) };
-                fork.starts_with("fork-steerer") && frame.starts_with("frame-steering-head") && kind == "cyl"
+            && across.iter().all(|(fork, frame, kind)| {
+                fork.starts_with("fork-steerer") && frame.starts_with("frame-head") && kind == "cyl"
             }),
         "the fork joins the frame elsewhere too: {across:?}"
     );
 }
 
-/// The display-bike techniques take a photo's proportions (Barry's e-bike hand session, 2026-11-09, came out the same
-/// long, low motorcycle as the defaults): a fat-tired e-bike with a short swingarm, a high head, and tall bars, on its
-/// wheels and its kickstand with no base, checks clean, its wheels about two diameters apart and level.
+/// Barry's second e-bike hand session (2026-11-09): "the fork design is not stable", the wheel hung on the shocks
+/// alone. Now the front wheel, its axle, and the sliders that carry it join the rest of the bike only by the sliders
+/// on the fork tubes, which they slide along, and by the front axle through the shocks' eyes: the shocks are the
+/// springs, and the tubes guide the wheel.
+#[test]
+fn the_front_wheel_slides_on_the_fork_against_its_springs() {
+    let body = r#"frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
+swingarm = m.use("swingarm_shock", frame=frame)
+m.use("suspension_fork", frame=frame, swingarm=swingarm)"#;
+    let (v, code) = check_of("fork-springs", body, &[]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
+    // The sliders are the step's first part on each side, then the fixed block, the shock, and its pin.
+    let sliders = ["fork-sliders-and-shocks/1", "fork-sliders-and-shocks/5"];
+    let shocks = ["fork-sliders-and-shocks/3", "fork-sliders-and-shocks/7"];
+    let tubes = ["fork-fork-tubes/1", "fork-fork-tubes/2"];
+    let wheel = |id: &str| id.starts_with("fork-front-wheel") || sliders.contains(&id);
+    let across = crossing(&links_of(&v), wheel);
+    for (w, other, kind) in &across {
+        let slides = sliders.contains(&w.as_str()) && tubes.contains(&other.as_str()) && kind == "cyl";
+        let springs = w == "fork-front-wheel/2" && shocks.contains(&other.as_str());
+        assert!(
+            slides || springs,
+            "the front wheel hangs on {other} through {w} ({kind}): {across:?}"
+        );
+    }
+    for (slider, tube) in sliders.iter().zip(tubes) {
+        assert!(
+            across.iter().any(|(w, o, _)| w == slider && o == tube),
+            "{slider} isn't on {tube}: {across:?}"
+        );
+    }
+    for shock in shocks {
+        assert!(
+            across.iter().any(|(_, o, _)| o == shock),
+            "the front axle isn't through {shock}: {across:?}"
+        );
+    }
+}
+
+/// Barry's second e-bike hand session: the rear suspension was "designed to be non-functioning", its shock mounts
+/// swinging free on one pin. Now the swingarm joins the frame only at its pivot axle and through the one shock, whose
+/// top is on an axle fixed in the frame's down tubes: the wheel can only rise by squeezing the shock.
+#[test]
+fn the_rear_wheel_rises_only_by_squeezing_the_shock() {
+    let body = r#"frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
+m.use("swingarm_shock", frame=frame)"#;
+    let (v, code) = check_of("rear-shock", body, &[]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
+    // The shock step: the axle through the arms, its two bushes, the shock, and the half bushes on the frame's mount.
+    let (pivot, mount, shock) = ("frame-cross-axles/2", "frame-cross-axles/4", "swingarm-shock/4");
+    let swing = |id: &str| {
+        id.starts_with("swingarm") && !["swingarm-shock/4", "swingarm-shock/5", "swingarm-shock/6"].contains(&id)
+    };
+    let links = links_of(&v);
+    let across = crossing(&links, swing);
+    assert!(
+        across.iter().all(|(_, other, _)| other == pivot || other == shock),
+        "the swingarm joins the frame elsewhere: {across:?}"
+    );
+    assert!(
+        across.iter().any(|(_, o, k)| o == pivot && k == "cyl"),
+        "it isn't on the pivot axle: {across:?}"
+    );
+    assert!(
+        across.iter().any(|(w, o, _)| w == "swingarm-shock/1" && o == shock),
+        "{across:?}"
+    );
+    assert!(
+        links
+            .iter()
+            .any(|(a, b, _)| (a == shock && b == mount) || (a == mount && b == shock)),
+        "the shock's top isn't on the frame's mount axle: {links:?}"
+    );
+}
+
+/// Barry (2026-11-09): "the kickstand should not be coming off the center needs to be of the rear left swing arm". Its
+/// pin goes through the left arm, and its foot is on the table with the wheels.
+#[test]
+fn the_kickstand_is_on_the_left_swingarm_arm() {
+    let body = r#"frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
+swingarm = m.use("swingarm_shock", frame=frame)
+m.use("suspension_fork", frame=frame, swingarm=swingarm)
+leg = m.use("kickstand", swingarm=swingarm)
+table = swingarm["rear_axle"][2] - 2.5 * swingarm["radius"]
+foot = min(h.at[2] for h in leg.holes) - 1.25  # the lowest hole's round end, half a stud below it
+assert abs(foot - table) < 0.05, (foot, table)
+assert leg.min[1] > swingarm["rear_axle"][1] + 4, leg.min"#;
+    let (v, code) = check_of("kickstand", body, &[]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
+    let links = links_of(&v);
+    let pin = "kickstand/2";
+    for part in ["kickstand/1", "swingarm-arms/2"] {
+        assert!(
+            links
+                .iter()
+                .any(|(a, b, _)| (a == pin && b == part) || (a == part && b == pin)),
+            "the kickstand's pin doesn't hold {part}: {links:?}"
+        );
+    }
+}
+
+/// Barry's second e-bike hand session: "the axels needs to have something to retain them". On the whole bike, every
+/// axle that runs through a round hole has a part gripping it (an axle hole: a bush, a crank arm, a cross block, a
+/// gear) on each side of one, so it can't slide out either way; an axle in no round hole is held by what grips it.
+#[test]
+fn every_axle_on_the_bike_is_held() {
+    let check = r#"
+import math
+from emmet_dsl.core import Handle
+AXLES = {"4519", "3705", "32073", "3706", "44294", "3707", "3737", "3708", "50451"}
+placed = [p for p in m._ids.values() if p.sub is None]
+holes = {p.id: Handle(p).holes for p in placed}
+loose = []
+for p in placed:
+    if p.part not in AXLES:
+        continue
+    (ax,) = [h for h in holes[p.id] if h.kind == "axle"]
+    a, d = (ax.at[0], ax.at[1], ax.at[2] / 2.5), ax.axis
+    on = []
+    for q in placed:
+        if q is p:
+            continue
+        for h in holes[q.id]:
+            if h.kind not in ("pin_hole", "axle_hole") or abs(sum(h.axis[i] * d[i] for i in range(3))) < 0.99:
+                continue
+            w = (h.at[0] - a[0], h.at[1] - a[1], h.at[2] / 2.5 - a[2])
+            t = sum(w[i] * d[i] for i in range(3))
+            if abs(t) < ax.length / 2 and math.dist(w, tuple(t * d[i] for i in range(3))) < 0.05:
+                on.append((t, h.kind))
+    grips = [t for t, k in on if k == "axle_hole"]
+    rounds = [t for t, k in on if k == "pin_hole"]
+    if rounds:
+        held = any(g < r for g in grips for r in rounds) and any(g > r for g in grips for r in rounds)
+    else:
+        held = bool(grips)
+    if not held:
+        loose.append(f"{p.id} ({p.part})")
+assert not loose, f"axles that can slide out: {loose}"
+"#;
+    let (v, code) = check_of("held", &format!("{BIKE}\n{check}"), &[]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
+}
+
+/// The display-bike techniques take a photo's proportions and build a whole e-bike that checks clean: on its wheels
+/// and its kickstand with no base, the wheels about two diameters apart and level, a seat, a rack, a battery, and a
+/// front fender, from the techniques alone 200 parts or more (the agent's detail comes on top).
 #[test]
 fn a_bike_sized_to_its_photo_checks_clean() {
-    let body = r#"frame = m.use("motorbike_frame", x=10, y=6, z=2.5 * (2 + 5.92), head=(12.2, 7.3), bottom=(3.1, -1.9), rake=23)
-swingarm = m.use("swingarm_shock", frame=frame, reach=8, drop=2, wheel="fat")
-m.use("chain_drive", frame=frame, swingarm=swingarm)
-m.use("kickstand", frame=frame, swingarm=swingarm)
-fork = m.use("suspension_fork", frame=frame, drop=swingarm["drop"], wheel="fat")
-m.use("disc_brake", fork=fork)
-m.use("handlebars", fork=fork, rise=5)
-rear, front = swingarm["rear_axle"], fork["front_axle"]
-assert 21 <= front[0] - rear[0] <= 25, (rear, front)
-assert abs(front[2] - rear[2]) < 0.01, (rear, front)"#;
-    let (v, code) = check_of("e-bike", body, &[]);
+    let body = format!(
+        "{BIKE}\nrear, front = swingarm[\"rear_axle\"], fork[\"front_axle\"]\nassert 21 <= front[0] - rear[0] <= 25, \
+         (rear, front)\nassert abs(front[2] - rear[2]) < 0.01, (rear, front)\nassert len(m._ids) >= 200, len(m._ids)"
+    );
+    let (v, code) = check_of("e-bike", &body, &[]);
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
 }

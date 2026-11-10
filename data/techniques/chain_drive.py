@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Chain drive: a display motorbike's or e-bike's chain, a loop of Technic chain links from a chainring on a crank axle
-through the frame to a sprocket on the rear wheel's axle, with crank arms and pedals.
+"""Chain drive: a display motorbike's or e-bike's chain, a loop of Technic chain links from a chainring on the
+frame's crank axle to a sprocket on the rear axle, with crank arms and pedals.
 
-m.use("chain_drive", frame=frame, swingarm=swingarm, pedals=True, sprocket_color="Light Bluish Gray",
-chain_color="Black", crank_color="Black", title="Chain") takes what `motorbike_frame` and `swingarm_shock` returned. An
-axle 10 (3737), the crank, goes through the frame's bottom spars a stud behind their lower corner (the bottom bracket),
-a stud out past each side of the frame. A gear 24 tooth (3648b), the chainring, goes on it and a gear 16 tooth (4019) on
-the rear axle, both in the plane just inside the right arm. Technic chain links (3711) run round them: two straight
-runs, each tangent to both, and round each gear, the loop's length split into whole links (about 0.8 studs each), each
-link turned toward the next, so each one clips to the next and the gears hold the loop. With pedals, a crank arm on each
-end of the crank (a Technic beam 3 x 0.5, 6632) carries an axle pin (3749) and a pedal (another 6632 across it); the
-right arm points forward and down, the left back and up. The gears go on after the axles here; in a set's instructions
-they go on as each axle goes in. It brings its own steps (at most 8 links a step) and returns the number of links.
+m.use("chain_drive", frame=frame, swingarm=swingarm, pedals=True, ring_color="Black", sprocket_color="Light Bluish
+Gray", chain_color="Black", crank_color="Black", title="Chain") takes what `motorbike_frame` and `swingarm_shock`
+returned. A gear 24 tooth (3648b), the chainring, goes on the frame's crank axle and a gear 16 tooth (4019) on the rear
+axle, both in the plane inside the right swingarm arm, outside the frame and the tire. Technic chain links (3711) run
+round them: two straight runs, each tangent to both, and round each gear, the loop's length split into whole links
+(about 0.8 studs each), each link turned toward the next, so each one clips to the next and the gears hold the loop.
+With pedals, a crank arm on each end of the crank axle (a Technic beam 3 x 0.5, 6632) holds the axle's end and carries
+an axle pin (3749) and a pedal (another 6632 across it); the right arm points forward and down, the left back and up.
+The gears go on after the axles here; in a set's instructions they go on as each axle goes in. It brings its own steps
+(at most 8 links a step) and returns the number of links.
 """
 
 import math
@@ -22,7 +22,7 @@ from emmet_dsl.core import in_steps
 PROVENANCE = """Emmet's own (session 4G), written from general building knowledge of Technic motorbikes. Not derived
 from any model file."""
 
-PARTS = ["3737", "3648b", "4019", "3711", "6632", "3749"]
+PARTS = ["3648b", "4019", "3711", "6632", "3749"]
 
 RING, SPROCKET = 1.5, 1.0  # the 24- and 16-tooth gears' pitch radii, in studs
 PITCH = 0.8  # a chain link's, in studs
@@ -79,32 +79,19 @@ def build(
     frame,
     swingarm,
     pedals=True,
+    ring_color="Black",
     sprocket_color="Light Bluish Gray",
     chain_color="Black",
     crank_color="Black",
     title="Chain",
 ):
-    """The crank, the two gears, the chain round them, and the pedals; returns how many links it took."""
+    """The two gears, the chain round them, and the cranks and pedals; returns how many links it took."""
     y = frame["y"]
-    plane = (
-        y - frame["width"] / 2 + 0.5
-    )  # inside the right arm (the top spar's plane, which is clear down here)
-    bracket = frame["bottom"].hole(
-        frame["lengths"][2]
-    )  # a stud behind the lower corner
-    with m.step(f"{title}: crank and gears"):
-        m.insert(
-            "3737",
-            crank_color,
-            bracket,
-            out="+y",
-            out_by=y + 5 - (bracket.at[1] + bracket.length / 2),
-        )
-        cx, _, cz = bracket.at
-        rx, _, rz = swingarm["rear_axle"]
-        m.add(
-            "3648b", sprocket_color, at=(cx, plane, cz), rot=1, hole=3
-        )  # its axle hole
+    plane = y - (frame["planes"]["arm"] - 1)  # inside the right arm
+    cx, _, cz = frame["crank"]
+    rx, _, rz = swingarm["rear_axle"]
+    with m.step(f"{title}: chainring and sprocket"):
+        m.add("3648b", ring_color, at=(cx, plane, cz), rot=1, hole=3)  # its axle hole
         m.add("4019", sprocket_color, at=(rx, plane, rz), rot=1, hole=1)
     points = _loop((rx, rz / 2.5), (cx, cz / 2.5))
 
@@ -119,7 +106,7 @@ def build(
     if pedals:
         with m.step(f"{title}: cranks and pedals"):
             for s in (-1, 1):
-                # A crank arm on each end of the crank: the right one forward and down, the left back and up.
+                # A crank arm on each end of the crank axle: the right one forward and down, the left back and up.
                 at = (cx, y + s * 4.75, cz)
                 arm = m.beam(
                     "6632", crank_color, at=at, run=-1.6 * s, rise=1.2 * s, holes=(1, 3)
@@ -145,6 +132,6 @@ def build(
 
 def example(m):
     """A chain from the crank to the rear wheel, on a frame and swingarm."""
-    frame = m.use("motorbike_frame", x=10, y=6, z=27)
+    frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
     swingarm = m.use("swingarm_shock", frame=frame)
     m.use("chain_drive", frame=frame, swingarm=swingarm)

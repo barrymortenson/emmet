@@ -273,6 +273,8 @@
 43093 32054 87082                     # axle pin with friction, long pin with stop bush, long pin with pin hole
 6536 32184 42003 32039 59443          # cross blocks, axle connector, axle joiner
 3737 44294 3708                       # axles 10, 7, and 12
+50451   # Technic Axle 16 (a display bike's fork tubes)
+32291   # Technic Cross Block 2 x 2 (a front fender's brackets)
 73129   # Technic Shock Absorber 6.5L
 4019    # Technic Gear 16 Tooth (sprocket)
 3711    # Technic Chain Link

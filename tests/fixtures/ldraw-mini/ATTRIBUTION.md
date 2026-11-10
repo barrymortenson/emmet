@@ -2,7 +2,7 @@
 
 This directory is a subset of the **LDraw.org Parts Library**, release 2026-10, from
 https://library.ldraw.org/library/updates/complete.zip (sha256 `023083918da2d3697c794fb4267975509584f3611b993095874206a803fa610f`). It is a test fixture for Emmet
-(plan section 12): 484 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+(plan section 12): 486 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -740,6 +740,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/32140.dat | Technic Beam  2 x  4 Liftarm Bent 90 | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32184.dat | Technic Cross Block 1 x 3 (Axle/Pin/Axle) | Jeff Boen [onyx] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32278.dat | Technic Beam 15 | Ishino Keiichiro | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/32291.dat | Technic Cross Block 2 x 2 (Axle/Twin Pin) | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32316.dat | Technic Beam  5 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3245c.dat | Brick  1 x  2 x  2 without Understud | Stephan Meisinger [smr] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32523.dat | Technic Beam  3 | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -908,6 +909,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/49307.dat | Brick  1 x  1 x  0.667 with Curved Top | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/49612.dat | Brick  4 x  4 x  2.667 Corner Round with Dome Top | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/49668.dat | Plate  1 x  1 with Tooth In-line | Bernd Broich [bbroich] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/50451.dat | Technic Axle 16 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/50950.dat | Slope Brick Curved  3 x  1 | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/52501.dat | Slope Brick 45  6 x  1 Double Inverted with Open Centre | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/53400.dat | Train Track 6 Studs Wide Curved | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |

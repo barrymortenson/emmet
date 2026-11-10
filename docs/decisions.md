@@ -976,3 +976,17 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   makes the folder by that name (a taken one gets "name 2") with `[build]` written. Options shows the settings as a
   line of words with Change on every model, an empty one too. The Cottage example, on first run's start screen, still opens with no dialog.
   Rejected: its own branch and PR, and waiting until 4G merges.
+- **The bike techniques get fixed again, then one more e-bike run** (Barry, 2026-11-09, through AskUserQuestion: "Fix
+  techniques, rerun"). His second hand session (ebike1) validated with 0 errors and scored proportions 1,
+  recognizability 2, buildability 1 (4 of 6), but stopped at 260 parts: the project said Pieces Medium (250–1,000) and
+  no scale, so the agent took the range's floor as the target and asked nothing. His notes: "the forks and kickstand
+  and rear suspension are not very well designed, they are design to be non-functioning event though there are
+  components like a spring, or they porportions are off and could be improved. The over all bike still lacks the
+  detail I was expecting for this type of model." In the session he said the fork "is not stable", the axles need
+  "something to retain them", and the kickstand goes "of the rear left swing arm"; the agent then dropped the stock
+  frame, swingarm, and fork because their axles were flush. So: `suspension_fork` guides the wheel on its tubes and
+  the shocks only spring it; every axle end in the bike techniques is held (a bush, a half bush, or a crank); the
+  kickstand pins to the left swingarm arm; the rear shock can be one in the middle; bodywork techniques add the detail
+  (fenders, a rack, a battery case); and the agent aims at the subject's part range and the upper half of the Pieces
+  setting, not its floor. Barry reruns once with Scale Large and Pieces Large. Rejected: rerunning with no fixes, and
+  opening the PR with Done when 4 unmet.
