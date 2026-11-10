@@ -990,3 +990,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   (fenders, a rack, a battery case); and the agent aims at the subject's part range and the upper half of the Pieces
   setting, not its floor. Barry reruns once with Scale Large and Pieces Large. Rejected: rerunning with no fixes, and
   opening the PR with Done when 4 unmet.
+- **The ten reworked bike techniques are accepted** (Barry, 2026-11-10, on the review page
+  `docs/techniques/candidates/batch-19.html`, through AskUserQuestion: "Accept all 10"). Before the port he saw the
+  prototype's renders and said it was the right direction (2026-11-09, "Right direction"). motorbike_frame,
+  swingarm_shock, suspension_fork, chain_drive, disc_brake, handlebars, and kickstand, reworked so the wheels spring
+  against their shocks and every axle is held, and bike_seat_rack, battery_case, and front_fender, new. Rejected:
+  marking them one by one.
