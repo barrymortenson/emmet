@@ -132,6 +132,10 @@ describe("building instructions", function () {
       await (await $("[data-menu='pdf']")).waitForDisplayed();
       await click("[data-menu='pdf']");
       await exported(rung, file);
+      // The toast is let go: on the hosted Mac it stayed up past its 5 s, into the next export and the screens spec's
+      // window baselines after this spec (run 42956714820).
+      await (await $("#toast [aria-label='Dismiss']")).click();
+      await (await $("#toast")).waitForExist({ reverse: true });
       const pdf = join(agentHome, "Downloads", file);
       expect(readFileSync(pdf).subarray(0, 8).toString("latin1")).toBe("%PDF-1.4");
       const pages = await browser.execute(async () => {
