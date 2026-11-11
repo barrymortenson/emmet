@@ -128,7 +128,6 @@ techniques!(
     davit_lifeboat,
     dentil_band,
     dirt_path,
-    disc_brake,
     display_case_counter,
     dock_pier,
     dome_from_quarters,

@@ -304,6 +304,9 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize, misplaced: &HashSet<usize>) ->
             ways.push((w, other));
         }
     }
+    if let Some(raw) = threaded_shut(m, scope, ei, &earlier) {
+        return Some(raw);
+    }
     let (way, _) = *ways.first()?;
     // Between earlier parts on opposite sides: the later of them closed it in.
     let squeezed = ways
@@ -387,6 +390,80 @@ fn no_way_in(m: &Model, scope: &Scope, ei: usize, misplaced: &HashSet<usize>) ->
     raw.severity = Some(Severity::Warning);
     Some(raw)
 }
+
+/// A part threaded onto an earlier pin's or axle's shaft (its hole around the shaft: a wheel, a gear, a disc, a bush,
+/// a cross block on a fork tube) after earlier parts are on that shaft on both sides of it: it can only slide on from
+/// an end, and both ends are shut (Barry's fifth e-bike session, 2026-11-10: brake discs and a sprocket put on axles
+/// already through a wheel and the arms either side). A warning, like the rest of the way-in check.
+fn threaded_shut(m: &Model, scope: &Scope, ei: usize, earlier: &dyn Fn(usize) -> bool) -> Option<Raw> {
+    let es = &scope.elements;
+    let e = &es[ei];
+    let i = e.parts[0];
+    // How far along a shaft (from its start) each part on it sits.
+    let along = |start: DVec3, end: DVec3, at: DVec3| (at - start).dot((end - start).normalize_or_zero());
+    for c in m.links.iter().filter(|c| c.b == i && c.a != i && earlier(c.a)) {
+        let Some((start, end, _)) = c.shaft else {
+            continue;
+        };
+        let shaft = c.a;
+        let mine = along(start, end, c.at);
+        // The earlier parts on the same shaft, the nearest on each side of it.
+        // Each a (distance, part) pair.
+        let mut below: Option<(f64, usize)> = None;
+        let mut above: Option<(f64, usize)> = None;
+        for d in m
+            .links
+            .iter()
+            .filter(|d| d.a == shaft && d.b != i && d.b != shaft && earlier(d.b))
+        {
+            if d.shaft.is_none() {
+                continue;
+            }
+            let t = along(start, end, d.at) - mine;
+            // A stud's width apart at least: a part beside it on the shaft, not one sharing its seat.
+            if t <= -SIDE && below.is_none_or(|(b, _)| t > b) {
+                below = Some((t, d.b));
+            } else if t >= SIDE && above.is_none_or(|(a, _)| t < a) {
+                above = Some((t, d.b));
+            }
+        }
+        let (Some((_, lo)), Some((_, hi))) = (below, above) else {
+            continue;
+        };
+        let step = |j: usize| scope.of.get(&j).map_or(0, |&o| es[o].step);
+        let what = label(m, e, scope.key.len());
+        let named = |j: usize| {
+            scope
+                .of
+                .get(&j)
+                .map_or_else(|| m.placed[j].p.id.clone(), |&o| label(m, &es[o], scope.key.len()))
+        };
+        let (first, last) = if step(lo) <= step(hi) { (lo, hi) } else { (hi, lo) };
+        let closed = step(last).max(step(shaft));
+        let message = format!(
+            "{what} goes onto {} at step {}, but {} (step {}) and {} (step {}) are already on it either side: it can't \
+             slide on from either end.",
+            named(shaft),
+            e.step,
+            named(first),
+            step(first),
+            named(last),
+            step(last),
+        );
+        let hint = format!(
+            "Put it on in step {closed} or before, with {} and whatever goes on the shaft beside it, before both ends \
+             are closed.",
+            named(shaft)
+        );
+        let mut raw = Raw::new(Rule::StepOrder, vec![i], dsl_box(&m.boxes[i]?).min, message, hint);
+        raw.severity = Some(Severity::Warning);
+        return Some(raw);
+    }
+    None
+}
+
+/// How far apart along a shaft two parts' seats must be to be on either side of each other, in LDU (half a stud).
+const SIDE: f64 = 10.0;
 
 /// step_size: a step adds more than the build's target (each submodel copy counts as one).
 pub(super) fn step_size(m: &Model, target: usize) -> Vec<Raw> {

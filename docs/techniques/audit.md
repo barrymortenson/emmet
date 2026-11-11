@@ -8,8 +8,9 @@ were regenerated, and each example validates clean, figure_clearance included (`
 also checks this table has a row for every technique).
 
 Four readers drafted a row each from the code; the verdicts and every fix were checked against the code and tested.
-**331 fine, 39 fixed, 8 limited by design.** Session 4G added ten display-bike techniques, each fine at display
-scale, where no figure has to fit. Beyond the 4B station's canopy and
+**330 fine, 39 fixed, 8 limited by design.** Session 4G added ten display-bike techniques, each fine at display
+scale, where no figure has to fit; `disc_brake` then folded into `suspension_fork` and `swingarm_shock`, so the discs go
+on with their axles (Barry 2026-11-10), leaving nine. Beyond the 4B station's canopy and
 porches, the audit found doorways that kept nothing clear or were too low for a figure (`portcullis` was 6 plates,
 `cave_mouth` about 10, `brick_built_arch` 3), seats with no room declared, a colonnade 9 plates high, a footbridge whose
 posts left 1 stud between them, three vehicles whose seat faced the rear a quarter stud off the grid, and cabs 5 plates
@@ -112,7 +113,6 @@ Figure: walk-under, walk-through, sit, walk-on, walk-past, or none. Sizes in stu
 | `davit_lifeboat` | none | — | — | — | fine | — |
 | `dentil_band` | none | — | — | — | fine | — |
 | `dirt_path` | walk-on | a path 2 studs wide, surface z+1 | — | — | fine | — |
-| `disc_brake` | none | display scale: no figure (4G) | — | — | fine | — |
 | `display_case_counter` | walk-past | counter 2 deep x length 4; top plate z+7, tiles at z+8 (surface z+9) | — | — | fine | — |
 | `dock_pier` | walk-on | deck width 4 (2 to 8), planks' top z + 3*height + 3 (z+9 by default); piles under it | — | returns the planks' top | fine | — |
 | `dome_from_quarters` | none | — | — | — | fine | — |

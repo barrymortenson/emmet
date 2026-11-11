@@ -1060,3 +1060,11 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   fails", and `emmet eval --score` failed run 5's 268 parts though Barry scored it 5 of 6. With no setting naming a
   part count, a subject passes at 0 validator errors and 4 of 6 or more; the report shows the count beside what a
   display set of the subject has. Rejected: dropping the ranges, and keeping them as a gate.
+- **disc_brake folds into the fork and the swingarm** (Barry, 2026-11-10, through AskUserQuestion: "Fold into
+  fork/swingarm"). Built in order, a brake disc, the rear sprocket, and the front fender's brackets go on in the step
+  their axle or fork tube goes in, and the DSL can't add parts to an earlier step. So `suspension_fork` places the
+  front discs (`discs`) and the fender's brackets (`fender`) and `swingarm_shock` the rear disc (`disc`) and the
+  sprocket (`sprocket`), each with its shaft; `chain_drive` runs its chain round the swingarm's sprocket and
+  `front_fender` hangs its blade on the fork's brackets; `disc_brake` is retired, leaving nine bike techniques. The
+  frame puts its head's cross blocks on with the head axle, and the swingarm puts the shock's mount axle in through
+  the shock. Rejected: keeping disc_brake with a closing call that puts the axles in last.

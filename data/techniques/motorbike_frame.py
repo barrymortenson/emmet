@@ -19,17 +19,19 @@ where nothing else is: below the crank, behind the pivot, past the rail's front 
 
 From the outside in, a side's planes are the rail's, then the seat tube's and down tube's, then the top tube's and the
 link's; the swingarm goes outside them. The right side (-y) goes together first, then the cross axles through it: the
-head's, an axle 7 (44294); the pivot's, an axle 12 (3708), a stud out past each swingarm arm for its bushes; the crank's,
-an axle 10 (3737), for `chain_drive`'s crank arms; and the shock mount's, an axle 6 (3706) through a down tube hole near
-the crank, for the rear shock's top, chosen with the swingarm's angle so a shock absorber 6.5L reaches it from a stud
-behind the pivot. Then the left side goes on the axles. A thin liftarm (6632) on each end of the head axle, pinned to
-the down tube's next hole, holds the axle in and stops it turning, so the bearing on it can't tip: a Technic cross block
-1 x 2 (6536) in the middle whose pin hole, a stud forward, runs along the steering axis. The fork's steerer turns in it
-(`suspension_fork`).
+pivot's, an axle 12 (3708), a stud out past each swingarm arm for its bushes, and the crank's, an axle 10 (3737), for
+`chain_drive`'s crank arms. Then the left side goes on the axles. Last, the head: a thin liftarm (6632) each side,
+pinned to the down tube's next hole, and a Technic cross block 1 x 2 (6536) between the sides whose pin hole, a stud
+forward, runs along the steering axis, then the head's axle 7 (44294) pushed in through them all, so nothing goes onto
+an axle after both its ends are closed; the liftarms hold the axle in and stop it turning, so the bearing on it can't
+tip. The fork's steerer turns in it (`suspension_fork`). The rear shock's top goes on an axle 6 through a down tube hole
+near the crank, chosen with the swingarm's angle so a shock absorber 6.5L reaches it from a stud behind the pivot:
+`swingarm_shock` pushes that axle in through the shock.
 
 It brings its own steps and returns the frame: a dict of "pivot", "y", "steering" (the bearing's pin hole) and "head"
 (its middle), "rake" (a stud down the steering axis, as run and rise) and "forward" (a stud square to it, forward),
-"arm_angle" (the swingarm's, in degrees below level), "shock_mount" (the shock axle's middle), "crank" (the crank
+"arm_angle" (the swingarm's, in degrees below level), "shock_mount" (the shock axle's middle) and "shock_mount_hole"
+(the right down tube's hole it goes in), "crank" (the crank
 axle's middle), "nodes" (the joints, (run, rise) in studs from the pivot: "pivot", "crank", "rail", "head", "seat"),
 "to_model" (a function from (run, rise, across) studs to a point in the model), "lengths", "planes", and "sides" ("right"
 and "left", each a dict of the "top", "seat", "down", "link", and "rail" beams' Handles), which `swingarm_shock`,
@@ -55,7 +57,6 @@ PARTS = [
     "44294",
     "3708",
     "3737",
-    "3706",
     "6632",
     "6536",
 ]
@@ -69,7 +70,7 @@ BEAMS = {
     13: "41239",
     15: "32278",
 }
-AXLES = {6: "3706", 7: "44294", 10: "3737", 12: "3708"}
+AXLES = {7: "44294", 10: "3737", 12: "3708"}
 # The planes' middles, studs from the center plane on each side.
 PLANES = {
     "top": 1.5,
@@ -269,11 +270,9 @@ def build(
         return m.insert(AXLES[n], axle_color, hole, out="+y", out_by=y + hi - face)
 
     with m.step(f"{title}: cross axles"):
-        across(7, right["top"].hole(firsts["top"]), 3.5)  # the head
         # The pivot, out to the swingarm's bushes
         across(12, right["link"].hole(firsts["link"]), 6)
         across(10, right["link"].hole(firsts["link"] + c), 5)  # the crank
-        across(6, mount_hole, 3)  # the shock mount
     side(1, "left")
     r_ = math.radians(rake)
     forward, down = (math.cos(r_), math.sin(r_)), (math.sin(r_), -math.cos(r_))
@@ -304,6 +303,8 @@ def build(
             axis="y",
             holes=(2, 1),
         )
+        # In last, through the liftarms, the sides, and the bearing: they're all on it when its ends close.
+        across(7, right["top"].hole(firsts["top"]), 3.5)
     steering = bearing.hole(1)
     D = (B[0] + kd * (X[0] - B[0]) / k, B[1] + kd * (X[1] - B[1]) / k)
     return {
@@ -315,6 +316,7 @@ def build(
         "forward": forward,
         "arm_angle": math.degrees(th),
         "shock_mount": to_model(*D),
+        "shock_mount_hole": mount_hole,
         "crank": to_model(*B),
         "nodes": {"pivot": P, "crank": B, "rail": X, "head": H, "seat": T},
         "to_model": to_model,

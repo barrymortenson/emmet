@@ -103,7 +103,7 @@
   </div>
 </section>
 <section class="card" data-n="5">
-  <div class="shot"><img src="../../../data/techniques/disc_brake.png" alt="The example of disc_brake" width="320" height="320"></div>
+  <div class="shot"><p class="note"><b>Retired 2026-11-10:</b> folded into <code>suspension_fork</code> (<code>discs</code>) and <code>swingarm_shock</code> (<code>disc</code>), so each disc goes on with its axle, before the axle closes (Barry, after his fifth e-bike session; docs/decisions.md).</p></div>
   <div class="body">
     <h2><span class="n">5</span> <code>disc_brake</code></h2>
     <p>Brake discs on the front axle, between the hub and each slider, and one on the rear axle inside the left arm.</p>
@@ -111,7 +111,7 @@
     <p class="note"><b>Note:</b> There&#x27;s no separate caliper: there&#x27;s no room beside the slider, which stands in for it.</p>
     <dl>
       <dt>Parameters</dt><dd><code>fork</code>, <code>swingarm</code>, <code>disc_color</code>, <code>both</code>, <code>title</code></dd>
-      <dt>Technique</dt><dd><a href="../../../data/techniques/disc_brake.py"><code>data/techniques/disc_brake.py</code></a></dd>
+      <dt>Technique</dt><dd>Retired; its discs are in <code>data/techniques/suspension_fork.py</code> and <code>data/techniques/swingarm_shock.py</code></dd>
       <dt>Parts</dt><dd><code>65416</code></dd>
     </dl>
     <div class="pick" role="radiogroup" aria-label="Decision for disc_brake">

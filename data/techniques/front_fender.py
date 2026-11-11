@@ -2,11 +2,12 @@
 """Front fender: a display e-bike's or dirt bike's high front fender, a blade over the front tire that hangs from the
 fork tubes, so it turns with the fork, and stays put while the wheel springs up and down under it.
 
-m.use("front_fender", fork=fork, length=8, color="Black", top_color="Black", bracket_color="Black", title="Front
-fender") takes what `suspension_fork` returned (its front axle at least 10 studs down the fork, so the fender has room
-above the tire). On each fork tube, just under the lower clamp's bushes, a Technic cross block 2 x 2 (32291) is fixed by
-its axle hole; two friction pins (2780) from its twin pin holes hold a Technic L-liftarm 2 x 4 (32140) inside it, one
-leg along the tube and the other reaching 3 studs forward. Two axles cross between the liftarms' forward holes: an axle
+m.use("front_fender", fork=fork, length=8, color="Black", top_color="Black", arm_color="Black", title="Front fender")
+takes what `suspension_fork` returned, the fork made with `fender=True` (its front axle at least 10 studs down the fork,
+so the fender has room above the tire): that puts a Technic cross block 2 x 2 (32291) on each fork tube just under the
+lower clamp's bushes, with the tube, since nothing can slide onto a tube once it's in. Two friction pins (2780) from
+each block's twin pin holes hold a Technic L-liftarm 2 x 4 (32140) inside it, one leg along the tube and the other
+reaching 3 studs forward. Two axles cross between the liftarms' forward holes: an axle
 7 (44294) through their end axle holes, which grip it, and an axle 8 (3707) a stud behind, with a half bush (32123a) on
 each end. On them, between the liftarms, four Technic bricks 1 x 4 with holes (3701) sit with their studs up the fork;
 on those, a blade of plates 4 wide and `length` studs long (6 or 8), from a stud behind the fork tubes forward, and
@@ -21,7 +22,6 @@ PROVENANCE = """Emmet's own (session 4G), written from general building knowledg
 fender on the e-bike Barry builds. Not derived from any model file."""
 
 PARTS = [
-    "32291",
     "2780",
     "32140",
     "44294",
@@ -61,39 +61,28 @@ def build(
     length=8,
     color="Black",
     top_color="Black",
-    bracket_color="Black",
+    arm_color="Black",
     title="Front fender",
 ):
-    """The brackets, liftarms, axles, bricks, plates, and tiles."""
+    """The liftarms, axles, bricks, plates, and tiles, on the fork's brackets."""
     if length not in (6, 8):
         raise ValueError(f"front_fender: length {length} isn't 6 or 8 studs")
-    along, half, travel = fork["along"], fork["half"], fork["travel"]
-    if travel < 10:
+    if not fork.get("brackets"):
         raise ValueError(
-            f"front_fender: the front axle is {travel:.1f} studs down the fork; the fender needs 10 or more, for room "
-            "between the lower clamp and the tire"
+            "front_fender: the fork has no brackets for it; make it with suspension_fork(..., fender=True), which puts "
+            "them on the fork tubes before the tubes go in"
         )
+    along, half = fork["along"], fork["half"]
     rx, rz = fork["rake"]
     r = math.degrees(math.atan2(rx, -rz))  # the rake
-    t0 = 3.0  # the brackets' axle holes, studs down the fork: under the lower clamp's bushes
+    t0 = fork["bracket_at"]  # the brackets' axle holes, studs down the fork
     pin = t0 + 0.5  # the liftarms' corner holes, on the brackets' lower pins
-    bracket_rot, arm_rot, brick_rot = (
-        Rot(x=-(90 + r), z=90),
-        Rot(x=90, y=-r),
-        Rot(x=r, z=-90),
-    )
-    with m.step(f"{title}: brackets"):
-        for s in (-1, 1):
-            block = m.add(
-                "32291",
-                bracket_color,
-                at=along(t0, side=s * half),
-                rot=bracket_rot,
-                hole="2",
-            )
+    arm_rot, brick_rot = Rot(x=90, y=-r), Rot(x=r, z=-90)
+    with m.step(f"{title}: arms"):
+        for s, block in zip((-1, 1), fork["brackets"]):
             arm = m.add(
                 "32140",
-                bracket_color,
+                arm_color,
                 at=along(pin, f=1, side=s * (half - 1)),
                 rot=arm_rot,
                 hole="1",
@@ -171,5 +160,5 @@ def example(m):
     """A front fender on a bike's fork."""
     frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
     swingarm = m.use("swingarm_shock", frame=frame)
-    fork = m.use("suspension_fork", frame=frame, swingarm=swingarm)
+    fork = m.use("suspension_fork", frame=frame, swingarm=swingarm, fender=True)
     m.use("front_fender", fork=fork)

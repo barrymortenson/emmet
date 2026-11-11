@@ -141,7 +141,6 @@ pub const TECHNIQUES: &[(&str, &str)] = technique_files![
     "davit_lifeboat",
     "dentil_band",
     "dirt_path",
-    "disc_brake",
     "display_case_counter",
     "dock_pier",
     "dome_from_quarters",

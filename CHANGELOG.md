@@ -225,7 +225,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   and rear axle with a level top tube; swingarm_shock hangs the rear wheel on one shock that is its spring;
   suspension_fork steers on a triple tree and carries the front axle on sliders that run on the fork tubes, a shock
   each side as the spring; every axle has a bush, a crank arm, or a cross block on it, so nothing slides out;
-  kickstand stands the bike from the left swingarm arm, with no base; chain_drive, disc_brake, and handlebars; and
+  kickstand stands the bike from the left swingarm arm, with no base; chain_drive and handlebars, with the brake discs
+  and the chain's sprocket on the fork and the swingarm, put on with their axles; and
   bike_seat_rack (the seat and rack on a spine pinned to the top tubes, with the rear fender and tail lights),
   battery_case (the battery in the frame's triangle), and front_fender. The large guide's Display bikes has the agent
   measure the photo first. ldraw-mini moves to LDraw 2026-10, the release Emmet pins, and adds an axle 16 and a cross
@@ -236,7 +237,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   detail, style, base) first, so the agent builds to them from its first turn; Options shows them as a line of
   words with Change. Base picks the starter model (None: no parts; a size: that green baseplate), and the viewer
   draws a faint stud grid on the table under every model (not in pictures); a model that opens empty is framed when
-  its first parts come. In the viewer, shift-drag pans and ⌥-drag draws the selection box.
+  its first parts come. The validator's step_order warns of a part threaded onto an axle or pin after earlier parts
+  are on it both sides, so it can't slide on, and the bike techniques put such parts on with their axles. In the viewer, shift-drag pans and ⌥-drag draws the selection box.
 - Building instructions as a PDF (session 4E): Export → Instructions → PDF in the app, and `emmet export --format pdf
   [--paper a4|letter]`, with no LPub3D needed. A cover; the steps, two to a page, each with its number over its parts
   box and its new parts outlined in red; a camera that stays put through a run of steps and follows the work; each

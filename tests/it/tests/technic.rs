@@ -319,6 +319,57 @@ m.ground("leg/left", "leg/right")"#;
     }
 }
 
+/// A part slid onto an axle after earlier parts are on it either side is out of order: it can't go on (Barry's fifth
+/// e-bike session, 2026-11-10, its brake discs and sprocket). The wheel between the legs, put on after the axle runs
+/// through both, is a step_order warning naming the axle and the legs; on with the axle, it's clean; and a bush on
+/// the axle's free end afterward is fine, since that end is open.
+#[test]
+fn a_part_slid_onto_an_axle_after_both_its_ends_are_shut_is_out_of_order() {
+    let fork = r#"with m.step("Table"):
+    m.add("3703", "Black", at=(10, 0, 0), id="table")
+with m.step("Fork"):
+    left = m.beam("32524", "Black", at=(0, 0.5, 40), run=0, rise=6, id="leg/left")
+    right = m.beam("32524", "Black", at=(0, 4.5, 40), run=0, rise=6, id="leg/right")
+hub = left.hole(1)
+"#;
+    let axle = r#"axle = m.insert("44294", "Light Bluish Gray", left.hole(1), out="+y", out_by=4, id="axle")
+"#;
+    let wheel = r#"m.add("88517c01", "Black", at=(hub.at[0], 2.5, hub.at[2]), rot=1, hole=3, id="wheel")
+"#;
+    let bush = r#"with m.step("Bush"):
+    m.add("3713", "Black", at=(hub.at[0], axle.max[1] - 0.5, hub.at[2]), rot=1, hole="1", id="bush")
+m.ground("leg/left", "leg/right")"#;
+    let step = |name: &str, lines: &str| {
+        format!(
+            "with m.step(\"{name}\"):\n{}",
+            lines.lines().map(|l| format!("    {l}\n")).collect::<String>()
+        )
+    };
+    // The axle through both legs first, the wheel after: shut in.
+    let late = format!("{fork}{}{}{bush}", step("Axle", axle), step("Wheel", wheel));
+    let (v, code) = check_of("shut-in", &late, &[]);
+    assert_eq!(code, 0, "{v}");
+    let findings = v["data"]["findings"].as_array().unwrap();
+    assert_eq!(findings.len(), 1, "{v:#}");
+    let f = &findings[0];
+    assert_eq!(
+        (f["rule"].as_str(), f["severity"].as_str()),
+        (Some("step_order"), Some("warning")),
+        "{f:#}"
+    );
+    assert_eq!(f["parts"], serde_json::json!(["wheel"]), "{f:#}");
+    let message = f["message"].as_str().unwrap();
+    for word in ["axle", "leg/left", "leg/right", "can't slide on"] {
+        assert!(message.contains(word), "{message}");
+    }
+    assert!(f["hint"].as_str().unwrap().contains("step 3 or before"), "{f:#}");
+    // The wheel on with its axle: clean, the bush on the open end included.
+    let together = format!("{fork}{}{bush}", step("Wheel", &format!("{axle}{wheel}")));
+    let (v, code) = check_of("on-with-it", &together, &[]);
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
+}
+
 /// The DSL says when a triangle doesn't land on holes, and which ones do; and a round pin won't go in an axle hole.
 #[test]
 fn beams_and_pins_that_cant_fit_say_why() {
@@ -357,11 +408,10 @@ fn beams_and_pins_that_cant_fit_say_why() {
 /// A whole display e-bike from the bike techniques at their defaults, which fit a fat-tire e-bike's photo.
 const BIKE: &str = r#"frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
 swingarm = m.use("swingarm_shock", frame=frame)
-fork = m.use("suspension_fork", frame=frame, swingarm=swingarm)
+fork = m.use("suspension_fork", frame=frame, swingarm=swingarm, fender=True)
 m.use("chain_drive", frame=frame, swingarm=swingarm)
 m.use("kickstand", swingarm=swingarm)
 m.use("handlebars", fork=fork)
-m.use("disc_brake", fork=fork, swingarm=swingarm)
 seat = m.use("bike_seat_rack", frame=frame)
 m.use("battery_case", frame=frame, seat=seat)
 m.use("front_fender", fork=fork)"#;
@@ -400,8 +450,7 @@ fn crossing(links: &[(String, String, String)], inside: impl Fn(&str) -> bool) -
 fn the_fork_turns_on_its_steerer_alone() {
     let body = r#"frame = m.use("motorbike_frame", x=12, y=8, z=2.5 * 9.6)
 swingarm = m.use("swingarm_shock", frame=frame)
-fork = m.use("suspension_fork", frame=frame, swingarm=swingarm)
-m.use("disc_brake", fork=fork)
+fork = m.use("suspension_fork", frame=frame, swingarm=swingarm, fender=True)
 m.use("front_fender", fork=fork)
 m.use("handlebars", fork=fork)"#;
     let (v, code) = check_of("steering", body, &[]);
@@ -442,7 +491,8 @@ m.use("suspension_fork", frame=frame, swingarm=swingarm)"#;
     let across = crossing(&links_of(&v), wheel);
     for (w, other, kind) in &across {
         let slides = sliders.contains(&w.as_str()) && tubes.contains(&other.as_str()) && kind == "cyl";
-        let springs = w == "fork-front-wheel/2" && shocks.contains(&other.as_str());
+        // The front wheel step: the wheel, its two discs, then the axle (in last, through them all), and its bushes.
+        let springs = w == "fork-front-wheel/4" && shocks.contains(&other.as_str());
         assert!(
             slides || springs,
             "the front wheel hangs on {other} through {w} ({kind}): {across:?}"
@@ -472,10 +522,19 @@ m.use("swingarm_shock", frame=frame)"#;
     let (v, code) = check_of("rear-shock", body, &[]);
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["findings"], serde_json::json!([]), "{v:#}");
-    // The shock step: the axle through the arms, its two bushes, the shock, and the half bushes on the frame's mount.
-    let (pivot, mount, shock) = ("frame-cross-axles/2", "frame-cross-axles/4", "swingarm-shock/4");
+    // The frame's cross axles: the pivot, then the crank (the head's goes in last, with the head). The shock step: the
+    // axle through the arms, its two bushes, the shock, the half bushes on the frame's mount, and the mount axle,
+    // pushed in last through the down tubes, the half bushes, and the shock's eye: it's the frame's side of the joint.
+    let (pivot, mount, shock) = ("frame-cross-axles/1", "swingarm-shock/7", "swingarm-shock/4");
     let swing = |id: &str| {
-        id.starts_with("swingarm") && !["swingarm-shock/4", "swingarm-shock/5", "swingarm-shock/6"].contains(&id)
+        id.starts_with("swingarm")
+            && ![
+                "swingarm-shock/4",
+                "swingarm-shock/5",
+                "swingarm-shock/6",
+                "swingarm-shock/7",
+            ]
+            .contains(&id)
     };
     let links = links_of(&v);
     let across = crossing(&links, swing);

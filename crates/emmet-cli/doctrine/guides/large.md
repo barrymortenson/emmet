@@ -55,9 +55,9 @@ interface: if it doesn't fit, use its options, or build that part yourself. Buil
   rear sprocket, with the pedals, and the kickstand on the left swingarm arm (`swingarm_shock`, `chain_drive`,
   `kickstand`).
 - The fork, which steers and springs: a triple tree on a steerer turning in the frame's head bearing, the fork tubes
-  locked in it, sliders on the tubes carrying the front axle, and a shock each side as the spring; then the brakes,
-  the front fender, and the bars on the tubes' tops with their grips and levers (`suspension_fork`, `disc_brake`,
-  `front_fender`, `handlebars`). Nothing else joins the fork to the frame, so the bars turn it.
+  locked in it, sliders on the tubes carrying the front axle, its brake discs, and a shock each side as the spring;
+  then the front fender, and the bars on the tubes' tops with their grips and levers (`suspension_fork` with
+  `fender=True`, `front_fender`, `handlebars`). Nothing else joins the fork to the frame, so the bars turn it.
 - Then the bodywork, hung from the frame, in the subject's colors and shapes: the seat and rack on a spine pinned to
   the top tubes, with the rear fender and tail lights (`bike_seat_rack`), the e-bike's battery under it in the frame's
   triangle (`battery_case`), or the tank; then what makes it this bike: the motor or the hub, side panels and number

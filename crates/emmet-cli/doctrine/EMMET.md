@@ -126,8 +126,9 @@ steps; its example validates clean in the library's tests, and you validate your
   cockpit_canopy, hatch_on_hinge, landing_leg, turret, radar_dish, antenna_mast, solar_panel, control_console.
 - Mechanisms that move: gear_pair, worm_drive, crank_winch, technic_pin_hinge, lift_arm_linkage, technic_brace,
   rotating_platform, ball_joint_arm.
-- Display bikes (`guide large`): motorbike_frame, swingarm_shock, chain_drive, kickstand, suspension_fork,
-  disc_brake, front_fender, handlebars, bike_seat_rack, battery_case, sized to the photo through their options. A bike
+- Display bikes (`guide large`): motorbike_frame, swingarm_shock (with the rear brake disc and the
+  chain's sprocket), chain_drive, kickstand, suspension_fork (with the front discs and, for a fender, its brackets),
+  front_fender, handlebars, bike_seat_rack, battery_case, sized to the photo through their options. A bike
   stands on its kickstand, not a base.
 - A technique's doc (`technique <name>`) is its whole interface: when one doesn't fit, use its options, or build that
   part yourself. Never read Emmet's own source to work round one.
