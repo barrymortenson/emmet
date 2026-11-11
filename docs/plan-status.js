@@ -228,7 +228,10 @@ window.EMMET_STATUS = {
       note: "Note 008 is in the PR for Barry's read (the camera moves on a sub-step's click and goes back after). first run's new-empty baselines, stale since PR #60, were replaced here"
     },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
-    "5A": { status: "in-progress", branch: "bmortenson/s5a-test-matrix-eval", started: "2026-11-11" },
+    "5A": {
+      status: "in-progress", branch: "bmortenson/s5a-test-matrix-eval", started: "2026-11-11",
+      note: "Built and pushed: the test matrix, eval v1, the flake policy and budgets. Waiting, as the plan orders it (Barry 2026-11-11): 5B merges, 5A is rebased onto it, then H-09's 14 hand sessions (docs/evals/G2-runbook.md), the replay corpus from them, and seven green nightly runs"
+    },
     "5B": { status: "todo" },
     "6A": { status: "todo" },
     "6B": { status: "todo" },
@@ -251,7 +254,7 @@ window.EMMET_STATUS = {
     "H-06": { status: "done", date: "2026-10-26", note: "Rung 1 passed on both agents, each after one rerun (docs/evals/2026-10-26-rung1.md); Barry called G1 a go. terms-check and name-check weren't run for this call" },
     "H-07": { status: "done", date: "2026-10-27", note: "B (Canvas), as revised with Barry in 2A; asked through AskUserQuestion; docs/decisions.md" },
     "H-08": { status: "done", date: "2026-10-27", note: "Barry signed docs/design/SIGNOFF.md as is (47 screens, 49 components, the keyboard map, the content guide, the icons); asked through AskUserQuestion" },
-    "H-09": { status: "todo" },
+    "H-09": { status: "waiting", note: "prepared in 5A: docs/evals/G2-runbook.md; the runs come after 5B merges and 5A is rebased onto it (Barry 2026-11-11)" },
     "H-10": { status: "todo" },
     "H-11": { status: "done", date: "2026-10-24", note: "6743-1 Street Speeder, from the 0B shortlist (docs/spec/ladder.md)" },
     "H-12": { status: "todo" },

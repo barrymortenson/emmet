@@ -254,6 +254,12 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Security
 
+- rmcp 3.7.0 → 3.9.0 for RUSTSEC-2026-0462 (unbounded response buffering in its Streamable HTTP client, a transport
+  Emmet doesn't build in). CI's dependency audit had failed on it without failing the job: `cargo deny check &&
+  pnpm audit` inside an `if` doesn't stop a `set -e` script when the first command fails. They're two commands now.
+  The update writes nullable fields that are always present into each tool schema's `required` list, so
+  `docs/spec/mcp/` is regenerated; no tool's input or output changed.
+
 - A photo keeps none of its metadata: Emmet keeps only what a decoder needs (so every EXIF with its GPS, XMP, ICC,
   IPTC, comment, unknown segment, and anything after the image is dropped) before it saves or sends one, and
   refuses one in `refs/` that still has any, naming it, before the message is saved (4D).

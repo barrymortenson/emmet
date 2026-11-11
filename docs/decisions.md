@@ -1122,3 +1122,15 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   2026-11-09. The debounce is now a function the test feeds directly: a burst runs once, after it goes quiet, and a
   later change runs again. The test on the real file system keeps what the file system can promise: sources run the
   model, non-sources don't, and five saves run it at least once and fewer than five times.
+- **The G2 hand sessions wait for 5B** (Barry, 2026-11-11, through AskUserQuestion: "After 5B, as planned"). 5A is
+  built and pushed with the runbook ready; 5B runs next, 5A is rebased onto it, and the 14 runs happen once, on the
+  final code. Rejected: running them now (5B could change what G2 judged, and D-38 allows no second pass), and a
+  practice pass of rungs 2 and 3 outside the D-38 budget.
+- **rmcp goes to 3.9.0, and the dependency audit stops the job again** (the agent, 2026-11-11). A manual full CI run
+  printed "advisories FAILED" for RUSTSEC-2026-0462 and went on: `cargo deny check && pnpm audit --prod` inside an
+  `if` under `set -e` doesn't stop on the first command's failure. With the gate fixed, the advisory had to be met:
+  rmcp 3.9.0 is the fixed release, an update of a dependency Emmet already has, with no new package in Cargo.lock.
+  The advisory is in rmcp's Streamable HTTP client, which Emmet doesn't build in (stdio and child-process transports
+  only). The new release lists always-present nullable fields as required in the tool schemas; the committed
+  schemas are regenerated, and every tool's output still validates against its schema. Rejected: ignoring the
+  advisory in deny.toml (it loosens a gate), and Dependabot's open update to 3.8.0 (still affected).
