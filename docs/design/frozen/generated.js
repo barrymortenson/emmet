@@ -622,6 +622,8 @@ window.EMMET_GEN = {
    "--line-width-strong",
    "--substep-pic",
    "--text-lg",
+   "--space-3xl",
+   "--radius-md",
    "--fg-text"
   ],
   "pin": [

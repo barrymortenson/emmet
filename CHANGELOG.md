@@ -247,6 +247,10 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   arrows for parts that go on sideways, zoom boxes for parts out of sight, and the turn icon when the model turns; the
   parts list with part ids and color names; page numbers. A4 or Letter by the locale. Emmet writes the PDF itself
   (ADR 0014): the Cottage's 106 pages take 16 s.
+- A sub-assembly's own steps in the viewer (session 4H): in the Steps tab, a sub-step under Built apart shows its
+  sub-assembly on its own, built up to that sub-step with its new parts outlined, in a frame like the instructions'
+  boxes, with the camera on it. `[` and `]` (and the arrows on its bar) move through its steps; a main step, `Esc`,
+  the sub-assembly's row, or Back on its bar brings the model back with the camera where it was.
 
 ### Security
 

@@ -1068,3 +1068,13 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   `front_fender` hangs its blade on the fork's brackets; `disc_brake` is retired, leaving nine bike techniques. The
   frame puts its head's cross blocks on with the head axle, and the swingarm puts the shock's mount axle in through
   the shock. Rejected: keeping disc_brake with a closing call that puts the axles in last.
+- **How a sub-assembly shows on its own (4H)** (the agent, 2026-11-11, within the session's plan; design change note
+  008 for Barry's read in the PR). A sub-step shows the first copy of its sub-assembly where it sits in the model,
+  with everything else hidden, not a copy moved to the table: nothing loads or moves, and its ids stay the model's.
+  The camera frames the whole copy from the side it was already on, and stays put through the sub-steps, as the PDF
+  keeps one camera for a sub-assembly; it goes back where it was when the model shows again, wherever the user
+  turned it meanwhile. The frame goes around the viewer and a bar like the cut-away's names the sub-assembly, with
+  the step before and the next and Back. The sub-assembly's row, clicked from one of its sub-steps, shows
+  the model with every copy lit, as the row does anywhere else. Rejected: turning to the iso view for every
+  sub-assembly (it throws away the side the user chose), and keeping the camera the user left on the way out (the
+  session's Done when says where it was).

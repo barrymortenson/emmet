@@ -195,8 +195,10 @@ export interface Stats {
   /** Parts the steps or the cut-away hide. */
   hidden: number;
   /** The step shown (null for the whole model), how many parts its outline goes around, and the cut-away's top layer
-   * (null when it's off). */
+   * (null when it's off). With a sub-assembly on its own, the step is its own. */
   step: number | null;
+  /** The sub-assembly copy shown on its own, or null for the model. */
+  alone: string | null;
   outlined: number;
   cut: number | null;
   /** Parts the build animation hasn't put in place yet (0 when none is running). */
@@ -223,6 +225,12 @@ export interface Viewer {
   /** The build up to step `upTo` (earlier steps whole, its new parts outlined, later steps hidden), or with null the
    * whole model. */
   showSteps(upTo?: number | null): void;
+  /** One copy of a sub-assembly on its own (session 4H), where it sits in the model: built up to its own step `upTo`
+   * with that step's new parts outlined, or whole with null; every other part is hidden. Starting it frames the whole
+   * copy from the side the camera is on, and the camera then stays put from step to step. With a null `copy` the
+   * model shows again, whole, and the camera goes back to where it was before. The cut-away and the ground grid are
+   * the whole model's, so they wait meanwhile; `render` still draws the whole model. */
+  showAssembly(copy: string | null, upTo?: number | null): void;
   /** Hides every part above the cut-away's top layer (a layer is a plate, counted up from the model's bottom), or
    * with null shows them all again. */
   cutAway(layer: number | null): void;
@@ -387,6 +395,8 @@ class EmmetViewer implements Viewer {
   private hovered: string | null = null;
   private step: number | null = null;
   private cut: number | null = null;
+  /** The sub-assembly copy shown on its own (then `step` is its own step), with the camera to go back to. */
+  private alone: { copy: string; camera: { position: Vector3; up: Vector3; target: Vector3; near: number; far: number } } | null = null;
   /** The model's bottom (LDraw's largest y) and height, in LDU, for the cut-away's layers. */
   private extent = { bottom: 0, height: 0 };
   /** The highlighted parts again, drawn over the veil: copies of their buckets' instances, rebuilt when the highlight
@@ -669,7 +679,7 @@ class EmmetViewer implements Viewer {
     if (!dirty.size) {
       // Still the new list: a rebuild can renumber the steps without moving a part, and the steps read them.
       this.placements = new Map(placements.map((p) => [p.id, p]));
-      if (this.step != null || this.cut != null) this.refill();
+      if (this.step != null || this.cut != null || this.alone) this.refill();
       this.lastDiff = { added: 0, removed: 0, moved: 0, recolored: 0, unchanged: diff.unchanged };
       return diff;
     }
@@ -771,10 +781,22 @@ class EmmetViewer implements Viewer {
     return i < bucket.ids.length ? this.placements.get(bucket.ids[i]!)! : bucket.ghosts[i - bucket.ids.length]!;
   }
 
-  /** Whether the steps and the cut-away leave a part showing. */
+  /** The step a part goes in, in what's shown: the model's, or its step inside the sub-assembly copy shown on its own
+   * (its own step, or for a part of a copy nested in that one, the step that places the nested copy); null for a part
+   * that isn't in that copy. */
+  private stepIn(p: Placement): number | null {
+    if (!this.alone) return topStep(p);
+    const copy = this.alone.copy;
+    const depth = p.copies?.findIndex((c) => c.id === copy) ?? -1;
+    if (depth < 0) return null;
+    return p.copies![depth + 1]?.step ?? p.step;
+  }
+
+  /** Whether the steps, a sub-assembly on its own, and the cut-away leave a part showing. */
   private shows(p: Placement): boolean {
-    if (this.step != null && topStep(p) > this.step) return false;
-    if (this.cut != null) {
+    const at = this.stepIn(p);
+    if (at == null || (this.step != null && at > this.step)) return false;
+    if (this.cut != null && !this.alone) {
       // Its bottom's height over the model's bottom (LDraw's y grows down).
       const above = this.extent.bottom - partBottom(p, this.cache.get(p.part));
       if (above >= this.cut * PLATE - 0.01) return false;
@@ -995,7 +1017,7 @@ class EmmetViewer implements Viewer {
     clearCopies(this.outlineRoot);
     this.outlineBuilt = true;
     const step = this.step;
-    if (step != null) this.copyInstances(this.outlineRoot, (id) => topStep(this.placements.get(id)!) === step, true);
+    if (step != null) this.copyInstances(this.outlineRoot, (id) => this.stepIn(this.placements.get(id)!) === step, true);
   }
 
   /** True when the id, or a submodel copy holding the part (its id up to a "/"), is lit: a copy's id lights all its
@@ -1027,6 +1049,41 @@ class EmmetViewer implements Viewer {
     this.skipAnimation();
     this.step = upTo;
     this.refill();
+  }
+
+  showAssembly(copy: string | null, upTo: number | null = null): void {
+    const was = this.alone;
+    if (copy === (was?.copy ?? null)) {
+      if (copy != null) this.showSteps(upTo);
+      return;
+    }
+    this.skipAnimation();
+    const c = this.camera;
+    const back = was?.camera ?? { position: c.position.clone(), up: c.up.clone(), target: this.controls.target.clone(), near: c.near, far: c.far };
+    this.alone = copy == null ? null : { copy, camera: back };
+    this.step = copy == null ? null : upTo;
+    this.grid.mesh.visible = copy == null;
+    this.refill();
+    if (copy == null) {
+      c.position.copy(back.position);
+      c.up.copy(back.up);
+      c.near = back.near;
+      c.far = back.far;
+      c.updateProjectionMatrix();
+      this.controls.target.copy(back.target);
+    } else {
+      // The whole copy, so the camera stays put from its first step to its last, as the PDF's does.
+      const box = this.bounds([copy]);
+      if (!box.isEmpty()) {
+        const dir = c.position.clone().sub(this.controls.target).normalize();
+        this.place(c, box, dir.lengthSq() > 0 ? dir : VIEWS.iso.dir, c.up);
+        this.controls.target.copy(box.getCenter(new Vector3()));
+      }
+    }
+    // What's left of a drag's damping would carry on from the new place.
+    settle(this.controls);
+    this.controls.update();
+    this.moved();
   }
 
   cutAway(layer: number | null): void {
@@ -1358,13 +1415,13 @@ class EmmetViewer implements Viewer {
     camera: PerspectiveCamera,
     width: number,
     height: number,
-    state: { lit: Set<string>; mode: HighlightMode; step: number | null; cut: number | null; theme: Theme; background: Color | null; shadow?: boolean; outline?: number },
+    state: { lit: Set<string>; mode: HighlightMode; step: number | null; alone: EmmetViewer["alone"]; cut: number | null; theme: Theme; background: Color | null; shadow?: boolean; outline?: number },
     measure?: () => void,
   ): WebGLRenderer {
     const { renderer: r, environment } = this.offscreenRenderer();
     r.setPixelRatio(1);
     r.setSize(width, height, false);
-    const before = { lit: this.lit, mode: this.mode, step: this.step, cut: this.cut, theme: this.theme, hovered: this.hovered };
+    const before = { lit: this.lit, mode: this.mode, step: this.step, alone: this.alone, cut: this.cut, theme: this.theme, hovered: this.hovered };
     const background = this.scene.background;
     const lows = [...this.buckets.values()].filter((b) => b.drawn !== b.part);
     let conditionals: Drawable[] = [];
@@ -1381,7 +1438,7 @@ class EmmetViewer implements Viewer {
       // After the rebuild to full detail, whose conditional lines Fast builds hidden.
       conditionals = [...this.buckets.values()].flatMap((b) => b.drawables.filter((d) => d.kind === "conditional" && !d.object.visible));
       for (const d of conditionals) d.object.visible = true;
-      Object.assign(this, { lit: state.lit, mode: state.mode, step: state.step, cut: state.cut, theme: state.theme, hovered: null });
+      Object.assign(this, { lit: state.lit, mode: state.mode, step: state.step, alone: state.alone, cut: state.cut, theme: state.theme, hovered: null });
       this.scene.background = state.background;
       // The grid is the window's alone: pictures show the model on its shadow.
       this.grid.mesh.visible = false;
@@ -1459,6 +1516,8 @@ class EmmetViewer implements Viewer {
         lit: new Set(options.highlight ?? []),
         mode: "select",
         step: options.step ?? null,
+        // The whole model, whatever the window shows.
+        alone: null,
         cut: null,
         theme: "light",
         background: options.transparent ? null : RENDER_BACKGROUND,
@@ -1581,6 +1640,7 @@ class EmmetViewer implements Viewer {
         lit: this.lit,
         mode: this.mode,
         step: this.step,
+        alone: this.alone,
         cut: this.cut,
         theme: this.theme,
         background: new Color(BACKGROUND[this.theme]),
@@ -1664,7 +1724,7 @@ class EmmetViewer implements Viewer {
     let outlined = 0;
     for (const p of this.placements.values()) {
       if (!this.shows(p)) hidden++;
-      else if (this.step != null && topStep(p) === this.step) outlined++;
+      else if (this.step != null && this.stepIn(p) === this.step) outlined++;
     }
     return {
       drawCalls: info.render.calls,
@@ -1684,6 +1744,7 @@ class EmmetViewer implements Viewer {
       hovered: this.hovered,
       hidden,
       step: this.step,
+      alone: this.alone?.copy ?? null,
       outlined,
       cut: this.cut,
       animating: this.motion ? this.motion.parts.filter((p) => !p.done).length : 0,

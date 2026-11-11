@@ -66,6 +66,16 @@ function useTheme(pinned: string | undefined): [Theme, (t: Theme | null) => void
 
 /** The ids of the parts a sub-assembly's copies hold: every placement whose submodel path names its file. */
 const copiesOf = (scene: Scene, file: string) => scene.placements.filter((p) => p.submodel.includes(file)).map((p) => p.id);
+/** The first copy of a sub-assembly, by its file: the one its sub-steps show on its own. A part's `copies` run beside
+ * its `submodel` path, outermost first. */
+const firstCopy = (scene: Scene, file: string): string | null => {
+  for (const p of scene.placements) {
+    const depth = p.submodel.indexOf(file);
+    const copy = depth >= 0 ? p.copies?.[depth] : undefined;
+    if (copy) return copy.id;
+  }
+  return null;
+};
 /** The parts an agent's ids light, as the viewer lights them: an id, or the id of a copy that holds the part. */
 const litBy = (scene: Scene, ids: string[]) => {
   const want = new Set(ids);
@@ -101,6 +111,8 @@ export function App() {
   const [tab, setTab] = useState<Tab>("options");
   const [step, setStep] = useState<number | null>(null);
   const [sub, setSub] = useState<string | null>(null);
+  /** The sub-assembly shown on its own, built up to its sub-step `n` (session 4H), or null for the model. */
+  const [apart, setApart] = useState<{ file: string; n: number } | null>(null);
   const [view, setView] = useState<"iso" | "front" | "top" | null>("iso");
   /** The cut-away's top layer (null when it's off). */
   const [cut, setCut] = useState<number | null>(null);
@@ -286,6 +298,7 @@ export function App() {
         tellHost();
         setStep(null);
         setSub(null);
+        setApart(null);
         setCut(null);
         setCompare(null);
         setVersions(null);
@@ -307,6 +320,7 @@ export function App() {
         if (scene) {
           knobRun.current = false;
           setStep(null);
+          setApart(null);
           void show(scene, root.current, animate);
         }
         setUi((u) => {
@@ -338,6 +352,7 @@ export function App() {
             setUi((u) => ({ ...u, scene, error: null }));
             // As a run's new build does, the agent's shows whole.
             setStep(null);
+            setApart(null);
             await show(scene, null, "build");
           }
           // Only the ids the request names are highlighted in the render, whatever the window shows.
@@ -444,19 +459,26 @@ export function App() {
     if (selected?.startsWith("finding:") && !findings?.some((f) => `finding:${f.id}` === selected)) highlight(null, []);
   }, [findings, selected]);
 
-  // What the viewer shows: a version opened to compare, or the model, whole or built up to a step (the viewer hides the
-  // later steps, so a sub-assembly's parts show at the step that places the copy).
+  // What the viewer shows: a version opened to compare; or the model, whole or built up to a step (the viewer hides the
+  // later steps, so a sub-assembly's parts show at the step that places the copy); or one sub-assembly on its own,
+  // built up to one of its sub-steps, after which the model comes back with the camera where it was.
+  const apartCopy = apart && scene && !compare ? firstCopy(scene, apart.file) : null;
   useEffect(() => {
     const v = viewer.current;
     if (!v || !scene) return;
     if (compare) {
+      v.showAssembly(null);
       v.showSteps(null);
       void showIn(v, placements(compare.scene), "none");
     } else {
       void showIn(v, placements(scene), "none");
-      v.showSteps(step);
+      if (apartCopy) v.showAssembly(apartCopy, apart?.n);
+      else {
+        v.showAssembly(null);
+        v.showSteps(step);
+      }
     }
-  }, [compare, step]);
+  }, [compare, step, apartCopy, apart?.n]);
   useEffect(() => viewer.current?.cutAway(cut), [cut]);
   const layers = viewer.current && scene ? viewer.current.layers() : 1;
 
@@ -512,6 +534,8 @@ export function App() {
   const openVersion = async (v: VersionView) => {
     const s = await act(commands.versionScene(v.n));
     if (s) {
+      // A version shows whole: a sub-assembly on its own gives way to it.
+      setApart(null);
       setCompare({ v, scene: s });
       setPop(null);
     }
@@ -559,6 +583,8 @@ export function App() {
     // First run covers the window: what's behind it (the viewer, the panel, the chat) takes no keys.
     if (firstRun && !COVERED_OK.includes(a)) return false;
     if (a === "replay") return !!project && !!scene && pace !== "off";
+    // The cut-away is the whole model's: it waits while a sub-assembly shows on its own.
+    if (a.startsWith("cut:") && apart) return false;
     if (a === "cut:up" || a === "cut:off") return !!project && cut != null;
     if (["save", "versions", "export", "frame", "step:prev", "step:next", "cut:down", "screenshot:copy", "screenshot:save"].includes(a) || a.startsWith("view:") || a.startsWith("tab:") || a.startsWith("orbit:") || a.startsWith("zoom:")) return !!project;
     return true;
@@ -575,6 +601,9 @@ export function App() {
       const total = scene?.tree?.steps.length ?? 0;
       if (!total) return;
       setTab("steps");
+      // Inside a sub-assembly shown on its own, its own steps.
+      const within = apart && scene?.tree?.submodels.find((m) => m.file === apart.file)?.steps.length;
+      if (apart && within) return setApart({ file: apart.file, n: Math.max(1, Math.min(within, apart.n + d)) });
       setSub(null);
       setStep((s) => Math.max(1, Math.min(total, (s ?? total) + d)));
     };
@@ -660,7 +689,9 @@ export function App() {
           // The whole model plays: the steps and the cut-away go first, in the viewer at once (their effects come
           // after this render, and would end the replay).
           setStep(null);
+          setApart(null);
           setCut(null);
+          viewer.current?.showAssembly(null);
           viewer.current?.showSteps(null);
           viewer.current?.cutAway(null);
           viewer.current?.replayBuild();
@@ -715,6 +746,7 @@ export function App() {
           // Radix closes its own menus, popovers, and dialogs first; with nothing open, Esc stops the agent.
           if (compare) setCompare(null);
           else if (firstRun === "start" && project) setFirstRun(null);
+          else if (apart) setApart(null);
           else void commands.chatStop();
           break;
       }
@@ -916,17 +948,19 @@ export function App() {
                 viewer={viewer.current}
                 scene={compare ? null : scene}
                 step={compare ? null : step}
+                apart={apartCopy && apart ? { ...apart, copy: apartCopy } : null}
                 cut={cut}
                 layers={layers}
                 animating={animating}
                 findings={findings ?? []}
-                showPins={!compare && !photo && step == null}
+                showPins={!compare && !photo && step == null && !apartCopy}
                 onPin={(f) => {
                   tipSeen("finding");
                   setTab("checks");
                   highlight(`finding:${f.id}`, f.parts, "issue");
                 }}
                 onCut={setCut}
+                onApart={(n) => setApart((a) => (a && n != null ? { ...a, n } : null))}
                 onSkip={() => viewer.current?.skipAnimation()}
               />
               <Toast.Viewport className="toast-viewport" aria-label="Notifications" />
@@ -955,6 +989,7 @@ export function App() {
               selected={selected}
               step={step}
               sub={sub}
+              apart={apart}
               exportOpen={exportOpen}
               onExportOpen={setExportOpen}
               onExport={(f) => void exportAs(f)}
@@ -972,11 +1007,19 @@ export function App() {
               onPickPart={(l: BomLine) => scene && toggle(`part:${l.part}|${l.color}`, scene.placements.filter((p) => p.part === l.part && p.color === l.color).map((p) => p.id))}
               onStep={(n) => {
                 setSub(null);
+                setApart(null);
                 highlight(null, []);
                 setStep((s) => (s === n && n === (scene?.tree?.steps.length ?? 0) ? null : n));
               }}
+              onApart={(file, n) => {
+                setSub(null);
+                setStep(null);
+                highlight(null, []);
+                setApart({ file, n });
+              }}
               onSub={(file) => {
                 setSub(file);
+                setApart(null);
                 setStep(null);
                 if (scene) highlight(file ? `sub:${file}` : null, file ? copiesOf(scene, file) : []);
               }}

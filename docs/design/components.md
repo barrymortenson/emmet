@@ -161,9 +161,11 @@ default). Invisible until hover or focus, then a grip in
 Own (the WAI-ARIA tree pattern, role `tree`). The Steps tab is the model's tree (Barry 2026-10-27, 2B): **Built
 apart** first, each sub-assembly with how many times it's used ("× 5"), its part count, and its own sub-steps
 (expandable); then the steps, grouped by their titles' first words ("Walls, row 2"). Clicking a step shows the build up
-to it (later steps hidden, "Later steps are hidden"); clicking a sub-assembly highlights every copy in the viewer.
+to it (later steps hidden, "Later steps are hidden"); clicking a sub-assembly highlights every copy in the viewer;
+clicking one of its sub-steps shows it on its own in the viewer, built up to that sub-step (design change note 008),
+until a main step, `Esc`, or its own row shows the model again.
 States: past, current, later (muted), selected, hover, focus, collapsed, expanded. Keys: up and down move, right and
-left open and close, Enter picks, `[` and `]` step.
+left open and close, Enter picks, `[` and `]` step (through a sub-assembly's own steps while it's shown on its own).
 
 ### `data-table`
 Own (a `table`). The Parts list: the part's picture in its color, its name with the color and part number under it,
@@ -225,7 +227,8 @@ the placeholder says why.
 ### `parts-box`
 A step as instruction books draw it (section 08): the step number (44 px, light), the parts box under it (each new
 part's picture and count; design change note 006), and a sub-assembly in its own box with its parts and numbered sub-steps, with a leader line
-to where it goes (4C draws it from the part's screen position).
+to where it goes (4C draws it from the part's screen position). A sub-assembly shown on its own (note 008) has its
+sub-step's number and parts box here, inside a frame around the viewer.
 
 ### `pin`
 A finding's marker on the viewer, beside its parts: the floating glyph and "9 parts float". Clicking it opens the
@@ -289,7 +292,8 @@ at the end. The view switch is centered over the viewer.
 ### `viewer`
 The 3D view, the hero (law 1): the render at the camera's field of view, so a shorter viewer shows the whole model
 smaller rather than cropping it. It carries only what points at the model: a finding's pin, a step's parts box, an
-open version's bar (Restore, Open as new project, Back), an agent's pointing bar ("Claude is pointing at 10 parts",
+open version's bar (Restore, Open as new project, Back), a sub-assembly's bar while it's shown on its own ("Window (5x)",
+"2 of 3", the step before and the next, Back; note 008), an agent's pointing bar ("Claude is pointing at 10 parts",
 Zoom to them, Clear), Skip animation, and toasts. A highlight (a picked row, a finding, a sub-assembly, an agent's
 pointing) fades the rest of the model 80% toward the viewer's background and draws the highlighted parts over it in
 their own colors (a finding's tinted red), so a few small parts in a big model still stand out.

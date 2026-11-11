@@ -324,6 +324,11 @@ button.badge:hover { background: var(--bg-accent); color: var(--fg-text); }
 .sub-steps li { position: relative; }
 .sub-steps img { display: block; width: var(--substep-pic); height: var(--substep-pic); object-fit: cover; }
 .sub-step-n { position: absolute; left: var(--space-2xs); top: 0; font-size: var(--text-lg); font-weight: var(--weight-light); }
+/* A sub-assembly shown on its own (4H, design change note 008): the frame the instructions draw around one, around
+   the viewer, with the step box under its bar. */
+.step-view[data-under-bar] { top: calc(var(--space-3xl) + var(--space-sm)); }
+.viewer-bar > b { font-variant-numeric: tabular-nums; }
+.apart-frame { position: absolute; inset: var(--space-xs); z-index: 1; pointer-events: none; border: var(--line-width-strong) solid var(--ui-control); border-radius: var(--radius-md); }
 .leader { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: visible; }
 .leader path { fill: none; stroke: var(--fg-text); stroke-width: var(--line-width-strong); }
 

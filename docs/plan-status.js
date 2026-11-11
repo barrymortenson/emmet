@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-11-10",
+  updated: "2026-11-11",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -218,7 +218,15 @@ window.EMMET_STATUS = {
       ],
       note: "What good looks like 2 isn't met: the e-bike scored 2, 2, 1 and the truck isn't scored yet. The instructions spec now dismisses its Saved toast, which had stayed up into the screens spec on the hosted Mac"
     },
-    "4H": { status: "todo" },
+    "4H": {
+      status: "done", pr: 61, branch: "bmortenson/s4h-sub-assembly-steps", started: "2026-11-11",
+      evidence: [
+        "CI ci check green #61 (run 43075615691 on hosted macos-15: mac, mac-e2e with every spec, plan, scope; windows paused, D-43); Phase 4 exit check in the PR description",
+        "tests/e2e/specs/panel.e2e.mjs: every sub-step of the Cottage's and the picnic's sub-assemblies shows its copy alone, outlined and framed; a main step, Esc, the row, and Back bring the model and the camera back",
+        "Design change note 008; light and dark screens viewer-sub-step-{cottage,picnic} in the run's e2e-macos artifact"
+      ],
+      note: "Note 008 is in the PR for Barry's read (the camera moves on a sub-step's click and goes back after). first run's new-empty baselines, stale since PR #60, were replaced here"
+    },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
     "5B": { status: "todo" },

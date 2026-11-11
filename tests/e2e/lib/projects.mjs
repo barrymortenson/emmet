@@ -29,7 +29,7 @@ const PROJECTS = {
   chatgpt: [["", "agent"]],
   checks: [["", "broken-collision"]],
   setup: [["", "agent"]],
-  panel: [["", "cottage"], ["floating", "broken-floating"]],
+  panel: [["", "cottage"], ["floating", "broken-floating"], ["picnic", "nested-submodel"]],
   trust: [["", "cottage-untrusted"]],
   import: [["", "cottage"]],
   versions: [["", "cottage"]],

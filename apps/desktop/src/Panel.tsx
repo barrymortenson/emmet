@@ -54,6 +54,7 @@ export type PanelProps = {
   selected: string | null;
   step: number | null;
   sub: string | null;
+  apart: { file: string; n: number } | null;
   exportOpen: boolean;
   onExportOpen: (open: boolean) => void;
   onExport: (f: ExportFormat) => void;
@@ -66,6 +67,7 @@ export type PanelProps = {
   onPickPart: (l: BomLine) => void;
   onStep: (n: number) => void;
   onSub: (file: string | null) => void;
+  onApart: (file: string, n: number) => void;
   onSaveBuild: (s: BuildSettings) => Promise<boolean>;
   onRebuild: (before: BuildSettings, after: BuildSettings) => void;
   onKnobWrite: () => void;
@@ -176,7 +178,7 @@ export function Panel(p: PanelProps) {
           <Parts bom={p.scene?.bom} selected={p.selected?.startsWith("part:") ? p.selected.slice(5) : null} onPick={p.onPickPart} />
         </Tabs.Content>
         <Tabs.Content value="steps" className="panel-body" id="steps">
-          <Steps tree={p.scene?.tree} step={p.step} sub={p.sub} onStep={p.onStep} onSub={p.onSub} />
+          <Steps tree={p.scene?.tree} step={p.step} sub={p.sub} apart={p.apart} onStep={p.onStep} onSub={p.onSub} onApart={p.onApart} />
         </Tabs.Content>
       </Tabs.Root>
     </aside>

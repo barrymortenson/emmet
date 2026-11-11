@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // What the viewer carries over the model (plan section 14, docs/design/components.md's viewer): the hovered part's
 // name and color, ⌥-drag's box, a finding's pin at its parts, a step's parts box (and any sub-assembly's box, with
-// its leader to its first copy), the cut-away's bar, and Skip animation while the build animation runs. The pins and
+// its leader to its first copy), a sub-assembly shown on its own in its frame with its bar (session 4H), the
+// cut-away's bar, and Skip animation while the build animation runs. The pins and
 // the leader are placed from the viewer's own projection and follow the camera; nothing here moves it (law 1).
 import type { Rect, Viewer } from "@emmet/viewer";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Finding, Scene, StepView } from "./bindings";
+import type { Finding, Scene, StepView, SubmodelView } from "./bindings";
 import { pinWords } from "./Checks";
 import { assemblyPicture, partPicture } from "./pictures";
 import { Button, Icon, IconButton } from "./ui";
@@ -58,6 +59,7 @@ export function ViewerLayer({
   viewer,
   scene,
   step,
+  apart,
   cut,
   layers,
   animating,
@@ -65,12 +67,15 @@ export function ViewerLayer({
   showPins,
   onPin,
   onCut,
+  onApart,
   onSkip,
 }: {
   viewer: Viewer | null;
   scene: Scene | null;
   /** The step shown, or null for the whole model. */
   step: number | null;
+  /** The sub-assembly shown on its own: its file, the copy shown, and the sub-step it's built up to. */
+  apart: { file: string; copy: string; n: number } | null;
   cut: number | null;
   layers: number;
   animating: boolean;
@@ -78,6 +83,8 @@ export function ViewerLayer({
   showPins: boolean;
   onPin: (f: Finding) => void;
   onCut: (layer: number | null) => void;
+  /** Another of the sub-assembly's steps, or null for the model again. */
+  onApart: (n: number | null) => void;
   onSkip: () => void;
 }) {
   const tick = useCamera(viewer);
@@ -92,7 +99,15 @@ export function ViewerLayer({
   }, [viewer]);
 
   const tree = scene?.tree;
-  const shown: StepView | undefined = step != null ? tree?.steps.find((s) => s.n === step) : undefined;
+  const alone: SubmodelView | undefined = apart ? tree?.submodels.find((m) => m.file === apart.file) : undefined;
+  const subStep = apart ? alone?.steps.find((s) => s.n === apart.n) : undefined;
+  // A sub-step's own sub-assemblies are named from inside it: in the scene they're this copy's.
+  const shown: StepView | undefined =
+    apart && subStep
+      ? { ...subStep, subs: subStep.subs.map((s) => ({ ...s, ids: s.ids.map((id) => `${apart.copy}/${id}`) })) }
+      : step != null && !apart
+        ? tree?.steps.find((s) => s.n === step)
+        : undefined;
   const label = hover && name(hover.id);
   return (
     <>
@@ -103,8 +118,24 @@ export function ViewerLayer({
       )}
       {box && <div className="viewer-box" id="viewer-box" aria-hidden="true" style={{ left: box.x, top: box.y, width: box.width, height: box.height }} />}
       {showPins && viewer && pins.map((p) => <Pin key={p.rule} viewer={viewer} pin={p} tick={tick} onPin={onPin} />)}
-      {shown && scene && <StepBox key={`${scene.generation}:${shown.n}`} viewer={viewer} scene={scene} step={shown} tick={tick} />}
-      {cut != null && (
+      {apart && alone && <div className="apart-frame" id="apart-frame" aria-hidden="true" />}
+      {shown && scene && <StepBox key={`${scene.generation}:${apart?.copy ?? ""}:${shown.n}`} viewer={viewer} scene={scene} step={shown} tick={tick} underBar={!!apart} />}
+      {apart && alone && (
+        <div className="viewer-bar" role="status" id="apart-bar">
+          <Icon name="submodel" />
+          <span>
+            {alone.name}
+            {alone.count > 1 ? ` (${alone.count}x)` : ""}
+          </span>
+          <b id="apart-at">
+            {apart.n} of {alone.steps.length}
+          </b>
+          <IconButton icon="chevron-left" label="Previous step ([)" size="sm" id="apart-prev" disabled={apart.n <= 1} onClick={() => onApart(apart.n - 1)} />
+          <IconButton icon="chevron-right" label="Next step (])" size="sm" id="apart-next" disabled={apart.n >= alone.steps.length} onClick={() => onApart(apart.n + 1)} />
+          <Button label="Back" variant="quiet" size="sm" id="apart-off" title="Show the model again (Esc)" onClick={() => onApart(null)} />
+        </div>
+      )}
+      {cut != null && !apart && (
         <div className="viewer-bar" role="status" id="cut-bar">
           <Icon name="layers" />
           <span>
@@ -163,7 +194,7 @@ function Pin({ viewer, pin, tick, onPin }: { viewer: Viewer; pin: PinGroup; tick
 /** A step as the instruction books draw it (plan section 08): the step number over its parts box with each new
  * part's picture and count, and each sub-assembly it puts on in its own box, with its parts and numbered sub-steps and
  * a leader to the first copy it can reach. */
-function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: Scene; step: StepView; tick: number }) {
+function StepBox({ viewer, scene, step, tick, underBar }: { viewer: Viewer | null; scene: Scene; step: StepView; tick: number; underBar?: boolean }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const subs = step.subs
     .map((s) => ({ s, model: scene.tree?.submodels.find((m) => m.file === s.file) }))
@@ -196,7 +227,7 @@ function StepBox({ viewer, scene, step, tick }: { viewer: Viewer | null; scene: 
   }, [tick, layout, viewer, step]);
   return (
     <>
-      <div className="step-view" data-c="parts-box" aria-label={`Step ${step.n}`} id="step-view" ref={ref}>
+      <div className="step-view" data-c="parts-box" data-under-bar={underBar || undefined} aria-label={`Step ${step.n}`} id="step-view" ref={ref}>
         <span className="step-number">{step.n}</span>
         {step.items.length > 0 && (
           <div className="parts-box" id="parts-box">
@@ -239,8 +270,12 @@ function route(to: { x: number; y: number }, box: DOMRect, host: DOMRect): strin
 }
 
 function SubAssembly({ scene, file, copy, name, steps, count }: { scene: Scene; file: string; copy: string; name: string; steps: StepView[]; count: number }) {
-  // One copy's parts, by their own step (inside a sub-assembly, a part's step is the sub-assembly's).
-  const parts = scene.placements.filter((p) => p.copies?.[0]?.id === copy);
+  // One copy's parts, each with its step inside the copy: its own, or for a part of a copy nested in this one, the
+  // step that places that copy.
+  const parts = scene.placements.flatMap((p) => {
+    const depth = p.copies?.findIndex((c) => c.id === copy) ?? -1;
+    return depth < 0 ? [] : [{ ...p, step: p.copies![depth + 1]?.step ?? p.step }];
+  });
   const items = new Map<string, { part: string; color: number; count: number }>();
   for (const p of parts) {
     const k = `${p.part}|${p.color}`;

@@ -17,7 +17,7 @@ what people do often. 4A's keyboard E2E spec checks every row here. On Windows, 
 | `↩` | `Enter` | Send | The message box |
 | `⇧↩` | `Shift+Enter` | A new line | The message box |
 | `⌘↩` | `Ctrl+Enter` | Send | The message box, and while a card has focus |
-| `Esc` | `Esc` | Close the open menu, popover, or dialog; with none open, stop the agent (a pending redirect goes out as the next turn) | Anywhere |
+| `Esc` | `Esc` | Close the open menu, popover, or dialog; then show the model again when a sub-assembly is shown on its own; with none of them, stop the agent (a pending redirect goes out as the next turn) | Anywhere |
 | `1`–`5` | `1`–`5` | Pick an answer (the last is Other) | A question card with focus |
 | `1`–`3` | `1`–`3` | Allow once, Allow for this session, Don't allow | An approval card with focus |
 | `1` `2` `3` `4` `5` `6` | the same | View: Iso, Front, Top, Back, Left, Right | Outside a text field |
@@ -25,7 +25,7 @@ what people do often. 4A's keyboard E2E spec checks every row here. On Windows, 
 | `←` `→` `↑` `↓` | the same | Orbit 15° | The viewer with focus |
 | `+` `−` | the same | Zoom in, out | The viewer with focus |
 | `⌥↓` `⌥↑` | `Alt+↓` `Alt+↑` | Cut away above: lower the cut a layer, raise it (4C) | Outside a text field |
-| `[` `]` | `[` `]` | Previous step, next step (opens Steps) | Outside a text field |
+| `[` `]` | `[` `]` | Previous step, next step (opens Steps); a sub-assembly's own, while it's shown on its own | Outside a text field |
 | `⌘1`–`⌘4` | `Ctrl+1`–`Ctrl+4` | Options, Checks, Parts, Steps | Anywhere |
 | `⌥⌘Z` | `Ctrl+Alt+Z` | Undo the agent's last turn | Anywhere |
 | `⌘Z` `⇧⌘Z` | `Ctrl+Z` `Ctrl+Y` | Undo and redo typing, and a knob's draft before Keep | A text field, the panel |
