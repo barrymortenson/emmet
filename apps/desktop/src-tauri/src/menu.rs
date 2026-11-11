@@ -134,7 +134,6 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         .item(&item(app, "step:prev", "Previous Step", None)?)
         .item(&item(app, "step:next", "Next Step", None)?)
         .item(&sep()?)
-        .item(&item(app, "history", "Show Chat History", None)?)
         .item(&PredefinedMenuItem::fullscreen(app, None)?)
         .build()?;
     let agent = SubmenuBuilder::new(app, "Agent")

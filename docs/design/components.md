@@ -36,7 +36,7 @@ frozen screen (open it from [`frozen/index.html`](frozen/index.html)) lists the 
 | Radius | `--radius-xs` 4 · `--radius-sm` 6 · `--radius-md` 10 · `--radius-lg` 14 · `--radius-xl` 20 · `--radius-full` | Soft and roomy; pills for what floats on the viewer. |
 | Elevation | `--elevation-1` (a selected tab, a thumb) · `--elevation-2` (what floats on the viewer: the panel, the dock, the project chip, the view switch, banners, pins) · `--elevation-3` (menus, popovers, dialogs, toasts) | |
 | Motion | `--duration-fast` 120 ms · `--duration-base` 180 ms · `--duration-slow` 260 ms · `--duration-spin` · `--duration-part` · `--ease-standard` `--ease-exit` · `--rise` 4 px | Subtle: color changes and a 4 px rise, nothing longer than 260 ms. Reduced motion sets every duration to 0 and `--rise` to 0; the spinner stops (a dotted ring), and the viewer skips the build animation. |
-| Size and layout | `--control-sm` `--control-md` `--control-lg` · `--icon-sm` `--icon-md` `--icon-lg` `--icon-xl` · `--line-width` `--line-width-strong` · `--focus-*` · `--titlebar-height` `--titlebar-inset-start` `--caption-button-width` · `--panel-width` (384) `--panel-min` `--panel-max` · `--dock-history` `--dock-active-max` · and the fixed sizes of menus, dialogs, toasts, tooltips, thumbnails, and pictures | |
+| Size and layout | `--control-sm` `--control-md` `--control-lg` · `--icon-sm` `--icon-md` `--icon-lg` `--icon-xl` · `--line-width` `--line-width-strong` · `--focus-*` · `--titlebar-height` `--titlebar-inset-start` `--caption-button-width` · `--chat-width` (340) · `--panel-width` (384) `--panel-min` `--panel-max` · `--dock-history` (the frozen screens only) `--dock-active-max` · and the fixed sizes of menus, dialogs, toasts, tooltips, thumbnails, and pictures | |
 | Platform | `[data-platform="macos"]`, `[data-platform="windows"]` | macOS: SF Pro, a 56 px title row with room for the traffic lights, the accent focus ring. Windows: Segoe UI Variable, a 48 px title row across the window with the menu bar and the caption buttons, the focus ring in the text color. |
 
 The app sets `data-theme="light"` or `"dark"` on `<html>` from `prefers-color-scheme` (Settings can pin it) and
@@ -152,8 +152,9 @@ loading, done, failed (the bar in `--fg-bad`, with an alert card and Try again).
 A plan's usage (role `meter`): the share used, with the percent and when it resets beside it. Warn from 90%.
 
 ### `resizable`
-Own (role `separator`, focusable, with its value). Between the viewer and the options panel (320–520 px, 384 by
-default) and on the chat history's top edge (20–80% of the column). Invisible until hover or focus, then a grip in
+Own (role `separator`, focusable, with its value). Between the chat and the viewer (300–520 px, 340 by default,
+never more than about a third of the window) and between the viewer and the options panel (320–520 px, 384 by
+default). Invisible until hover or focus, then a grip in
 `--ui-control`; arrows move it 16 px, Home and End to its limits. Both remember their size per window.
 
 ### `tree`
@@ -275,8 +276,10 @@ it (`apps/desktop/src/ChatGpt.tsx`). The frozen screens show the first four in p
 The window's regions are composed from the components above; each screen shows them.
 
 ### `app`
-The window: the viewer column on the left, a `resizable` separator, and the options panel on the right
-(`--panel-width`). On Windows the title row runs across the whole window above both.
+The window (design change note 007): the chat sidebar on the left (`--chat-width`, capped in a narrow window), the
+viewer column in the middle, and the options panel on the right (`--panel-width`), with a `resizable` separator
+between each sidebar and the viewer. The title row runs over the chat and the viewer; on Windows it runs across the
+whole window.
 
 ### `titlebar`
 The title row, a drag region: on macOS after the traffic lights, the project chip (the ant, the project's name, and
@@ -292,9 +295,9 @@ pointing) fades the rest of the model 80% toward the viewer's background and dra
 their own colors (a finding's tinted red), so a few small parts in a big model still stand out.
 
 ### `dock`
-The chat along the bottom of the viewer: the agent picker, the plan badge, the status, Undo turn (after a turn that
-changed the model), History, and Start fresh; then the card that needs you or the latest line; then the composer.
-History opens upward to `--dock-history` of the column and pushes the viewer up; it never covers the model.
+The chat, the sidebar on the left of the window (design change note 007): the agent picker, the plan badge, and
+Start fresh; the whole conversation, always shown; the status with Undo turn (after a turn that changed the model);
+the card that needs you; then the composer. It has no History button and doesn't fold away.
 
 ### `panel`
 The options panel: the model's state in a word with its icon (No problems, 1 problem, Building, Build failed,

@@ -91,8 +91,8 @@ export function VirtualList({ rows, className, id, label }: { rows: Row[]; class
     if (el) observer.current?.observe(el);
   }, []);
 
-  // Pinned, it follows the bottom as rows arrive and grow, and as the list itself is resized (opening History, dragging
-  // its edge); the scroll event that follows updates the view.
+  // Pinned, it follows the bottom as rows arrive and grow, and as the list itself is resized (the window, or the chat's
+  // edge dragged); the scroll event that follows updates the view.
   const follow = () => {
     const el = box.current;
     if (el && pinned.current && el.scrollHeight - el.scrollTop - el.clientHeight >= 1) {

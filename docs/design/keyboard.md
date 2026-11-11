@@ -52,7 +52,7 @@ macOS shows these in its menu bar, in title case as macOS does; Windows shows th
 | **Emmet Builder** | (Help and File hold these) | About Emmet Builder · Settings… `⌘,` · Check for Updates… · Install Command Line Tool… · Hide, Hide Others, Show All · Quit `⌘Q` |
 | **File** | **File** | New `⌘N` · Open… `⌘O` · Open Recent ▸ · Save Version `⌘S` · Versions… · Export… `⌘E` · Close Window `⌘W` · (Windows: Settings… `Ctrl+,` · Exit `Alt+F4`) |
 | **Edit** | **Edit** | Undo `⌘Z` · Redo `⇧⌘Z` (`Ctrl+Y`) · Cut · Copy · Paste · Select All · Undo the Agent's Last Turn `⌥⌘Z` |
-| **View** | **View** | Iso `1` · Front `2` · Top `3` · Back `4` · Left `5` · Right `6` · Frame `F` · Cut Away Above `⌥↓` · Raise Cut-Away `⌥↑` · Show All Layers · Replay Build · Copy Screenshot · Save Screenshot · Options `⌘1` · Checks `⌘2` · Parts `⌘3` · Steps `⌘4` · Previous Step `[` · Next Step `]` · Show Chat History · Enter Full Screen `⌃⌘F` (Windows: `F11`) |
+| **View** | **View** | Iso `1` · Front `2` · Top `3` · Back `4` · Left `5` · Right `6` · Frame `F` · Cut Away Above `⌥↓` · Raise Cut-Away `⌥↑` · Show All Layers · Replay Build · Copy Screenshot · Save Screenshot · Options `⌘1` · Checks `⌘2` · Parts `⌘3` · Steps `⌘4` · Previous Step `[` · Next Step `]` · Enter Full Screen `⌃⌘F` (Windows: `F11`) |
 | **Agent** | **Agent** | Go to Message Box `⌘L` · Send `⌘↩` · Stop `Esc` · Start Fresh · Switch to Codex (or Claude) · Model and Effort… · Plan Usage… |
 | **Window** | (none) | Minimize `⌘M` · Zoom · Bring All to Front |
 | **Help** | **Help** | Emmet Guide · Keyboard Shortcuts `⌘/` · Copy Diagnostics · Report a Problem… · (Windows: Check for updates… · Install command line tool… · About Emmet Builder) |

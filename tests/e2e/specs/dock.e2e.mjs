@@ -3,7 +3,8 @@
 // screens/dock-<frozen id>-<theme>.png for the side-by-sides. States a replay passes through too quickly to see (the
 // agent thinking, a build running, a redirect waiting) are played into the dock as the host would send them (the
 // test-only chatPlay hook); the rest come from the app itself: a build that fails, an agent that isn't signed in, the
-// picker, the plan usage, and the plan limits.
+// picker, the plan usage, and the plan limits. The frozen drawings show the chat as a dock under the viewer; since
+// design change note 007 it is the left sidebar, and the history opened (screen 14) has no state of its own.
 import { $, expect } from "@wdio/globals";
 import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -16,10 +17,6 @@ const PROMPT = "Build a small cottage on a green 32 × 32 baseplate: four walls 
 
 const play = (events, user, o) => browser.execute((e, u, x) => window.__emmet.chatPlay(e, u, x), events, user ?? null, o ?? {});
 const chat = () => browser.execute(() => window.__emmet.chat());
-/** History open or closed, whatever an earlier spec left. */
-async function history(open) {
-  if ((await (await $("#chat-log")).isExisting()) !== open) await (await $("#history-toggle")).click();
-}
 
 /** A fresh conversation with `kind`, and nothing in it. */
 async function fresh(kind = "claude") {
@@ -59,7 +56,6 @@ const finish = [
 describe("the dock's frozen states", () => {
   before(async () => {
     await open(dir);
-    await history(false);
   });
 
   it("teaches the first knob once, and then never again (tips, kept per user)", async () => {
@@ -97,10 +93,23 @@ describe("the dock's frozen states", () => {
     await play([{ type: "approval_closed", id: "p1" }, ...finish, { type: "turn_done", reason: "completed" }]);
     await expect($("#chat-status")).toHaveText(expect.stringContaining("Done in"));
     await screenshots("dock-built");
-    await history(true);
-    await (await $("#chat-log")).waitForExist();
-    await screenshots("dock-history");
-    await history(false);
+    await expect($("#chat-log")).toHaveText(expect.stringContaining("147 parts"));
+  });
+
+  it("an approval stays over the composer when a step follows it, and under a redirect", async () => {
+    await fresh();
+    const approval = { type: "approval", id: "p2", kind: "permission", tool: "WebFetch", detail: "example.com/stone-cottage.jpg" };
+    // The agent's next step can arrive after the approval it waits on (the PR review of the left sidebar).
+    await play([...start, approval, tool("t9", "run_model", {})], PROMPT);
+    await (await $("#dock-active .approval-card")).waitForExist({ timeoutMsg: "the approval isn't the card that needs you" });
+    expect(await (await $("#chat-status")).isExisting()).toBe(false);
+    // A redirect typed while it waits shows with it: the approval is never in neither place.
+    await play([], "make the roof dark red", { note: "n2" });
+    await (await $("#dock-active #pending")).waitForExist({ timeoutMsg: "the redirect isn't shown" });
+    expect(await (await $("#dock-active .approval-card")).isExisting()).toBe(true);
+    expect(await (await $("#chat-log .approval-card")).isExisting()).toBe(false);
+    await play([{ type: "approval_closed", id: "p2" }, { type: "note_delivered", id: "n2", path: "native" }, done("t9", "Built 147 parts in 31 steps (0.10 s), generation 4."), { type: "turn_done", reason: "completed" }]);
+    await (await $("#dock-active .approval-card")).waitForExist({ reverse: true, timeoutMsg: "the closed approval is still the card" });
   });
 
   it("a question waiting for an answer", async () => {
@@ -145,9 +154,7 @@ describe("the dock's frozen states", () => {
     await browser.keys("Escape");
     await fresh("codex");
     await play([{ type: "started", resume: "t", model: "gpt-6.1-sol", billing: { kind: "api_key", source: "keychain" } }, tool("w1", "get_params", {}), done("w1", "…"), { type: "reasoning", message: "r2", delta: "Joining the garage to the cottage's right wall and widening it to fit two cars." }], "make the garage and cottage one building, make it larger and make a door from the cottage to the garage, make the garage fit two cars.", { divider: "Codex · a fresh conversation. The Claude one is kept." });
-    await history(true);
     await screenshots("dock-switched");
-    await history(false);
     await play([{ type: "turn_done", reason: "interrupted" }]);
   });
 

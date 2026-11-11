@@ -95,13 +95,20 @@ describe("the viewer's interactions", () => {
 
   it("⌥-drag draws a box and picks the parts whose centers are in it, without turning the camera", async () => {
     const before = await restingCamera();
-    const size = await browser.execute(() => [document.querySelector("#viewer canvas").clientWidth, document.querySelector("#viewer canvas").clientHeight]);
-    const [x0, y0, x1, y1] = [size[0] * 0.3, size[1] * 0.3, size[0] * 0.6, size[1] * 0.6];
-    await pointer("pointerdown", x0, y0, { altKey: true });
-    await pointer("pointermove", x1, y1, { altKey: true });
+    // The box's corners sit on whole window pixels: WebKit keeps only the whole part of a made-up event's clientX and
+    // clientY, and the canvas beside the chat sidebar doesn't start on one, so a corner between pixels would reach the
+    // viewer up to a pixel away from the box this test expects. `nudge` keeps a rounding error from landing a pixel low.
+    const [x0, y0, x1, y1] = await browser.execute(() => {
+      const r = document.querySelector("#viewer canvas").getBoundingClientRect();
+      const at = (edge, size, share) => Math.round(edge + size * share) - edge;
+      return [at(r.left, r.width, 0.3), at(r.top, r.height, 0.3), at(r.left, r.width, 0.6), at(r.top, r.height, 0.6)];
+    });
+    const nudge = 1e-6;
+    await pointer("pointerdown", x0 + nudge, y0 + nudge, { altKey: true });
+    await pointer("pointermove", x1 + nudge, y1 + nudge, { altKey: true });
     await expect($("#viewer-box")).toBeDisplayed();
     await screenshots("viewer-box-select");
-    await pointer("pointerup", x1, y1, { altKey: true });
+    await pointer("pointerup", x1 + nudge, y1 + nudge, { altKey: true });
     await expect($("#viewer-box")).not.toBeExisting();
     const want = await browser.execute((r) => window.__emmet.viewer().idsInBox(r), { x: x0, y: y0, width: x1 - x0, height: y1 - y0 });
     expect(want.length).toBeGreaterThan(5);

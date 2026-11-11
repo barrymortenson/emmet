@@ -31,9 +31,7 @@ describe("open an LDraw file", () => {
     scenario("claude", "plain-turn");
     await (await $("#make-parametric")).click();
     await browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running && window.__emmet.chat().items > 0), { timeout: 30_000, timeoutMsg: "the agent never took the request" });
-    if (!(await (await $("#chat-log")).isExisting())) await (await $("#history-toggle")).click();
     await expect($("#chat-log")).toHaveText(expect.stringContaining("Sent from the imported file"), { wait: 10_000 });
-    await (await $("#history-toggle")).click();
   });
 
   it("opens a project from its emmet.toml", async () => {

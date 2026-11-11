@@ -339,3 +339,6 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - The plan's rail shows one session under Up next, the first in plan order.
 - Checking for the Codex API key no longer reads it, so a rebuilt dev app doesn't ask for the login keychain password
   at launch; the key is read only when a Codex session starts.
+- The chat is a sidebar on the left of the window, resizable like the options panel, with the whole conversation
+  always shown; the viewer is in the middle. History, Hide history, and View → Show Chat History are gone (design
+  change note 007).

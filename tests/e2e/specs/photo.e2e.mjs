@@ -182,7 +182,6 @@ for (const kind of ["claude", "codex"]) {
     });
 
     it("opens a sent photo beside the model without moving the camera", async () => {
-      if (!(await (await $("#chat-log")).isExisting())) await (await $("#history-toggle")).click();
       const photoButton = await $("#chat-log .message-photo");
       await photoButton.waitForExist({ timeout: 10_000 });
       const was = await camera();
@@ -198,7 +197,6 @@ for (const kind of ["claude", "codex"]) {
       await expect($("#photo-compare")).not.toBeExisting();
       await browser.execute(() => window.__emmet.viewer().nextFrame());
       expect(await camera()).toEqual(was);
-      if (await (await $("#chat-log")).isExisting()) await (await $("#history-toggle")).click();
     });
   });
 }
