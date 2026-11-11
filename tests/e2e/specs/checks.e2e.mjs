@@ -15,18 +15,6 @@ const modelPy = join(project, "model.py");
 const highlighted = () => browser.execute(() => window.__emmet.viewer().highlighted().sort());
 const errors = () => browser.execute(() => window.__emmetErrors.slice());
 
-/** Opens or closes the chat's history. A script click: the toggle redraws ("History · 3") as the turn's last events
- * land, and a WebDriver click on the one it replaced goes nowhere. */
-const history = (open) =>
-  browser.waitUntil(
-    async () => {
-      if ((await (await $("#chat-log")).isExisting()) === open) return true;
-      await browser.execute(() => document.getElementById("history-toggle")?.click());
-      return false;
-    },
-    { timeout: 10_000, interval: 300, timeoutMsg: `the history never ${open ? "opened" : "closed"}` },
-  );
-
 describe("checks", () => {
   it("lists the collision the validator found, in plain words", async () => {
     await open(project);
@@ -52,7 +40,6 @@ describe("checks", () => {
     scenario("claude", "plain-turn");
     await $("#fix-F-0001").click();
     await browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running && window.__emmet.chat().items > 0), { timeout: 30_000, timeoutMsg: "the agent never took the finding" });
-    await history(true);
     await expect($("#chat-log")).toHaveText(expect.stringContaining("Sent from Checks"), { wait: 10_000 });
     const shown = await $("#chat-log").getText();
     expect(shown).toContain("Fix this: 2 parts overlap.");
@@ -61,7 +48,6 @@ describe("checks", () => {
     const transcripts = join(project, ".emmet", "transcripts");
     const sent = readdirSync(transcripts).map((f) => readFileSync(join(transcripts, f), "utf8")).join("\n");
     expect(sent).toContain("Details from Emmet: Fix F-0001 (collision");
-    await history(false);
   });
 
   it("the Parts tab lists each part and color with its count", async () => {

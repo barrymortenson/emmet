@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The window, to the frozen design (plan section 14, docs/design/frozen; session 4A): the viewer on the left with the
-// title row over it and the chat docked along its bottom, the options panel on the right behind a resizable separator,
-// banners across the viewer's top, and first run as one card over everything until a project is open. What the viewer
-// carries over the model (the hovered part, a step's parts box, pins, the cut-away's bar) is ViewerLayer's (4C). Every
-// action (keys, macOS's menu bar, Windows' title-row menus, the project chip's menu) goes through `run`.
+// The window, to the frozen design (plan section 14, docs/design/frozen; session 4A) as design change note 007 moved
+// it: the chat in a sidebar on the left, the viewer in the middle with the title row over it, the options panel on
+// the right, each sidebar behind a resizable separator, banners across the viewer's top, and first run as one card
+// over everything until a project is open. What the viewer carries over the model (the hovered part, a step's parts
+// box, pins, the cut-away's bar) is ViewerLayer's (4C). Every action (keys, macOS's menu bar, Windows' title-row
+// menus, the project chip's menu) goes through `run`.
 import { createViewer, type Pace, type Preset, type Quality, type Theme, type View, type Viewer } from "@emmet/viewer";
 import { Toast, Tooltip } from "radix-ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -32,7 +33,7 @@ import { findingWords, fixRequest } from "./Checks";
 import { About, NewModel, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
 import { drawBook } from "./instructions";
-import { type Action, actionFor, windows } from "./keys";
+import { type Action, actionFor } from "./keys";
 import { base64, json, library, placements } from "./library";
 import { rebuildRequest, rebuildWords } from "./Options";
 import { Panel, type Tab, type TipId } from "./Panel";
@@ -43,6 +44,7 @@ import { ViewerLayer } from "./ViewerLayer";
 
 type Dialog = "settings" | "about" | "shortcuts" | "new-model" | null;
 const PANEL = { min: 320, max: 520, start: 384 };
+const CHAT = { min: 300, max: 520, start: 340 };
 /** A menu click and its key press can both arrive for one action: the second within this long is the same one. */
 const SAME_ACTION_MS = 250;
 /** What works while first run covers the window: its own ways out, and the dialogs over it. */
@@ -105,6 +107,7 @@ export function App() {
   const [animating, setAnimating] = useState(false);
   /** What "auto" quality picked for this GPU, for Settings to show. */
   const [autoQuality, setAutoQuality] = useState<Preset | null>(null);
+  const [chatWidth, setChatWidth] = useState(() => Number(localStorage.getItem("emmet.chat")) || CHAT.start);
   const [panelWidth, setPanelWidth] = useState(() => Number(localStorage.getItem("emmet.panel")) || PANEL.start);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [pop, setPop] = useState<Pop>(null);
@@ -213,7 +216,7 @@ export function App() {
   }, [theme]);
   // First run covers the window: Tab and clicks can't reach what's behind it (the title row, viewer, chat, and panel).
   useEffect(() => {
-    for (const el of document.querySelectorAll(".app > .app-main, .app > .resizable, .app > .panel, .app > .titlebar")) el.toggleAttribute("inert", firstRun != null);
+    for (const el of document.querySelectorAll(".app > .app-main, .app > .resizable, .app > .dock, .app > .panel, .app > .titlebar")) el.toggleAttribute("inert", firstRun != null);
   }, [firstRun, ui.project]);
   const quality = prefs?.prefs.viewer_quality;
   useEffect(() => {
@@ -552,7 +555,7 @@ export function App() {
 
   const can = (a: Action): boolean => {
     if (["help:guide"].includes(a)) return false;
-    if (["agent:switch", "agent:model", "undo-turn", "agent:usage", "agent:fresh", "history"].includes(a)) return !!project && !firstRun;
+    if (["agent:switch", "agent:model", "undo-turn", "agent:usage", "agent:fresh"].includes(a)) return !!project && !firstRun;
     // First run covers the window: what's behind it (the viewer, the panel, the chat) takes no keys.
     if (firstRun && !COVERED_OK.includes(a)) return false;
     if (a === "replay") return !!project && !!scene && pace !== "off";
@@ -702,9 +705,6 @@ export function App() {
         case "undo-turn":
           document.getElementById("undo-turn")?.click();
           break;
-        case "history":
-          document.getElementById("history-toggle")?.click();
-          break;
         case "region:next": {
           const regions = ["viewer", "dock", "panel"].map((id) => document.getElementById(id)).filter((r): r is HTMLElement => !!r);
           const i = regions.findIndex((r) => r.contains(document.activeElement));
@@ -788,10 +788,40 @@ export function App() {
   return (
     <Tooltip.Provider delayDuration={500}>
       <Toast.Provider duration={5000} swipeDirection="down">
-        <div className="app" data-c="app" style={{ "--panel-width": `${panelWidth}px` } as React.CSSProperties}>
-          {windows && titlebar}
+        <div className="app" data-c="app" style={{ "--chat-width": `${chatWidth}px`, "--panel-width": `${panelWidth}px` } as React.CSSProperties}>
+          {titlebar}
+          {project ? (
+            <DockBoundary>
+              <Dock
+                project={project}
+                ask={ask}
+                buildError={ui.error ? { problem: ui.error, agent: ui.error.code.startsWith("MODEL_") || ui.error.code === "PARAM_INVALID", shown: true } : null}
+                onAskBuild={() => sendToAgent("build", "The model didn't build. Fix the mistake in the last change, then run the model again.", buildFixRequest(ui.error!))}
+                onRebuild={() => void act(commands.rebuild())}
+                agentsChanged={agentsChanged}
+                context={context}
+                onSettings={() => setDialog("settings")}
+                onAgent={setChatKind}
+                onBusy={setAgentBusy}
+                onUndone={(saved, who) => say(`Undid ${who}'s last turn. The model before is version ${saved.n}.`)}
+                onPhoto={setPhoto}
+              />
+            </DockBoundary>
+          ) : (
+            <aside className="dock" data-c="dock" aria-label="Chat" id="dock" tabIndex={-1} />
+          )}
+          <Resizable
+            orientation="vertical"
+            label="Resize the chat"
+            value={chatWidth}
+            min={CHAT.min}
+            max={CHAT.max}
+            onChange={(w) => {
+              setChatWidth(w);
+              localStorage.setItem("emmet.chat", String(w));
+            }}
+          />
           <div className="app-main">
-            {!windows && titlebar}
             {banner}
             <section className="viewer" data-c="viewer" aria-label={`3D view of ${name}`} id="viewer" tabIndex={-1} ref={viewerBox} data-photo={photo ? "" : undefined}>
               {photo && <Compare path={photo} onClose={closePhoto} />}
@@ -901,24 +931,6 @@ export function App() {
               />
               <Toast.Viewport className="toast-viewport" aria-label="Notifications" />
             </section>
-            {project && (
-              <DockBoundary>
-              <Dock
-                project={project}
-                ask={ask}
-                buildError={ui.error ? { problem: ui.error, agent: ui.error.code.startsWith("MODEL_") || ui.error.code === "PARAM_INVALID", shown: true } : null}
-                onAskBuild={() => sendToAgent("build", "The model didn't build. Fix the mistake in the last change, then run the model again.", buildFixRequest(ui.error!))}
-                onRebuild={() => void act(commands.rebuild())}
-                agentsChanged={agentsChanged}
-                context={context}
-                onSettings={() => setDialog("settings")}
-                onAgent={setChatKind}
-                onBusy={setAgentBusy}
-                onUndone={(saved, who) => say(`Undid ${who}'s last turn. The model before is version ${saved.n}.`)}
-                onPhoto={setPhoto}
-              />
-              </DockBoundary>
-            )}
           </div>
           <Resizable
             orientation="vertical"

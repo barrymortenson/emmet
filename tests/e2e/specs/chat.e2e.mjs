@@ -37,7 +37,7 @@ async function say(text) {
 }
 
 const chat = () => browser.execute(() => window.__emmet.chat());
-/** The whole dock's words, with the history open. */
+/** The whole dock's words: the conversation, the status, and the card that needs you. */
 const log = () => browser.execute(() => document.getElementById("dock")?.innerText ?? "");
 
 async function waitFor(what, test, timeout = 30_000) {
@@ -46,11 +46,6 @@ async function waitFor(what, test, timeout = 30_000) {
 
 /** Waits until the turn is over. */
 const idle = () => waitFor("the turn never ended", async () => !(await chat()).running);
-
-async function history(open = true) {
-  const shown = await (await $("#chat-log")).isExisting();
-  if (shown !== open) await (await $("#history-toggle")).click();
-}
 
 /** Starts a fresh conversation with `kind`, whose fake plays `name` when the first message starts it. */
 /** Ends a turn a failed test left running. The app is shared by every spec file and by a spec's retry, so a turn
@@ -64,7 +59,6 @@ async function endStuckTurn() {
 
 async function start(kind, name) {
   await endStuckTurn();
-  await history(false);
   scenario(kind, name);
   await waitFor("no agent", async () => (await chat()).agent != null);
   if ((await chat()).agent === kind) await (await $("#start-fresh")).click();
@@ -163,7 +157,6 @@ for (const kind of ["claude", "codex"]) {
       await (await $("#chat-status")).waitForExist({ timeout: 10_000 });
       await instances(10);
       await idle();
-      await history();
       const lines = await closedLines();
       expect(lines.join("\n")).toContain("Changed the model");
       expect(lines.join("\n")).toMatch(/Built 10 parts/);
@@ -208,7 +201,6 @@ for (const kind of ["claude", "codex"]) {
         await press("#dock-active .approval-card", "Allow once");
       }
       await idle();
-      await history();
       await waitFor("no line for the denial", async () => (await log()).includes("You said no"));
     });
 
@@ -220,7 +212,6 @@ for (const kind of ["claude", "codex"]) {
       await screenshots(`chat-question-${kind}`);
       await type("#dock-active .question-other input", "Five bricks, in tan");
       await press("#dock-active .question-other", "Answer");
-      await history();
       await waitFor("the question didn't fold to its answer", async () => (await log()).includes("Five bricks, in tan"));
       await waitFor("the agent didn't carry on", async () => (await log()).includes("Six bricks tall"));
       await idle();
@@ -233,7 +224,6 @@ for (const kind of ["claude", "codex"]) {
       await expect($("#chat-status")).toHaveText(expect.stringContaining("Working"), { wait: 30_000 });
       await say("Also include the word banana in your reply.");
       await (await $("#pending")).waitForExist({ timeout: 10_000 }).catch(() => {});
-      await history();
       await waitFor("the redirect wasn't delivered", async () => (await log()).includes(`Delivered at ${NAME[kind]}'s next step`), 40_000);
       await waitFor("the agent didn't act on it", async () => (await log()).toLowerCase().includes("banana"));
       await idle();
@@ -252,7 +242,6 @@ for (const kind of ["claude", "codex"]) {
       else await browser.keys("Escape");
       await idle();
       await expect($("#chat-status")).toHaveText(expect.stringContaining("Stopped by you"));
-      await history();
       await waitFor("no line for the stop", async () => (await log()).includes("You stopped the turn at"));
       await screenshots(`chat-stopped-${kind}`);
     });
@@ -267,7 +256,6 @@ for (const kind of ["claude", "codex"]) {
       await (await $("#chat-restart")).click();
       await waitFor("the agent didn't start again", async () => (await chat()).session === conversation && !(await chat()).crashed);
       await say(kind === "claude" ? "Reply with exactly the word: ready" : "What was the code word?");
-      await history();
       await waitFor("the resumed chat didn't answer", async () => (await log()).includes(kind === "claude" ? "ready" : "teal"));
       await idle();
     });
@@ -285,7 +273,6 @@ for (const kind of ["claude", "codex"]) {
       console.log(`rung 1 (${kind}) event → DOM with its builds: median ${ms[Math.floor(ms.length / 2)]} ms, p95 ${ms[Math.floor(ms.length * 0.95)]} ms`);
       const parts = await browser.execute(() => window.__emmet.viewer().stats().instances);
       expect(parts).toBeGreaterThanOrEqual(40);
-      await history();
       await waitFor("no folded steps", async () => (await closedLines()).some((l) => / steps/.test(l)));
       const lines = await closedLines();
       for (const l of lines) expect(l).not.toMatch(/mcp__|\.py\b|[{}=]|\/\w/);
@@ -324,7 +311,6 @@ describe("switching agents", () => {
     await idle();
     await pick("codex");
     await waitFor("no switch", async () => (await chat()).agent === "codex");
-    await history();
     await waitFor("no divider", async () => (await log()).includes("Codex · a fresh conversation. The Claude one is kept."));
     await screenshots("chat-switched");
     await pick("claude");
@@ -363,7 +349,6 @@ describe("the chat overall", () => {
     await open(dir);
     // The project may be open already: the dock reads its history again.
     await browser.execute(() => window.__emmet.reloadChat());
-    await history();
     const log = await $("#chat-log");
     await expect(log).toHaveAttribute("data-rows", "1000");
     const drawn = Number(await log.getAttribute("data-drawn"));

@@ -47,8 +47,6 @@ function windowsMenus(run: (a: Action) => void, can: (a: Action) => boolean): [s
         "-",
         item("step:prev", "Previous step"),
         item("step:next", "Next step"),
-        "-",
-        item("history", "Show chat history"),
       ],
     ],
     ["Agent", [item("agent:message", "Go to message box"), item("agent:send", "Send"), item("agent:stop", "Stop"), "-", item("agent:fresh", "Start fresh"), item("agent:switch", "Switch agent"), item("agent:model", "Model and effort…"), item("agent:usage", "Plan usage…")]],

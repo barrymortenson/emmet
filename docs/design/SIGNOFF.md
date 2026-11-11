@@ -129,3 +129,4 @@ frozen screen's link), and Barry's yes with its date. The frozen files are updat
 here.
 
 - [001: What session 4A's build adds to the frozen screens](changes/001-4a-shell.md)
+- [007: The chat is a sidebar on the left, with the conversation always shown](changes/007-chat-left-sidebar.md)

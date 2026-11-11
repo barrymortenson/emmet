@@ -1257,52 +1257,61 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <!-- ============================================================ 14 -->
 <section id="s14">
 <h2><span class="num">14</span>UI and UX</h2>
-<p class="lede">The bar is nurb: calm, fast, obvious, and the 3D model is always the hero. Phase 2 answered this section's brief with three directions; Barry picked B, Canvas (H-07), and 2B froze it: the tokens (<code>apps/desktop/src/styles/tokens.css</code>), the components (<code>docs/design/components.md</code>), every screen and state below at 1440 × 900 and 1280 × 800 in both themes and on both platforms (<code>docs/design/frozen/</code>), the keyboard map, and the content guide, signed by Barry (H-08, <code>docs/design/SIGNOFF.md</code>). This section describes that design; the frozen screens are exact.</p>
+<p class="lede">The bar is nurb: calm, fast, obvious, and the 3D model is always the hero. Phase 2 answered this section's brief with three directions; Barry picked B, Canvas (H-07), and 2B froze it: the tokens (<code>apps/desktop/src/styles/tokens.css</code>), the components (<code>docs/design/components.md</code>), every screen and state below at 1440 × 900 and 1280 × 800 in both themes and on both platforms (<code>docs/design/frozen/</code>), the keyboard map, and the content guide, signed by Barry (H-08, <code>docs/design/SIGNOFF.md</code>). This section describes that design; the frozen screens are exact, except where a design change note (<code>docs/design/changes/</code>) says otherwise. Note 007 (Barry 2026-11-10) moved the chat from a dock under the viewer to a sidebar on the left, with the conversation always shown.</p>
 
 <h3>Layout</h3>
 <div class="flow">
 <svg viewBox="0 0 1140 632" role="img" aria-labelledby="layout-title layout-desc">
-  <title id="layout-title">Emmet window layout (direction B, Canvas)</title>
-  <desc id="layout-desc">The 3D viewer fills the left of the window. Over its top edge sit the project chip with its menu and the view switch. Along its bottom edge the chat docks: the agent picker, the plan badge with its usage, the agent's status with Stop, then the card that needs you (here a question with two answers and Other), then the composer with the model and effort and Send. The options panel on the right has the model's state and Export, then the Options, Checks, Parts, and Steps tabs; Options shows the build settings folded to one line and the model's knobs (a slider, two switches, Shuffle).</desc>
+  <title id="layout-title">Emmet window layout (direction B, Canvas, with the chat on the left)</title>
+  <desc id="layout-desc">The chat is a sidebar on the left of the window: the agent picker, the plan badge with its usage, and Start fresh; the whole conversation, always shown; the agent's status with Stop; the card that needs you (here a question with two answers and Other); then the composer with the model and effort and Send. The 3D viewer fills the middle. The title row runs over the chat and the viewer: the project chip with its menu, and the view switch centered over the viewer. The options panel on the right has the model's state and Export, then the Options, Checks, Parts, and Steps tabs; Options shows the build settings folded to one line and the model's knobs (a slider, two switches, Shuffle).</desc>
 
   <rect class="bx" x="20" y="10" width="1100" height="612" rx="12"/>
-  <rect class="viewport" x="21" y="11" width="752" height="610" rx="11"/>
+  <rect class="viewport" x="330" y="11" width="443" height="610"/>
 
-  <!-- Title row over the viewer -->
+  <!-- Title row over the chat and the viewer -->
   <circle cx="40" cy="32" r="6" fill="#ff5f57"/><circle cx="58" cy="32" r="6" fill="#febc2e"/><circle cx="76" cy="32" r="6" fill="#28c840"/>
   <rect class="bx" x="96" y="18" width="118" height="28" rx="14"/>
   <text class="t" x="112" y="37" style="font-size: 13px">Cottage ▾</text>
-  <rect class="bx" x="300" y="18" width="140" height="28" rx="14"/>
-  <rect class="bx agent" x="304" y="21" width="40" height="22" rx="11"/>
-  <text class="tab on" x="313" y="37">Iso</text>
-  <text class="tab" x="354" y="37">Front</text>
-  <text class="tab" x="402" y="37">Top</text>
+  <rect class="bx" x="482" y="18" width="140" height="28" rx="14"/>
+  <rect class="bx agent" x="486" y="21" width="40" height="22" rx="11"/>
+  <text class="tab on" x="495" y="37">Iso</text>
+  <text class="tab" x="536" y="37">Front</text>
+  <text class="tab" x="584" y="37">Top</text>
+
+  <!-- Chat sidebar on the left -->
+  <rect class="bx" x="32" y="56" width="290" height="556" rx="18"/>
+  <rect class="bx" x="44" y="68" width="74" height="24" rx="12"/>
+  <text class="q" x="56" y="85" style="font-weight: 700">Claude ▾</text>
+  <text class="s" x="130" y="85">Max plan · 16%</text>
+  <text class="s" x="296" y="85" style="text-anchor: end">＋</text>
+  <rect class="bx agent" x="150" y="106" width="160" height="40" rx="12"/>
+  <text class="q" x="162" y="123">Build a small cottage</text>
+  <text class="q" x="162" y="138">on a green baseplate</text>
+  <rect class="pad" x="44" y="156" width="266" height="24" rx="10"/>
+  <text class="s" x="56" y="173">✓ 6 steps · built in 1 stage</text>
+  <text class="q" x="46" y="200">The walls are up to row 3. Before</text>
+  <text class="q" x="46" y="216">the roof, one thing to settle.</text>
+  <text class="s" x="177" y="290" style="text-anchor: middle">The whole conversation,</text>
+  <text class="s" x="177" y="308" style="text-anchor: middle">always shown; it scrolls</text>
+  <rect class="bx" x="44" y="406" width="266" height="148" rx="12" style="stroke: var(--accent)"/>
+  <text class="k" x="58" y="426">QUESTION</text>
+  <text class="q" x="58" y="446" style="font-weight: 600">Which style should it have?</text>
+  <rect class="bx agent" x="58" y="456" width="238" height="26" rx="8"/>
+  <text class="q" x="70" y="474">1  Classic (recommended)</text>
+  <rect class="bx" x="58" y="488" width="238" height="26" rx="8"/>
+  <text class="q" x="70" y="506">2  Modern</text>
+  <rect class="bx" x="58" y="520" width="238" height="26" rx="8"/>
+  <text class="s" x="70" y="538">3  Other…</text>
+  <rect class="bx" x="44" y="562" width="266" height="40" rx="10"/>
+  <text class="s" x="58" y="580">Ask Claude…</text>
+  <text class="s" x="58" y="596">Opus 5.5 · Medium ▾</text>
+  <rect class="knob" x="246" y="576" width="56" height="20" rx="10"/>
 
   <!-- Viewer -->
-  <text class="t" x="396" y="210" style="text-anchor: middle; font-size: 20px">3D viewer</text>
-  <text class="s" x="396" y="234" style="text-anchor: middle">The model, always the hero · iso by default · orbit · pick</text>
-  <text class="s" x="396" y="254" style="text-anchor: middle">Pins on findings, a step's parts box, an open version's bar</text>
-
-  <!-- Chat dock along the bottom of the viewer -->
-  <rect class="bx" x="32" y="436" width="730" height="176" rx="18"/>
-  <rect class="bx" x="44" y="448" width="74" height="24" rx="12"/>
-  <text class="q" x="56" y="465" style="font-weight: 700">Claude ▾</text>
-  <text class="s" x="130" y="465">Max plan · 16%</text>
-  <rect class="bx agent" x="236" y="448" width="318" height="24" rx="12"/>
-  <text class="q" x="250" y="465">◌ Building the walls, row 3 of 6 · 0:22   Stop Esc</text>
-  <text class="s" x="610" y="465">History · 6</text>
-  <text class="s" x="686" y="465">Start fresh</text>
-  <rect class="bx" x="44" y="482" width="706" height="80" rx="12" style="stroke: var(--accent)"/>
-  <text class="k" x="58" y="500">QUESTION</text>
-  <text class="q" x="58" y="518" style="font-weight: 600">Which style should the cottage have?</text>
-  <rect class="bx agent" x="58" y="526" width="332" height="26" rx="8"/>
-  <text class="q" x="70" y="544">1  Classic: tan walls, dark red roof (recommended)</text>
-  <rect class="bx" x="402" y="526" width="336" height="26" rx="8"/>
-  <text class="q" x="414" y="544">2  Modern: white walls, black roof</text>
-  <rect class="bx" x="44" y="570" width="706" height="32" rx="10"/>
-  <text class="s" x="58" y="591">Redirect Claude…</text>
-  <text class="s" x="540" y="591">Opus 5.5 · Medium ▾</text>
-  <rect class="knob" x="686" y="576" width="56" height="20" rx="10"/>
+  <text class="t" x="552" y="290" style="text-anchor: middle; font-size: 20px">3D viewer</text>
+  <text class="s" x="552" y="314" style="text-anchor: middle">The model, always the hero · iso by default</text>
+  <text class="s" x="552" y="334" style="text-anchor: middle">Orbit · pick · pins on findings</text>
+  <text class="s" x="552" y="354" style="text-anchor: middle">A step's parts box, an open version's bar</text>
 
   <!-- Options panel -->
   <rect class="bx" x="786" y="22" width="322" height="590" rx="18"/>
@@ -1339,12 +1348,12 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 </svg>
 </div>
 <ul>
-<li><b>Title row</b> over the viewer: the project chip (the ant and the project's name), whose menu holds New, Open, Save version, Versions, Export, and About; and the view switch (Iso, Front, Top, Frame, Screenshot), centered. On Windows the row runs across the window with the menu bar (File, Edit, View, Agent, Help) and the caption buttons.</li>
-<li><b>Viewer</b>, the left of the window and the hero: it carries only what points at the model (a finding's pin, a step's parts box and sub-assembly, an open version's bar with Restore and Open as new project, Skip animation, toasts). Hovering shows the part's name and color. No step scrubber: the Steps tab picks a step.</li>
+<li><b>Title row</b> over the chat and the viewer: the project chip (the ant and the project's name), whose menu holds New, Open, Save version, Versions, Export, and About; and the view switch (Iso, Front, Top, Frame, Screenshot), centered over the viewer. On Windows the row runs across the window with the menu bar (File, Edit, View, Agent, Help) and the caption buttons.</li>
+<li><b>Viewer</b>, the middle of the window and the hero: it carries only what points at the model (a finding's pin, a step's parts box and sub-assembly, an open version's bar with Restore and Open as new project, Skip animation, toasts). Hovering shows the part's name and color. No step scrubber: the Steps tab picks a step.</li>
 <li><b>Versions</b> (section 07): Save version (<kbd>⌘S</kbd>) names one; the versions list shows each one's render, name, time, part count, and whether Emmet saved it before an agent's turn. A version opens read-only in the viewer to compare, with Restore (which saves the current state first) and Open as new project. Undo turn, in the chat after a turn that changed the model, restores the automatic version from before it.</li>
-<li><b>Chat</b>, docked along the bottom of the viewer: the agent picker (switching starts a fresh conversation), the plan badge (Claude's usage, which opens the meters; "Using ChatGPT plan · Manage usage" for Codex on a ChatGPT plan, 1E), the agent's status with Stop (what it's doing right now, shown only when it says something new), History, and Start fresh. Under them, the card that needs you (a question card with 2–4 answers, recommended first, and Other, keys <kbd>1</kbd>–<kbd>5</kbd>; an approval card; a failed build, a crash, a sign-in, a plan limit) or the latest line; then the composer, which stays open while the agent works: what you send waits as a pending redirect (Edit, Cancel, Stop and send now). The model and effort sit beside Send. Attach a photo (the picker, paste, or a drop on the composer; 4D) puts each photo in a chip above the message, and the first one says once where photos go ("Your photo goes to Claude Code, under Anthropic's terms."); a photo starts a turn, so it waits while the agent works or a question is open. A sent photo shows in its message, and a click opens the compare view: the photo in the viewer's left half and the model beside it, which the user orbits to line it up; opening and closing it never moves the camera. History opens upward and pushes the viewer up; it never covers the model. Tool cards are plain-language summaries (open for the raw call), and file-change cards say what changed in words, with no diff and no code.</li>
+<li><b>Chat</b>, a sidebar on the left of the window, as tall as the viewer and resizable like the options panel (design change note 007, Barry 2026-11-10; a narrow window caps its width so the viewer keeps its place): at its top, the agent picker (switching starts a fresh conversation), the plan badge (Claude's usage, which opens the meters; "Using ChatGPT plan · Manage usage" for Codex on a ChatGPT plan, 1E), and Start fresh. Under them, the whole conversation, always shown: it has no History button and doesn't fold away. Then the agent's status with Stop (what it's doing right now, shown only when it says something new) and Undo turn; the card that needs you (a question card with 2–4 answers, recommended first, and Other, keys <kbd>1</kbd>–<kbd>5</kbd>; an approval card; a failed build, a crash, a sign-in, a plan limit); then the composer, which stays open while the agent works: what you send waits as a pending redirect (Edit, Cancel, Stop and send now). The model and effort sit beside Send. Attach a photo (the picker, paste, or a drop on the composer; 4D) puts each photo in a chip above the message, and the first one says once where photos go ("Your photo goes to Claude Code, under Anthropic's terms."); a photo starts a turn, so it waits while the agent works or a question is open. A sent photo shows in its message, and a click opens the compare view: the photo in the viewer's left half and the model beside it, which the user orbits to line it up; opening and closing it never moves the camera. The chat never covers the model. Tool cards are plain-language summaries (open for the raw call), and file-change cards say what changed in words, with no diff and no code.</li>
 <li><b>Options panel</b> on the right: the model's state in a word (No problems, 1 problem, Building, Build failed, Read-only, Empty) with Export, then four tabs. <b>Options</b>: the build settings (Base, Size, Age, Detail, Style; each Any until set; Size is how big the model is and Detail how far its finish goes, and no setting names a part count, which is what they come to (Barry 2026-11-10); and the New model dialog asks for them first; here a line of words with Change; a change waits for Rebuild, an agent turn) and the model's knobs (two to five that change its character; a change is a draft until Keep). <b>Checks</b>: findings in plain words, click to highlight, Ask agent to fix, It's fine. <b>Parts</b>: the parts list with pictures, colors, and counts, and export. <b>Steps</b>: the model's tree (Barry 2026-10-27): sub-assemblies with how many times each is used and their sub-steps, then the steps; clicking a step shows the build up to it, and clicking a sub-assembly highlights every copy. The Steps tree and the Parts list are the viewer's text alternative.</li>
-<li><b>No status bar</b>: each thing is said once. The agent's state heads the chat, the model's state heads the panel, plan usage is on the plan badge (D-36), and the library and parts data versions are in About and the old-library banner.</li>
+<li><b>No status bar</b>: each thing is said once. The agent's state sits over the composer, the model's state heads the panel, plan usage is on the plan badge (D-36), and the library and parts data versions are in About and the old-library banner.</li>
 </ul>
 
 <h3>Key flows (each has an E2E spec)</h3>

@@ -43,10 +43,8 @@ describe("the options panel", () => {
     expect(read("emmet.toml")).not.toContain("pieces");
     // Rebuild asks the agent, which starts on it: the chat says what changed in words, sent from Build settings.
     await browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running && window.__emmet.chat().items > 0), { timeout: 30_000, timeoutMsg: "the agent never took the rebuild" });
-    await click("#history-toggle");
     await expect($("#chat-log")).toHaveText(expect.stringContaining("Sent from Build settings"), { wait: 10_000 });
     await expect($("#chat-log")).toHaveText(expect.stringContaining("Rework the model for the new build settings: age 9+ (was Any)"));
-    await click("#history-toggle");
   });
 
   it("keeps a moved knob as a draft until Keep writes it into model.py", async () => {

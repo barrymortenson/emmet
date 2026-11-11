@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
 /* The app's own few rules beside the frozen components.css (session 4A): the window filling its frame, the viewer's
-   canvas, where Radix's wrappers meet the frozen markup, and the dock's history rows. Tokens only
+   canvas, where Radix's wrappers meet the frozen markup, and the dock's conversation rows. Tokens only
    (scripts/style-lint.mjs): no raw colors, no pixel sizes. */
 
 html, body, #root { height: 100%; margin: 0; }
@@ -8,7 +8,7 @@ body { position: relative; overflow: hidden; }
 
 /* The viewer's canvas fills it; its overlays sit above. */
 .viewer > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; }
-.app > .panel:empty { visibility: hidden; }
+.app > .panel:empty, .app > .dock:empty { visibility: hidden; }
 .viewer-notes { position: absolute; left: var(--space-md); right: var(--space-md); bottom: var(--space-md); z-index: 2; display: grid; gap: var(--space-xs); }
 /* What the viewer carries over the model (4C): the hovered part's name beside the pointer, ⌥-drag's box, a finding's
    pin just above its parts, and a step's parts box. The label and box follow the pointer and the pin the viewer's
@@ -64,23 +64,14 @@ body { position: relative; overflow: hidden; }
 .shortcuts td { cursor: default; }
 .shortcuts .kbd + .kbd { margin-left: var(--space-2xs); }
 
-/* The dock (4B): the history's rows, laid out as the frozen list lays out messages, and the parts of 1E's and 1F's
-   flows that show in it. */
-.dock-history-wrap { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: var(--space-sm); min-height: 0; }
+/* The dock (4B): the conversation's rows, laid out as the frozen list lays out messages, and the parts of 1E's and
+   1F's flows that show in it. */
 .dock-history { gap: 0; }
 .dock-history > .virtual-row { display: flex; flex-direction: column; padding-bottom: var(--space-sm); }
-.dock-active > .notice, .dock-line > .notice, .dock-history-wrap > .notice { margin: 0; }
-/* While the agent works, the latest line keeps one line's height: the dock doesn't grow and shrink under the model. */
-.dock-line[data-running] .message[data-from="agent"] p, .dock-line[data-running] .thought { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.dock-line[data-running] .message[data-from="agent"] p + p, .dock-line[data-running] .message ul, .dock-line[data-running] .message ol, .dock-line[data-running] .md-code { display: none; }
-.dock-line[data-running] { display: grid; align-items: center; }
-.dock-line[data-running] > * { grid-area: 1 / 1; min-width: 0; }
-.dock-line[data-running] > .notice { grid-area: 2 / 1; }
-.dock-line .tool-card[data-placeholder] { visibility: hidden; }
-/* Between turns, the agent's latest words take three lines at most; History has the rest. */
-.latest-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--space-xs); }
-.latest-line-text { max-height: 3lh; overflow: hidden; }
-.latest-line-actions { display: flex; align-items: center; gap: var(--space-3xs); }
+.dock > .notice, .dock-active > .notice { margin: 0; }
+.dock-warning { margin: 0; padding: 0 var(--space-3xs); }
+/* In the sidebar a question's answers stack, one a row (note 007). */
+.dock .question-card { grid-template-columns: minmax(0, 1fr); }
 .select-row { display: grid; gap: var(--space-3xs); }
 .dock-fix { display: grid; gap: var(--space-xs); justify-items: start; }
 .dock-fix > .agent-setup { justify-self: stretch; }

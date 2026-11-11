@@ -108,7 +108,7 @@ export function PlanBadge({
         </button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content className="popover" data-c="popover" aria-label="Plan usage" side="top" align="start" sideOffset={6} id="usage-popover">
+        <Popover.Content className="popover" data-c="popover" aria-label="Plan usage" side="bottom" align="start" sideOffset={6} id="usage-popover">
           <span className="popover-title">Claude · {name}</span>
           {shown?.windows.length ? (
             shown.windows.map((w) => (

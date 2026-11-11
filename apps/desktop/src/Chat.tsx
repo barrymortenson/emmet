@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// The chat, docked along the bottom of the viewer (plan section 14, docs/design/frozen, session 4B). Its top: the agent
-// picker (switching starts a fresh conversation and keeps this one), the plan badge, the agent's status with Stop and
-// the time, Undo turn after a turn that changed the model, History, and Start fresh. Then the card that needs you (a
-// question, an approval, a pending redirect, a crash, a sign-in, a plan limit, a failed build) or the latest line; then
-// the composer, which stays open while the agent works, with the model and effort beside Send. History opens upward.
+// The chat, the sidebar on the left of the window (plan section 14, design change note 007; session 4B built it as a
+// dock under the viewer). Its top: the agent picker (switching starts a fresh conversation and keeps this one), the plan
+// badge, and Start fresh. Then the whole conversation, always shown; the agent's status with Stop and the time, and
+// Undo turn after a turn that changed the model; the card that needs you (a question, an approval, a pending redirect,
+// a crash, a sign-in, a plan limit, a failed build); and the composer, which stays open while the agent works, with the
+// model and effort beside Send.
 //
 // What the agent did is said in plain words (summaries.ts): tool cards and file cards, never a tool's name, a path, or
 // code on their closed line (law 2). A message the app wrote for the user ("Ask agent to fix") shows its plain words;
@@ -34,7 +35,7 @@ import { LimitCard } from "./ChatGpt";
 import { Markdown } from "./markdown";
 import { ACCEPT, type Converted, convert, isPhoto } from "./photos";
 import { benchWord, editedFiles, effortName, fileCard, isEdit, isHidden, modelName, toolCard, doing, toolName } from "./summaries";
-import { AlertCard, Badge, Button, Choose, Icon, IconButton, type IconName, Kbd, MenuItems, Resizable, Spinner, TextField } from "./ui";
+import { AlertCard, Badge, Button, Choose, Icon, IconButton, type IconName, Kbd, MenuItems, Spinner, TextField } from "./ui";
 import { limitWarning, PlanBadge, until } from "./Usage";
 import { type Row, VirtualList } from "./virtual";
 
@@ -329,10 +330,6 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const [text, setText] = useState("");
   const [now, setNow] = useState(() => Date.now());
   const [undo, setUndo] = useState<number | null>(null);
-  const [open, setOpen] = useState(false);
-  /** The latest line the user hid (until something newer comes). */
-  const [hiddenLine, setHiddenLine] = useState<string | null>(null);
-  const [height, setHeight] = useState(() => Number(localStorage.getItem("emmet.history")) || 58);
   const [usage, setUsage] = useState<UsageSnapshot | null>(null);
   const [turns, setTurns] = useState(0);
   const session = useRef<string | null>(null);
@@ -716,30 +713,8 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   else if (!chat.running && chat.took != null) status = { tone: "done", line: `Done in ${clock(chat.took)}`, icon: "circle-check" };
   const canUndo = !chat.running && undo != null && status?.tone === "done";
 
-  // The card that needs you shows once: below the history, not in it too.
-  // Only while History is open: every event would build the whole list again otherwise.
-  const rows = useMemo(() => (open ? fold(openCard ? chat.items.slice(0, -1) : chat.items, kind ?? "claude", chat, actions) : []), [chat, kind, openCard, open]);
-  // The latest line: while the agent works it's always there, so the dock (and the model above it) doesn't jump: the
-  // newest step, running or done, or the agent's latest words on one line; before the first, a step's worth of space.
-  const shownLine = [...chat.items].reverse().find((i) => ["tool", "file", "note", "agent", "thinking"].includes(i.k) && (chat.running || i === last));
-  const placeholder = (
-    <div className="tool-card" data-c="tool-card" aria-hidden="true" data-placeholder>
-      <div className="tool-card-row">
-        <Icon name="box" />
-        <span className="tool-card-title">&nbsp;</span>
-      </div>
-    </div>
-  );
-  const lastLine = card ? null : chat.running ? (
-    <>
-      {placeholder}
-      {shownLine && <Message item={shownLine} who={kind ?? "claude"} chat={chat} actions={actions()} line />}
-    </>
-  ) : shownLine && shownLine.key !== hiddenLine ? (
-    <LatestLine onAll={() => setOpen(true)} onHide={() => setHiddenLine(shownLine.key)}>
-      <Message item={shownLine} who={kind ?? "claude"} chat={chat} actions={actions()} line />
-    </LatestLine>
-  ) : null;
+  // The card that needs you shows once: below the conversation, not in it too.
+  const rows = useMemo(() => fold(openCard ? chat.items.slice(0, -1) : chat.items, kind ?? "claude", chat, actions), [chat, kind, openCard]);
   // Said before the next turn: a Claude window at 90% or more, or an API key billing instead of the plan (D-35).
   const warning = chat.running ? null : (agent?.warning ?? (kind === "claude" ? limitWarning(chat.limits ?? usage) : null));
 
@@ -766,21 +741,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const chip = `${named(model ?? chat.model)}${effort ? ` · ${effortName(effort)}` : ""}`;
 
   return (
-    <section className="dock" data-c="dock" data-state={open ? "open" : "closed"} aria-label="Chat" id="dock" tabIndex={-1} style={{ "--dock-history": height / 100 } as React.CSSProperties}>
-      {open && (
-        <Resizable
-          orientation="horizontal"
-          label="Resize the chat history"
-          value={height}
-          min={20}
-          max={80}
-          invert
-          onChange={(v) => {
-            setHeight(v);
-            localStorage.setItem("emmet.history", String(v));
-          }}
-        />
-      )}
+    <aside className="dock" data-c="dock" aria-label="Chat" id="dock" tabIndex={-1}>
       <div className="dock-top">
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
@@ -790,7 +751,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
             </button>
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
-            <DropdownMenu.Content className="menu" data-c="menu" aria-label="Agent" side="top" align="start" sideOffset={6} id="agent-menu">
+            <DropdownMenu.Content className="menu" data-c="menu" aria-label="Agent" side="bottom" align="start" sideOffset={6} id="agent-menu">
               <MenuItems
                 items={[
                   ...(["claude", "codex"] as AgentKind[]).map((k) => {
@@ -813,51 +774,36 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
         {kind && <PlanBadge kind={kind} live={chat.limits} turns={turns} onSnapshot={setUsage} plan={chat.plan} tokens={chat.tokens} named={agent?.badge.split(" · ")[1] ?? null} />}
-        {status && !quiet ? (
-          <div className="status" data-c="status" data-tone={status.tone} role="status" aria-live="polite" id="chat-status">
-            {status.tone === "busy" ? <Spinner label={status.line} /> : <Icon name={status.icon ?? "circle-check"} size="sm" />}
-            <span className="status-line">{status.line}</span>
-            {status.time && <span className="status-time">{status.time}</span>}
-            {status.tone === "busy" && <Button label="Stop" size="sm" icon="square" kbd="Esc" title="Stop the turn (Esc)" id="chat-stop" onClick={stop} />}
-          </div>
-        ) : (
-          <span className="grow" />
-        )}
-        {canUndo && <Button label="Undo turn" variant="quiet" size="sm" icon="undo-2" compact id="undo-turn" title={`Undo turn: restore the model from before this turn (version ${undo})`} onClick={() => void undoTurn()} />}
-        {(chat.items.length > 0 || open) && (
-          <Button label={open ? "Hide history" : `History · ${chat.items.filter((i) => i.k !== "divider").length}`} variant="quiet" size="sm" icon="messages-square" compact id="history-toggle" aria-expanded={open} onClick={() => setOpen(!open)} />
-        )}
+        <span className="grow" />
         <Button label="Start fresh" variant="quiet" size="sm" icon="message-square-plus" compact id="start-fresh" title="Start fresh: clear the context and keep the agent" disabled={chat.running} onClick={() => void fresh(null)} />
       </div>
-      {open ? (
-        <div className="dock-history-wrap">
-          <VirtualList rows={rows} className="dock-history" id="chat-log" label="Chat history" />
-          {card && (
-            <div className="dock-active" id="dock-active">
-              {card}
+      <VirtualList rows={rows} className="dock-history" id="chat-log" label="Conversation" />
+      {((status && !quiet) || canUndo) && (
+        <div className="dock-status">
+          {status && !quiet ? (
+            <div className="status" data-c="status" data-tone={status.tone} role="status" aria-live="polite" id="chat-status">
+              {status.tone === "busy" ? <Spinner label={status.line} /> : <Icon name={status.icon ?? "circle-check"} size="sm" />}
+              <span className="status-line">{status.line}</span>
+              {status.time && <span className="status-time">{status.time}</span>}
+              {status.tone === "busy" && <Button label="Stop" size="sm" icon="square" kbd="Esc" title="Stop the turn (Esc)" id="chat-stop" onClick={stop} />}
             </div>
+          ) : (
+            <span className="grow" />
           )}
-          {problem}
+          {canUndo && <Button label="Undo turn" variant="quiet" size="sm" icon="undo-2" id="undo-turn" title={`Undo turn: restore the model from before this turn (version ${undo})`} onClick={() => void undoTurn()} />}
         </div>
-      ) : card ? (
+      )}
+      {card && (
         <div className="dock-active" id="dock-active">
           {card}
-          {problem}
         </div>
-      ) : (
-        (lastLine || warning || problem) && (
-          <div className="dock-line" id="dock-line" data-running={chat.running || undefined}>
-            {warning ? (
-              <p className="small" id="limit-warning">
-                {warning}
-              </p>
-            ) : (
-              lastLine
-            )}
-            {problem}
-          </div>
-        )
       )}
+      {!card && warning && (
+        <p className="small dock-warning" id="limit-warning">
+          {warning}
+        </p>
+      )}
+      {problem}
       <div className="composer" data-c="composer" data-drop={dropping || undefined} onDragOver={onDragOver} onDragLeave={() => setDropping(false)} onDrop={onDrop}>
         {showNotice && (
           <p className="composer-notice small" id="photo-notice">
@@ -929,29 +875,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
           <Button label="Send" variant="primary" size="sm" icon="send" id="chat-send" disabled={(!text.trim() && !(attached.length && !photoWait)) || !kind || attaching > 0} onClick={() => void submit()} />
         </div>
       </div>
-    </section>
-  );
-}
-
-/** The agent's latest words between turns: three lines at most, so the model stays in view, with Show all (History has
- * the whole reply) and Hide. */
-function LatestLine({ children, onAll, onHide }: { children: ReactNode; onAll: () => void; onHide: () => void }) {
-  const box = useRef<HTMLDivElement | null>(null);
-  const [long, setLong] = useState(false);
-  useLayoutEffect(() => {
-    const el = box.current;
-    if (el) setLong(el.scrollHeight > el.clientHeight + 1);
-  });
-  return (
-    <div className="latest-line">
-      <div className="latest-line-text" ref={box}>
-        {children}
-      </div>
-      <div className="latest-line-actions">
-        {long && <Button label="Show all" variant="quiet" size="sm" id="line-all" onClick={onAll} />}
-        <IconButton icon="x" label="Hide" size="sm" id="line-hide" onClick={onHide} />
-      </div>
-    </div>
+    </aside>
   );
 }
 
@@ -1026,7 +950,7 @@ function PhotoThumb({ path, onOpen }: { path: string; onOpen: () => void }) {
   );
 }
 
-/** The history's rows: three or more finished steps fold into one line once the turn moves past them (note 2). */
+/** The conversation's rows: three or more finished steps fold into one line once the turn moves past them (note 2). */
 function fold(items: Item[], who: AgentKind, chat: Chat, actions: () => Actions): Row[] {
   const out: Row[] = [];
   const step = (i: Item) => (i.k === "tool" && !!i.result) || i.k === "file";
@@ -1068,8 +992,8 @@ function fold(items: Item[], who: AgentKind, chat: Chat, actions: () => Actions)
 
 const TOOL_ICON_DONE = (ok: boolean | undefined) => (ok === false ? <Icon name="x" size="sm" /> : <Icon name="check" size="sm" />);
 
-/** One item of the chat. `active`: it's the card that needs you, which takes the focus (in History it doesn't). */
-function Message({ item, who, chat, actions, line, active }: { item: Item; who: AgentKind; chat: Chat; actions: Actions; line?: boolean; active?: boolean }) {
+/** One item of the chat. `active`: it's the card that needs you, which takes the focus (in the conversation above it, it doesn't). */
+function Message({ item, who, chat, actions, active }: { item: Item; who: AgentKind; chat: Chat; actions: Actions; active?: boolean }) {
   const name = NAME[who];
   switch (item.k) {
     case "divider":
@@ -1110,7 +1034,6 @@ function Message({ item, who, chat, actions, line, active }: { item: Item; who: 
         </div>
       );
     case "thinking":
-      if (line) return <p className="thought">{item.text}</p>;
       return (
         <details className="message thinking" data-c="chat-message" data-from="thinking">
           <summary>
@@ -1352,7 +1275,7 @@ export class DockBoundary extends Component<{ children: ReactNode }, { error: Er
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <section className="dock" data-c="dock" aria-label="Chat" id="dock">
+      <aside className="dock" data-c="dock" aria-label="Chat" id="dock">
         <AlertCard
           tone="bad"
           icon="octagon-alert"
@@ -1361,7 +1284,7 @@ export class DockBoundary extends Component<{ children: ReactNode }, { error: Er
           text={`Your project is untouched. ${this.state.error.message}`}
           actions={<Button label="Try again" variant="primary" icon="refresh-cw" onClick={() => this.setState({ error: null })} />}
         />
-      </section>
+      </aside>
     );
   }
 }
