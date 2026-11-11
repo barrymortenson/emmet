@@ -238,7 +238,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   words with Change. Base picks the starter model (None: no parts; a size: that green baseplate), and the viewer
   draws a faint stud grid on the table under every model (not in pictures); a model that opens empty is framed when
   its first parts come. The validator's step_order warns of a part threaded onto an axle or pin after earlier parts
-  are on it both sides, so it can't slide on, and the bike techniques put such parts on with their axles. In the viewer, shift-drag pans and ⌥-drag draws the selection box.
+  are on it both sides, so it can't slide on, and the bike techniques put such parts on with their axles. In the viewer, shift-drag pans and ⌥-drag draws the selection box, and the camera comes fully to rest after a drag
+  (OrbitControls' damping no longer creeps it on by a hair a frame).
 - Building instructions as a PDF (session 4E): Export → Instructions → PDF in the app, and `emmet export --format pdf
   [--paper a4|letter]`, with no LPub3D needed. A cover; the steps, two to a page, each with its number over its parts
   box and its new parts outlined in red; a camera that stays put through a run of steps and follows the work; each

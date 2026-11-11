@@ -288,6 +288,15 @@ const HOVER = 0.28;
  * the more so on a dark background. */
 const SOFT_EDGES: Record<Theme, number> = { light: 0.18, dark: 0.32 };
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
+
+/** OrbitControls' damping keeps a shrinking remainder of a drag (an orbit's turn, a pan's slide) and adds it every
+ * frame, a hair at a time, forever. Once a frame moves the camera less than the controls notice, it's dropped, so the
+ * camera comes to rest and stays put: it never moves on its own (a pan left it creeping by 1e-12 LDU a frame). */
+function settle(controls: OrbitControls): void {
+  const c = controls as unknown as { _sphericalDelta?: { set(r: number, p: number, t: number): unknown }; _panOffset?: Vector3 };
+  c._sphericalDelta?.set(0, 0, 0);
+  c._panOffset?.set(0, 0, 0);
+}
 const FOV = 35;
 /** A zoom box's frame: the ids' box grown by two studs each way, so the parts around them show where they are. */
 const ZOOM_MARGIN = 40;
@@ -1748,6 +1757,7 @@ class EmmetViewer implements Viewer {
   private loop(now: number): void {
     this.raf = requestAnimationFrame(this.loop);
     const moving = this.controls.update();
+    if (!moving) settle(this.controls);
     if (this.motion) {
       this.stepAnimation(performance.now());
       this.dirty = true;

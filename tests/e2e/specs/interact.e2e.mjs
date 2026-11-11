@@ -110,9 +110,9 @@ describe("the viewer's interactions", () => {
     expect(await camera()).toEqual(before);
   });
 
-  it("shift-drag is left to OrbitControls, which pans with it: no box, no pick, no turn", async () => {
-    // The pan itself is OrbitControls' (left drag with shift, ⌘, or Ctrl); it needs pointer capture, which a synthetic
-    // event can't take, so this checks what Emmet decides: shift-drag no longer draws the box (Barry 2026-11-10).
+  it("shift-drag pans: no box, no pick, the camera slides without turning, and then stays put", async () => {
+    // The pan is OrbitControls' (a left drag with shift, ⌘, or Ctrl); shift-drag no longer draws the box (Barry
+    // 2026-11-10). Its damping's remainder is dropped once the camera comes to rest, so the camera stays put after.
     const picked = (await highlighted()).sort();
     const before = await restingCamera();
     const size = await browser.execute(() => [document.querySelector("#viewer canvas").clientWidth, document.querySelector("#viewer canvas").clientHeight]);
@@ -125,6 +125,9 @@ describe("the viewer's interactions", () => {
     expect((await highlighted()).sort()).toEqual(picked);
     const after = await restingCamera();
     for (const i of [0, 1, 2, 4, 5, 6, 8, 9, 10]) expect(after[i]).toBeCloseTo(before[i], 5);
+    expect(Math.hypot(after[12] - before[12], after[13] - before[13], after[14] - before[14])).toBeGreaterThan(1);
+    await browser.pause(500);
+    expect(await camera()).toEqual(after);
   });
 
   it("F frames the pick, the views turn to each side, and the viewer's keys orbit and zoom only when it has focus", async () => {
