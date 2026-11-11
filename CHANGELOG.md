@@ -235,7 +235,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   the app, New model from a prompt opens a dialog that asks the model's name and its build settings (size, age,
   detail, style, base) first, so the agent builds to them from its first turn; Options shows them as a line of
   words with Change. Base picks the starter model (None: no parts; a size: that green baseplate), and the viewer
-  draws a faint stud grid on the table under every model (not in pictures).
+  draws a faint stud grid on the table under every model (not in pictures); a model that opens empty is framed when
+  its first parts come. In the viewer, shift-drag pans and ⌥-drag draws the selection box.
 - Building instructions as a PDF (session 4E): Export → Instructions → PDF in the app, and `emmet export --format pdf
   [--paper a4|letter]`, with no LPub3D needed. A cover; the steps, two to a page, each with its number over its parts
   box and its new parts outlined in red; a camera that stays put through a run of steps and follows the work; each

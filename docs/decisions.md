@@ -1032,3 +1032,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   settings change, in Barry's hand session, the e-bike at Size Display has 0 validator errors and scores 4 of 6 or
   more (the photo rung's bar, docs/spec/ladder.md), its part count reported, not required. Rejected: scoring run 4 as
   it is, and requiring Detail High.
+- **Shift-drag pans the viewer; ⌥-drag draws the selection box** (Barry, 2026-11-10, in his fifth e-bike session: "the
+  shift key used to allow you to drag the object into view ... the screen can no longer be repositioned"; through
+  AskUserQuestion: "Shift pans, ⌥ boxes"). Since 4C shift-drag had drawn the box that picks parts, which took the
+  pan OrbitControls gives a shift-drag. Now shift-drag, ⌘-drag, and a right drag pan, and ⌥-drag (Alt on Windows)
+  draws the box. The same run showed a model that opens empty (Base None) framed on the empty table and built off to
+  one side: a model that opens empty is now framed when its first parts come, which build up as any run's do.
+  Rejected: keeping shift-drag for the box.

@@ -10,7 +10,7 @@ body { position: relative; overflow: hidden; }
 .viewer > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; }
 .app > .panel:empty { visibility: hidden; }
 .viewer-notes { position: absolute; left: var(--space-md); right: var(--space-md); bottom: var(--space-md); z-index: 2; display: grid; gap: var(--space-xs); }
-/* What the viewer carries over the model (4C): the hovered part's name beside the pointer, shift-drag's box, a finding's
+/* What the viewer carries over the model (4C): the hovered part's name beside the pointer, ⌥-drag's box, a finding's
    pin just above its parts, and a step's parts box. The label and box follow the pointer and the pin the viewer's
    projection (left and top inline). */
 .viewer-hover { pointer-events: none; transform: translate(var(--space-md), var(--space-md)); white-space: nowrap; animation: none; }

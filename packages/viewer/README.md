@@ -75,8 +75,8 @@ viewer.dispose();
 ```
 
 Pointer gestures on the canvas: hover names a part (`hover`), a click picks one (`pick`, with `add` for shift, ⌘, or
-Ctrl) and skips the build animation, shift-drag draws a box (`boxing`) and picks the parts whose centers are in it
-(`box`), and any other drag orbits.
+Ctrl) and skips the build animation, ⌥-drag (Alt on Windows) draws a box (`boxing`) and picks the parts whose centers are in it
+(`box`), shift-drag, ⌘-drag, and a right drag pan (Barry 2026-11-10), and any other drag orbits.
 
 A `PartSource` supplies LDraw text:
 

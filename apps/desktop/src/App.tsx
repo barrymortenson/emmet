@@ -83,6 +83,8 @@ export function App() {
   const viewer = useRef<Viewer | null>(null);
   const shown = useRef(-1);
   const framed = useRef<string | null>(null);
+  /** The project opened on an empty model, which isn't framed yet: its first parts build up and get framed. */
+  const openedEmpty = useRef(false);
   /** A version is open to compare (show() leaves it on screen). */
   const comparing = useRef(false);
   const root = useRef<string | null>(null);
@@ -248,10 +250,16 @@ export function App() {
     // A version open to compare stays on screen; the newest build shows when it closes.
     if (comparing.current) return;
     const first = at != null && framed.current !== at;
-    if (!(await showIn(v, placements(scene), first ? "none" : animate))) return;
+    // The opening scene appears at once; the first parts of a model that opened empty build up as any run's do.
+    if (!(await showIn(v, placements(scene), first && !openedEmpty.current ? "none" : animate))) return;
     drawnAt.current = performance.now();
-    if (at && framed.current !== at) {
-      framed.current = at;
+    if (at && first) {
+      // A model that starts empty (Base None, Barry 2026-11-10) is framed when its first parts come, not before: the
+      // camera never moves on its own after that, so framing the empty table left the model off to one side.
+      if (scene.placements.length > 0) {
+        framed.current = at;
+        openedEmpty.current = false;
+      } else openedEmpty.current = true;
       v.setView("iso");
       setView("iso");
       viewNow.current = "iso";
@@ -264,6 +272,7 @@ export function App() {
       events.projectOpened.listen(({ payload }) => {
         shown.current = -1;
         framed.current = null;
+        openedEmpty.current = false;
         comparing.current = false;
         root.current = payload.project.root;
         setViewerError(null);
@@ -387,7 +396,7 @@ export function App() {
 
   // A click in the viewer picks a part (shift, ⌘, or Ctrl adds it to the pick, or takes it away), a click on nothing
   // clears what's
-  // picked, and shift-drag's box picks the parts in it: the agent sees them as it sees a row picked in the panel.
+  // picked, and ⌥-drag's box picks the parts in it: the agent sees them as it sees a row picked in the panel.
   useEffect(() => {
     const v = viewer.current;
     if (!v) return;

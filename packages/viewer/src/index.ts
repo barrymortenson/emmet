@@ -160,7 +160,7 @@ export interface ViewerEvents {
   hover: (hit: { id: string; x: number; y: number } | null) => void;
   /** A click: the part clicked, or null for nothing. Shift, ⌘, or Ctrl held means add to the selection. */
   pick: (id: string | null, modifiers: { add: boolean }) => void;
-  /** Shift-drag's box while it's drawn (canvas CSS pixels), and null when it's let go. */
+  /** ⌥-drag's box while it's drawn (canvas CSS pixels), and null when it's let go. */
   boxing: (box: Rect | null) => void;
   /** The parts in a box let go: those whose centers are inside it. */
   box: (ids: string[]) => void;
@@ -234,6 +234,8 @@ export interface Viewer {
   skipAnimation(): void;
   setPace(pace: Pace): void;
   frame(ids?: string[]): void;
+  /** Puts the camera on `view`, framing what's shown; when nothing is shown yet (a build animation just started), the
+   * whole scene; with no scene, the origin. */
   setView(view: View): void;
   setTheme(theme: Theme): void;
   setQuality(quality: Quality): void;
@@ -473,8 +475,8 @@ class EmmetViewer implements Viewer {
     this.raf = requestAnimationFrame(this.loop);
   }
 
-  /** Pointer gestures: hovering names a part; a click picks one (and skips the build animation); shift-drag draws a
-   * box that selects; any other drag orbits (OrbitControls). */
+  /** Pointer gestures: hovering names a part; a click picks one (and skips the build animation); ⌥-drag draws a
+   * box that selects; shift-drag, ⌘-drag, and a right drag pan, and any other drag orbits (OrbitControls). */
   private listen(): void {
     const c = this.canvas;
     let down: { x: number; y: number; box: boolean } | null = null;
@@ -489,7 +491,8 @@ class EmmetViewer implements Viewer {
       height: Math.abs(a.y - b.y),
     });
     const onDown = (e: PointerEvent) => {
-      down = { ...local(e), box: e.shiftKey && e.button === 0 };
+      // ⌥-drag (Alt on Windows) draws the box; shift-drag pans, as OrbitControls does it (Barry 2026-11-10).
+      down = { ...local(e), box: e.altKey && e.button === 0 };
       if (down.box) {
         // OrbitControls listens on the same canvas: it mustn't turn the camera while a box is drawn.
         this.controls.enabled = false;
@@ -1191,7 +1194,9 @@ class EmmetViewer implements Viewer {
   }
 
   setView(view: View): void {
-    const box = this.bounds(undefined, undefined, true);
+    let box = this.bounds(undefined, undefined, true);
+    // The first parts of a model that started empty drop in one at a time: frame where they're going.
+    if (box.isEmpty()) box = this.bounds();
     const v = VIEWS[view];
     this.camera.up.copy(v.up);
     if (box.isEmpty()) {

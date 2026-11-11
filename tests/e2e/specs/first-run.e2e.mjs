@@ -149,6 +149,16 @@ describe("first run", () => {
     const dir = join(agentHome, "Documents", "Emmet");
     copyFileSync(join(dir, "Cottage", "model.py"), join(dir, "Fire station", "model.py"));
     await (await $("#export-button")).waitForDisplayed({ timeout: 60_000, timeoutMsg: "the model never built" });
+    // It opened empty (Base None): its first parts are framed as they come, not left off to one side of where the
+    // empty table was framed (Barry 2026-11-10, his fifth e-bike run). Every part's center is on the canvas.
+    await browser.waitUntil(() => browser.execute(() => window.__emmet.viewer().stats().animating === 0), { timeout: 60_000, timeoutMsg: "the build animation never ended" });
+    const [inView, parts] = await browser.execute(() => {
+      const c = document.querySelector("#viewer canvas");
+      const v = window.__emmet.viewer();
+      return [v.idsInBox({ x: 0, y: 0, width: c.clientWidth, height: c.clientHeight }).length, v.stats().instances];
+    });
+    expect(parts).toBeGreaterThan(100);
+    expect(inView).toBe(parts);
     await browser.pause(500);
     await expect($("[data-menu='csv']")).not.toBeExisting();
   });

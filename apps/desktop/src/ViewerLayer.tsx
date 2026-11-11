@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // What the viewer carries over the model (plan section 14, docs/design/components.md's viewer): the hovered part's
-// name and color, shift-drag's box, a finding's pin at its parts, a step's parts box (and any sub-assembly's box, with
+// name and color, ⌥-drag's box, a finding's pin at its parts, a step's parts box (and any sub-assembly's box, with
 // its leader to its first copy), the cut-away's bar, and Skip animation while the build animation runs. The pins and
 // the leader are placed from the viewer's own projection and follow the camera; nothing here moves it (law 1).
 import type { Rect, Viewer } from "@emmet/viewer";
