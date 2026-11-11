@@ -152,8 +152,9 @@ loading, done, failed (the bar in `--fg-bad`, with an alert card and Try again).
 A plan's usage (role `meter`): the share used, with the percent and when it resets beside it. Warn from 90%.
 
 ### `resizable`
-Own (role `separator`, focusable, with its value). Between the viewer and the options panel (320–520 px, 384 by
-default) and on the chat history's top edge (20–80% of the column). Invisible until hover or focus, then a grip in
+Own (role `separator`, focusable, with its value). Between the chat and the viewer (300–520 px, 340 by default,
+never more than about a third of the window) and between the viewer and the options panel (320–520 px, 384 by
+default). Invisible until hover or focus, then a grip in
 `--ui-control`; arrows move it 16 px, Home and End to its limits. Both remember their size per window.
 
 ### `tree`

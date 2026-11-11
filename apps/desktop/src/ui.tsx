@@ -143,7 +143,7 @@ type ButtonProps = Omit<ComponentProps<"button">, "children"> & {
   kbd?: string;
   chevron?: boolean;
   busy?: boolean;
-  /** In a narrow dock the label drops to the tooltip. */
+  /** In the chat's top row the label drops to the tooltip and the accessible name. */
   compact?: boolean;
 };
 

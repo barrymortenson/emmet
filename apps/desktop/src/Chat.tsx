@@ -621,8 +621,10 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   // after the approval it waits on; an earlier turn's cards are over), or a crash at the end.
   const waiting = [...chat.items].reverse().find((i) => (i.k === "question" && !i.closed && (i === last || i.id === chat.question)) || (i.k === "approval" && !i.decided && (i === last || chat.running))) ?? (last?.k === "crash" && chat.crashed ? last : null);
 
-  // The card that needs you, most urgent first.
-  let card: React.ReactNode = null;
+  // The card that needs you, most urgent first. A redirect waiting for delivery keeps the approval or question it
+  // waits behind under it: the agent can't take the redirect until that is answered.
+  const held = waiting ? <Message item={waiting} who={kind ?? "claude"} chat={chat} actions={actions()} active /> : null;
+  let card: React.ReactNode;
   if (agents && kind && !ready && !chat.running)
     card = (
       <div className="dock-fix" id="agent-fix">
@@ -677,18 +679,23 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
     );
   else if (pending)
     card = (
-      <Pending
-        item={pending}
-        who={who}
-        now={now}
-        onNote={async (id, t) => {
-          const r = await commands.chatNote(id, t);
-          if (r.status === "ok" && r.data) dispatch({ type: "note", id, text: t });
-        }}
-        onStopAndSend={stop}
-      />
+      <>
+        <Pending
+          item={pending}
+          who={who}
+          now={now}
+          onNote={async (id, t) => {
+            const r = await commands.chatNote(id, t);
+            if (r.status === "ok" && r.data) dispatch({ type: "note", id, text: t });
+          }}
+          onStopAndSend={stop}
+        />
+        {held}
+      </>
     );
-  else if (waiting) card = <Message item={waiting} who={kind ?? "claude"} chat={chat} actions={actions()} active />;
+  else card = held;
+  // A more urgent card (setup, a limit, a failed build) leaves what waits in the conversation, so it's never in neither.
+  const lifted = waiting != null && (!!pending || card === held) ? waiting : null;
 
   function actions() {
     return {
@@ -716,7 +723,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const canUndo = !chat.running && undo != null && status?.tone === "done";
 
   // The card that needs you shows once: below the conversation, not in it too.
-  const rows = useMemo(() => fold(waiting ? chat.items.filter((i) => i !== waiting) : chat.items, kind ?? "claude", chat, actions), [chat, kind, waiting]);
+  const rows = useMemo(() => fold(lifted ? chat.items.filter((i) => i !== lifted) : chat.items, kind ?? "claude", chat, actions), [chat, kind, lifted]);
   // Said before the next turn: a Claude window at 90% or more, or an API key billing instead of the plan (D-35).
   const warning = chat.running ? null : (agent?.warning ?? (kind === "claude" ? limitWarning(chat.limits ?? usage) : null));
 

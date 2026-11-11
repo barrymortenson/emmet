@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The window, to the frozen design (plan section 14, docs/design/frozen; session 4A) as design change note 007 moved
-// it: the chat in a sidebar on the left, the viewer in the middle with the title row over it, the options panel on
-// the right, each sidebar behind a resizable separator, banners across the viewer's top, and first run as one card
-// over everything until a project is open. What the viewer carries over the model (the hovered part, a step's parts
+// it: the chat in a sidebar on the left, the viewer in the middle, the options panel on the right, the title row over
+// the chat and the viewer (the whole window on Windows), each sidebar behind a resizable separator, banners across
+// the viewer's top, and first run as one card over everything until a project is open. What the viewer carries over the model (the hovered part, a step's parts
 // box, pins, the cut-away's bar) is ViewerLayer's (4C). Every action (keys, macOS's menu bar, Windows' title-row
 // menus, the project chip's menu) goes through `run`.
 import { createViewer, type Pace, type Preset, type Quality, type Theme, type View, type Viewer } from "@emmet/viewer";
@@ -808,7 +808,7 @@ export function App() {
               />
             </DockBoundary>
           ) : (
-            <aside className="dock" data-c="dock" aria-label="Chat" id="dock" tabIndex={-1} />
+            <aside className="dock" data-c="dock" aria-hidden />
           )}
           <Resizable
             orientation="vertical"

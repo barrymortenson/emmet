@@ -3,7 +3,8 @@
 // screens/dock-<frozen id>-<theme>.png for the side-by-sides. States a replay passes through too quickly to see (the
 // agent thinking, a build running, a redirect waiting) are played into the dock as the host would send them (the
 // test-only chatPlay hook); the rest come from the app itself: a build that fails, an agent that isn't signed in, the
-// picker, the plan usage, and the plan limits.
+// picker, the plan usage, and the plan limits. The frozen drawings show the chat as a dock under the viewer; since
+// design change note 007 it is the left sidebar, and the history opened (screen 14) has no state of its own.
 import { $, expect } from "@wdio/globals";
 import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -93,6 +94,22 @@ describe("the dock's frozen states", () => {
     await expect($("#chat-status")).toHaveText(expect.stringContaining("Done in"));
     await screenshots("dock-built");
     await expect($("#chat-log")).toHaveText(expect.stringContaining("147 parts"));
+  });
+
+  it("an approval stays over the composer when a step follows it, and under a redirect", async () => {
+    await fresh();
+    const approval = { type: "approval", id: "p2", kind: "permission", tool: "WebFetch", detail: "example.com/stone-cottage.jpg" };
+    // The agent's next step can arrive after the approval it waits on (the PR review of the left sidebar).
+    await play([...start, approval, tool("t9", "run_model", {})], PROMPT);
+    await (await $("#dock-active .approval-card")).waitForExist({ timeoutMsg: "the approval isn't the card that needs you" });
+    expect(await (await $("#chat-status")).isExisting()).toBe(false);
+    // A redirect typed while it waits shows with it: the approval is never in neither place.
+    await play([], "make the roof dark red", { note: "n2" });
+    await (await $("#dock-active #pending")).waitForExist({ timeoutMsg: "the redirect isn't shown" });
+    expect(await (await $("#dock-active .approval-card")).isExisting()).toBe(true);
+    expect(await (await $("#chat-log .approval-card")).isExisting()).toBe(false);
+    await play([{ type: "approval_closed", id: "p2" }, { type: "note_delivered", id: "n2", path: "native" }, done("t9", "Built 147 parts in 31 steps (0.10 s), generation 4."), { type: "turn_done", reason: "completed" }]);
+    await (await $("#dock-active .approval-card")).waitForExist({ reverse: true, timeoutMsg: "the closed approval is still the card" });
   });
 
   it("a question waiting for an answer", async () => {
