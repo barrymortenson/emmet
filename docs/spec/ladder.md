@@ -241,7 +241,7 @@ them once, from real runs, and an ADR records the change.
       "budget": { "minutes": 30, "turns": 120 }
     },
     "P": {
-      "required": { "validator_errors": 0, "subject_score_min": 4, "subjects_passing_min": 2 },
+      "required": { "validator_errors": 0, "subject_score_min": 4, "subjects_passing_min": 3 },
       "scored_by": "Barry: proportions, recognizability, buildability, 0-2 each",
       "budget": null
     },

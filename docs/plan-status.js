@@ -228,7 +228,7 @@ window.EMMET_STATUS = {
       note: "Note 008 is in the PR for Barry's read (the camera moves on a sub-step's click and goes back after). first run's new-empty baselines, stale since PR #60, were replaced here"
     },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
-    "5A": { status: "todo" },
+    "5A": { status: "in-progress", branch: "bmortenson/s5a-test-matrix-eval", started: "2026-11-11" },
     "5B": { status: "todo" },
     "6A": { status: "todo" },
     "6B": { status: "todo" },

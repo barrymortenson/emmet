@@ -2540,13 +2540,13 @@ for the hand sessions on my Google sign-in; they become the replay fixtures.</co
 <li>A refreshed replay corpus: at least 15 scrubbed transcripts per agent across the three rungs, including real failures and recoveries.</li>
 <li>Eval v1: all rungs and the photo rung × both agents × 1 run, rung 3 scored against the OMR model and Rebrickable inventory (BOM F1 and placement match), and a report template with renders, per-run scores, the trend across dated reports, and a usage note. The thresholds are tuned from real runs and recorded in an ADR.</li>
 <li>The flake policy in CI (one retry in E2E only, retries reported in the job summary, a quarantine label that requires an issue link) and CI time budgets (warn at budget, fail at +50 %).</li>
-<li>Nightly green for 7 consecutive nights (full library, full corpus, Windows E2E, perf on both OSes).</li>
+<li>Nightly green for 7 consecutive nights: the validator corpus on the full library (<code>nightly.yml</code>). No E2E or perf job runs on a schedule (Barry 2026-11-03 and 2026-11-11): their evidence is the weekly full CI run and <code>just bench</code> by hand, and Windows E2E and perf come back with the Windows pass (D-43).</li>
 </ul>
 <div class="s-dh">Done when</div>
 <ul class="done">
 <li>The test matrix has no row without a test, and CI runs every listed test.</li>
 <li>Rungs 1–3 and the photo rung pass on both agents at G2: one run each, with at most one rerun of a failed run after a fix (Barry's runs, H-09, report committed).</li>
-<li>Nightly has been green 7 nights in a row (links in the PR), and no test is quarantined at merge.</li>
+<li>The nightly validator corpus has been green 7 nights in a row (links in the PR), and no test is quarantined at merge.</li>
 <li>PR CI is within budget on both OSes (the job summary is quoted).</li>
 </ul>
 <div class="s-dh">What good looks like</div>

@@ -1078,3 +1078,16 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   the model with every copy lit, as the row does anywhere else. Rejected: turning to the iso view for every
   sub-assembly (it throws away the side the user chose), and keeping the camera the user left on the way out (the
   session's Done when says where it was).
+
+## 2026-11-11, session 5A
+
+- **"Nightly green 7 nights" means the validator corpus** (Barry, 2026-11-11, through AskUserQuestion: "Corpus
+  only"). 5A's plan text asked for a nightly with Windows E2E and perf on both OSes, written before Barry's "I don't
+  want a daily job to run" (2026-11-03), D-43's pause of the Windows jobs, and section 16's "no E2E runs on a
+  schedule". `nightly.yml` stays as it is: the full pinned LDraw library and the 33-model corpus on the self-hosted
+  Mac. E2E and perf evidence is the weekly full CI run and `just bench` by hand; Windows E2E and perf come back with
+  the Windows pass. Session 5A's item 5 and its third Done when say so now. Rejected: a nightly Mac E2E and perf job
+  (it reverses 2026-11-03), and the plan's text as written (it lifts D-43 for one job).
+- **The ladder's scoring config said the photo rung passes at 2 subjects; it's 3** (the agent, 2026-11-11). The JSON
+  in `docs/spec/ladder.md` kept 0B's number from when the rung had three subjects. Barry's 2026-11-04 decision (four
+  subjects, 3 of 4), the plan, the ladder's own text, and `emmet eval` all say 3.
