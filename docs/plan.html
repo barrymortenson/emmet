@@ -1214,7 +1214,7 @@ viewer.highlight(ids, { mode: "issue" | "select" | "agent" });   // the hovered 
 viewer.showSteps(upTo?: number | null);   // the build up to a step, its new parts outlined
 viewer.showAssembly(copy | null, upTo?);  // one sub-assembly on its own, framed, up to its own step; null: the model, the camera back
 viewer.cutAway(layer | null);             // hide above a layer (plate)
-viewer.frame(ids?);                        // explicit only: the camera never moves on its own (showAssembly is a click's ask)
+viewer.frame(ids?);                        // explicit only: the camera never moves on its own (showAssembly is the user's ask)
 viewer.setView("iso" | "front" | "top" | …);
 const { png, camera } = await viewer.render({ view, size, highlight, step });   // offscreen, the same scene code
 const png = await viewer.snapshot();       // what the window shows (Screenshot)

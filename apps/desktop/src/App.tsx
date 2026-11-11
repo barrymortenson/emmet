@@ -583,6 +583,8 @@ export function App() {
     // First run covers the window: what's behind it (the viewer, the panel, the chat) takes no keys.
     if (firstRun && !COVERED_OK.includes(a)) return false;
     if (a === "replay") return !!project && !!scene && pace !== "off";
+    // The cut-away is the whole model's: it waits while a sub-assembly shows on its own.
+    if (a.startsWith("cut:") && apart) return false;
     if (a === "cut:up" || a === "cut:off") return !!project && cut != null;
     if (["save", "versions", "export", "frame", "step:prev", "step:next", "cut:down", "screenshot:copy", "screenshot:save"].includes(a) || a.startsWith("view:") || a.startsWith("tab:") || a.startsWith("orbit:") || a.startsWith("zoom:")) return !!project;
     return true;

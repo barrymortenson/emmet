@@ -2,8 +2,8 @@
 // The Steps tab (Barry 2026-10-27, docs/design/frozen): the model's tree. Built apart first, each sub-assembly with how
 // many times it's used and its own sub-steps; then the steps, grouped by the words before a title's ": " (else the step's group). Clicking a step
 // shows the build up to it (later steps are hidden); clicking a sub-assembly highlights every copy; clicking one of its
-// sub-steps shows it on its own in the viewer, built up to that sub-step (session 4H), until a main step, Escape, or
-// its own row shows the model again. The WAI-ARIA tree pattern: up and down move, right and left open and close, Enter
+// sub-steps shows it on its own in the viewer, built up to that sub-step (session 4H), until a main step, Escape, its
+// own row, or Back on the viewer's bar shows the model again. The WAI-ARIA tree pattern: up and down move, right and left open and close, Enter
 // picks.
 import { useEffect, useRef, useState } from "react";
 import type { StepsTree, StepView } from "./bindings";
@@ -75,7 +75,9 @@ export function Steps({
 
   let head: string | null = null;
   // One item is in the Tab order: the selected one, else the current step.
-  const focusable = (key: string) => (apart ? key === `apart:${apart.file}/${apart.n}` : sub ? key === `sub:${sub}` : key === `step:${cur}`);
+  // (A sub-step shown on its own whose sub-assembly has been closed isn't in the tree: its row stands in for it.)
+  const focusable = (key: string) =>
+    apart ? key === (open.has(apart.file) ? `apart:${apart.file}/${apart.n}` : `sub:${apart.file}`) : sub ? key === `sub:${sub}` : key === `step:${cur}`;
   const alone = apart && tree.submodels.find((m) => m.file === apart.file);
   return (
     <>

@@ -209,6 +209,32 @@ describe("the options panel", () => {
       await whole(before);
       await expect($("#steps-head")).toHaveText(`Step ${total} of ${total}`);
 
+      // Straight from one sub-assembly to another, the camera to go back to is still the model's; the tree keeps one
+      // item in the Tab order when the shown sub-step's sub-assembly is closed; the cut-away's keys wait; and a
+      // render for the agent draws the whole model and leaves the window as it was.
+      await enter();
+      if (subs.length > 1) {
+        // (Every sub-assembly is still open from the walk through its sub-steps.)
+        const other = subs[1];
+        await click(`#steps-tree [data-sub-step='${other.file}/1']`);
+        await browser.waitUntil(async () => (await stats()).alone === firstCopy(other.file), { timeoutMsg: "the other sub-assembly didn't show" });
+        await click(`#steps-tree [data-sub='${other.file}'] .tree-twisty`);
+        await expect($$("#steps-tree [role='treeitem'][tabindex='0']")).toBeElementsArrayOfSize(1);
+        await expect($(`#steps-tree [data-sub='${other.file}']`)).toHaveAttribute("tabindex", "0");
+        await browser.keys(["Alt", "ArrowDown"]);
+        await browser.pause(100);
+        expect((await stats()).cut).toBe(null);
+        const during = await stats();
+        // A part outside the copy: the render sees it, so it drew the whole model.
+        const outside = scene.placements.find((p) => !p.copies?.length).id;
+        const seen = await browser.execute(async (id) => (await window.__emmet.viewer().render({ size: 64, report: [id] })).report?.[id]?.seen ?? null, outside);
+        expect(seen).not.toBe(null);
+        const after = await stats();
+        expect([after.alone, after.step, after.hidden]).toEqual([during.alone, during.step, during.hidden]);
+        await browser.keys("Escape");
+        await whole(before);
+      }
+
       await enter();
       const inside = await restingCamera();
       await browser.execute(() => window.__emmet.viewer().orbit(0.6, 0.2));
