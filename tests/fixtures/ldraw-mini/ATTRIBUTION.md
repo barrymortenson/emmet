@@ -1,8 +1,8 @@
 # ldraw-mini: attribution
 
-This directory is a subset of the **LDraw.org Parts Library**, release 2026-09, from
-https://library.ldraw.org/library/updates/complete.zip (sha256 `f3e496d0ede69ca7942fa4aa198e661ee2d22723906101e2e339d8917a4dd5f2`). It is a test fixture for Emmet
-(plan section 12): 450 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
+This directory is a subset of the **LDraw.org Parts Library**, release 2026-10, from
+https://library.ldraw.org/library/updates/complete.zip (sha256 `023083918da2d3697c794fb4267975509584f3611b993095874206a803fa610f`). It is a test fixture for Emmet
+(plan section 12): 486 parts, their subparts and primitives, and the library's `LDConfig.ldr`.
 
 - **Creators:** each file's `0 Author:` line, repeated in the table below. LDraw.org's `CAreadme.txt` names
   "The LDraw Parts Library" as sufficient attribution in place of a full list of authors.
@@ -50,10 +50,15 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/1-4ering.dat | Adapter Ring Triangles to Normal 0.25 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ndis.dat | Disc Negative 0.25 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring1.dat | Ring  1 x 0.25 | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-4ring10.dat | Ring 10 x 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-4ring12.dat | Ring 12 x 0.25 | Franklin W. Cain [fwcain] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-4ring2.dat | Ring  2 x 0.25 | Franklin W. Cain [fwcain] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring20.dat | Ring 20 x 0.25 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring3.dat | Ring  3 x 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring4.dat | Ring  4 x 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4ring6.dat | Ring  6 x 0.25 | Franklin W. Cain [fwcain] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-4ring8.dat | Ring  8 x 0.25 | Franklin W. Cain [fwcain] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/1-4ring9.dat | Ring  9 x 0.25 | Franklin W. Cain [fwcain] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4stud4.dat | Stud Tube Open 0.25 | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-4tang.dat | Disc Negative Tangent 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/1-8chrd.dat | Chord 0.125 | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -86,6 +91,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/1-8tndis.dat | Disc Negative Truncated 0.125 | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4chrd.dat | Chord 0.5 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4con10.dat | Cone 10 x 0.5 | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/2-4con3.dat | Cone  3 x 0.5 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4con4.dat | Cone  4 x 0.5 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4cylc.dat | Cylinder Closed 0.5 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4cyli.dat | Cylinder 0.5 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -101,6 +107,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/2-4ring3.dat | Ring  3 x 0.5 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4ring4.dat | Ring  4 x 0.5 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4ring7.dat | Ring  7 x 0.5 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/2-4ring8.dat | Ring  8 x 0.5 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4ring9.dat | Ring  9 x 0.5 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4stud4.dat | Stud Tube Open 0.5 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/2-4stud4t45.dat | Stud Tube Open with Groove for 45 Degree Plate Edges | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -117,6 +124,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/3-16ndis.dat | Disc Negative 0.1875 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-16rin5.dat | ~Ring  5 x 0.1875 (Obsolete) | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-16ring1.dat | Ring  1 x 0.1875 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/3-16ring12.dat | Ring 12 x 0.1875 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-16ring2.dat | Ring  2 x 0.1875 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-16ring3.dat | Ring  3 x 0.1875 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-16ring4.dat | Ring  4 x 0.1875 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -125,6 +133,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/3-16stud4.dat | Stud Tube Open 0.1875 | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-16tang.dat | Disc Negative Tangent 0.1875 | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-16tndis.dat | Disc Negative Truncated 0.1875 | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/3-4chrd.dat | Chord 0.75 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-4cylc.dat | Cylinder Closed 0.75 | J.C. Tchang [tchang] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-4cyli.dat | Cylinder 0.75 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/3-4cylo.dat | Cylinder Open 0.75 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -217,6 +226,9 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/48/1-48ring9.dat | Hi-Res Ring  9 x 0.0208 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4aring.dat | Adapter Ring Hi-Res to Normal 0.25 | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4chrd.dat | Hi-Res Chord 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/1-4con14.dat | Hi-Res Cone 14 x 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/1-4con15.dat | Hi-Res Cone 15 x 0.25 | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/1-4con19.dat | Hi-Res Cone 19 x 0.25 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4cyli.dat | Hi-Res Cylinder 0.25 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4cylo.dat | Hi-Res Cylinder Open 0.25 | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/1-4disc.dat | Hi-Res Disc 0.25 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -249,21 +261,37 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/48/3-16cyli.dat | Hi-Res Cylinder 0.1875 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/3-16edge.dat | Hi-Res Circle 0.1875 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4aring.dat | Adapter Ring Hi-Res to Normal 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con10.dat | Hi-Res Cone 10 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con11.dat | Hi-Res Cone 11 x 1.0 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con12.dat | Hi-Res Cone 12 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con30.dat | Hi-Res Cone 30 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con31.dat | Hi-Res Cone 31 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con35.dat | Hi-Res Cone 35 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con36.dat | Hi-Res Cone 36 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con41.dat | Hi-Res Cone 41 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con64.dat | Hi-Res Cone 64 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4con7.dat | Hi-Res Cone  7 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4con8.dat | Hi-Res Cone  8 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4cyli.dat | Hi-Res Cylinder 1.0 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4cylo.dat | Hi-Res Cylinder Open 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4disc.dat | Hi-Res Disc 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4edge.dat | Hi-Res Circle 1.0 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring11.dat | Hi-Res Ring 11 x 1.0 | Niels Karsdorp [nielsk] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring12.dat | Hi-Res Ring 12 x 1.0 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring13.dat | Hi-Res Ring 13 x 1.0 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring14.dat | Hi-Res Ring 14 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring15.dat | Hi-Res Ring 15 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring16.dat | Hi-Res Ring 16 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring17.dat | Hi-Res Ring 17 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring20.dat | Hi-Res Ring 20 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring26.dat | Hi-Res Ring 26 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring27.dat | Hi-Res Ring 27 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring30.dat | Hi-Res Ring 30 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring34.dat | Hi-Res Ring 34 x 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring37.dat | Hi-Res Ring 37 x 1.0 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring4.dat | Hi-Res Ring  4 x 1.0 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring6.dat | Hi-Res Ring  6 x 1.0 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/48/4-4ring7.dat | Hi-Res Ring  7 x 1.0 | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/4-4ring9.dat | Hi-Res Ring  9 x 1.0 | Paul Easter [pneaster] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/5-48chrd.dat | Hi-Res Chord 0.1042 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/48/5-48cyli.dat | Hi-Res Cylinder 0.10417 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -312,6 +340,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/8/4-4cylo.dat | Lo-Res Cylinder Open 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/8/4-4disc.dat | Disc 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/8/4-4edge.dat | Circle 1.0 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/8/4-4ndis.dat | Lo-Res Disc Negative 1.0 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/8/r04q1000.dat | Lo-Res Torus Tube  1 x 1.0000 x 0.25 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/9-16edge.dat | Circle 0.5625 | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/axl2ho10.dat | Technic Axle Hole Reduced Tooth Surface | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -325,6 +354,8 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/axl3hol3.dat | Technic Axle Hole Semi-Reduced Tooth Outer Edges | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/axl3hol8.dat | Technic Axle Hole Semi-Reduced Perimeter | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/axl3hol9.dat | Technic Axle Hole Semi-Reduced Tooth Inner Edges | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/axl3hole.dat | Technic Axle Hole Semi-Reduced | J.C. Tchang [tchang] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/axl5end.dat | Technic Axle Hole Rounded End Surface | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/axl5ho10.dat | Technic Axle Hole Rounded Tooth Surface | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/axl5hol8.dat | Technic Axle Hole Rounded Perimeter | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/axl5hol9.dat | Technic Axle Hole Rounded Tooth Outer Edges | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -386,18 +417,24 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/clip1.dat | Vertical Clip for Flags | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/clip5.dat | Clip Symmetrical with Rounded Sides | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/clip6.dat | Clip Horizontal with Rounded Sides | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/confric10.dat | Technic Friction Pin 1.0 with Base Collar and Rectangular Centre Hole | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/confric4.dat | Technic Friction Pin 1.0 with Base Collar and Blind Hole | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/confric5.dat | Technic Friction Pin 1.0 Slotted with Split Base Collar | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/confric6.dat | Technic Friction Pin 1.0 Slotted without Base Collar | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/confric8.dat | Technic Friction Pin Middle Slotted with Split Base Collar | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/confric9.dat | Technic Friction Pin Middle Slotted with Unsplit Base Collar | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/confricrib1.dat | Technic Friction Pin Rib | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/connect.dat | Technic Pin 1.0 with Base Collar | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/connect2.dat | Technic Pin 1.0 without Base Collar | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/connect3.dat | Technic Pin 0.5 with Base Collar | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/connect8.dat | Technic Pin 1.0 with Base Collar and Blind Hole | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/connectcollar1.dat | Technic Pin Collar Half with Rectangular Hole and Short Slit | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/connhol2.dat | Technic Connector Hole Long with Extended End | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/connhole.dat | Technic Connector Hole Long | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/cylj4x8.dat | Cylinder Joint  4 to  8 | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/empty.dat | Empty | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/filstud3.dat | Stud Filler with 3 Ribs for Hollow Studs | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/fric.dat | Technic Pin Friction Rib Short with Rounded End | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/hipstud.dat | Stud for Minifig Hips | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/joint8ball.dat | Joint-8 Ball with Straight Bar | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/joint8socket1.dat | Joint-8 Socket with Friction | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -406,11 +443,17 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/npeghol10.dat | Technic Peg Hole Negative for Alternate Beam Type 2 without Extensions | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/npeghol19.dat | Technic Peg Hole Negative for Alternate Beam Type 3 Top Half without Extensions | Max Murtazin [SwampKryakwa] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/npeghol2.dat | Technic Peg Hole Negative with Top Surface Extensions | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/npeghol3a.dat | Technic Peg Hole / Axle Hole Negative without Top Surface Extensions without One Edge | Max Murtazin [SwampKryakwa] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/npeghol4.dat | Technic Peg Hole / Axle Hole Negative with Top Surface Extension | Max Murtazin [SwampKryakwa] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/npeghol4a.dat | Technic Peg Hole / Axle Hole Negative with Top Surface Extension without One Edge | Max Murtazin [SwampKryakwa] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/npeghol6c.dat | Technic Peg Hole Negative 0.25 without One Edge | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/npeghol7.dat | Technic Peg Hole Negative 0.5 without Top Surface Extensions | Max Murtazin [SwampKryakwa] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/npeghol7a.dat | Technic Peg Hole Negative 0.5 with Top Surface Extensions | Max Murtazin [SwampKryakwa] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/npeghol8.dat | Technic Peg Hole Negative for Alternate Beam Type 1 Half without Extensions | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/npeghol9.dat | Technic Peg Hole Negative for Alternate Beam Type 2 with Extensions | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/npeghole.dat | Technic Peg Hole Negative without Top Surface Extensions | Max Murtazin [SwampKryakwa] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/peghole.dat | Peg Hole End | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/peghole2.dat | Peg Hole End Extended | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/phandle1.dat | Bar Handle Attachment with Open Side | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/phandle2.dat | Bar Handle Attachment with 2 Open Sides | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/r04o1000.dat | Torus Outside  1 x 1.0000 x 0.25 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -423,6 +466,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/recte3.dat | Rectangle Empty with 3 Edges | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/recte4.dat | Rectangle Empty with 4 Edges | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/ribt45.dat | Rib T-Shaped for 45 Degree Plate Edges | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/ridge.dat | Underside Stud Holder Ridge | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/ridgea.dat | Underside Stud Holder Ridge without Base Edges | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/ridges.dat | Underside Stud Holder Ridge Slope | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/ring3.dat | ~Moved to 4-4ring3 | [PTadmin] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -462,9 +506,12 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/stug-4x4.dat | Stud Group  4 x  4 | Tore Eriksson [Tore_Eriksson] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug-5x5.dat | Stud Group  5 x  5 | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug-6x6.dat | Stud Group  6 x  6 | Tore Eriksson [Tore_Eriksson] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/stug-7x7.dat | Stud Group  7 x  7 | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug-8x8.dat | Stud Group  8 x  8 | Tore Eriksson [Tore_Eriksson] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug10-2x2.dat | Stud Group Truncated Laterally Curved 40D for Round 2 x 2 Parts | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug15-2x2.dat | Stud Group Truncated Laterally Straight 40D for Round 2 x 2 Parts | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/stug2-12x1.dat | Stud Open Group 12 x  1 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/stug2-1x12.dat | Stud Open Group  1 x 12 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug2-1x2.dat | Stud Open Group  1 x  2 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug2-1x4.dat | Stud Open Group  1 x  4 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/stug2-1x6.dat | Stud Open Group  1 x  6 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -517,6 +564,9 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | p/wpin.dat | Wheel Holding Pin | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/wpin2.dat | Wheel Holding Pin with 2 Fillets | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | p/wpin2a.dat | Wheel Holding Pin with  2 Fillets without Bottom Faces | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/wpin5a.dat | Wheel Holding Pin with Centre Hole without Bottom Edge | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/wpin5aq.dat | Wheel Holding Pin with Centre Hole without Bottom Edge - Quarter | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| p/wpin5e.dat | Wheel Holding Pin with Centre Hole - Bottom Pocket | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/11090.dat | Bar Tube with Clip | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/11208.dat | Wheel Rim 10 x 14 with Fake Bolts and  6 Spokes | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/11209.dat | Tyre 10/ 32 x 14 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -527,6 +577,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/11476.dat | Plate  1 x  2 with Clip Horizontal on Side (Thick C-Clip) | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/11477.dat | Slope Brick Curved  2 x  1 | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/11833.dat | Plate  4 x  4 Round with  2 x  2 Round Hole | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/11957.dat | Tyre 19/ 67 x 75 Motorcycle with Motocross Tread | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/14418.dat | Plate  1 x  2 with Socket Joint-8 with Friction | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/14419.dat | Plate  1 x  2 with Socket Joint-8 with Friction and Ball Joint-8 | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/14716.dat | Brick  1 x  1 x  3 | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -680,15 +731,22 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/3187.dat | Gate  1 x  4 x  2 Base | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/32002.dat | Technic Pin  3/4 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/32028.dat | Plate  1 x  2 with Door Rail | Remco Braak [remco1974] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/32039.dat | Technic Connector (Axle/Bush) Type 1 | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/32054.dat | Technic Pin Long with Stop Bush | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32063.dat | Technic Beam  6 x  0.5 | Lutz Uhlmann [El-Lutzo] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32064b.dat | Technic Brick  1 x  2 with Reduced Axlehole | Andy Westrate [westrate] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/32073.dat | Technic Axle  5 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/32123a.dat | Technic Bush  1/2 Smooth with Axle Hole Reduced | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/32140.dat | Technic Beam  2 x  4 Liftarm Bent 90 | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/32184.dat | Technic Cross Block 1 x 3 (Axle/Pin/Axle) | Jeff Boen [onyx] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32278.dat | Technic Beam 15 | Ishino Keiichiro | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/32291.dat | Technic Cross Block 2 x 2 (Axle/Twin Pin) | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32316.dat | Technic Beam  5 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3245c.dat | Brick  1 x  2 x  2 without Understud | Stephan Meisinger [smr] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32523.dat | Technic Beam  3 | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/32524.dat | Technic Beam  7 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/32525.dat | Technic Beam 11 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/32526.dat | Technic Beam  3 x  5 Bent 90 | Jonathan P. Brown | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/32607.dat | Plate  1 x  1 Round with  3 Leaves | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/32803.dat | Slope Brick Curved  2 x  2 Inverted | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/32952.dat | Brick  1 x  1 x  1.667 with Studs on 1 Side | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -737,11 +795,14 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/3705.dat | Technic Axle  4 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3706.dat | Technic Axle  6 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3707.dat | Technic Axle  8 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/3708.dat | Technic Axle 12 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3710.dat | Plate  1 x  4 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/3711.dat | Technic Chain Link | Fredrik Hareide [fhareide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3713.dat | Technic Bush with Two Flanges | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3730.dat | Plate  2 x  2 with Towball Socket | Remco Braak [remco1974] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/3731.dat | Plate  2 x  2 with Towball | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/37352.dat | Brick  1 x  2 with Curved Top | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/3737.dat | Technic Axle 10 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3742.dat | Plant Flower | Tore Eriksson [Tore_Eriksson] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3747a.dat | Slope Brick 33  3 x  2 Inverted without Ribs between Studs | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3749.dat | Technic Axle Pin | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -774,6 +835,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/3958.dat | Plate  6 x  6 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3959.dat | Minifig Torch | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/3960.dat | Dish  4 x  4 Inverted | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/4019.dat | Technic Gear 16 Tooth | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4032a.dat | Plate  2 x  2 Round with Axlehole | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4032b.dat | Plate  2 x  2 Round with Reduced Axlehole | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4033.dat | Train Window  1 x  4 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -787,6 +849,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/4073.dat | ~Moved to 6141 | [PTadmin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4079.dat | Minifig Seat  2 x  2 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4081b.dat | Plate  1 x  1 with Clip Light Type 2 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/41239.dat | Technic Beam 13 | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/4150.dat | Tile  2 x  2 Round with Cross Underside Stud | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/41539.dat | Plate  8 x  8 | Martin G Cormier | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/4161.dat | Slope Brick 33  3 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -797,27 +860,35 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/41768.dat | Wedge  4 x  2 Left | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/41769a.dat | Wing  2 x  4 Right without Chamfer | Takeshi Takahashi [RainbowDolphin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/41770a.dat | Wing  2 x  4 Left without Chamfer | Takeshi Takahashi [RainbowDolphin] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/42003.dat | Technic Cross Block 1 x 3 (Axle/Pin/Pin) | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/42022.dat | Slope Brick Curved  6 x  1 | Franklin W. Cain [fwcain] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4215b.dat | Panel  1 x  4 x  3 with Hollow Studs | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4217.dat | Brick  1 x 14 with Groove | Christian M. Angele [cma_1971] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/4254.dat | ~Technic Shock Absorber  6.5L Piston Rod | Jeff Boen [onyx] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/4255.dat | ~Technic Shock Absorber  6.5L Cylinder | Jeff Boen [onyx] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/4274.dat | Technic Pin  1/2 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4282.dat | Plate  2 x 16 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4286.dat | Slope Brick 33  3 x  1 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/43093.dat | Technic Axle Pin with Friction | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4345b.dat | Container Box  2 x  2 x  2 with Hollow Studs | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4346.dat | Container Box  2 x  2 x  2 Door with Slot | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/43722.dat | ~Moved to 43722a | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/43722a.dat | Wing  2 x  3 Right without Chamfer | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/43723.dat | ~Moved to 43723a | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/43723a.dat | Wing  2 x  3 Left without Chamfer | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/44294.dat | Technic Axle  7 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/44301a.dat | Hinge Plate  1 x  2 Locking with Groove with Single Finger on End Vertical | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/44301b.dat | Hinge Plate  1 x  2 Locking without Groove with Single Finger on End Vertical | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/44302a.dat | Hinge Plate  1 x  2 Locking with Dual Finger on End Vertical with Groove on Short Side | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/44302b.dat | Hinge Plate  1 x  2 Locking with Dual Finger on End Vertical without Groove on Short Side | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4460b.dat | Slope Brick 75  2 x  1 x  3 with Hollow Stud | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4477.dat | Plate  1 x 10 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/44772.dat | Wheel Rim 34 x 56 with 6 Spokes and 3 Pegholes | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/44772c01.dat | Wheel Rim 34 x 56 with 6 Spokes and 3 Pegholes with Tyre 44/ 44 x 56 Off Road | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4488.dat | Plate  2 x  2 with 1 Wheel Pin | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4490.dat | Arch  1 x  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4519.dat | Technic Axle  3 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/4586.dat | Technic Beam  9 x  0.5 with  3 Holes | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4586822a.dat | Sticker  0.8 x  0.8 Round with Black and White Eye | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4589.dat | Cone  1 x  1 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/4592.dat | Hinge Control Stick Base | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -838,10 +909,12 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/49307.dat | Brick  1 x  1 x  0.667 with Curved Top | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/49612.dat | Brick  4 x  4 x  2.667 Corner Round with Dome Top | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/49668.dat | Plate  1 x  1 with Tooth In-line | Bernd Broich [bbroich] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/50451.dat | Technic Axle 16 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/50950.dat | Slope Brick Curved  3 x  1 | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/52501.dat | Slope Brick 45  6 x  1 Double Inverted with Open Centre | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/53400.dat | Train Track 6 Studs Wide Curved | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/53401.dat | Train Track 6 Studs Wide Straight | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/54120.dat | Tyre 44/ 44 x 56 Off Road | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/54200.dat | Slope Brick 31  1 x  1 x  0.667 | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/54383.dat | Wing  3 x  6 Right | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/54384.dat | Wing  3 x  6 Left | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -853,12 +926,14 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/5848.dat | Brick  1 x  1 x  1 Round Quarter Dome with Curved Top | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/5852.dat | Brick  2 x  2 x  0.667 Quarter Circle with Curved Top | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/5906.dat | Brick 2 x 2 x 1.667 Corner Round with Curved Top | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/59443.dat | Technic Axle Joiner Inline Smooth | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6003.dat | Plate  6 x  6 with  4 x  4 Round Corner | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6005.dat | Arch  1 x  3 x  2 with Curved Top | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60474.dat | Plate  4 x  4 Round with Hole and Snapstud | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60475b.dat | Brick  1 x  1 with Clip Vertical (Thick C-Clip) and Hollow Stud | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60479.dat | Plate  1 x 12 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60481a.dat | Slope Brick 65  2 x  1 x  2 with Symmetric Stud Holder | J.C. Tchang [tchang] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/60483.dat | Technic Beam  2 Liftarm | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60581.dat | Panel  1 x  4 x  3 Reinforced | Rolf Osterthun [Rolf] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60592.dat | Window  1 x  2 x  2 without Sill | Michael Heidemann [mikeheide] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/60592c01.dat | Window  1 x  2 x  2 without Sill w/ Trans-Clear Glass (Complete) | Greg Teft [gregteft] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
@@ -888,12 +963,16 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/64179.dat | Technic Beam  7 x  5 with Open Center  5 x  3 | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/64448.dat | Support  1 x  6 x  5 Girder Rectangular | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/64647.dat | Minifig Plume/Flame Triple | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/6536.dat | Technic Cross Block 1 x 2 (Axle/Pin) | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6541.dat | Technic Brick  1 x  1 with Hole | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/65416.dat | Technic Brake Disc  6 x  6 | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6558.dat | Technic Pin Long with Friction and Slot | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6564.dat | Wedge  3 x  2 Right | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6565.dat | Wedge  3 x  2 Left | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/65803.dat | Technic Brick 16 x 16 x  1.333 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6584.dat | Train Base  6 x 24 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/6630.dat | Technic Gear Rack  1 x  8 with Holes | Remco Braak [remco1974] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
+| parts/6632.dat | Technic Beam  3 x  0.5 Liftarm | Guy Vivan [guyvivan] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/6636.dat | Tile  1 x  6 | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/67095.dat | Tile  3 x  3 Round | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/67329.dat | Brick  1 x  2 x  1.667 with 8 Studs on 3 Sides | Rolf Osterthun [Rolf] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -903,8 +982,11 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/69729.dat | Tile  2 x  6 | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/69754.dat | Plate  1 x  2 with Mini Shooting Blaster Type 2 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/69755.dat | Projectile Launcher Trigger | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/70038.dat | ~Spring for Technic Shock Absorber  6.5L | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/7077.dat | Flower Pot  2 x  2 x  1.333 | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/7222.dat | Technic Axle with  4 Wheel Pins | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/7276.dat | Panel  1 x  2 x  2 Hollow Stud with Round Window Opening | Rene Rechthaler [Blechtaler] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/73129.dat | Technic Shock Absorber  6.5L (Complete) | Steve Bliss [sbliss] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/73878.dat | Window Round Corner  3 x  3 x  2 | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/73878c01.dat | Window Round Corner  3 x  3 x  2 with Two Trans Clear Glasses | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/74611.dat | Plate  8 x  8 Round with Hole and Snapstud | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -918,16 +1000,20 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/7904.dat | Plate  2 x  2 Quarter Circle | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/79393.dat | Tile  3 x  3 Corner Round | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/79491.dat | Plate  2 x  2 with Corner Round | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/8168.dat | Technic Axle  3.5 with Stop | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/85080.dat | Brick  2 x  2 Corner Round with Stud Notch and Reinforced Underside | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/85861.dat | Plate  1 x  1 Round with Open Stud | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/85984.dat | Slope Brick 31  1 x  2 x  0.667 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/86210.dat | Glass for Window  1 x  4 x  3 Opening | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/87079.dat | Tile  2 x  4 | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/87081.dat | Brick  4 x  4 Round with Pinhole and Snapstud | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/87082.dat | Technic Pin Long with Pin Hole Type 1 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/87087.dat | Brick  1 x  1 with Stud on 1 Side | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/87552.dat | Panel  1 x  2 x  2 Reinforced | J.C. Tchang [tchang] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/87580.dat | Plate  2 x  2 with Groove with 1 Centre Stud | Joerg Sommerer [Brickaneer] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/87994.dat | Bar  3L | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/88517.dat | Wheel 17 x 75 Motorcycle with Holes in Rim | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/88517c01.dat | Wheel 17 x 75 Motorcycle with Holes in Rim w Tyre 19/ 67 x 75 | Steffen [Steffen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/90398.dat | Minifig Statuette | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/91405.dat | Plate 16 x 16 with Underside Ribs | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/91988.dat | Plate  2 x 14 | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -952,10 +1038,12 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/1126s01.dat | ~Tile  1 x  2 with Rounded Ends without Top Surface | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/11477s01.dat | ~Slope Brick Curved  2 x  1 without Top Surface | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/11833s01.dat | ~Plate  4 x  4 Round with  2 x  2 Round Hole - 1/8 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/11957s01.dat | ~Tyre 19/ 67 x 75 Motorcycle with Motocross Tread - Segment | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/14418s01.dat | ~Plate  1 x  2 with Socket Joint-8 with Friction | Tim Gould [timgould] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/14719s01.dat | ~Tile  2 x  2 Corner without Top Face | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/14769s01.dat | ~Tile  2 x  2 Round with Round Underside Stud without Top Face | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/15068s01.dat | ~Slope Brick Curved  2 x  2 x  0.667 without Top Surface | Owen Burgoyne [C3POwen] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/15100s01.dat | ~Technic Pin with Friction with Perpendicular Pin Hole without Pin | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/15279s01.dat | ~Plant Grass Stem Half | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/15535s01.dat | ~Tile  2 x  2 Round with Hole without Top Face | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/15535s02.dat | ~Tile  2 x  2 Round with Hole - 1/4 | Max Martin Richter [MMR1988] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1026,10 +1114,12 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/3068bs01.dat | ~Tile  2 x  2 with Groove without Face | Willy Tschager [Holly-Wood] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3069bs01.dat | ~Tile  1 x  2 with Groove without Top Face | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3070bs01.dat | ~Tile  1 x  1 with Groove without Top Face | Chris Dee [cwdee] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/32039s01.dat | ~Technic Connector (Axle/Bush) without Inner Wall | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/32064s01.dat | ~Technic Brick  1 x  2 with Axlehole | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/32316s01.dat | ~Technic Beam  5 without Side | Jens BrÃ¼hl [jb70] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3245cs01.dat | ~Brick  1 x  2 x  2 without Understud - without Front Face | Damien Roux [Darats] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/32523s01.dat | ~Technic Beam  3 without Side | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/32526s01.dat | ~Technic Beam  3 x  5 Bent 90 without Short Face | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3297s01.dat | ~Slope Brick 33  3 x  4 without Top Face | Franklin W. Cain [fwcain] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3298s01.dat | ~Slope Brick 33  3 x  2 without Front Face | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3308as01.dat | ~Arch  1 x  8 x  2 without Front and Back Faces | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1054,6 +1144,9 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/3666s01.dat | ~Plate  1 x  6 without Front Face | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3680s01.dat | ~Turntable  2 x  2 Plate - Hole | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3710s01.dat | ~Plate  1 x  4 without Front Face | Massimo Maso [Sirio] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/3711s01.dat | ~Technic Chain Link - Half | Fredrik Hareide [fhareide] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/3711s02.dat | ~Technic Chain Link - Common Areas Across the Family | Fredrik Hareide [fhareide] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/3711s03.dat | ~Technic Chain Link - Inner Flange | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/37352s01.dat | ~Brick  1 x  2 with Curved Top without Understud without Face | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3811s01.dat | ~Baseplate 32 x 32 without Top Surface | Mark Kennedy [mkennedy] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/3815bs01.dat | ~Minifig Hips without Decorated Surface | Nils Schmidt [BlackBrick89] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1093,6 +1186,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/43722as01.dat | ~Wing  2 x  3 Right without Chamfer without Studs and Top Face | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/44301s01.dat | ~Hinge Plate  1 x  2 Locking with Single Finger on End Vertical - Common Geometry | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4460s01.dat | ~Slope Brick 75  2 x  1 x  3 without Top Faces | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/44772s01.dat | ~Wheel Rim 34 x 56 with 6 Spokes / 3 Pegholes - 1/6 (Needs Work) | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4490s01.dat | ~Arch  1 x  3 without Four Sides | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/4716s01.dat | ~Technic Worm Gear Thread Surface | Remco Braak [remco1974] | Licensed under CC BY 2.0 and CC BY 4.0 : see CAreadme.txt |
 | parts/s/4716s02.dat | ~Technic Worm Gear Body | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1111,6 +1205,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/53400s04.dat | ~Train Track 6 Studs Wide Curved - Clockwise End Sleeper | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/53401s01.dat | ~Train Track 6 Studs Wide Straight - Sleeper | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/53401s02.dat | ~Train Track 6 Studs Wide Straight - Interlocking Track End | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/54120s01.dat | ~Tyre 44/ 44 x 56 Off Road - 1/16 | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/54200s01.dat | ~Slope Brick 31  1 x  1 x  0.667 without Sloped Face | Orion Pobursky [OrionP] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/54383s01.dat | ~Wing  3 x  6 Right without Studs | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/5520s01.dat | ~Tile  2 x  2 with Rounded End - Without Patternable Surfaces | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1122,6 +1217,7 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/5906s01.dat | ~Brick 2 x 2 x 1.667 Corner Round with Curved Top - Half | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/60474s01.dat | ~Plate  4 x  4 Round - 1/8 | Alex Taylor [anathema] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/60481as01.dat | ~Slope Brick 65  2 x  1 x  2 with Symmetric Stud Holder without Outside Faces | J.C. Tchang [tchang] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/60483s01.dat | ~Technic Beam  2 Liftarm without Side | Jens BrÃ¼hl [jb70] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/60581s01.dat | ~Panel  1 x  4 x  3 Reinforced without Front Face | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/60601s01.dat | ~Glass for Window  1 x  2 x  2 without Front Surface | Ulrich RÃ¶der [UR] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/6143s01.dat | ~Brick  2 x  2 Round Reinforced without Outer Surface | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1135,15 +1231,22 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/63864s01.dat | ~Tile  1 x  3 without Top Face | Ulrich RÃ¶der [UR] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/64179s01.dat | ~Technic Beam  7 x  5 with Open Centre  5 x  3 Quarter | Santeri Piippo [arezey] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/64647s01.dat | ~Minifig Plume/Flame Triple - Half | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/65416s01.dat | ~Technic Brake Disc  6 x  6 - 1/6 | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/65416s02.dat | ~Technic Brake Disc  6 x  6 - Axle Hole Quarter | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/65416s03.dat | ~Technic Brake Disc  6 x  6 - Common Parts 1/24 | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/6565s01.dat | ~Wedge  3 x  2 without Studs | James Jessiman | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/6578s01.dat | ~Tyre 14/ 36 x 20 VR Tread | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/6578s02.dat | ~Tyre 14/ 36 x 20 VR Side | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/65803s01.dat | ~Technic Brick 16 x 16 x  1.333 - Quarter | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/65803s02.dat | ~Technic Brick 16 x 16 x  1.333 - 1/8 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/65803s03.dat | ~Technic Brick 16 x 16 x  1.333 - Pinhole | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/6636s01.dat | ~Tile  1 x  6 without Top Face | Takeshi Takahashi [RainbowDolphin] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/67095s01.dat | ~Tile  3 x  3 Round without Top Surface | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/6881s01.dat | ~Tile  6 x  6 without Top Face | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/69729s01.dat | ~Tile  2 x  6 without Top | Vincent Messenet [Cheenzo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/69754s01.dat | ~Plate  1 x  2 with Mini Shooting Blaster Type 2 - Half | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/69755s01.dat | ~Projectile Launcher Trigger Half | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/7222s01.dat | ~Technic Axle with  4 Wheel Pins - Quarter | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/73878s01.dat | ~Window Round Corner  3 x  3 x  2 - Half | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/76797s01.dat | ~Brick  3 x  3 x  1 Quarter Circle with Curved Top without Patternable Surfaces | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/76797s02.dat | ~Brick  3 x  3 x  1 Quarter Circle with Curved Top without Patternable Surfaces - Half | Gerald Lasser [GeraldLasser] | Licensed under CC BY 4.0 : see CAreadme.txt |
@@ -1156,7 +1259,11 @@ Regenerate with `scripts/make-ldraw-mini <complete.zip>`; `scripts/ldraw-mini-ch
 | parts/s/86210s01.dat | ~Glass for Window  1 x  4 x  3 Opening without Front and Back Surfaces | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/87079s01.dat | ~Tile  2 x  4 without Top Surface | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/87081s01.dat | ~Brick  4 x  4 Round - 1/8 | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/87082s01.dat | ~Technic Pin Long with Pin Hole without Pins | Philippe Hurbain [Philo] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/87552s01.dat | ~Panel  1 x  2 x  2 Reinforced without Front Face | J.C. Tchang [tchang] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/88517s01.dat | ~Wheel 17 x 75 Motorcycle with Holes in Rim Subpart 1 | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/88517s02.dat | ~Wheel 17 x 75 Motorcycle with Holes in Rim Subpart 2 | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
+| parts/s/88517s03.dat | ~Wheel 17 x 75 Motorcycle with Holes in Rim Subpart 3 | Ronald Vallenduuk [Duq] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/90398s01.dat | ~Minifig Statuette without Front Surface | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/90398s02.dat | ~Minifig Statuette Head without Face | Magnus Forsberg [MagFors] | Licensed under CC BY 4.0 : see CAreadme.txt |
 | parts/s/91405s01.dat | ~Plate 16 x 16 Rib with 1 Quarter Stud | Donald Sutter [technog] | Licensed under CC BY 4.0 : see CAreadme.txt |

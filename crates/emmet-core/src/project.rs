@@ -34,24 +34,24 @@ pub struct Config {
 }
 
 /// `[build]`: the build settings (plan section 14's Options tab), which steer the agent; each is Any until set. The
-/// app writes them, a change asks the agent to rework the model, and the validator reads the Age.
+/// app writes them, a change asks the agent to rework the model, and the validator reads the Age and the Size. None
+/// names a part count: the agent builds to the Size and the Detail, and the count is what that comes to (Barry
+/// 2026-11-10, after Pieces and Scale pulled against each other).
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct BuildConfig {
     /// What it stands on: "None", "16 × 16", "32 × 32", or "48 × 48".
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub base: Option<String>,
-    /// What the details are sized for: "Micro", "Micropolis", "Midi", "Figure scale", "Large", or "Car 1:8".
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub scale: Option<String>,
+    /// What the model is sized to: "Micro", "Micropolis", "Midi", "Figure scale", "Display", or "1:8". It was Scale
+    /// (and Pieces, a part count, beside it) until 2026-11-10; an older emmet.toml's `scale` reads as it.
+    #[serde(default, alias = "scale", skip_serializing_if = "Option::is_none")]
+    pub size: Option<String>,
     /// The Age build setting: "4+", "6+", "9+", "13+", or "18+" (plan section 08's step rules).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub age: Option<String>,
     /// How much the agent adds beyond the shape: "Low", "Medium", or "High".
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub detail: Option<String>,
-    /// How many pieces: "Small" (50–250), "Medium" (250–1,000), "Large" (1,000–2,500), or "Huge" (2,500+).
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub pieces: Option<String>,
     /// The look: one of the suggestions ("Town", "Medieval", …) or the user's own words.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub style: Option<String>,
@@ -62,13 +62,35 @@ impl BuildConfig {
         *self == Self::default()
     }
 
-    /// The Scale setting is one no figure fits, where figure_clearance is off (docs/spec/building-rules.md, rule 6):
-    /// micro, micropolis, midi, or car 1:8. Figure scale, large, and Any keep it on.
+    /// The Size setting is one no figure fits, where figure_clearance is off (docs/spec/building-rules.md, rule 6):
+    /// micro, micropolis, midi, or 1:8. Figure scale, display, and Any keep it on.
     pub fn no_figures(&self) -> bool {
         matches!(
-            self.scale.as_deref().map(|s| s.trim().to_lowercase()).as_deref(),
-            Some("micro" | "micropolis" | "midi" | "car 1:8")
+            self.size.as_deref().map(|s| s.trim().to_lowercase()).as_deref(),
+            Some("micro" | "micropolis" | "midi" | "1:8")
         )
+    }
+
+    /// An older emmet.toml's settings in today's words: Scale's "Large" is Size's "Display", and "Car 1:8" is "1:8".
+    /// (Its `pieces`, a part count, is no setting now, and goes when the app writes the file again.)
+    fn upgrade(&mut self) {
+        let renamed = match self.size.as_deref().map(str::trim) {
+            Some("Large") => "Display",
+            Some("Car 1:8") => "1:8",
+            _ => return,
+        };
+        self.size = Some(renamed.into());
+    }
+
+    /// The baseplate a new empty model starts on, in studs square, by the Base setting: none for None, the size it
+    /// names, and 32 for Any, as `emmet new` starts (Barry 2026-11-10).
+    pub fn baseplate(&self) -> Option<u32> {
+        match self.base.as_deref().map(str::trim) {
+            Some("None") => None,
+            Some("16 × 16") => Some(16),
+            Some("48 × 48") => Some(48),
+            _ => Some(32),
+        }
     }
 
     /// The most parts a step should add for the Age setting: 4 for 4+, 12 for 18+, and 8 for 6+ or Any.
@@ -134,7 +156,10 @@ pub struct Project {
 
 pub enum Template {
     Cottage,
-    Empty,
+    /// A model with nothing in it but a green baseplate this many studs square (16, 32, or 48), or with no parts at
+    /// all (None), standing on the table: the New model dialog's Base (Barry 2026-11-10). `Template::empty()` is the
+    /// 32 x 32 one, `emmet new`'s.
+    Empty(Option<u32>),
     /// An existing LDraw file (.ldr or .mpd), copied into the project and brought in with import_ldraw (plan
     /// section 07's imports).
     Import(PathBuf),
@@ -150,6 +175,42 @@ fn import_model(file: &str) -> String {
 
 const COTTAGE: &str = include_str!("../templates/cottage/model.py");
 const EMPTY: &str = include_str!("../templates/empty/model.py");
+const TABLE: &str = include_str!("../templates/empty/table.py");
+/// The green baseplates an empty model can start on, by studs square.
+const BASEPLATES: [(u32, &str); 3] = [(16, "3867"), (32, "3811"), (48, "4186")];
+
+impl Template {
+    /// An empty model on a green 32 x 32 baseplate, as `emmet new` makes it.
+    pub fn empty() -> Self {
+        Template::Empty(Some(32))
+    }
+}
+
+/// An empty model's model.py, what CARD.md says it is, and its design note: on a baseplate `n` studs square, or on
+/// the table. A size with no baseplate part is a bug in the caller.
+fn empty_model(base: Option<u32>) -> Result<(String, String, &'static str)> {
+    let Some(n) = base else {
+        return Ok((
+            TABLE.to_string(),
+            "An empty model, ready to build on the table.".into(),
+            "- It stands on the table: its lowest parts start at z = 0.",
+        ));
+    };
+    let part = BASEPLATES
+        .iter()
+        .find(|(s, _)| *s == n)
+        .map(|(_, p)| *p)
+        .ok_or_else(|| Error::internal(format!("there's no {n} x {n} baseplate to start on")))?;
+    Ok((
+        EMPTY
+            .replace("32 x 32", &format!("{n} x {n}"))
+            .replace("\"3811\"", &format!("\"{part}\"")),
+        format!("A green {n} x {n} baseplate, ready for a model."),
+        BASEPLATE_NOTE,
+    ))
+}
+
+const BASEPLATE_NOTE: &str = "- The baseplate is half a plate thick, so the walls start at z = 0.5.";
 
 impl Project {
     /// The project at `dir`, or with no dir, the nearest folder with an emmet.toml from the current directory up.
@@ -181,7 +242,7 @@ impl Project {
         let root = fsx::canonical(&root).map_err(|e| Error::io(&root, e))?;
         let path = root.join(MANIFEST_FILE);
         let text = std::fs::read_to_string(&path).map_err(|e| Error::io(&path, e))?;
-        let config: Config = toml::from_str(&text).map_err(|e| {
+        let mut config: Config = toml::from_str(&text).map_err(|e| {
             let line = e.span().map(|s| line_of(&text, s.start));
             Error::new(
                 ErrorCode::IoError,
@@ -194,6 +255,7 @@ impl Project {
                 ..Default::default()
             })
         })?;
+        config.build.upgrade();
         if config.schema > SCHEMA {
             return Err(Error::new(
                 ErrorCode::IoError,
@@ -246,29 +308,29 @@ impl Project {
             "# The Emmet project file (docs/spec/project-format.md).\nschema = {SCHEMA}\nname = {}\ncreated_by = \"{machine}\"\nlibrary = \"{library}\"\n\n[agent]\npreferred = \"claude\"\n",
             toml::Value::String(name.clone())
         );
-        let imported;
-        let (model, what) = match &template {
+        let (model, what, note) = match &template {
             Template::Cottage => (
-                COTTAGE,
-                "A stone-and-plaster cottage in its garden on a green 32 x 32 baseplate: a bay window, a porch, a chimney with\na fireplace inside, two furnished rooms, a roof that lifts off, and a garden with a gate, a path, and a tree.",
+                COTTAGE.to_string(),
+                "A stone-and-plaster cottage in its garden on a green 32 x 32 baseplate: a bay window, a porch, a chimney with\na fireplace inside, two furnished rooms, a roof that lifts off, and a garden with a gate, a path, and a tree.".to_string(),
+                BASEPLATE_NOTE,
             ),
-            Template::Empty => (EMPTY, "A green 32 x 32 baseplate, ready for a model."),
+            Template::Empty(base) => empty_model(*base)?,
             Template::Import(file) => {
                 let name = import_name(file)?;
                 let bytes = std::fs::read(file).map_err(|e| Error::io(file, e))?;
                 write_atomic(&dir.join(&name), &bytes)?;
-                imported = import_model(&name);
                 (
-                    imported.as_str(),
-                    "An LDraw model opened in Emmet: fixed geometry, with no parameters yet.",
+                    import_model(&name),
+                    "An LDraw model opened in Emmet: fixed geometry, with no parameters yet.".to_string(),
+                    BASEPLATE_NOTE,
                 )
             }
         };
         let w = |rel: &str, text: &str| write_atomic(&dir.join(rel), text.as_bytes());
         w(MANIFEST_FILE, &toml)?;
-        w("model.py", model)?;
+        w("model.py", &model)?;
         w("params.json", "{}\n")?;
-        w("CARD.md", &card(&name, what))?;
+        w("CARD.md", &card(&name, &what, note))?;
         w("AGENTS.md", &agents(&name))?;
         w(".gitignore", "build/\n.emmet/\n")?;
         link_claude_md(dir)?;
@@ -547,9 +609,9 @@ fn title_case(s: &str) -> String {
         .join(" ")
 }
 
-fn card(name: &str, what: &str) -> String {
+fn card(name: &str, what: &str, note: &str) -> String {
     format!(
-        "# {name}\n\n## What it is\n\n{what}\n\n## Design notes\n\n- The baseplate is half a plate thick, so the walls start at z = 0.5.\n\n## Don't\n\n- Don't edit anything in build/; emmet run regenerates it.\n\n<!-- emmet:auto -->\n<!-- /emmet:auto -->\n"
+        "# {name}\n\n## What it is\n\n{what}\n\n## Design notes\n\n{note}\n\n## Don't\n\n- Don't edit anything in build/; emmet run regenerates it.\n\n<!-- emmet:auto -->\n<!-- /emmet:auto -->\n"
     )
 }
 

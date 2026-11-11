@@ -472,7 +472,7 @@ pub fn open_as_new(data: &DataDir, project: &Project, n: u32, dest: &Path) -> Re
     let version = get(project, n)?;
     let dir = project.root.join("history").join(&version.dir);
     // A fresh project first (the folder checks, the machine hash, the trust marker), then the version's sources over it.
-    let new = Project::create(data, dest, Template::Empty)?;
+    let new = Project::create(data, dest, Template::empty())?;
     let fresh_config = std::fs::read_to_string(new.root.join("emmet.toml")).map_err(|e| Error::io(&new.root, e))?;
     for rel in version_sources(&dir) {
         if rel == "emmet.toml" {

@@ -154,6 +154,7 @@ fn below(m: &Model, parts: &[usize], all: &Aabb) -> Option<(usize, f64)> {
 
 /// floating findings, leaving out the groups a disconnected_submodel finding already names.
 pub(super) fn floating(m: &Model, groups: &[Vec<usize>], skip: &HashSet<usize>) -> Vec<Raw> {
+    let afloat: HashSet<usize> = groups.iter().flatten().copied().collect();
     groups
         .iter()
         .filter(|g| !g.iter().all(|i| skip.contains(i)))
@@ -181,6 +182,7 @@ pub(super) fn floating(m: &Model, groups: &[Vec<usize>], skip: &HashSet<usize>) 
                 ("They", "them", "start", "rest")
             };
             let hint = match below(m, parts, &all) {
+                _ if let Some(h) = super::pins::floating_hint(m, parts, &afloat) => h,
                 Some((i, gap)) if gap > 0.0 => {
                     let q = &m.placed[i];
                     format!(
@@ -308,9 +310,10 @@ pub(super) fn weak_connections(m: &Model, ground: &[bool]) -> Vec<Raw> {
             || pairs.contains(&i)
             || links.is_empty()
             || links.len() > 2
+            // Studs only: a part on a pin or an axle (a wheel on its axle) turns on it, and isn't held by a stud.
             || links
                 .iter()
-                .any(|c| c.kind != Kind::Cyl || (c.radius - 6.0).abs() > 0.6)
+                .any(|c| c.kind != Kind::Cyl || c.shaft.is_some() || (c.radius - 6.0).abs() > 0.6)
             || holds::figure(&info.kind)
             || holds::flexible(&info.kind)
         {

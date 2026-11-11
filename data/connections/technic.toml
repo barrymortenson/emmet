@@ -1,0 +1,32 @@
+# Technic overrides (plan section 11, session 4G): Technic beams, bricks, and axles whose holes or axles are drawn with
+# primitives the LDCad data has no entry for (peghole, npeghol7a, axlehol8), and that have no shadow entry of their
+# own, so part_info would give them no holes. Each names a model in tests/fixtures/validator/connections/ that
+# validates with no errors, every use of the part connected.
+
+[[override]]
+part = "4586"
+reason = """The Technic Beam 9 x 0.5 with 3 Holes (a steam engine's connecting rod) draws its holes with peghole and \
+npeghol7a, which the LDCad data doesn't cover: three half-beam pin holes along y, 80 LDU apart."""
+test = "technic.ldr"
+snaps = ["!LDCAD SNAP_CYL [gender=F] [caps=none] [secs=R 8 2 R 6 6 R 8 2] [center=true] [slide=true] [grid=1 C 3 0 80]"]
+
+[[override]]
+part = "8168"
+reason = """The Technic Axle 3.5 with Stop draws its axle with axlehol8 and has no shadow entry: from its stop at x = 35, \
+the stop and then an axle 68 LDU long."""
+test = "technic.ldr"
+snaps = ["!LDCAD SNAP_CYL [gender=M] [caps=one] [secs=R 8 2 A 6 68] [pos=35 0 0] [ori=0 1 0 -1 0 0 0 0 1]"]
+
+[[override]]
+part = "7222"
+reason = """The Technic Axle with 4 Wheel Pins has no shadow entry, and its axle end (axleend20) is drawn with axlehol8: \
+an axle a stud long, up from the hub at its origin."""
+test = "technic.ldr"
+snaps = ["!LDCAD SNAP_CYL [gender=M] [caps=one] [secs=A 6 20]"]
+
+[[override]]
+part = "s/65803s03"
+reason = """The Technic Brick 16 x 16 x 1.333's side holes are this subpart, drawn with peghole and peghole2, which the \
+LDCad data doesn't cover: a pin hole through it along x, 18 LDU down."""
+test = "technic.ldr"
+snaps = ["!LDCAD SNAP_CYL [gender=F] [caps=none] [secs=R 8 2 R 6 16 R 8 2] [center=true] [slide=true] [pos=0 18 0] [ori=0 1 0 -1 0 0 0 0 1]"]

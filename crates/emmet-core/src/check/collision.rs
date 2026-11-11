@@ -15,7 +15,8 @@ use crate::ldraw::geometry::Aabb;
 /// How deep two parts' proxies must overlap to collide: more than their 1 LDU voxels can blur (Barry, 2026-10-28; a
 /// sloped face can stick out half a voxel, so touching slopes read as a 1 LDU overlap).
 const DEEP: f64 = 1.0;
-/// How far around a connected pair's seat an overlap is exempt: a stud in its anti-stud, a pin in its hole.
+/// How far around a connected pair's seat (or a pin's or axle's shaft) an overlap is exempt: a stud in its anti-stud,
+/// a pin in its hole.
 const SEAT_ROOM: f64 = 2.0;
 
 /// collision: pairs of parts whose proxies overlap by more than 1 LDU. Candidates come from an AABB tree over the
@@ -57,7 +58,11 @@ pub(super) fn collisions(m: &Model) -> Vec<Raw> {
                 // The proxies say whether they collide; the body boxes say by how much, and which way to move.
                 let (depth, axis) = body_overlap(m, *i, j).unwrap_or((depth, axis));
                 let (wa, wb) = (m.boxes[*i].unwrap(), m.boxes[j].unwrap());
-                out.push(collision(&m.placed, *i, j, depth, axis, &wa, &wb));
+                let mut raw = collision(&m.placed, *i, j, depth, axis, &wa, &wb);
+                if let Some(hint) = super::pins::collision_hint(m, *i, j) {
+                    raw.hint = hint;
+                }
+                out.push(raw);
             }
         }
     }
@@ -114,7 +119,16 @@ fn deepest(m: &Model, a: usize, b: usize, seats: &[&graph::Connection]) -> Optio
         seats.iter().any(|c| {
             let v = p - c.at;
             let along = v.dot(c.axis);
-            along.abs() <= c.len / 2.0 + SEAT_ROOM && (v - c.axis * along).length() <= c.radius + SEAT_ROOM
+            if along.abs() <= c.len / 2.0 + SEAT_ROOM && (v - c.axis * along).length() <= c.radius + SEAT_ROOM {
+                return true;
+            }
+            // A pin or axle in a hole: anywhere along its shaft (an axle through a hub's bore).
+            c.shaft.is_some_and(|(from, to, r)| {
+                let (d, len) = ((to - from).normalize_or_zero(), from.distance(to));
+                let v = p - from;
+                let t = v.dot(d);
+                (-SEAT_ROOM..=len + SEAT_ROOM).contains(&t) && (v - d * t).length() <= r + SEAT_ROOM
+            })
         })
     };
     let pa = &m.proxies[a];

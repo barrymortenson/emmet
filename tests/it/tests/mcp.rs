@@ -568,7 +568,7 @@ async fn guide_tool() {
         "{}",
         c.envelope
     );
-    assert!(c.text.contains("No scale or style is set"), "{}", c.text);
+    assert!(c.text.contains("No size or style is set"), "{}", c.text);
     let c = client.call("guide", json!({ "name": "Voxel" })).await;
     assert!(!c.is_error, "{}", c.envelope);
     assert_eq!(c.envelope["data"]["guides"][0]["name"], "blocky");

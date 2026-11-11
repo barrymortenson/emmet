@@ -24,7 +24,7 @@ describe("workspace trust", () => {
     await expect($("#settings-change")).toBeDisabled();
     // The host refuses what the locked controls would send, and nothing changes.
     const before = files();
-    const any = { base: null, scale: null, age: null, detail: null, pieces: null, style: null };
+    const any = { base: null, size: null, age: null, detail: null, style: null };
     for (const [cmd, args] of [
       ["set_build_settings", { settings: { ...any, age: "9+" } }],
       ["allow_finding", { rule: "floating", parts: ["roof/1"] }],

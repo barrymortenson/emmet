@@ -22,6 +22,7 @@ pub mod python;
 pub mod refs;
 pub mod run;
 pub mod steps;
+pub mod technic;
 pub mod technique;
 pub mod text;
 pub mod versions;

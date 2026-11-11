@@ -1,6 +1,6 @@
 {
   "name": "part_info",
-  "description": "One part: its name, size in studs and plates, flags (alias, obsolete, hidden, printed, sticker, shortcut),\nand body box.",
+  "description": "One part: its name, size in studs and plates, flags (alias, obsolete, hidden, printed, sticker, shortcut),\nbody box, and its Technic holes, pins, and axles by name, with where each is and which way it runs.",
   "input": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "properties": {
@@ -102,6 +102,51 @@
         ],
         "type": "string"
       },
+      "Hole": {
+        "description": "A point as `part_info` and the DSL give it: in the DSL frame (x and y in studs, z in plates), from the corner of the\npart's footprint when it's placed at (0, 0, 0) with rot=0.",
+        "properties": {
+          "at": {
+            "description": "The middle of the hole, pin, or axle: (x, y, z) in studs, studs, plates.",
+            "items": {
+              "format": "double",
+              "type": "number"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "type": "array"
+          },
+          "axis": {
+            "description": "A unit direction along it, in the DSL's axes (x, y, z).",
+            "items": {
+              "format": "double",
+              "type": "number"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "type": "array"
+          },
+          "kind": {
+            "$ref": "#/$defs/PointKind"
+          },
+          "length": {
+            "description": "How long it is, in studs: a beam's hole is 1, a thin liftarm's 0.5, a pin 2.",
+            "format": "double",
+            "type": "number"
+          },
+          "name": {
+            "description": "\"1\" to \"n\".",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "at",
+          "axis",
+          "length"
+        ],
+        "type": "object"
+      },
       "Meta": {
         "description": "Facts about the run that produced a result.",
         "properties": {
@@ -181,16 +226,6 @@
           "category": {
             "type": "string"
           },
-          "connectors": {
-            "description": "Connector summary; null until connectors arrive (3A), so an empty list always means \"none\".",
-            "items": {
-              "type": "string"
-            },
-            "type": [
-              "array",
-              "null"
-            ]
-          },
           "file": {
             "description": "The file, relative to the library root.",
             "type": "string"
@@ -199,6 +234,13 @@
             "description": "alias, obsolete, hidden, printed, sticker, shortcut.",
             "items": {
               "type": "string"
+            },
+            "type": "array"
+          },
+          "holes": {
+            "description": "Its Technic pin holes, axle holes, pins, and axles, named \"1\" to \"n\", from the corner of its footprint at\nrot=0 in studs and plates (4G); empty for a part with none.",
+            "items": {
+              "$ref": "#/$defs/Hole"
             },
             "type": "array"
           },
@@ -243,9 +285,28 @@
           "category",
           "keywords",
           "flags",
-          "file"
+          "file",
+          "holes"
         ],
         "type": "object"
+      },
+      "PointKind": {
+        "oneOf": [
+          {
+            "enum": [
+              "pin_hole",
+              "axle_hole",
+              "pin",
+              "axle"
+            ],
+            "type": "string"
+          },
+          {
+            "const": "pin_axle",
+            "description": "One end a pin, the other an axle.",
+            "type": "string"
+          }
+        ]
       },
       "Size": {
         "description": "Size in DSL units at `rot=0`: x and y in studs, z in plates (plan section 08).",

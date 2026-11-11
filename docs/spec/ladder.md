@@ -85,10 +85,12 @@ without them or when a hash differs, and `--dry-run` uses generated images.
 beside the render (the compare view, on Barry's Mac). A subject passes at 4 of 6 or more with 0 validator errors; the
 rung passes when 3 of the 4 pass. The G2 report shows the renders and scores, not the reference photos.
 
-**Part ranges:** what a good display set of each has, so a basic model fails (Barry, 2026-11-04): the lamp
-300-1,000, the e-bike 600-2,000, the truck 800-2,500, and the Bradbury Building 1,500-3,000, a detailed modular
-building at minifigure scale. The prompt doesn't say so: the doctrine has the agent ask about scale
-when a photo leaves it open, and the Bradbury's own answer gives it. A subject's own answers are tried first.
+**Part ranges:** what a good display set of each has (Barry, 2026-11-04): the lamp 300-1,000, the e-bike 600-2,000,
+the truck 800-2,500, and the Bradbury Building 1,500-3,000, a detailed modular building at minifigure scale. The
+report shows a run's count beside its range as a reference; it doesn't gate the subject, since no build setting names
+a part count and a model's size and detail decide it (Barry, 2026-11-10: "Report, don't gate"). The prompt doesn't say so: the doctrine has the agent ask about scale
+when a photo leaves it open, and the Bradbury's own answer gives it, as the e-bike's does: a large display model about 40
+studs long, standing on its kickstand (Barry, 2026-11-08; the kickstand, not a stand, 2026-11-09). A subject's own answers are tried first.
 
 **Answer script:**
 
@@ -168,7 +170,7 @@ Five prompts that tempt the building mistakes of Barry's 4B hand session of rung
 than the door beside it, a seat against a post, a column in front of a door, a lower roof that meets a wall across an
 opening. No prompt names any of them; the point is whether the agent builds well without being told. Each is a
 figure-scale build on one green 32 × 32 baseplate, run by `emmet eval --rung T1` (to T5) with the build settings Base
-32 × 32 and Scale Figure scale, once on `main` before 3E's changes (the baseline) and once at the end. The report,
+32 × 32 and Size Figure scale, once on `main` before 3E's changes (the baseline) and once at the end. The report,
 `docs/evals/<date>-technique.md`, counts each run's `figure_clearance` findings; a run's score is that count and its
 validator errors, not the size and features rung 1 and 2 score. Each run's budget is 20 minutes and 80 turns.
 

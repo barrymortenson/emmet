@@ -12,8 +12,12 @@ export const commands = {
 	uiState: () => __TAURI_INVOKE<UiState>("ui_state"),
 	/**  Opens a project from the recents list. Any other path is refused. */
 	openRecent: (path: string) => typedError<ProjectView, Problem>(__TAURI_INVOKE("open_recent", { path })),
-	/**  New (⌘N): the Cottage example or an empty baseplate, in the projects folder, with no dialog (Barry's note 7). */
-	newProject: (kind: NewKind) => typedError<ProjectView, Problem>(__TAURI_INVOKE("new_project", { kind })),
+	/**
+	 *  New (⌘N), in the projects folder: the Cottage example as it is, or an empty baseplate named `name` with the build
+	 *  settings `settings`, which the New model dialog asks for so the agent knows them from its first turn (Barry
+	 *  2026-11-09; before, New made "New model" with no dialog). A taken name gets the next free "`name` 2".
+	 */
+	newProject: (kind: NewKind, name: string | null, settings: BuildSettings | null) => typedError<ProjectView, Problem>(__TAURI_INVOKE("new_project", { kind, name, settings })),
 	/**
 	 *  Open… (⌘O): one file picker (docs/decisions.md, 2026-10-28). A project's emmet.toml opens its folder; an .ldr or
 	 *  .mpd becomes an imported project in the projects folder. Null when the user cancels.
@@ -400,10 +404,9 @@ export type Book = {
 /**  The build settings (plan section 14), each null until set ("Any"). */
 export type BuildSettings = {
 	base: string | null,
-	scale: string | null,
+	size: string | null,
 	age: string | null,
 	detail: string | null,
-	pieces: string | null,
 	style: string | null,
 };
 

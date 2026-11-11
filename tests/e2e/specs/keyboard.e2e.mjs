@@ -107,7 +107,7 @@ describe("the keyboard map", () => {
       ["e", "[data-menu='csv']"],
       [",", "#settings"],
       ["/", "#shortcuts"],
-      ["n", "#first-run"],
+      ["n", "#new-model"],
     ]) {
       await press(mod, key);
       await (await $(sel)).waitForDisplayed({ timeoutMsg: `⌘${key} didn't open ${sel}` });

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The options panel's tabs (plan section 14, session 4A Done when 3): Options' build settings (a change waits with
-// Undo and Rebuild, and Age sets Detail and Pieces) and knobs (a draft until Keep writes model.py, or Reset drops it);
+// Undo and Rebuild, and Age sets Detail) and knobs (a draft until Keep writes model.py, or Reset drops it);
 // Checks (a finding in plain words, It's fine allows it in emmet.toml, Check it again brings it back); Parts (a row per
 // part and color, with its picture); Steps (a step shows the build up to it; a sub-assembly highlights every copy);
 // and Export (a toast says what was written where).
@@ -32,14 +32,15 @@ describe("the options panel", () => {
     await expect($("#settings-bar")).toHaveText(expect.stringContaining("1 changed"));
     await click("#settings-undo");
     await expect($("#settings-bar")).not.toBeExisting();
-    // Age leads: 9+ sets Detail and Pieces to what 9+ sets usually have.
+    // Age leads: 9+ sets Detail to what 9+ sets usually have. No setting is a part count (Barry 2026-11-10).
+    await expect($("[aria-label='Pieces']")).not.toBeExisting();
     await choose("Age", "9+");
-    await expect($("#settings-bar")).toHaveText(expect.stringContaining("3 changed"));
+    await expect($("#settings-bar")).toHaveText(expect.stringContaining("2 changed"));
     await expect($("[aria-label='Detail'] [data-state='on']")).toHaveText("Medium");
     await click("#settings-rebuild");
     await browser.waitUntil(() => read("emmet.toml").includes('age = "9+"'), { timeout: 10_000, timeoutMsg: "emmet.toml never got the settings" });
     expect(read("emmet.toml")).toContain('detail = "Medium"');
-    expect(read("emmet.toml")).toContain('pieces = "Medium"');
+    expect(read("emmet.toml")).not.toContain("pieces");
     // Rebuild asks the agent, which starts on it: the chat says what changed in words, sent from Build settings.
     await browser.waitUntil(() => browser.execute(() => !window.__emmet.chat().running && window.__emmet.chat().items > 0), { timeout: 30_000, timeoutMsg: "the agent never took the rebuild" });
     await click("#history-toggle");

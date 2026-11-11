@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The viewer's interactions to the frozen design (session 4C Done when 3; docs/design/components.md's viewer, the
 // keyboard map, docs/decisions.md 2026-10-31): hovering names a part and its color; a click picks it, shift-click adds,
-// and a click on nothing clears; shift-drag's box picks what's in it; Frame, the views, and the viewer's orbit and zoom
+// and a click on nothing clears; ⌥-drag's box picks what's in it, and shift-drag pans (Barry 2026-11-10); Frame, the views, and the viewer's orbit and zoom
 // keys; a step shows the build up to it with its parts box and a sub-assembly's box; the cut-away and its bar;
 // Screenshot to the clipboard and to a file; a finding's pin opens Checks. The camera moves only when asked (law 1).
 // Pointer events go to the canvas as the webview would send them (WebDriver's pointer actions aren't on every
@@ -93,21 +93,41 @@ describe("the viewer's interactions", () => {
     expect(await camera()).toEqual(before);
   });
 
-  it("shift-drag draws a box and picks the parts whose centers are in it, without turning the camera", async () => {
+  it("⌥-drag draws a box and picks the parts whose centers are in it, without turning the camera", async () => {
     const before = await restingCamera();
     const size = await browser.execute(() => [document.querySelector("#viewer canvas").clientWidth, document.querySelector("#viewer canvas").clientHeight]);
     const [x0, y0, x1, y1] = [size[0] * 0.3, size[1] * 0.3, size[0] * 0.6, size[1] * 0.6];
-    await pointer("pointerdown", x0, y0, { shiftKey: true });
-    await pointer("pointermove", x1, y1, { shiftKey: true });
+    await pointer("pointerdown", x0, y0, { altKey: true });
+    await pointer("pointermove", x1, y1, { altKey: true });
     await expect($("#viewer-box")).toBeDisplayed();
     await screenshots("viewer-box-select");
-    await pointer("pointerup", x1, y1, { shiftKey: true });
+    await pointer("pointerup", x1, y1, { altKey: true });
     await expect($("#viewer-box")).not.toBeExisting();
     const want = await browser.execute((r) => window.__emmet.viewer().idsInBox(r), { x: x0, y: y0, width: x1 - x0, height: y1 - y0 });
     expect(want.length).toBeGreaterThan(5);
     await browser.waitUntil(async () => (await highlighted()).length === want.length, { timeoutMsg: "the box didn't pick its parts" });
     expect((await highlighted()).sort()).toEqual([...want].sort());
     expect(await camera()).toEqual(before);
+  });
+
+  it("shift-drag pans: no box, no pick, the camera slides without turning, and then stays put", async () => {
+    // The pan is OrbitControls' (a left drag with shift, ⌘, or Ctrl); shift-drag no longer draws the box (Barry
+    // 2026-11-10). Its damping's remainder is dropped once the camera comes to rest, so the camera stays put after.
+    const picked = (await highlighted()).sort();
+    const before = await restingCamera();
+    const size = await browser.execute(() => [document.querySelector("#viewer canvas").clientWidth, document.querySelector("#viewer canvas").clientHeight]);
+    const [x0, y0, x1, y1] = [size[0] * 0.3, size[1] * 0.3, size[0] * 0.6, size[1] * 0.6];
+    await pointer("pointerdown", x0, y0, { shiftKey: true });
+    await pointer("pointermove", x1, y1, { shiftKey: true });
+    await expect($("#viewer-box")).not.toBeExisting();
+    await pointer("pointerup", x1, y1, { shiftKey: true });
+    await browser.pause(300);
+    expect((await highlighted()).sort()).toEqual(picked);
+    const after = await restingCamera();
+    for (const i of [0, 1, 2, 4, 5, 6, 8, 9, 10]) expect(after[i]).toBeCloseTo(before[i], 5);
+    expect(Math.hypot(after[12] - before[12], after[13] - before[13], after[14] - before[14])).toBeGreaterThan(1);
+    await browser.pause(500);
+    expect(await camera()).toEqual(after);
   });
 
   it("F frames the pick, the views turn to each side, and the viewer's keys orbit and zoom only when it has focus", async () => {

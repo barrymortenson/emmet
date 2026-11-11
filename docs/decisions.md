@@ -932,3 +932,139 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   which is what D-50's trial hit), and window baselines shrink by the screen's pixel ratio, so one set holds on a
   Retina Mac and a 1x hosted one. Section 13's budgets are enforced only off hosted runners, as before, so they're
   checked by hand on real hardware (`just test`, `just e2e perf`, `just bench`); hosted runs report the numbers.
+
+## 2026-11-08, session 4G
+
+- **A display bike's fork steers, on a triple tree and a pivot** (Barry, 2026-11-08, on batch 19's review page: "the
+  handle bars should be able to turn, it needs a what is known as a triple tree, and pivit point"). The first fork
+  hung on a horizontal axle, so it could only nod. Now the frame's head is a bearing on the raked steering axis (a
+  cross block on the head axle), and `suspension_fork` turns in it: a steerer with upper and lower triple clamps, the
+  fork tubes through them, a slider and shock on each tube, and the front wheel. The bars sit on the tubes' tops. The
+  fork, brakes, and bars join the frame at the steerer alone, and a test checks it.
+- **The seven display-bike techniques are accepted** (Barry, 2026-11-08, through AskUserQuestion: "Accept all 7"):
+  motorbike_frame, swingarm_shock, suspension_fork, chain_drive, disc_brake, handlebars, and
+  display_stand_nameplate, as built after the steering change (`docs/techniques/candidates/batch-19.html`).
+- **The e-bike is a large display model, and the agent has to ask** (Barry, 2026-11-08, through AskUserQuestion:
+  "Large display model"). The rung's general scale answer, "Minifigure scale", makes an e-bike about 6 studs long, short
+  of its 600-part floor; the e-bike's own answer in `data/ladder/photo/subjects.toml` is now "A large display model on
+  a stand, about 40 studs long, with lots of pieces", as the Bradbury has its own. Rejected: keeping "Minifigure
+  scale", and no answer.
+- **The bike techniques fit the photo, then the e-bike runs again** (Barry, 2026-11-09, through AskUserQuestion: "Fit
+  the photo, rerun"). His hand session (New model 8) built by holes with no probe build and a first build at 26 s,
+  validated with 0 findings, and stopped at 399 parts; his rubric was proportions 0, recognizability 1, buildability 2.
+  The techniques had fixed sizes (one thin motorcycle wheel, one frame and wheelbase, one rake, no bar height), so
+  every bike came out the same long, low motorcycle, and the agent read their source to work around them. They get
+  size options, the guide has the agent measure the photo first, and Barry runs the e-bike again. Rejected: opening
+  the PR with Done when 4 unticked.
+- **A display bike stands on its kickstand, not on a base** (Barry, 2026-11-09, before his second e-bike session: "it
+  is building a plate for the bike to sit on, this is not needed. a kickstand on the bike is all that is needed to make
+  the bike stand up. it is using a lot of the parts to make this and not focusing on the detail of the bike").
+  `display_stand_nameplate` is gone, and `kickstand` takes its place: a beam swung down from the frame's left side to
+  the table, level with the tires. The large guide says a bike stands on its wheels and kickstand with no base, and
+  the parts go into the bike; plan section 21's 4G text says so. The e-bike's scale answer in
+  `data/ladder/photo/subjects.toml` says "standing on its kickstand" for "on a stand".
+- **New model asks its name and build settings first** (Barry, 2026-11-09: "when creating a new file it does not ask
+  for a name or give you and chance to name it. Also I am thinking that the project settings should be be asked as a
+  wizard or modal style new file setup, so the expectations of the new project, size, style, etc. are set at the
+  beginning, then the project settings are in the small summary at the top of the tweeks sidebar and can be edit
+  later if needed"; through AskUserQuestion, it goes in 4G: "Fold into 4G"). This reverses 4A's New with no dialog
+  (Barry's note 7) for a new model from a prompt: ⌘N (File → New) and the start screen's card open the New model
+  dialog, which needs a name and offers the six build settings on one page, each Any until set, as Options has them
+  (Age still brings its Detail and Pieces). Barry, the same day, on a two-page version: "this should not be a two step
+  option. Just open the dialog for the new blank model, do not show the welcome screen again. also make all the
+  questions on a single step"; so ⌘N no longer shows the start screen once the parts are set up. Create
+  makes the folder by that name (a taken one gets "name 2") with `[build]` written. Options shows the settings as a
+  line of words with Change on every model, an empty one too. The Cottage example, on first run's start screen, still opens with no dialog.
+  Rejected: its own branch and PR, and waiting until 4G merges.
+- **The bike techniques get fixed again, then one more e-bike run** (Barry, 2026-11-09, through AskUserQuestion: "Fix
+  techniques, rerun"). His second hand session (ebike1) validated with 0 errors and scored proportions 1,
+  recognizability 2, buildability 1 (4 of 6), but stopped at 260 parts: the project said Pieces Medium (250–1,000) and
+  no scale, so the agent took the range's floor as the target and asked nothing. His notes: "the forks and kickstand
+  and rear suspension are not very well designed, they are design to be non-functioning event though there are
+  components like a spring, or they porportions are off and could be improved. The over all bike still lacks the
+  detail I was expecting for this type of model." In the session he said the fork "is not stable", the axles need
+  "something to retain them", and the kickstand goes "of the rear left swing arm"; the agent then dropped the stock
+  frame, swingarm, and fork because their axles were flush. So: `suspension_fork` guides the wheel on its tubes and
+  the shocks only spring it; every axle end in the bike techniques is held (a bush, a half bush, or a crank); the
+  kickstand pins to the left swingarm arm; the rear shock can be one in the middle; bodywork techniques add the detail
+  (fenders, a rack, a battery case); and the agent aims at the subject's part range and the upper half of the Pieces
+  setting, not its floor. Barry reruns once with Scale Large and Pieces Large. Rejected: rerunning with no fixes, and
+  opening the PR with Done when 4 unmet.
+- **The ten reworked bike techniques are accepted** (Barry, 2026-11-10, on the review page
+  `docs/techniques/candidates/batch-19.html`, through AskUserQuestion: "Accept all 10"). Before the port he saw the
+  prototype's renders and said it was the right direction (2026-11-09, "Right direction"). motorbike_frame,
+  swingarm_shock, suspension_fork, chain_drive, disc_brake, handlebars, and kickstand, reworked so the wheels spring
+  against their shocks and every axle is held, and bike_seat_rack, battery_case, and front_fender, new. Rejected:
+  marking them one by one.
+- **A new model starts on the base its Base setting names, and the viewer draws a ground grid** (Barry, 2026-11-10,
+  starting his third e-bike session: "when I created the parts I said none for the base but it still created a plate
+  in the view ... this could be a ground transparent grid instead"; through AskUserQuestion: "Under every model"). The
+  New model dialog's Base now picks the starter model: None starts with no parts, on the table at z = 0, and 16 × 16,
+  32 × 32, or 48 × 48 starts on that green baseplate; Any keeps the 32 × 32 one, as `emmet new` does. The live viewer
+  draws a faint grid on the table under every model, a square a stud with a stronger line every 8 studs, fading out
+  with distance, in both themes. Pictures (renders for the agent, exports, instructions, and the camera button) keep
+  the plain background with only the shadow. Rejected: a grid only when the model has no baseplate, and only while
+  it's empty.
+- **Detail never caps the part count; one more e-bike run** (Barry, 2026-11-10, through AskUserQuestion: "Fix
+  doctrine, run 4"). His third session (E-bike 4g 3) picked Pieces Medium by mistake ("I made a mistake chosing
+  medium") and ended at 261 parts with no findings. The agent had read that a Medium model is 600 to 1,000 parts, and
+  said: "That's low for the Medium pieces setting because Medium detail doesn't allow building sideways." So the
+  doctrine says Detail is the kind of finish, not the part count; building sideways for the shape is fine at any
+  Detail (only sideways textures wait for High); and under the Pieces range's upper half the agent keeps building at
+  the Detail it has, never stopping short and blaming Detail. The large guide says the same for its faces and its
+  display bikes. Barry runs a fourth session with Scale Large, Detail Medium, and Pieces Large. Rejected: running
+  again with no change, and rebuilding the third session's bike with Pieces Large.
+- **The build settings are Size and Detail; the part count is the outcome** (Barry, 2026-11-10, after his fourth
+  e-bike session, through AskUserQuestion: "Size + Detail"). Run 4 had Scale Large, Detail Medium, and Pieces Large and
+  ended at 301 parts, the agent saying it was "well under your Large pieces setting ... mostly because this bike is an
+  open frame with little bodywork." Barry: "even with the part count it is did not build it with more pieces, in fact
+  the model came out almost identical to the last few ... seems like that piece count is a hard goal with a medium
+  detail for object like a bike or a car, where as a large building or a sailing ship or very complex item could meet
+  it easier. I think our setting options need to have some realative contraints or becombined into a few options that
+  lets the ai know what we are going for with out the conflicting contraints, so may be focus on size and complexity
+  and let the piece count be open ended? This would make it simpler for the user also." So Scale and Pieces merge into
+  one setting, Size (what the model is sized to: Micro, Midi, Figure scale, Display, or 1:8), Detail stays as the
+  complexity, and Age, Style, and Base stay. No setting names a part count: the agent builds to the size and the
+  detail and says what the count came to, and still asks before a build over 2,000 parts. Rejected: keeping Scale and
+  turning Pieces into a Size by dimensions (the two can still disagree), and keeping Pieces as a soft guide.
+- **4G's Done when 4 is the photo rung's pass bar, on a new run** (Barry, 2026-11-10, through AskUserQuestion: "Rubric
+  bar, new run"). "600+ parts" set a part count the build settings no longer name. Done when 4 becomes: after the
+  settings change, in Barry's hand session, the e-bike at Size Display has 0 validator errors and scores 4 of 6 or
+  more (the photo rung's bar, docs/spec/ladder.md), its part count reported, not required. Rejected: scoring run 4 as
+  it is, and requiring Detail High.
+- **Shift-drag pans the viewer; ⌥-drag draws the selection box** (Barry, 2026-11-10, in his fifth e-bike session: "the
+  shift key used to allow you to drag the object into view ... the screen can no longer be repositioned"; through
+  AskUserQuestion: "Shift pans, ⌥ boxes"). Since 4C shift-drag had drawn the box that picks parts, which took the
+  pan OrbitControls gives a shift-drag. Now shift-drag, ⌘-drag, and a right drag pan, and ⌥-drag (Alt on Windows)
+  draws the box. The same run showed a model that opens empty (Base None) framed on the empty table and built off to
+  one side: a model that opens empty is now framed when its first parts come, which build up as any run's do.
+  Rejected: keeping shift-drag for the box.
+- **A part threaded on after its shaft is closed is a finding, and the bike techniques build in order** (Barry,
+  2026-11-10, after his fifth e-bike session, which scored proportions 2, recognizability 2, buildability 1 with 0
+  validator errors at 268 parts: "several of the parts are built out of order, you would need to take apart something
+  to add the next step"; through AskUserQuestion: "Rule + technique fix"). The out-of-order steps were the
+  techniques': the brake discs, the rear sprocket, and the front fender's brackets go onto an axle or a fork tube in a
+  step after both its ends are closed. So the validator gets a check for a part that goes onto an axle, pin, or tube
+  after the shaft is in and both its ends are closed by parts from earlier steps, and the bike techniques put such
+  parts on with their shaft (the discs and the sprocket with their wheel, the fender's brackets with the fork tubes),
+  their tests requiring no findings under it. In 4G, before the PR. Rejected: fixing the techniques alone, and both
+  in a later session.
+- **A sub-assembly's own steps in the viewer come in a later session, 4H** (Barry, 2026-11-10, through
+  AskUserQuestion: "Yes, later session"). In his fifth e-bike session the Steps tab's Built apart sections listed
+  their sub-steps, but a click did nothing ("the build apart sections do not show the seperate steps, not sure how
+  that is supposed to be used?"): the viewer only highlights a whole section. 4H, after 4G and alongside 5A and 5B,
+  makes a sub-step show its section on its own, built up to it with its new parts outlined, as the PDF's framed boxes
+  do. Rejected: building it in 4G, and leaving it.
+- **The photo rung reports a part count beside its subject's range; it doesn't gate on it** (Barry, 2026-11-10,
+  through AskUserQuestion: "Report, don't gate"). The rung's ranges (the e-bike 600 to 2,000) said "so a basic model
+  fails", and `emmet eval --score` failed run 5's 268 parts though Barry scored it 5 of 6. With no setting naming a
+  part count, a subject passes at 0 validator errors and 4 of 6 or more; the report shows the count beside what a
+  display set of the subject has. Rejected: dropping the ranges, and keeping them as a gate.
+- **disc_brake folds into the fork and the swingarm** (Barry, 2026-11-10, through AskUserQuestion: "Fold into
+  fork/swingarm"). Built in order, a brake disc, the rear sprocket, and the front fender's brackets go on in the step
+  their axle or fork tube goes in, and the DSL can't add parts to an earlier step. So `suspension_fork` places the
+  front discs (`discs`) and the fender's brackets (`fender`) and `swingarm_shock` the rear disc (`disc`) and the
+  sprocket (`sprocket`), each with its shaft; `chain_drive` runs its chain round the swingarm's sprocket and
+  `front_fender` hangs its blade on the fork's brackets; `disc_brake` is retired, leaving nine bike techniques. The
+  frame puts its head's cross blocks on with the head axle, and the swingarm puts the shock's mount axle in through
+  the shock. Rejected: keeping disc_brake with a closing call that puts the axles in last.

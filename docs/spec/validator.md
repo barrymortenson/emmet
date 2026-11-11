@@ -37,12 +37,22 @@ A file's connectors are its subfiles', moved into its frame, then its own snap l
 cover falls back to the primitive table; an override with `replace` takes the place of everything else. Connectors
 are computed per run, once per part file, and kept for the run.
 
+A part's Technic points (`technic.rs`, 4G) come from its connectors: each cylinder that is a pin hole (a female round
+bore a stud's width, open both ends or with a pin hole's rim, at least 8 LDU deep), an axle hole, a pin (a male round
+cylinder longer than a stud), an axle, or an axle pin, without a group. A hole drawn in pieces along one line is one
+hole, and a pin's halves drawn as their own primitives are the one pin. They're named 1 to n in the order of their
+middles in the DSL frame at rot=0, and part_info, `emmet part`, and the DSL (through `build/part-geometry.json`) give
+them. `data/connections/technic.toml` covers the Technic parts whose holes are drawn with primitives the shadow data
+lacks.
+
 ## The connection graph
 
 Two connectors mate when their kinds and genders fit and they're on one line: their axes parallel within about 8° and
 apart across them by no more than 0.5 LDU for a stud and 1 LDU for a round joint (D-45). Along the line, a stud goes
 all the way into its anti-stud (give or take 0.5 LDU), a round joint at least half way, and a bar or pin anywhere
-along a hole or clip that slides. Radii must fit (no male wider than its hole) and at least one section must grip.
+along a hole or clip that slides; a pin or axle that slides still needs some of its shaft in the hole's bore, or its
+collar in the hole's counterbore, not only its tip in the mouth (4G). Radii must fit (no male wider than its hole) and
+at least one section must grip.
 Hinge fingers mate with the same group's fingers on one line; generic plugs with the same group, opposite gender,
 within 1 LDU.
 
@@ -65,19 +75,19 @@ hint says what to change.
 | Rule | Severity | Finds | Hint |
 |---|---|---|---|
 | `unknown_part` | error | a part id the library lacks | search for the part |
-| `collision` | error | two parts' collision proxies overlapping by more than 1 LDU (D-46), outside a connected pair's seat and outside a pair one holds the other | how far to move which part (up or down for a vertical overlap) |
-| `floating` | error | a connected group that reaches no ground | the part under it and the gap, in plates |
+| `collision` | error | two parts' collision proxies overlapping by more than 1 LDU (D-46), outside a connected pair's seat, outside the shaft of a pin or axle seated in a hole of the other (an axle through a hub's bore, 4G), and outside a pair one holds the other | how far to move which part (up or down for a vertical overlap); for a pin or axle beside a hole of the other, the hole it missed and how far off it is |
+| `floating` | error | a connected group that reaches no ground | the part under it and the gap, in plates; for a pin or axle that misses a hole, the hole it missed (to one side, short of it, or only touching it) and `m.insert` |
 | `disconnected_submodel` | error | the outermost submodel copy none of whose parts is joined to or held by a part outside it, inside a parent with parts of its own | where to move the copy |
 | `step_order` | error | per scope (the main model, and each copy with its own steps): an element joined to nothing from earlier steps, not resting on the ground, and not the start of a new assembly (or, when all that holds, one resting on parts from later steps) | the step to move it to, or what to move earlier |
-| `step_order` | warning | an element whose way in (from above, below, or the side) earlier parts have closed, or that goes in between parts on both sides | the step to move it to |
+| `step_order` | warning | an element whose way in (from above, below, or the side) earlier parts have closed, or that goes in between parts on both sides; a pin or axle in a hole that runs through its mate can come in through it (4G); a part threaded onto an earlier pin's or axle's shaft (its hole around it: a wheel, a gear, a disc, a bush) after earlier parts are on that shaft on both sides of it, half a stud or more away, so it can't slide on from either end (Barry 2026-11-10) | the step to move it to: with the shaft, before both its ends close |
 | `step_size` | warning | a step adding more elements than the target (a copy counts once, a figure once per torso) | split the step |
-| `weak_connection` | warning | a part held by one or two studs and nothing else that reaches more than 4 studs past them | a support, or more studs |
+| `weak_connection` | warning | a part held by one or two studs and nothing else that reaches more than 4 studs past them; a part on a pin or an axle (a wheel on its axle) isn't held by a stud (4G) | a support, or more studs |
 | `off_grid` | warning | a part joined to nothing whose connector is within 10 LDU of a mate, off sideways, or up or down by other than whole half plates | the move in DSL units |
 | `part_unavailable` | warning | a part Rebrickable knows but has no element or set inventory with, in any color: it was never made | a part that was made (its alternates, when Rebrickable lists any) |
 | `color_unavailable` | warning | a part in a color it was never made in: no element and no set inventory with it in that color | the closest colors (by RGB) that part was made in |
 | `obsolete_part` | warning | a `~Moved to` or obsolete part | the current id |
 | `alias_part` | info | an alias | the canonical id |
-| `figure_clearance` | warning | a part (not a figure, its accessories, an animal, a door leaf, or a sticker) whose collision proxy is more than 1 LDU inside a space the model keeps clear for a figure (`m.keep_clear`), at figure scale, large, or Any | the smallest move that clears it in a builder's words: raise it (when it hangs into the space from above) or move it sideways, without running into another part; or allow it with a reason |
+| `figure_clearance` | warning | a part (not a figure, its accessories, an animal, a door leaf, or a sticker) whose collision proxy is more than 1 LDU inside a space the model keeps clear for a figure (`m.keep_clear`), at figure scale, display, or Any | the smallest move that clears it in a builder's words: raise it (when it hangs into the space from above) or move it sideways, without running into another part; or allow it with a reason |
 
 part_unavailable and color_unavailable give one finding per part × color, naming every placement of it. They need the
 parts data pack: without one, or for a part or color with no Rebrickable mapping (ADR 0004's four rules), availability
@@ -97,7 +107,7 @@ hand. They go to `build/placements.json` as `keep_clear: [{ boxes: [[min x, min 
 src }]` in LDraw's frame, a submodel's once per copy. One finding per space names every part inside it. Door frames
 found in the parts index make no space: on the 67 official models with 1 x 4 x 6 door frames, a space found that way
 gave 269 findings, and still 90 cut to a 1-stud doorway, for counters, stairs, and walls official models put there
-(Barry, 2026-10-31). The rule is off when the Scale build setting is micro, micropolis, midi, or car 1:8. The golden is
+(Barry, 2026-10-31). The rule is off when the Size build setting is micro, micropolis, midi, or 1:8. The golden is
 `broken-figure-clearance` (a canopy a brick low beside a door, a bench against a column, a wall across a doorway, and
 a lamp in a path the model keeps clear); the recall test moves a bench against a post, lowers what stands over a
 door's approach a brick, and builds a wall across a doorway (`validator_mutations.rs`).

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! The project commands of the frozen design (session 4A): New without a dialog into the projects folder, Open… (one
+//! The project commands of the frozen design (session 4A): New into the projects folder (the Cottage example as it
+//! is, or a new model with the name and build settings its dialog asks for, Barry 2026-11-09), Open… (one
 //! file picker: a project's emmet.toml, or an LDraw file to import, docs/decisions.md 2026-10-28), Trust this
 //! project, the build settings, allowed findings, a knob's Keep and Reset, versions, and exports. The window names no
 //! path: the host picks files in its own dialogs, makes folders in the projects folder, and reveals the last export
@@ -22,10 +23,9 @@ use crate::app::{AppState, ParamsView, Problem, ProjectView, Scene};
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, specta::Type)]
 pub struct BuildSettings {
     pub base: Option<String>,
-    pub scale: Option<String>,
+    pub size: Option<String>,
     pub age: Option<String>,
     pub detail: Option<String>,
-    pub pieces: Option<String>,
     pub style: Option<String>,
 }
 
@@ -33,10 +33,9 @@ impl From<&BuildConfig> for BuildSettings {
     fn from(b: &BuildConfig) -> Self {
         Self {
             base: b.base.clone(),
-            scale: b.scale.clone(),
+            size: b.size.clone(),
             age: b.age.clone(),
             detail: b.detail.clone(),
-            pieces: b.pieces.clone(),
             style: b.style.clone(),
         }
     }
@@ -45,12 +44,58 @@ impl From<&BuildConfig> for BuildSettings {
 /// Each setting's choices, as the frozen design names them (docs/design/shared/data.js). Style also takes the user's
 /// own words.
 pub const BASES: [&str; 4] = ["None", "16 × 16", "32 × 32", "48 × 48"];
-pub const SCALES: [&str; 6] = ["Micro", "Micropolis", "Midi", "Figure scale", "Large", "Car 1:8"];
+/// What the model is sized to: Scale and Pieces made one setting (Barry 2026-11-10); no setting names a part count.
+pub const SIZES: [&str; 6] = ["Micro", "Micropolis", "Midi", "Figure scale", "Display", "1:8"];
 pub const AGES: [&str; 5] = ["4+", "6+", "9+", "13+", "18+"];
 pub const DETAILS: [&str; 3] = ["Low", "Medium", "High"];
-pub const PIECES: [&str; 4] = ["Small", "Medium", "Large", "Huge"];
 /// The longest style the user may type.
 const STYLE_MAX: usize = 60;
+/// The longest name a new model may have.
+const NAME_MAX: usize = 60;
+
+/// The build settings as emmet.toml's [build] keeps them, once each is one of its choices and the style is short.
+fn checked(settings: BuildSettings) -> Result<BuildConfig, Box<Problem>> {
+    let check = |v: &Option<String>, what: &str, choices: &[&str]| match v.as_deref() {
+        Some(x) if !choices.contains(&x) => Err(bad(
+            format!("There's no {what} '{x}'."),
+            format!("Pick one of {}.", choices.join(", ")),
+        )),
+        _ => Ok(()),
+    };
+    check(&settings.base, "base", &BASES)?;
+    check(&settings.size, "size", &SIZES)?;
+    check(&settings.age, "age", &AGES)?;
+    check(&settings.detail, "detail", &DETAILS)?;
+    let style = settings.style.as_deref().map(str::trim).filter(|s| !s.is_empty());
+    if style.is_some_and(|s| s.chars().count() > STYLE_MAX || s.chars().any(char::is_control)) {
+        return Err(bad(
+            "That style is too long.",
+            format!("Say it in {STYLE_MAX} characters or fewer."),
+        ));
+    }
+    Ok(BuildConfig {
+        base: settings.base,
+        size: settings.size,
+        age: settings.age,
+        detail: settings.detail,
+        style: style.map(String::from),
+    })
+}
+
+/// A new model's name as the user typed it, trimmed: something, and short enough for a folder's name.
+fn model_name(name: &str) -> Result<String, Box<Problem>> {
+    let name = name.trim();
+    if name.is_empty() {
+        return Err(bad("The model needs a name.", "Type one, like Fire station."));
+    }
+    if name.chars().count() > NAME_MAX {
+        return Err(bad(
+            "That name is too long.",
+            format!("Say it in {NAME_MAX} characters or fewer."),
+        ));
+    }
+    Ok(name.to_string())
+}
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
@@ -121,8 +166,13 @@ fn unique(parent: &Path, base: &str) -> PathBuf {
 }
 
 /// Makes a project in the projects folder named `name` (or the next free "`name` 2"), with `template`, named as its
-/// folder is, and opens it.
-async fn create(app: AppHandle, name: &str, template: Template) -> Result<ProjectView, Box<Problem>> {
+/// folder is, with the build settings `build` (the template's own when None), and opens it.
+async fn create(
+    app: AppHandle,
+    name: &str,
+    template: Template,
+    build: Option<BuildConfig>,
+) -> Result<ProjectView, Box<Problem>> {
     let folder = crate::prefs::projects_folder(&app);
     let dir = unique(&folder, name);
     let data = app.state::<AppState>().data.clone();
@@ -136,6 +186,9 @@ async fn create(app: AppHandle, name: &str, template: Template) -> Result<Projec
             .file_name()
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_default();
+        if let Some(build) = build {
+            project.config.build = build;
+        }
         project.write_config()?;
         Ok(())
     })
@@ -143,13 +196,26 @@ async fn create(app: AppHandle, name: &str, template: Template) -> Result<Projec
     crate::app::open(&app, &dir)
 }
 
-/// New (⌘N): the Cottage example or an empty baseplate, in the projects folder, with no dialog (Barry's note 7).
+/// New (⌘N), in the projects folder: the Cottage example as it is, or an empty baseplate named `name` with the build
+/// settings `settings`, which the New model dialog asks for so the agent knows them from its first turn (Barry
+/// 2026-11-09; before, New made "New model" with no dialog). A taken name gets the next free "`name` 2".
 #[tauri::command]
 #[specta::specta]
-pub async fn new_project(app: AppHandle, kind: NewKind) -> Result<ProjectView, Box<Problem>> {
+pub async fn new_project(
+    app: AppHandle,
+    kind: NewKind,
+    name: Option<String>,
+    settings: Option<BuildSettings>,
+) -> Result<ProjectView, Box<Problem>> {
     match kind {
-        NewKind::Cottage => create(app, "Cottage", Template::Cottage).await,
-        NewKind::Empty => create(app, "New model", Template::Empty).await,
+        NewKind::Cottage => create(app, "Cottage", Template::Cottage, None).await,
+        NewKind::Empty => {
+            let name = model_name(name.as_deref().unwrap_or("New model"))?;
+            let build = checked(settings.unwrap_or_default())?;
+            // It starts on the baseplate Base names, or on the table with None (Barry 2026-11-10).
+            let base = build.baseplate();
+            create(app, &name, Template::Empty(base), Some(build)).await
+        }
     }
 }
 
@@ -186,7 +252,7 @@ pub async fn open_dialog(app: AppHandle) -> Result<Option<ProjectView>, Box<Prob
             .file_stem()
             .map(|s| s.to_string_lossy().into_owned())
             .unwrap_or_default();
-        return create(app, &format!("{stem} (imported)"), Template::Import(file))
+        return create(app, &format!("{stem} (imported)"), Template::Import(file), None)
             .await
             .map(Some);
     }
@@ -233,34 +299,9 @@ fn trusted(app: &AppHandle) -> Result<(emmet_core::data::DataDir, Project), Box<
 #[tauri::command]
 #[specta::specta]
 pub fn set_build_settings(app: AppHandle, settings: BuildSettings) -> Result<BuildSettings, Box<Problem>> {
-    let check = |v: &Option<String>, what: &str, choices: &[&str]| match v.as_deref() {
-        Some(x) if !choices.contains(&x) => Err(bad(
-            format!("There's no {what} '{x}'."),
-            format!("Pick one of {}.", choices.join(", ")),
-        )),
-        _ => Ok(()),
-    };
-    check(&settings.base, "base", &BASES)?;
-    check(&settings.scale, "scale", &SCALES)?;
-    check(&settings.age, "age", &AGES)?;
-    check(&settings.detail, "detail", &DETAILS)?;
-    check(&settings.pieces, "pieces", &PIECES)?;
-    let style = settings.style.as_deref().map(str::trim).filter(|s| !s.is_empty());
-    if style.is_some_and(|s| s.chars().count() > STYLE_MAX || s.chars().any(char::is_control)) {
-        return Err(bad(
-            "That style is too long.",
-            format!("Say it in {STYLE_MAX} characters or fewer."),
-        ));
-    }
+    let build = checked(settings)?;
     let (_, mut project) = trusted(&app)?;
-    project.config.build = BuildConfig {
-        base: settings.base,
-        scale: settings.scale,
-        age: settings.age,
-        detail: settings.detail,
-        pieces: settings.pieces,
-        style: style.map(String::from),
-    };
+    project.config.build = build;
     project.write_config()?;
     app.state::<AppState>().refresh_view(&project);
     Ok(BuildSettings::from(&project.config.build))
@@ -685,5 +726,27 @@ mod tests {
                 "{name:?} → {got:?} is one component"
             );
         }
+    }
+
+    /// The New model dialog's name and settings are checked as the Options panel's are, before any folder is made.
+    #[test]
+    fn a_new_model_needs_a_name_and_real_choices() {
+        assert_eq!(model_name("  Fire station ").unwrap(), "Fire station");
+        assert!(model_name("   ").is_err());
+        assert!(model_name(&"x".repeat(NAME_MAX + 1)).is_err());
+        let ok = BuildSettings {
+            size: Some("Display".into()),
+            style: Some("  steampunk ".into()),
+            ..Default::default()
+        };
+        let build = checked(ok).unwrap();
+        assert_eq!(build.size.as_deref(), Some("Display"));
+        assert_eq!(build.style.as_deref(), Some("steampunk"));
+        // Scale's old "Large" isn't a Size: the Options panel offers only today's words.
+        let bad_size = BuildSettings {
+            size: Some("Large".into()),
+            ..Default::default()
+        };
+        assert!(checked(bad_size).is_err());
     }
 }

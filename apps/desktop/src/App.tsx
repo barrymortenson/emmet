@@ -29,7 +29,7 @@ import {
 import { type Ask, Dock, DockBoundary } from "./Chat";
 import { Compare } from "./Compare";
 import { findingWords, fixRequest } from "./Checks";
-import { About, Settings, Shortcuts } from "./Dialogs";
+import { About, NewModel, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
 import { drawBook } from "./instructions";
 import { type Action, actionFor, windows } from "./keys";
@@ -41,7 +41,7 @@ import { Banner, Button, Icon, Resizable, when } from "./ui";
 import { partPicture } from "./pictures";
 import { ViewerLayer } from "./ViewerLayer";
 
-type Dialog = "settings" | "about" | "shortcuts" | null;
+type Dialog = "settings" | "about" | "shortcuts" | "new-model" | null;
 const PANEL = { min: 320, max: 520, start: 384 };
 /** A menu click and its key press can both arrive for one action: the second within this long is the same one. */
 const SAME_ACTION_MS = 250;
@@ -83,6 +83,8 @@ export function App() {
   const viewer = useRef<Viewer | null>(null);
   const shown = useRef(-1);
   const framed = useRef<string | null>(null);
+  /** The project opened on an empty model, which isn't framed yet: its first parts build up and get framed. */
+  const openedEmpty = useRef(false);
   /** A version is open to compare (show() leaves it on screen). */
   const comparing = useRef(false);
   const root = useRef<string | null>(null);
@@ -248,10 +250,16 @@ export function App() {
     // A version open to compare stays on screen; the newest build shows when it closes.
     if (comparing.current) return;
     const first = at != null && framed.current !== at;
-    if (!(await showIn(v, placements(scene), first ? "none" : animate))) return;
+    // The opening scene appears at once; the first parts of a model that opened empty build up as any run's do.
+    if (!(await showIn(v, placements(scene), first && !openedEmpty.current ? "none" : animate))) return;
     drawnAt.current = performance.now();
-    if (at && framed.current !== at) {
-      framed.current = at;
+    if (at && first) {
+      // A model that starts empty (Base None, Barry 2026-11-10) is framed when its first parts come, not before: the
+      // camera never moves on its own after that, so framing the empty table left the model off to one side.
+      if (scene.placements.length > 0) {
+        framed.current = at;
+        openedEmpty.current = false;
+      } else openedEmpty.current = true;
       v.setView("iso");
       setView("iso");
       viewNow.current = "iso";
@@ -264,6 +272,7 @@ export function App() {
       events.projectOpened.listen(({ payload }) => {
         shown.current = -1;
         framed.current = null;
+        openedEmpty.current = false;
         comparing.current = false;
         root.current = payload.project.root;
         setViewerError(null);
@@ -387,7 +396,7 @@ export function App() {
 
   // A click in the viewer picks a part (shift, ⌘, or Ctrl adds it to the pick, or takes it away), a click on nothing
   // clears what's
-  // picked, and shift-drag's box picks the parts in it: the agent sees them as it sees a row picked in the panel.
+  // picked, and ⌥-drag's box picks the parts in it: the agent sees them as it sees a row picked in the panel.
   useEffect(() => {
     const v = viewer.current;
     if (!v) return;
@@ -576,7 +585,10 @@ export function App() {
     else
       switch (a) {
         case "new":
-          setFirstRun("start");
+          // New is a new model from a prompt: its dialog, not the start screen again (Barry 2026-11-09). Until the parts
+          // and Python are set up, the start screen says they're getting ready.
+          if (ready) setDialog("new-model");
+          else setFirstRun("start");
           break;
         case "open":
           void act(commands.openDialog());
@@ -986,9 +998,10 @@ export function App() {
                 onAgentsChanged={() => setAgentsChanged((n) => n + 1)}
                 onSettings={() => setDialog("settings")}
                 onNew={async (kind) => {
+                  // A new model from a prompt asks for its name and build settings first (Barry 2026-11-09).
+                  if (kind === "empty") return setDialog("new-model");
                   setCreating(kind);
-                  if (!(await act(commands.newProject(kind)))) setCreating(null);
-                  else if (kind === "empty") setTimeout(() => document.getElementById("chat-input")?.focus(), 0);
+                  if (!(await act(commands.newProject(kind, null, null)))) setCreating(null);
                 }}
                 onOpen={() => run("open")}
                 creating={creating}
@@ -1003,6 +1016,15 @@ export function App() {
           {dialog === "settings" && <Settings info={info} prefs={prefs} autoQuality={autoQuality} onPrefs={setPrefs} onClose={() => setDialog(null)} onAgentsChanged={() => setAgentsChanged((n) => n + 1)} onCopied={(copied) => say(copied ? "Copied the diagnostics" : "Emmet couldn't copy the diagnostics to the clipboard.")} />}
           {dialog === "about" && <About info={info} theme={theme} onClose={() => setDialog(null)} />}
           {dialog === "shortcuts" && <Shortcuts onClose={() => setDialog(null)} />}
+          {dialog === "new-model" && (
+            <NewModel
+              onClose={() => setDialog(null)}
+              onCreated={() => {
+                setDialog(null);
+                setTimeout(() => document.getElementById("chat-input")?.focus(), 0);
+              }}
+            />
+          )}
         </div>
       </Toast.Provider>
     </Tooltip.Provider>

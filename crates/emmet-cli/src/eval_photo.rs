@@ -4,8 +4,8 @@
 //! 2026-11-04): Emmet never sends a turn for them. So `emmet eval --rung photo` does one of two things:
 //!
 //! - `--score <project>` reads a finished hand session (the project and its chat in `.emmet/chat/`), checks the
-//!   subject's photos on this Mac against their hashes, and scores it: 0 validator errors, the part range, that it
-//!   started from the photo, whether the agent asked for another angle, the time to the first draft, and Barry's
+//!   subject's photos on this Mac against their hashes, and scores it: 0 validator errors, the part count beside what a
+//!   display set of the subject has (a reference, not a gate: Barry 2026-11-10), that it started from the photo, whether the agent asked for another angle, the time to the first draft, and Barry's
 //!   three rubric scores. It sends nothing to an agent.
 //! - `--dry-run` drives a fake agent the same way, for CI: angle a with "Build this.", a question answered from the
 //!   scripts, and angle b as the next turn when the agent asks for another angle; generated images stand in for the
@@ -457,7 +457,7 @@ fn dry_run(
         None => std::env::temp_dir().join(format!("emmet-eval-{}", emmet_core::fsx::random_hex(1))),
     };
     let root = work.join(format!("photo-{}-{}", subject.id, crate::eval::name(opts.agent)));
-    let created = emmet_core::ops::new_project(data, &root, Template::Empty)?;
+    let created = emmet_core::ops::new_project(data, &root, Template::empty())?;
     let project = Project::find(Some(Path::new(&created.project)))?;
     // Generated stand-ins: the subject's photos stay on Barry's Mac.
     let fixture = |angle: &str| -> Result<PathBuf> {
@@ -659,12 +659,14 @@ fn score(data: &DataDir, project: &Project, subject: &Subject, o: &Observed, rub
             format!("{:?}: {}", e.code, e.message),
         ),
     }
+    // The count beside what a display set of the subject has: a reference, never a gate, since no build setting names a
+    // part count (Barry 2026-11-10).
     let [lo, hi] = subject.parts;
     push(
-        "Parts in range",
+        "Part count",
+        false,
         true,
-        (lo..=hi).contains(&parts),
-        format!("{parts} parts ({lo} to {hi})"),
+        format!("{parts} parts (a display set of it has {lo} to {hi})"),
     );
     push(
         "Built from the photo",
@@ -824,7 +826,7 @@ fn write_report(path: &Path, subject: &Subject, r: &Report, o: &Observed, opts: 
              Barry's hand sessions in the app on his plans with `--score`, which sends nothing to an agent (Barry \
              2026-11-04), or with the fake agents with `--dry-run`. The prompt is \"Build this.\" with a subject's angle a; \
              angle b goes as the next message when the agent asks for another angle. A subject passes at 4 of 6 on the \
-             rubric with 0 validator errors and its part count in range; the rung passes for an agent when 3 of the 4 \
+             rubric with 0 validator errors (its part count is reported beside what a display set has, not gated); the rung passes for an agent when 3 of the 4 \
              subjects pass. The photos stay on Barry's Mac, so only the renders are here.\n\n{section}\n"
         ),
     };

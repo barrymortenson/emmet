@@ -2,16 +2,17 @@
 // The window's dialogs (Radix Dialog, docs/design/frozen): Settings (the agent, the projects folder, the look, Emmet's
 // updates, the command line tool, and diagnostics; 1E's Codex sign-in and API key inside), About Emmet Builder (the
 // versions, what Emmet connects to, the trademark line, and Licenses: the attributions, D-44, and the provider
-// notice, D-37), and the keyboard shortcuts.
+// notice, D-37), the keyboard shortcuts, and New model (its name and build settings, Barry 2026-11-09).
 import { Dialog, ToggleGroup } from "radix-ui";
 import { type ReactNode, useEffect, useState } from "react";
 import iconMac from "./assets/brand/app-icon-macos.svg";
 import iconWin from "./assets/brand/app-icon-windows.svg";
 import antDark from "./assets/brand/wordmark-emmet-builder-ant-dark.svg";
 import antLight from "./assets/brand/wordmark-emmet-builder-ant-light.svg";
-import { type AppInfo, type CliStatus, commands, type Prefs, type PrefsView } from "./bindings";
+import { type AppInfo, type BuildSettings, type CliStatus, commands, type Prefs, type PrefsView, type Problem } from "./bindings";
 import { CodexAccounts } from "./ChatGpt";
 import { KEYS, keyName, windows } from "./keys";
+import { ANY_SETTINGS, SettingsFields, withSetting } from "./Options";
 import { REBRICKABLE_CREDIT } from "./Parts";
 import { Button, Choose } from "./ui";
 
@@ -332,6 +333,59 @@ export function Shortcuts({ onClose }: { onClose: () => void }) {
           <Button label="Done" variant="primary" size="sm" />
         </Dialog.Close>
       </div>
+    </Modal>
+  );
+}
+
+/** New model (from a prompt), on one page: its name, then its build settings, what it is (size and style) beside who
+ * builds it and what it stands on (age, detail, and base; Barry 2026-11-10 made Scale and Pieces one Size). The agent knows them from its first turn, and the Options
+ * panel shows them as a line of words (Barry 2026-11-09). Every setting may stay Any; the name is needed. Create makes
+ * the project (a taken name gets the next free "name 2"), and the window opens it. */
+export function NewModel({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [name, setName] = useState("");
+  const [draft, setDraft] = useState<BuildSettings>(ANY_SETTINGS);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<Problem | null>(null);
+  const named = name.trim().length > 0;
+  const set = (k: keyof BuildSettings, v: string | null) => setDraft((d) => withSetting(d, k, v));
+  const create = async () => {
+    if (!named || busy) return;
+    setBusy(true);
+    const r = await commands.newProject("empty", name.trim(), draft);
+    setBusy(false);
+    if (r.status === "ok") onCreated();
+    else setProblem(r.error);
+  };
+  return (
+    <Modal title="New model" id="new-model" className="new-model-dialog" onClose={onClose}>
+      <form
+        className="new-model-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void create();
+        }}
+      >
+        <label className="setting" data-c="setting" htmlFor="new-model-name">
+          <span className="setting-name">Name</span>
+          <input className="text-field" data-c="text-field" type="text" id="new-model-name" placeholder="Like Fire station or E-bike" value={name} maxLength={60} autoFocus onChange={(e) => setName(e.target.value)} />
+        </label>
+        <p className="small">Set what you can now and the agent builds to it from the start; anything left on Any, it decides or asks. You can change them later in Options.</p>
+        <div className="new-model-columns">
+          <SettingsFields draft={draft} set={set} keys={["size", "style"]} id="new-model-what" />
+          <SettingsFields draft={draft} set={set} keys={["age", "detail", "base"]} id="new-model-size" />
+        </div>
+        {problem && (
+          <p className="notice" role="alert" id="new-model-problem">
+            {problem.message} {problem.hint}
+          </p>
+        )}
+        <div className="dialog-actions">
+          <Dialog.Close asChild>
+            <Button label="Cancel" variant="quiet" size="sm" id="new-model-cancel" />
+          </Dialog.Close>
+          <Button label="Create" variant="primary" size="sm" type="submit" id="new-model-create" disabled={!named} busy={busy} />
+        </div>
+      </form>
     </Modal>
   );
 }

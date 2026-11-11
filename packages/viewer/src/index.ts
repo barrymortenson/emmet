@@ -47,6 +47,7 @@ import {
   stagger,
 } from "./animate.js";
 import { type Diff, type Placement, bucketKey, diffPlacements, dirtyBuckets, topStep } from "./diff.js";
+import { Grid } from "./grid.js";
 import { type ColorInfo, type FinishMaterials, Finishes, LINE_COLOR, type Studio, addStudio, finishKey, studioRoom } from "./materials.js";
 import { Outline } from "./outline.js";
 import { type PartGeometry, PartCache, type PartSource, partKey, simplifyStuds } from "./parts.js";
@@ -159,7 +160,7 @@ export interface ViewerEvents {
   hover: (hit: { id: string; x: number; y: number } | null) => void;
   /** A click: the part clicked, or null for nothing. Shift, ⌘, or Ctrl held means add to the selection. */
   pick: (id: string | null, modifiers: { add: boolean }) => void;
-  /** Shift-drag's box while it's drawn (canvas CSS pixels), and null when it's let go. */
+  /** ⌥-drag's box while it's drawn (canvas CSS pixels), and null when it's let go. */
   boxing: (box: Rect | null) => void;
   /** The parts in a box let go: those whose centers are inside it. */
   box: (ids: string[]) => void;
@@ -207,6 +208,8 @@ export interface Stats {
   quality: Preset;
   pace: Pace;
   shadow: boolean;
+  /** Whether the window draws the ground grid (pictures never do). */
+  grid: boolean;
 }
 
 export interface Viewer {
@@ -231,6 +234,8 @@ export interface Viewer {
   skipAnimation(): void;
   setPace(pace: Pace): void;
   frame(ids?: string[]): void;
+  /** Puts the camera on `view`, framing what's shown; when nothing is shown yet (a build animation just started), the
+   * whole scene; with no scene, the origin. */
   setView(view: View): void;
   setTheme(theme: Theme): void;
   setQuality(quality: Quality): void;
@@ -283,6 +288,15 @@ const HOVER = 0.28;
  * the more so on a dark background. */
 const SOFT_EDGES: Record<Theme, number> = { light: 0.18, dark: 0.32 };
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
+
+/** OrbitControls' damping keeps a shrinking remainder of a drag (an orbit's turn, a pan's slide) and adds it every
+ * frame, a hair at a time, forever. Once a frame moves the camera less than the controls notice, it's dropped, so the
+ * camera comes to rest and stays put: it never moves on its own (a pan left it creeping by 1e-12 LDU a frame). */
+function settle(controls: OrbitControls): void {
+  const c = controls as unknown as { _sphericalDelta?: { set(r: number, p: number, t: number): unknown }; _panOffset?: Vector3 };
+  c._sphericalDelta?.set(0, 0, 0);
+  c._panOffset?.set(0, 0, 0);
+}
 const FOV = 35;
 /** A zoom box's frame: the ids' box grown by two studs each way, so the parts around them show where they are. */
 const ZOOM_MARGIN = 40;
@@ -363,6 +377,7 @@ class EmmetViewer implements Viewer {
   private finishes = new Finishes();
   private studio: Studio;
   private ground: Mesh<PlaneGeometry, ShadowMaterial>;
+  private grid: Grid;
   private placements = new Map<string, Placement>();
   private buckets = new Map<string, Bucket>();
   /** Where each id draws: its bucket and instance. */
@@ -436,6 +451,8 @@ class EmmetViewer implements Viewer {
     this.ground.receiveShadow = true;
     this.ground.visible = false;
     this.scene.add(this.ground);
+    this.grid = new Grid(this.theme);
+    this.scene.add(this.grid.mesh);
     this.overlayRoot.rotation.x = Math.PI;
     this.overlay.add(this.overlayRoot);
     addStudio(this.overlay, this.renderer, this.studio.environment);
@@ -467,8 +484,8 @@ class EmmetViewer implements Viewer {
     this.raf = requestAnimationFrame(this.loop);
   }
 
-  /** Pointer gestures: hovering names a part; a click picks one (and skips the build animation); shift-drag draws a
-   * box that selects; any other drag orbits (OrbitControls). */
+  /** Pointer gestures: hovering names a part; a click picks one (and skips the build animation); ⌥-drag draws a
+   * box that selects; shift-drag, ⌘-drag, and a right drag pan, and any other drag orbits (OrbitControls). */
   private listen(): void {
     const c = this.canvas;
     let down: { x: number; y: number; box: boolean } | null = null;
@@ -483,7 +500,8 @@ class EmmetViewer implements Viewer {
       height: Math.abs(a.y - b.y),
     });
     const onDown = (e: PointerEvent) => {
-      down = { ...local(e), box: e.shiftKey && e.button === 0 };
+      // ⌥-drag (Alt on Windows) draws the box; shift-drag pans, as OrbitControls does it (Barry 2026-11-10).
+      down = { ...local(e), box: e.altKey && e.button === 0 };
       if (down.box) {
         // OrbitControls listens on the same canvas: it mustn't turn the camera while a box is drawn.
         this.controls.enabled = false;
@@ -684,6 +702,7 @@ class EmmetViewer implements Viewer {
     this.measure();
     if (this.cut != null && this.extent.bottom !== bottom) for (const b of this.buckets.values()) dirty.add(b.key);
     for (const k of dirty) this.writeBucket(k, members.get(k) ?? [], ghosts.get(k) ?? []);
+    this.fitGrid();
     if (animate) this.startAnimation(diff, before, ghosts);
     this.lastDiff = {
       added: diff.added.length,
@@ -1184,7 +1203,9 @@ class EmmetViewer implements Viewer {
   }
 
   setView(view: View): void {
-    const box = this.bounds(undefined, undefined, true);
+    let box = this.bounds(undefined, undefined, true);
+    // The first parts of a model that started empty drop in one at a time: frame where they're going.
+    if (box.isEmpty()) box = this.bounds();
     const v = VIEWS[view];
     this.camera.up.copy(v.up);
     if (box.isEmpty()) {
@@ -1276,9 +1297,17 @@ class EmmetViewer implements Viewer {
     r.shadowMap.needsUpdate = true;
   }
 
+  /** The ground grid under the whole model (not only what's shown, so a step or the cut-away doesn't move it), or
+   * round the origin when there's no model. */
+  private fitGrid(): void {
+    const box = this.bounds();
+    this.grid.place(box.isEmpty() ? null : { minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z, bottom: box.min.y });
+  }
+
   setTheme(theme: Theme): void {
     this.theme = theme;
     this.scene.background = new Color(BACKGROUND[theme]);
+    this.grid.setTheme(theme);
     for (const b of this.buckets.values()) this.paint(b);
     this.invalidate();
   }
@@ -1341,6 +1370,7 @@ class EmmetViewer implements Viewer {
     let conditionals: Drawable[] = [];
     const motion = this.motion;
     const shadow = { cast: this.studio.key.castShadow, ground: this.ground.visible };
+    const grid = this.grid.mesh.visible;
     const ghosts = new Map<Bucket, Placement[]>();
     try {
       if (motion) {
@@ -1353,6 +1383,8 @@ class EmmetViewer implements Viewer {
       for (const d of conditionals) d.object.visible = true;
       Object.assign(this, { lit: state.lit, mode: state.mode, step: state.step, cut: state.cut, theme: state.theme, hovered: null });
       this.scene.background = state.background;
+      // The grid is the window's alone: pictures show the model on its shadow.
+      this.grid.mesh.visible = false;
       this.scene.environment = environment;
       this.overlay.environment = environment;
       this.finishes.setRoom(environment);
@@ -1379,6 +1411,7 @@ class EmmetViewer implements Viewer {
       this.finishes.setRoom(this.studio.environment);
       this.studio.key.castShadow = shadow.cast;
       this.ground.visible = shadow.ground;
+      this.grid.mesh.visible = grid;
       for (const d of conditionals) d.object.visible = false;
       for (const [b, g] of ghosts) b.ghosts = g;
       for (const b of this.buckets.values()) this.fill(b);
@@ -1659,6 +1692,7 @@ class EmmetViewer implements Viewer {
       quality: this.preset,
       pace: this.pace,
       shadow: this.renderer.shadowMap.enabled,
+      grid: this.grid.mesh.visible,
     };
   }
 
@@ -1700,6 +1734,7 @@ class EmmetViewer implements Viewer {
     this.veil.material.dispose();
     this.ground.geometry.dispose();
     this.ground.material.dispose();
+    this.grid.dispose();
     this.finishes.dispose();
     this.studio.dispose();
     this.cache.dispose();
@@ -1722,6 +1757,7 @@ class EmmetViewer implements Viewer {
   private loop(now: number): void {
     this.raf = requestAnimationFrame(this.loop);
     const moving = this.controls.update();
+    if (!moving) settle(this.controls);
     if (this.motion) {
       this.stepAnimation(performance.now());
       this.dirty = true;

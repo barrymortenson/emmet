@@ -5,7 +5,8 @@
 //! 1. The primitive table ([`PRIMITIVES`]): top studs and underside tubes that the LDCad data has no entry for.
 //! 2. The LDCad Shadow Library (`data/connections/ldcad-shadow.ldr`, CC BY-SA 4.0): `!LDCAD SNAP_*` lines for about
 //!    4,000 parts, subparts, and primitives.
-//! 3. Emmet's overrides (`data/connections/*.toml`), for parts the others get wrong or miss (train track ends, the hinge control stick).
+//! 3. Emmet's overrides (`data/connections/*.toml`), for parts the others get wrong or miss (train track ends, the hinge
+//!    control stick, Technic parts drawn with hole primitives the LDCad data doesn't cover).
 //!
 //! A file's connectors are LDCad's: those of every file it references, moved into its frame, then its own snap lines
 //! in order (`SNAP_CLEAR` drops what came before, `SNAP_INCL` adds another shadow entry's). A file with no shadow
@@ -29,6 +30,10 @@ const SHADOW: &str = include_str!("../../../../data/connections/ldcad-shadow.ldr
 pub const OVERRIDES: &[(&str, &str)] = &[
     ("track.toml", include_str!("../../../../data/connections/track.toml")),
     ("hinges.toml", include_str!("../../../../data/connections/hinges.toml")),
+    (
+        "technic.toml",
+        include_str!("../../../../data/connections/technic.toml"),
+    ),
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -54,7 +54,7 @@ describe("versions", () => {
 
     // A build setting changed since: the restore puts the version's back, and the open project says so (the panel
     // would otherwise write the changed one over it).
-    const any = { base: null, scale: null, age: null, detail: null, pieces: null, style: null };
+    const any = { base: null, size: null, age: null, detail: null, style: null };
     await invoke("set_build_settings", { settings: { ...any, style: "Medieval" } });
     expect((await invoke("ui_state")).project.build.style).toBe("Medieval");
 

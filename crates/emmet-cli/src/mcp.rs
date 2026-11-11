@@ -322,7 +322,7 @@ impl EmmetMcp {
     }
 
     /// One part: its name, size in studs and plates, flags (alias, obsolete, hidden, printed, sticker, shortcut),
-    /// and body box.
+    /// body box, and its Technic holes, pins, and axles by name, with where each is and which way it runs.
     #[tool(output_schema = schema_for_output::<Envelope<PartInfo>>())]
     async fn part_info(&self, Parameters(args): Parameters<PartArgs>) -> CallToolResult {
         let started = Instant::now();
@@ -347,6 +347,9 @@ impl EmmetMcp {
             }
             if let Some(a) = p.alternates.as_ref().filter(|a| !a.is_empty()) {
                 s.push_str(&format!(". Alternates: {}", a.join(", ")));
+            }
+            if !p.holes.is_empty() {
+                s.push_str(&format!(". {}", emmet_core::technic::holes_text(&p.holes)));
             }
             s
         })

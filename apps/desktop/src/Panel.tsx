@@ -150,7 +150,7 @@ export function Panel(p: PanelProps) {
           ))}
         </Tabs.List>
         <Tabs.Content value="options" className="panel-body" id="options">
-          <BuildSettingsSection saved={p.project.build} fresh={fresh} disabled={readonly} onSave={p.onSaveBuild} onRebuild={p.onRebuild} />
+          <BuildSettingsSection saved={p.project.build} disabled={readonly} onSave={p.onSaveBuild} onRebuild={p.onRebuild} />
           {!fresh && !p.project.imported && (
             <section className="panel-section" aria-labelledby="tweaks-title">
               <div className="panel-section-head" id="tweaks-title">

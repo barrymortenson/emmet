@@ -36,8 +36,8 @@ in a space a technique or `m.keep_clear` declared; the rest is yours to see in t
 
 ## Compress the rest
 
-- Keep the outline and the figure-facing details; drop windows, floors, bays, and length until it fits the Pieces
-  setting. A real house is three or four times longer than its model; a ship or a starship ten times.
+- Keep the outline and the figure-facing details; drop windows, floors, bays, and length until it stays
+  buildable. A real house is three or four times longer than its model; a ship or a starship ten times.
 - Raise the building on a plinth or a step (1 brick, or 2 plates) so it sits in its setting, not on the table.
 - The building covers at most half its base: the rest is garden, street, or landscape (`guide landscaping`).
 
