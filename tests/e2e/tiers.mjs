@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
  * worth waiting for. */
 export const GATE = "hello";
 
-export const CORE = ["viewer", "panel", "chat", "checks", "trust", "runs", "versions", "import", "render", "visual"];
+export const CORE = ["viewer", "panel", "chat", "checks", "trust", "runs", "versions", "import", "render", "visual", "states"];
 
 /** Each area: the paths that are its code, and the specs that cover it beyond core. */
 export const AREAS = {
@@ -25,7 +25,7 @@ export const AREAS = {
   agent: {
     paths:
       /^(crates\/emmet-(agent|bus)\/|crates\/emmet-cli\/src\/(mcp|host)\.rs$|crates\/emmet-core\/src\/refs\.rs$|tests\/(fake-agents|replay)\/|tests\/fixtures\/photos\/|apps\/desktop\/src\/(Agents|Chat|ChatGpt|Usage|Compare)\.tsx$|apps\/desktop\/src\/photos\.ts$|apps\/desktop\/src-tauri\/src\/(chat|chatgpt|setup)\.rs$)/,
-    specs: ["chatgpt", "setup", "bus", "photo"],
+    specs: ["chatgpt", "setup", "bus", "photo", "dock"],
   },
   // The shell: menus and keys, which every screen shares, and what the window may do (the capabilities).
   shell: { paths: /^apps\/desktop\/(src\/|src-tauri\/src\/menu\.rs$|src-tauri\/capabilities\/)/, specs: ["keyboard"] },
@@ -49,8 +49,10 @@ export const AREAS = {
  * own GPU path. The UI runs the same JS in WebView2, so the Mac covers the rest. */
 export const WINDOWS = ["viewer", "chat", "setup", "runs", "trust", "versions", "import", "render", "visual", "perf", "instructions"];
 
-/** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes. */
-export const EXTRA = ["screens", "dock", "leak"];
+/** By hand (and when they change): the frozen screens as screenshots against their baselines, memory over 100 changes.
+ * The chat's states (dock) moved to the agent area in 5A: they assert the tips, the pending redirect, and the limit
+ * and sign-in cards, compare no baseline, and the test matrix needs CI to run them. */
+export const EXTRA = ["screens", "leak"];
 
 /** Not an E2E run: `just bench` runs it, by hand. */
 export const BENCH = "bench";
@@ -77,6 +79,27 @@ export const extra = process.env.EMMET_E2E_ALL === "1";
 /** A test that runs only with `just e2e all`: it shows as pending in a PR's run, never silently gone. */
 export function extraIt(title, fn) {
   return (extra ? globalThis.it : globalThis.it.skip)(title, fn);
+}
+
+/** A quarantined test (plan section 16's flake policy): one that needed its retry twice in a week, skipped until
+ * it's fixed, which must be within the phase. `issue` is the GitHub issue that tracks it, in full; a quarantine without
+ * one fails tests/scripts/ci.test.mjs, and the job summary lists every quarantined test (scripts/ci-summary.mjs).
+ * Nothing is quarantined silently. */
+export function quarantine(issue, title, fn) {
+  return globalThis.it.skip(`${title} (quarantined: ${issue})`, fn);
+}
+
+/** The quarantine's issue: this repo's, by number. */
+export const ISSUE = /^https:\/\/github\.com\/barrymortenson\/emmet\/issues\/\d+$/;
+
+/** CI's Mac E2E runs as two jobs side by side, so a full run fits the time budget (plan section 16): `core` takes the
+ * core specs, `areas` everything else in the list (the areas, first run, a by-hand spec that changed). Each starts
+ * with hello; a shard with nothing but hello has nothing to run. */
+export const SHARDS = ["core", "areas"];
+export function shard(specs, which) {
+  if (!SHARDS.includes(which)) throw new Error(`tests/e2e/tiers.mjs: no shard ${which} (${SHARDS.join(" or ")})`);
+  const mine = specs.filter((s) => s !== GATE && CORE.includes(s) === (which === "core"));
+  return mine.length ? order([GATE, ...mine]) : [];
 }
 
 /** The specs a set of changed paths runs: nothing when none can reach the app, else core plus each area changed,
@@ -122,6 +145,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       process.stdin.on("data", (d) => (text += d)).on("end", () => resolve(text));
     });
     specs = forChanges(input.split("\n").map((l) => l.trim()));
+  } else if (arg === "--shard") {
+    // `--shard core hello,viewer,…`: that shard's part of the list.
+    specs = shard((process.argv[4] ?? "").split(/[,\s]+/).filter(Boolean), process.argv[3]);
   } else if (arg === "" || arg === "all") {
     specs = every(arg === "all");
   } else if (arg === "core") {

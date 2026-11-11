@@ -267,6 +267,10 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Fixed
 
+- The watcher's test no longer depends on when the OS delivers file events: a hosted Mac delivered one burst of
+  saves in two batches, more than the debounce apart, and failed the weekly run of 2026-11-09. The debounce's "one
+  run per burst" is tested with changes sent at times the test chooses.
+
 - A double click on the title row maximizes the window, as other apps' do: the capability now allows Tauri's
   drag-region command for it (4D).
 - A turn cut off by Emmet closing or restarting ends with a note that says so, instead of the dock going quiet (4D).
@@ -286,6 +290,26 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 - Sign in with ChatGPT on Windows: the credential record (three tokens) is longer than the 2,560 bytes a Windows
   credential holds, so the sign-in failed after OpenAI's page. Long secrets are now split across credentials on
   Windows (1F, found in its Windows hand check).
+
+- The test matrix (session 5A): `docs/spec/test-matrix.md` maps every flow, state, and key of plan section 14, every
+  command, tool, and error code of section 09, every validator rule of section 11, and every control of section 15
+  to the tests that prove it, and `tests/scripts/test-matrix.test.mjs` fails on a row without a test, a test that
+  doesn't exist, or one CI doesn't run. Gaps it found are filled: `emmet library update`, tests for
+  `emmet search --category` and the INTERNAL error, and `states.e2e.mjs` (offline, an old library, the model's LDraw
+  export, and a name a screen reader can say on every control).
+
+- Eval v1 (session 5A): `emmet eval` scores rungs 2 and 3 beside rung 1 and the photo rung, and `--score <project>`
+  scores a hand session of any of them from the project and its chat, sending nothing to an agent. Rung 2 is scored
+  on its track loop closing through its connectors, its platform and canopy, its size, and its parameters; rung 3 on
+  its parts list against the set's Rebrickable inventory (F1 over part × color) and its placements against the OMR
+  model (the share of the set's parts in place, wherever the model stands and whichever way it faces). Each report
+  ends with a trend table across the dated reports. ADR 0015 records the scoring and the thresholds, and
+  `docs/evals/G2-runbook.md` has the fourteen hand sessions' steps and commands.
+- CI's flake policy and time budgets (session 5A): each job's last step warns when the job is over its budget (10
+  minutes on macOS, 15 on Windows) and fails it at 50 % over; the job summary names every E2E spec file that needed
+  its one retry; `quarantine(issue, title, fn)` skips a flaky E2E test only with its issue's link, and the summary
+  lists it. The macOS E2E runs as two jobs side by side so a full run fits the budget. The nightly job also checks
+  the validator's speed budget.
 
 ### Changed
 

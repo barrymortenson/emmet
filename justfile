@@ -169,6 +169,8 @@ e2e *spec: e2e-build
       caffeinate -d -i -w $$ &
     fi
     run() { pnpm --filter @emmet/e2e exec wdio run wdio.conf.mjs "$@"; }
+    # This run's retries, for the job summary (wdio.conf.mjs writes them, scripts/ci-summary.mjs reads them).
+    rm -f tests/e2e/out/retries.jsonl
     shared=(); first_run=0
     for s in ${specs//,/ }; do
       case $s in
@@ -211,13 +213,18 @@ ci part="":
       if [[ $full == true ]]; then just test; else just test --changed; fi
       if [[ $build_app == true ]]; then just build-app; fi
     fi
-    if [[ "$part" != checks && $e2e_mac == true ]]; then just e2e "$e2e_specs"; fi
+    if [[ "$part" != checks && $e2e_mac == true ]]; then
+      # CI's two E2E jobs each take a shard of the list (tests/e2e/tiers.mjs): EMMET_E2E_SHARD=core or areas.
+      if [[ -n "${EMMET_E2E_SHARD:-}" ]]; then e2e_specs=$(node tests/e2e/tiers.mjs --shard "$EMMET_E2E_SHARD" "$e2e_specs"); fi
+      if [[ -n "$e2e_specs" ]]; then just e2e "$e2e_specs"; else echo "ci e2e: nothing in shard ${EMMET_E2E_SHARD:-}"; fi
+    fi
     echo "ci${part:+ $part}: ok"
 
 # A live eval (plan section 16.1): `just eval --rung 1 --agent claude` (or codex). One run through the real CLI on
 # the eval API key from the keychain (H-21, D-37); it says what it bills and asks first (D-38), then writes
 # docs/evals/<date>-rung1.md. Quit the app first: the eval answers on its bus. The build puts the app next to emmet for
-# the render.
+# the render. `just eval --rung 2 --agent claude --score <project>` scores a hand session instead (rungs 1 to 3 and
+# photo): it reads the project and its chat and sends nothing to an agent (docs/evals/G2-runbook.md).
 eval *args: build
     target/debug/emmet eval {{ args }}
 

@@ -151,25 +151,25 @@ fn local_photo(subject: &Subject, angle: &str) -> Result<Vec<u8>> {
 /// What a session's chat shows, for scoring: the user's messages (with how many photos) and the agent's events, each
 /// with its time (Unix ms).
 #[derive(Debug)]
-enum Seen {
+pub(crate) enum Seen {
     User { photos: usize },
     Event(AgentEvent),
 }
 
 /// A session's messages and events in order, each with its time (Unix ms).
-type Timeline = Vec<(f64, Seen)>;
+pub(crate) type Timeline = Vec<(f64, Seen)>;
 
 /// What the scores read from a session.
 #[derive(Debug, Default)]
-struct Observed {
+pub(crate) struct Observed {
     from_photo: bool,
     asked_angle: bool,
     angle_sent: bool,
     draft_seconds: Option<u64>,
-    seconds: u64,
-    turns: usize,
-    questions: Vec<String>,
-    last_message: String,
+    pub(crate) seconds: u64,
+    pub(crate) turns: usize,
+    pub(crate) questions: Vec<String>,
+    pub(crate) last_message: String,
 }
 
 fn mentions_another_angle(text: &str) -> bool {
@@ -177,7 +177,7 @@ fn mentions_another_angle(text: &str) -> bool {
     ANOTHER_ANGLE.iter().any(|p| t.contains(p))
 }
 
-fn observe(seen: &[(f64, Seen)]) -> Observed {
+pub(crate) fn observe(seen: &[(f64, Seen)]) -> Observed {
     let mut o = Observed::default();
     let Some(start) = seen
         .iter()
@@ -349,7 +349,7 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
 }
 
 /// The newest conversation with `agent` in the project's `.emmet/chat/`, as the app wrote it.
-fn read_session(project: &Project, agent: AgentKind) -> Result<(Run, Timeline)> {
+pub(crate) fn read_session(project: &Project, agent: AgentKind) -> Result<(Run, Timeline)> {
     let chat = project.root.join(".emmet/chat");
     let sessions_path = chat.join("sessions.json");
     let sessions: Value = std::fs::read_to_string(&sessions_path)

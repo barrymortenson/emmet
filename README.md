@@ -17,7 +17,7 @@ in a browser), and [`docs/plan-status.js`](docs/plan-status.js) tracks progress.
   target/debug/emmet new demo && target/debug/emmet run --project demo   # → demo/build/model.mpd
   ```
   Also `emmet search <words>` (try `brick 2x4`), `emmet part <id>`, `emmet colors`, `emmet params [--set k=v]`,
-  `emmet trust`, `emmet doctor [--fix]`, `emmet library status|install|verify`, and `emmet mcp`, a stdio MCP server
+  `emmet trust`, `emmet doctor [--fix]`, `emmet library status|install|update|verify`, and `emmet mcp`, a stdio MCP server
   with the same operations for an agent. `--json` prints the JSON envelope from plan section 09. Python 3.13 and the
   DSL install themselves through uv on first use. The DSL is in [`docs/spec/dsl.md`](docs/spec/dsl.md), the project
   folder in [`docs/spec/project-format.md`](docs/spec/project-format.md).
@@ -96,6 +96,7 @@ points git at the hooks in `.githooks/`. On Windows, run `just` from Git Bash.
 | `just e2e [spec]` | Build the debug app with the embedded WebDriver server and run the E2E specs (`just e2e hello` runs one) |
 | `just bench` | The viewer's load, update, and orbit timings in the real app |
 | `just eval --rung 1 --agent claude` | One live eval run on the eval API key (bills it; asks first). Quit the app first |
+| `just eval --rung 2 --agent claude --score <project>` | Scores your hand session of rung 1, 2, or 3 from the project and its chat; sends nothing to an agent (`docs/evals/G2-runbook.md`) |
 | `just eval --rung photo --subject truck --agent claude --score <project>` | Scores your hand session of a photo rung subject; sends nothing to an agent |
 | `just release-dry [--sign]` | A universal macOS `.dmg` (signed and notarized with `--sign`); on Windows, the NSIS installer |
 | `just screenshots`, `just release` | Not yet; each one names the session that adds it |

@@ -129,6 +129,36 @@ fn part_and_colors_through_the_cli() {
 
 /// Corner shapes sink unless the query asks for a corner, and rise when it does (3D: "4x4 round" found three corner-round
 /// parts before the round plate).
+/// `emmet search --category` (plan section 09): the same words, only the parts LDraw files under that category.
+#[test]
+fn a_category_narrows_the_search() {
+    let run = |args: &[&str]| {
+        let out = emmet()
+            .arg("--json")
+            .arg("--data-dir")
+            .arg(shared_library())
+            .args(args)
+            .output()
+            .unwrap();
+        let (v, code) = envelope(&out);
+        assert_eq!(code, 0, "{v}");
+        let cats: Vec<String> = v["data"]["parts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| p["category"].as_str().unwrap().to_string())
+            .collect();
+        cats
+    };
+    let any = run(&["search", "2", "x", "2", "--limit", "30"]);
+    assert!(
+        any.iter().any(|c| c == "Slope") && any.iter().any(|c| c != "Slope"),
+        "2 x 2 finds slopes and other parts: {any:?}"
+    );
+    let slopes = run(&["search", "2", "x", "2", "--limit", "30", "--category", "Slope"]);
+    assert!(!slopes.is_empty() && slopes.iter().all(|c| c == "Slope"), "{slopes:?}");
+}
+
 #[test]
 fn corner_shapes_only_when_asked() {
     let index = Index::open(&DataDir::at(shared_library())).unwrap();

@@ -7,7 +7,7 @@
 // dir is the one the integration tests share (ldraw-mini and Python, from target/debug/prepare-data). Screenshots,
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { agentHome, prepareAgents, startOpenAi, stopOpenAi } from "./lib/agents.mjs";
 import { webContentPids } from "./lib/memory.mjs";
@@ -97,6 +97,13 @@ export const config = {
   onComplete() {
     stopOpenAi();
     stopLibrary();
+  },
+  // A spec file that ran again (the one retry plan section 16 allows): noted for the job summary, pass or fail
+  // (scripts/ci-summary.mjs), so a retry is never silent.
+  onWorkerEnd(_cid, exitCode, specs, retries) {
+    if (!retries?.attempts) return;
+    mkdirSync(out, { recursive: true });
+    appendFileSync(join(out, "retries.jsonl"), `${JSON.stringify({ spec: basename(specs[0] ?? "", ".e2e.mjs"), passed: exitCode === 0 })}\n`);
   },
   // Before each spec file: its fresh project, on the recents list.
   onWorkerStart(_cid, _caps, specs) {

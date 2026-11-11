@@ -34,19 +34,24 @@ impl Watcher {
         })?;
         inner.watch(&root, RecursiveMode::Recursive)?;
         // The thread ends when the watcher (and with it the sender) is dropped.
-        std::thread::spawn(move || {
-            while rx.recv().is_ok() {
-                loop {
-                    match rx.recv_timeout(DEBOUNCE) {
-                        Ok(()) => continue,
-                        Err(mpsc::RecvTimeoutError::Timeout) => break,
-                        Err(mpsc::RecvTimeoutError::Disconnected) => return,
-                    }
-                }
-                on_change();
-            }
-        });
+        std::thread::spawn(move || debounce(&rx, DEBOUNCE, on_change));
         Ok(Self { _inner: inner })
+    }
+}
+
+/// Calls `on_change` once per burst on `changes`: when nothing more has come for `quiet`. Returns when the sender is
+/// gone. The watcher's thread; public so its test can feed it changes at times it chooses, which the OS's file events
+/// don't allow (a hosted Mac delivered one burst of saves in two batches 150 ms apart).
+pub fn debounce(changes: &mpsc::Receiver<()>, quiet: Duration, on_change: impl Fn()) {
+    while changes.recv().is_ok() {
+        loop {
+            match changes.recv_timeout(quiet) {
+                Ok(()) => continue,
+                Err(mpsc::RecvTimeoutError::Timeout) => break,
+                Err(mpsc::RecvTimeoutError::Disconnected) => return,
+            }
+        }
+        on_change();
     }
 }
 

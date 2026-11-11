@@ -4,10 +4,13 @@
 // each OS job only when a change can break it. Evaluates nightly's real runs-on expression and runs the real scope
 // script in a temp repo.
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { ROOT, run, tempRepo, writeFiles } from "./helpers.mjs";
+import { BUDGET, budgetOf, quarantined, retries, verdict } from "../../scripts/ci-summary.mjs";
+import { CORE as CORE_SPECS, ISSUE, SHARDS, shard } from "../e2e/tiers.mjs";
 
 const workflows = join(ROOT, ".github/workflows");
 const ci = readFileSync(join(workflows, "ci.yml"), "utf8");
@@ -196,7 +199,7 @@ test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the ch
 });
 
 // The E2E specs come from tests/e2e/tiers.mjs: core for anything that reaches the app, plus the areas that changed.
-const CORE = "hello,viewer,panel,chat,checks,trust,runs,versions,import,render,visual";
+const CORE = "hello,viewer,panel,chat,checks,trust,runs,versions,import,render,visual,states";
 for (const [change, specs] of [
   ["README.md", ""],
   ["scripts/plan-check.mjs", ""],
@@ -204,7 +207,7 @@ for (const [change, specs] of [
   ["crates/emmet-core/src/instructions/layout.rs", `${CORE},instructions`],
   ["apps/desktop/src-tauri/src/projects.rs", `${CORE},instructions`],
   ["crates/emmet-core/src/lib.rs", CORE],
-  ["crates/emmet-agent/src/session.rs", `${CORE},chatgpt,setup,bus,photo`],
+  ["crates/emmet-agent/src/session.rs", `${CORE},chatgpt,setup,bus,photo,dock`],
   ["apps/desktop/src/Panel.tsx", `${CORE},keyboard`],
   ["apps/desktop/src/FirstRun.tsx", `${CORE},keyboard,first-run`],
   ["tests/e2e/specs/leak.e2e.mjs", `${CORE},leak`],
@@ -218,7 +221,7 @@ for (const [change, specs] of [
 test("ci scope: a full run runs core and every area, not the by-hand tier", { skip: process.platform === "win32" }, () => {
   const specs = scopeOut(null, { EMMET_CI_FULL: "1" }).e2e_specs.split(",");
   for (const s of ["hello", "viewer", "interact", "perf", "chat", "chatgpt", "keyboard", "first-run"]) assert.ok(specs.includes(s), s);
-  for (const s of ["leak", "screens", "dock", "bench"]) assert.ok(!specs.includes(s), s);
+  for (const s of ["leak", "screens", "bench"]) assert.ok(!specs.includes(s), s);
 });
 
 test("DCO runs on every event but a push to main, so the hosted fallback's ci check covers sign-offs", () => {
@@ -231,4 +234,97 @@ test("both OS jobs keep the integration tests' data dir and home in the runner's
   for (const job of ["mac", "windows"]) {
     assert.match(jobs[job], /EMMET_DATA_DIR=%s\\nEMMET_TEST_HOME=%s\\n' "\$RUNNER_TEMP\/emmet-data" "\$RUNNER_TEMP\/home"/, job);
   }
+});
+
+// The flake policy and the time budgets (plan section 16, session 5A).
+test("a job is within its budget up to it, warned over it, and failed 50 % over it", () => {
+  assert.deepEqual(BUDGET, { mac: 10, "mac-e2e": 10, windows: 15, "windows-e2e": 15 });
+  assert.equal(verdict("mac", 10 * 60).level, "ok");
+  assert.equal(verdict("mac", 10 * 60 + 1).level, "warn");
+  assert.equal(verdict("mac", 15 * 60).level, "warn");
+  assert.equal(verdict("mac", 15 * 60 + 1).level, "fail");
+  assert.equal(verdict("windows", 22 * 60).level, "warn");
+  assert.equal(verdict("windows", 23 * 60).level, "fail");
+  // An E2E shard is a job of its own, with the E2E job's budget; windows-e2e isn't a shard of windows.
+  assert.equal(budgetOf("mac-e2e-core"), 10);
+  assert.equal(budgetOf("mac-e2e-areas"), 10);
+  assert.equal(budgetOf("windows-e2e"), 15);
+  assert.equal(verdict("mac-e2e-areas", 9 * 60 + 30).line, "mac-e2e-areas job: 9m 30s, within its budget of 10m");
+});
+
+test("the summary step warns over the budget, fails 50 % over it, and says so in the job summary", () => {
+  const dir = mkdtempSync(join(tmpdir(), "emmet-ci-summary-"));
+  const summary = (job, seconds) => {
+    const file = join(dir, `${job}-${seconds}.md`);
+    writeFileSync(file, "");
+    const r = run("node", [join(ROOT, "scripts/ci-summary.mjs"), job, String(seconds)], { env: { GITHUB_STEP_SUMMARY: file } });
+    return { ...r, text: readFileSync(file, "utf8") };
+  };
+  const ok = summary("mac", 200);
+  assert.equal(ok.code, 0);
+  assert.match(ok.text, /^mac job: 3m 20s, within its budget of 10m$/m);
+  assert.doesNotMatch(ok.out, /::warning|::error/);
+  const warn = summary("mac", 700);
+  assert.equal(warn.code, 0, "over the budget is a warning, not a failure");
+  assert.match(warn.out, /^::warning title=CI time budget::mac job: 11m 40s, over its budget of 10m$/m);
+  const fail = summary("mac", 901);
+  assert.equal(fail.code, 1);
+  assert.match(fail.out, /^::error title=CI time budget::/m);
+  assert.match(fail.text, /more than 50 % over its budget of 10m/);
+  // An E2E job also says which spec files ran again and what's quarantined: today, nothing.
+  const e2e = summary("mac-e2e-core", 300);
+  assert.match(e2e.text, /^E2E retries: /m);
+  assert.match(e2e.text, /^Quarantined: none$/m);
+});
+
+test("every OS job ends with the summary step, and the E2E jobs' retries reach it", () => {
+  for (const job of ["mac", "mac-e2e", "windows", "windows-e2e"]) {
+    assert.match(jobs[job], /- name: Summary\n {8}if: always\(\)\n {8}run: node scripts\/ci-summary\.mjs .+ \$\(\( \$\(date \+%s\) - CI_START \)\)\n/, job);
+  }
+  assert.deepEqual(retries('{"spec":"chat","passed":true}\n{"spec":"panel","passed":false}\n'), ["chat: passed on its retry", "panel: failed twice"]);
+  // One retry, in E2E only: wdio retries a spec file once, and nothing retries a Rust, script, or viewer test.
+  const wdio = readFileSync(join(ROOT, "tests/e2e/wdio.conf.mjs"), "utf8");
+  assert.match(wdio, /specFileRetries: bench \|\| firstRun \|\| gate \? 0 : 1,/);
+  assert.match(wdio, /onWorkerEnd\(_cid, exitCode, specs, retries\)/);
+  assert.doesNotMatch(readFileSync(join(ROOT, "justfile"), "utf8"), /--retries|retry=|nextest/);
+});
+
+test("a quarantined test needs its issue's link, and nothing is quarantined now", () => {
+  assert.deepEqual(quarantined(), [], "a quarantined test is fixed within the phase; none may be left at a session's merge");
+  const dir = mkdtempSync(join(tmpdir(), "emmet-quarantine-"));
+  writeFileSync(
+    join(dir, "a.e2e.mjs"),
+    'quarantine("https://github.com/barrymortenson/emmet/issues/62", "stops the turn at once", async () => {});\nquarantine("flaky on CI", "another", async () => {});\nquarantine(async () => {});\n',
+  );
+  const found = quarantined(dir);
+  assert.deepEqual(
+    found.map((q) => [q.spec, q.title, ISSUE.test(q.issue ?? "")]),
+    [
+      ["a", "stops the turn at once", true],
+      ["a", "another", false],
+      ["a", null, false],
+    ],
+  );
+  // What this test asserts of the real specs, said once: every quarantine carries an issue of this repo.
+  for (const q of quarantined()) assert.match(q.issue ?? "", ISSUE, `${q.spec}: ${q.title}`);
+});
+
+test("the Mac E2E shards split a run in two: core, and everything else, each behind hello", { skip: process.platform === "win32" }, () => {
+  assert.deepEqual(SHARDS, ["core", "areas"]);
+  const full = scopeOut(null, { EMMET_CI_FULL: "1" });
+  assert.equal(full.e2e_shards, '["core","areas"]');
+  const specs = full.e2e_specs.split(",");
+  const [core, areas] = SHARDS.map((s) => shard(specs, s));
+  assert.deepEqual(core, ["hello", ...CORE_SPECS]);
+  assert.equal(areas[0], "hello");
+  assert.equal(areas.at(-1), "first-run");
+  // Every spec is in exactly one shard.
+  assert.deepEqual([...core.slice(1), ...areas.slice(1)].sort(), specs.filter((s) => s !== "hello").sort());
+  // A change that runs only core starts one job, and the other shard has nothing to run.
+  assert.equal(scopeOut("crates/emmet-core/src/lib.rs").e2e_shards, '["core"]');
+  assert.deepEqual(shard(scopeOut("crates/emmet-core/src/lib.rs").e2e_specs.split(","), "areas"), []);
+  assert.equal(scopeOut("crates/emmet-agent/src/session.rs").e2e_shards, '["core","areas"]');
+  // The workflow runs one job per shard and hands each its name.
+  assert.match(jobs["mac-e2e"], /shard: \$\{\{ fromJSON\(needs\.scope\.outputs\.e2e_shards\) \}\}/);
+  assert.match(jobs["mac-e2e"], /EMMET_E2E_SHARD: \$\{\{ matrix\.shard \}\}/);
 });

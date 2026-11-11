@@ -321,6 +321,22 @@ fn io_error_build_is_a_link() {
     );
 }
 
+/// INTERNAL, the catch-all (plan section 09): a build file Emmet wrote and can no longer read is Emmet's fault to
+/// report, with the file and a hint to send the output along.
+#[test]
+fn internal_a_build_file_emmet_cant_read() {
+    let dir = project("frame");
+    let (v, code) = emmet_in(&dir, &["run"]);
+    assert_eq!(code, 0, "{v}");
+    std::fs::write(dir.join("build/placements.json"), "{ not json").unwrap();
+    let (v, code) = emmet_in(&dir, &["bom"]);
+    assert_eq!(v["ok"], false, "{v}");
+    assert_eq!(code, 3, "a runtime error: {v}");
+    assert_eq!(v["error"]["code"], "INTERNAL");
+    assert_eq!(v["error"]["details"]["file"], "build/placements.json");
+    assert!(v["error"]["hint"].as_str().unwrap().contains("bug report"), "{v}");
+}
+
 #[test]
 fn io_error_new_into_a_full_folder() {
     let dir = temp_dir("full");

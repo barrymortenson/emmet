@@ -56,6 +56,11 @@ one switch from the library's 9V switch points (75541 or 75542, in their straigh
 2026-09 library has no plastic switch, and 9V points connect to plastic track); a platform beside the track; a canopy;
 benches; a ticket booth; at least 250 parts.
 
+**Scoring** (5A): the loop closes when some run of track comes back to where it started, joined connector to
+connector all the way round (the validator's connection graph over the track pieces), so a loop with a gap doesn't
+count. The platform and the canopy are found by name: in a part's id, a sub-assembly's name, or a step's title. The
+platform's length is a parameter whose name has "platform" or "length" in it and that changes the model.
+
 **Answer script:**
 
 | When the question mentions | Answer |
@@ -112,7 +117,16 @@ piece count, and the description below, never the OMR file.
 > colors as the original. Here's what it looks like: {description}
 
 **Ground truth:** the set's Rebrickable inventory for the BOM (from the pinned archive;
-`tests/fixtures/rebrickable-mini/` holds the shortlist's), and the OMR model for placements.
+`tests/fixtures/rebrickable-mini/` holds the shortlist's), and the OMR model for placements
+(`tests/fixtures/ladder/rung3/6743-1.mpd`, unmodified, with its attribution beside it).
+
+**Scoring** (5A, `crates/emmet-cli/src/eval_score.rs`): *BOM F1* counts pieces by part and color, both named as
+Rebrickable names them (the model's parts list through the parts data pack, as `emmet bom --format rebrickable`
+writes it): a line of 4 where the set has 6 matches 4, precision is the share of the model's pieces that are the
+set's, recall the share of the set's pieces in the model, and molds of one part count as that part. *Placement match*
+is the share of the set's parts that have a model part of the same LDraw id (an alias counts as its part) within one
+stud, each model part matching once. The model may stand anywhere and face any of four ways: the set is turned in
+quarter turns and slid to where the most parts line up, and the best fit counts.
 
 **Answer script:**
 

@@ -1091,3 +1091,34 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
 - **The ladder's scoring config said the photo rung passes at 2 subjects; it's 3** (the agent, 2026-11-11). The JSON
   in `docs/spec/ladder.md` kept 0B's number from when the rung had three subjects. Barry's 2026-11-04 decision (four
   subjects, 3 of 4), the plan, the ladder's own text, and `emmet eval` all say 3.
+- **`emmet library update` is built; render's step argument is out of section 09** (Barry, 2026-11-11, through
+  AskUserQuestion: "Add update, drop --step"). The test matrix found both in the plan's CLI table and neither in the
+  code. `emmet library update` installs the pinned release when another one, or none, is installed, and otherwise
+  says the library is current and downloads nothing. `emmet render --step N` and the render tool's `step` come out of
+  the plan: no rung needs them, and they'd touch the viewer, the bus, and render mode. A step's picture is in the
+  Steps tab and the PDF; a render of one for the agent can come later if a session shows the need. Section 09 also
+  gains what the code already had: `emmet guide`, `emmet version open`, and `emmet check --params`.
+- **The chat's frozen states (dock) run with the agent area; the frozen screens stay by hand** (the agent,
+  2026-11-11). The matrix can only name tests CI runs. `dock.e2e.mjs` asserts the tips, a pending redirect, the
+  limit cards, and the sign-in card, and compares no baseline, so it joins the agent area's specs (about 40 s on a PR
+  that touches the agent bridge or the chat). `screens.e2e.mjs` compares baselines, so it stays by hand, and the
+  three states only it reached (offline, an old library, the model's LDraw export) and a name on every control get
+  `states.e2e.mjs` in core. The validator's speed budget ran only by hand (`just bench validator`); the nightly job
+  runs it now, in the release build on the M-series Mac the budget is written for.
+- **How rungs 2 and 3 are scored** (the agent, 2026-11-11, within section 16.1; ADR 0015 for Barry's read in the PR).
+  Rung 2's loop closes when the track's connection graph has a ring; its platform and canopy are found by name (an
+  id, a sub-assembly, a step's title); its platform length is a changing parameter with "platform" or "length" in its
+  name. Rung 3's BOM F1 counts pieces by Rebrickable part and color, molds of a part counting as the part; its
+  placement match lets the model stand anywhere and face any of four ways. With a parts data pack installed, more
+  than 2 `color_unavailable` warnings fail a run; the budget fails a run, as it did at G1. No threshold changed.
+  Rejected: a geometric test for the platform and canopy (a second validator for one rung), and scoring placements
+  in the set's own frame (the agent isn't told it).
+- **CI's Mac E2E runs as two jobs** (the agent, 2026-11-11). A full run took 13 minutes in one job, over section
+  16's 10. Core runs in one job and everything else the change runs in the other, each with the 10-minute budget; a
+  change that runs only core starts one job. Rejected: moving specs to the by-hand tier to make room (the test
+  matrix needs CI to run them), and a longer budget.
+- **The burst assertion in the watcher's test is split, not loosened** (the agent, 2026-11-11). "Five saves run the
+  model once" depended on the OS delivering the five file events within the debounce, which a hosted Mac didn't on
+  2026-11-09. The debounce is now a function the test feeds directly: a burst runs once, after it goes quiet, and a
+  later change runs again. The test on the real file system keeps what the file system can promise: sources run the
+  model, non-sources don't, and five saves run it at least once and fewer than five times.

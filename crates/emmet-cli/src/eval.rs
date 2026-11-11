@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-//! `emmet eval` (plan section 16.1, D-37, D-38): one live run of a ladder rung through a real agent CLI, headless, on
-//! Barry's API keys only, scored and written up in docs/evals/. It starts the CLI through the same adapters as the
-//! app and answers for the app itself: the rung's answer script answers `ask_user`, and approvals allow Emmet's own
-//! tools and edits to the model files and deny everything else. `--dry-run` is for the fake agents in CI: no keychain,
-//! no question before it starts. A turn is one tool call; questions are `ask_user` calls, so they count.
+//! `emmet eval` (plan section 16.1, D-37, D-38): one run of a ladder rung, scored and written up in docs/evals/.
+//! Three ways to get the run. `--score <project>` scores a hand session: the project Barry built in the app on his
+//! own plan, with its chat, and nothing is sent to an agent (G2's runs, Barry 2026-11-04). `--dry-run` is for the fake
+//! agents in CI: no keychain, no question before it starts. With neither, it's a live headless run through a real
+//! agent CLI on Barry's API keys only: it starts the CLI through the same adapters as the app and answers for the app
+//! itself (the rung's answer script answers `ask_user`, and approvals allow Emmet's own tools and edits to the model
+//! files and deny everything else). A turn is one tool call; questions are `ask_user` calls, so they count.
 //!
-//! It runs rung 1 and the technique prompts T1 to T5 (3E); the photo rung is eval_photo.rs (4D); 5A adds the other
-//! rungs.
+//! It runs rungs 1 to 3 and the technique prompts T1 to T5 (3E); the photo rung is eval_photo.rs (4D). Rung 2's track
+//! and rung 3's parts list and placements are scored by eval_score.rs (5A).
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, Write};
@@ -25,14 +27,45 @@ use serde_json::Value;
 /// The ladder (prompts, features, answer scripts), as the docs have it.
 pub(crate) const LADDER: &str = include_str!("../../../docs/spec/ladder.md");
 
-/// Rung 1's budget (plan section 16.1).
-const BUDGET: Duration = Duration::from_secs(10 * 60);
-const MAX_TURNS: usize = 40;
+/// What a ladder rung's run must show (plan section 16.1; docs/spec/ladder.md's scoring config; ADR 0015).
+struct Bar {
+    minutes: u64,
+    /// `None`: the rung has no turn budget.
+    turns: Option<usize>,
+    min_parts: usize,
+    min_params: usize,
+}
+
+const RUNG1: Bar = Bar {
+    minutes: 10,
+    turns: Some(40),
+    min_parts: 40,
+    min_params: 3,
+};
+const RUNG2: Bar = Bar {
+    minutes: 30,
+    turns: Some(120),
+    min_parts: 250,
+    min_params: 5,
+};
+const RUNG3: Bar = Bar {
+    minutes: 45,
+    turns: None,
+    min_parts: 0,
+    min_params: 0,
+};
+/// Rung 3 against the set (section 16.1): the parts list's F1, and the share of the set's parts in place.
+const BOM_F1_MIN: f64 = 0.80;
+const PLACEMENT_MIN: f64 = 0.60;
+/// The most `color_unavailable` warnings a rung's model may have.
+const MAX_COLOR_UNAVAILABLE: usize = 2;
+/// Rung 3's set (H-11), and where its ground truth is in the repo: the OMR model and the Rebrickable inventory.
+const RUNG3_SET: &str = "6743-1";
+const RUNG3_MODEL: &str = "tests/fixtures/ladder/rung3/6743-1.mpd";
+const RUNG3_CATALOG: &str = "tests/fixtures/rebrickable-mini";
 /// A technique prompt's budget (docs/spec/ladder.md, "Technique prompts").
 const TECHNIQUE_BUDGET: Duration = Duration::from_secs(20 * 60);
 const TECHNIQUE_TURNS: usize = 80;
-const MIN_PARTS: usize = 40;
-const MIN_PARAMS: usize = 3;
 /// The largest replay fixture (plan section 16).
 const MAX_FIXTURE: u64 = 200_000;
 /// After the budget, how long the run may go on before it's stopped (it fails the budget either way).
@@ -48,6 +81,8 @@ pub struct Options {
     pub out: Option<PathBuf>,
     /// Where to keep the run's project (default: a new temp folder).
     pub work: Option<PathBuf>,
+    /// A hand session's project to score, instead of a run.
+    pub score: Option<PathBuf>,
 }
 
 /// One rung of docs/spec/ladder.md.
@@ -68,12 +103,21 @@ pub fn rung(ladder: &str, n: &str) -> Option<Rung> {
     let end = rest[head.len()..].find("\n## ").map_or(rest.len(), |i| i + head.len());
     let section = &rest[..end];
     let title = section.lines().next()?.trim_start_matches("## ").trim().to_string();
-    let prompt = section
-        .lines()
-        .filter_map(|l| l.strip_prefix('>'))
-        .map(str::trim)
-        .collect::<Vec<_>>()
-        .join(" ");
+    // The section's last blockquote: rung 3 quotes its prompt's template first, then the prompt for the set picked.
+    let mut quotes: Vec<Vec<&str>> = vec![Vec::new()];
+    for line in section.lines() {
+        match line.strip_prefix('>') {
+            Some(text) => quotes.last_mut().expect("one").push(text.trim()),
+            None if !quotes.last().expect("one").is_empty() => quotes.push(Vec::new()),
+            None => {}
+        }
+    }
+    let prompt = quotes
+        .iter()
+        .rev()
+        .find(|q| !q.is_empty())
+        .map(|q| q.join(" "))
+        .unwrap_or_default();
     // The features paragraph, which wraps over several lines.
     let features = section
         .split("\n\n")
@@ -251,17 +295,33 @@ pub struct Report {
 /// Runs the eval and writes its report. Returns the report.
 pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
     let technique = is_technique(&opts.rung);
-    if opts.rung != "1" && !technique {
-        return Err(usage(format!(
-            "emmet eval runs rung 1 and the technique prompts T1 to T5 for now; rung {} arrives with 5A.",
-            opts.rung
-        )));
+    if bar(&opts.rung).is_none() && !technique {
+        return Err(usage(format!("There's no rung {} to run.", opts.rung)));
     }
     // `--rung t1` names the same prompt as T1.
     let rung = rung(LADDER, &opts.rung.to_ascii_uppercase())
         .ok_or_else(|| Error::internal(format!("docs/spec/ladder.md has no rung {}", opts.rung)))?;
     let (budget, max_turns) = limits(&opts.rung);
     let tag = opts.rung.to_lowercase();
+    if let Some(dir) = &opts.score {
+        if opts.dry_run {
+            return Err(usage("--score and --dry-run don't go together.".into()));
+        }
+        if technique {
+            return Err(usage(
+                "The technique prompts are scripted runs; --score is for rungs 1 to 3 and photo.".into(),
+            ));
+        }
+        // A hand session (G2): the project as the app left it, and its chat. Nothing starts an agent.
+        let project = Project::find(Some(dir))?;
+        let (mut run, seen) = crate::eval_photo::read_session(&project, opts.agent)?;
+        let observed = crate::eval_photo::observe(&seen);
+        run.turns = observed.turns;
+        run.seconds = observed.seconds;
+        run.questions = observed.questions.iter().map(|q| (q.clone(), String::new())).collect();
+        run.last_message = observed.last_message;
+        return finish(data, opts, &rung, &tag, project, run);
+    }
     // The bus: the eval answers questions and approvals itself, so no app may hold this data dir's bus.
     if emmet_bus::listening(data) {
         return Err(Error::new(
@@ -450,10 +510,17 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
     let last: Vec<char> = run.last_message.trim().chars().collect();
     run.last_message = last[last.len().saturating_sub(1200)..].iter().collect();
 
+    finish(data, opts, &rung, &tag, project, run)
+}
+
+/// Scores a run (a live one, a dry run, or a hand session), renders its model, and writes its section of the report.
+fn finish(data: &DataDir, opts: &Options, rung: &Rung, tag: &str, project: Project, run: Run) -> Result<Report> {
+    let technique = is_technique(&opts.rung);
+    let (budget, max_turns) = limits(&opts.rung);
     let scores = if technique {
         score_technique(data, &project, &run, budget, max_turns)
     } else {
-        score(data, &project, &run)
+        score(data, &project, &run, &opts.rung)?
     };
     let pass = scores.iter().filter(|s| s.required).all(|s| s.pass);
     let out_dir = match &opts.out {
@@ -492,17 +559,18 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         &out_dir.join(if technique {
             format!("{date}-technique.md")
         } else {
-            format!("{date}-rung1.md")
+            format!("{date}-rung{}.md", opts.rung)
         }),
-        opts.agent,
-        &tag,
-        &rung,
+        opts,
+        tag,
+        rung,
         &report,
         &date,
     )?;
-    // The technique prompts measure the library; their transcripts aren't replay fixtures.
-    if !opts.dry_run && !technique && report.run.transcript.is_some() {
-        offer_fixture(opts.agent, &report)?;
+    // The technique prompts measure the library; their transcripts aren't replay fixtures. A hand session's transcript
+    // is scrubbed by hand (scripts/scrub-transcript), with Barry's say-so.
+    if !opts.dry_run && !technique && opts.score.is_none() && report.run.transcript.is_some() {
+        offer_fixture(opts.agent, &opts.rung, &report)?;
     }
     Ok(report)
 }
@@ -572,8 +640,10 @@ pub(crate) fn start(
     })
 }
 
-/// The run scored per section 16.1 (rung 1).
-fn score(data: &DataDir, project: &Project, run: &Run) -> Vec<Score> {
+/// The run scored per section 16.1: what every rung needs (it runs, it validates with no errors, its colors can be
+/// bought, it kept to its budget), and the rung's own scores.
+fn score(data: &DataDir, project: &Project, run: &Run, rung: &str) -> Result<Vec<Score>> {
+    let bar = bar(rung).expect("a ladder rung");
     let mut out = Vec::new();
     let mut push = |name: &str, required: bool, pass: bool, detail: String| {
         out.push(Score {
@@ -614,57 +684,185 @@ fn score(data: &DataDir, project: &Project, run: &Run) -> Vec<Score> {
         ),
     }
     let (placements, _) = emmet_core::ops::built_placements(project).unwrap_or_default();
-    let index = emmet_core::index::Index::open(data).ok();
-    let category = |part: &str| {
-        index
-            .as_ref()
-            .and_then(|i| i.part(part).ok().flatten())
-            .map(|p| (p.category, p.name))
-            .unwrap_or_default()
-    };
-    let kinds: Vec<(String, String)> = placements.iter().map(|p| category(&p.part)).collect();
-    let has = |want: &str| kinds.iter().any(|(cat, name)| is_a(cat, name, want));
-    let (door, window, slope) = (has("Door"), has("Window") || has("Glass"), has("Slope"));
-    let baseplate = placements.iter().any(|p| p.part == "3811" && p.color == 2);
     let parts = placements.len();
-    push(
-        "Size and features",
-        true,
-        parts >= MIN_PARTS && door && window && slope,
-        format!(
-            "{parts} parts (≥ {MIN_PARTS}); door {}; windows {}; sloped roof {}; green 32 x 32 baseplate {}",
-            yes(door),
-            yes(window),
-            yes(slope),
-            yes(baseplate)
+    match rung {
+        "1" => {
+            let index = emmet_core::index::Index::open(data).ok();
+            let category = |part: &str| {
+                index
+                    .as_ref()
+                    .and_then(|i| i.part(part).ok().flatten())
+                    .map(|p| (p.category, p.name))
+                    .unwrap_or_default()
+            };
+            let kinds: Vec<(String, String)> = placements.iter().map(|p| category(&p.part)).collect();
+            let has = |want: &str| kinds.iter().any(|(cat, name)| is_a(cat, name, want));
+            let (door, window, slope) = (has("Door"), has("Window") || has("Glass"), has("Slope"));
+            let baseplate = placements.iter().any(|p| p.part == "3811" && p.color == 2);
+            push(
+                "Size and features",
+                true,
+                parts >= bar.min_parts && door && window && slope,
+                format!(
+                    "{parts} parts (≥ {}); door {}; windows {}; sloped roof {}; green 32 x 32 baseplate {}",
+                    bar.min_parts,
+                    yes(door),
+                    yes(window),
+                    yes(slope),
+                    yes(baseplate)
+                ),
+            );
+            let (changing, detail) = params_that_change(data, project, &placements);
+            push(
+                "Parameters",
+                true,
+                changing.len() >= bar.min_params,
+                format!("{} change the model (≥ {}): {detail}", changing.len(), bar.min_params),
+            );
+        }
+        "2" => {
+            let track = crate::eval_score::track(data, &placements)?;
+            let titles: Vec<String> = emmet_core::steps::steps(data, project)
+                .map(|s| {
+                    s.steps
+                        .iter()
+                        .map(|st| st.title.clone())
+                        .chain(s.submodels.iter().map(|m| m.name.clone()))
+                        .collect()
+                })
+                .unwrap_or_default();
+            let platform = crate::eval_score::names(&placements, &titles, "platform");
+            let canopy = crate::eval_score::names(&placements, &titles, "canopy");
+            push(
+                "Size and features",
+                true,
+                parts >= bar.min_parts && track.closes && platform && canopy,
+                format!(
+                    "{parts} parts (≥ {}); track loop closes {} ({} pieces of track, {} switch points); platform {}; canopy {}",
+                    bar.min_parts,
+                    yes(track.closes),
+                    track.pieces,
+                    track.switches,
+                    yes(platform),
+                    yes(canopy)
+                ),
+            );
+            let (changing, detail) = params_that_change(data, project, &placements);
+            // "Platform length", whatever the model calls it: platform_length, platform_len, length.
+            let length = changing.iter().any(|n| {
+                let n = n.to_lowercase();
+                n.contains("platform") || n.contains("length")
+            });
+            push(
+                "Parameters",
+                true,
+                changing.len() >= bar.min_params && length,
+                format!(
+                    "{} change the model (≥ {}), the platform's length among them {}: {detail}",
+                    changing.len(),
+                    bar.min_params,
+                    yes(length)
+                ),
+            );
+        }
+        _ => {
+            // Rung 3: against the set. The ground truth is in the repo, which a dev build can read.
+            let repo = repo_dir()?;
+            let catalog = repo.join(RUNG3_CATALOG);
+            let set = crate::eval_score::inventory(&catalog, RUNG3_SET)?;
+            let molds = crate::eval_score::molds(&catalog)?;
+            match emmet_core::ops::bom_build(data, project, emmet_core::bom::ColorNames::Rebrickable) {
+                Ok(bom) if bom.parts_data.is_some() => {
+                    let lines: Vec<(Option<String>, Option<i64>, usize)> = bom
+                        .lines
+                        .iter()
+                        .map(|l| (l.rebrickable_id.clone(), l.rebrickable_color, l.qty))
+                        .collect();
+                    let f = crate::eval_score::bom_f1(&lines, &set, &molds);
+                    push(
+                        "Parts list against the set (BOM F1)",
+                        true,
+                        f.f1 >= BOM_F1_MIN,
+                        format!(
+                            "F1 {:.2} (≥ {BOM_F1_MIN:.2}): {} of the model's {} pieces are the set's, and {} of the set's {} are in the model",
+                            f.f1, f.matched, f.model, f.matched, f.set
+                        ),
+                    );
+                }
+                Ok(_) => push(
+                    "Parts list against the set (BOM F1)",
+                    true,
+                    false,
+                    "the parts data pack isn't installed, so the model's parts can't be named as Rebrickable names them".into(),
+                ),
+                Err(e) => push(
+                    "Parts list against the set (BOM F1)",
+                    true,
+                    false,
+                    format!("{:?}: {}", e.code, e.message),
+                ),
+            }
+            let path = repo.join(RUNG3_MODEL);
+            let text = std::fs::read(&path).map_err(|e| Error::io(&path, e))?;
+            let doc = emmet_core::ldraw::parse(&String::from_utf8_lossy(&text))
+                .map_err(|e| Error::internal(format!("{RUNG3_MODEL}: {e}")))?;
+            let truth = emmet_core::ldraw::placements::placements(&doc);
+            let index = emmet_core::index::Index::open(data)?;
+            let placed = crate::eval_score::placement_match(
+                &crate::eval_score::located(&index, &truth),
+                &crate::eval_score::located(&index, &placements),
+            );
+            push(
+                "Placements against the set",
+                true,
+                placed.share() >= PLACEMENT_MIN,
+                format!(
+                    "{:.0} % (≥ {:.0} %): {} of the set's {} parts have a part of the same id within a stud",
+                    placed.share() * 100.0,
+                    PLACEMENT_MIN * 100.0,
+                    placed.matched,
+                    placed.set
+                ),
+            );
+        }
+    }
+    // Availability needs the parts data pack; without one the validator can't say, and the score is left out of the
+    // result.
+    let pack = emmet_core::parts_data::installed(data).is_some();
+    let unavailable = checked
+        .as_ref()
+        .map(|v| v.counts.get("color_unavailable").copied().unwrap_or(0));
+    match (pack, unavailable) {
+        (true, Some(n)) => push(
+            "Availability",
+            true,
+            n <= MAX_COLOR_UNAVAILABLE,
+            format!("{n} color_unavailable warnings (≤ {MAX_COLOR_UNAVAILABLE})"),
         ),
-    );
-    let (changing, detail) = params_that_change(data, project, &placements);
-    push(
-        "Parameters",
-        true,
-        changing >= MIN_PARAMS,
-        format!("{changing} change the model (≥ {MIN_PARAMS}): {detail}"),
-    );
-    push(
-        "Availability",
-        false,
-        true,
-        "n/a: color availability arrives with the parts data pack (3B)".into(),
-    );
+        (true, None) => push("Availability", true, false, "the model wasn't checked".into()),
+        (false, _) => push(
+            "Availability",
+            false,
+            true,
+            "n/a: no parts data pack is installed".into(),
+        ),
+    }
+    let in_turns = bar.turns.is_none_or(|t| run.turns <= t);
     push(
         "Budget",
         true,
-        run.seconds <= BUDGET.as_secs() && run.turns <= MAX_TURNS && run.ended == "completed",
+        run.seconds <= bar.minutes * 60 && in_turns && run.ended == "completed",
         format!(
-            "{} min {} s (≤ 10 min), {} turns (≤ {MAX_TURNS}), ended: {}",
+            "{} min {} s (≤ {} min), {} turns{}, ended: {}",
             run.seconds / 60,
             run.seconds % 60,
+            bar.minutes,
             run.turns,
+            bar.turns.map_or(String::new(), |t| format!(" (≤ {t})")),
             run.ended
         ),
     );
-    out
+    Ok(out)
 }
 
 /// A technique prompt's run scored (docs/spec/ladder.md, "Technique prompts"): it runs with 0 validator errors, its
@@ -752,18 +950,19 @@ fn yes(b: bool) -> &'static str {
     if b { "yes" } else { "no" }
 }
 
-/// How many params change the placements when set to another value, and which.
+/// The params that change the placements when set to another value, and the report's words for them.
 fn params_that_change(
     data: &DataDir,
     project: &Project,
     base: &[emmet_core::ldraw::placements::Placement],
-) -> (usize, String) {
+) -> (Vec<String>, String) {
     let Ok(params) = emmet_core::ops::get_params(data, project) else {
-        return (0, "the parameters couldn't be read".into());
+        return (Vec::new(), "the parameters couldn't be read".into());
     };
     let key = |list: &[emmet_core::ldraw::placements::Placement]| serde_json::to_string(list).unwrap_or_default();
     let before = key(base);
     let mut changing = Vec::new();
+    let mut names = Vec::new();
     let mut not = Vec::new();
     for spec in &params.params {
         // Varied from the value the build has now: an agent may leave params.json set (the first live run did).
@@ -776,6 +975,7 @@ fn params_that_change(
         let changed = emmet_core::ops::run_model(data, project, &overrides).0.is_ok()
             && emmet_core::ops::built_placements(project).is_ok_and(|(p, _)| key(&p) != before);
         if changed {
+            names.push(spec.name.clone());
             changing.push(format!("{} = {other}", spec.name));
         } else {
             not.push(spec.name.clone());
@@ -787,7 +987,7 @@ fn params_that_change(
     if !not.is_empty() {
         detail.push_str(&format!("; no change: {}", not.join(", ")));
     }
-    (changing.len(), detail)
+    (names, detail)
 }
 
 /// A valid value other than `current`: the far end of a range, the other bool, another choice or color.
@@ -817,8 +1017,9 @@ fn other_value(spec: &emmet_core::ops::ParamSpec, current: &Value) -> Option<Val
 }
 
 /// Writes (or updates) the agent's section of the day's report.
-fn write_report(path: &Path, agent: AgentKind, rung_tag: &str, rung: &Rung, r: &Report, date: &str) -> Result<()> {
-    // Rung 1's report has a section per agent; the technique report, one per prompt and agent.
+fn write_report(path: &Path, opts: &Options, rung_tag: &str, rung: &Rung, r: &Report, date: &str) -> Result<()> {
+    let agent = opts.agent;
+    // A rung's report has a section per agent; the technique report, one per prompt and agent.
     let technique = is_technique(rung_tag);
     let tag = if technique {
         format!("{rung_tag}-{}", name(agent))
@@ -873,6 +1074,13 @@ fn write_report(path: &Path, agent: AgentKind, rung_tag: &str, rung: &Rung, r: &
     section.push(String::new());
     if r.run.questions.is_empty() {
         section.push("Questions: none.".into());
+    } else if opts.score.is_some() {
+        // A hand session: Barry answered in the app, as the rung's script says.
+        section.push("Questions the agent asked:".into());
+        section.push(String::new());
+        for (q, _) in &r.run.questions {
+            section.push(format!("- \"{q}\""));
+        }
     } else {
         section.push("Questions, answered from the script:".into());
         section.push(String::new());
@@ -933,14 +1141,143 @@ fn write_report(path: &Path, agent: AgentKind, rung_tag: &str, rung: &Rung, r: &
              \"Technique prompts\", session 3E): one run per prompt and agent on the eval API keys, headless, at figure \
              scale on a 32 × 32 base, with questions answered from the prompts' script.\n\n{section}\n"
         ),
-        None => format!(
-            "# Live eval: {} ({date})\n\nRun by `emmet eval --rung 1` (plan section 16.1, D-38): one run per agent on the eval API \
-             keys, headless, with questions answered from the rung's script in docs/spec/ladder.md.\n\n**Prompt:** {}\n\n\
-             **Features:** {}\n\n{section}\n",
-            rung.title, rung.prompt, rung.features
-        ),
+        None => {
+            let how = if opts.score.is_some() {
+                "Barry's hand sessions in the app on his own plans, one per agent, scored afterward with `--score`, which \
+                 sends nothing to an agent (Barry 2026-11-04). He typed the prompt below and answered the agent's \
+                 questions from the rung's script in docs/spec/ladder.md"
+            } else if opts.dry_run {
+                "a dry run with the fake agents, which replay a recorded session"
+            } else {
+                "one run per agent on the eval API keys, headless, with questions answered from the rung's script in \
+                 docs/spec/ladder.md"
+            };
+            let features = if rung.features.is_empty() {
+                String::new()
+            } else {
+                format!("**Features:** {}\n\n", rung.features)
+            };
+            format!(
+                "# Live eval: {} ({date})\n\nScored by `emmet eval --rung {rung_tag}` (plan section 16.1, D-38): {how}.\n\n\
+                 **Prompt:** {}\n\n{features}{section}\n",
+                rung.title, rung.prompt
+            )
+        }
     };
-    emmet_core::fsx::write_atomic(path, text.as_bytes())
+    emmet_core::fsx::write_atomic(path, with_trend(path, &text).as_bytes())
+}
+
+/// One run in a report, for the trend: the report's date, the section's heading, and each score's result and detail.
+#[derive(Debug, PartialEq)]
+pub struct Past {
+    pub date: String,
+    pub heading: String,
+    pub scores: Vec<(String, String, String)>,
+}
+
+/// The runs in a report's text: every `<!-- eval:… -->` section, in the order they're written.
+pub fn runs_in(date: &str, text: &str) -> Vec<Past> {
+    let mut out = Vec::new();
+    let mut at: Option<Past> = None;
+    for line in text.lines() {
+        if line.starts_with("<!-- eval:") {
+            at = Some(Past {
+                date: date.into(),
+                heading: String::new(),
+                scores: Vec::new(),
+            });
+        } else if line.starts_with("<!-- /eval:") {
+            out.extend(at.take());
+        } else if let Some(p) = &mut at {
+            if let Some(h) = line.strip_prefix("## ") {
+                p.heading = h.to_string();
+            } else if line.starts_with("| ") && !line.starts_with("| Score ") {
+                let cells: Vec<&str> = line.trim_matches('|').splitn(4, " | ").map(str::trim).collect();
+                if let [name, _, result, detail] = cells[..] {
+                    p.scores.push((name.into(), result.into(), detail.replace("\\|", "|")));
+                }
+            }
+        }
+    }
+    out
+}
+
+/// `text` with its trend table brought up to date: every run of this rung in the dated reports beside `path`
+/// (`<date>-<rung>.md`), oldest first, with this report's own runs from `text`. One line per run, and a column per
+/// score, so a number that moved between dates shows.
+fn with_trend(path: &Path, text: &str) -> String {
+    const START: &str = "<!-- trend -->";
+    const END: &str = "<!-- /trend -->";
+    let body = match (text.find(START), text.find(END)) {
+        (Some(a), Some(b)) if a < b => format!("{}{}", &text[..a], &text[b + END.len()..]),
+        _ => text.to_string(),
+    };
+    let body = body.trim_end().to_string();
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
+    // "2026-11-20-rung2.md": the date, then the rung's tag.
+    let dated = |n: &str| n.len() > 10 && n.as_bytes()[..10].iter().all(|b| b.is_ascii_digit() || *b == b'-');
+    let Some((this_date, tag)) = name.get(..10).zip(name.get(10..)).filter(|_| dated(name)) else {
+        return format!("{body}\n");
+    };
+    let mut runs = Vec::new();
+    if let Some(dir) = path.parent()
+        && let Ok(entries) = std::fs::read_dir(dir)
+    {
+        let mut files: Vec<PathBuf> = entries
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .filter(|p| p != path)
+            .filter(|p| {
+                p.file_name()
+                    .and_then(|n| n.to_str())
+                    .is_some_and(|n| n.len() == name.len() && n.ends_with(tag) && dated(n))
+            })
+            .collect();
+        files.sort();
+        for f in files {
+            let date = f.file_name().and_then(|n| n.to_str()).unwrap_or_default()[..10].to_string();
+            if let Ok(t) = std::fs::read_to_string(&f) {
+                runs.extend(runs_in(&date, &t));
+            }
+        }
+    }
+    runs.extend(runs_in(this_date, &body));
+    runs.sort_by(|a, b| a.date.cmp(&b.date));
+    if runs.len() < 2 {
+        return format!("{body}\n");
+    }
+    let mut columns: Vec<String> = Vec::new();
+    for r in &runs {
+        for (name, _, _) in &r.scores {
+            if !columns.contains(name) {
+                columns.push(name.clone());
+            }
+        }
+    }
+    let mut table = vec![
+        START.to_string(),
+        "## Trend".into(),
+        String::new(),
+        "Every run of this rung in `docs/evals/`, oldest first.".into(),
+        String::new(),
+        format!("| Date | Run | {} |", columns.join(" | ")),
+        format!("|---|---|{}", "---|".repeat(columns.len())),
+    ];
+    for r in &runs {
+        let cells: Vec<String> = columns
+            .iter()
+            .map(|c| {
+                r.scores
+                    .iter()
+                    .find(|(n, _, _)| n == c)
+                    .map_or("—".to_string(), |(_, result, detail)| {
+                        format!("{result}: {}", detail.replace('|', "\\|"))
+                    })
+            })
+            .collect();
+        table.push(format!("| {} | {} | {} |", r.date, r.heading, cells.join(" | ")));
+    }
+    table.push(END.into());
+    format!("{body}\n\n{}\n", table.join("\n"))
 }
 
 /// Asks before a live run (D-38): what it runs, what it bills, and what it costs.
@@ -950,16 +1287,23 @@ fn confirm(agent: AgentKind, rung: &str) -> Result<bool> {
         AgentKind::Codex => ("emmet-eval-openai", "OpenAI"),
     };
     let (budget, turns) = limits(rung);
-    let (minutes, cost) = if is_technique(rung) {
-        ("10 to 20", "$2 to $10")
-    } else {
-        ("5 to 10", "$1 to $5")
+    // Rung 1 and the technique prompts are measured (G1, 3E); rungs 2 and 3 have only run as hand sessions.
+    let (minutes, cost) = match rung {
+        "1" => ("5 to 10", "$1 to $5"),
+        "2" => ("15 to 30", "$5 to $20, not measured"),
+        "3" => ("15 to 45", "$5 to $25, not measured"),
+        _ => ("10 to 20", "$2 to $10"),
     };
     eprintln!(
         "Live eval: rung {rung} on {}, 1 run, billed to your {provider} API key (keychain item {key}).\nExpected: \
-         {minutes} minutes and about {cost}. It stops at {} minutes (plus 2 to finish) or {turns} turns.\nRun it? [y/N] ",
+         {minutes} minutes and about {cost}. It stops at {} minutes (plus 2 to finish){}.\nRun it? [y/N] ",
         agent.label(),
-        budget.as_secs() / 60
+        budget.as_secs() / 60,
+        if turns == usize::MAX {
+            String::new()
+        } else {
+            format!(" or {turns} turns")
+        }
     );
     let mut line = String::new();
     std::io::stdin()
@@ -970,12 +1314,12 @@ fn confirm(agent: AgentKind, rung: &str) -> Result<bool> {
 }
 
 /// Offers to save the run's transcript, scrubbed, as a replay fixture (plan section 10).
-fn offer_fixture(agent: AgentKind, r: &Report) -> Result<()> {
+fn offer_fixture(agent: AgentKind, rung: &str, r: &Report) -> Result<()> {
     let Some(transcript) = &r.run.transcript else {
         return Ok(());
     };
     let repo = repo_dir()?;
-    let out = repo.join(format!("tests/replay/{}/eval-rung1.jsonl", name(agent)));
+    let out = repo.join(format!("tests/replay/{}/eval-rung{rung}.jsonl", name(agent)));
     eprint!(
         "Save the scrubbed transcript as {}? [y/N] ",
         out.strip_prefix(&repo).unwrap_or(&out).display()
@@ -1023,12 +1367,21 @@ fn is_technique(rung: &str) -> bool {
     matches!(rung.to_ascii_uppercase().as_str(), "T1" | "T2" | "T3" | "T4" | "T5")
 }
 
-/// The run's time and turn budget.
+/// A ladder rung's bar, or `None` for anything else.
+fn bar(rung: &str) -> Option<&'static Bar> {
+    match rung {
+        "1" => Some(&RUNG1),
+        "2" => Some(&RUNG2),
+        "3" => Some(&RUNG3),
+        _ => None,
+    }
+}
+
+/// The run's time and turn budget: when a live run is stopped.
 fn limits(rung: &str) -> (Duration, usize) {
-    if is_technique(rung) {
-        (TECHNIQUE_BUDGET, TECHNIQUE_TURNS)
-    } else {
-        (BUDGET, MAX_TURNS)
+    match bar(rung) {
+        Some(b) => (Duration::from_secs(b.minutes * 60), b.turns.unwrap_or(usize::MAX)),
+        None => (TECHNIQUE_BUDGET, TECHNIQUE_TURNS),
     }
 }
 
@@ -1052,7 +1405,7 @@ fn usage(message: String) -> Error {
     Error::new(
         ErrorCode::ParamInvalid,
         message,
-        "Run emmet eval --rung 1 (or T1 to T5) --agent claude|codex.",
+        "Run emmet eval --rung 1|2|3|photo (or T1 to T5) --agent claude|codex, with --score <project> for a hand session.",
     )
 }
 
@@ -1156,9 +1509,18 @@ mod tests {
                     render: None,
                     project: String::new(),
                 };
+                let opts = Options {
+                    rung: n.into(),
+                    agent,
+                    dry_run: false,
+                    yes: true,
+                    out: None,
+                    work: None,
+                    score: None,
+                };
                 write_report(
                     &path,
-                    agent,
+                    &opts,
                     &n.to_lowercase(),
                     &rung(LADDER, n).unwrap(),
                     &report,
@@ -1179,6 +1541,78 @@ mod tests {
                 "## Rung T2: A corner shop with an awning, Codex — pass",
             ]
         );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// Rung 3's section quotes the prompt's template and then the prompt for the set Barry picked (H-11): the agent
+    /// gets the second, with nothing left to fill in.
+    #[test]
+    fn rung_3s_prompt_is_the_one_for_the_set_picked() {
+        let r = rung(LADDER, "3").unwrap();
+        assert!(
+            r.prompt
+                .starts_with("Rebuild the official set 6743-1 \"Street Speeder\" (165 pieces)"),
+            "{}",
+            r.prompt
+        );
+        assert!(!r.prompt.contains('{'), "{}", r.prompt);
+        assert!(
+            r.prompt.ends_with("a yellow number plate on the front."),
+            "{}",
+            r.prompt
+        );
+        // The other rungs have one blockquote, and still get it whole.
+        assert!(
+            rung(LADDER, "2")
+                .unwrap()
+                .prompt
+                .ends_with("whether the switch and siding are there.")
+        );
+    }
+
+    /// The trend reads the reports as they're committed: G1's rung 1 report, with its two failed runs and two reruns,
+    /// and a later day's report beside it.
+    #[test]
+    fn a_report_gets_a_trend_of_every_dated_run_of_its_rung() {
+        let g1 = include_str!("../../../docs/evals/2026-10-26-rung1.md");
+        let runs = runs_in("2026-10-26", g1);
+        let heads: Vec<&str> = runs.iter().map(|r| r.heading.as_str()).collect();
+        assert_eq!(heads.len(), 4, "{heads:?}");
+        assert!(
+            heads[0].starts_with("Claude Code") && heads[0].ends_with("fail"),
+            "{heads:?}"
+        );
+        assert!(
+            heads[2].starts_with("Claude Code (rerun)") && heads[2].contains("pass"),
+            "{heads:?}"
+        );
+        let budget = runs[0].scores.iter().find(|(n, _, _)| n == "Budget").unwrap();
+        assert_eq!(budget.1, "fail");
+        assert!(budget.2.contains("41 turns"), "{budget:?}");
+
+        let dir = std::env::temp_dir().join(format!("emmet-eval-trend-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("2026-10-26-rung1.md"), g1).unwrap();
+        // Another rung's report, and a file that isn't a report, stay out of it.
+        std::fs::write(
+            dir.join("2026-10-26-rung2.md"),
+            g1.replace("Claude Code", "Someone else"),
+        )
+        .unwrap();
+        std::fs::write(dir.join("notes-on-rung1.md"), g1).unwrap();
+        let today = "# Live eval: Rung 1: Cottage (2026-11-20)\n\n<!-- eval:codex -->\n## Codex — pass\n\n| Score | Required | Result | Detail |\n|---|---|---|---|\n| Budget | yes | pass | 4 min 0 s (≤ 10 min), 22 turns (≤ 40), ended: completed |\n<!-- /eval:codex -->\n";
+        let path = dir.join("2026-11-20-rung1.md");
+        let text = with_trend(&path, today);
+        let rows: Vec<&str> = text.lines().filter(|l| l.starts_with("| 2026-")).collect();
+        assert_eq!(rows.len(), 5, "{text}");
+        assert!(rows[0].starts_with("| 2026-10-26 | Claude Code — fail |"), "{text}");
+        assert!(
+            rows[4].starts_with("| 2026-11-20 | Codex — pass |") && rows[4].contains("22 turns"),
+            "{text}"
+        );
+        assert!(!text.contains("Someone else"), "{text}");
+        // Written again, the trend is replaced, not added to.
+        assert_eq!(with_trend(&path, &text), text);
         let _ = std::fs::remove_dir_all(&dir);
     }
 
