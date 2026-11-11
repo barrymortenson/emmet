@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-11-07",
+  updated: "2026-11-10",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -209,14 +209,14 @@ window.EMMET_STATUS = {
       note: "Barry 2026-11-06: the Windows page baselines wait for the Windows pass (Done when 2b unticked for Windows); Barry's build of a real rung 1 cottage from the PDF is still to do"
     },
     "4G": {
-      status: "review", pr: 59, branch: "bmortenson/s4g-technic-display-vehicles", started: "2026-11-07",
+      status: "done", pr: 59, branch: "bmortenson/s4g-technic-display-vehicles", started: "2026-11-07",
       evidence: [
-        "just check and just test --changed pass at 66e0b9c: 309 suite tests, 417 technique builds, 4 timing checks",
+        "CI ci check green #59 (run 42961212294 on hosted macos-15: mac, mac-e2e with screens against its new baselines, plan, scope; windows paused, D-43)",
         "tests/it/tests/technic.rs: holes against LDraw geometry, a 5-12-13 beam seating its pins, the bike's springs, held axles, and a part slid onto a closed axle",
         "Barry's fifth e-bike session: Size Display, 268 parts, 0 findings, rubric 2, 2, 1 (docs/evals/2026-11-11-photo.md)",
         "Barry accepted the bike techniques (batch-19, 2026-11-10); disc_brake folded into the fork and swingarm"
       ],
-      note: "The window baselines that the ground grid and the Size setting change wait for the PR's first mac-e2e run on the hosted Mac"
+      note: "What good looks like 2 isn't met: the e-bike scored 2, 2, 1 and the truck isn't scored yet. The instructions spec now dismisses its Saved toast, which had stayed up into the screens spec on the hosted Mac"
     },
     "4H": { status: "todo" },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
