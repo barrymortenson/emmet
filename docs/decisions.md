@@ -1039,3 +1039,24 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   draws the box. The same run showed a model that opens empty (Base None) framed on the empty table and built off to
   one side: a model that opens empty is now framed when its first parts come, which build up as any run's do.
   Rejected: keeping shift-drag for the box.
+- **A part threaded on after its shaft is closed is a finding, and the bike techniques build in order** (Barry,
+  2026-11-10, after his fifth e-bike session, which scored proportions 2, recognizability 2, buildability 1 with 0
+  validator errors at 268 parts: "several of the parts are built out of order, you would need to take apart something
+  to add the next step"; through AskUserQuestion: "Rule + technique fix"). The out-of-order steps were the
+  techniques': the brake discs, the rear sprocket, and the front fender's brackets go onto an axle or a fork tube in a
+  step after both its ends are closed. So the validator gets a check for a part that goes onto an axle, pin, or tube
+  after the shaft is in and both its ends are closed by parts from earlier steps, and the bike techniques put such
+  parts on with their shaft (the discs and the sprocket with their wheel, the fender's brackets with the fork tubes),
+  their tests requiring no findings under it. In 4G, before the PR. Rejected: fixing the techniques alone, and both
+  in a later session.
+- **A sub-assembly's own steps in the viewer come in a later session, 4H** (Barry, 2026-11-10, through
+  AskUserQuestion: "Yes, later session"). In his fifth e-bike session the Steps tab's Built apart sections listed
+  their sub-steps, but a click did nothing ("the build apart sections do not show the seperate steps, not sure how
+  that is supposed to be used?"): the viewer only highlights a whole section. 4H, after 4G and alongside 5A and 5B,
+  makes a sub-step show its section on its own, built up to it with its new parts outlined, as the PDF's framed boxes
+  do. Rejected: building it in 4G, and leaving it.
+- **The photo rung reports a part count beside its subject's range; it doesn't gate on it** (Barry, 2026-11-10,
+  through AskUserQuestion: "Report, don't gate"). The rung's ranges (the e-bike 600 to 2,000) said "so a basic model
+  fails", and `emmet eval --score` failed run 5's 268 parts though Barry scored it 5 of 6. With no setting naming a
+  part count, a subject passes at 0 validator errors and 4 of 6 or more; the report shows the count beside what a
+  display set of the subject has. Rejected: dropping the ranges, and keeping them as a gate.

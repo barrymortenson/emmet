@@ -236,7 +236,7 @@ fn a_dry_run_scores_the_photo_rung_with_each_fake_agent() {
             names,
             [
                 "Runs and validates with 0 errors",
-                "Parts in range",
+                "Part count",
                 "Built from the photo",
                 "Asked for another angle",
                 "First draft within a minute",
@@ -244,6 +244,10 @@ fn a_dry_run_scores_the_photo_rung_with_each_fake_agent() {
             ]
         );
         assert!(scores.iter().all(|s| s.1), "{cli}: {scores:?}");
+        // The count is a reference beside what a display set has, never a gate (Barry 2026-11-10).
+        let count = &v["data"]["scores"].as_array().unwrap()[1];
+        assert_eq!(count["required"], false, "{cli}: {count}");
+        assert!(scores[1].2.contains("a display set of it has "), "{cli}: {scores:?}");
         assert_eq!(scores[3].2, "asked, and got angle b");
         assert_eq!(
             scores[5].2,
