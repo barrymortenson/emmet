@@ -27,4 +27,5 @@ it was drawn, as after notes 001 to 006; this note, plan section 14, and `compon
 
 ## Barry's yes
 
-Asked for (Barry, 2026-11-10). His read of the app with the change, in both themes, is still to come.
+Asked for (Barry, 2026-11-10). He looked at the app with the change and said the sidebar looks good (Barry,
+2026-11-11).
