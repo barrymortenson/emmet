@@ -164,7 +164,7 @@ jobs:
           defaults write com.apple.universalaccess reduceMotion -bool false || true
       - run: just deps
       # TEMPORARY (reverted in the next commit): every spec, with every window baseline rewritten for the artifact.
-      - run: just e2e first-run
+      - run: just e2e instructions,screens
         env:
           EMMET_UPDATE_BASELINES: "1"
           EMMET_CI_BASE: ${{ needs.scope.outputs.base }}
