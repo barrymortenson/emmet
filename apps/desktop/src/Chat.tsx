@@ -617,7 +617,9 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const lastError = [...chat.items].reverse().find((i) => i.k === "error") as Extract<Item, { k: "error" }> | undefined;
   const codexLimit = !!lastError?.limit && kind === "codex" && chat.plan && !chat.running && chat.items[chat.items.length - 1] === lastError;
   const last = chat.items[chat.items.length - 1];
-  const openCard = last && ["question", "approval", "crash"].includes(last.k) && !(last.k === "question" && last.closed) && !(last.k === "approval" && last.decided) && !(last.k === "crash" && !chat.crashed);
+  // What waits on the user: the turn's open question or undecided approval, wherever it is (a step's card can arrive
+  // after the approval it waits on; an earlier turn's cards are over), or a crash at the end.
+  const waiting = [...chat.items].reverse().find((i) => (i.k === "question" && !i.closed && (i === last || i.id === chat.question)) || (i.k === "approval" && !i.decided && (i === last || chat.running))) ?? (last?.k === "crash" && chat.crashed ? last : null);
 
   // The card that needs you, most urgent first.
   let card: React.ReactNode = null;
@@ -686,7 +688,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
         onStopAndSend={stop}
       />
     );
-  else if (openCard) card = <Message item={last!} who={kind ?? "claude"} chat={chat} actions={actions()} active />;
+  else if (waiting) card = <Message item={waiting} who={kind ?? "claude"} chat={chat} actions={actions()} active />;
 
   function actions() {
     return {
@@ -706,7 +708,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   // says it.
   const quiet = !!card && !pending;
   let status: { tone: string; line: string; time?: string; icon?: IconName } | null = null;
-  if (chat.running && !chat.question && !(last?.k === "approval" && !last.decided)) status = { tone: "busy", line: activity(chat.items, chat.heard ? now - chat.heard : 0), time: chat.began ? clock(now - chat.began) : undefined };
+  if (chat.running && !chat.question && waiting?.k !== "approval") status = { tone: "busy", line: activity(chat.items, chat.heard ? now - chat.heard : 0), time: chat.began ? clock(now - chat.began) : undefined };
   else if (chat.crashed) status = { tone: "bad", line: `${kind ? CLI[kind] : "The agent"} stopped unexpectedly`, icon: "octagon-alert" };
   else if (limit) status = { tone: "attn", line: "Claude's plan limit", icon: "gauge" };
   else if (chat.stopped) status = { tone: "muted", line: "Stopped by you", icon: "square" };
@@ -714,7 +716,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   const canUndo = !chat.running && undo != null && status?.tone === "done";
 
   // The card that needs you shows once: below the conversation, not in it too.
-  const rows = useMemo(() => fold(openCard ? chat.items.slice(0, -1) : chat.items, kind ?? "claude", chat, actions), [chat, kind, openCard]);
+  const rows = useMemo(() => fold(waiting ? chat.items.filter((i) => i !== waiting) : chat.items, kind ?? "claude", chat, actions), [chat, kind, waiting]);
   // Said before the next turn: a Claude window at 90% or more, or an API key billing instead of the plan (D-35).
   const warning = chat.running ? null : (agent?.warning ?? (kind === "claude" ? limitWarning(chat.limits ?? usage) : null));
 

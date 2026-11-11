@@ -111,13 +111,31 @@ function sources(dir) {
   return out;
 }
 
-/** The closed line of every card in the history: none may be a tool's name, a path, or code (What good looks like 1). */
+/** The closed line of every card in the conversation: none may be a tool's name, a path, or code (What good looks like
+ * 1). The list draws only the rows in view, so it's read a screen at a time from the top, then left at its end. */
 const closedLines = () =>
-  browser.execute(() =>
-    [...document.querySelectorAll("#chat-log .tool-card summary, #chat-log .tool-card-row, #chat-log .tool-run > summary")].map((s) =>
-      [...s.querySelectorAll(".tool-card-title, .tool-card-detail, span")].map((x) => x.textContent.trim()).filter(Boolean).join(" · "),
-    ),
-  );
+  browser.execute(async () => {
+    const log = document.getElementById("chat-log");
+    const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const lines = new Map();
+    const read = () => {
+      for (const s of log.querySelectorAll(".tool-card summary, .tool-card-row, .tool-run > summary")) {
+        const row = s.closest("[data-row]")?.dataset.row ?? "";
+        const text = [...s.querySelectorAll(".tool-card-title, .tool-card-detail, span")].map((x) => x.textContent.trim()).filter(Boolean).join(" · ");
+        lines.set(`${row}\n${text}`, text);
+      }
+    };
+    if (!log) return [];
+    for (let top = 0; ; top += Math.max(1, log.clientHeight / 2)) {
+      log.scrollTop = top;
+      await frame();
+      read();
+      if (top >= log.scrollHeight - log.clientHeight) break;
+    }
+    log.scrollTop = log.scrollHeight;
+    await frame();
+    return [...lines.values()];
+  });
 
 const before = JSON.parse(process.env.EMMET_E2E_SENTINELS ?? "{}");
 /** The event → DOM times measured during the rung 1 builds (see that test). */
