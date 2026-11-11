@@ -67,6 +67,7 @@ The frozen pages draw them from `docs/design/frozen/generated.js`, which `node s
 | Screenshot | `camera` |
 | Replay build | `play` |
 | The cut-away's bar; lower and raise it | `layers`; `chevron-down`, `chevron-up` |
+| A sub-assembly on its own: its bar; the step before and the next | `submodel`; `chevron-left`, `chevron-right` |
 | Copy | `copy` |
 | The command line tool | `terminal` |
 | Windows' caption buttons | `minus`, `square`, `x` |

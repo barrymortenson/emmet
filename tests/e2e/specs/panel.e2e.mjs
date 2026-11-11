@@ -2,12 +2,12 @@
 // The options panel's tabs (plan section 14, session 4A Done when 3): Options' build settings (a change waits with
 // Undo and Rebuild, and Age sets Detail) and knobs (a draft until Keep writes model.py, or Reset drops it);
 // Checks (a finding in plain words, It's fine allows it in emmet.toml, Check it again brings it back); Parts (a row per
-// part and color, with its picture); Steps (a step shows the build up to it; a sub-assembly highlights every copy);
-// and Export (a toast says what was written where).
+// part and color, with its picture); Steps (a step shows the build up to it; a sub-assembly highlights every copy; a
+// sub-step shows its sub-assembly on its own, session 4H); and Export (a toast says what was written where).
 import { $, $$, expect } from "@wdio/globals";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { nextScene, open, shown, stats } from "../lib/app.mjs";
+import { camera, nextScene, open, restingCamera, screenshots, shown, stats } from "../lib/app.mjs";
 import { agentHome, scenario } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
@@ -118,6 +118,113 @@ describe("the options panel", () => {
     expect((await browser.execute(() => window.__emmet.viewer().highlighted())).sort()).toEqual(copies);
     await browser.waitUntil(async () => (await shownNow()) === scene.placements.length, { timeout: 10_000 });
   });
+
+  // Session 4H's Done when, on the picnic (a table set built apart, with a chair built apart inside it and used
+  // twice) and on the Cottage's own sub-assemblies.
+  for (const [name, at] of [["the picnic", projectDir("panel-picnic")], ["the Cottage", dir]]) {
+    it(`a sub-step shows its sub-assembly on its own, built up to it, and the model comes back: ${name}`, async () => {
+      await open(at);
+      await click("#tab-steps");
+      const scene = (await browser.execute(() => window.__TAURI_INTERNALS__.invoke("ui_state"))).scene;
+      const subs = scene.tree.submodels;
+      expect(subs.length).toBeGreaterThan(0);
+      const total = scene.tree.steps.length;
+      const onCanvas = () =>
+        browser.execute(() => {
+          const c = document.querySelector("#viewer canvas");
+          return window.__emmet.viewer().idsInBox({ x: 0, y: 0, width: c.clientWidth, height: c.clientHeight });
+        });
+      const close = (a, b) => a.every((x, i) => Math.abs(x - b[i]) < 1e-3);
+      // What a sub-step adds, from the tree: its own parts, and every part of the sub-assemblies it puts on.
+      const adds = (s) => s.items.reduce((n, i) => n + i.count, 0) + s.subs.reduce((n, u) => n + u.count * subs.find((m) => m.file === u.file).parts, 0);
+      const firstCopy = (file) => {
+        const p = scene.placements.find((q) => q.submodel.includes(file));
+        return p.copies[p.submodel.indexOf(file)].id;
+      };
+      const whole = async (before) => {
+        await browser.waitUntil(async () => (await stats()).alone === null && (await stats()).hidden === 0, { timeoutMsg: "the whole model didn't come back" });
+        expect(close(await restingCamera(), before)).toBe(true);
+        await expect($("#apart-frame")).not.toBeExisting();
+      };
+      const before = await restingCamera();
+
+      for (const m of subs) {
+        const copy = firstCopy(m.file);
+        await click(`#steps-tree [data-sub='${m.file}'] .tree-twisty`);
+        let framed = null;
+        let built = 0;
+        for (const s of m.steps) {
+          await click(`#steps-tree [data-sub-step='${m.file}/${s.n}']`);
+          await browser.waitUntil(async () => (await stats()).alone === copy && (await stats()).step === s.n, { timeoutMsg: `${m.name}'s sub-step ${s.n} didn't show` });
+          built += adds(s);
+          // That copy alone, built up to the sub-step: nothing else shows, and all of it is on the canvas.
+          const st = await stats();
+          expect(st.instances - st.hidden).toBe(built);
+          expect(st.outlined).toBe(adds(s));
+          const ids = await onCanvas();
+          expect(ids.length).toBe(built);
+          expect(ids.every((id) => id.startsWith(`${copy}/`))).toBe(true);
+          await expect($("#steps-head")).toHaveText(`${m.name}: step ${s.n} of ${m.steps.length}`);
+          await expect($("#apart-at")).toHaveText(`${s.n} of ${m.steps.length}`);
+          await expect($("#apart-frame")).toBeDisplayed();
+          await expect($("#step-view .step-number")).toHaveText(String(s.n));
+          // The camera frames the whole copy: it looks at the middle of its box, from close by; and it stays put from
+          // one sub-step to the next.
+          const cam = await restingCamera();
+          const box = await browser.execute((c) => window.__emmet.viewer().boxOf([c]), copy);
+          const mid = box.min.map((x, i) => (x + box.max[i]) / 2);
+          const to = mid.map((x, i) => x - cam[12 + i]);
+          const far = Math.hypot(...to);
+          expect(-(to[0] * cam[8] + to[1] * cam[9] + to[2] * cam[10]) / far).toBeGreaterThan(0.9999);
+          expect(far).toBeLessThan(6 * Math.hypot(...box.min.map((x, i) => box.max[i] - x)) + 100);
+          if (framed) expect(close(cam, framed)).toBe(true);
+          else expect(close(cam, before)).toBe(false);
+          framed = cam;
+        }
+        // The step keys move through the sub-assembly's steps, and stop at its ends.
+        const last = m.steps.length;
+        await browser.keys("]");
+        await browser.pause(100);
+        expect((await stats()).step).toBe(last);
+        if (last > 1) {
+          await browser.keys("[");
+          await browser.waitUntil(async () => (await stats()).step === last - 1, { timeoutMsg: "[ didn't go back a sub-step" });
+          expect((await stats()).alone).toBe(copy);
+          await click("#apart-next");
+          await browser.waitUntil(async () => (await stats()).step === last, { timeoutMsg: "the bar's arrow didn't go on a sub-step" });
+        }
+        if (m === subs[subs.length - 1]) await screenshots(`viewer-sub-step-${at === dir ? "cottage" : "picnic"}`);
+        await click("#apart-off");
+        await whole(before);
+      }
+
+      // The three ways out, each with the camera back where it was, even after an orbit on the way.
+      const m = subs[0];
+      const enter = async () => {
+        await click(`#steps-tree [data-sub-step='${m.file}/1']`);
+        await browser.waitUntil(async () => (await stats()).alone != null);
+      };
+      await enter();
+      await click(`#steps-tree [data-n='${total}']`);
+      await whole(before);
+      await expect($("#steps-head")).toHaveText(`Step ${total} of ${total}`);
+
+      await enter();
+      const inside = await restingCamera();
+      await browser.execute(() => window.__emmet.viewer().orbit(0.6, 0.2));
+      expect(close(await camera(), inside)).toBe(false);
+      await browser.keys("Escape");
+      await whole(before);
+
+      await enter();
+      await click(`#steps-tree [data-sub='${m.file}']`);
+      await whole(before);
+      // The row lights every copy in the model, as it does from the model.
+      const copies = scene.placements.filter((p) => p.submodel.includes(m.file)).map((p) => p.id).sort();
+      expect((await browser.execute(() => window.__emmet.viewer().highlighted())).sort()).toEqual(copies);
+      await click(`#steps-tree [data-sub='${m.file}']`);
+    });
+  }
 
   it("exports the parts list into Downloads, and says so", async () => {
     await browser.keys([mod, "e"]);
