@@ -1078,3 +1078,59 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   the model with every copy lit, as the row does anywhere else. Rejected: turning to the iso view for every
   sub-assembly (it throws away the side the user chose), and keeping the camera the user left on the way out (the
   session's Done when says where it was).
+
+## 2026-11-11, session 5A
+
+- **"Nightly green 7 nights" means the validator corpus** (Barry, 2026-11-11, through AskUserQuestion: "Corpus
+  only"). 5A's plan text asked for a nightly with Windows E2E and perf on both OSes, written before Barry's "I don't
+  want a daily job to run" (2026-11-03), D-43's pause of the Windows jobs, and section 16's "no E2E runs on a
+  schedule". `nightly.yml` stays as it is: the full pinned LDraw library and the 33-model corpus on the self-hosted
+  Mac. E2E and perf evidence is the weekly full CI run and `just bench` by hand; Windows E2E and perf come back with
+  the Windows pass. Session 5A's item 5 and its third Done when say so now. Rejected: a nightly Mac E2E and perf job
+  (it reverses 2026-11-03), and the plan's text as written (it lifts D-43 for one job).
+- **The ladder's scoring config said the photo rung passes at 2 subjects; it's 3** (the agent, 2026-11-11). The JSON
+  in `docs/spec/ladder.md` kept 0B's number from when the rung had three subjects. Barry's 2026-11-04 decision (four
+  subjects, 3 of 4), the plan, the ladder's own text, and `emmet eval` all say 3.
+- **`emmet library update` is built; render's step argument is out of section 09** (Barry, 2026-11-11, through
+  AskUserQuestion: "Add update, drop --step"). The test matrix found both in the plan's CLI table and neither in the
+  code. `emmet library update` installs the pinned release when another one, or none, is installed, and otherwise
+  says the library is current and downloads nothing. `emmet render --step N` and the render tool's `step` come out of
+  the plan: no rung needs them, and they'd touch the viewer, the bus, and render mode. A step's picture is in the
+  Steps tab and the PDF; a render of one for the agent can come later if a session shows the need. Section 09 also
+  gains what the code already had: `emmet guide`, `emmet version open`, and `emmet check --params`.
+- **The chat's frozen states (dock) run with the agent area; the frozen screens stay by hand** (the agent,
+  2026-11-11). The matrix can only name tests CI runs. `dock.e2e.mjs` asserts the tips, a pending redirect, the
+  limit cards, and the sign-in card, and compares no baseline, so it joins the agent area's specs (about 40 s on a PR
+  that touches the agent bridge or the chat). `screens.e2e.mjs` compares baselines, so it stays by hand, and the
+  three states only it reached (offline, an old library, the model's LDraw export) and a name on every control get
+  `states.e2e.mjs` in core. The validator's speed budget ran only by hand (`just bench validator`); the nightly job
+  runs it now, in the release build on the M-series Mac the budget is written for.
+- **How rungs 2 and 3 are scored** (the agent, 2026-11-11, within section 16.1; ADR 0015 for Barry's read in the PR).
+  Rung 2's loop closes when the track's connection graph has a ring; its platform and canopy are found by name (an
+  id, a sub-assembly, a step's title); its platform length is a changing parameter with "platform" or "length" in its
+  name. Rung 3's BOM F1 counts pieces by Rebrickable part and color, molds of a part counting as the part; its
+  placement match lets the model stand anywhere and face any of four ways. With a parts data pack installed, more
+  than 2 `color_unavailable` warnings fail a run; the budget fails a run, as it did at G1. No threshold changed.
+  Rejected: a geometric test for the platform and canopy (a second validator for one rung), and scoring placements
+  in the set's own frame (the agent isn't told it).
+- **CI's Mac E2E runs as two jobs** (the agent, 2026-11-11). A full run took 13 minutes in one job, over section
+  16's 10. Core runs in one job and everything else the change runs in the other, each with the 10-minute budget; a
+  change that runs only core starts one job. Rejected: moving specs to the by-hand tier to make room (the test
+  matrix needs CI to run them), and a longer budget.
+- **The burst assertion in the watcher's test is split, not loosened** (the agent, 2026-11-11). "Five saves run the
+  model once" depended on the OS delivering the five file events within the debounce, which a hosted Mac didn't on
+  2026-11-09. The debounce is now a function the test feeds directly: a burst runs once, after it goes quiet, and a
+  later change runs again. The test on the real file system keeps what the file system can promise: sources run the
+  model, non-sources don't, and five saves run it at least once and fewer than five times.
+- **The G2 hand sessions wait for 5B** (Barry, 2026-11-11, through AskUserQuestion: "After 5B, as planned"). 5A is
+  built and pushed with the runbook ready; 5B runs next, 5A is rebased onto it, and the 14 runs happen once, on the
+  final code. Rejected: running them now (5B could change what G2 judged, and D-38 allows no second pass), and a
+  practice pass of rungs 2 and 3 outside the D-38 budget.
+- **rmcp goes to 3.9.0, and the dependency audit stops the job again** (the agent, 2026-11-11). A manual full CI run
+  printed "advisories FAILED" for RUSTSEC-2026-0462 and went on: `cargo deny check && pnpm audit --prod` inside an
+  `if` under `set -e` doesn't stop on the first command's failure. With the gate fixed, the advisory had to be met:
+  rmcp 3.9.0 is the fixed release, an update of a dependency Emmet already has, with no new package in Cargo.lock.
+  The advisory is in rmcp's Streamable HTTP client, which Emmet doesn't build in (stdio and child-process transports
+  only). The new release lists always-present nullable fields as required in the tool schemas; the committed
+  schemas are regenerated, and every tool's output still validates against its schema. Rejected: ignoring the
+  advisory in deny.toml (it loosens a gate), and Dependabot's open update to 3.8.0 (still affected).

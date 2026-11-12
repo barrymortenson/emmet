@@ -25,6 +25,7 @@ const PROJECTS = {
   chat: [["", "agent"], ["codex", "agent"], ["cut", "agent"]],
   photo: [["", "agent"], ["codex", "agent"]],
   dock: [["", "cottage"]],
+  states: [["", "cottage"]],
   bus: [["", "cottage"]],
   chatgpt: [["", "agent"]],
   checks: [["", "broken-collision"]],

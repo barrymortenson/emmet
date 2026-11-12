@@ -118,6 +118,51 @@ fn install_downloads_checks_and_indexes() {
     assert_eq!(status(&data)["data"]["installed"]["release"], "ldraw-mini");
 }
 
+/// `emmet library update` (plan section 09): the pinned release goes in over another one, and a second update
+/// downloads nothing.
+#[test]
+fn update_installs_another_release_and_then_has_nothing_to_do() {
+    let zip = library_zip(&[]);
+    let (url, requests) = serve(zip.clone(), vec![Reply::Full, Reply::Full]);
+    let data = temp_dir("update");
+    let update = |release: &str| {
+        let out = emmet()
+            .args(["--json", "--data-dir"])
+            .arg(&data)
+            .args([
+                "library",
+                "update",
+                "--release",
+                release,
+                "--url",
+                &url,
+                "--sha256",
+                &sha256(&zip),
+            ])
+            .output()
+            .unwrap();
+        envelope(&out)
+    };
+    // No library yet: update installs it.
+    let (v, code) = update("older");
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["installed"]["release"], "older");
+    // Another release than the installed one: it's replaced.
+    let (v, code) = update("ldraw-mini");
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["installed"]["release"], "ldraw-mini");
+    let downloads = requests.lock().unwrap().len();
+    // The same release: the status comes back and nothing is fetched.
+    let (v, code) = update("ldraw-mini");
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["installed"]["release"], "ldraw-mini");
+    assert_eq!(
+        requests.lock().unwrap().len(),
+        downloads,
+        "an update with nothing to do downloads nothing"
+    );
+}
+
 #[test]
 fn install_checks_the_sha256() {
     let zip = library_zip(&[]);

@@ -7,13 +7,14 @@
 // dir is the one the integration tests share (ldraw-mini and Python, from target/debug/prepare-data). Screenshots,
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { agentHome, prepareAgents, startOpenAi, stopOpenAi } from "./lib/agents.mjs";
 import { webContentPids } from "./lib/memory.mjs";
 import { startLibrary, stopLibrary } from "./lib/library-server.mjs";
 import { appBinary, bin, out } from "./lib/paths.mjs";
 import { prepareProject } from "./lib/projects.mjs";
+import { retried } from "./tiers.mjs";
 
 const bench = process.env.EMMET_BENCH === "1";
 // First run (EMMET_E2E_FIRST_RUN=1, session 4A) starts the app on its own fresh data dir: no library and no Python
@@ -34,6 +35,9 @@ function specs() {
   return { specs: ["./specs/hello.e2e.mjs", "./specs/**/*.e2e.mjs"], exclude: ["./specs/bench.e2e.mjs", "./specs/first-run.e2e.mjs"] };
 }
 
+// The spec files whose first run failed and that wdio is running again (onWorkerEnd).
+const failedOnce = new Set();
+
 export const config = {
   runner: "local",
   // hello checks the app's first window (no project open), so it runs first; the app is shared by every spec file.
@@ -50,6 +54,9 @@ export const config = {
   specFileRetries: bench || firstRun || gate ? 0 : 1,
   mochaOpts: { timeout: bench ? 600_000 : 120_000, bail: gate },
   async onPrepare() {
+    // The retries file exists once wdio starts, so the job summary can tell "no retries" from "the specs never ran".
+    mkdirSync(out, { recursive: true });
+    appendFileSync(join(out, "retries.jsonl"), "");
     const shared = execFileSync(bin("prepare-data"), { encoding: "utf8" }).trim();
     process.env.EMMET_DATA_DIR = shared;
     process.env.EMMET_E2E_OUT = out;
@@ -97,6 +104,14 @@ export const config = {
   onComplete() {
     stopOpenAi();
     stopLibrary();
+  },
+  // A spec file that ran again (the one retry plan section 16 allows): noted for the job summary, pass or fail
+  // (scripts/ci-summary.mjs), so a retry is never silent.
+  onWorkerEnd(_cid, exitCode, specs, retries) {
+    const note = retried(failedOnce, basename(specs[0] ?? "", ".e2e.mjs"), exitCode, retries);
+    if (!note) return;
+    mkdirSync(out, { recursive: true });
+    appendFileSync(join(out, "retries.jsonl"), `${JSON.stringify(note)}\n`);
   },
   // Before each spec file: its fresh project, on the recents list.
   onWorkerStart(_cid, _caps, specs) {

@@ -4,6 +4,7 @@
 
 mod eval;
 mod eval_photo;
+mod eval_score;
 mod guide;
 mod host;
 mod mcp;
@@ -182,8 +183,10 @@ enum Command {
         #[arg(long, value_name = "DIR", hide = true)]
         write_schemas: Option<PathBuf>,
     },
-    /// Live eval (plan section 16.1): one run of a ladder rung through a real agent CLI, on the eval API keys (D-37),
-    /// scored and written to docs/evals/. It says what it bills and asks first (D-38). A dev tool.
+    /// Eval (plan section 16.1): one run of a ladder rung (1, 2, 3, photo, or a technique prompt T1 to T5), scored
+    /// and written to docs/evals/. --score scores a hand session's project; --dry-run uses the fake agents; with
+    /// neither it's a live run through a real agent CLI on the eval API keys (D-37), which says what it bills and
+    /// asks first (D-38); the photo rung has no live run. A dev tool.
     #[command(hide = !cfg!(debug_assertions))]
     Eval {
         #[arg(long, default_value = "1")]
@@ -205,7 +208,8 @@ enum Command {
         /// The photo rung's subject (data/ladder/photo/subjects.toml).
         #[arg(long)]
         subject: Option<String>,
-        /// The photo rung: score this hand session's project instead of running one (it sends nothing to an agent).
+        /// Score this hand session's project instead of running one (rungs 1 to 3 and photo; it sends nothing to an
+        /// agent).
         #[arg(long, value_name = "PROJECT")]
         score: Option<PathBuf>,
         /// The photo rung: Barry's scores for proportions, recognizability, and buildability, 0 to 2 each ("2,1,2").
@@ -335,6 +339,16 @@ enum LibraryAction {
         #[arg(long, value_name = "FILE")]
         zip: Option<PathBuf>,
         /// Download from this URL instead of the pinned one (with --sha256 and --release).
+        #[arg(long, hide = true)]
+        url: Option<String>,
+        #[arg(long, hide = true)]
+        sha256: Option<String>,
+        #[arg(long, hide = true)]
+        release: Option<String>,
+    },
+    /// Install the pinned library when the installed one is another release (or there's none); otherwise say it's
+    /// current and download nothing.
+    Update {
         #[arg(long, hide = true)]
         url: Option<String>,
         #[arg(long, hide = true)]
@@ -788,6 +802,7 @@ fn main() -> ExitCode {
                 yes: *yes,
                 out: out.clone(),
                 work: work.clone(),
+                score: score.clone(),
             };
             let result = data.and_then(|d| {
                 if photo {
@@ -931,15 +946,35 @@ fn library_command(cli: &Cli, started: Instant, data: Result<DataDir>, action: &
                 ),
             })
         }
-        LibraryAction::Install {
-            zip,
-            url,
-            sha256,
-            release,
-        } => {
+        LibraryAction::Install { .. } | LibraryAction::Update { .. } => {
+            let (zip, url, sha256, release, update) = match action {
+                LibraryAction::Install {
+                    zip,
+                    url,
+                    sha256,
+                    release,
+                } => (zip.as_ref(), url, sha256, release, false),
+                LibraryAction::Update { url, sha256, release } => (None, url, sha256, release, true),
+                _ => unreachable!("the arm matches install and update"),
+            };
+            let wanted = release.as_deref().unwrap_or(library::RELEASE).to_string();
+            // Update with the wanted release already installed: nothing to download.
+            let current = update
+                && data
+                    .as_ref()
+                    .is_ok_and(|d| library::installed(d).is_some_and(|i| i.release == wanted));
+            if current {
+                let out = data.map(|d| library::status(&d));
+                return finish(cli, started, out.into(), |s| {
+                    format!(
+                        "LDraw library {} is the release this Emmet uses; nothing to update.",
+                        s.installed.as_ref().map_or("?", |i| i.release.as_str())
+                    )
+                });
+            }
             let out = data.and_then(|d| {
                 let sha = sha256.as_deref().unwrap_or(library::SHA256);
-                let release = release.as_deref().unwrap_or(library::RELEASE);
+                let release = wanted.as_str();
                 let source = match zip {
                     Some(z) => library::Source::Zip(z),
                     None => library::Source::Url(url.as_deref().unwrap_or(library::URL)),

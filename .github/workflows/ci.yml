@@ -40,6 +40,7 @@ jobs:
       full: ${{ steps.scope.outputs.full }}
       mac: ${{ steps.scope.outputs.mac }}
       e2e_mac: ${{ steps.scope.outputs.e2e_mac }}
+      e2e_shards: ${{ steps.scope.outputs.e2e_shards }}
       windows: ${{ steps.scope.outputs.windows }}
       e2e_windows: ${{ steps.scope.outputs.e2e_windows }}
       nsis: ${{ steps.scope.outputs.nsis }}
@@ -119,11 +120,11 @@ jobs:
         env:
           EMMET_CI_BASE: ${{ needs.scope.outputs.base }}
           EMMET_CI_FULL: ${{ needs.scope.outputs.full == 'true' && '1' || '' }}
-      - name: Timing
+      # The job's time against its budget (a warning over it, a failure 50 % over), and for E2E the spec files that
+      # needed their retry and any quarantined test (plan section 16).
+      - name: Summary
         if: always()
-        run: |
-          s=$(( $(date +%s) - CI_START ))
-          echo "mac job: $(( s / 60 ))m $(( s % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/ci-summary.mjs mac $(( $(date +%s) - CI_START ))
 
   # The app E2E on a hosted Mac, beside the mac job: the E2E build (the webdriver feature) and the specs
   # tests/e2e/tiers.mjs picks.
@@ -132,6 +133,13 @@ jobs:
     timeout-minutes: 45
     needs: scope
     if: needs.scope.outputs.e2e_mac == 'true'
+    # Two jobs side by side (tests/e2e/tiers.mjs's shards): the core specs, and everything else the change runs. As
+    # one job, a full run took 13 minutes, over the 10-minute budget (plan section 16).
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.scope.outputs.e2e_shards) }}
+    name: mac-e2e (${{ matrix.shard }})
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -167,21 +175,22 @@ jobs:
         env:
           EMMET_CI_BASE: ${{ needs.scope.outputs.base }}
           EMMET_CI_FULL: ${{ needs.scope.outputs.full == 'true' && '1' || '' }}
+          EMMET_E2E_SHARD: ${{ matrix.shard }}
       # Screenshots, renders, visual diffs, and the baselines a changed screen would need (tests/e2e/out/baselines).
       - name: E2E output
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: e2e-macos
+          name: e2e-macos-${{ matrix.shard }}
           path: |
             tests/e2e/out/
             !tests/e2e/out/projects/
           if-no-files-found: ignore
-      - name: Timing
+      # The job's time against its budget (a warning over it, a failure 50 % over), and for E2E the spec files that
+      # needed their retry and any quarantined test (plan section 16).
+      - name: Summary
         if: always()
-        run: |
-          s=$(( $(date +%s) - CI_START ))
-          echo "mac-e2e job: $(( s / 60 ))m $(( s % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/ci-summary.mjs "mac-e2e-${{ matrix.shard }}" $(( $(date +%s) - CI_START ))
 
   # Windows runs as two jobs side by side, as the Mac does: the tests here, the E2E in windows-e2e. One job ran them in
   # turn, and its E2E build recompiled most of the workspace for the webdriver feature (75 minutes, 2026-11-06).
@@ -246,11 +255,11 @@ jobs:
           name: emmet-windows-vm
           path: vm/
           retention-days: 7
-      - name: Timing
+      # The job's time against its budget (a warning over it, a failure 50 % over), and for E2E the spec files that
+      # needed their retry and any quarantined test (plan section 16).
+      - name: Summary
         if: always()
-        run: |
-          s=$(( $(date +%s) - CI_START ))
-          echo "windows job: $(( s / 60 ))m $(( s % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/ci-summary.mjs windows $(( $(date +%s) - CI_START ))
 
   # Windows E2E: the specs for paths and processes (tests/e2e/tiers.mjs windows), only when the native side or the
   # specs change, or with everything else.
@@ -308,11 +317,11 @@ jobs:
             tests/e2e/out/
             !tests/e2e/out/projects/
           if-no-files-found: ignore
-      - name: Timing
+      # The job's time against its budget (a warning over it, a failure 50 % over), and for E2E the spec files that
+      # needed their retry and any quarantined test (plan section 16).
+      - name: Summary
         if: always()
-        run: |
-          s=$(( $(date +%s) - CI_START ))
-          echo "windows-e2e job: $(( s / 60 ))m $(( s % 60 ))s" >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/ci-summary.mjs windows-e2e $(( $(date +%s) - CI_START ))
 
   # The unsigned NSIS installer (1D; plan section 17), from `just release-dry`: when the release files change, weekly,
   # and by hand. A release build takes longer than the windows job's budget, so it's its own job.
@@ -382,7 +391,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha || 'origin/main' }}
           HEAD: ${{ github.event.pull_request.head.sha || 'HEAD' }}
         run: scripts/dco-check.sh "$BASE" "$HEAD"
-      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/e2e-tiers.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs tests/scripts/contrast-check.test.mjs
+      - run: node --test tests/scripts/plan-check.test.mjs tests/scripts/spdx-dco.test.mjs tests/scripts/ci.test.mjs tests/scripts/e2e-tiers.test.mjs tests/scripts/test-matrix.test.mjs tests/scripts/ldraw-mini-check.test.mjs tests/scripts/scrub-transcript.test.mjs tests/scripts/terms-check.test.mjs tests/scripts/contrast-check.test.mjs
 
   # The one required check: green only when scope and plan passed and each OS job (and nsis) passed or was scoped out.
   ci:

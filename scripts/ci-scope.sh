@@ -55,6 +55,13 @@ else
 fi
 if [[ -n "$specs" ]]; then echo "e2e_mac=true"; else echo "e2e_mac=false"; fi
 echo "e2e_specs=$specs"
+# The Mac E2E job runs as two jobs side by side, so a full run fits the time budget: core, and everything else. A
+# change that runs only core starts one job.
+shards='"core"'
+# On its own line, so a failed lookup stops the script: inside [[ ]] it would read as "no areas shard".
+areas=$(node "$tiers" --shard areas "$specs")
+if [[ -n "$areas" ]]; then shards+=',"areas"'; fi
+echo "e2e_shards=[$shards]"
 # Windows E2E: the specs that cover paths and processes (tests/e2e/tiers.mjs windows), when the native side, the agent
 # bridge, or the specs change.
 winflag e2e_windows '^(apps/desktop/src-tauri/|tests/e2e/|crates/emmet-agent/|tests/fake-agents/)'

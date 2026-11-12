@@ -7,7 +7,6 @@ import { $, expect } from "@wdio/globals";
 import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { invoke, nextScene, open, screenshots, shown } from "../lib/app.mjs";
-import { dropNext } from "../lib/library-server.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
 const dir = projectDir("screens");
@@ -122,7 +121,8 @@ describe("the frozen screens", () => {
     }
   });
 
-  it("an old library: Later, or Update the library, which says where a dropped update stopped", async () => {
+  // The update itself is states.e2e.mjs's: this is the banner's picture.
+  it("an old library: Later, or Update the library", async () => {
     // The shared data dir's library, labeled an older release for this test, then put back as it was.
     const data = process.env.EMMET_DATA_DIR;
     const json = join(data, "library.json");
@@ -133,12 +133,6 @@ describe("the frozen screens", () => {
       await open(dir);
       await expect($("#banner-old-library")).toHaveText(expect.stringContaining("Your parts library is 2026-06. This Emmet expects 2026-10."));
       await shot("old-library");
-      await dropNext(100_000);
-      await (await $("#update-library")).click();
-      await expect($("#banner-old-library")).toHaveText(expect.stringContaining("The connection dropped at"));
-      await expect($("#update-library")).toHaveText("Try again");
-      await (await $("#update-library")).click();
-      await (await $("#banner-old-library")).waitForExist({ reverse: true, timeout: 60_000, timeoutMsg: "Update the library didn't finish" });
     } finally {
       copyFileSync(`${json}.bak`, json);
     }

@@ -16,7 +16,7 @@ fn changes(rx: &mpsc::Receiver<()>, wait: Duration) -> usize {
 }
 
 #[test]
-fn only_sources_trigger_a_run_and_a_burst_triggers_one() {
+fn only_sources_trigger_a_run() {
     // Not canonical on purpose: on macOS the temp dir sits behind a link (/var → /private/var), and the watcher must
     // still match what the OS reports.
     let dir = emmet_it::temp_dir("watch");
@@ -50,20 +50,53 @@ fn only_sources_trigger_a_run_and_a_burst_triggers_one() {
         "a non-source change triggered a run"
     );
 
+    // Five saves in a row run the model, and fewer times than it was saved. Exactly once is the debounce's promise for
+    // changes that arrive together (the test below); when they arrive is the OS's, and a hosted Mac has delivered one
+    // burst in two batches more than the debounce apart (the weekly run of 2026-11-09).
     for i in 0..5 {
         std::fs::write(dir.join("model.py"), format!("# v{i}\n")).unwrap();
         std::thread::sleep(Duration::from_millis(20));
     }
-    assert_eq!(
-        changes(&rx, Duration::from_millis(800)),
-        1,
-        "a burst of saves should run once"
-    );
+    let runs = changes(&rx, Duration::from_millis(800));
+    assert!((1..5).contains(&runs), "five saves in a row ran the model {runs} times");
 
     std::fs::write(dir.join("models/walls.py"), "# walls\n").unwrap();
     assert_eq!(changes(&rx, Duration::from_millis(800)), 1, "models/*.py is a source");
     std::fs::write(dir.join("params.json"), "{}\n").unwrap();
     assert_eq!(changes(&rx, Duration::from_millis(800)), 1, "params.json is a source");
+}
+
+/// The debounce itself, fed changes at times the test chooses: a burst is one run, after it goes quiet, and a change
+/// after that is another.
+#[test]
+fn a_burst_of_changes_runs_once_after_it_goes_quiet() {
+    let (tx, rx) = mpsc::channel();
+    let (ran_tx, ran) = mpsc::channel();
+    let quiet = Duration::from_millis(150);
+    let thread = std::thread::spawn(move || {
+        emmet_desktop::watcher::debounce(&rx, quiet, || {
+            let _ = ran_tx.send(std::time::Instant::now());
+        })
+    });
+    let sent = std::time::Instant::now();
+    for _ in 0..5 {
+        tx.send(()).unwrap();
+    }
+    let first = ran.recv_timeout(Duration::from_secs(10)).expect("the burst ran");
+    assert!(
+        first.duration_since(sent) >= quiet,
+        "it waited for the burst to go quiet"
+    );
+    assert!(
+        ran.recv_timeout(Duration::from_millis(500)).is_err(),
+        "one burst ran more than once"
+    );
+    tx.send(()).unwrap();
+    ran.recv_timeout(Duration::from_secs(10)).expect("a later change ran");
+    // The sender gone, the thread ends.
+    drop(tx);
+    thread.join().unwrap();
+    assert!(ran.try_recv().is_err());
 }
 
 #[test]
