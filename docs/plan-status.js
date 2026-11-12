@@ -229,8 +229,8 @@ window.EMMET_STATUS = {
     },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": {
-      status: "in-progress", branch: "bmortenson/s5a-test-matrix-eval", started: "2026-11-11",
-      note: "Built and pushed: the test matrix, eval v1, the flake policy and budgets. Waiting, as the plan orders it (Barry 2026-11-11): 5B merges, 5A is rebased onto it, then H-09's 14 hand sessions (docs/evals/G2-runbook.md), the replay corpus from them, and seven green nightly runs"
+      status: "review", pr: 62, branch: "bmortenson/s5a-test-matrix-eval", started: "2026-11-11",
+      note: "PR #62 opened early at Barry's request (2026-11-11), not ready to merge. Built and pushed: the test matrix, eval v1, the flake policy and budgets. Waiting, as the plan orders it (Barry 2026-11-11): 5B merges, 5A is rebased onto it, then H-09's 14 hand sessions (docs/evals/G2-runbook.md), the replay corpus from them, and seven green nightly runs"
     },
     "5B": { status: "todo" },
     "6A": { status: "todo" },
