@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { ROOT, run, tempRepo, writeFiles } from "./helpers.mjs";
 import { BUDGET, budgetOf, quarantined, retries, verdict } from "../../scripts/ci-summary.mjs";
-import { CORE as CORE_SPECS, ISSUE, SHARDS, shard } from "../e2e/tiers.mjs";
+import { CORE as CORE_SPECS, ISSUE, SHARDS, retried, shard } from "../e2e/tiers.mjs";
 
 const workflows = join(ROOT, ".github/workflows");
 const ci = readFileSync(join(workflows, "ci.yml"), "utf8");
@@ -254,10 +254,10 @@ test("a job is within its budget up to it, warned over it, and failed 50 % over 
 
 test("the summary step warns over the budget, fails 50 % over it, and says so in the job summary", () => {
   const dir = mkdtempSync(join(tmpdir(), "emmet-ci-summary-"));
-  const summary = (job, seconds) => {
+  const summary = (job, seconds, e2eOut = dir) => {
     const file = join(dir, `${job}-${seconds}.md`);
     writeFileSync(file, "");
-    const r = run("node", [join(ROOT, "scripts/ci-summary.mjs"), job, String(seconds)], { env: { GITHUB_STEP_SUMMARY: file } });
+    const r = run("node", [join(ROOT, "scripts/ci-summary.mjs"), job, String(seconds)], { env: { GITHUB_STEP_SUMMARY: file, EMMET_E2E_OUT: e2eOut } });
     return { ...r, text: readFileSync(file, "utf8") };
   };
   const ok = summary("mac", 200);
@@ -272,9 +272,15 @@ test("the summary step warns over the budget, fails 50 % over it, and says so in
   assert.match(fail.out, /^::error title=CI time budget::/m);
   assert.match(fail.text, /more than 50 % over its budget of 10m/);
   // An E2E job also says which spec files ran again and what's quarantined: today, nothing.
+  // No retries file: wdio never started (a failed build, a locked screen), which isn't "none".
   const e2e = summary("mac-e2e-core", 300);
-  assert.match(e2e.text, /^E2E retries: /m);
+  assert.match(e2e.text, /^E2E retries: not recorded \(the specs didn't start\)$/m);
   assert.match(e2e.text, /^Quarantined: none$/m);
+  // wdio makes the file when it starts; empty is a clean run, and a line is a retry.
+  writeFileSync(join(dir, "retries.jsonl"), "");
+  assert.match(summary("mac-e2e-core", 301).text, /^E2E retries: none$/m);
+  writeFileSync(join(dir, "retries.jsonl"), '{"spec":"chat","passed":true}\n');
+  assert.match(summary("mac-e2e-core", 302).text, /^E2E retries \(one is allowed, plan section 16\): chat: passed on its retry$/m);
 });
 
 test("every OS job ends with the summary step, and the E2E jobs' retries reach it", () => {
@@ -286,6 +292,17 @@ test("every OS job ends with the summary step, and the E2E jobs' retries reach i
   const wdio = readFileSync(join(ROOT, "tests/e2e/wdio.conf.mjs"), "utf8");
   assert.match(wdio, /specFileRetries: bench \|\| firstRun \|\| gate \? 0 : 1,/);
   assert.match(wdio, /onWorkerEnd\(_cid, exitCode, specs, retries\)/);
+  assert.match(wdio, /retried\(failedOnce, basename\(specs\[0\] \?\? "", "\.e2e\.mjs"\), exitCode, retries\)/);
+  // wdio hands the hook the retries a spec file has left, a number: 1 on a first run, 0 on the run after a failure,
+  // and always 0 for a spec that gets no retry.
+  const failedOnce = new Set();
+  assert.equal(retried(failedOnce, "viewer", 0, 1), null, "passed first time");
+  assert.equal(retried(failedOnce, "chat", 1, 1), null, "failed once: wdio runs it again");
+  assert.deepEqual(retried(failedOnce, "chat", 0, 0), { spec: "chat", passed: true });
+  assert.equal(retried(failedOnce, "panel", 1, 1), null);
+  assert.deepEqual(retried(failedOnce, "panel", 1, 0), { spec: "panel", passed: false });
+  assert.equal(retried(failedOnce, "hello", 1, 0), null, "the gate gets no retry, so its failure isn't one");
+  assert.equal(retried(failedOnce, "chat", 0, 1), null, "a later run of the same spec starts clean");
   assert.doesNotMatch(readFileSync(join(ROOT, "justfile"), "utf8"), /--retries|retry=|nextest/);
 });
 

@@ -41,7 +41,7 @@ impl Watcher {
 
 /// Calls `on_change` once per burst on `changes`: when nothing more has come for `quiet`. Returns when the sender is
 /// gone. The watcher's thread; public so its test can feed it changes at times it chooses, which the OS's file events
-/// don't allow (a hosted Mac delivered one burst of saves in two batches 150 ms apart).
+/// don't allow (a hosted Mac delivered one burst of saves in two batches more than the debounce apart).
 pub fn debounce(changes: &mpsc::Receiver<()>, quiet: Duration, on_change: impl Fn()) {
     while changes.recv().is_ok() {
         loop {

@@ -127,8 +127,6 @@ fn part_and_colors_through_the_cli() {
     assert_eq!(v["data"]["parts"].as_array().unwrap().len(), 1);
 }
 
-/// Corner shapes sink unless the query asks for a corner, and rise when it does (3D: "4x4 round" found three corner-round
-/// parts before the round plate).
 /// `emmet search --category` (plan section 09): the same words, only the parts LDraw files under that category.
 #[test]
 fn a_category_narrows_the_search() {
@@ -159,6 +157,8 @@ fn a_category_narrows_the_search() {
     assert!(!slopes.is_empty() && slopes.iter().all(|c| c == "Slope"), "{slopes:?}");
 }
 
+/// Corner shapes sink unless the query asks for a corner, and rise when it does (3D: "4x4 round" found three corner-round
+/// parts before the round plate).
 #[test]
 fn corner_shapes_only_when_asked() {
     let index = Index::open(&DataDir::at(shared_library())).unwrap();

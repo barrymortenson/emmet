@@ -186,7 +186,7 @@ enum Command {
     /// Eval (plan section 16.1): one run of a ladder rung (1, 2, 3, photo, or a technique prompt T1 to T5), scored
     /// and written to docs/evals/. --score scores a hand session's project; --dry-run uses the fake agents; with
     /// neither it's a live run through a real agent CLI on the eval API keys (D-37), which says what it bills and
-    /// asks first (D-38). A dev tool.
+    /// asks first (D-38); the photo rung has no live run. A dev tool.
     #[command(hide = !cfg!(debug_assertions))]
     Eval {
         #[arg(long, default_value = "1")]

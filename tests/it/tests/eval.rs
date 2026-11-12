@@ -246,6 +246,8 @@ fn a_hand_session_of_rung_2_is_scored_on_its_track_its_station_and_its_knobs() {
         "{text}"
     );
     assert!(text.contains("hand sessions in the app"), "{text}");
+    // No parts data pack here, so availability couldn't be taken: the row reads n/a, not pass.
+    assert!(text.contains("| Availability | no | n/a | n/a: "), "{text}");
     assert!(text.contains("## Trend"), "two runs make a trend: {text}");
     let home = std::env::var("HOME").unwrap_or_default();
     assert!(
@@ -281,6 +283,42 @@ fn a_hand_session_of_rung_2_is_scored_on_its_track_its_station_and_its_knobs() {
     );
     assert!(!score_detail(&v, "Budget").0);
     assert!(score_detail(&v, "Runs and validates with 0 errors").0);
+
+    // A loop with a piece of its last curve left out has track but no ring: it doesn't close.
+    let open = emmet_it::project("rung2-claude");
+    let model = std::fs::read_to_string(open.join("model.py")).unwrap();
+    let curve = r#"count=8, turn="left", title="Track, left curve""#;
+    assert_eq!(model.matches(curve).count(), 1, "the fixture's last curve");
+    std::fs::write(
+        open.join("model.py"),
+        model.replace(curve, &curve.replace("count=8", "count=7")),
+    )
+    .unwrap();
+    hand_session(&open, "claude", "Build a small train station.", 5, 60);
+    let (v, code) = score_rung(emmet_it::shared_data(), "2", "claude", &open, &dir.join("out-open"));
+    assert_eq!(code, 1, "{v:#}");
+    let (ok, features) = score_detail(&v, "Size and features");
+    assert!(!ok && features.contains("track loop closes no ("), "{features}");
+    assert!(!features.contains("(0 pieces of track"), "{features}");
+
+    // A chat with no message in it can't be timed, so it isn't scored: it would pass the budget at 0 minutes.
+    std::fs::write(cottage.join(".emmet/chat/s1.jsonl"), "").unwrap();
+    let (v, code) = score_rung(
+        emmet_it::shared_data(),
+        "2",
+        "claude",
+        &cottage,
+        &dir.join("out-cottage"),
+    );
+    assert_ne!(code, 0);
+    assert_eq!(v["error"]["code"], "IO_ERROR", "{v:#}");
+    assert!(
+        v["error"]["message"]
+            .as_str()
+            .unwrap()
+            .ends_with("chat has no message to score."),
+        "{v:#}"
+    );
 }
 
 /// One LDraw part line for `p`, turned a quarter about the vertical and slid by `slide`.
@@ -408,6 +446,20 @@ fn a_hand_session_of_rung_3_is_scored_against_the_set() {
         placed.contains(&format!(": {} of the set's 165 parts", k - 5)),
         "{placed}"
     );
+
+    // A model with a tenth of the set fails both scores, and a failed run exits 1.
+    let few = build(
+        "few",
+        kept.iter().take(15).map(|p| turned_line(p, p.color, slide)).collect(),
+    );
+    let (v, code) = score_rung(data, "3", "codex", &few, &dir.join("out"));
+    assert_eq!(
+        (code, &v["data"]["pass"]),
+        (1, &serde_json::Value::Bool(false)),
+        "{v:#}"
+    );
+    assert!(!score_detail(&v, "Parts list against the set (BOM F1)").0, "{v:#}");
+    assert!(!score_detail(&v, "Placements against the set").0, "{v:#}");
 }
 
 /// A photo rung folder for the tests (EMMET_PHOTO_DIR): one subject whose range fits the cottage the fakes build

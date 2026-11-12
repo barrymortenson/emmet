@@ -19,12 +19,12 @@ PR carries the report.
 ## Each session
 
 1. Open the app: `just dev`
-2. New model (⌘N). Name it as the table says. Leave the build settings at Any, except where the table says.
+2. New model (⌘N). Name it as the table says. Leave the build settings at Any.
 3. Pick the agent in the chat's picker, then paste the prompt from `docs/spec/ladder.md` exactly (the photo rung:
    drop the subject's angle a and type `Build this.`).
 4. Answer the agent's questions from the rung's answer script in `docs/spec/ladder.md`. On the photo rung, when it
    asks for another angle, send angle b.
-5. Let it finish. Don't steer it beyond the script: a correction you type is part of the run and the report says so.
+5. Let it finish. Don't steer it beyond the script: a correction you type is part of the run, and its time and turns count.
 6. Run the scoring command. It prints the scores and writes the report into `docs/evals/`.
 
 ## The runs
@@ -53,9 +53,9 @@ the photo beside the render; `--rubric 2,1,2` gives them on the command line.
 | 1 | 0 validator errors; 40 parts or more with a door, a window, and a sloped roof; 3 or more parameters that change the model; within 10 minutes and 40 turns |
 | 2 | 0 validator errors; 250 parts or more with a track loop that closes, a platform, and a canopy; 5 or more parameters that change the model, the platform's length among them; within 30 minutes and 120 turns |
 | 3 | 0 validator errors; BOM F1 of 0.80 or more against the set's inventory; 60 % or more of the set's parts in place; within 45 minutes |
-| Photo | Per subject: 0 validator errors and 4 of 6 or more on your rubric. The rung passes at 3 of the 4 subjects |
+| Photo | Per subject: 0 validator errors, built from the photo (the photo is in the first message, before any step), and 4 of 6 or more on your rubric. The rung passes at 3 of the 4 subjects |
 
-With the parts data pack installed, every rung also needs 2 or fewer `color_unavailable` warnings.
+With the parts data pack installed, rungs 1 to 3 also need 2 or fewer `color_unavailable` warnings.
 
 ## After the runs
 

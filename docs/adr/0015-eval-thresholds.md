@@ -44,7 +44,7 @@ his own plans (Barry 2026-11-04), scored afterward with `emmet eval --score`, wh
 5. **The budget counts, as at G1.** A run over its minutes or turns fails, and so does one that didn't end on its
    own. Rung 3 has no turn budget (section 16.1 gives it minutes only).
 6. **The report.** `docs/evals/<date>-rung<n>.md` has a section per agent with the scores, a render, the usage the CLI
-   reported, and the questions asked; a rerun adds a section and keeps the first. Each report ends with a trend
+   reported, and the questions asked; a rerun adds a section and keeps the first. From its second run on, each report ends with a trend
    table: every run of that rung in the dated reports, oldest first, a column per score.
 
 ## Thresholds

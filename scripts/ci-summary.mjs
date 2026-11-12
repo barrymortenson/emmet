@@ -67,9 +67,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const { level, line } = verdict(job, seconds);
   const lines = [line];
   if (job.includes("e2e")) {
-    const file = join(ROOT, "tests/e2e/out/retries.jsonl");
-    const again = existsSync(file) ? retries(readFileSync(file, "utf8")) : [];
-    lines.push(again.length ? `E2E retries (one is allowed, plan section 16): ${again.join("; ")}` : "E2E retries: none");
+    const file = join(process.env.EMMET_E2E_OUT ?? join(ROOT, "tests/e2e/out"), "retries.jsonl");
+    // wdio makes the file when it starts (tests/e2e/wdio.conf.mjs): without it, no spec ran, which isn't "none".
+    if (!existsSync(file)) lines.push("E2E retries: not recorded (the specs didn't start)");
+    else {
+      const again = retries(readFileSync(file, "utf8"));
+      lines.push(again.length ? `E2E retries (one is allowed, plan section 16): ${again.join("; ")}` : "E2E retries: none");
+    }
     const q = quarantined();
     lines.push(q.length ? `Quarantined: ${q.map((t) => `${t.spec} › ${t.title} (${t.issue})`).join("; ")}` : "Quarantined: none");
   }

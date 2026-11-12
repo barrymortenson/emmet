@@ -9,6 +9,7 @@
 // scripts/ci-scope.sh and `just e2e` both ask this file, and tests/scripts/e2e-tiers.test.mjs checks that every spec
 // file has a tier. `node tests/e2e/tiers.mjs [--changed | all | core | windows | <spec,...>]` prints the specs to run,
 // comma-separated, with hello first: changed paths come on stdin for --changed; no argument is core and every area.
+// `--shard <core|areas> <spec,...>` prints the part of a list that CI's shard of that name runs.
 import { pathToFileURL } from "node:url";
 
 /** The app's first window, run on its own first: when it fails, the machine can't run E2E, and nothing after it is
@@ -100,6 +101,19 @@ export function shard(specs, which) {
   if (!SHARDS.includes(which)) throw new Error(`tests/e2e/tiers.mjs: no shard ${which} (${SHARDS.join(" or ")})`);
   const mine = specs.filter((s) => s !== GATE && CORE.includes(s) === (which === "core"));
   return mine.length ? order([GATE, ...mine]) : [];
+}
+
+/**
+ * What a worker's end says about a retry, for wdio's onWorkerEnd: `retries` is how many the spec file has left. A
+ * first failure with one left is remembered in `failedOnce` (wdio runs the file again); the run after it is the note
+ * for the job summary, `{ spec, passed }`. A spec that passes first time, or fails with no retry allowed, is no retry.
+ */
+export function retried(failedOnce, spec, exitCode, retries) {
+  if (exitCode !== 0 && retries > 0) {
+    failedOnce.add(spec);
+    return null;
+  }
+  return failedOnce.delete(spec) ? { spec, passed: exitCode === 0 } : null;
 }
 
 /** The specs a set of changed paths runs: nothing when none can reach the app, else core plus each area changed,

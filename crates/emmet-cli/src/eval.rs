@@ -315,6 +315,18 @@ pub fn eval(data: &DataDir, opts: &Options) -> Result<Report> {
         // A hand session (G2): the project as the app left it, and its chat. Nothing starts an agent.
         let project = Project::find(Some(dir))?;
         let (mut run, seen) = crate::eval_photo::read_session(&project, opts.agent)?;
+        // A chat with no message in it (an empty or cut-off log) has nothing to time: it mustn't pass the budget
+        // with 0 minutes and 0 turns.
+        if !seen
+            .iter()
+            .any(|(_, s)| matches!(s, crate::eval_photo::Seen::User { .. }))
+        {
+            return Err(Error::new(
+                ErrorCode::IoError,
+                format!("{}'s chat has no message to score.", project.root.display()),
+                "Run the rung in the app first, then score the project it was built in.",
+            ));
+        }
         let observed = crate::eval_photo::observe(&seen);
         run.turns = observed.turns;
         run.seconds = observed.seconds;
@@ -748,7 +760,8 @@ fn score(data: &DataDir, project: &Project, run: &Run, rung: &str) -> Result<Vec
                 ),
             );
             let (changing, detail) = params_that_change(data, project, &placements);
-            // "Platform length", whatever the model calls it: platform_length, platform_len, length.
+            // "Platform length", whatever the model calls it: any changing parameter with "platform" or "length" in its
+            // name.
             let length = changing.iter().any(|n| {
                 let n = n.to_lowercase();
                 n.contains("platform") || n.contains("length")
@@ -826,8 +839,8 @@ fn score(data: &DataDir, project: &Project, run: &Run, rung: &str) -> Result<Vec
             );
         }
     }
-    // Availability needs the parts data pack; without one the validator can't say, and the score is left out of the
-    // result.
+    // Availability needs the parts data pack; without one the validator can't say, so the score reads n/a and
+    // isn't required.
     let pack = emmet_core::parts_data::installed(data).is_some();
     let unavailable = checked
         .as_ref()
@@ -1058,7 +1071,14 @@ fn write_report(path: &Path, opts: &Options, rung_tag: &str, rung: &Rung, r: &Re
             "| {} | {} | {} | {} |",
             s.name,
             if s.required { "yes" } else { "no" },
-            if s.pass { "pass" } else { "fail" },
+            // A score that couldn't be taken (its detail says why) isn't shown as a pass.
+            if s.detail.starts_with("n/a") {
+                "n/a"
+            } else if s.pass {
+                "pass"
+            } else {
+                "fail"
+            },
             s.detail.replace('|', "\\|")
         ));
     }

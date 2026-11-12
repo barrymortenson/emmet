@@ -40,7 +40,7 @@ function problem(file, name) {
     const m = text.match(new RegExp(`((?:#\\[[^\\]]*\\]\\s*)+)(?:pub )?(?:async )?fn ${escape(name)}\\s*\\(`));
     if (!m || !/#\[(tokio::)?test/.test(m[1])) return "no #[test] of that name";
     // The nightly workflow runs the ignored corpus and bench tests by name; nothing runs any other ignored test.
-    if (m[1].includes("#[ignore") && !read(".github/workflows/nightly.yml").includes(name)) return "the test is ignored, so CI never runs it";
+    if (m[1].includes("#[ignore") && !new RegExp(`\\b${escape(name)}\\b`).test(read(".github/workflows/nightly.yml"))) return "the test is ignored, so CI never runs it";
     if (file.startsWith("tests/it/tests/")) {
       const mod = file.slice("tests/it/tests/".length, -3);
       if (!new RegExp(`^mod ${mod};$`, "m").test(read("tests/it/tests/main.rs"))) return "its module isn't in tests/it/tests/main.rs";
@@ -160,6 +160,8 @@ test("a row waits only for a session that isn't done yet", () => {
   runInNewContext(read("docs/plan-status.js"), { window });
   const waiting = [...matrix.matchAll(/^\| ([^|]+) \| ([0-9][A-Z]) \|$/gm)].map((m) => ({ behavior: m[1], session: m[2] }));
   assert.ok(waiting.length > 0 || !matrix.includes("| Behavior | Session |\n|---|---|\n|"), "the waiting table didn't parse");
+  const unknown = waiting.filter((w) => !window.EMMET_STATUS.sessions[w.session]);
+  assert.deepEqual(unknown, [], "a row waits for a session the status file doesn't have");
   const overdue = waiting.filter((w) => ["done", "skipped"].includes(window.EMMET_STATUS.sessions[w.session]?.status));
   assert.deepEqual(overdue, [], "these sessions are done: give each row its test and move it into a table above");
 });
