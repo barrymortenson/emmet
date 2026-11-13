@@ -88,6 +88,8 @@ export const config = {
         // Node 22's native cpSync is the likely cause of.
         await cp(join(shared, "python", "installs"), join(fresh, "python", "installs"), { recursive: true, verbatimSymlinks: true });
       }
+      // The same projects folder as the shared data dir's, for the same reason.
+      if (process.platform === "win32") writeFileSync(join(fresh, "settings.json"), `${JSON.stringify({ projects_folder: s.projects_folder }, null, 2)}\n`);
       process.env.EMMET_DATA_DIR = fresh;
     }
     // The chat specs' fake agents, and the test home with sentinel agent configs (lib/agents.mjs).
