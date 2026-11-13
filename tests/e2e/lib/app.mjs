@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import pixelmatch from "pixelmatch";
 import { os, out, repo } from "./paths.mjs";
+import { listRecent } from "./projects.mjs";
 import { decode, encode, shrink } from "./png.mjs";
 
 /** Window baselines are kept an eighth the window's size each way, in CSS pixels: small to commit, and a moved or
@@ -85,7 +86,12 @@ export async function showsProject(root, what) {
 
 export async function open(dir) {
   const drawn = await browser.execute(() => window.__emmet.drawnAt());
-  const { root } = await invoke("open_recent", { path: dir });
+  const { root } = await invoke("open_recent", { path: dir }).catch((e) => {
+    // The app's own write of the recents list can land after the spec's (lib/projects.mjs): list it again, once.
+    if (!/isn't a recent project/.test(String(e?.message ?? e)) || !listRecent(dir)) throw e;
+    console.log(`${dir} had fallen off the recents list; listed again`);
+    return invoke("open_recent", { path: dir });
+  });
   // The viewer's own error, as soon as there is one, rather than a timeout that hides it.
   await browser.waitUntil(
     async () => {

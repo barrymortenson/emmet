@@ -2,7 +2,7 @@
 // The projects each spec opens: fresh copies under tests/e2e/out/projects/, trusted with this data dir and put on the
 // recents list, so the spec can open them with open_recent.
 import { execFileSync } from "node:child_process";
-import { cpSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { bin, out, repo } from "./paths.mjs";
 
@@ -85,6 +85,17 @@ function make(fixture, dir, params) {
 /** The path Open… picks next (src-tauri/src/projects.rs's E2E seam). */
 export function pickNext(path) {
   writeFileSync(process.env.EMMET_E2E_PICK_FILE, path);
+}
+
+/** Puts `path` on the recents list if it isn't there. The app writes the list too, when it opens a project, and a
+ * write of its own that lands after a spec's list was made takes the spec's projects off it (Windows run 43470551633:
+ * the versions spec's last project, opened as the import spec began). */
+export function listRecent(path) {
+  const file = join(process.env.EMMET_DATA_DIR, "recent.json");
+  const recent = JSON.parse(readFileSync(file, "utf8"));
+  if (recent.some((r) => r.path === path)) return false;
+  writeFileSync(file, JSON.stringify([{ path, name: path.split(/[\\/]/).pop() }, ...recent], null, 2));
+  return true;
 }
 
 /** Makes the spec's projects and lists them as its recents. */
