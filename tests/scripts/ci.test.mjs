@@ -214,6 +214,12 @@ test("DCO runs on every event but a push to main, so the hosted fallback's ci ch
 
 test("both OS jobs keep the integration tests' data dir and home in the runner's temp dir, out of the rust cache", () => {
   for (const job of ["mac", "windows"]) {
-    assert.match(jobs[job], /EMMET_DATA_DIR=%s\\nEMMET_TEST_HOME=%s\\n' "\$RUNNER_TEMP\/emmet-data" "\$RUNNER_TEMP\/home"/, job);
+    // Windows' sit in a folder named as a user's can be, with a space and letters outside ASCII (5B).
+    const user = job === "windows" ? "Emmet Tëst Üser\\/" : "";
+    assert.match(
+      jobs[job],
+      new RegExp(`EMMET_DATA_DIR=%s\\\\nEMMET_TEST_HOME=%s\\\\n' "\\$RUNNER_TEMP\\/${user}emmet-data" "\\$RUNNER_TEMP\\/${user}home"`),
+      job,
+    );
   }
 });
