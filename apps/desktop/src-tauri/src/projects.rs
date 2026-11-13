@@ -689,7 +689,7 @@ pub fn reveal_export() -> Result<(), Box<Problem>> {
     };
     // File Explorer gets the folder, not /select, whose comma-separated argument a file name could bend.
     let mut cmd = if cfg!(windows) {
-        let mut c = std::process::Command::new("explorer");
+        let mut c = std::process::Command::new(emmet_agent::setup::explorer());
         c.arg(path.parent().unwrap_or(&path));
         c
     } else {
