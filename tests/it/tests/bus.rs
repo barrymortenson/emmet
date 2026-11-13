@@ -217,6 +217,57 @@ fn the_socket_is_private() {
     assert_eq!(std::fs::metadata(path).unwrap().permissions().mode() & 0o777, 0o600);
 }
 
+/// The same on Windows: the pipe's access list names its owner and SYSTEM and no one else, read back from the live
+/// pipe. PowerShell reads it, as a second process would have to.
+#[cfg(windows)]
+#[test]
+fn the_pipe_is_private() {
+    let data = data();
+    let _server = Server::start(&data, |_| Reply::default()).unwrap();
+    let info: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(info_path(&data)).unwrap()).unwrap();
+    let pipe = format!(r"\\.\pipe\{}", info["name"].as_str().unwrap());
+    let out = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command"])
+        .arg(format!(
+            "(Get-Acl -LiteralPath '{pipe}').GetSecurityDescriptorSddlForm('Access')"
+        ))
+        .output()
+        .unwrap();
+    let sddl = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    assert!(
+        out.status.success() && sddl.starts_with("D:P"),
+        "a protected access list: {}",
+        emmet_it::text(&out)
+    );
+    // Each entry is (type;flags;rights;;;who).
+    let entries: Vec<&str> = sddl.split('(').skip(1).map(|e| e.trim_end_matches(')')).collect();
+    assert_eq!(entries.len(), 2, "{sddl}");
+    for e in &entries {
+        let f: Vec<&str> = e.split(';').collect();
+        assert!(
+            f[0] == "A" && matches!(f[5], "OW" | "SY"),
+            "only the owner and SYSTEM are allowed: {sddl}"
+        );
+    }
+}
+
+/// The app and a CLI find each other when they name the data folder in different cases, as Windows and macOS allow.
+#[test]
+fn the_data_folders_case_doesnt_matter() {
+    let data = data();
+    let shouted = std::path::PathBuf::from(data.root().to_string_lossy().to_uppercase());
+    if !shouted.exists() {
+        return; // a disk that tells cases apart: these are two folders
+    }
+    let _server = Server::start(&data, |_| Reply {
+        delivered: true,
+        ..Default::default()
+    })
+    .unwrap();
+    let r = send(&DataDir::at(shouted), highlight(), Duration::from_secs(5));
+    assert!(r.delivered, "{r:?}");
+}
+
 #[test]
 fn the_token_file_is_private_and_goes_with_the_app() {
     let data = data();

@@ -816,7 +816,7 @@ pub fn build(catalog: &Path, out: &Path, opts: &BuildOptions) -> Result<Manifest
         let _ = std::fs::remove_file(&tmp);
         return Err(e);
     }
-    std::fs::rename(&tmp, &path).map_err(|e| Error::io(&path, e))?;
+    crate::fsx::rename(&tmp, &path).map_err(|e| Error::io(&path, e))?;
     let manifest = Manifest {
         schema: SCHEMA,
         version: date.clone(),
@@ -1173,7 +1173,7 @@ fn copy_checked(src: &Path, dest: &Path, manifest: &Manifest) -> Result<()> {
         }
         to.sync_all().map_err(|e| Error::io(&tmp, e))?;
         drop(to);
-        std::fs::rename(&tmp, dest).map_err(|e| Error::io(dest, e))
+        crate::fsx::rename(&tmp, dest).map_err(|e| Error::io(dest, e))
     })();
     if copied.is_err() {
         let _ = std::fs::remove_file(&tmp);

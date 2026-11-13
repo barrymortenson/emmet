@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "The main window: its typed commands by name (the project and its versions, the viewer, first-run setup with the agents' install and sign-in, the chat, Settings, export, and the command line tool), and listening for the host's events. Its own title row may minimize, maximize, close, and drag the window, maximize it on a double click (Tauri's drag region), and read whether it's maximized (on Windows the window draws its own caption buttons). No fs, shell, or dialog permissions; the host opens dialogs and runs the agents itself.",
+  "description": "The main window: its typed commands by name (the project and its versions, the viewer, first-run setup with the agents' install and sign-in, the chat, Settings, export, and the command line tool), and listening for the host's events. Its own title row may minimize, maximize, close, and drag the window, maximize it on a double click (Tauri's drag region), and read whether it's maximized (on Windows the window draws its own caption buttons), and go full screen and back (Windows' View menu and F11; macOS's menu bar does it itself). No fs, shell, or dialog permissions; the host opens dialogs and runs the agents itself.",
   "windows": [
     "main"
   ],
@@ -14,6 +14,8 @@
     "core:window:allow-internal-toggle-maximize",
     "core:window:allow-minimize",
     "core:window:allow-is-maximized",
+    "core:window:allow-is-fullscreen",
+    "core:window:allow-set-fullscreen",
     "allow-app-info",
     "allow-ui-state",
     "allow-open-dialog",

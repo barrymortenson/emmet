@@ -165,6 +165,76 @@ describe("the live viewer", () => {
     expect([saved.depth, saved.weathering]).toEqual([12, 7]);
   });
 
+  it("a software renderer gets the Fast preset, and a graphics card a better one", async () => {
+    // Windows without a usable GPU (a VM, remote desktop, a blocked driver) draws WebGL in software: SwiftShader or
+    // the Microsoft Basic Render Driver. GitHub's Windows runners are such machines.
+    const { gpu, quality } = await stats();
+    console.log(`gpu: ${gpu}; quality: ${quality}`);
+    const software = /swiftshader|llvmpipe|software|basic render/i.test(gpu);
+    expect(quality === "fast").toBe(software);
+    if (software) expect((await stats()).pixelRatio).toBe(1);
+  });
+
+  it("the canvas follows the screen's scale: 100, 150, and 200 %", async () => {
+    // A second viewer at Balanced (Fast always draws 1:1), told of each scale the way the browser tells a page: the
+    // ratio changes and the window lays out again.
+    const sizes = await browser.execute(async () => {
+      const real = Object.getOwnPropertyDescriptor(window, "devicePixelRatio");
+      const v = window.__emmet.newViewer();
+      const canvas = document.body.lastElementChild;
+      v.setQuality("balanced");
+      const out = [];
+      try {
+        for (const ratio of [1, 1.5, 2, 3]) {
+          Object.defineProperty(window, "devicePixelRatio", { value: ratio, configurable: true });
+          canvas.style.width = `${800 + ratio * 2}px`;
+          await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+          await v.nextFrame();
+          out.push([v.stats().pixelRatio, canvas.width, canvas.clientWidth]);
+        }
+      } finally {
+        if (real) Object.defineProperty(window, "devicePixelRatio", real);
+        else delete window.devicePixelRatio;
+        v.dispose();
+        canvas.remove();
+      }
+      return out;
+    });
+    // Past 200 % the canvas stays at 2 pixels a CSS pixel: more costs frame time nobody sees.
+    expect(sizes.map(([r]) => r)).toEqual([1, 1.5, 2, 2]);
+    for (const [ratio, width, css] of sizes) expect(width).toBe(Math.floor(css * ratio));
+  });
+
+  it("draws again after the graphics context is lost and comes back", async () => {
+    // A driver update, a laptop waking, or a remote desktop session connecting takes the WebGL context away.
+    const result = await browser.execute(async () => {
+      const v = window.__emmet.viewer();
+      const canvas = document.querySelector("#viewer canvas") ?? document.querySelector("canvas");
+      const gl = canvas.getContext("webgl2");
+      const lose = gl.getExtension("WEBGL_lose_context");
+      if (!lose) return { skipped: true };
+      const event = (name) => new Promise((r) => canvas.addEventListener(name, r, { once: true }));
+      await v.nextFrame();
+      const before = v.stats();
+      const lost = event("webglcontextlost");
+      lose.loseContext();
+      await lost;
+      const restored = event("webglcontextrestored");
+      lose.restoreContext();
+      await restored;
+      // No one asks for a frame here: the viewer must draw the scene again by itself.
+      for (let i = 0; i < 120 && v.stats().framesDrawn === before.framesDrawn; i++) await new Promise((r) => requestAnimationFrame(r));
+      const after = v.stats();
+      return { lost: gl.isContextLost(), drew: after.framesDrawn - before.framesDrawn, calls: [before.drawCalls, after.drawCalls], instances: [before.instances, after.instances] };
+    });
+    if (result.skipped) return console.log("no WEBGL_lose_context here");
+    expect(result.lost).toBe(false);
+    expect(result.drew).toBeGreaterThan(0);
+    expect(result.calls[1]).toBe(result.calls[0]);
+    expect(result.instances[1]).toBe(result.instances[0]);
+    await instances(await partCount());
+  });
+
   it("reopening a project whose build lost its placements builds it again", async () => {
     rmSync(join(project, "build", "placements.json"));
     const root = await open(project);

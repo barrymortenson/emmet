@@ -31,6 +31,7 @@ const PROJECTS = {
   setup: [["", "agent"]],
   panel: [["", "cottage"], ["floating", "broken-floating"], ["picnic", "nested-submodel"]],
   trust: [["", "cottage-untrusted"]],
+  csp: [["", "cottage"]],
   import: [["", "cottage"]],
   versions: [["", "cottage"]],
   keyboard: [["", "cottage"]],

@@ -181,7 +181,7 @@ test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the ch
 });
 
 // The E2E specs come from tests/e2e/tiers.mjs: core for anything that reaches the app, plus the areas that changed.
-const CORE = "hello,viewer,panel,chat,checks,trust,runs,versions,import,render,visual";
+const CORE = "hello,viewer,panel,chat,checks,trust,csp,runs,versions,import,render,visual";
 for (const [change, specs] of [
   ["README.md", ""],
   ["scripts/plan-check.mjs", ""],
@@ -210,6 +210,12 @@ test("DCO runs on every event but a push to main, so the hosted fallback's ci ch
   const plan = jobs.plan;
   assert.match(plan, /- name: DCO\n {8}if: github\.event_name != 'push'\n/);
   assert.match(plan, /BASE: \$\{\{ github\.event\.pull_request\.base\.sha \|\| 'origin\/main' \}\}/);
+});
+
+test("the plan job, which no change skips, scans the whole history for secrets", () => {
+  assert.doesNotMatch(jobs.plan, /^ {4}(if|needs):/m, "the plan job runs for every change");
+  assert.match(jobs.plan, /fetch-depth: 0/);
+  assert.match(jobs.plan, /sha256sum -c\n[\s\S]*gitleaks git --redact --no-banner \.$/m);
 });
 
 test("both OS jobs keep the integration tests' data dir and home in the runner's temp dir, out of the rust cache", () => {

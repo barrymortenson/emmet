@@ -57,5 +57,6 @@ echo "e2e_specs=$specs"
 flag e2e_windows '^(apps/desktop/src-tauri/|tests/e2e/|crates/emmet-agent/|tests/fake-agents/)'
 # The release-protocol build (the custom protocol and the embedded frontend), when the native side changes.
 flag build_app '^apps/desktop/src-tauri/'
-# The unsigned NSIS installer (release-dry on Windows): a release build, so only when the release files change.
-flag nsis '^(scripts/release-dry\.sh|apps/desktop/src-tauri/tauri\.release\.conf\.json)$'
+# The unsigned NSIS installer (release-dry on Windows), installed and uninstalled by scripts/nsis-check.ps1: a release
+# build, so only when the release files change.
+flag nsis '^(scripts/(release-dry\.sh|nsis-check\.ps1)|apps/desktop/src-tauri/tauri\.release\.conf\.json)$'

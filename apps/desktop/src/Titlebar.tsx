@@ -7,19 +7,41 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { DropdownMenu, Menubar, Popover, ToggleGroup } from "radix-ui";
 import { useEffect, useRef, useState } from "react";
 import ant from "./assets/brand/mark-ant.svg";
-import type { VersionView } from "./bindings";
+import { commands, type Recent, type VersionView } from "./bindings";
 import { type Action, keysFor, windows } from "./keys";
 import { Badge, Button, IconButton, Icon, MenuItems, type MenuEntry, when } from "./ui";
 
 export type Pop = "save" | "versions" | null;
+/** How many recent projects Windows' File menu lists. */
+const RECENT_SHOWN = 8;
 type View = "iso" | "front" | "top";
 
 /** Windows' menus: macOS's menu bar's actions (keyboard.md), in sentence case, with Settings under File and Updates,
  * the command line tool, and About under Help. */
-function windowsMenus(run: (a: Action) => void, can: (a: Action) => boolean): [string, MenuEntry[]][] {
-  const item = (id: Action, text: string): MenuEntry => ({ id, text, keys: keysFor(id), disabled: !can(id), onSelect: () => run(id) });
+function windowsMenus(run: (a: Action) => void, can: (a: Action) => boolean, recent: Recent[], onOpenRecent: (r: Recent) => void): [string, MenuEntry[]][] {
+  const item = (id: Action, text: string, keys = keysFor(id)): MenuEntry => ({ id, text, keys, disabled: !can(id), onSelect: () => run(id) });
+  // Open recent, in the menu itself: the newest projects by name, as macOS's submenu lists them.
+  const recents: MenuEntry[] = recent.length
+    ? recent.slice(0, RECENT_SHOWN).map((r, i) => ({ id: `recent:${i}`, text: r.name, disabled: !can("open"), onSelect: () => onOpenRecent(r) }))
+    : [{ note: "No recent projects" }];
   return [
-    ["File", [item("new", "New"), item("open", "Open…"), "-", item("save", "Save version"), item("versions", "Versions…"), item("export", "Export…"), "-", item("settings", "Settings…")]],
+    [
+      "File",
+      [
+        item("new", "New"),
+        item("open", "Open…"),
+        { label: "Open recent" },
+        ...recents,
+        "-",
+        item("save", "Save version"),
+        item("versions", "Versions…"),
+        item("export", "Export…"),
+        "-",
+        item("settings", "Settings…"),
+        // Windows closes the window on Alt+F4 itself.
+        item("exit", "Exit", "Alt+F4"),
+      ],
+    ],
     ["Edit", [item("undo-knob", "Undo"), item("redo-knob", "Redo"), "-", item("undo-turn", "Undo the agent's last turn")]],
     [
       "View",
@@ -47,6 +69,8 @@ function windowsMenus(run: (a: Action) => void, can: (a: Action) => boolean): [s
         "-",
         item("step:prev", "Previous step"),
         item("step:next", "Next step"),
+        "-",
+        item("fullscreen", "Full screen"),
       ],
     ],
     ["Agent", [item("agent:message", "Go to message box"), item("agent:send", "Send"), item("agent:stop", "Stop"), "-", item("agent:fresh", "Start fresh"), item("agent:switch", "Switch agent"), item("agent:model", "Model and effort…"), item("agent:usage", "Plan usage…")]],
@@ -150,6 +174,7 @@ export function Titlebar({
   versions,
   onSaveVersion,
   onOpenVersion,
+  onOpenRecent,
 }: {
   name: string;
   hasProject: boolean;
@@ -162,8 +187,11 @@ export function Titlebar({
   versions: VersionView[] | null;
   onSaveVersion: (name: string) => Promise<void>;
   onOpenVersion: (v: VersionView) => void;
+  onOpenRecent: (r: Recent) => void;
 }) {
   const [menu, setMenu] = useState(false);
+  /** Windows' File menu lists the recent projects as they are when it opens. */
+  const [recent, setRecent] = useState<Recent[]>([]);
   /** A menu item that opens a popover on the chip was chosen: focus mustn't go back to the chip, which would close it. */
   const popping = useRef(false);
   const entry = (id: Action, text: string, icon: Parameters<typeof Icon>[0]["name"]): MenuEntry => ({
@@ -226,9 +254,9 @@ export function Titlebar({
           </Popover.Portal>
         </Popover.Root>
         {windows && (
-          <Menubar.Root className="menubar" data-c="menubar" aria-label="Menu">
-            {windowsMenus(run, can).map(([title, items]) => (
-              <Menubar.Menu key={title}>
+          <Menubar.Root className="menubar" data-c="menubar" aria-label="Menu" onValueChange={(open) => open === "File" && void commands.appInfo().then((i) => setRecent(i.recent))}>
+            {windowsMenus(run, can, recent, onOpenRecent).map(([title, items]) => (
+              <Menubar.Menu key={title} value={title}>
                 <Menubar.Trigger className="menubar-trigger">{title}</Menubar.Trigger>
                 <Menubar.Portal>
                   <Menubar.Content className="menu" data-c="menu" align="start" sideOffset={4}>

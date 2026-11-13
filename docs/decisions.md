@@ -1089,3 +1089,9 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   (the budgets on real hardware), and 4E (the page baselines) left for the Windows pass, in its tests and the H-10
   checklist. Antigravity, Cursor, and Grok stay out of the MVP. Rejected: lifting the pause for 5B's branch only
   (manual runs, the earlier sessions' halves left open), and doing only the Mac parts with the session blocked.
+- **Windows' Edit menu has no Cut, Copy, Paste, or Select all** (Barry, 2026-11-13, through AskUserQuestion: "Leave
+  them out"). `docs/design/keyboard.md` listed them for both OSes, and 4A built them only in macOS's menu bar.
+  Windows' menus are drawn in the page, where a menu click takes focus from the text field, and Paste from a menu
+  needs clipboard-read access the window doesn't have. Ctrl+X, C, V, and A work in every field; keyboard.md says so.
+  Rejected: building Cut, Copy, and Select all without Paste, and a new host command (and capability) that reads
+  the clipboard.

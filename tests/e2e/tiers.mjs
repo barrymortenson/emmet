@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
  * worth waiting for. */
 export const GATE = "hello";
 
-export const CORE = ["viewer", "panel", "chat", "checks", "trust", "runs", "versions", "import", "render", "visual"];
+export const CORE = ["viewer", "panel", "chat", "checks", "trust", "csp", "runs", "versions", "import", "render", "visual"];
 
 /** Each area: the paths that are its code, and the specs that cover it beyond core. */
 export const AREAS = {
@@ -49,7 +49,7 @@ export const AREAS = {
  * own GPU path, and the specs for the keymap and the title-row menus, which Windows has in place of the Mac's menu
  * bar (keyboard, panel, checks), and for first run. The rest of the UI runs the same JS in WebView2, so the Mac covers
  * it. */
-export const WINDOWS = ["viewer", "panel", "chat", "checks", "setup", "runs", "trust", "versions", "import", "render", "visual", "keyboard", "perf", "instructions", "first-run"];
+export const WINDOWS = ["viewer", "panel", "chat", "checks", "setup", "runs", "trust", "csp", "versions", "import", "render", "visual", "keyboard", "perf", "instructions", "first-run"];
 
 /** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes. */
 export const EXTRA = ["screens", "dock", "leak"];

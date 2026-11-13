@@ -5,7 +5,7 @@
 // part and color, with its picture); Steps (a step shows the build up to it; a sub-assembly highlights every copy; a
 // sub-step shows its sub-assembly on its own, session 4H); and Export (a toast says what was written where).
 import { $, $$, expect } from "@wdio/globals";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { camera, nextScene, open, restingCamera, screenshots, shown, stats } from "../lib/app.mjs";
 import { agentHome, scenario } from "../lib/agents.mjs";
@@ -253,10 +253,13 @@ describe("the options panel", () => {
   }
 
   it("exports the parts list into Downloads, and says so", async () => {
+    // Windows names Downloads only when the folder exists, and the test home starts without one (as the
+    // instructions spec says); its toast gives the whole path, since Windows' home isn't the test home.
+    mkdirSync(join(agentHome, "Downloads"), { recursive: true });
     await browser.keys([mod, "e"]);
     await (await $("[data-menu='csv']")).waitForDisplayed();
     await click("[data-menu='csv']");
-    await expect($("#toast")).toHaveText(expect.stringContaining("Saved “Panel parts.csv” to Downloads"));
+    await expect($("#toast")).toHaveText(expect.stringMatching(/Saved “Panel parts\.csv” to (.*[\\/])?Downloads/));
     expect(existsSync(join(agentHome, "Downloads", "Panel parts.csv"))).toBe(true);
     await expect($("#toast-action")).toHaveText("Show in folder");
   });

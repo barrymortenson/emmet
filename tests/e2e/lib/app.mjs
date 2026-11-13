@@ -41,6 +41,31 @@ export const invoke = (cmd, args = {}) =>
 /** Opens a project from the recents list (lib/projects.mjs put it there) and waits for its first scene: drawn, framed,
  * and the camera still. shown() counts a scene as soon as the viewer takes it, before its parts load and the camera
  * frames it, and the orbit controls round the framed camera off over the next frames (a last-digit change). */
+/** Presses Esc until `selector` is gone. Esc closes one thing at a time, the newest first, and a tooltip that came up
+ * under the pointer the driver left somewhere counts as one (on a slow runner there's time for it to show). */
+export async function escape(selector) {
+  for (let i = 0; i < 3; i++) {
+    await browser.keys("Escape");
+    const gone = await (await $(selector))
+      .waitForDisplayed({ reverse: true, timeout: 3_000 })
+      .then(() => true, () => false);
+    if (gone) return;
+    const tips = await browser.execute(() => [...document.querySelectorAll("[role='tooltip']")].map((t) => t.textContent));
+    console.log(`Esc ${i + 1} left ${selector} open; tooltips showing: ${JSON.stringify(tips)}`);
+  }
+}
+
+/** Waits until the window shows the project at `root` with a scene; when it never does, says which project it does
+ * show (a path Windows spells another way reads as "never showed" otherwise). */
+export async function showsProject(root, what) {
+  try {
+    await browser.waitUntil(() => browser.execute((r) => window.__emmet.project() === r && window.__emmet.shown() >= 1, root), { timeout: 30_000 });
+  } catch {
+    const now = await browser.execute(() => [window.__emmet.project(), window.__emmet.shown()]);
+    throw new Error(`${what}: wanted ${root}; the window shows ${now[0]} (scene ${now[1]})`);
+  }
+}
+
 export async function open(dir) {
   const drawn = await browser.execute(() => window.__emmet.drawnAt());
   const { root } = await invoke("open_recent", { path: dir });

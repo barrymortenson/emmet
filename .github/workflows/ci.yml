@@ -293,15 +293,25 @@ jobs:
           cache-on-failure: true
       - run: rustup toolchain install
       - run: just deps
+      # Windows Server ships with window animations off, which a browser reads as "prefers reduced motion", and the
+      # app then turns its build animation off: the animation's specs and its frame budget need it on, as a desktop
+      # Windows has it (SPI_SETCLIENTAREAANIMATION).
+      - name: Window animations on
+        shell: pwsh
+        run: |
+          $api = Add-Type -PassThru -Name Spi -Namespace Emmet -MemberDefinition '[DllImport("user32.dll", SetLastError = true)] public static extern bool SystemParametersInfo(uint action, uint param, IntPtr value, uint flags);'
+          if (-not $api::SystemParametersInfo(0x1043, 0, [IntPtr]1, 3)) { throw "couldn't turn window animations on" }
       - run: just e2e windows
       - name: E2E output
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-windows
+          # With the baselines a spec wrote because none was committed yet: they're checked and committed from here.
           path: |
             tests/e2e/out/
             !tests/e2e/out/projects/
+            tests/e2e/baselines/windows/
           if-no-files-found: ignore
       - name: Timing
         if: always()
@@ -347,7 +357,12 @@ jobs:
       - run: just release-dry
         env:
           EMMET_PARTS_DATA_PACK: target/parts-data-mini
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      # Install it, install it again over itself, and uninstall it: per-user, with the app data kept (5B).
+      - name: Install, reinstall, uninstall
+        shell: pwsh
+        run: scripts/nsis-check.ps1 (Get-ChildItem target/release/bundle/nsis/*.exe | Select-Object -First 1).FullName
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: emmet-windows-nsis
           path: target/release/bundle/nsis/*.exe
@@ -366,6 +381,14 @@ jobs:
           node-version-file: .node-version
       - run: node scripts/plan-check.mjs
       - run: node scripts/spdx-check.mjs
+      # Secrets, over the whole history, on every PR: this job always runs, and the Mac job (which scans too, in
+      # just ci) is skipped for a change that is all prose, where a pasted token is as likely as anywhere (5B).
+      - name: gitleaks
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /tmp/gitleaks.tgz" | sha256sum -c
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          /tmp/gitleaks git --redact --no-banner .
       # The LDraw parts in the test fixture keep their license, authors, and bytes (ADR 0003).
       - run: node scripts/ldraw-mini-check.mjs
       # The design mockups' contrast gate (2A): a push that changes only docs/design skips the Mac job, so it runs here.

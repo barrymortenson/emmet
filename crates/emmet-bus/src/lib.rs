@@ -177,8 +177,11 @@ pub fn info_path(data: &DataDir) -> PathBuf {
 }
 
 /// The socket name for a data dir: one app per data dir, and the dev, test, and installed apps never meet.
+/// The folder is named as the disk spells it, so the app and a CLI given the same folder in another case (Windows and
+/// macOS match names in any case) or through a link find each other.
 fn socket_name(data: &DataDir) -> String {
-    let hash = fsx::sha256_hex(data.root().to_string_lossy().as_bytes());
+    let root = fsx::canonical(data.root()).unwrap_or_else(|_| data.root().to_path_buf());
+    let hash = fsx::sha256_hex(root.to_string_lossy().as_bytes());
     format!("emmet-{}.sock", &hash[..16])
 }
 

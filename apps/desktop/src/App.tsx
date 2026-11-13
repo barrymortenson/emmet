@@ -6,6 +6,7 @@
 // box, pins, the cut-away's bar) is ViewerLayer's (4C). Every action (keys, macOS's menu bar, Windows' title-row
 // menus, the project chip's menu) goes through `run`.
 import { createViewer, type Pace, type Preset, type Quality, type Theme, type View, type Viewer } from "@emmet/viewer";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Toast, Tooltip } from "radix-ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -48,7 +49,7 @@ const CHAT = { min: 300, max: 520, start: 340 };
 /** A menu click and its key press can both arrive for one action: the second within this long is the same one. */
 const SAME_ACTION_MS = 250;
 /** What works while first run covers the window: its own ways out, and the dialogs over it. */
-const COVERED_OK: Action[] = ["new", "open", "settings", "updates", "cli", "about", "shortcuts", "diagnostics", "help:report", "escape"];
+const COVERED_OK: Action[] = ["new", "open", "settings", "updates", "cli", "about", "shortcuts", "diagnostics", "help:report", "escape", "exit", "fullscreen"];
 
 /** The system appearance, unless Settings pins one or a test forces one. */
 function useTheme(pinned: string | undefined): [Theme, (t: Theme | null) => void] {
@@ -643,6 +644,14 @@ export function App() {
         case "about":
           setDialog("about");
           break;
+        case "exit":
+          void getCurrentWindow().close();
+          break;
+        case "fullscreen": {
+          const w = getCurrentWindow();
+          void w.isFullscreen().then((full) => w.setFullscreen(!full));
+          break;
+        }
         case "shortcuts":
           setDialog("shortcuts");
           break;
@@ -815,7 +824,7 @@ export function App() {
       );
     return null;
   })();
-  const titlebar = <Titlebar name={name} hasProject={!!project} view={view} onView={(v) => run(`view:${v}`)} run={run} can={can} pop={pop} onPop={setPop} versions={versions} onSaveVersion={saveVersion} onOpenVersion={openVersion} />;
+  const titlebar = <Titlebar name={name} hasProject={!!project} view={view} onView={(v) => run(`view:${v}`)} run={run} can={can} pop={pop} onPop={setPop} versions={versions} onSaveVersion={saveVersion} onOpenVersion={openVersion} onOpenRecent={(r) => void act(commands.openRecent(r.path))} />;
 
   return (
     <Tooltip.Provider delayDuration={500}>

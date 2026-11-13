@@ -5,7 +5,7 @@
 import { $, $$, expect } from "@wdio/globals";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { invoke, nextScene, open, screenshots, shown, stats } from "../lib/app.mjs";
+import { invoke, nextScene, open, screenshots, shown, showsProject, stats } from "../lib/app.mjs";
 import { agentHome } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 
@@ -77,7 +77,7 @@ describe("versions", () => {
     await (await $("#versions-list [data-n='1']")).click();
     await (await $("#version-open")).click();
     const root = join(agentHome, "Documents", "Emmet", "Versions version 1");
-    await browser.waitUntil(() => browser.execute((r) => window.__emmet.project() === r && window.__emmet.shown() >= 1, root), { timeout: 30_000, timeoutMsg: "the new project never showed" });
+    await showsProject(root, "the new project never showed");
     await expect($("#project-chip")).toHaveText("Versions version 1");
     expect(readFileSync(join(root, "model.py"))).toEqual(saved[0]);
     expect((await $$("#banner-untrusted")).length).toBe(0);

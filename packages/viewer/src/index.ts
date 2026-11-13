@@ -175,6 +175,8 @@ export interface Stats {
   triangles: number;
   /** Mean time between the last frames drawn back to back, in ms (0 before any). */
   frameMs: number;
+  /** Frames the window has drawn since the viewer was made (it draws only when something changed). */
+  framesDrawn: number;
   /** The JS heap in bytes where the webview reports it (WebView2), else null (WKWebView). */
   heap: number | null;
   instances: number;
@@ -207,7 +209,11 @@ export interface Stats {
   failed: Record<string, string>;
   /** How many placements the last update added, removed, moved, recolored, or left unchanged. */
   lastDiff: { added: number; removed: number; moved: number; recolored: number; unchanged: number };
+  /** The preset drawn (what "auto" picked, when it's auto), the graphics card or software renderer drawing it, and
+   * the canvas's pixels per CSS pixel. */
   quality: Preset;
+  gpu: string;
+  pixelRatio: number;
   pace: Pace;
   shadow: boolean;
   /** Whether the window draws the ground grid (pictures never do). */
@@ -426,6 +432,9 @@ class EmmetViewer implements Viewer {
   private listeners = new Map<keyof ViewerEvents, Set<(...args: never[]) => void>>();
   private lastDiff: Stats["lastDiff"] = { added: 0, removed: 0, moved: 0, recolored: 0, unchanged: 0 };
   private resize: ResizeObserver | null = null;
+  private unwatchPixelRatio: () => void = () => {};
+  private gpuName: string | null = null;
+  private framesDrawn = 0;
   private theme: Theme;
   private quality: Quality;
   private preset: Preset;
@@ -490,8 +499,33 @@ class EmmetViewer implements Viewer {
       );
       this.resize.observe(canvas);
     }
+    this.watchPixelRatio();
+    // A driver reset, a sleeping laptop, or a remote desktop session takes the WebGL context away. three.js builds its
+    // state again when the browser gives it back; the viewer draws on demand, so it asks for that frame.
+    const restored = (): void => {
+      this.shadowDirty = true;
+      this.lodDirty = true;
+      this.invalidate();
+    };
+    canvas.addEventListener("webglcontextrestored", restored);
+    this.cleanup.push(() => canvas.removeEventListener("webglcontextrestored", restored));
     this.loop = this.loop.bind(this);
     this.raf = requestAnimationFrame(this.loop);
+  }
+
+  /** Follows the screen's scale: Windows' 100, 150, or 200 % setting changed, or the window dragged to a monitor with
+   * another one. No resize comes with that when the window's size in CSS pixels stays the same, so a media query on
+   * the current ratio says when it stops being true. */
+  private watchPixelRatio(): void {
+    if (typeof matchMedia !== "function") return;
+    const query = matchMedia(`(resolution: ${globalThis.devicePixelRatio || 1}dppx)`);
+    const changed = (): void => {
+      this.fit();
+      this.moved();
+      this.watchPixelRatio();
+    };
+    query.addEventListener("change", changed, { once: true });
+    this.unwatchPixelRatio = () => query.removeEventListener("change", changed);
   }
 
   /** Pointer gestures: hovering names a part; a click picks one (and skips the build animation); ⌥-drag draws a
@@ -1299,11 +1333,17 @@ class EmmetViewer implements Viewer {
   }
 
   private resolve(q: Quality): Preset {
-    if (q !== "auto") return q;
-    const gl = this.renderer.getContext();
-    const info = gl.getExtension("WEBGL_debug_renderer_info");
-    const gpu = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
-    return presetFor(gpu);
+    return q === "auto" ? presetFor(this.gpu()) : q;
+  }
+
+  /** What draws: the graphics card's name, or a software renderer's (SwiftShader, Microsoft Basic Render Driver). */
+  private gpu(): string {
+    if (this.gpuName == null) {
+      const gl = this.renderer.getContext();
+      const info = gl.getExtension("WEBGL_debug_renderer_info");
+      this.gpuName = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+    }
+    return this.gpuName;
   }
 
   /** Best draws the ground shadow; the others don't. */
@@ -1730,6 +1770,7 @@ class EmmetViewer implements Viewer {
       drawCalls: info.render.calls,
       triangles: info.render.triangles,
       frameMs: deltas.length ? deltas.reduce((a, b) => a + b, 0) / deltas.length : 0,
+      framesDrawn: this.framesDrawn,
       heap: memory ? memory.usedJSHeapSize : null,
       instances,
       buckets: this.buckets.size,
@@ -1751,6 +1792,8 @@ class EmmetViewer implements Viewer {
       failed: Object.fromEntries(this.failedHere()),
       lastDiff: { ...this.lastDiff },
       quality: this.preset,
+      gpu: this.gpu(),
+      pixelRatio: this.renderer.getPixelRatio(),
       pace: this.pace,
       shadow: this.renderer.shadowMap.enabled,
       grid: this.grid.mesh.visible,
@@ -1785,6 +1828,7 @@ class EmmetViewer implements Viewer {
   dispose(): void {
     cancelAnimationFrame(this.raf);
     this.resize?.disconnect();
+    this.unwatchPixelRatio();
     for (const f of this.cleanup) f();
     this.controls.dispose();
     for (const b of [...this.buckets.values()]) this.dropBucket(b);
@@ -1838,6 +1882,7 @@ class EmmetViewer implements Viewer {
       this.fitShadow(this.renderer);
     }
     this.draw(this.renderer, this.camera, this.theme);
+    this.framesDrawn++;
     if (moving) this.emit("camera");
     this.frames.push(now);
     if (this.frames.length > 61) this.frames.shift();
@@ -1887,6 +1932,9 @@ class EmmetViewer implements Viewer {
   private fit(): void {
     const w = this.canvas.clientWidth || this.canvas.width || 1;
     const h = this.canvas.clientHeight || this.canvas.height || 1;
+    // The ratio is read each time: it changes with the screen's scale (watchPixelRatio).
+    const ratio = this.pixelRatio();
+    if (ratio !== this.renderer.getPixelRatio()) this.renderer.setPixelRatio(ratio);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
