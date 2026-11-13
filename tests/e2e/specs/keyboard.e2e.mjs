@@ -200,12 +200,12 @@ describe("the keyboard map", () => {
         (el) => el.tabIndex >= 0 && !el.disabled && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden",
       );
       return tabbable.flatMap((el) => {
-        // Twice, with a blur between: a group of Radix's (the tabs, a segmented control, Windows' menu bar) hands
-        // focus on to its current item when focus comes by Tab, and takes a focus after a mouse press on it for a
-        // click, until it next loses focus. The driver's clicks earlier in this spec were such presses.
         el.focus();
-        el.blur();
-        el.focus();
+        // A window that isn't the front one gets no focus events from WebView2 (the active element still changes),
+        // and a group of Radix's (the tabs, a segmented control, Windows' menu bar) hands focus on to its current item
+        // from that event: sent here as the browser sends it to a front window. A hosted Windows runner's is such a
+        // window.
+        if (!document.hasFocus()) el.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
         // Radix's tab list hands focus to its open tab, where Tab lands: that's the control whose ring shows.
         const at = document.activeElement;
         if (!at || (at !== el && !el.contains(at))) return [];

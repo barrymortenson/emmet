@@ -92,12 +92,18 @@ describe("a script in a project's data doesn't run", () => {
       const script = document.createElement("script");
       script.textContent = "window.__ran_script=1";
       document.body.append(script);
-      let evaled = "ran";
-      try {
-        (0, eval)("window.__ran_eval=1");
-      } catch (e) {
-        evaled = e.name;
-      }
+      // From a timer, as the page's own code would call it: WebView2 lets the script a driver injects use eval
+      // whatever the policy says (as DevTools' console may), so a call made here directly proves nothing.
+      const evaled = await new Promise((resolve) =>
+        setTimeout(() => {
+          try {
+            (0, eval)("window.__ran_eval=1");
+            resolve("ran");
+          } catch (e) {
+            resolve(e.name);
+          }
+        }, 0),
+      );
       const fetched = await fetch("https://example.com/").then(
         () => "sent",
         () => "refused",

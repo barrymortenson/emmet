@@ -235,7 +235,19 @@ describe("the live viewer", () => {
           for (let i = 0; i < data.length; i += 4) seen.add((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
           return seen.size;
         };
-        const was = await picture();
+        const differs = (a, b) => {
+          let n = 0;
+          for (let i = 0; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 24) n++;
+          return n / (a.length / 4);
+        };
+        // Settled first: the viewer picks each part's stud detail a frame or two after the camera stops.
+        let was = await picture();
+        for (let i = 0; i < 20; i++) {
+          const next = await picture();
+          const same = differs(was, next) === 0;
+          was = next;
+          if (same) break;
+        }
         const before = v.stats();
         const lost = event("webglcontextlost");
         lose.loseContext();
@@ -250,11 +262,10 @@ describe("the live viewer", () => {
         for (let i = 0; i < 120 && v.stats().framesDrawn === before.framesDrawn; i++) await new Promise((r) => requestAnimationFrame(r));
         const drew = v.stats().framesDrawn - before.framesDrawn;
         // The same picture as before: every part, its colors, and the room's light on them.
-        const now = await picture();
-        let differ = 0;
-        for (let i = 0; i < now.length; i += 4) if (Math.abs(now[i] - was[i]) + Math.abs(now[i + 1] - was[i + 1]) + Math.abs(now[i + 2] - was[i + 2]) > 24) differ++;
+        let now = await picture();
+        for (let i = 0; i < 20 && differs(was, now) > 0; i++) now = await picture();
         await new Promise((r) => setTimeout(r, 500));
-        return { lost: gl.isContextLost(), drew, instances: [before.instances, v.stats().instances], differ: differ / (now.length / 4), colors: [colors(was), colors(now)] };
+        return { lost: gl.isContextLost(), drew, instances: [before.instances, v.stats().instances], differ: differs(was, now), colors: [colors(was), colors(now)] };
       } finally {
         v.dispose();
         canvas.remove();
