@@ -201,9 +201,10 @@ jobs:
       - name: Defender off
         shell: pwsh
         run: Set-MpPreference -DisableRealtimeMonitoring $true
-      # As on the Mac: test data outside target/, which rust-cache saves.
+      # As on the Mac: test data outside target/, which rust-cache saves. Under a folder named as a Windows user's can
+      # be, with a space and letters outside ASCII (5B): the home, app data, Python, and the library all sit in it.
       - name: Test data dirs
-        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/emmet-data" "$RUNNER_TEMP/home" >> "$GITHUB_ENV"
+        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/Emmet Tëst Üser/emmet-data" "$RUNNER_TEMP/Emmet Tëst Üser/home" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -271,9 +272,10 @@ jobs:
       - name: Defender off
         shell: pwsh
         run: Set-MpPreference -DisableRealtimeMonitoring $true
-      # As on the Mac: test data outside target/, which rust-cache saves.
+      # As on the Mac: test data outside target/, which rust-cache saves. Under a folder named as a Windows user's can
+      # be, with a space and letters outside ASCII (5B): the home, app data, Python, and the library all sit in it.
       - name: Test data dirs
-        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/emmet-data" "$RUNNER_TEMP/home" >> "$GITHUB_ENV"
+        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/Emmet Tëst Üser/emmet-data" "$RUNNER_TEMP/Emmet Tëst Üser/home" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
