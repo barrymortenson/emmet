@@ -114,6 +114,9 @@ export const config = {
     // a test home with no Documents/Emmet or Downloads (New, import, and Export write there), so a spec, and the
     // screens it takes, don't depend on the order.
     prepareAgents();
+    // Windows names Downloads only when the folder exists (Tauri says "unknown path" otherwise, and an export says it
+    // can't find Downloads); macOS makes it on the first write.
+    if (process.platform === "win32") mkdirSync(join(agentHome, "Downloads"), { recursive: true });
     rmSync(join(process.env.EMMET_DATA_DIR, "chatgpt"), { recursive: true, force: true });
     prepareProject(basename(specs[0] ?? "", ".e2e.mjs"));
   },

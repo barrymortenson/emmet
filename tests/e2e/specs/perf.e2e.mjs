@@ -38,6 +38,8 @@ describe("the viewer's budgets", () => {
       "|---|---|---|---|---|---|---|",
       ...rows.map((r) => `| ${r.name} | ${r.parts} | ${cell(r, "firstLoadMs")} | ${cell(r, "updateMs")} | ${cell(r, "orbitFrameMs")} | ${cell(r, "animationFrameMs")} | ${r.drawCalls}${r.budget.drawCalls ? ` (≤ ${r.budget.drawCalls})` : ""} |`),
       "",
+      ...rows.map((r) => `First load, ${r.name}: ${r.firstLoadParts} ms`),
+      "",
     ].join("\n");
     writeFileSync(join(out, `perf-${os}.md`), table);
     console.log(table);
@@ -62,15 +64,29 @@ describe("the viewer's budgets", () => {
         if (enforce && value > BUDGET[name]) over.push(`${name} ${value} > ${BUDGET[name]}`);
       };
       const first = await browser.execute(async (list) => {
-        const v = window.__emmet.newViewer();
+        // Where a first load's time goes: the library's answer (one request for every part's files), reading the
+        // parts and building the scene, and the first frame (the shaders compile there).
+        let fetched = 0;
+        const timed = (fn) => async (...args) => {
+          const t = performance.now();
+          try {
+            return await fn(...args);
+          } finally {
+            fetched += performance.now() - t;
+          }
+        };
+        const source = window.__emmet.library;
+        const v = window.__emmet.newViewer({ parts: timed(source.parts), colors: timed(source.colors) });
         const t0 = performance.now();
         await v.load(list);
+        const loaded = performance.now();
         await v.nextFrame();
         const ms = performance.now() - t0;
         v.dispose();
-        return ms;
+        return { ms, fetched, built: loaded - t0 - fetched, frame: t0 + ms - loaded };
       }, placements);
-      within("firstLoadMs", Math.round(first));
+      row.firstLoadParts = `library ${Math.round(first.fetched)}, build ${Math.round(first.built)}, first frame ${Math.round(first.frame)}`;
+      within("firstLoadMs", Math.round(first.ms));
 
       await open(dir);
       const updates = [];
