@@ -314,7 +314,10 @@ jobs:
         if: inputs.windows_e2e != ''
         env:
           SPECS: ${{ inputs.windows_e2e }}
-        run: just e2e "$SPECS"
+        # just writes its arguments into the recipe's text, so only spec names and commas get there.
+        run: |
+          [[ "$SPECS" =~ ^[a-z0-9,-]+$ ]] || { echo "windows_e2e takes spec names and commas only" >&2; exit 2; }
+          just e2e "$SPECS"
       - name: E2E output
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
