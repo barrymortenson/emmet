@@ -29,21 +29,30 @@ if (__EMMET_TEST_HOOKS__) {
   // "ResizeObserver loop completed with undelivered notifications" names no one: each observer remembers where it
   // was made, and the error says which ones had just fired (the app's own lay out on the next frame; a library's may
   // not).
-  const fired: string[] = [];
+  const fired: { made: string; at: number }[] = [];
   const Observer = window.ResizeObserver;
   if (Observer) {
     window.ResizeObserver = class extends Observer {
       constructor(callback: ResizeObserverCallback) {
         const made = (new Error().stack ?? "").split("\n").slice(2, 5).join(" < ").replace(/\s+/g, " ");
         super((entries, observer) => {
-          fired.push(made);
-          if (fired.length > 8) fired.shift();
+          fired.push({ made, at: performance.now() });
+          if (fired.length > 16) fired.shift();
           callback(entries, observer);
         });
       }
     };
   }
-  window.addEventListener("error", (e) => errors.push(`uncaught: ${e.message}${e.message.includes("ResizeObserver") ? ` (just fired: ${[...new Set(fired)].join(" | ")})` : ""}`));
+  window.addEventListener("error", (e) => {
+    const loop = e.message.includes("ResizeObserver loop");
+    // Floating UI's autoUpdate (under every Radix popover, menu, and tooltip) moves its element inside its own
+    // observer's callback, by design, and WebView2 reports the loop notice for it (CI run 43483636244). That one
+    // isn't the app's to fix; with only the app's observers firing, the notice is recorded.
+    // The notice comes in the frame the observers fired in.
+    const just = fired.filter((f) => performance.now() - f.at < 100).map((f) => f.made);
+    if (loop && just.some((made) => made.includes("whileElementsMounted"))) return;
+    errors.push(`uncaught: ${e.message}${loop ? ` (just fired: ${[...new Set(just)].join(" | ")})` : ""}`);
+  });
   window.addEventListener("unhandledrejection", (e) => errors.push(`unhandled rejection: ${String(e.reason)}`));
 }
 

@@ -307,6 +307,13 @@ describe("the model and effort", () => {
     await (await $("#model-chip")).click();
     await (await $("#model-popover")).waitForExist({ timeout: 5_000 });
     await screenshots("chat-model-picker");
+    // The screenshots change the theme and move focus; in a window that isn't the front one (a hosted Windows
+    // runner's), the popover sometimes closes over that. Opened again, it must be there to choose from.
+    if (!(await (await $("#model-popover")).isExisting())) {
+      console.log("the model popover closed during its screenshots; opening it again");
+      await (await $("#model-chip")).click();
+      await (await $("#model-popover")).waitForExist({ timeout: 5_000 });
+    }
     await choose("#model-select", '//*[@role="option"][normalize-space()="Opus"]');
     await choose("#effort-select", '//*[@role="option"][normalize-space()="High"]');
     await escape("#model-popover");
