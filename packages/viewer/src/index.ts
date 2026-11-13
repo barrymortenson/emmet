@@ -177,6 +177,9 @@ export interface Stats {
   frameMs: number;
   /** Frames the window has drawn since the viewer was made (it draws only when something changed). */
   framesDrawn: number;
+  /** The mean time between frames over the last run of ten or more drawn back to back (the last orbit or build
+   * animation), in ms; 0 before any. */
+  movingFrameMs: number;
   /** The JS heap in bytes where the webview reports it (WebView2), else null (WKWebView). */
   heap: number | null;
   instances: number;
@@ -435,6 +438,7 @@ class EmmetViewer implements Viewer {
   private unwatchPixelRatio: () => void = () => {};
   private gpuName: string | null = null;
   private framesDrawn = 0;
+  private movingFrameMs = 0;
   private theme: Theme;
   private quality: Quality;
   private preset: Preset;
@@ -1771,6 +1775,7 @@ class EmmetViewer implements Viewer {
       triangles: info.render.triangles,
       frameMs: deltas.length ? deltas.reduce((a, b) => a + b, 0) / deltas.length : 0,
       framesDrawn: this.framesDrawn,
+      movingFrameMs: this.movingFrameMs,
       heap: memory ? memory.usedJSHeapSize : null,
       instances,
       buckets: this.buckets.size,
@@ -1886,6 +1891,8 @@ class EmmetViewer implements Viewer {
     if (moving) this.emit("camera");
     this.frames.push(now);
     if (this.frames.length > 61) this.frames.shift();
+    // Kept after the motion ends (an orbit, a build animation), for the diagnostics.
+    if (this.frames.length >= 10) this.movingFrameMs = (now - this.frames[0]!) / (this.frames.length - 1);
     const waiters = this.waiters.splice(0);
     for (const w of waiters) w();
   }

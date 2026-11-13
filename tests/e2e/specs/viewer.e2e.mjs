@@ -235,6 +235,24 @@ describe("the live viewer", () => {
     await instances(await partCount());
   });
 
+  it("Copy diagnostics says what draws the window and how fast it has been", async () => {
+    // What a bug report from a slow machine needs, and how section 13's budgets are read off an installed build.
+    await browser.execute(async () => {
+      const v = window.__emmet.viewer();
+      for (let i = 0; i < 12; i++) {
+        v.orbit(0.03);
+        await v.nextFrame();
+      }
+    });
+    const text = await browser.execute(() => window.__emmet.diagnostics());
+    const { gpu } = await stats();
+    expect(text).toContain(`Graphics: ${gpu} (`);
+    expect(text).toMatch(/^Start: ready \d+ ms after launch$/m);
+    expect(text).toMatch(/^Last build shown: \d+ parts.*, run and check (\d+|\?) ms, drawn in \d+ ms$/m);
+    expect(text).toMatch(/^Last motion: \d+\.\d ms a frame, \d+ draw calls$/m);
+    expect(text).toMatch(/^Emmet \d/);
+  });
+
   it("reopening a project whose build lost its placements builds it again", async () => {
     rmSync(join(project, "build", "placements.json"));
     const root = await open(project);

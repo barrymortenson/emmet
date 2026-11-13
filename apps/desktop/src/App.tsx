@@ -33,6 +33,7 @@ import { Compare } from "./Compare";
 import { findingWords, fixRequest } from "./Checks";
 import { About, NewModel, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
+import { diagnosticsText, seen } from "./diagnostics";
 import { drawBook } from "./instructions";
 import { type Action, actionFor } from "./keys";
 import { base64, json, library, placements } from "./library";
@@ -182,6 +183,7 @@ export function App() {
     box.prepend(canvas);
     const v = createViewer(canvas, { partSource: library, theme });
     viewer.current = v;
+    seen.viewer = v;
     setAutoQuality(v.stats().quality);
     const offAnimation = v.on("animation", setAnimating);
     if (__EMMET_TEST_HOOKS__) {
@@ -193,6 +195,7 @@ export function App() {
         shown: () => shown.current,
         project: () => root.current,
         drawnAt: () => drawnAt.current,
+        diagnostics: diagnosticsText,
         viewerError: () => lastViewerError.current,
         // The app's part source, and a second viewer with an empty part cache (the bench's cold first loads; specs
         // that wrap the part source).
@@ -216,10 +219,12 @@ export function App() {
       v.dispose();
       canvas.remove();
       viewer.current = null;
+      seen.viewer = null;
     };
     // Created once; the theme effect below keeps it current.
   }, []);
   useEffect(() => {
+    seen.startupMs = startupMs;
     if (__EMMET_TEST_HOOKS__) (window as unknown as { __emmet: Record<string, unknown> }).__emmet.startup = () => startupMs;
   }, [startupMs]);
 
@@ -267,8 +272,10 @@ export function App() {
     if (comparing.current) return;
     const first = at != null && framed.current !== at;
     // The opening scene appears at once; the first parts of a model that opened empty build up as any run's do.
+    const began = performance.now();
     if (!(await showIn(v, placements(scene), first && !openedEmpty.current ? "none" : animate))) return;
     drawnAt.current = performance.now();
+    seen.shown = { parts: scene.placements.length, runMs: scene.ms ?? null, drawMs: drawnAt.current - began, first };
     if (at && first) {
       // A model that starts empty (Base None, Barry 2026-11-10) is framed when its first parts come, not before: the
       // camera never moves on its own after that, so framing the empty table left the model off to one side.
@@ -656,8 +663,7 @@ export function App() {
           setDialog("shortcuts");
           break;
         case "diagnostics":
-          void commands
-            .diagnostics()
+          void diagnosticsText()
             .then((t) => navigator.clipboard.writeText(t))
             .then(
               () => say("Copied the diagnostics"),
