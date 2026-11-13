@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // With the system's animations off (Windows: Settings → Accessibility → Visual effects → Animation effects; macOS:
 // Reduce motion), the app's own durations are 0 ms (tokens.css) and the build animation is off. Menus, popovers, and
-// dialogs must still open and close: a layer that waits for an animation's end to go away would wait forever
-// (session 5B: on Windows Server, which ships with animations off, an open popover stayed over the window for the
-// rest of the run). CI's windows-e2e job runs this before it turns animations on; on a machine with motion on, the
-// test skips itself, since no page can ask for reduced motion.
+// dialogs must still open and close: a layer that waits for an animation's end to go away would wait forever.
+// Windows Server ships with animations off, so CI's windows-e2e job runs this before it turns them on for the rest
+// of the suite (session 5B); on a machine with motion on, the test skips itself, since no page can ask for reduced
+// motion.
 import { $, expect } from "@wdio/globals";
 import { layerState, open, stats } from "../lib/app.mjs";
 import { projectDir } from "../lib/projects.mjs";
