@@ -84,17 +84,17 @@ describe("a script in a project's data doesn't run", () => {
       const blocked = [];
       const note = (e) => blocked.push(e.effectiveDirective);
       document.addEventListener("securitypolicyviolation", note);
-      // Markup parsed into the page, as a string that got past React would be.
+      // Markup parsed into the page, as a string that got past React would be: each way in sets its own flag.
       const box = document.createElement("div");
-      box.innerHTML = '<img src="data:image/png;base64,AAAA" onerror="window.__inline=1"><a id="csp-link" href="javascript:window.__inline=1">x</a>';
+      box.innerHTML = '<img src="data:image/png;base64,AAAA" onerror="window.__ran_handler=1"><a href="javascript:window.__ran_link=1">x</a>';
       document.body.append(box);
       box.querySelector("a").click();
       const script = document.createElement("script");
-      script.textContent = "window.__inline=1";
+      script.textContent = "window.__ran_script=1";
       document.body.append(script);
       let evaled = "ran";
       try {
-        (0, eval)("window.__inline=1");
+        (0, eval)("window.__ran_eval=1");
       } catch (e) {
         evaled = e.name;
       }
@@ -106,9 +106,11 @@ describe("a script in a project's data doesn't run", () => {
       document.removeEventListener("securitypolicyviolation", note);
       box.remove();
       script.remove();
-      return { inline: window.__inline ?? null, evaled, fetched, blocked: [...new Set(blocked)].sort() };
+      const ran = ["handler", "link", "script", "eval"].filter((k) => window[`__ran_${k}`]);
+      return { ran, evaled, fetched, blocked: [...new Set(blocked)].sort() };
     });
-    expect(result.inline).toBe(null);
+    console.log(`csp: ${JSON.stringify(result)}`);
+    expect(result.ran).toEqual([]);
     expect(result.evaled).toBe("EvalError");
     expect(result.fetched).toBe("refused");
     expect(result.blocked).toEqual(expect.arrayContaining(["connect-src", "script-src-attr", "script-src-elem"]));

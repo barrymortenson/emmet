@@ -206,33 +206,68 @@ describe("the live viewer", () => {
   });
 
   it("draws again after the graphics context is lost and comes back", async () => {
-    // A driver update, a laptop waking, or a remote desktop session connecting takes the WebGL context away.
-    const result = await browser.execute(async () => {
-      const v = window.__emmet.viewer();
-      const canvas = document.querySelector("#viewer canvas") ?? document.querySelector("canvas");
-      const gl = canvas.getContext("webgl2");
-      const lose = gl.getExtension("WEBGL_lose_context");
-      if (!lose) return { skipped: true };
-      const event = (name) => new Promise((r) => canvas.addEventListener(name, r, { once: true }));
-      await v.nextFrame();
-      const before = v.stats();
-      const lost = event("webglcontextlost");
-      lose.loseContext();
-      await lost;
-      const restored = event("webglcontextrestored");
-      lose.restoreContext();
-      await restored;
-      // No one asks for a frame here: the viewer must draw the scene again by itself.
-      for (let i = 0; i < 120 && v.stats().framesDrawn === before.framesDrawn; i++) await new Promise((r) => requestAnimationFrame(r));
-      const after = v.stats();
-      return { lost: gl.isContextLost(), drew: after.framesDrawn - before.framesDrawn, calls: [before.drawCalls, after.drawCalls], instances: [before.instances, after.instances] };
-    });
+    // A driver update, a laptop waking, or a remote desktop session connecting takes the WebGL context away. On a
+    // viewer of its own with the same model, so the window's viewer keeps its context for the specs after this one.
+    const placements = JSON.parse(readFileSync(join(project, "build", "placements.json"), "utf8")).parts;
+    const result = await browser.execute(async (list) => {
+      const v = window.__emmet.newViewer();
+      const canvas = document.body.lastElementChild;
+      canvas.style.visibility = "visible";
+      canvas.style.zIndex = "-1";
+      try {
+        await v.load(list);
+        v.frame();
+        const gl = canvas.getContext("webgl2");
+        const lose = gl.getExtension("WEBGL_lose_context");
+        if (!lose) return { skipped: true };
+        // An event that never comes says which one, in seconds, instead of timing the test out.
+        const within = (what, p) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error(`${what} never came`)), 5000))]);
+        const event = (name) => within(name, new Promise((r) => canvas.addEventListener(name, r, { once: true })));
+        // The canvas's own pixels, read in the same turn as the frame that drew them, at a size quick to compare.
+        const picture = async () => {
+          await within("a frame", v.nextFrame());
+          const g = new OffscreenCanvas(160, 120).getContext("2d");
+          g.drawImage(canvas, 0, 0, 160, 120);
+          return g.getImageData(0, 0, 160, 120).data;
+        };
+        const colors = (data) => {
+          const seen = new Set();
+          for (let i = 0; i < data.length; i += 4) seen.add((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
+          return seen.size;
+        };
+        const was = await picture();
+        const before = v.stats();
+        const lost = event("webglcontextlost");
+        lose.loseContext();
+        await lost;
+        // Only once the lost event is over: until then the browser hasn't recorded that the page handled it, and
+        // won't give the context back.
+        await new Promise((r) => setTimeout(r, 100));
+        const restored = event("webglcontextrestored");
+        lose.restoreContext();
+        await restored;
+        // No one asks for a frame here: the viewer must draw the scene again by itself.
+        for (let i = 0; i < 120 && v.stats().framesDrawn === before.framesDrawn; i++) await new Promise((r) => requestAnimationFrame(r));
+        const drew = v.stats().framesDrawn - before.framesDrawn;
+        // The same picture as before: every part, its colors, and the room's light on them.
+        const now = await picture();
+        let differ = 0;
+        for (let i = 0; i < now.length; i += 4) if (Math.abs(now[i] - was[i]) + Math.abs(now[i + 1] - was[i + 1]) + Math.abs(now[i + 2] - was[i + 2]) > 24) differ++;
+        await new Promise((r) => setTimeout(r, 500));
+        return { lost: gl.isContextLost(), drew, instances: [before.instances, v.stats().instances], differ: differ / (now.length / 4), colors: [colors(was), colors(now)] };
+      } finally {
+        v.dispose();
+        canvas.remove();
+      }
+    }, placements);
     if (result.skipped) return console.log("no WEBGL_lose_context here");
+    console.log(`after the context came back: ${JSON.stringify(result)}`);
     expect(result.lost).toBe(false);
     expect(result.drew).toBeGreaterThan(0);
-    expect(result.calls[1]).toBe(result.calls[0]);
     expect(result.instances[1]).toBe(result.instances[0]);
-    await instances(await partCount());
+    expect(result.colors[0]).toBeGreaterThan(50);
+    expect(result.colors[1]).toBeGreaterThan(50);
+    expect(result.differ).toBeLessThan(0.01);
   });
 
   it("Copy diagnostics says what draws the window and how fast it has been", async () => {

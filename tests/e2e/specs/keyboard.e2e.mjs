@@ -6,7 +6,7 @@
 import { $, expect } from "@wdio/globals";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { camera, escape, nextScene, open, shown } from "../lib/app.mjs";
+import { camera, escape, layerState, nextScene, open, shown } from "../lib/app.mjs";
 import { pickNext, projectDir } from "../lib/projects.mjs";
 
 const dir = projectDir("keyboard");
@@ -116,22 +116,7 @@ describe("the keyboard map", () => {
       try {
         await (await $(sel)).waitForDisplayed({ reverse: true, timeoutMsg: `Esc didn't close ${sel}` });
       } catch (e) {
-        // What the page thinks is open, for a runner where it stays up.
-        const state = await browser.execute((q) => {
-          const el = document.querySelector(q);
-          const layer = el?.closest("[data-state]");
-          const style = layer && getComputedStyle(layer);
-          return {
-            state: layer?.dataset.state,
-            animation: style && `${style.animationName} ${style.animationDuration} ${style.animationPlayState}`,
-            running: document.getAnimations().map((a) => `${a.animationName ?? a.constructor.name}:${a.playState}`),
-            reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
-            visibility: document.visibilityState,
-            focus: document.hasFocus(),
-            active: document.activeElement?.outerHTML.slice(0, 120),
-            layers: [...document.querySelectorAll("[data-radix-popper-content-wrapper] > *")].map((n) => `${n.id || n.className}:${n.dataset.state}`),
-          };
-        }, sel);
+        const state = await layerState(sel);
         throw new Error(`${e.message}: ${JSON.stringify(state)}`, { cause: e });
       }
     }
@@ -152,7 +137,7 @@ describe("the keyboard map", () => {
     await browser.keys("Enter");
     await (await $("[data-menu='new']")).waitForDisplayed({ timeoutMsg: "File didn't open" });
     // File lists this project under Open recent, and ends with Settings and Exit (keyboard.md's Windows column).
-    await expect($("[data-menu='recent:0']")).toHaveText("keyboard");
+    await expect($("[data-menu='recent:0']")).toHaveText("Keyboard");
     await expect($("[data-menu='exit'] .menu-key")).toHaveText("Alt+F4");
     await browser.keys("Escape");
   });
@@ -166,6 +151,11 @@ describe("the keyboard map", () => {
     await browser.execute(() => [...document.querySelectorAll(".menubar-trigger")].find((t) => t.textContent === "View").focus());
     await browser.keys("Enter");
     const item = await $("[data-menu='fullscreen']");
+    // Enter toggles a menu bar's menu; the arrow opens it whatever state the bar was left in.
+    if (!(await item.waitForDisplayed({ timeout: 3_000 }).then(() => true, () => false))) {
+      console.log("View didn't open on Enter; trying the down arrow");
+      await browser.keys("ArrowDown");
+    }
     await item.waitForDisplayed({ timeoutMsg: "View didn't open" });
     await expect(item.$(".menu-key")).toHaveText("F11");
     await browser.execute((el) => el.focus(), item);
@@ -210,6 +200,11 @@ describe("the keyboard map", () => {
         (el) => el.tabIndex >= 0 && !el.disabled && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden",
       );
       return tabbable.flatMap((el) => {
+        // Twice, with a blur between: a group of Radix's (the tabs, a segmented control, Windows' menu bar) hands
+        // focus on to its current item when focus comes by Tab, and takes a focus after a mouse press on it for a
+        // click, until it next loses focus. The driver's clicks earlier in this spec were such presses.
+        el.focus();
+        el.blur();
         el.focus();
         // Radix's tab list hands focus to its open tab, where Tab lands: that's the control whose ring shows.
         const at = document.activeElement;

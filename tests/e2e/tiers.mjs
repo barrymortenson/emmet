@@ -51,8 +51,10 @@ export const AREAS = {
  * it. */
 export const WINDOWS = ["viewer", "panel", "chat", "checks", "setup", "runs", "trust", "csp", "versions", "import", "render", "visual", "keyboard", "perf", "instructions", "first-run"];
 
-/** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes. */
-export const EXTRA = ["screens", "dock", "leak"];
+/** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes, and
+ * the layers under the system's reduced motion, which only a machine set that way can check (CI's windows-e2e job is
+ * one, before it turns its animations on). */
+export const EXTRA = ["screens", "dock", "leak", "reduced-motion"];
 
 /** Not an E2E run: `just bench` runs it, by hand. */
 export const BENCH = "bench";

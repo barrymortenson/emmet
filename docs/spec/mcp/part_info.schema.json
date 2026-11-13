@@ -284,9 +284,14 @@
           "name",
           "category",
           "keywords",
+          "size",
           "flags",
+          "alias_of",
+          "body_box",
           "file",
-          "holes"
+          "holes",
+          "produced_colors",
+          "alternates"
         ],
         "type": "object"
       },

@@ -89,7 +89,8 @@ fn part_ids_and_errors_use_forward_slashes_and_lowercase() {
 }
 
 /// Windows held paths to 260 characters for decades, and many programs still do; a project deep in a synced or shared
-/// folder passes that. The project, its build, and Python's working folder all sit past the limit here.
+/// folder passes that. The project, its build, and Python's working folder all sit past the limit here. Where the
+/// machine allows long paths (macOS always; Windows with its long-paths setting) the model builds.
 #[test]
 fn a_project_under_a_path_over_260_characters() {
     let mut dir = temp_dir("long");
@@ -100,6 +101,15 @@ fn a_project_under_a_path_over_260_characters() {
     let (v, code) = json(&["new".as_ref(), dir.as_os_str()]);
     assert_eq!(code, 0, "{v}");
     let (v, code) = json(&["run".as_ref(), "--project".as_ref(), dir.as_os_str()]);
+    // Emmet's own files are fine at any length. Running the model is up to Windows: it starts no program in a folder
+    // past 260 characters unless the machine has long paths turned on, and then Emmet says that, not that Python is
+    // missing.
+    if cfg!(windows) && code != 0 {
+        assert_eq!(v["error"]["code"], "IO_ERROR", "{v}");
+        let said = format!("{} {}", v["error"]["message"], v["error"]["hint"]);
+        assert!(said.contains("past 260") && said.contains("shorter path"), "{said}");
+        return;
+    }
     assert_eq!(code, 0, "{v}");
     assert_eq!(v["data"]["parts"], 905);
     assert!(dir.join("build/model.mpd").is_file());

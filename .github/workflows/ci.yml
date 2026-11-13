@@ -293,6 +293,8 @@ jobs:
           cache-on-failure: true
       - run: rustup toolchain install
       - run: just deps
+      # First, as the runner comes: animations off, which is the system's reduced motion (the spec says why).
+      - run: just e2e reduced-motion
       # Windows Server ships with window animations off, which a browser reads as "prefers reduced motion", and the
       # app then turns its build animation off: the animation's specs and its frame budget need it on, as a desktop
       # Windows has it (SPI_SETCLIENTAREAANIMATION).

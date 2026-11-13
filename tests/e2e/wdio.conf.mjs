@@ -62,12 +62,15 @@ export const config = {
     // Each run starts with the viewer's own settings (quality by the GPU, the build animation on): a spec that
     // changes them, or a run that stopped in the middle of one, mustn't change the next run's screenshots.
     const settings = join(shared, "settings.json");
-    if (existsSync(settings)) {
-      const s = JSON.parse(readFileSync(settings, "utf8"));
-      delete s.viewer_quality;
-      delete s.build_animation;
-      writeFileSync(settings, `${JSON.stringify(s, null, 2)}\n`);
-    }
+    const s = existsSync(settings) ? JSON.parse(readFileSync(settings, "utf8")) : {};
+    delete s.viewer_quality;
+    delete s.build_animation;
+    // New projects, imports, and versions opened as projects go in the test home on Windows too: Windows finds
+    // Documents through the account, not USERPROFILE, so without this they land in the runner's own Documents and
+    // outlive the run. macOS's Documents is HOME's, which is the test home already.
+    if (process.platform === "win32") s.projects_folder = join(agentHome, "Documents", "Emmet");
+    else delete s.projects_folder;
+    writeFileSync(settings, `${JSON.stringify(s, null, 2)}\n`);
     // Old-library checks and Update the library download ldraw-mini from here too.
     await startLibrary(shared);
     if (firstRun) {

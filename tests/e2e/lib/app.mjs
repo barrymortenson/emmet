@@ -41,6 +41,23 @@ export const invoke = (cmd, args = {}) =>
 /** Opens a project from the recents list (lib/projects.mjs put it there) and waits for its first scene: drawn, framed,
  * and the camera still. shown() counts a scene as soon as the viewer takes it, before its parts load and the camera
  * frames it, and the orbit controls round the framed camera off over the next frames (a last-digit change). */
+/** What the page thinks of the layer `selector` is in (a menu, popover, or dialog), for a failure's message: its
+ * state, its animation, and every layer open. */
+export const layerState = (selector) =>
+  browser.execute((q) => {
+    const el = document.querySelector(q);
+    const layer = el?.closest("[data-state]");
+    const style = layer && getComputedStyle(layer);
+    return {
+      state: layer?.dataset.state,
+      animation: style && `${style.animationName} ${style.animationDuration} ${style.animationPlayState}`,
+      running: document.getAnimations().map((a) => `${a.animationName ?? a.constructor.name}:${a.playState}`),
+      reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      active: document.activeElement?.outerHTML.slice(0, 120),
+      layers: [...document.querySelectorAll("[data-radix-popper-content-wrapper] > *, [role='dialog']")].map((n) => `${n.id || n.className}:${n.dataset.state}`),
+    };
+  }, selector);
+
 /** Presses Esc until `selector` is gone. Esc closes one thing at a time, the newest first, and a tooltip that came up
  * under the pointer the driver left somewhere counts as one (on a slow runner there's time for it to show). */
 export async function escape(selector) {

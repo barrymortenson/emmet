@@ -478,6 +478,21 @@ fn call(python: &Path, project: &Project, req: &Request, cancel: &AtomicBool) ->
         }
     }
     let mut child = cmd.spawn().map_err(|e| {
+        // Windows starts no program in a folder whose path passes 260 characters unless the machine has long paths
+        // turned on: "The directory name is invalid" (267), or "The filename or extension is too long" (206). Python
+        // is fine; the project is too deep.
+        if cfg!(windows) && matches!(e.raw_os_error(), Some(206 | 267)) && project.root.as_os_str().len() >= 240 {
+            return Error::new(
+                ErrorCode::IoError,
+                format!(
+                    "The project's folder path is {} characters long, and Windows can't run a model in a folder past 260: {}",
+                    project.root.as_os_str().len(),
+                    project.root.display()
+                ),
+                "Move the project to a shorter path, such as Documents\\Emmet, and open it from there.",
+            )
+            .at_file(project.root.display().to_string());
+        }
         Error::new(
             ErrorCode::PythonMissing,
             format!("Can't start {}: {e}", python.display()),

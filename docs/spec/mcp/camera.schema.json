@@ -196,7 +196,8 @@
           }
         },
         "required": [
-          "delivered"
+          "delivered",
+          "selected"
         ],
         "type": "object"
       },

@@ -507,6 +507,17 @@ class EmmetViewer implements Viewer {
     // A driver reset, a sleeping laptop, or a remote desktop session takes the WebGL context away. three.js builds its
     // state again when the browser gives it back; the viewer draws on demand, so it asks for that frame.
     const restored = (): void => {
+      // The room the parts reflect was drawn on the graphics card and went with the context: without it every part
+      // draws dark. three.js sends geometry and textures again from memory; this one has to be made again.
+      const gone = this.studio.environment;
+      const environment = studioRoom(this.renderer);
+      this.studio = { ...this.studio, environment, dispose: () => environment.dispose() };
+      gone.dispose();
+      this.scene.environment = environment;
+      this.overlay.environment = environment;
+      this.finishes.setRoom(environment);
+      this.overlayBuilt = false;
+      this.outlineBuilt = false;
       this.shadowDirty = true;
       this.lodDirty = true;
       this.invalidate();

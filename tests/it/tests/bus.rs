@@ -225,12 +225,18 @@ fn the_pipe_is_private() {
     let data = data();
     let _server = Server::start(&data, |_| Reply::default()).unwrap();
     let info: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(info_path(&data)).unwrap()).unwrap();
-    let pipe = format!(r"\\.\pipe\{}", info["name"].as_str().unwrap());
+    let name = info["name"].as_str().unwrap();
+    assert!(
+        name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '.'),
+        "{name}"
+    );
+    // A client opens the pipe and reads its access list from the handle (Get-Acl has no path for a pipe).
+    let script = format!(
+        "$p = New-Object System.IO.Pipes.NamedPipeClientStream('.', '{name}', [System.IO.Pipes.PipeDirection]::InOut); \
+         $p.Connect(5000); $p.GetAccessControl().GetSecurityDescriptorSddlForm('Access'); $p.Dispose()"
+    );
     let out = std::process::Command::new("powershell")
-        .args(["-NoProfile", "-NonInteractive", "-Command"])
-        .arg(format!(
-            "(Get-Acl -LiteralPath '{pipe}').GetSecurityDescriptorSddlForm('Access')"
-        ))
+        .args(["-NoProfile", "-NonInteractive", "-Command", &script])
         .output()
         .unwrap();
     let sddl = String::from_utf8_lossy(&out.stdout).trim().to_string();
