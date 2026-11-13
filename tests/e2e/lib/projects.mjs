@@ -37,7 +37,7 @@ const PROJECTS = {
   keyboard: [["", "cottage"]],
   interact: [["", "cottage"], ["floating", "broken-floating"], ["pins", "pins-grouped"], ["town", "scene-stress", { buildings: 2, floors: 1 }]],
   animate: [["", "cottage"]],
-  perf: [["", "scene-stress"]],
+  perf: [["", "scene-stress"], ["rung1", "scene-stress", { buildings: 1, floors: 1 }], ["rung2", "scene-stress", { buildings: 4, floors: 1 }]],
   instructions: [["", "cottage"], ["rung2", "rung2-claude"]],
   screens: [["", "cottage"], ["floating", "broken-floating"], ["untrusted", "cottage-untrusted"]],
 };
