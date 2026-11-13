@@ -86,12 +86,20 @@ export async function showsProject(root, what) {
 
 export async function open(dir) {
   const drawn = await browser.execute(() => window.__emmet.drawnAt());
-  const { root } = await invoke("open_recent", { path: dir }).catch((e) => {
-    // The app's own write of the recents list can land after the spec's (lib/projects.mjs): list it again, once.
-    if (!/isn't a recent project/.test(String(e?.message ?? e)) || !listRecent(dir)) throw e;
-    console.log(`${dir} had fallen off the recents list; listed again`);
-    return invoke("open_recent", { path: dir });
-  });
+  // The app writes the recents list too, and a write of its own can land after the spec's (lib/projects.mjs): the
+  // project is listed again and asked for again, a few times, before that's an error.
+  let opened;
+  for (let i = 0; ; i++) {
+    try {
+      opened = await invoke("open_recent", { path: dir });
+      break;
+    } catch (e) {
+      if (i === 4 || !/isn't a recent project/.test(String(e?.message ?? e))) throw e;
+      console.log(`${dir} wasn't on the recents list (try ${i + 1}); listed ${listRecent(dir) ? "again" : "already"}`);
+      await browser.pause(500);
+    }
+  }
+  const { root } = opened;
   // The viewer's own error, as soon as there is one, rather than a timeout that hides it.
   await browser.waitUntil(
     async () => {
