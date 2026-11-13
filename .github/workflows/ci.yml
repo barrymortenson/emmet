@@ -9,11 +9,6 @@ on:
   schedule:
     - cron: "0 9 * * 1"
   workflow_dispatch:
-    inputs:
-      windows:
-        description: "Run the Windows jobs too (paused while the Mac app comes first, D-43)"
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -56,7 +51,6 @@ jobs:
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ' ') }}
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           BEFORE: ${{ github.event.before }}
-          EMMET_CI_WINDOWS: ${{ inputs.windows && '1' || '' }}
         run: |
           full=0; base=""
           if [[ "$EVENT" != pull_request || " $LABELS " == *" full-ci "* ]]; then
@@ -259,8 +253,7 @@ jobs:
     if: needs.scope.outputs.e2e_windows == 'true'
     runs-on: windows-latest
     # The E2E build from a cold cache (about 15 minutes) and the specs, which draw in software here: the instructions
-    # spec's two books took 171 and 88 s to export on 2026-11-06, so the job gets 75 minutes (Barry, 2026-11-05; by hand
-    # only while D-43 pauses it).
+    # spec's two books took 171 and 88 s to export on 2026-11-06, so the job gets 75 minutes (Barry, 2026-11-05).
     timeout-minutes: 75
     defaults:
       run:

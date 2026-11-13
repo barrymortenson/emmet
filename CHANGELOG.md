@@ -323,6 +323,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   keeps drawing while other windows cover it, so CI's Mac E2E runs while Barry works.
 - The Mac app comes first (D-43): CI's Windows jobs are paused (a manual run's "windows" box runs them), and
   Antigravity, Cursor, and Grok wait until after the MVP.
+- The Windows pause is over (D-43, session 5B): CI's Windows jobs run on PRs again, scoped by path, and the manual
+  run's "windows" box is gone.
 - CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push
   after a green run tests only its own commits, and main doesn't rerun merged PRs. Everything runs weekly, by hand, or
   with the `full-ci` label. `just test` builds only when a suite needs it, and the 0B spike crates left the workspace.

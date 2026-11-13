@@ -1078,3 +1078,14 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   the model with every copy lit, as the row does anywhere else. Rejected: turning to the iso view for every
   sub-assembly (it throws away the side the user chose), and keeping the camera the user left on the way out (the
   session's Done when says where it was).
+
+## 2026-11-12, session 5B
+
+- **D-43's Windows pause ends with 5B** (Barry, 2026-11-12, through AskUserQuestion: "Lift D-43"). D-43 paused the
+  Windows CI jobs and H-10 "until the Mac app works", and 5B is the Windows pass, so the two disagreed at the
+  session's start. 5B's PR turns the `windows`, `windows-e2e`, and `nsis` jobs back on for PRs, scoped by path as
+  before the pause (the manual run's "windows" box and `EMMET_CI_WINDOWS` go), and takes on the Windows halves that
+  1F (the fresh-account run), 4A (first run, trust, import, panel, the side-by-sides, the title-row menus), 4B, 4C
+  (the budgets on real hardware), and 4E (the page baselines) left for the Windows pass, in its tests and the H-10
+  checklist. Antigravity, Cursor, and Grok stay out of the MVP. Rejected: lifting the pause for 5B's branch only
+  (manual runs, the earlier sessions' halves left open), and doing only the Mac parts with the session blocked.

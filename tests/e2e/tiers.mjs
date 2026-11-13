@@ -44,7 +44,7 @@ export const AREAS = {
   },
 };
 
-/** Windows E2E (a manual run while D-43 pauses Windows): what behaves differently there, paths, processes, the
+/** Windows E2E: what behaves differently there, paths, processes, the
  * sidecars, and Python under uv, plus perf, since section 13's budgets hold on both OSes and WebView2 draws with its
  * own GPU path. The UI runs the same JS in WebView2, so the Mac covers the rest. */
 export const WINDOWS = ["viewer", "chat", "setup", "runs", "trust", "versions", "import", "render", "visual", "perf", "instructions"];
