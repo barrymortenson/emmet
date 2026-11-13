@@ -26,7 +26,24 @@ if (__EMMET_TEST_HOOKS__) {
     errors.push(`${args.map(String).join(" ")}\n${new Error().stack ?? ""}`);
     original(...args);
   };
-  window.addEventListener("error", (e) => errors.push(`uncaught: ${e.message}`));
+  // "ResizeObserver loop completed with undelivered notifications" names no one: each observer remembers where it
+  // was made, and the error says which ones had just fired (the app's own lay out on the next frame; a library's may
+  // not).
+  const fired: string[] = [];
+  const Observer = window.ResizeObserver;
+  if (Observer) {
+    window.ResizeObserver = class extends Observer {
+      constructor(callback: ResizeObserverCallback) {
+        const made = (new Error().stack ?? "").split("\n").slice(2, 5).join(" < ").replace(/\s+/g, " ");
+        super((entries, observer) => {
+          fired.push(made);
+          if (fired.length > 8) fired.shift();
+          callback(entries, observer);
+        });
+      }
+    };
+  }
+  window.addEventListener("error", (e) => errors.push(`uncaught: ${e.message}${e.message.includes("ResizeObserver") ? ` (just fired: ${[...new Set(fired)].join(" | ")})` : ""}`));
   window.addEventListener("unhandledrejection", (e) => errors.push(`unhandled rejection: ${String(e.reason)}`));
 }
 
