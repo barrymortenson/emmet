@@ -132,7 +132,7 @@ describe("the keyboard map", () => {
             layers: [...document.querySelectorAll("[data-radix-popper-content-wrapper] > *")].map((n) => `${n.id || n.className}:${n.dataset.state}`),
           };
         }, sel);
-        throw new Error(`${e.message}: ${JSON.stringify(state)}`);
+        throw new Error(`${e.message}: ${JSON.stringify(state)}`, { cause: e });
       }
     }
   });
