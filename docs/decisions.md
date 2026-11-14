@@ -1095,3 +1095,10 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   needs clipboard-read access the window doesn't have. Ctrl+X, C, V, and A work in every field; keyboard.md says so.
   Rejected: building Cut, Copy, and Select all without Paste, and a new host command (and capability) that reads
   the clipboard.
+- **5B's PR opens with the Windows budgets on real hardware not measured** (Barry, 2026-11-14, through
+  AskUserQuestion: "Open the PR without them"). The H-10 pass came back with every line ticked and no notes, but
+  without the first-run time or the Copy diagnostics text, so the only Windows numbers are the hosted runner's
+  (no graphics card; reported, not gated). Done when 2 stays unticked for Windows in the PR, with that reason. The
+  Windows numbers on a machine with a graphics card move to 6B's Windows x64 tester (H-12), whose Done when now
+  asks for the tester's Copy diagnostics text. Rejected: waiting for a second VM pass, and recording the first run
+  as within budget on the tick alone.
