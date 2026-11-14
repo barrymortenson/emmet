@@ -45,7 +45,10 @@ export type Action =
   | "agent:model"
   | "agent:usage"
   | "region:next"
-  | "escape";
+  | "escape"
+  // Windows' title-row menus only: macOS's menu bar has its own Close Window, Quit, and Enter Full Screen.
+  | "exit"
+  | "fullscreen";
 
 type Key = { key: string; mod?: boolean; alt?: boolean; shift?: boolean; /** Types a character: never in a text field. */ plain?: boolean };
 
@@ -90,6 +93,7 @@ export const KEYS: { action: Action; keys: Key[]; does: string; where: string }[
     does: "Redo a knob's draft",
     where: "The panel",
   },
+  ...(windows ? [{ action: "fullscreen" as Action, keys: [{ key: "F11" }], does: "Full screen", where: "Anywhere" }] : []),
   { action: "region:next", keys: [{ key: "F6" }], does: "Move between the viewer, the chat, and the panel", where: "Anywhere" },
   { action: "shortcuts", keys: [{ key: "/", mod: true }], does: "Keyboard shortcuts (this list)", where: "Anywhere" },
   { action: "escape", keys: [{ key: "Escape" }], does: "Close what's open; with nothing open, stop the agent", where: "Anywhere" },

@@ -23,12 +23,15 @@ describe("the app window", () => {
   });
 
   // The viewer turns the build animation off under the system's Reduce motion (plan section 13), and then the animate
-  // and perf specs wait for a build that never plays. CI's mac-e2e job turns it off first ("Motion on").
+  // and perf specs wait for a build that never plays. CI's mac-e2e job turns it off first ("Motion on"), and its
+  // windows-e2e job turns window animations on, which Windows Server leaves off ("Window animations on").
   it("runs on a machine with Reduce motion off", async () => {
     const reduced = await browser.execute(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
     console.log(`reduce motion: ${reduced ? "on" : "off"}`);
-    // Windows' animate and perf specs aren't held to this yet: the Windows pass checks what its hosted runner says.
-    if (reduced && process.platform === "darwin") throw new Error("this machine has Reduce motion on (System Settings → Accessibility → Display), so the build animation never plays: turn it off, then run again");
+    const where = process.platform === "darwin" ? "System Settings → Accessibility → Display" : "Settings → Accessibility → Visual effects → Animation effects";
+    // Windows only says so until a hosted run has shown the job's step turns it off (5B).
+    if (reduced && process.platform === "win32") return console.log("reduce motion is on: the animation specs will fail");
+    if (reduced) throw new Error(`this machine has Reduce motion on (${where}), so the build animation never plays: turn it off, then run again`);
   });
 
   // WebKit sometimes draws the window at 30 fps on this Mac (a throttle a restart clears, 2026-11-02), and then the

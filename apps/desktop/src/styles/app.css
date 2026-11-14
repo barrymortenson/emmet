@@ -23,7 +23,9 @@ body { position: relative; overflow: hidden; }
 .titlebar { grid-template-columns: calc(var(--chat-column) - var(--titlebar-inset-start) - var(--space-sm)) minmax(0, 1fr); padding: 0 0 0 var(--titlebar-inset-start); }
 .titlebar > .view-switch { justify-self: center; }
 .titlebar > span:empty { display: none; }
-[data-platform="windows"] .titlebar { grid-template-columns: 1fr auto 1fr; }
+/* Windows' menu bar sits beside the chip: the first column is never narrower than the two, so in a narrow window the
+   view switch moves off center instead of over Help (5B: at 1024 px the two overlapped). */
+[data-platform="windows"] .titlebar { grid-template-columns: minmax(max-content, 1fr) auto 1fr; }
 [data-platform="windows"] .titlebar > span:empty { display: block; }
 /* The chat sidebar: the agent row, the whole conversation, then the status, the card that needs you, and the composer.
    The top row's quiet buttons keep their labels in their tooltips and accessible names at every width. */

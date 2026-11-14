@@ -6,7 +6,7 @@
 import { $, expect } from "@wdio/globals";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { camera, nextScene, open, shown } from "../lib/app.mjs";
+import { camera, escape, layerState, nextScene, open, shown } from "../lib/app.mjs";
 import { pickNext, projectDir } from "../lib/projects.mjs";
 
 const dir = projectDir("keyboard");
@@ -96,8 +96,9 @@ describe("the keyboard map", () => {
     expect(params().weathering).toBe(3);
     await browser.keys([mod, "z"]);
     await browser.waitUntil(() => params().weathering === 2, { timeout: 10_000, timeoutMsg: "⌘Z didn't undo the last step" });
-    await browser.keys([mod, "Shift", "z"]);
-    await browser.waitUntil(() => params().weathering === 3, { timeout: 10_000, timeoutMsg: "⇧⌘Z didn't redo it" });
+    // Windows' redo is Ctrl+Y (keyboard.md).
+    await browser.keys(process.platform === "win32" ? [mod, "y"] : [mod, "Shift", "z"]);
+    await browser.waitUntil(() => params().weathering === 3, { timeout: 10_000, timeoutMsg: "⇧⌘Z (Ctrl+Y on Windows) didn't redo it" });
     await (await $("#knobs-reset")).click();
   });
 
@@ -111,8 +112,13 @@ describe("the keyboard map", () => {
     ]) {
       await press(mod, key);
       await (await $(sel)).waitForDisplayed({ timeoutMsg: `⌘${key} didn't open ${sel}` });
-      await browser.keys("Escape");
-      await (await $(sel)).waitForDisplayed({ reverse: true, timeoutMsg: `Esc didn't close ${sel}` });
+      await escape(sel);
+      try {
+        await (await $(sel)).waitForDisplayed({ reverse: true, timeoutMsg: `Esc didn't close ${sel}` });
+      } catch (e) {
+        const state = await layerState(sel);
+        throw new Error(`${e.message}: ${JSON.stringify(state)}`, { cause: e });
+      }
     }
   });
 
@@ -130,7 +136,31 @@ describe("the keyboard map", () => {
     await browser.execute(() => [...document.querySelectorAll(".menubar-trigger")].find((t) => t.textContent === "File").focus());
     await browser.keys("Enter");
     await (await $("[data-menu='new']")).waitForDisplayed({ timeoutMsg: "File didn't open" });
+    // File lists this project under Open recent, and ends with Settings and Exit (keyboard.md's Windows column).
+    await expect($("[data-menu='recent:0']")).toHaveText("Keyboard");
+    await expect($("[data-menu='exit'] .menu-key")).toHaveText("Alt+F4");
     await browser.keys("Escape");
+  });
+
+  it("Windows: F11 and View's Full screen fill the screen, and again go back", async function () {
+    if (process.platform !== "win32") this.skip();
+    const full = () => browser.execute(() => window.__TAURI_INTERNALS__.invoke("plugin:window|is_fullscreen", { label: "main" }));
+    expect(await full()).toBe(false);
+    await press("F11");
+    await browser.waitUntil(full, { timeout: 5_000, timeoutMsg: "F11 didn't go full screen" });
+    await browser.execute(() => [...document.querySelectorAll(".menubar-trigger")].find((t) => t.textContent === "View").focus());
+    await browser.keys("Enter");
+    const item = await $("[data-menu='fullscreen']");
+    // Enter toggles a menu bar's menu; the arrow opens it whatever state the bar was left in.
+    if (!(await item.waitForDisplayed({ timeout: 3_000 }).then(() => true, () => false))) {
+      console.log("View didn't open on Enter; trying the down arrow");
+      await browser.keys("ArrowDown");
+    }
+    await item.waitForDisplayed({ timeoutMsg: "View didn't open" });
+    await expect(item.$(".menu-key")).toHaveText("F11");
+    await browser.execute((el) => el.focus(), item);
+    await browser.keys("Enter");
+    await browser.waitUntil(async () => !(await full()), { timeout: 5_000, timeoutMsg: "Full screen didn't go back" });
   });
 
   it("F6 moves between the viewer, the chat, and the panel", async () => {
@@ -171,6 +201,11 @@ describe("the keyboard map", () => {
       );
       return tabbable.flatMap((el) => {
         el.focus();
+        // A window that isn't the front one gets no focus events from WebView2 (the active element still changes),
+        // and a group of Radix's (the tabs, a segmented control, Windows' menu bar) hands focus on to its current item
+        // from that event: sent here as the browser sends it to a front window. A hosted Windows runner's is such a
+        // window.
+        if (!document.hasFocus()) el.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
         // Radix's tab list hands focus to its open tab, where Tab lands: that's the control whose ring shows.
         const at = document.activeElement;
         if (!at || (at !== el && !el.contains(at))) return [];

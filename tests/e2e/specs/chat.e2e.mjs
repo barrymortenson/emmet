@@ -8,7 +8,7 @@ import { $, expect } from "@wdio/globals";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { instances, invoke, open, screenshots } from "../lib/app.mjs";
+import { escape, instances, invoke, open, screenshots } from "../lib/app.mjs";
 import { agentConfigHashes, fakeDir, scenario } from "../lib/agents.mjs";
 import { projectDir } from "../lib/projects.mjs";
 import { extraIt } from "../tiers.mjs";
@@ -75,6 +75,8 @@ async function choose(trigger, item) {
   const it = await $(item);
   await it.waitForDisplayed({ timeout: 5_000 });
   await it.click();
+  // The list closes on a choice, and until it has it's the newest layer: the one the next Esc would close.
+  await (await $("[role='listbox'], [role='menu']")).waitForExist({ reverse: true, timeout: 5_000 });
 }
 
 /** The agent picker's `kind`. */
@@ -307,9 +309,18 @@ describe("the model and effort", () => {
     await (await $("#model-chip")).click();
     await (await $("#model-popover")).waitForExist({ timeout: 5_000 });
     await screenshots("chat-model-picker");
+    // The screenshots change the theme and move focus; in a window that isn't the front one (a hosted Windows
+    // runner's), the popover sometimes closes over that. Opened again, it must be there to choose from.
+    const backWindow = process.platform === "win32" && process.env.RUNNER_ENVIRONMENT === "github-hosted";
+    if (backWindow && !(await (await $("#model-popover")).isExisting())) {
+      console.log("the model popover closed during its screenshots; opening it again");
+      await (await $("#model-chip")).click();
+      await (await $("#model-popover")).waitForExist({ timeout: 5_000 });
+    }
     await choose("#model-select", '//*[@role="option"][normalize-space()="Opus"]');
     await choose("#effort-select", '//*[@role="option"][normalize-space()="High"]');
-    await browser.keys("Escape");
+    await escape("#model-popover");
+    await expect($("#model-popover")).not.toBeExisting();
     await expect($("#model-chip")).toHaveText(expect.stringContaining("Opus · High"));
     await say("What was the code word?");
     await idle();
@@ -422,6 +433,42 @@ describe("the chat overall", () => {
       timeout: 10_000,
       timeoutMsg: "a finished turn still says it was cut off",
     });
+  });
+
+  it("a script in an agent's reply, a tool's result, or the user's own message doesn't run", async () => {
+    // What an agent says is data from somewhere else (plan section 15): a web page it read, a file in a shared
+    // project. The chat's markdown makes React elements, never HTML; here is the proof on the real window.
+    const dir = projectDir("chat-cut");
+    const chatDir = join(dir, ".emmet", "chat");
+    mkdirSync(chatDir, { recursive: true });
+    const id = `c${"ef".repeat(16)}`;
+    const img = '<img src=x onerror="window.__pwned=1">';
+    const script = "<script>window.__pwned=1</script>";
+    const reply = [`Done ${script}`, "", `- ${img}`, `- [the guide](javascript:window.__pwned=1)`, `- **${img}** and \`${script}\``, "", "```html", script, "```", "", `# ${img}`].join("\n");
+    writeFileSync(join(chatDir, "sessions.json"), JSON.stringify({ sessions: [{ id, kind: "claude", started: Date.now() }] }));
+    const lines = [
+      { at: 1, user: `Build ${img}${script}` },
+      { at: 2, event: { type: "tool_call", id: "t1", name: "mcp__emmet__run_model", input: { note: img } } },
+      { at: 3, event: { type: "tool_result", id: "t1", ok: true, summary: `${img}${script}` } },
+      { at: 4, event: { type: "text", message: "m1", delta: reply } },
+      { at: 5, event: { type: "turn_done", reason: "completed" } },
+    ];
+    writeFileSync(join(chatDir, `${id}.jsonl`), `${lines.map((l) => JSON.stringify(l)).join("\n")}\n`);
+    await open(dir);
+    await browser.execute(() => window.__emmet.reloadChat());
+    await waitFor("the reply never showed", async () => (await log()).includes("the guide"));
+    // The markup is there to read, as text.
+    expect(await log()).toContain(script);
+    const made = await browser.execute(() => {
+      const dock = document.getElementById("dock");
+      return {
+        pwned: window.__pwned ?? null,
+        images: dock.querySelectorAll("img[src='x'], img[onerror]").length,
+        scripts: dock.querySelectorAll("script").length,
+        links: dock.querySelectorAll("a[href]").length,
+      };
+    });
+    expect(made).toEqual({ pwned: null, images: 0, scripts: 0, links: 0 });
   });
 
   it("leaves the user's agent configs untouched", async () => {

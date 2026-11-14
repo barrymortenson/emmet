@@ -28,7 +28,7 @@ fn names(kind: AgentKind) -> &'static [&'static str] {
 }
 
 /// The usual install folders, after PATH: the native and standalone installers, Homebrew, npm and bun globals, and on
-/// Windows npm, WinGet, Scoop, and OpenAI's standalone Codex.
+/// Windows npm (the user's and the machine's), pnpm, Volta, WinGet, Scoop, and OpenAI's standalone Codex.
 fn usual_dirs(env: &[(String, String)]) -> Vec<PathBuf> {
     let home = env::get(env, "HOME")
         .or(env::get(env, "USERPROFILE"))
@@ -44,7 +44,13 @@ fn usual_dirs(env: &[(String, String)]) -> Vec<PathBuf> {
         if let Some(a) = env::get(env, "APPDATA") {
             dirs.push(Path::new(a).join("npm"));
         }
+        // Node's own installer, where a machine-wide npm prefix puts its shims.
+        if let Some(p) = env::get(env, "ProgramFiles") {
+            dirs.push(Path::new(p).join("nodejs"));
+        }
         if let Some(l) = env::get(env, "LOCALAPPDATA") {
+            dirs.push(Path::new(l).join("pnpm"));
+            dirs.push(Path::new(l).join("Volta/bin"));
             dirs.push(Path::new(l).join("Microsoft/WinGet/Links"));
             dirs.push(Path::new(l).join("Programs/claude"));
             // OpenAI's standalone Codex installer.
@@ -106,7 +112,10 @@ pub fn command(bin: &Path) -> Command {
         && !launcher.is_empty()
         && let Some(js) = bin.parent().map(|d| d.join(launcher)).filter(|js| js.is_file())
     {
-        let mut cmd = Command::new("node");
+        // npm puts its shims in its prefix folder, which for Node's own installer is the folder node.exe is in. That
+        // node runs it, even when the app was started with a PATH that has no node on it.
+        let beside = bin.parent().map(|d| d.join("node.exe")).filter(|n| n.is_file());
+        let mut cmd = beside.map_or_else(|| Command::new("node"), Command::new);
         cmd.arg(js);
         return cmd;
     }
@@ -252,6 +261,12 @@ mod tests {
         let cmd = command(&dir.join("codex.cmd"));
         assert_eq!(cmd.get_program(), "node");
         assert_eq!(cmd.get_args().collect::<Vec<_>>(), [js.as_os_str()]);
+        // The node beside the shim runs it, when there is one.
+        std::fs::write(dir.join("node.exe"), "").unwrap();
+        assert_eq!(
+            command(&dir.join("codex.cmd")).get_program(),
+            dir.join("node.exe").as_os_str()
+        );
         // A real program, or a shim whose package isn't there, runs as itself.
         assert_eq!(
             command(&dir.join("codex.exe")).get_program(),
@@ -262,5 +277,50 @@ mod tests {
             dir.join("claude.cmd").as_os_str()
         );
         let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+#[cfg(all(test, windows))]
+mod windows_tests {
+    use super::*;
+
+    /// A CLI in each folder a Windows installer or package manager uses is found with nothing on PATH.
+    #[test]
+    fn the_cli_is_found_in_each_usual_windows_folder() {
+        let root = std::env::temp_dir().join(format!("emmet-detect-{}", std::process::id()));
+        let var = |k: &str, v: &str| (k.to_string(), root.join(v).to_string_lossy().into_owned());
+        let env = vec![
+            ("PATH".to_string(), String::new()),
+            var("USERPROFILE", "Üser Name"),
+            var("APPDATA", "Üser Name/AppData/Roaming"),
+            var("LOCALAPPDATA", "Üser Name/AppData/Local"),
+            var("ProgramFiles", "Program Files"),
+        ];
+        for (dir, name, kind) in [
+            ("Üser Name/.local/bin", "claude.exe", AgentKind::Claude),
+            ("Üser Name/AppData/Roaming/npm", "claude.cmd", AgentKind::Claude),
+            ("Üser Name/AppData/Local/pnpm", "codex.cmd", AgentKind::Codex),
+            ("Üser Name/AppData/Local/Volta/bin", "codex.exe", AgentKind::Codex),
+            (
+                "Üser Name/AppData/Local/Microsoft/WinGet/Links",
+                "claude.exe",
+                AgentKind::Claude,
+            ),
+            (
+                "Üser Name/AppData/Local/Programs/OpenAI/Codex/bin",
+                "codex.exe",
+                AgentKind::Codex,
+            ),
+            ("Üser Name/scoop/shims", "codex.exe", AgentKind::Codex),
+            ("Program Files/nodejs", "claude.cmd", AgentKind::Claude),
+        ] {
+            let bin = root.join(dir).join(name);
+            std::fs::create_dir_all(bin.parent().unwrap()).unwrap();
+            assert_eq!(find(kind, &env), None, "nothing yet in {dir}");
+            std::fs::write(&bin, "").unwrap();
+            assert_eq!(find(kind, &env), Some(bin.clone()), "{dir}");
+            std::fs::remove_file(&bin).unwrap();
+        }
+        let _ = std::fs::remove_dir_all(&root);
     }
 }

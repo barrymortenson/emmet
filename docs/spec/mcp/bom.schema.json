@@ -63,7 +63,9 @@
           }
         },
         "required": [
-          "status"
+          "status",
+          "sets",
+          "years"
         ],
         "type": "object"
       },
@@ -94,7 +96,8 @@
         "required": [
           "lines",
           "totals",
-          "color_names"
+          "color_names",
+          "parts_data"
         ],
         "type": "object"
       },
@@ -172,6 +175,11 @@
           "color",
           "color_name",
           "qty",
+          "rebrickable_id",
+          "rebrickable_name",
+          "rebrickable_color",
+          "bricklink_id",
+          "bricklink_color",
           "availability"
         ],
         "type": "object"

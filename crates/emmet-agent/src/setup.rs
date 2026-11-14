@@ -154,8 +154,15 @@ fn system32(exe: &str) -> PathBuf {
     Path::new(&root).join("System32").join(exe)
 }
 
-fn powershell() -> PathBuf {
+/// Windows PowerShell, by full path.
+pub fn powershell() -> PathBuf {
     system32("WindowsPowerShell\\v1.0\\powershell.exe")
+}
+
+/// File Explorer, by full path (it sits in the Windows folder itself).
+pub fn explorer() -> PathBuf {
+    let root = std::env::var_os("SystemRoot").unwrap_or_else(|| "C:\\Windows".into());
+    Path::new(&root).join("explorer.exe")
 }
 
 /// How a job ended: its exit code (None when a signal ended it, on Unix) and every line it printed, stdout and stderr

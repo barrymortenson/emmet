@@ -11,10 +11,14 @@ allowBuilds:
   esbuild: false
   geckodriver: false
 
-# Security fixes in the WebdriverIO dev tree (Dependabot), past the ranges its packages ask for: mocha 10 takes
-# serialize-javascript 6 and get-uri takes basic-ftp 5. Drop these once WebdriverIO moves up.
+# Security fixes in the dev tools' trees (Dependabot, and 5B's audit), past the ranges their packages ask for: in
+# WebdriverIO's, mocha 10 takes serialize-javascript 6, get-uri takes basic-ftp 5, and its config and driver
+# download take glob 10 (and extract-zip 2.0.1, which has no fixed release to pin); ESLint's and WebdriverIO's take minimatch 9 and 10. None of these
+# ship in the app (pnpm audit --prod is clean). Drop each once its package moves up.
 overrides:
-  basic-ftp@<6.2.1: 6.2.3
+  basic-ftp@<6.2.4: 6.2.4
+  glob@>=9.0.0 <14.0.2: 14.0.2
+  minimatch@>=7.0.0 <11.0.1: 11.0.1
   serialize-javascript@<7.1.3: 7.1.4
 
 catalog:

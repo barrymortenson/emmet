@@ -564,6 +564,6 @@ pub fn build(data: &DataDir) -> Result<usize> {
     tx.commit().map_err(db)?;
     conn.execute_batch("VACUUM;").map_err(db)?;
     drop(conn);
-    std::fs::rename(&tmp, &final_path).map_err(|e| Error::io(&final_path, e))?;
+    crate::fsx::rename(&tmp, &final_path).map_err(|e| Error::io(&final_path, e))?;
     Ok(rows.len())
 }

@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-11-11",
+  updated: "2026-11-14",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -229,7 +229,7 @@ window.EMMET_STATUS = {
     },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
-    "5B": { status: "todo" },
+    "5B": { status: "review", branch: "bmortenson/s5b-windows-perf-security", started: "2026-11-12", pr: 64 },
     "6A": { status: "todo" },
     "6B": { status: "todo" },
     "6C": { status: "todo" },
@@ -252,7 +252,7 @@ window.EMMET_STATUS = {
     "H-07": { status: "done", date: "2026-10-27", note: "B (Canvas), as revised with Barry in 2A; asked through AskUserQuestion; docs/decisions.md" },
     "H-08": { status: "done", date: "2026-10-27", note: "Barry signed docs/design/SIGNOFF.md as is (47 screens, 49 components, the keyboard map, the content guide, the icons); asked through AskUserQuestion" },
     "H-09": { status: "todo" },
-    "H-10": { status: "todo" },
+    "H-10": { status: "done", date: "2026-11-14", note: "Barry's pass on the Windows 11 ARM VM with the installer from CI run 43490461801: all 46 lines of the interactive guide ticked, no notes (docs/security/windows-pass.md)" },
     "H-11": { status: "done", date: "2026-10-24", note: "6743-1 Street Speeder, from the 0B shortlist (docs/spec/ladder.md)" },
     "H-12": { status: "todo" },
     "H-13": { status: "todo" },

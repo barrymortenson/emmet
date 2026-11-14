@@ -31,12 +31,14 @@ const PROJECTS = {
   setup: [["", "agent"]],
   panel: [["", "cottage"], ["floating", "broken-floating"], ["picnic", "nested-submodel"]],
   trust: [["", "cottage-untrusted"]],
+  csp: [["", "cottage"]],
+  "reduced-motion": [["", "cottage"]],
   import: [["", "cottage"]],
   versions: [["", "cottage"]],
   keyboard: [["", "cottage"]],
   interact: [["", "cottage"], ["floating", "broken-floating"], ["pins", "pins-grouped"], ["town", "scene-stress", { buildings: 2, floors: 1 }]],
   animate: [["", "cottage"]],
-  perf: [["", "scene-stress"]],
+  perf: [["", "scene-stress"], ["rung1", "scene-stress", { buildings: 1, floors: 1 }], ["rung2", "scene-stress", { buildings: 4, floors: 1 }]],
   instructions: [["", "cottage"], ["rung2", "rung2-claude"]],
   screens: [["", "cottage"], ["floating", "broken-floating"], ["untrusted", "cottage-untrusted"]],
 };
@@ -61,10 +63,18 @@ function clear(dir) {
 
 function make(fixture, dir, params) {
   clear(dir);
-  if (fixture === "cottage" || fixture === "cottage-untrusted") {
+  if (fixture === "cottage") {
     emmet(["new", dir]);
-    // Made here but not trusted, as a project from another computer is (D-27).
-    if (fixture === "cottage-untrusted") rmSync(join(dir, ".emmet", "trust"), { force: true });
+  } else if (fixture === "cottage-untrusted") {
+    // Not trusted, as a project from another computer is (D-27): made somewhere else and copied in without its
+    // marker. Never made in place: on a spec's retry the app still has this folder open, and in the moment before the
+    // marker went, its watcher built the project (a build/ in a project "nothing ran in", Windows run 43441446952).
+    const made = `${dir}-made`;
+    clear(made);
+    emmet(["new", made]);
+    rmSync(join(made, ".emmet", "trust"), { force: true });
+    cpSync(made, dir, { recursive: true });
+    clear(made);
   } else {
     cpSync(join(repo, "tests", "fixtures", "projects", fixture), dir, { recursive: true });
     emmet(["--project", dir, "trust"]);

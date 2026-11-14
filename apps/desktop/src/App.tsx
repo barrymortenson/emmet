@@ -6,6 +6,7 @@
 // box, pins, the cut-away's bar) is ViewerLayer's (4C). Every action (keys, macOS's menu bar, Windows' title-row
 // menus, the project chip's menu) goes through `run`.
 import { createViewer, type Pace, type Preset, type Quality, type Theme, type View, type Viewer } from "@emmet/viewer";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Toast, Tooltip } from "radix-ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -32,6 +33,7 @@ import { Compare } from "./Compare";
 import { findingWords, fixRequest } from "./Checks";
 import { About, NewModel, Settings, Shortcuts } from "./Dialogs";
 import { FirstRun, libraryFailure, type Step, useSetup } from "./FirstRun";
+import { diagnosticsText, seen } from "./diagnostics";
 import { drawBook } from "./instructions";
 import { type Action, actionFor } from "./keys";
 import { base64, json, library, placements } from "./library";
@@ -48,7 +50,7 @@ const CHAT = { min: 300, max: 520, start: 340 };
 /** A menu click and its key press can both arrive for one action: the second within this long is the same one. */
 const SAME_ACTION_MS = 250;
 /** What works while first run covers the window: its own ways out, and the dialogs over it. */
-const COVERED_OK: Action[] = ["new", "open", "settings", "updates", "cli", "about", "shortcuts", "diagnostics", "help:report", "escape"];
+const COVERED_OK: Action[] = ["new", "open", "settings", "updates", "cli", "about", "shortcuts", "diagnostics", "help:report", "escape", "exit", "fullscreen"];
 
 /** The system appearance, unless Settings pins one or a test forces one. */
 function useTheme(pinned: string | undefined): [Theme, (t: Theme | null) => void] {
@@ -181,6 +183,7 @@ export function App() {
     box.prepend(canvas);
     const v = createViewer(canvas, { partSource: library, theme });
     viewer.current = v;
+    seen.viewer = v;
     setAutoQuality(v.stats().quality);
     const offAnimation = v.on("animation", setAnimating);
     if (__EMMET_TEST_HOOKS__) {
@@ -192,6 +195,7 @@ export function App() {
         shown: () => shown.current,
         project: () => root.current,
         drawnAt: () => drawnAt.current,
+        diagnostics: diagnosticsText,
         viewerError: () => lastViewerError.current,
         // The app's part source, and a second viewer with an empty part cache (the bench's cold first loads; specs
         // that wrap the part source).
@@ -215,10 +219,12 @@ export function App() {
       v.dispose();
       canvas.remove();
       viewer.current = null;
+      seen.viewer = null;
     };
     // Created once; the theme effect below keeps it current.
   }, []);
   useEffect(() => {
+    seen.startupMs = startupMs;
     if (__EMMET_TEST_HOOKS__) (window as unknown as { __emmet: Record<string, unknown> }).__emmet.startup = () => startupMs;
   }, [startupMs]);
 
@@ -266,8 +272,10 @@ export function App() {
     if (comparing.current) return;
     const first = at != null && framed.current !== at;
     // The opening scene appears at once; the first parts of a model that opened empty build up as any run's do.
+    const began = performance.now();
     if (!(await showIn(v, placements(scene), first && !openedEmpty.current ? "none" : animate))) return;
     drawnAt.current = performance.now();
+    seen.shown = { parts: scene.placements.length, runMs: scene.ms ?? null, drawMs: drawnAt.current - began, first };
     if (at && first) {
       // A model that starts empty (Base None, Barry 2026-11-10) is framed when its first parts come, not before: the
       // camera never moves on its own after that, so framing the empty table left the model off to one side.
@@ -643,12 +651,19 @@ export function App() {
         case "about":
           setDialog("about");
           break;
+        case "exit":
+          void getCurrentWindow().close().catch(() => say("Couldn't close the window"));
+          break;
+        case "fullscreen": {
+          const w = getCurrentWindow();
+          void w.isFullscreen().then((full) => w.setFullscreen(!full)).catch(() => say("Couldn't change full screen"));
+          break;
+        }
         case "shortcuts":
           setDialog("shortcuts");
           break;
         case "diagnostics":
-          void commands
-            .diagnostics()
+          void diagnosticsText()
             .then((t) => navigator.clipboard.writeText(t))
             .then(
               () => say("Copied the diagnostics"),
@@ -815,7 +830,7 @@ export function App() {
       );
     return null;
   })();
-  const titlebar = <Titlebar name={name} hasProject={!!project} view={view} onView={(v) => run(`view:${v}`)} run={run} can={can} pop={pop} onPop={setPop} versions={versions} onSaveVersion={saveVersion} onOpenVersion={openVersion} />;
+  const titlebar = <Titlebar name={name} hasProject={!!project} view={view} onView={(v) => run(`view:${v}`)} run={run} can={can} pop={pop} onPop={setPop} versions={versions} onSaveVersion={saveVersion} onOpenVersion={openVersion} onOpenRecent={(r) => void act(commands.openRecent(r.path))} />;
 
   return (
     <Tooltip.Provider delayDuration={500}>

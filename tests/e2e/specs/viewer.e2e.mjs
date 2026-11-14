@@ -165,6 +165,159 @@ describe("the live viewer", () => {
     expect([saved.depth, saved.weathering]).toEqual([12, 7]);
   });
 
+  it("a software renderer gets the Fast preset, and a graphics card a better one", async () => {
+    // Windows without a usable GPU (a VM, remote desktop, a blocked driver) draws WebGL in software: SwiftShader or
+    // the Microsoft Basic Render Driver. GitHub's Windows runners are such machines.
+    const { gpu, quality } = await stats();
+    console.log(`gpu: ${gpu}; quality: ${quality}`);
+    const software = /swiftshader|llvmpipe|software|basic render/i.test(gpu);
+    expect(quality === "fast").toBe(software);
+    if (software) expect((await stats()).pixelRatio).toBe(1);
+  });
+
+  it("the canvas follows the screen's scale: 100, 150, and 200 %", async () => {
+    // A second viewer at Balanced (Fast always draws 1:1), told of each scale the way the browser tells a page: the
+    // ratio changes and the window lays out again.
+    const sizes = await browser.execute(async () => {
+      const real = Object.getOwnPropertyDescriptor(window, "devicePixelRatio");
+      // The viewer's own watch on the scale: what it listens with, kept so the test can tell it of a change.
+      const realMatch = window.matchMedia;
+      const watchers = [];
+      window.matchMedia = (q) => {
+        const m = realMatch.call(window, q);
+        if (q.includes("dppx")) {
+          const add = m.addEventListener.bind(m);
+          m.addEventListener = (name, f, o) => (watchers.push(f), add(name, f, o));
+        }
+        return m;
+      };
+      const v = window.__emmet.newViewer();
+      const canvas = document.body.lastElementChild;
+      v.setQuality("balanced");
+      const out = [];
+      try {
+        for (const ratio of [1, 1.5, 2, 3]) {
+          Object.defineProperty(window, "devicePixelRatio", { value: ratio, configurable: true });
+          canvas.style.width = `${800 + ratio * 2}px`;
+          await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+          await v.nextFrame();
+          out.push([v.stats().pixelRatio, canvas.width, canvas.clientWidth]);
+        }
+        // A window dragged to another screen: the scale changes and nothing is laid out again, so only the watch
+        // can tell the viewer.
+        Object.defineProperty(window, "devicePixelRatio", { value: 1.25, configurable: true });
+        watchers.at(-1)();
+        await v.nextFrame();
+        out.push([v.stats().pixelRatio, canvas.width, canvas.clientWidth]);
+      } finally {
+        window.matchMedia = realMatch;
+        if (real) Object.defineProperty(window, "devicePixelRatio", real);
+        else delete window.devicePixelRatio;
+        v.dispose();
+        canvas.remove();
+      }
+      return out;
+    });
+    // Past 200 % the canvas stays at 2 pixels a CSS pixel: more costs frame time nobody sees.
+    expect(sizes.map(([r]) => r)).toEqual([1, 1.5, 2, 2, 1.25]);
+    for (const [ratio, width, css] of sizes) expect(width).toBe(Math.floor(css * ratio));
+  });
+
+  it("draws again after the graphics context is lost and comes back", async () => {
+    // A driver update, a laptop waking, or a remote desktop session connecting takes the WebGL context away. On a
+    // viewer of its own with the same model, so the window's viewer keeps its context for the specs after this one.
+    const placements = JSON.parse(readFileSync(join(project, "build", "placements.json"), "utf8")).parts;
+    const result = await browser.execute(async (list) => {
+      const v = window.__emmet.newViewer();
+      const canvas = document.body.lastElementChild;
+      canvas.style.visibility = "visible";
+      canvas.style.zIndex = "-1";
+      try {
+        await v.load(list);
+        v.frame();
+        const gl = canvas.getContext("webgl2");
+        const lose = gl.getExtension("WEBGL_lose_context");
+        if (!lose) return { skipped: true };
+        // An event that never comes says which one, in seconds, instead of timing the test out.
+        const within = (what, p) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error(`${what} never came`)), 5000))]);
+        const event = (name) => within(name, new Promise((r) => canvas.addEventListener(name, r, { once: true })));
+        // The canvas's own pixels, read in the same turn as the frame that drew them, at a size quick to compare.
+        const picture = async () => {
+          await within("a frame", v.nextFrame());
+          const g = new OffscreenCanvas(160, 120).getContext("2d");
+          g.drawImage(canvas, 0, 0, 160, 120);
+          return g.getImageData(0, 0, 160, 120).data;
+        };
+        const colors = (data) => {
+          const seen = new Set();
+          for (let i = 0; i < data.length; i += 4) seen.add((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
+          return seen.size;
+        };
+        const differs = (a, b) => {
+          let n = 0;
+          for (let i = 0; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 24) n++;
+          return n / (a.length / 4);
+        };
+        // Settled first: the viewer picks each part's stud detail a frame or two after the camera stops.
+        let was = await picture();
+        for (let i = 0; i < 20; i++) {
+          const next = await picture();
+          const same = differs(was, next) === 0;
+          was = next;
+          if (same) break;
+        }
+        const before = v.stats();
+        const lost = event("webglcontextlost");
+        lose.loseContext();
+        await lost;
+        // Only once the lost event is over: until then the browser hasn't recorded that the page handled it, and
+        // won't give the context back.
+        await new Promise((r) => setTimeout(r, 100));
+        const restored = event("webglcontextrestored");
+        lose.restoreContext();
+        await restored;
+        // No one asks for a frame here: the viewer must draw the scene again by itself.
+        for (let i = 0; i < 120 && v.stats().framesDrawn === before.framesDrawn; i++) await new Promise((r) => requestAnimationFrame(r));
+        const drew = v.stats().framesDrawn - before.framesDrawn;
+        // The same picture as before: every part, its colors, and the room's light on them.
+        let now = await picture();
+        for (let i = 0; i < 20 && differs(was, now) > 0; i++) now = await picture();
+        await new Promise((r) => setTimeout(r, 500));
+        return { lost: gl.isContextLost(), drew, instances: [before.instances, v.stats().instances], differ: differs(was, now), colors: [colors(was), colors(now)] };
+      } finally {
+        v.dispose();
+        canvas.remove();
+      }
+    }, placements);
+    // WebView2 and WKWebView both have the extension that takes a context away; without it nothing was checked.
+    expect(result.skipped).toBeUndefined();
+    console.log(`after the context came back: ${JSON.stringify(result)}`);
+    expect(result.lost).toBe(false);
+    expect(result.drew).toBeGreaterThan(0);
+    expect(result.instances[1]).toBe(result.instances[0]);
+    expect(result.colors[0]).toBeGreaterThan(50);
+    expect(result.colors[1]).toBeGreaterThan(50);
+    expect(result.differ).toBeLessThan(0.01);
+  });
+
+  it("Copy diagnostics says what draws the window and how fast it has been", async () => {
+    // What a bug report from a slow machine needs, and how section 13's budgets are read off an installed build.
+    await browser.execute(async () => {
+      const v = window.__emmet.viewer();
+      for (let i = 0; i < 12; i++) {
+        v.orbit(0.03);
+        await v.nextFrame();
+      }
+    });
+    const text = await browser.execute(() => window.__emmet.diagnostics());
+    const { gpu } = await stats();
+    expect(text).toContain(`Graphics: ${gpu} (`);
+    expect(text).toMatch(/^Start: ready \d+ ms after launch$/m);
+    expect(text).toMatch(/^Last build shown: \d+ parts.*, run and check (\d+|\?) ms, drawn in \d+ ms$/m);
+    expect(text).toMatch(/^Last motion: \d+\.\d ms a frame, \d+ draw calls$/m);
+    expect(text).toMatch(/^Emmet \d/);
+  });
+
   it("reopening a project whose build lost its placements builds it again", async () => {
     rmSync(join(project, "build", "placements.json"));
     const root = await open(project);

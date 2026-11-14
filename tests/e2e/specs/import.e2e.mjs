@@ -6,7 +6,7 @@
 import { $, $$, expect } from "@wdio/globals";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { open, screenshots } from "../lib/app.mjs";
+import { open, screenshots, showsProject } from "../lib/app.mjs";
 import { agentHome, scenario } from "../lib/agents.mjs";
 import { repo } from "../lib/paths.mjs";
 import { pickNext, projectDir } from "../lib/projects.mjs";
@@ -19,7 +19,7 @@ describe("open an LDraw file", () => {
     pickNext(join(repo, "tests", "fixtures", "projects", "dsl-v1", "wagon.ldr"));
     await browser.keys([mod, "o"]);
     const root = join(agentHome, "Documents", "Emmet", "wagon (imported)");
-    await browser.waitUntil(() => browser.execute((r) => window.__emmet.project() === r && window.__emmet.shown() >= 1, root), { timeout: 30_000, timeoutMsg: "the import never showed" });
+    await showsProject(root, "the import never showed");
     expect(existsSync(join(root, "wagon.ldr"))).toBe(true);
     await expect($("#banner-imported .banner-text")).toHaveText(expect.stringMatching(/^Opened wagon\.ldr: \d+ parts? in \d+ steps?\.$/));
     await expect($("#make-parametric")).toBeDisplayed();

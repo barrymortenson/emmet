@@ -254,6 +254,11 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Security
 
+- The chat never starts an agent in a project that isn't trusted: the agent CLIs read a project's own instructions,
+  settings, and hooks as they start, so a shared project could have run its own commands on the first message (5B).
+- Security review 1 (`docs/security/review-1.md`, 5B): every section 15 threat with its control and tests, the
+  capabilities audit, and the dependency audit. The trust secret is written private; gitleaks runs over the whole
+  history on every PR, prose-only ones too; a test fails on any capability without a command; rmcp is 3.9.0.
 - A photo keeps none of its metadata: Emmet keeps only what a decoder needs (so every EXIF with its GPS, XMP, ICC,
   IPTC, comment, unknown segment, and anything after the image is dropped) before it saves or sends one, and
   refuses one in `refs/` that still has any, naming it, before the message is saved (4D).
@@ -267,6 +272,12 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Fixed
 
+- Windows (5B): a write waits for a file a sync client, a scanner, or the indexer holds, instead of failing the
+  build; the app and the `emmet` command find each other whatever case the data folder is named in; a project on a
+  network share reads as `\\server\share`; the viewer follows a change of screen scale and draws again after the
+  graphics context is lost; the title row's menus no longer slide under the view switch in a narrow window, and have
+  Open recent, Exit, and Full screen (F11); agent CLIs installed by pnpm, Volta, or a machine-wide npm are found,
+  and an npm shim runs with the node beside it; an old or missing WebView2 gets a message that says what to install.
 - A double click on the title row maximizes the window, as other apps' do: the capability now allows Tauri's
   drag-region command for it (4D).
 - A turn cut off by Emmet closing or restarting ends with a note that says so, instead of the dock going quiet (4D).
@@ -289,6 +300,10 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
 
 ### Changed
 
+- Copy diagnostics adds what draws the window (the graphics card or software renderer, the quality picked) and how
+  fast it has been: start-up, the last build's run and draw times, and the last motion's frame time (5B).
+- The perf spec checks section 13's budgets at about 100, about 500, and 2,000 parts, on any machine with a
+  graphics card, either OS (5B). CI's `nsis` job installs, reinstalls, and uninstalls the installer it builds.
 - A step's number is over its parts box, on screen and in the PDF (Barry, 2026-11-05; design change note 006).
 
 - The agent builds a finished model by default: the doctrine's "Finished, not basic" has it build at High detail and a
@@ -323,6 +338,8 @@ Notable changes to Emmet. Versions follow semver; the minor version bumps per ph
   keeps drawing while other windows cover it, so CI's Mac E2E runs while Barry works.
 - The Mac app comes first (D-43): CI's Windows jobs are paused (a manual run's "windows" box runs them), and
   Antigravity, Cursor, and Grok wait until after the MVP.
+- The Windows pause is over (D-43, session 5B): CI's Windows jobs run on PRs again, scoped by path, and the manual
+  run's "windows" box is gone.
 - CI runs only what a change can break (`scripts/ci-scope.sh`): prose skips the OS jobs, the UI skips Windows, a push
   after a green run tests only its own commits, and main doesn't rerun merged PRs. Everything runs weekly, by hand, or
   with the `full-ci` label. `just test` builds only when a suite needs it, and the 0B spike crates left the workspace.
