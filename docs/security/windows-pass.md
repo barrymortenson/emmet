@@ -60,6 +60,8 @@ Why: Windows draws its own title row and menus (macOS uses the system's), and th
       changes.
 12. Double-click an empty part of the title row, twice.
     - [ ] The window maximizes, then restores.
+    Then press Tab a dozen times.
+    - [ ] Each control it lands on shows a focus ring (CI can't check this on Windows).
 
 ## E. Screen scale (5 min)
 
@@ -132,8 +134,22 @@ Why: the real updater comes in 6A; until then an update is the installer run aga
 29. Sign out of Zoë Test and sign in as yourself; delete the Zoë Test account if you like (Settings → Accounts →
     Other users → Remove).
 
+## Two things to look at while you're there
+
+Both were seen in CI screenshots at a small window; say whether they show at a normal size.
+
+- [ ] The first-run welcome card (step 5) has no scrollbar at the window's normal size.
+- [ ] With a version open to compare (the project chip → Versions… → pick one, after Save version), the bar with
+  Restore, Open as new project, the version's name, and close isn't cut off under the panel.
+
 ## What to send back
 
 - The ticks, or what you saw where a step didn't go as written.
 - The first-run time from step 6.
 - `emmet-diagnostics.txt` from step 17 (it has the folder paths of the Zoë Test account only).
+
+## Results
+
+2026-11-14, Barry, on the Windows 11 ARM VM (Parallels), with the installer from CI run 43490461801: every line
+ticked, 46 of 46, with no notes. That covers each step above, the Tab focus rings, and the two things to look at
+(no scrollbar on the welcome card, and the version bar not cut off, at the window's normal size).
