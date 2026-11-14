@@ -229,7 +229,7 @@ window.EMMET_STATUS = {
     },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
-    "5B": { status: "in-progress", branch: "bmortenson/s5b-windows-perf-security", started: "2026-11-12" },
+    "5B": { status: "review", branch: "bmortenson/s5b-windows-perf-security", started: "2026-11-12", pr: 64 },
     "6A": { status: "todo" },
     "6B": { status: "todo" },
     "6C": { status: "todo" },
