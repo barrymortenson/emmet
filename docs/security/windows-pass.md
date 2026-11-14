@@ -151,5 +151,6 @@ Both were seen in CI screenshots at a small window; say whether they show at a n
 ## Results
 
 2026-11-14, Barry, on the Windows 11 ARM VM (Parallels), with the installer from CI run 43490461801: every line
-ticked, 46 of 46, with no notes. That covers each step above, the Tab focus rings, and the two things to look at
-(no scrollbar on the welcome card, and the version bar not cut off, at the window's normal size).
+ticked, with no notes: 46 of 46 in the interactive guide, which splits this file's 34 boxes more finely. That
+covers each step above, the Tab focus rings, and the two things to look at (no scrollbar on the welcome card, and
+the version bar not cut off, at the window's normal size).

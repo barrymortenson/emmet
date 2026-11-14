@@ -13,7 +13,7 @@ allowBuilds:
 
 # Security fixes in the dev tools' trees (Dependabot, and 5B's audit), past the ranges their packages ask for: in
 # WebdriverIO's, mocha 10 takes serialize-javascript 6, get-uri takes basic-ftp 5, and its config and driver
-# download take glob 10 and extract-zip 2.0.1; ESLint's and WebdriverIO's take minimatch 9 and 10. None of these
+# download take glob 10 (and extract-zip 2.0.1, which has no fixed release to pin); ESLint's and WebdriverIO's take minimatch 9 and 10. None of these
 # ship in the app (pnpm audit --prod is clean). Drop each once its package moves up.
 overrides:
   basic-ftp@<6.2.4: 6.2.4

@@ -177,8 +177,8 @@ export interface Stats {
   frameMs: number;
   /** Frames the window has drawn since the viewer was made (it draws only when something changed). */
   framesDrawn: number;
-  /** The mean time between frames over the last run of ten or more drawn back to back (the last orbit or build
-   * animation), in ms; 0 before any. */
+  /** The mean time between frames over the last 60 of the last run of ten or more drawn back to back (the last orbit
+   * or build animation), in ms; 0 before any. */
   movingFrameMs: number;
   /** The JS heap in bytes where the webview reports it (WebView2), else null (WKWebView). */
   heap: number | null;
@@ -1356,7 +1356,10 @@ class EmmetViewer implements Viewer {
     if (this.gpuName == null) {
       const gl = this.renderer.getContext();
       const info = gl.getExtension("WEBGL_debug_renderer_info");
-      this.gpuName = String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+      const name: unknown = info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+      // A lost context answers null: not a name to keep.
+      if (name == null) return "";
+      this.gpuName = String(name);
     }
     return this.gpuName;
   }

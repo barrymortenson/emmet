@@ -309,7 +309,8 @@ describe("the model and effort", () => {
     await screenshots("chat-model-picker");
     // The screenshots change the theme and move focus; in a window that isn't the front one (a hosted Windows
     // runner's), the popover sometimes closes over that. Opened again, it must be there to choose from.
-    if (!(await (await $("#model-popover")).isExisting())) {
+    const backWindow = process.platform === "win32" && process.env.RUNNER_ENVIRONMENT === "github-hosted";
+    if (backWindow && !(await (await $("#model-popover")).isExisting())) {
       console.log("the model popover closed during its screenshots; opening it again");
       await (await $("#model-chip")).click();
       await (await $("#model-popover")).waitForExist({ timeout: 5_000 });

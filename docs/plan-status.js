@@ -252,7 +252,7 @@ window.EMMET_STATUS = {
     "H-07": { status: "done", date: "2026-10-27", note: "B (Canvas), as revised with Barry in 2A; asked through AskUserQuestion; docs/decisions.md" },
     "H-08": { status: "done", date: "2026-10-27", note: "Barry signed docs/design/SIGNOFF.md as is (47 screens, 49 components, the keyboard map, the content guide, the icons); asked through AskUserQuestion" },
     "H-09": { status: "todo" },
-    "H-10": { status: "done", date: "2026-11-14", note: "Barry's pass on the Windows 11 ARM VM with the installer from CI run 43490461801: 46 of 46 lines ticked, no notes (docs/security/windows-pass.md)" },
+    "H-10": { status: "done", date: "2026-11-14", note: "Barry's pass on the Windows 11 ARM VM with the installer from CI run 43490461801: all 46 lines of the interactive guide ticked, no notes (docs/security/windows-pass.md)" },
     "H-11": { status: "done", date: "2026-10-24", note: "6743-1 Street Speeder, from the 0B shortlist (docs/spec/ladder.md)" },
     "H-12": { status: "todo" },
     "H-13": { status: "todo" },

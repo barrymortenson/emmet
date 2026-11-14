@@ -180,6 +180,17 @@ describe("the live viewer", () => {
     // ratio changes and the window lays out again.
     const sizes = await browser.execute(async () => {
       const real = Object.getOwnPropertyDescriptor(window, "devicePixelRatio");
+      // The viewer's own watch on the scale: what it listens with, kept so the test can tell it of a change.
+      const realMatch = window.matchMedia;
+      const watchers = [];
+      window.matchMedia = (q) => {
+        const m = realMatch.call(window, q);
+        if (q.includes("dppx")) {
+          const add = m.addEventListener.bind(m);
+          m.addEventListener = (name, f, o) => (watchers.push(f), add(name, f, o));
+        }
+        return m;
+      };
       const v = window.__emmet.newViewer();
       const canvas = document.body.lastElementChild;
       v.setQuality("balanced");
@@ -192,7 +203,14 @@ describe("the live viewer", () => {
           await v.nextFrame();
           out.push([v.stats().pixelRatio, canvas.width, canvas.clientWidth]);
         }
+        // A window dragged to another screen: the scale changes and nothing is laid out again, so only the watch
+        // can tell the viewer.
+        Object.defineProperty(window, "devicePixelRatio", { value: 1.25, configurable: true });
+        watchers.at(-1)();
+        await v.nextFrame();
+        out.push([v.stats().pixelRatio, canvas.width, canvas.clientWidth]);
       } finally {
+        window.matchMedia = realMatch;
         if (real) Object.defineProperty(window, "devicePixelRatio", real);
         else delete window.devicePixelRatio;
         v.dispose();
@@ -201,7 +219,7 @@ describe("the live viewer", () => {
       return out;
     });
     // Past 200 % the canvas stays at 2 pixels a CSS pixel: more costs frame time nobody sees.
-    expect(sizes.map(([r]) => r)).toEqual([1, 1.5, 2, 2]);
+    expect(sizes.map(([r]) => r)).toEqual([1, 1.5, 2, 2, 1.25]);
     for (const [ratio, width, css] of sizes) expect(width).toBe(Math.floor(css * ratio));
   });
 
@@ -271,7 +289,8 @@ describe("the live viewer", () => {
         canvas.remove();
       }
     }, placements);
-    if (result.skipped) return console.log("no WEBGL_lose_context here");
+    // WebView2 and WKWebView both have the extension that takes a context away; without it nothing was checked.
+    expect(result.skipped).toBeUndefined();
     console.log(`after the context came back: ${JSON.stringify(result)}`);
     expect(result.lost).toBe(false);
     expect(result.drew).toBeGreaterThan(0);

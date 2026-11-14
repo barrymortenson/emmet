@@ -652,11 +652,11 @@ export function App() {
           setDialog("about");
           break;
         case "exit":
-          void getCurrentWindow().close();
+          void getCurrentWindow().close().catch(() => say("Couldn't close the window"));
           break;
         case "fullscreen": {
           const w = getCurrentWindow();
-          void w.isFullscreen().then((full) => w.setFullscreen(!full));
+          void w.isFullscreen().then((full) => w.setFullscreen(!full)).catch(() => say("Couldn't change full screen"));
           break;
         }
         case "shortcuts":

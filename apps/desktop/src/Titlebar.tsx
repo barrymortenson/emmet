@@ -254,7 +254,7 @@ export function Titlebar({
           </Popover.Portal>
         </Popover.Root>
         {windows && (
-          <Menubar.Root className="menubar" data-c="menubar" aria-label="Menu" onValueChange={(open) => open === "File" && void commands.appInfo().then((i) => setRecent(i.recent))}>
+          <Menubar.Root className="menubar" data-c="menubar" aria-label="Menu" onValueChange={(open) => open === "File" && void commands.appInfo().then((i) => setRecent(i.recent), () => {})}>
             {windowsMenus(run, can, recent, onOpenRecent).map(([title, items]) => (
               <Menubar.Menu key={title} value={title}>
                 <Menubar.Trigger className="menubar-trigger">{title}</Menubar.Trigger>

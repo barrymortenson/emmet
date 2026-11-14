@@ -62,13 +62,15 @@ export const layerState = (selector) =>
  * under the pointer the driver left somewhere counts as one (on a slow runner there's time for it to show). */
 export async function escape(selector) {
   for (let i = 0; i < 3; i++) {
+    const tips = await browser.execute(() => [...document.querySelectorAll("[role='tooltip']")].map((t) => t.textContent));
     await browser.keys("Escape");
     const gone = await (await $(selector))
       .waitForDisplayed({ reverse: true, timeout: 3_000 })
       .then(() => true, () => false);
     if (gone) return;
-    const tips = await browser.execute(() => [...document.querySelectorAll("[role='tooltip']")].map((t) => t.textContent));
-    console.log(`Esc ${i + 1} left ${selector} open; tooltips showing: ${JSON.stringify(tips)}`);
+    // Only a tooltip earns another press: with none up, Esc should have closed the layer itself.
+    if (tips.length === 0) throw new Error(`Esc left ${selector} open, with no tooltip in its way`);
+    console.log(`Esc ${i + 1} closed a tooltip (${JSON.stringify(tips)}) and left ${selector} open`);
   }
 }
 

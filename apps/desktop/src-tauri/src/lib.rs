@@ -331,7 +331,14 @@ pub fn run() {
             let handle = tauri_app.handle().clone();
             // Before any window: with no WebView2, or one too old, say so and stop (webview.rs).
             #[cfg(windows)]
-            if let Some(problem) = webview::problem(tauri::webview_version().ok().as_deref()) {
+            #[cfg(windows)]
+            let webview2 = tauri::webview_version();
+            #[cfg(windows)]
+            if let Err(e) = &webview2 {
+                eprintln!("WebView2's version couldn't be read: {e}");
+            }
+            #[cfg(windows)]
+            if let Some(problem) = webview::problem(webview2.ok().as_deref()) {
                 if rendering {
                     eprintln!("render failed: {problem}");
                 } else {

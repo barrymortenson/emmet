@@ -16,6 +16,8 @@ describe("with the system's animations off", () => {
   it("menus, popovers, and dialogs open and close, and the build doesn't animate", async function () {
     const reduced = await browser.execute(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
     if (!reduced) {
+      // CI's Windows job runs this spec while the runner's animations are still off: there, motion on is a failure.
+      if (process.env.EMMET_EXPECT_REDUCED_MOTION) throw new Error("the system's animations are on, and CI expects them off here");
       console.log("this machine has motion on: nothing to check");
       this.skip();
     }

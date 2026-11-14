@@ -55,6 +55,8 @@ describe("the viewer's budgets", () => {
       // The window's own viewer says what draws; the project opens after the cold first load is timed.
       const { gpu, quality } = await stats();
       const enforce = !hosted && quality !== "fast";
+      // A Mac with a graphics card that lands on Fast has a broken pick, and would report where it should enforce.
+      if (process.platform === "darwin" && !hosted) expect(quality).not.toBe("fast");
       const row = { name: scene.name, parts: placements.length, budget: BUDGET, gpu, quality, enforced: enforce };
       rows.push(row);
       const over = [];
