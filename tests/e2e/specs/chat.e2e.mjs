@@ -75,6 +75,8 @@ async function choose(trigger, item) {
   const it = await $(item);
   await it.waitForDisplayed({ timeout: 5_000 });
   await it.click();
+  // The list closes on a choice, and until it has it's the newest layer: the one the next Esc would close.
+  await (await $("[role='listbox'], [role='menu']")).waitForExist({ reverse: true, timeout: 5_000 });
 }
 
 /** The agent picker's `kind`. */

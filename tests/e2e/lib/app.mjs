@@ -69,7 +69,16 @@ export async function escape(selector) {
       .then(() => true, () => false);
     if (gone) return;
     // Only a tooltip earns another press: with none up, Esc should have closed the layer itself.
-    if (tips.length === 0) throw new Error(`Esc left ${selector} open, with no tooltip in its way`);
+    if (tips.length === 0) {
+      const open = await browser.execute(() => ({
+        layers: [...document.querySelectorAll("[role='listbox'], [role='menu'], [role='dialog'], [data-radix-popper-content-wrapper] > *")].map(
+          (e) => `${e.getAttribute("role") ?? e.tagName}#${e.id}[${e.getAttribute("data-state")}]`,
+        ),
+        focus: `${document.activeElement?.tagName}#${document.activeElement?.id}`,
+        front: document.hasFocus(),
+      }));
+      throw new Error(`Esc left ${selector} open, with no tooltip in its way: ${JSON.stringify(open)}`);
+    }
     console.log(`Esc ${i + 1} closed a tooltip (${JSON.stringify(tips)}) and left ${selector} open`);
   }
 }
