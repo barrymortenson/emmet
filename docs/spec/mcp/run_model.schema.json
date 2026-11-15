@@ -219,6 +219,7 @@
           "parts",
           "steps",
           "submodels",
+          "bbox",
           "ms",
           "generation"
         ],

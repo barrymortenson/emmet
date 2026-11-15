@@ -117,7 +117,7 @@ function scopeOut(change, env = {}) {
   if (change) writeFiles(dir, { [change]: "changed\n" });
   const r = run("bash", [join(ROOT, "scripts/ci-scope.sh")], {
     cwd: dir,
-    env: { EMMET_CI_BASE: "", EMMET_CI_FULL: "", EMMET_CI_WINDOWS: "", ...env },
+    env: { EMMET_CI_BASE: "", EMMET_CI_FULL: "", ...env },
   });
   assert.equal(r.code, 0, r.out);
   return Object.fromEntries(r.out.trim().split("\n").map((l) => l.split("=")));
@@ -139,17 +139,17 @@ for (const [change, runs] of [
   ["scripts/plan-check.mjs", "mac"],
   ["apps/desktop/src/App.tsx", "mac e2e_mac"],
   ["packages/viewer/src/index.ts", "mac e2e_mac"],
-  ["crates/emmet-core/src/lib.rs", "mac e2e_mac"],
-  ["python/emmet_dsl/src/emmet_dsl/model.py", "mac e2e_mac"],
-  ["apps/desktop/src-tauri/src/main.rs", "mac e2e_mac build_app"],
-  ["tests/e2e/specs/viewer.e2e.mjs", "mac e2e_mac"],
-  ["crates/emmet-agent/src/session.rs", "mac e2e_mac"],
-  ["tests/fake-agents/src/lib.rs", "mac e2e_mac"],
-  ["tests/replay/claude/plain-turn.jsonl", "mac e2e_mac"],
+  ["crates/emmet-core/src/lib.rs", "mac windows e2e_mac"],
+  ["python/emmet_dsl/src/emmet_dsl/model.py", "mac windows e2e_mac"],
+  ["apps/desktop/src-tauri/src/main.rs", "mac windows e2e_mac e2e_windows build_app"],
+  ["tests/e2e/specs/viewer.e2e.mjs", "mac windows e2e_mac e2e_windows"],
+  ["crates/emmet-agent/src/session.rs", "mac windows e2e_mac e2e_windows"],
+  ["tests/fake-agents/src/lib.rs", "mac windows e2e_mac e2e_windows"],
+  ["tests/replay/claude/plain-turn.jsonl", "mac windows e2e_mac"],
   ["deny.toml", "mac deps"],
-  ["scripts/release-dry.sh", "mac"],
-  ["apps/desktop/src-tauri/tauri.release.conf.json", "mac e2e_mac build_app"],
-  ["Cargo.lock", "full mac deps e2e_mac build_app"],
+  ["scripts/release-dry.sh", "mac nsis"],
+  ["apps/desktop/src-tauri/tauri.release.conf.json", "mac windows e2e_mac e2e_windows build_app nsis"],
+  ["Cargo.lock", "full mac windows deps e2e_mac e2e_windows build_app nsis"],
   // How CI runs: the checks and core E2E, not everything (plan section 16).
   [".github/workflows/ci.yml", "mac e2e_mac"],
   ["justfile", "mac e2e_mac"],
@@ -159,23 +159,8 @@ for (const [change, runs] of [
   });
 }
 
-// Windows is paused (D-43): the same rules, only with EMMET_CI_WINDOWS=1.
-for (const [change, runs] of [
-  ["crates/emmet-core/src/lib.rs", "mac windows e2e_mac"],
-  ["crates/emmet-agent/src/session.rs", "mac windows e2e_mac e2e_windows"],
-  ["scripts/release-dry.sh", "mac nsis"],
-]) {
-  test(`ci scope with Windows on: ${change} runs ${runs}`, { skip: process.platform === "win32" }, () => {
-    assert.equal(scope(change, { EMMET_CI_WINDOWS: "1" }), runs);
-  });
-}
-
 test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the changes to those after it", { skip: process.platform === "win32" }, () => {
-  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac deps e2e_mac build_app");
-  assert.equal(
-    scope(null, { EMMET_CI_FULL: "1", EMMET_CI_WINDOWS: "1" }),
-    "full mac windows deps e2e_mac e2e_windows build_app nsis",
-  );
+  assert.equal(scope(null, { EMMET_CI_FULL: "1" }), "full mac windows deps e2e_mac e2e_windows build_app nsis");
   const { dir, git } = tempRepo();
   writeFiles(dir, { "crates/a.rs": "" });
   git("add", "-A");
@@ -196,7 +181,7 @@ test("ci scope: EMMET_CI_FULL=1 runs everything, and EMMET_CI_BASE limits the ch
 });
 
 // The E2E specs come from tests/e2e/tiers.mjs: core for anything that reaches the app, plus the areas that changed.
-const CORE = "hello,viewer,panel,chat,checks,trust,runs,versions,import,render,visual";
+const CORE = "hello,viewer,panel,chat,checks,trust,csp,runs,versions,import,render,visual";
 for (const [change, specs] of [
   ["README.md", ""],
   ["scripts/plan-check.mjs", ""],
@@ -227,8 +212,20 @@ test("DCO runs on every event but a push to main, so the hosted fallback's ci ch
   assert.match(plan, /BASE: \$\{\{ github\.event\.pull_request\.base\.sha \|\| 'origin\/main' \}\}/);
 });
 
+test("the plan job, which no change skips, scans the whole history for secrets", () => {
+  assert.doesNotMatch(jobs.plan, /^ {4}(if|needs):/m, "the plan job runs for every change");
+  assert.match(jobs.plan, /fetch-depth: 0/);
+  assert.match(jobs.plan, /sha256sum -c\n[\s\S]*gitleaks git --redact --no-banner \.$/m);
+});
+
 test("both OS jobs keep the integration tests' data dir and home in the runner's temp dir, out of the rust cache", () => {
   for (const job of ["mac", "windows"]) {
-    assert.match(jobs[job], /EMMET_DATA_DIR=%s\\nEMMET_TEST_HOME=%s\\n' "\$RUNNER_TEMP\/emmet-data" "\$RUNNER_TEMP\/home"/, job);
+    // Windows' sit in a folder named as a user's can be, with a space and letters outside ASCII (5B).
+    const user = job === "windows" ? "Emmet Tëst Üser\\/" : "";
+    assert.match(
+      jobs[job],
+      new RegExp(`EMMET_DATA_DIR=%s\\\\nEMMET_TEST_HOME=%s\\\\n' "\\$RUNNER_TEMP\\/${user}emmet-data" "\\$RUNNER_TEMP\\/${user}home"`),
+      job,
+    );
   }
 });

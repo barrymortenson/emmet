@@ -9,6 +9,7 @@ import iconMac from "./assets/brand/app-icon-macos.svg";
 import iconWin from "./assets/brand/app-icon-windows.svg";
 import antDark from "./assets/brand/wordmark-emmet-builder-ant-dark.svg";
 import antLight from "./assets/brand/wordmark-emmet-builder-ant-light.svg";
+import { diagnosticsText } from "./diagnostics";
 import { type AppInfo, type BuildSettings, type CliStatus, commands, type Prefs, type PrefsView, type Problem } from "./bindings";
 import { CodexAccounts } from "./ChatGpt";
 import { KEYS, keyName, windows } from "./keys";
@@ -239,7 +240,7 @@ export function Settings({
             icon="copy"
             id="copy-diagnostics"
             onClick={async () => {
-              const text = await commands.diagnostics();
+              const text = await diagnosticsText();
               onCopied(await navigator.clipboard.writeText(text).then(() => true, () => false));
             }}
           />

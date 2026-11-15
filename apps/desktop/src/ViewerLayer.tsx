@@ -205,9 +205,18 @@ function StepBox({ viewer, scene, step, tick, underBar }: { viewer: Viewer | nul
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === "undefined") return;
-    const o = new ResizeObserver(() => setLayout((n) => n + 1));
+    // On the next frame, never inside the observer's own callback: laying out again there is reported as an uncaught
+    // "ResizeObserver loop completed with undelivered notifications" (WebView2, 5B; virtual.tsx has the same for WebKit).
+    let frame = 0;
+    const o = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setLayout((n) => n + 1));
+    });
     o.observe(el);
-    return () => o.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      o.disconnect();
+    };
   }, []);
   useEffect(() => {
     const el = ref.current?.querySelector(".sub-assembly");

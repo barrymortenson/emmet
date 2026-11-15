@@ -42,7 +42,7 @@ fn status(emmet: &std::path::Path) -> CliStatus {
 
 /// The user's own PATH from the registry (the one new terminals get), not this process's.
 fn user_path() -> Option<String> {
-    let mut cmd = std::process::Command::new("powershell");
+    let mut cmd = std::process::Command::new(emmet_agent::setup::powershell());
     cmd.args([
         "-NoProfile",
         "-NonInteractive",
@@ -92,7 +92,7 @@ pub async fn install_cli(app: AppHandle) -> Result<Option<CliStatus>, Box<Proble
                 "$d = '{dir}'; $p = [Environment]::GetEnvironmentVariable('Path','User'); \
                  if (-not (($p -split ';') -contains $d)) {{ [Environment]::SetEnvironmentVariable('Path', (($p.TrimEnd(';') + ';' + $d).TrimStart(';')), 'User') }}"
             );
-            let mut cmd = std::process::Command::new("powershell");
+            let mut cmd = std::process::Command::new(emmet_agent::setup::powershell());
             cmd.args(["-NoProfile", "-NonInteractive", "-Command", &script]);
             crate::runs::no_window(&mut cmd);
             cmd.output()

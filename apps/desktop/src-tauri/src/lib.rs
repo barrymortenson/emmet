@@ -22,6 +22,7 @@ pub mod runs;
 pub mod setup;
 pub mod tools;
 pub mod watcher;
+pub mod webview;
 
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
@@ -328,6 +329,29 @@ pub fn run() {
         .setup(move |tauri_app| {
             specta.mount_events(tauri_app);
             let handle = tauri_app.handle().clone();
+            // Before any window: with no WebView2, or one too old, say so and stop (webview.rs).
+            #[cfg(windows)]
+            #[cfg(windows)]
+            let webview2 = tauri::webview_version();
+            #[cfg(windows)]
+            if let Err(e) = &webview2 {
+                eprintln!("WebView2's version couldn't be read: {e}");
+            }
+            #[cfg(windows)]
+            if let Some(problem) = webview::problem(webview2.ok().as_deref()) {
+                if rendering {
+                    eprintln!("render failed: {problem}");
+                } else {
+                    use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
+                    handle
+                        .dialog()
+                        .message(&problem)
+                        .title("Emmet")
+                        .kind(MessageDialogKind::Error)
+                        .blocking_show();
+                }
+                std::process::exit(1);
+            }
             if rendering {
                 let job = tauri_app.state::<app::AppState>().render.clone().expect("render job");
                 let size = f64::from(job.size.max(256));

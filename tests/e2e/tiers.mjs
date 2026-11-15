@@ -15,7 +15,7 @@ import { pathToFileURL } from "node:url";
  * worth waiting for. */
 export const GATE = "hello";
 
-export const CORE = ["viewer", "panel", "chat", "checks", "trust", "runs", "versions", "import", "render", "visual"];
+export const CORE = ["viewer", "panel", "chat", "checks", "trust", "csp", "runs", "versions", "import", "render", "visual"];
 
 /** Each area: the paths that are its code, and the specs that cover it beyond core. */
 export const AREAS = {
@@ -44,13 +44,17 @@ export const AREAS = {
   },
 };
 
-/** Windows E2E (a manual run while D-43 pauses Windows): what behaves differently there, paths, processes, the
+/** Windows E2E: what behaves differently there, paths, processes, the
  * sidecars, and Python under uv, plus perf, since section 13's budgets hold on both OSes and WebView2 draws with its
- * own GPU path. The UI runs the same JS in WebView2, so the Mac covers the rest. */
-export const WINDOWS = ["viewer", "chat", "setup", "runs", "trust", "versions", "import", "render", "visual", "perf", "instructions"];
+ * own GPU path, and the specs for the keymap and the title-row menus, which Windows has in place of the Mac's menu
+ * bar (keyboard, panel, checks), and for first run. The rest of the UI runs the same JS in WebView2, so the Mac covers
+ * it. */
+export const WINDOWS = ["viewer", "panel", "chat", "checks", "setup", "runs", "trust", "csp", "versions", "import", "render", "visual", "keyboard", "perf", "instructions", "first-run"];
 
-/** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes. */
-export const EXTRA = ["screens", "dock", "leak"];
+/** By hand (and when they change): the frozen screens and dock states as screenshots, memory over 100 changes, and
+ * the layers under the system's reduced motion, which only a machine set that way can check (CI's windows-e2e job is
+ * one, before it turns its animations on). */
+export const EXTRA = ["screens", "dock", "leak", "reduced-motion"];
 
 /** Not an E2E run: `just bench` runs it, by hand. */
 export const BENCH = "bench";

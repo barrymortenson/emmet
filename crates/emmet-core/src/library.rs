@@ -245,7 +245,7 @@ fn download(data: &DataDir, release: &str, url: &str, progress: &mut dyn FnMut(u
         )));
     }
     let zip = dir.join(format!("complete-{release}.zip"));
-    std::fs::rename(&part, &zip).map_err(|e| Error::io(&zip, e))?;
+    crate::fsx::rename(&part, &zip).map_err(|e| Error::io(&zip, e))?;
     Ok(zip)
 }
 
@@ -344,16 +344,16 @@ fn unzip(data: &DataDir, zip_path: &Path) -> Result<usize> {
     }
     let had_old = target.exists();
     if had_old {
-        std::fs::rename(&target, &old).map_err(|e| Error::io(&target, e))?;
+        crate::fsx::rename(&target, &old).map_err(|e| Error::io(&target, e))?;
     }
-    if let Err(e) = std::fs::rename(&staging, &target) {
+    if let Err(e) = crate::fsx::rename(&staging, &target) {
         if had_old {
-            let _ = std::fs::rename(&old, &target); // put the working library back
+            let _ = crate::fsx::rename(&old, &target); // put the working library back
         }
         let _ = std::fs::remove_dir_all(&staging);
         return Err(Error::io(&target, e));
     }
-    std::fs::rename(&manifest_tmp, data.library_manifest()).map_err(|e| Error::io(&data.library_manifest(), e))?;
+    crate::fsx::rename(&manifest_tmp, &data.library_manifest()).map_err(|e| Error::io(&data.library_manifest(), e))?;
     if had_old && let Err(e) = std::fs::remove_dir_all(&old) {
         eprintln!("emmet: couldn't remove the previous library at {}: {e}", old.display());
     }

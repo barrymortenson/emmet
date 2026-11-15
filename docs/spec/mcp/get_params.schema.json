@@ -196,7 +196,8 @@
           "type",
           "default",
           "help",
-          "line"
+          "line",
+          "knob"
         ],
         "type": "object"
       },

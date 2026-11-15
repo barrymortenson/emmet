@@ -31,11 +31,15 @@ describe("workspace trust", () => {
       ["unallow_finding", { rule: "floating", parts: ["roof/1"] }],
       ["keep_params", { names: ["weathering"] }],
       ["reset_params", { names: ["weathering"] }],
+      // The chat too: an agent reads the project's own instructions, settings, and hooks as it starts (5B).
+      ["chat_send", { text: "Make the roof red", context: { selection: [], view: null, detail: null }, from: null, photos: [] }],
     ])
       expect([cmd, await refusal(cmd, args)]).toEqual([cmd, "PROJECT_UNTRUSTED"]);
     expect(files()).toEqual(before);
     await browser.pause(1000);
     expect(existsSync(join(dir, "build"))).toBe(false);
+    // No agent started: it would have left its conversation and its transcript in the project.
+    for (const left of ["chat/sessions.json", "transcripts"]) expect(existsSync(join(dir, ".emmet", left))).toBe(false);
     await screenshots("untrusted", { baseline: true });
   });
 

@@ -591,8 +591,13 @@ fn current(app: &AppHandle, project: &Project) -> Result<SessionInfo, Box<Proble
 
 /// Makes sure the current conversation's agent is running, with its model and effort, starting it (on the same
 /// conversation, when it has one) if it isn't.
+///
+/// Never in a project that isn't trusted (D-27): the agent CLIs read the project's own instructions and settings
+/// (CLAUDE.md, AGENTS.md, .claude/settings.json and its hooks) as they start, so starting one there would run what
+/// a shared project carries.
 fn ensure_live(app: &AppHandle, project: &Project) -> Result<String, Box<Problem>> {
     let state = app.state::<AppState>();
+    project.require_trusted(&state.data)?;
     let info = current(app, project)?;
     {
         let live = state.chat.live.lock().expect("live");

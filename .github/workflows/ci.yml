@@ -10,8 +10,12 @@ on:
     - cron: "0 9 * * 1"
   workflow_dispatch:
     inputs:
-      windows:
-        description: "Run the Windows jobs too (paused while the Mac app comes first, D-43)"
+      windows_e2e:
+        description: "More E2E specs for the Windows job, after its own (the by-hand tier: screens,dock,leak)"
+        type: string
+        default: ""
+      windows_baselines:
+        description: "Windows E2E writes its baselines again instead of comparing (they're in the e2e-windows artifact, to check and commit)"
         type: boolean
         default: false
 
@@ -56,7 +60,6 @@ jobs:
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ' ') }}
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           BEFORE: ${{ github.event.before }}
-          EMMET_CI_WINDOWS: ${{ inputs.windows && '1' || '' }}
         run: |
           full=0; base=""
           if [[ "$EVENT" != pull_request || " $LABELS " == *" full-ci "* ]]; then
@@ -207,9 +210,10 @@ jobs:
       - name: Defender off
         shell: pwsh
         run: Set-MpPreference -DisableRealtimeMonitoring $true
-      # As on the Mac: test data outside target/, which rust-cache saves.
+      # As on the Mac: test data outside target/, which rust-cache saves. Under a folder named as a Windows user's can
+      # be, with a space and letters outside ASCII (5B): the home, app data, Python, and the library all sit in it.
       - name: Test data dirs
-        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/emmet-data" "$RUNNER_TEMP/home" >> "$GITHUB_ENV"
+        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/Emmet Tëst Üser/emmet-data" "$RUNNER_TEMP/Emmet Tëst Üser/home" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -259,8 +263,7 @@ jobs:
     if: needs.scope.outputs.e2e_windows == 'true'
     runs-on: windows-latest
     # The E2E build from a cold cache (about 15 minutes) and the specs, which draw in software here: the instructions
-    # spec's two books took 171 and 88 s to export on 2026-11-06, so the job gets 75 minutes (Barry, 2026-11-05; by hand
-    # only while D-43 pauses it).
+    # spec's two books took 171 and 88 s to export on 2026-11-06, so the job gets 75 minutes (Barry, 2026-11-05).
     timeout-minutes: 75
     defaults:
       run:
@@ -278,9 +281,10 @@ jobs:
       - name: Defender off
         shell: pwsh
         run: Set-MpPreference -DisableRealtimeMonitoring $true
-      # As on the Mac: test data outside target/, which rust-cache saves.
+      # As on the Mac: test data outside target/, which rust-cache saves. Under a folder named as a Windows user's can
+      # be, with a space and letters outside ASCII (5B): the home, app data, Python, and the library all sit in it.
       - name: Test data dirs
-        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/emmet-data" "$RUNNER_TEMP/home" >> "$GITHUB_ENV"
+        run: printf 'EMMET_DATA_DIR=%s\nEMMET_TEST_HOME=%s\n' "$RUNNER_TEMP/Emmet Tëst Üser/emmet-data" "$RUNNER_TEMP/Emmet Tëst Üser/home" >> "$GITHUB_ENV"
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -298,15 +302,41 @@ jobs:
           cache-on-failure: true
       - run: rustup toolchain install
       - run: just deps
+      # First, as the runner comes: animations off, which is the system's reduced motion (the spec says why).
+      - run: just e2e reduced-motion
+        env:
+          EMMET_EXPECT_REDUCED_MOTION: "1"
+      # Windows Server ships with window animations off, which a browser reads as "prefers reduced motion", and the
+      # app then turns its build animation off: the animation's specs and its frame budget need it on, as a desktop
+      # Windows has it (SPI_SETCLIENTAREAANIMATION).
+      - name: Window animations on
+        shell: pwsh
+        run: |
+          $api = Add-Type -PassThru -Name Spi -Namespace Emmet -MemberDefinition '[DllImport("user32.dll", SetLastError = true)] public static extern bool SystemParametersInfo(uint action, uint param, IntPtr value, uint flags);'
+          if (-not $api::SystemParametersInfo(0x1043, 0, [IntPtr]1, 3)) { throw "couldn't turn window animations on" }
       - run: just e2e windows
+        env:
+          EMMET_UPDATE_BASELINES: ${{ inputs.windows_baselines && '1' || '' }}
+      # The by-hand tier on Windows (its screens' and dock's baselines, the leak test): a manual run names the specs.
+      - name: More specs, by hand
+        if: inputs.windows_e2e != ''
+        env:
+          SPECS: ${{ inputs.windows_e2e }}
+          EMMET_UPDATE_BASELINES: ${{ inputs.windows_baselines && '1' || '' }}
+        # just writes its arguments into the recipe's text, so only spec names and commas get there.
+        run: |
+          [[ "$SPECS" =~ ^[a-z0-9,-]+$ ]] || { echo "windows_e2e takes spec names and commas only" >&2; exit 2; }
+          just e2e "$SPECS"
       - name: E2E output
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-windows
+          # With the baselines a spec wrote because none was committed yet: they're checked and committed from here.
           path: |
             tests/e2e/out/
             !tests/e2e/out/projects/
+            tests/e2e/baselines/windows/
           if-no-files-found: ignore
       - name: Timing
         if: always()
@@ -352,7 +382,12 @@ jobs:
       - run: just release-dry
         env:
           EMMET_PARTS_DATA_PACK: target/parts-data-mini
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      # Install it, install it again over itself, and uninstall it: per-user, with the app data kept (5B).
+      - name: Install, reinstall, uninstall
+        shell: pwsh
+        run: scripts/nsis-check.ps1 (Get-ChildItem target/release/bundle/nsis/*.exe | Select-Object -First 1).FullName
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: emmet-windows-nsis
           path: target/release/bundle/nsis/*.exe
@@ -371,6 +406,14 @@ jobs:
           node-version-file: .node-version
       - run: node scripts/plan-check.mjs
       - run: node scripts/spdx-check.mjs
+      # Secrets, over the whole history, on every PR: this job always runs, and the Mac job (which scans too, in
+      # just ci) is skipped for a change that is all prose, where a pasted token is as likely as anywhere (5B).
+      - name: gitleaks
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /tmp/gitleaks.tgz" | sha256sum -c
+          tar -xzf /tmp/gitleaks.tgz -C /tmp gitleaks
+          /tmp/gitleaks git --redact --no-banner .
       # The LDraw parts in the test fixture keep their license, authors, and bytes (ADR 0003).
       - run: node scripts/ldraw-mini-check.mjs
       # The design mockups' contrast gate (2A): a push that changes only docs/design skips the Mac job, so it runs here.

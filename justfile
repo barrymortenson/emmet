@@ -207,7 +207,12 @@ ci part="":
     if [[ "$part" != e2e ]]; then
       just check
       gitleaks git --redact --no-banner .
-      if [[ $deps == true ]]; then cargo deny check && pnpm audit --prod; fi
+      # Two commands, not `a && b`: under `set -e` a failed `a` in an && list doesn't stop the script, and cargo deny's
+      # failed advisories went by unseen (a manual run of 2026-11-11 printed "advisories FAILED" and carried on).
+      if [[ $deps == true ]]; then
+        cargo deny check
+        pnpm audit --prod
+      fi
       if [[ $full == true ]]; then just test; else just test --changed; fi
       if [[ $build_app == true ]]; then just build-app; fi
     fi

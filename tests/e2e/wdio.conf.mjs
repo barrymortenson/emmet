@@ -7,7 +7,8 @@
 // dir is the one the integration tests share (ldraw-mini and Python, from target/debug/prepare-data). Screenshots,
 // renders, and bench results go to tests/e2e/out/, which CI uploads.
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cp } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { agentHome, prepareAgents, startOpenAi, stopOpenAi } from "./lib/agents.mjs";
 import { webContentPids } from "./lib/memory.mjs";
@@ -62,12 +63,15 @@ export const config = {
     // Each run starts with the viewer's own settings (quality by the GPU, the build animation on): a spec that
     // changes them, or a run that stopped in the middle of one, mustn't change the next run's screenshots.
     const settings = join(shared, "settings.json");
-    if (existsSync(settings)) {
-      const s = JSON.parse(readFileSync(settings, "utf8"));
-      delete s.viewer_quality;
-      delete s.build_animation;
-      writeFileSync(settings, `${JSON.stringify(s, null, 2)}\n`);
-    }
+    const s = existsSync(settings) ? JSON.parse(readFileSync(settings, "utf8")) : {};
+    delete s.viewer_quality;
+    delete s.build_animation;
+    // New projects, imports, and versions opened as projects go in the test home on Windows too: Windows finds
+    // Documents through the account, not USERPROFILE, so without this they land in the runner's own Documents and
+    // outlive the run. macOS's Documents is HOME's, which is the test home already.
+    if (process.platform === "win32") s.projects_folder = join(agentHome, "Documents", "Emmet");
+    else delete s.projects_folder;
+    writeFileSync(settings, `${JSON.stringify(s, null, 2)}\n`);
     // Old-library checks and Update the library download ldraw-mini from here too.
     await startLibrary(shared);
     if (firstRun) {
@@ -79,8 +83,13 @@ export const config = {
       if (process.env.EMMET_E2E_REAL === "1") {
         for (const k of ["EMMET_LIBRARY_URL", "EMMET_LIBRARY_SHA256", "EMMET_LIBRARY_RELEASE"]) delete process.env[k];
       } else {
-        cpSync(join(shared, "python", "installs"), join(fresh, "python", "installs"), { recursive: true, verbatimSymlinks: true });
+        // The promise form, not cpSync: on Windows the run ended here with the whole process gone (exit 0xC0000409,
+        // run 43470551633), the first time this copy ran under CI's data dir with letters outside ASCII (5B), which
+        // Node 22's native cpSync is the likely cause of.
+        await cp(join(shared, "python", "installs"), join(fresh, "python", "installs"), { recursive: true, verbatimSymlinks: true });
       }
+      // The same projects folder as the shared data dir's, for the same reason.
+      if (process.platform === "win32") writeFileSync(join(fresh, "settings.json"), `${JSON.stringify({ projects_folder: s.projects_folder }, null, 2)}\n`);
       process.env.EMMET_DATA_DIR = fresh;
     }
     // The chat specs' fake agents, and the test home with sentinel agent configs (lib/agents.mjs).
@@ -105,6 +114,9 @@ export const config = {
     // a test home with no Documents/Emmet or Downloads (New, import, and Export write there), so a spec, and the
     // screens it takes, don't depend on the order.
     prepareAgents();
+    // Windows names Downloads only when the folder exists (Tauri says "unknown path" otherwise, and an export says it
+    // can't find Downloads); macOS makes it on the first write.
+    if (process.platform === "win32") mkdirSync(join(agentHome, "Downloads"), { recursive: true });
     rmSync(join(process.env.EMMET_DATA_DIR, "chatgpt"), { recursive: true, force: true });
     prepareProject(basename(specs[0] ?? "", ".e2e.mjs"));
   },

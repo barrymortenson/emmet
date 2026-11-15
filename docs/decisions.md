@@ -1078,3 +1078,27 @@ The answers recorded in plan section 03 as "Barry 2026-10-24" (the full text is 
   the model with every copy lit, as the row does anywhere else. Rejected: turning to the iso view for every
   sub-assembly (it throws away the side the user chose), and keeping the camera the user left on the way out (the
   session's Done when says where it was).
+
+## 2026-11-12, session 5B
+
+- **D-43's Windows pause ends with 5B** (Barry, 2026-11-12, through AskUserQuestion: "Lift D-43"). D-43 paused the
+  Windows CI jobs and H-10 "until the Mac app works", and 5B is the Windows pass, so the two disagreed at the
+  session's start. 5B's PR turns the `windows`, `windows-e2e`, and `nsis` jobs back on for PRs, scoped by path as
+  before the pause (the manual run's "windows" box and `EMMET_CI_WINDOWS` go), and takes on the Windows halves that
+  1F (the fresh-account run), 4A (first run, trust, import, panel, the side-by-sides, the title-row menus), 4B, 4C
+  (the budgets on real hardware), and 4E (the page baselines) left for the Windows pass, in its tests and the H-10
+  checklist. Antigravity, Cursor, and Grok stay out of the MVP. Rejected: lifting the pause for 5B's branch only
+  (manual runs, the earlier sessions' halves left open), and doing only the Mac parts with the session blocked.
+- **Windows' Edit menu has no Cut, Copy, Paste, or Select all** (Barry, 2026-11-13, through AskUserQuestion: "Leave
+  them out"). `docs/design/keyboard.md` listed them for both OSes, and 4A built them only in macOS's menu bar.
+  Windows' menus are drawn in the page, where a menu click takes focus from the text field, and Paste from a menu
+  needs clipboard-read access the window doesn't have. Ctrl+X, C, V, and A work in every field; keyboard.md says so.
+  Rejected: building Cut, Copy, and Select all without Paste, and a new host command (and capability) that reads
+  the clipboard.
+- **5B's PR opens with the Windows budgets on real hardware not measured** (Barry, 2026-11-14, through
+  AskUserQuestion: "Open the PR without them"). The H-10 pass came back with every line ticked and no notes, but
+  without the first-run time or the Copy diagnostics text, so the only Windows numbers are the hosted runner's
+  (no graphics card; reported, not gated). Done when 2 stays unticked for Windows in the PR, with that reason. The
+  Windows numbers on a machine with a graphics card move to 6B's Windows x64 tester (H-12), whose Done when now
+  asks for the tester's Copy diagnostics text. Rejected: waiting for a second VM pass, and recording the first run
+  as within budget on the tick alone.

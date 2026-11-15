@@ -238,7 +238,9 @@
           "name",
           "time",
           "auto",
-          "dir"
+          "dir",
+          "thumbnail",
+          "placements"
         ],
         "type": "object"
       },

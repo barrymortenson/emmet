@@ -64,6 +64,8 @@ pub fn is_source(root: &Path, path: &Path) -> bool {
     if parts.iter().any(|p| p.starts_with('.') || p == "__pycache__") || is_temp(name) {
         return false;
     }
+    // In any case: Windows and macOS open MODEL.PY as model.py, so the engine reads it, and the watcher must too.
+    let parts: Vec<String> = parts.iter().map(|p| p.to_lowercase()).collect();
     match parts.as_slice() {
         [one] => matches!(one.as_str(), "model.py" | "params.json" | "emmet.toml"),
         [first, .., last] => first == "models" && last.ends_with(".py"),

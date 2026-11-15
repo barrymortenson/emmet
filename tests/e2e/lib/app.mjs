@@ -41,6 +41,59 @@ export const invoke = (cmd, args = {}) =>
 /** Opens a project from the recents list (lib/projects.mjs put it there) and waits for its first scene: drawn, framed,
  * and the camera still. shown() counts a scene as soon as the viewer takes it, before its parts load and the camera
  * frames it, and the orbit controls round the framed camera off over the next frames (a last-digit change). */
+/** What the page thinks of the layer `selector` is in (a menu, popover, or dialog), for a failure's message: its
+ * state, its animation, and every layer open. */
+export const layerState = (selector) =>
+  browser.execute((q) => {
+    const el = document.querySelector(q);
+    const layer = el?.closest("[data-state]");
+    const style = layer && getComputedStyle(layer);
+    return {
+      state: layer?.dataset.state,
+      animation: style && `${style.animationName} ${style.animationDuration} ${style.animationPlayState}`,
+      running: document.getAnimations().map((a) => `${a.animationName ?? a.constructor.name}:${a.playState}`),
+      reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      active: document.activeElement?.outerHTML.slice(0, 120),
+      layers: [...document.querySelectorAll("[data-radix-popper-content-wrapper] > *, [role='dialog']")].map((n) => `${n.id || n.className}:${n.dataset.state}`),
+    };
+  }, selector);
+
+/** Presses Esc until `selector` is gone. Esc closes one thing at a time, the newest first, and a tooltip that came up
+ * under the pointer the driver left somewhere counts as one (on a slow runner there's time for it to show). */
+export async function escape(selector) {
+  for (let i = 0; i < 3; i++) {
+    const tips = await browser.execute(() => [...document.querySelectorAll("[role='tooltip']")].map((t) => t.textContent));
+    await browser.keys("Escape");
+    const gone = await (await $(selector))
+      .waitForDisplayed({ reverse: true, timeout: 3_000 })
+      .then(() => true, () => false);
+    if (gone) return;
+    // Only a tooltip earns another press: with none up, Esc should have closed the layer itself.
+    if (tips.length === 0) {
+      const open = await browser.execute(() => ({
+        layers: [...document.querySelectorAll("[role='listbox'], [role='menu'], [role='dialog'], [data-radix-popper-content-wrapper] > *")].map(
+          (e) => `${e.getAttribute("role") ?? e.tagName}#${e.id}[${e.getAttribute("data-state")}]`,
+        ),
+        focus: `${document.activeElement?.tagName}#${document.activeElement?.id}`,
+        front: document.hasFocus(),
+      }));
+      throw new Error(`Esc left ${selector} open, with no tooltip in its way: ${JSON.stringify(open)}`);
+    }
+    console.log(`Esc ${i + 1} closed a tooltip (${JSON.stringify(tips)}) and left ${selector} open`);
+  }
+}
+
+/** Waits until the window shows the project at `root` with a scene; when it never does, says which project it does
+ * show (a path Windows spells another way reads as "never showed" otherwise). */
+export async function showsProject(root, what) {
+  try {
+    await browser.waitUntil(() => browser.execute((r) => window.__emmet.project() === r && window.__emmet.shown() >= 1, root), { timeout: 30_000 });
+  } catch {
+    const now = await browser.execute(() => [window.__emmet.project(), window.__emmet.shown()]);
+    throw new Error(`${what}: wanted ${root}; the window shows ${now[0]} (scene ${now[1]})`);
+  }
+}
+
 export async function open(dir) {
   const drawn = await browser.execute(() => window.__emmet.drawnAt());
   const { root } = await invoke("open_recent", { path: dir });

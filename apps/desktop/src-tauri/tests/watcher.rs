@@ -75,6 +75,10 @@ fn source_rules() {
         "emmet.toml",
         "models/walls.py",
         "models/a/b.py",
+        // Windows and macOS open these as the same files.
+        "MODEL.PY",
+        "Emmet.toml",
+        "Models/Walls.PY",
     ] {
         assert!(is_source(root, &root.join(yes)), "{yes}");
     }

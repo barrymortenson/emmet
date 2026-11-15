@@ -67,12 +67,35 @@ fn write_atomic_with(path: &Path, bytes: &[u8], private: bool) -> Result<()> {
         f.write_all(bytes)?;
         f.sync_all()?;
         drop(f);
-        std::fs::rename(&tmp, path)
+        rename(&tmp, path)
     })();
     written.map_err(|e| {
         let _ = std::fs::remove_file(&tmp);
         Error::io(path, e)
     })
+}
+
+/// `std::fs::rename`, tried again for up to two seconds while Windows says another process has the file: OneDrive
+/// and other sync clients, virus scanners, and the search indexer open a file for a moment just after it changes, and
+/// a rename onto a file they hold fails with a sharing violation, a lock violation, or access denied.
+pub fn rename(from: &Path, to: &Path) -> std::io::Result<()> {
+    let mut wait = std::time::Duration::from_millis(10);
+    let start = std::time::Instant::now();
+    loop {
+        match std::fs::rename(from, to) {
+            Err(e) if held(&e) && start.elapsed() < std::time::Duration::from_secs(2) => {
+                std::thread::sleep(wait);
+                wait = (wait * 2).min(std::time::Duration::from_millis(200));
+            }
+            done => return done,
+        }
+    }
+}
+
+/// True for the errors Windows gives while another process holds a file: ERROR_ACCESS_DENIED (5),
+/// ERROR_SHARING_VIOLATION (32), and ERROR_LOCK_VIOLATION (33).
+fn held(e: &std::io::Error) -> bool {
+    cfg!(windows) && matches!(e.raw_os_error(), Some(5 | 32 | 33))
 }
 
 /// `words` × 64 random bits as hex, from the OS-seeded keys std hashes with, mixed with the time and process id.
@@ -125,20 +148,27 @@ pub fn display_rel(root: &Path, path: &Path) -> String {
     }
 }
 
-/// `canonicalize`, without the `\\?\` prefix Windows adds to drive paths, so the path reads and joins like the one
-/// the user typed (Python, error messages, and path comparisons all see `C:\…`).
+/// `canonicalize`, without the `\\?\` prefix Windows adds, so the path reads and joins like the one the user typed
+/// (Python, error messages, and path comparisons all see `C:\…` or `\\server\share\…`).
 pub fn canonical(path: &Path) -> std::io::Result<std::path::PathBuf> {
     let c = path.canonicalize()?;
-    #[cfg(windows)]
+    if cfg!(windows)
+        && let Some(plain) = c.to_str().and_then(plain_windows)
     {
-        let s = c.to_string_lossy();
-        if let Some(rest) = s.strip_prefix(r"\\?\")
-            && rest.as_bytes().get(1) == Some(&b':')
-        {
-            return Ok(std::path::PathBuf::from(rest));
-        }
+        return Ok(std::path::PathBuf::from(plain));
     }
     Ok(c)
+}
+
+/// A verbatim Windows path as the plain one that names the same file: `\\?\C:\a` is `C:\a` and `\\?\UNC\pc\share\a`
+/// is `\\pc\share\a`. None for any other path, and for a verbatim path with no plain spelling (a volume GUID).
+fn plain_windows(path: &str) -> Option<String> {
+    let rest = path.strip_prefix(r"\\?\")?;
+    if let Some(share) = rest.strip_prefix(r"UNC\") {
+        return Some(format!(r"\\{share}"));
+    }
+    let b = rest.as_bytes();
+    (b.len() >= 3 && b[0].is_ascii_alphabetic() && b[1] == b':' && b[2] == b'\\').then(|| rest.to_string())
 }
 
 /// A name as one plain file or folder name: no separators, no characters Windows refuses, no control characters, and
@@ -160,5 +190,31 @@ pub fn file_name(name: &str) -> String {
         "Model".into()
     } else {
         clean.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::plain_windows;
+
+    #[test]
+    fn verbatim_windows_paths_read_as_plain_ones() {
+        assert_eq!(
+            plain_windows(r"\\?\C:\Users\a b\Emmet").as_deref(),
+            Some(r"C:\Users\a b\Emmet")
+        );
+        assert_eq!(
+            plain_windows(r"\\?\UNC\Mac\Home\Emmet").as_deref(),
+            Some(r"\\Mac\Home\Emmet")
+        );
+        for other in [
+            r"C:\Users",
+            r"\\Mac\Home",
+            r"\\?\Volume{4c1b02c1-d990-11dc-99ae-806e6f6e6963}\a",
+            r"\\?\C:",
+            "/tmp/a",
+        ] {
+            assert_eq!(plain_windows(other), None, "{other}");
+        }
     }
 }

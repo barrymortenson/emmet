@@ -574,7 +574,8 @@ fn machine_secret(data: &DataDir) -> Result<String> {
     }
     let id = fsx::random_hex(4);
     let tmp = path.with_extension(format!("{}.tmp", std::process::id()));
-    write_atomic(&tmp, format!("{id}\n").as_bytes())?;
+    // Private, as the bus token is: another user on this machine who read it could mark a project trusted.
+    fsx::write_private(&tmp, format!("{id}\n").as_bytes())?;
     let linked = std::fs::hard_link(&tmp, &path);
     let _ = std::fs::remove_file(&tmp);
     match linked {

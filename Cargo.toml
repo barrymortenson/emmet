@@ -32,7 +32,7 @@ ring = { version = "0.17.14", default-features = false, features = ["alloc"] }
 insta = { version = "1.49.0", features = ["json", "redactions"] }
 # The project watcher (plan section 07).
 notify = { version = "8.2.0", default-features = false, features = ["macos_fsevent"] }
-rmcp = { version = "3.7.0", features = ["server", "client", "macros", "schemars", "transport-io", "transport-child-process"] }
+rmcp = { version = "3.9.0", features = ["server", "client", "macros", "schemars", "transport-io", "transport-child-process"] }
 rusqlite = { version = "0.41.0", features = ["bundled"] }
 schemars = "1.2.3"
 serde = { version = "1.0.229", features = ["derive"] }

@@ -430,4 +430,12 @@ fn projects_trusted_at_once_on_a_fresh_install_stay_trusted() {
         let (v, _) = envelope(&out.unwrap());
         assert_eq!(v["error"]["code"], "PYTHON_MISSING", "{}: {v}", d.display());
     }
+    // The secret the markers are made from is this user's alone to read (5B): with it, another account on the
+    // machine could mark a project trusted.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = std::fs::metadata(data.join("machine-id")).unwrap().permissions().mode();
+        assert_eq!(mode & 0o777, 0o600);
+    }
 }

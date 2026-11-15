@@ -29,6 +29,7 @@ what people do often. 4A's keyboard E2E spec checks every row here. On Windows, 
 | `⌘1`–`⌘4` | `Ctrl+1`–`Ctrl+4` | Options, Checks, Parts, Steps | Anywhere |
 | `⌥⌘Z` | `Ctrl+Alt+Z` | Undo the agent's last turn | Anywhere |
 | `⌘Z` `⇧⌘Z` | `Ctrl+Z` `Ctrl+Y` | Undo and redo typing, and a knob's draft before Keep | A text field, the panel |
+| `⌃⌘F` | `F11` | Full screen, and back (macOS's own key; Windows' is Emmet's, 5B) | Anywhere |
 | `F6` | `F6` | Move between the viewer, the chat, and the panel | Anywhere |
 | `⌘/` | `Ctrl+/` | Keyboard shortcuts (this list) | Anywhere |
 | `Tab` `⇧Tab` | `Tab` `Shift+Tab` | Next and previous control | Anywhere |
@@ -50,8 +51,8 @@ macOS shows these in its menu bar, in title case as macOS does; Windows shows th
 | macOS | Windows | Holds |
 |---|---|---|
 | **Emmet Builder** | (Help and File hold these) | About Emmet Builder · Settings… `⌘,` · Check for Updates… · Install Command Line Tool… · Hide, Hide Others, Show All · Quit `⌘Q` |
-| **File** | **File** | New `⌘N` · Open… `⌘O` · Open Recent ▸ · Save Version `⌘S` · Versions… · Export… `⌘E` · Close Window `⌘W` · (Windows: Settings… `Ctrl+,` · Exit `Alt+F4`) |
-| **Edit** | **Edit** | Undo `⌘Z` · Redo `⇧⌘Z` (`Ctrl+Y`) · Cut · Copy · Paste · Select All · Undo the Agent's Last Turn `⌥⌘Z` |
+| **File** | **File** | New `⌘N` · Open… `⌘O` · Open Recent ▸ (Windows: the newest eight, listed in the menu) · Save Version `⌘S` · Versions… · Export… `⌘E` · Close Window `⌘W` · (Windows: Settings… `Ctrl+,` · Exit `Alt+F4`) |
+| **Edit** | **Edit** | Undo `⌘Z` · Redo `⇧⌘Z` (`Ctrl+Y`) · Cut · Copy · Paste · Select All (macOS's menu bar only; on Windows their keys work in every field, and the menu leaves them out: Barry 2026-11-13) · Undo the Agent's Last Turn `⌥⌘Z` |
 | **View** | **View** | Iso `1` · Front `2` · Top `3` · Back `4` · Left `5` · Right `6` · Frame `F` · Cut Away Above `⌥↓` · Raise Cut-Away `⌥↑` · Show All Layers · Replay Build · Copy Screenshot · Save Screenshot · Options `⌘1` · Checks `⌘2` · Parts `⌘3` · Steps `⌘4` · Previous Step `[` · Next Step `]` · Enter Full Screen `⌃⌘F` (Windows: `F11`) |
 | **Agent** | **Agent** | Go to Message Box `⌘L` · Send `⌘↩` · Stop `Esc` · Start Fresh · Switch to Codex (or Claude) · Model and Effort… · Plan Usage… |
 | **Window** | (none) | Minimize `⌘M` · Zoom · Bring All to Front |

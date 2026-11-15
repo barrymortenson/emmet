@@ -40,12 +40,14 @@ export function install(cli) {
 
 /** Removes `dir`. Windows won't delete a running exe, and the shared app keeps a spec's agent running into the next
  * spec (fake claude.exe, CI run 41566073449), but it will rename one: so a file that can't go is moved out of the
- * way, into out/held, and the next run's start clears it. */
+ * way, into out/held, and the next run's start clears it. It won't remove a folder the app has open either (the
+ * project the last spec left open, which the app watches: EBUSY, run 43479911686, where the error ended this hook
+ * before the next spec's project was made): its files go, and the empty folder stays until the app lets go. */
 function remove(dir) {
   try {
     rmSync(dir, { recursive: true, force: true });
   } catch (e) {
-    if (process.platform !== "win32" || e.code !== "EPERM") throw e;
+    if (process.platform !== "win32" || !["EPERM", "EBUSY", "ENOTEMPTY"].includes(e.code)) throw e;
     const held = join(out, "held");
     mkdirSync(held, { recursive: true });
     const walk = (d) => {
@@ -61,7 +63,11 @@ function remove(dir) {
       }
     };
     walk(dir);
-    rmSync(dir, { recursive: true, force: true });
+    try {
+      rmSync(dir, { recursive: true, force: true });
+    } catch (again) {
+      if (!["EPERM", "EBUSY", "ENOTEMPTY"].includes(again.code)) throw again;
+    }
   }
 }
 

@@ -1,9 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! Path cases that differ on Windows (plan section 12): spaces and non-ASCII in the project path, a relative
-//! --project, finding the project from a subfolder, and part ids written with a different case or a .dat suffix.
+//! --project, finding the project from a subfolder, part ids written with a different case or a .dat suffix, a path
+//! over Windows' old 260-character limit, and a project named in another case (5B).
 //! The LDraw reference cases (backslashes, mixed case) are in ldraw.rs. Both run on macOS and Windows.
 
 use emmet_it::{emmet, envelope, shared_data, temp_dir};
+
+/// `emmet --json --data-dir <shared> <args…>`.
+fn json(args: &[&std::ffi::OsStr]) -> (serde_json::Value, i32) {
+    let out = emmet()
+        .arg("--json")
+        .arg("--data-dir")
+        .arg(shared_data())
+        .args(args)
+        .output()
+        .unwrap();
+    envelope(&out)
+}
 
 #[test]
 fn a_project_path_with_spaces_and_accents() {
@@ -73,4 +86,72 @@ fn part_ids_and_errors_use_forward_slashes_and_lowercase() {
     assert!(mpd.contains(" 3001.dat\n") && mpd.contains(" 3062b.dat\n"), "{mpd}");
     assert!(mpd.contains("\n1 71 "), "LIGHT_BLUISH_GREY is code 71: {mpd}");
     assert!(!mpd.contains('\r'), "LF line ends on every OS");
+}
+
+/// Windows held paths to 260 characters for decades, and many programs still do; a project deep in a synced or shared
+/// folder passes that. The project, its build, and Python's working folder all sit past the limit here. Where the
+/// machine allows long paths (macOS always; Windows with its long-paths setting) the model builds.
+#[test]
+fn a_project_under_a_path_over_260_characters() {
+    let mut dir = temp_dir("long");
+    while dir.as_os_str().len() < 300 {
+        dir.push("a folder with a long name");
+    }
+    let dir = dir.join("Cottage");
+    let (v, code) = json(&["new".as_ref(), dir.as_os_str()]);
+    assert_eq!(code, 0, "{v}");
+    let (v, code) = json(&["run".as_ref(), "--project".as_ref(), dir.as_os_str()]);
+    // Emmet's own files are fine at any length. Running the model is up to Windows: it starts no program in a folder
+    // past 260 characters unless the machine has long paths turned on, and then Emmet says that, not that Python is
+    // missing.
+    if cfg!(windows) && code != 0 {
+        assert_eq!(v["error"]["code"], "IO_ERROR", "{v}");
+        let said = format!("{} {}", v["error"]["message"], v["error"]["hint"]);
+        assert!(said.contains("past 260") && said.contains("shorter path"), "{said}");
+        return;
+    }
+    assert_eq!(code, 0, "{v}");
+    assert_eq!(v["data"]["parts"], 905);
+    assert!(dir.join("build/model.mpd").is_file());
+    let (v, code) = json(&["check".as_ref(), "--project".as_ref(), dir.as_os_str()]);
+    assert_eq!(code, 0, "{v}");
+}
+
+/// Windows and macOS open a folder whatever case its name is typed in. A project trusted under one spelling is the
+/// same project under another: it stays trusted and builds.
+#[test]
+fn a_project_named_in_another_case_is_the_same_project() {
+    let dir = temp_dir("case").join("Cottage");
+    let (v, code) = json(&["new".as_ref(), dir.as_os_str()]);
+    assert_eq!(code, 0, "{v}");
+    let shouted = std::path::PathBuf::from(dir.to_string_lossy().to_uppercase());
+    if !shouted.join("emmet.toml").exists() {
+        return; // a disk that tells cases apart: these are two folders
+    }
+    let (v, code) = json(&["run".as_ref(), "--project".as_ref(), shouted.as_os_str()]);
+    assert_eq!(code, 0, "trusted, and built: {v}");
+    assert_eq!(v["data"]["parts"], 905);
+}
+
+/// OneDrive, a virus scanner, or the search indexer opens a file for a moment just after it changes, and Windows
+/// refuses to replace a file another program holds. Emmet's writes wait for it instead of failing the build.
+#[cfg(windows)]
+#[test]
+fn a_write_waits_for_a_program_holding_the_file() {
+    use std::os::windows::fs::OpenOptionsExt;
+    let path = temp_dir("held").join("params.json");
+    std::fs::write(&path, "old").unwrap();
+    // Share mode 0: no one else may read, write, or replace it while this handle is open.
+    let holder = std::fs::OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .open(&path)
+        .unwrap();
+    let release = std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(400));
+        drop(holder);
+    });
+    emmet_core::fsx::write_atomic(&path, b"new").expect("the write waits for the holder");
+    release.join().unwrap();
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), "new");
 }
