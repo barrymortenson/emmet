@@ -8,7 +8,7 @@
 // A session Barry let start before its "after" sessions were done carries override: "<Barry's note>", which turns
 // plan-check's error into a warning.
 window.EMMET_STATUS = {
-  updated: "2026-11-14",
+  updated: "2026-11-15",
   sessions: {
     "0A": {
       status: "done", pr: 1, branch: "bmortenson/s0a-foundation", started: "2026-10-24",
@@ -229,7 +229,16 @@ window.EMMET_STATUS = {
     },
     "4F": { status: "skipped", note: "Barry 2026-10-26 (D-43): Antigravity, Cursor, and Grok are out of the MVP; they come after it (Phase 8)" },
     "5A": { status: "todo" },
-    "5B": { status: "review", branch: "bmortenson/s5b-windows-perf-security", started: "2026-11-12", pr: 64 },
+    "5B": {
+      status: "done", pr: 64, branch: "bmortenson/s5b-windows-perf-security", started: "2026-11-12",
+      evidence: [
+        "CI ci check green #64 (run 43626903208: mac, mac-e2e, windows, windows-e2e, nsis, plan, scope)",
+        "docs/security/review-1.md: every section 15 row as threat, control, test, result; seven findings, no high or medium open",
+        "tests/e2e/specs/perf.e2e.mjs, csp.e2e.mjs, trust.e2e.mjs, reduced-motion.e2e.mjs; tests/it/tests/paths.rs and bus.rs; scripts/nsis-check.ps1",
+        "H-10: Barry's Windows VM pass, 46 of 46 ticked (docs/security/windows-pass.md)"
+      ],
+      note: "Done when 2 is met on macOS only: section 13's Windows budgets weren't measured on a machine with a graphics card. Barry merged as is (2026-11-15, through AskUserQuestion: \"Merge as is\"); 6B's Windows x64 tester gives the numbers (docs/decisions.md, 2026-11-14)"
+    },
     "6A": { status: "todo" },
     "6B": { status: "todo" },
     "6C": { status: "todo" },
