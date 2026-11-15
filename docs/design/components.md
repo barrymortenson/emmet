@@ -36,8 +36,8 @@ frozen screen (open it from [`frozen/index.html`](frozen/index.html)) lists the 
 | Radius | `--radius-xs` 4 · `--radius-sm` 6 · `--radius-md` 10 · `--radius-lg` 14 · `--radius-xl` 20 · `--radius-full` | Soft and roomy; pills for what floats on the viewer. |
 | Elevation | `--elevation-1` (a selected tab, a thumb) · `--elevation-2` (what floats on the viewer: the panel, the dock, the project chip, the view switch, banners, pins) · `--elevation-3` (menus, popovers, dialogs, toasts) | |
 | Motion | `--duration-fast` 120 ms · `--duration-base` 180 ms · `--duration-slow` 260 ms · `--duration-spin` · `--duration-part` · `--ease-standard` `--ease-exit` · `--rise` 4 px | Subtle: color changes and a 4 px rise, nothing longer than 260 ms. Reduced motion sets every duration to 0 and `--rise` to 0; the spinner stops (a dotted ring), and the viewer skips the build animation. |
-| Size and layout | `--control-sm` `--control-md` `--control-lg` · `--icon-sm` `--icon-md` `--icon-lg` `--icon-xl` · `--line-width` `--line-width-strong` · `--focus-*` · `--titlebar-height` `--titlebar-inset-start` `--caption-button-width` · `--chat-width` (340) · `--panel-width` (384) `--panel-min` `--panel-max` · `--dock-history` (the frozen screens only) `--dock-active-max` · and the fixed sizes of menus, dialogs, toasts, tooltips, thumbnails, and pictures | |
-| Platform | `[data-platform="macos"]`, `[data-platform="windows"]` | macOS: SF Pro, a 56 px title row with room for the traffic lights, the accent focus ring. Windows: Segoe UI Variable, a 48 px title row across the window with the menu bar and the caption buttons, the focus ring in the text color. |
+| Size and layout | `--control-sm` `--control-md` `--control-lg` · `--icon-sm` `--icon-md` `--icon-lg` `--icon-xl` · `--line-width` `--line-width-strong` · `--focus-*` · `--titlebar-height` `--titlebar-inset-start` `--caption-button-width` `--menubar-height` (Windows) · `--chat-width` (340) · `--panel-width` (384) `--panel-min` `--panel-max` · `--dock-history` (the frozen screens only) `--dock-active-max` · and the fixed sizes of menus, dialogs, toasts, tooltips, thumbnails, and pictures | |
+| Platform | `[data-platform="macos"]`, `[data-platform="windows"]` | macOS: SF Pro, a 56 px title row with room for the traffic lights, the accent focus ring. Windows: Segoe UI Variable, a 32 px menu row across the window (the menu bar, then the caption buttons) over a 56 px title row like macOS's, the focus ring in the text color (note 009). |
 
 The app sets `data-theme="light"` or `"dark"` on `<html>` from `prefers-color-scheme` (Settings can pin it) and
 `data-platform` from the OS. The site (7A) imports `tokens.css` as it is.
@@ -128,7 +128,7 @@ picker), group labels (Export's Parts list, Model, Instructions), separators, a 
 Arrows move, Enter picks, Esc closes, typing jumps.
 
 ### `menubar`
-Radix: Menubar. Windows only, in the title row: File, Edit, View, Agent, Help, holding the same menus macOS shows in
+Radix: Menubar. Windows only, in the menu row over the title row (note 009): File, Edit, View, Agent, Help, holding the same menus macOS shows in
 its menu bar ([`keyboard.md`](keyboard.md)). Alt focuses it.
 
 ### `popover`
@@ -255,7 +255,7 @@ Across the top of the viewer, a line and its action: read-only (Trust this proje
 library (Later, Update the library, with the size), an imported file (Make it parametric). The icon carries the tone.
 
 ### `caption-buttons`
-Windows only: minimize, maximize, and close at the title row's right end (Tauri's own window controls); close turns
+Windows only: minimize, maximize, and close at the menu row's right end (Tauri's own window controls); close turns
 `--bg-bad` on hover.
 
 ## Kept as the provider requires
@@ -286,8 +286,8 @@ whole window.
 
 ### `titlebar`
 The title row, a drag region: on macOS after the traffic lights, the project chip (the ant, the project's name, and
-its menu: New, Open, Save version, Versions, Export, About); on Windows the menu bar after it and the caption buttons
-at the end. The view switch is centered over the viewer.
+its menu: New, Open, Save version, Versions, Export, About); on Windows at the window's left, under the menu row (note
+009). The view switch is centered over the viewer. Its labels can't be selected.
 
 ### `viewer`
 The 3D view, the hero (law 1): the render at the camera's field of view, so a shorter viewer shows the whole model

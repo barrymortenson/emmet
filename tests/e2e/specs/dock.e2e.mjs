@@ -137,6 +137,22 @@ describe("the dock's frozen states", () => {
     await screenshots("dock-crashed");
   });
 
+  it("a sign-in renewed mid-turn, and one that ends the turn", async () => {
+    await fresh("codex");
+    // A turn of more than an hour says its time in hours, and carries on past a renewed sign-in with a note.
+    await play([...start, ...stage1, { type: "notice", text: "The ChatGPT sign-in ran out during the turn. Emmet renewed it, and Codex is carrying on." }, ...finish, { type: "turn_done", reason: "completed" }], PROMPT, { at: Date.now() - (2 * 3600 + 5 * 60 + 9) * 1000 });
+    await expect($("#chat-log")).toHaveText(expect.stringContaining("Emmet renewed it, and Codex is carrying on."));
+    await expect($("#chat-status")).toHaveText(expect.stringMatching(/Done in 2:05:(09|1\d)/));
+    // A sign-in that can't be renewed: a card with what to do, OpenAI's words under Details, and no "Done".
+    const said = "unexpected status 401 Unauthorized: Provided authentication token is expired., auth error code: token_expired";
+    await play([tool("x1", "run_model", {}), { type: "error", code: "not_signed_in", message: `Your ChatGPT sign-in has ended. Continue with ChatGPT in Settings → Agents to sign in again.\n\nOpenAI said: ${said}` }, { type: "turn_done", reason: "failed" }], "Keep going");
+    await (await $("#sign-in-error")).waitForExist();
+    expect(await (await $("#sign-in-error .alert-card")).getText()).not.toContain("token_expired");
+    await expect($("#sign-in-settings")).toBeDisplayed();
+    await expect($("#chat-status")).toHaveText(expect.stringContaining("Stopped on an error"));
+    await screenshots("dock-sign-in-ended");
+  });
+
   it("the agent picker, the switch, the model and effort, and the plan usage", async () => {
     await fresh();
     await play([...start, ...finish, { type: "turn_done", reason: "completed" }], PROMPT);

@@ -462,6 +462,7 @@ pub fn outline(events: &[AgentEvent]) -> Vec<String> {
                     .join(", ")
             ),
             AgentEvent::Error { code, .. } => format!("error {code:?}"),
+            AgentEvent::Notice { text } => format!("notice {text}"),
             AgentEvent::Exited { code } => format!("exited {}", code.map_or("killed".into(), |c| c.to_string())),
             AgentEvent::Text { .. } | AgentEvent::Reasoning { .. } => unreachable!(),
         });

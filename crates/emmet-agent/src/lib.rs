@@ -425,6 +425,10 @@ pub enum AgentEvent {
         code: AgentErrorCode,
         message: String,
     },
+    /// Something Emmet did for the user mid-turn, said in the chat as a note (a renewed ChatGPT sign-in).
+    Notice {
+        text: String,
+    },
     /// The CLI process ended. No events follow.
     Exited {
         code: Option<i32>,

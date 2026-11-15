@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The title row (docs/design/frozen's titlebar): the project chip (the ant and the project's name) and its menu (New,
 // Open, Save version, Versions, Export, About), with Save version and the versions list as popovers anchored to it;
-// the view switch, centered; and on Windows the menu bar (File, Edit, View, Agent, Help) and the caption buttons. The
-// row is the window's drag region.
+// and the view switch, centered over the viewer. On Windows a menu row runs across the window above it (design change
+// note 009): the menu bar (File, Edit, View, Agent, Help), then the caption buttons, so the title row under it looks
+// as it does on macOS. Both rows are the window's drag region.
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { DropdownMenu, Menubar, Popover, ToggleGroup } from "radix-ui";
 import { useEffect, useRef, useState } from "react";
@@ -206,6 +207,24 @@ export function Titlebar({
     },
   });
   return (
+    <>
+    {windows && (
+      <div className="menu-row" data-tauri-drag-region>
+        <Menubar.Root className="menubar" data-c="menubar" aria-label="Menu" onValueChange={(open) => open === "File" && void commands.appInfo().then((i) => setRecent(i.recent), () => {})}>
+          {windowsMenus(run, can, recent, onOpenRecent).map(([title, items]) => (
+            <Menubar.Menu key={title} value={title}>
+              <Menubar.Trigger className="menubar-trigger">{title}</Menubar.Trigger>
+              <Menubar.Portal>
+                <Menubar.Content className="menu" data-c="menu" align="start" sideOffset={4}>
+                  <MenuItems items={items} menubar />
+                </Menubar.Content>
+              </Menubar.Portal>
+            </Menubar.Menu>
+          ))}
+        </Menubar.Root>
+        <CaptionButtons />
+      </div>
+    )}
     <header className="titlebar" data-c="titlebar" data-tauri-drag-region>
       <div className="titlebar-start" data-tauri-drag-region>
         <Popover.Root open={pop != null} onOpenChange={(o) => !o && onPop(null)}>
@@ -253,20 +272,6 @@ export function Titlebar({
             </Popover.Content>
           </Popover.Portal>
         </Popover.Root>
-        {windows && (
-          <Menubar.Root className="menubar" data-c="menubar" aria-label="Menu" onValueChange={(open) => open === "File" && void commands.appInfo().then((i) => setRecent(i.recent), () => {})}>
-            {windowsMenus(run, can, recent, onOpenRecent).map(([title, items]) => (
-              <Menubar.Menu key={title} value={title}>
-                <Menubar.Trigger className="menubar-trigger">{title}</Menubar.Trigger>
-                <Menubar.Portal>
-                  <Menubar.Content className="menu" data-c="menu" align="start" sideOffset={4}>
-                    <MenuItems items={items} menubar />
-                  </Menubar.Content>
-                </Menubar.Portal>
-              </Menubar.Menu>
-            ))}
-          </Menubar.Root>
-        )}
       </div>
       <div className="view-switch" data-c="view-switch" role="group" aria-label="View">
         <ToggleGroup.Root type="single" className="view-switch-views" aria-label="Views" value={view ?? ""} onValueChange={(v) => v && onView(v as View)} disabled={!hasProject}>
@@ -281,7 +286,7 @@ export function Titlebar({
         <IconButton icon="play" label="Replay build" size="sm" onClick={() => run("replay")} disabled={!can("replay")} id="replay" />
       </div>
       <span data-tauri-drag-region />
-      {windows && <CaptionButtons />}
     </header>
+    </>
   );
 }

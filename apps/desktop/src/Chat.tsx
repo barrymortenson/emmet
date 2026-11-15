@@ -60,7 +60,7 @@ type Item =
   | { k: "question"; key: string; id: string; question: Question; answer: string | null; closed: boolean }
   | { k: "note"; key: string; text: string }
   | { k: "crash"; key: string }
-  | { k: "error"; key: string; message: string; limit: boolean };
+  | { k: "error"; key: string; message: string; limit: boolean; signIn?: boolean };
 
 type Chat = {
   items: Item[];
@@ -73,6 +73,8 @@ type Chat = {
   question: string | null;
   stopped: boolean;
   crashed: boolean;
+  /** The last turn ended on an error: its status says so, not "Done". */
+  failed: boolean;
   /** From the session's start: the model, whether it's Codex on the ChatGPT plan, and the models it offers. */
   model: string | null;
   plan: boolean;
@@ -104,6 +106,7 @@ const empty: Chat = {
   question: null,
   stopped: false,
   crashed: false,
+  failed: false,
   model: null,
   plan: false,
   models: [],
@@ -161,7 +164,7 @@ function apply(c: Chat, e: AgentEvent, at: number): Chat {
     case "note_delivered": {
       const found = c.items.some((i) => i.k === "user" && i.note === e.id);
       // A redirect sent as the next turn starts that turn.
-      const turn = e.path === "next_turn" ? { running: true, began: at, stopped: false } : {};
+      const turn = e.path === "next_turn" ? { running: true, began: at, stopped: false, failed: false } : {};
       if (!found) return { ...next, ...turn, early: { ...c.early, [e.id]: e.path } };
       return update((i) => i.k === "user" && i.note === e.id, (i) => ({ ...i, delivered: e.path }) as Item, turn);
     }
@@ -173,7 +176,7 @@ function apply(c: Chat, e: AgentEvent, at: number): Chat {
       const took = c.began != null ? at - c.began : null;
       // A card the turn left open went away with it.
       const items = c.items.map((i) => (i.k === "approval" && !i.decided ? { ...i, decided: "closed" as const } : i));
-      const s = { ...next, items, running: false, question: null, took };
+      const s = { ...next, items, running: false, question: null, took, failed: e.reason === "failed" };
       if (e.reason === "crashed") return c.crashed ? s : { ...s, crashed: true, items: [...items, { k: "crash", key }] };
       if (e.reason === "interrupted") return { ...s, stopped: true, items: [...items, { k: "note", key, text: `You stopped the turn at ${clock(took ?? 0)}.` }] };
       return s;
@@ -181,7 +184,9 @@ function apply(c: Chat, e: AgentEvent, at: number): Chat {
     case "error":
       // A crash is its own card (the turn's end says it); its details go to Copy the details, not the screen.
       if (e.code === "crashed") return next;
-      return add({ k: "error", key, message: e.message, limit: e.code === "quota_exceeded" });
+      return add({ k: "error", key, message: e.message, limit: e.code === "quota_exceeded", signIn: e.code === "auth_failed" || e.code === "not_signed_in" });
+    case "notice":
+      return add({ k: "note", key, text: e.text });
     case "exited": {
       const mid = c.running && !c.crashed;
       return { ...(mid ? add({ k: "crash", key }) : next), running: false, question: null, crashed: c.crashed || mid };
@@ -218,7 +223,7 @@ function reduce(c: Chat, a: Action): Chat {
     }
     case "user": {
       const delivered = a.note ? (c.early[a.note] ?? null) : undefined;
-      const turn = a.note ? {} : { running: true, began: a.at, stopped: false, crashed: false };
+      const turn = a.note ? {} : { running: true, began: a.at, stopped: false, crashed: false, failed: false };
       return { ...c, ...turn, n: c.n + 1, items: [...c.items, { k: "user", key: `k${c.n}`, text: a.text, from: a.from, note: a.note, delivered, at: a.at, photos: a.photos?.length ? a.photos : undefined }] };
     }
     case "event":
@@ -226,7 +231,7 @@ function reduce(c: Chat, a: Action): Chat {
     case "restarted":
       return { ...c, crashed: false, took: null };
     case "divider":
-      return { ...c, n: c.n + 1, stopped: false, took: null, tokens: { input: 0, output: 0 }, items: [...c.items, { k: "divider", key: `k${c.n}`, text: a.text }] };
+      return { ...c, n: c.n + 1, stopped: false, failed: false, took: null, tokens: { input: 0, output: 0 }, items: [...c.items, { k: "divider", key: `k${c.n}`, text: a.text }] };
     case "decided":
       return { ...c, items: c.items.map((i) => (i.k === "approval" && i.id === a.id ? { ...i, decided: a.how } : i)) };
     case "answered":
@@ -245,10 +250,12 @@ function reduce(c: Chat, a: Action): Chat {
 const dividerText = (kind: AgentKind, prev: AgentKind) =>
   kind === prev ? "A fresh conversation. The last one is kept." : `${NAME[kind]} · a fresh conversation. The ${NAME[prev]} one is kept.`;
 
-/** An elapsed time as m:ss (docs/design/content.md). */
-function clock(ms: number): string {
+/** An elapsed time as m:ss, or h:mm:ss from an hour (docs/design/content.md). */
+export function clock(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const ss = String(s % 60).padStart(2, "0");
+  if (s < 3600) return `${Math.floor(s / 60)}:${ss}`;
+  return `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${ss}`;
 }
 
 /** What the agent is doing now, in the present (note 1): the running tool, thinking, or writing. After a step, the agent
@@ -708,6 +715,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
       },
       restart: () => void restart(),
       photo: onPhoto,
+      settings: onSettings,
     };
   }
 
@@ -719,6 +727,7 @@ export function Dock({ project, ask, buildError, onAskBuild, onRebuild, agentsCh
   else if (chat.crashed) status = { tone: "bad", line: `${kind ? CLI[kind] : "The agent"} stopped unexpectedly`, icon: "octagon-alert" };
   else if (limit) status = { tone: "attn", line: "Claude's plan limit", icon: "gauge" };
   else if (chat.stopped) status = { tone: "muted", line: "Stopped by you", icon: "square" };
+  else if (!chat.running && chat.took != null && chat.failed) status = { tone: "bad", line: `Stopped on an error after ${clock(chat.took)}`, icon: "octagon-alert" };
   else if (!chat.running && chat.took != null) status = { tone: "done", line: `Done in ${clock(chat.took)}`, icon: "circle-check" };
   const canUndo = !chat.running && undo != null && status?.tone === "done";
 
@@ -918,6 +927,7 @@ type Actions = {
   answer: (id: string, choices: string[], other: string | null) => void;
   restart: () => void;
   photo: (path: string) => void;
+  settings: () => void;
 };
 
 /** The photos read back for the chat, once each per window. */
@@ -1119,13 +1129,33 @@ function Message({ item, who, chat, actions, active }: { item: Item; who: AgentK
           }
         />
       );
-    case "error":
+    case "error": {
       if (item.limit && who === "codex") return <LimitCard />;
+      // OpenAI's own words (status, code, request id) are for a report, not the card: they go under Details.
+      const [why, said] = item.message.split(/\n\n(?=OpenAI said: )/);
+      if (item.signIn)
+        return (
+          <div className="message" data-c="chat-message" data-from="error" role="alert" id="sign-in-error">
+            <AlertCard
+              icon="log-in"
+              title={who === "codex" ? "The ChatGPT sign-in needs renewing" : "The sign-in needs renewing"}
+              text={why ?? item.message}
+              actions={<Button label="Open Settings" variant="quiet" size="sm" icon="external-link" id="sign-in-settings" onClick={actions.settings} />}
+            />
+            {said && (
+              <details className="error-details">
+                <summary>Details</summary>
+                <p className="small">{said.replace(/^OpenAI said: /, "")}</p>
+              </details>
+            )}
+          </div>
+        );
       return (
         <p className="message" data-c="chat-message" data-from="note" role="alert">
           {item.message}
         </p>
       );
+    }
   }
 }
 
