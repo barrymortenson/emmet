@@ -583,14 +583,34 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     "unexpected status 401 Unauthorized: Provided authentication token is expired. Please try signing in again., url: " +
     "https://api.openai.com/v1/responses, request id: req_plan_expired_1, auth error: 401, auth error code: token_expired";
   const expire = (e) => (e ? { ...e, message: e.message.startsWith("Reconnecting") ? e.message : expired, additionalDetails: expired } : e);
+  const expiredTurn = load("codex", "auth-401").map((l) => {
+    const c = clone(l);
+    if (c.msg.method === "error") c.msg.params.error = expire(c.msg.params.error);
+    if (c.msg.method === "turn/completed") c.msg.params.turn.error = expire(c.msg.params.turn.error);
+    return c;
+  });
   save("codex", "plan-token-expired", "auth-401.jsonl + resume.jsonl", "a ChatGPT plan turn whose token expires mid-turn, then the resumed thread", [
-    ...load("codex", "auth-401").map((l) => {
+    ...expiredTurn,
+    ...resumed,
+  ]);
+  // The user stops a turn whose sign-in was just refused: the turn ends interrupted, and the sign-in error still shows.
+  save("codex", "plan-token-expired-stopped", "auth-401.jsonl", "a sign-in refused, then the turn ends interrupted", [
+    ...expiredTurn.map((l) => {
+      if (l.msg.method !== "turn/completed") return l;
       const c = clone(l);
-      if (c.msg.method === "error") c.msg.params.error = expire(c.msg.params.error);
-      if (c.msg.method === "turn/completed") c.msg.params.turn.error = expire(c.msg.params.turn.error);
+      c.msg.params.turn.status = "interrupted";
+      c.msg.params.turn.error = null;
       return c;
     }),
-    ...resumed,
+  ]);
+  // The renewed token is refused too: the restarted app-server resumes the same thread, and its carry-on turn fails
+  // the same way. Emmet carries on once, then the turn ends on the error rather than renew again.
+  const threadId = expiredTurn.find((l) => l.msg.method === "turn/start").msg.params.threadId;
+  save("codex", "plan-token-refused-again", "auth-401.jsonl", "a carry-on whose renewed token is refused again", [
+    ...expiredTurn,
+    ...expiredTurn.map((l) =>
+      l.dir === "in" && l.msg.method === "thread/start" ? { ...l, msg: { ...l.msg, method: "thread/resume", params: { threadId } } } : l,
+    ),
   ]);
 
   // The same CLI crashes mid-turn right after printing the token: the crash report quotes its last stderr lines.

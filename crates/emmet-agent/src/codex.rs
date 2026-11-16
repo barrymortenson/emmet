@@ -11,7 +11,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, Sender, channel};
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError, TryLockError, Weak};
 use std::time::{Duration, Instant};
 
 use serde_json::{Value, json};
@@ -360,12 +360,12 @@ impl PlanSession {
                 me: me.clone(),
             })
         });
-        live.lock().expect("live").forward();
+        lock(&live).forward();
         Ok(Self { live, events: Some(rx) })
     }
 
-    fn live(&self) -> std::sync::MutexGuard<'_, Live> {
-        self.live.lock().expect("live")
+    fn live(&self) -> MutexGuard<'_, Live> {
+        lock(&self.live)
     }
 
     fn gone(what: &str) -> AgentError {
@@ -377,15 +377,48 @@ impl PlanSession {
 enum Carry {
     /// Renewed and resumed: the turn goes on in the new engine.
     On,
-    /// Not tried (a turn carried on moments ago, or the token didn't change): the turn ends on its own error.
+    /// Not tried (a turn carried on within `CARRY_ON_EVERY`, or the token didn't change): the turn ends on its own
+    /// error.
     Off,
+    /// The engine was replaced while this thread waited (the user's next turn renewed it): the old turn's end is
+    /// dropped, as every retired engine's events are.
+    Stale,
     /// The renewal failed: the turn ends on this error instead.
     Failed(AgentError),
 }
 
+/// Locks the session's state, through a poisoned lock too: a panic in one call mustn't make every later call panic.
+fn lock(live: &Mutex<Live>) -> MutexGuard<'_, Live> {
+    live.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+/// Settles a failed turn's sign-in error from its event thread. It waits for the lock without blocking on it, so a
+/// user's send that renews meanwhile (and waits for this thread to end) isn't held up, and an engine replaced
+/// meanwhile is left alone.
+fn settle(live: &Mutex<Live>, generation: &AtomicU64, mine: u64) -> Carry {
+    loop {
+        if generation.load(Ordering::SeqCst) != mine {
+            return Carry::Stale;
+        }
+        let mut l = match live.try_lock() {
+            Ok(l) => l,
+            Err(TryLockError::Poisoned(p)) => p.into_inner(),
+            Err(TryLockError::WouldBlock) => {
+                std::thread::sleep(Duration::from_millis(10));
+                continue;
+            }
+        };
+        // Renewals happen under the lock, so this answer holds while it's held.
+        if generation.load(Ordering::SeqCst) != mine {
+            return Carry::Stale;
+        }
+        return l.carry_on();
+    }
+}
+
 impl Live {
     /// Passes the current engine's events on until it exits, or until it's retired. A sign-in error is held until the
-    /// turn's end: if the turn can carry on, neither is passed on.
+    /// turn's end, or the engine's exit: if the turn carries on, neither the error nor the end is passed on.
     fn forward(&mut self) {
         let rx = self.engine.events();
         let (tx, generation, refused, me) = (
@@ -407,24 +440,26 @@ impl Live {
                     continue;
                 }
                 match &ev {
+                    // The latest of a turn's sign-in errors (Codex retries before it gives up) is the one kept.
                     AgentEvent::Error {
                         code: AgentErrorCode::AuthFailed,
                         ..
                     } => {
                         refused.store(true, Ordering::SeqCst);
-                        if held.is_none() {
-                            held = Some(ev);
-                            continue;
-                        }
+                        held = Some(ev);
+                        continue;
                     }
+                    // A 401 arrives on the model's response stream, after Codex accepted turn/start and recorded the
+                    // user's message in the thread, so a carry-on never stands in for a message Codex didn't get.
                     AgentEvent::TurnDone {
                         reason: DoneReason::Failed,
                     } if held.is_some() => {
-                        let carry = me
-                            .upgrade()
-                            .map_or(Carry::Off, |live| live.lock().expect("live").carry_on());
+                        let carry = match me.upgrade() {
+                            Some(live) => settle(&live, &generation, mine),
+                            None => Carry::Off,
+                        };
                         match carry {
-                            Carry::On => {
+                            Carry::On | Carry::Stale => {
                                 held = None;
                                 continue;
                             }
@@ -442,9 +477,12 @@ impl Live {
                             break;
                         }
                     }
-                    AgentEvent::Exited { .. } => {
-                        if let Some(h) = held.take() {
-                            let _ = tx.send(h);
+                    // Any other end, or the engine's exit, passes the held error on first: it never outlives its turn.
+                    AgentEvent::TurnDone { .. } | AgentEvent::Exited { .. } => {
+                        if let Some(h) = held.take()
+                            && tx.send(h).is_err()
+                        {
+                            break;
                         }
                     }
                     _ => {}
@@ -453,6 +491,12 @@ impl Live {
                 if tx.send(ev).is_err() {
                     break;
                 }
+            }
+            // Events that end without an exit still show a held error, unless the engine was retired meanwhile.
+            if let Some(h) = held
+                && generation.load(Ordering::SeqCst) == mine
+            {
+                let _ = tx.send(h);
             }
             let _ = done.send(());
         });
@@ -475,7 +519,6 @@ impl Live {
         let token = self
             .chatgpt
             .access_token(&self.id, refused.then_some(self.token.as_str()), RENEW_BEFORE)?;
-        self.refused.store(false, Ordering::SeqCst);
         match self.chatgpt.codex_use() {
             CodexUse::Plan { id, .. } if id == self.id => {}
             CodexUse::PlanOff { fix, .. } => return Err(AgentError::new(AgentErrorCode::NotSignedIn, fix)),
@@ -489,6 +532,7 @@ impl Live {
         if token == self.token {
             return Ok(false);
         }
+        self.refused.store(false, Ordering::SeqCst);
         let thread = self.engine.resume_token();
         self.generation.fetch_add(1, Ordering::SeqCst);
         self.engine.close();

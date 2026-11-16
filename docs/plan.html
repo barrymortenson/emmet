@@ -522,7 +522,7 @@ Sections 02–18 are the specification: what to build and why. Sections 19–22 
   <text class="s" x="882" y="144">approvals</text>
 
   <rect class="bx" x="56" y="170" width="1028" height="26" rx="6"/>
-  <text class="s" x="70" y="188">Title row: the project menu · the view switch · on Windows, the menu bar</text>
+  <text class="s" x="70" y="188">Title row: the project menu · the view switch · on Windows, a menu row above it</text>
   <text class="s" x="1070" y="188" style="text-anchor: end">Tokens and components (2B)</text>
 
   <line class="ln" x1="570" y1="207" x2="570" y2="235" marker-start="url(#flow-ah)" marker-end="url(#flow-ah)"/>
@@ -1374,7 +1374,7 @@ viewer.stats();                            // draw calls, triangles, frame ms, h
 <p class="small">Empty · first run · loading library · building · build failed (in plain words, plus "Ask agent to fix"; the error and its line go to the agent) · checks with findings · agent thinking · waiting for approval · question waiting for an answer · redirect pending · stopped by the user · build animating (with Skip) · agent not installed or not signed in · agent crashed (one-click restart; project untouched) · offline (everything except the agent and downloads works) · untrusted project (read-only banner + Trust) · an old library version.</p>
 
 <h3>Keyboard (final: <code>docs/design/keyboard.md</code>)</h3>
-<p class="small"><kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘S</kbd> save version · <kbd>⌘E</kbd> export · <kbd>⌘,</kbd> settings · <kbd>↩</kbd> send (<kbd>⇧↩</kbd> a new line, <kbd>⌘↩</kbd> also sends) · <kbd>Esc</kbd> close what's open (a sub-assembly shown on its own counts), else stop the agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views (Iso, Front, Top, Back, Left, Right) · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> panel tabs · <kbd>⌘L</kbd> the message box · <kbd>⌥⌘Z</kbd> undo the agent's last turn · <kbd>F6</kbd> next region · <kbd>⌘/</kbd> shortcuts. No command palette (Barry 2026-10-27). Windows uses <kbd>Ctrl</kbd> and <kbd>Alt</kbd>. Native menus on macOS, and a menu bar in the title row on Windows.</p>
+<p class="small"><kbd>⌘N</kbd> new · <kbd>⌘O</kbd> open · <kbd>⌘S</kbd> save version · <kbd>⌘E</kbd> export · <kbd>⌘,</kbd> settings · <kbd>↩</kbd> send (<kbd>⇧↩</kbd> a new line, <kbd>⌘↩</kbd> also sends) · <kbd>Esc</kbd> close what's open (a sub-assembly shown on its own counts), else stop the agent (a pending redirect goes out as the next turn) · <kbd>F</kbd> frame selection · <kbd>1</kbd>–<kbd>6</kbd> views (Iso, Front, Top, Back, Left, Right) · <kbd>[</kbd>/<kbd>]</kbd> step · <kbd>⌘1</kbd>–<kbd>⌘4</kbd> panel tabs · <kbd>⌘L</kbd> the message box · <kbd>⌥⌘Z</kbd> undo the agent's last turn · <kbd>F6</kbd> next region · <kbd>⌘/</kbd> shortcuts. No command palette (Barry 2026-10-27). Windows uses <kbd>Ctrl</kbd> and <kbd>Alt</kbd>. Native menus on macOS, and a menu row above the title row on Windows.</p>
 
 <h3>Content, tone, accessibility</h3>
 <ul class="small">
@@ -2306,7 +2306,7 @@ weaken a technique's test to get it green.</code></pre></details>
 <p class="goal"><b>Goal:</b> The app looks and behaves like the frozen design everywhere except the chat internals and viewer polish, and a brand-new user gets from install to a working cottage in under three minutes.</p>
 <div class="s-dh">What gets built</div>
 <ul class="build">
-<li>The layout (the viewer, the chat dock, the options panel), the title row, menus (native on macOS, title-bar menu on Windows), and resizable panes, all from tokens and components (<code>docs/design/components.md</code>). No status bar and no command palette (2B).</li>
+<li>The layout (the viewer, the chat dock, the options panel), the title row, menus (native on macOS, a menu row on Windows), and resizable panes, all from tokens and components (<code>docs/design/components.md</code>). No status bar and no command palette (2B).</li>
 <li>The Steps tab's tree (sub-assemblies with their uses and sub-steps, then the steps; click a step to show the build up to it, a sub-assembly to highlight every copy), open, new, and recent projects (New saves to a default Emmet folder, <code>Documents/Emmet</code>, without a save dialog; Barry's notes), import of an <code>.ldr</code>/<code>.mpd</code> file, and versions: <code>emmet version</code>, Save version (<kbd>⌘S</kbd>), the versions list, compare, Restore, and Open as a new project (sections 07 and 14).</li>
 <li>The options panel's tabs to design: Options (the build settings with Rebuild, and every knob kind with Keep and Reset), Checks (v1 findings, allowed list, "Ask agent to fix"), Parts (BOM v1, availability, exports), and Steps.</li>
 <li>First run: welcome, the library download with progress, the Python setup, agent setup from 1F (install and sign-in with no terminal, and which plans work) restyled, and the example or new-from-prompt choice. Every failure path has a clear retry.</li>

@@ -1044,6 +1044,86 @@ fn plan_turn_carries_on_after_its_token_expires() {
     );
 }
 
+/// A renewed token that OpenAI refuses straight away carries on once, then ends the turn on the sign-in error: no
+/// loop of renewals, and the chat gets one error and one failed end.
+#[test]
+fn plan_carry_on_refused_again_ends_the_turn() {
+    let (_plan, rig) = plan_rig("codex-plan-refused-again", "derived-plan-token-refused-again");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Build the fire station")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let written = rig.written();
+    let count = |method: &str| written.iter().filter(|m| m["method"] == method).count();
+    assert_eq!(count("thread/resume"), 1, "one restart");
+    let turns: Vec<&str> = written
+        .iter()
+        .filter(|m| m["method"] == "turn/start")
+        .filter_map(|m| m["params"]["input"][0]["text"].as_str())
+        .collect();
+    assert_eq!(turns, ["Build the fire station", emmet_agent::codex::CARRY_ON]);
+    assert!(!rig.fake.join("codex-2.json").exists(), "no second renewal");
+    let errors: Vec<&AgentEvent> = events
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::Error { .. }))
+        .collect();
+    assert!(
+        matches!(
+            errors[..],
+            [AgentEvent::Error {
+                code: AgentErrorCode::AuthFailed,
+                ..
+            }]
+        ),
+        "{events:?}"
+    );
+    assert_eq!(
+        events.last(),
+        Some(&AgentEvent::TurnDone {
+            reason: DoneReason::Failed
+        }),
+        "{events:?}"
+    );
+    assert_eq!(
+        events
+            .iter()
+            .filter(|e| matches!(e, AgentEvent::TurnDone { .. }))
+            .count(),
+        1
+    );
+}
+
+/// A sign-in error in a turn that ends some other way (here, stopped) is still shown, before the turn's end; it isn't
+/// held over to settle a later turn.
+#[test]
+fn plan_sign_in_error_shows_when_the_turn_is_stopped() {
+    let (_plan, rig) = plan_rig("codex-plan-expired-stopped", "derived-plan-token-expired-stopped");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Build the fire station")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let tail: Vec<&AgentEvent> = events.iter().rev().take(2).rev().collect();
+    assert!(
+        matches!(
+            tail[..],
+            [
+                AgentEvent::Error {
+                    code: AgentErrorCode::AuthFailed,
+                    ..
+                },
+                AgentEvent::TurnDone {
+                    reason: DoneReason::Interrupted
+                }
+            ]
+        ),
+        "{events:?}"
+    );
+    assert!(
+        !rig.written().iter().any(|m| m["method"] == "thread/resume"),
+        "no carry-on"
+    );
+}
+
 /// After a renewal the restarted app-server's session still reaches the chat through the hub (question cards,
 /// approvals, notes), and its ids carry its generation so they never repeat the first process's.
 #[test]
