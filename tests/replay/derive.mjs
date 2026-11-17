@@ -576,6 +576,43 @@ const exit = (code, crash = false) => ({ t: 0, dir: "note", msg: { exit: { code,
     },
     ...plain.slice(turnStarted + 1).flatMap((l) => (l === plain.find((x) => x.msg.method === "item/agentMessage/delta") ? [l, echoText] : [l])),
   ]);
+  // A turn that outlives its ChatGPT token: OpenAI refuses it mid-turn (401 token_expired, where 0B's key got
+  // invalid_api_key), the turn fails, and the restarted app-server resumes the thread and finishes the turn Emmet
+  // asks it to carry on with (resume.jsonl's second process).
+  const expired =
+    "unexpected status 401 Unauthorized: Provided authentication token is expired. Please try signing in again., url: " +
+    "https://api.openai.com/v1/responses, request id: req_plan_expired_1, auth error: 401, auth error code: token_expired";
+  const expire = (e) => (e ? { ...e, message: e.message.startsWith("Reconnecting") ? e.message : expired, additionalDetails: expired } : e);
+  const expiredTurn = load("codex", "auth-401").map((l) => {
+    const c = clone(l);
+    if (c.msg.method === "error") c.msg.params.error = expire(c.msg.params.error);
+    if (c.msg.method === "turn/completed") c.msg.params.turn.error = expire(c.msg.params.turn.error);
+    return c;
+  });
+  save("codex", "plan-token-expired", "auth-401.jsonl + resume.jsonl", "a ChatGPT plan turn whose token expires mid-turn, then the resumed thread", [
+    ...expiredTurn,
+    ...resumed,
+  ]);
+  // The user stops a turn whose sign-in was just refused: the turn ends interrupted, and the sign-in error still shows.
+  save("codex", "plan-token-expired-stopped", "auth-401.jsonl", "a sign-in refused, then the turn ends interrupted", [
+    ...expiredTurn.map((l) => {
+      if (l.msg.method !== "turn/completed") return l;
+      const c = clone(l);
+      c.msg.params.turn.status = "interrupted";
+      c.msg.params.turn.error = null;
+      return c;
+    }),
+  ]);
+  // The renewed token is refused too: the restarted app-server resumes the same thread, and its carry-on turn fails
+  // the same way. Emmet carries on once, then the turn ends on the error rather than renew again.
+  const threadId = expiredTurn.find((l) => l.msg.method === "turn/start").msg.params.threadId;
+  save("codex", "plan-token-refused-again", "auth-401.jsonl", "a carry-on whose renewed token is refused again", [
+    ...expiredTurn,
+    ...expiredTurn.map((l) =>
+      l.dir === "in" && l.msg.method === "thread/start" ? { ...l, msg: { ...l.msg, method: "thread/resume", params: { threadId } } } : l,
+    ),
+  ]);
+
   // The same CLI crashes mid-turn right after printing the token: the crash report quotes its last stderr lines.
   save("codex", "plan-echo-token-crash", "plain-turn.jsonl", "the CLI prints its ACCESS_TOKEN on stderr, then crashes", [
     ...plain.slice(0, turnStarted + 1),

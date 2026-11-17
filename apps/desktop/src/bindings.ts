@@ -291,6 +291,8 @@ detail: string } |
 { type: "models"; models: ModelChoice[] } | 
 /**  Live plan usage from the CLI (Claude's rate_limit_event). */
 { type: "limits"; snapshot: UsageSnapshot } | { type: "error"; code: AgentErrorCode; message: string } | 
+/**  Something Emmet did for the user mid-turn, said in the chat as a note (a renewed ChatGPT sign-in). */
+{ type: "notice"; text: string } | 
 /**  The CLI process ended. No events follow. */
 { type: "exited"; code: number | null };
 

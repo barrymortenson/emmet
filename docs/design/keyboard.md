@@ -45,7 +45,7 @@ zoom from the keyboard, undo for a knob's draft, `⌥⌘Z`, `F6`, and `⌘/` are
 
 ## Menus
 
-macOS shows these in its menu bar, in title case as macOS does; Windows shows them in the title row's menu bar
+macOS shows these in its menu bar, in title case as macOS does; Windows shows them in the menu bar on the menu row above the title row
 (`Alt` focuses it), in sentence case. The project chip's menu repeats File's most-used items.
 
 | macOS | Windows | Holds |

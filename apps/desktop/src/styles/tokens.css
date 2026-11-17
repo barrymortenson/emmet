@@ -150,12 +150,13 @@
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
 }
 
-/* Windows: Segoe UI Variable; a shorter title row with the menu bar in it and the caption buttons at the right; and
-   the system's focus rectangle in the text color, close to the control. */
+/* Windows: Segoe UI Variable; a menu row (the menu bar, then the caption buttons) over the title row, which is as
+   macOS's but for the traffic lights (design change note 009); and the system's focus rectangle in the text color,
+   close to the control. */
 [data-platform="windows"] {
   --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
-  --titlebar-height: 48px;
+  --menubar-height: 32px;
   --titlebar-inset-start: 12px;
   --caption-button-width: 46px;
   --focus-color: var(--fg-text);

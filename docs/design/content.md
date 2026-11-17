@@ -30,7 +30,7 @@ what to do next. It doesn't cheer, apologize, or explain itself at length.
 - **Numbers:** digits for every count ("3 parts", "1 problem"); thousands with a comma (1,000); ranges with an en dash
   (50–250); a plus for open ranges (2,500+); percent with no space (16%, 20%); units with a space (150 MB, 6 studs).
   Dimensions with a times sign (32 × 32, 10 × 8 studs); part names stay as LDraw writes them ("Brick 1 x 2").
-- **Time:** an elapsed time as m:ss (0:22); a time of day as the system writes it ("Today 14:31"); a wait as hours and
+- **Time:** an elapsed time as m:ss (0:22), or h:mm:ss from an hour (1:05:09); a time of day as the system writes it ("Today 14:31"); a wait as hours and
   minutes ("resets in 2h 14m"); "Updated 8m ago".
 - **Agents by name:** Claude and Codex in the chat; Claude Code and Codex where it's the program (install, restart,
   version). Their plans as the provider names them: "Max plan", "ChatGPT plan".

@@ -945,19 +945,29 @@ fn expire_plan_in(plan: &emmet_it::chatgpt::Plan, secs: i64) {
     });
 }
 
-/// The API rejected the sign-in (a 401): the next turn renews the token even though it hasn't expired, and the
-/// app-server restarts on the new one.
+/// The API rejected the sign-in (a 401) and renewing it mid-turn failed (OpenAI was down): the turn ends on the
+/// renewal's error, and the next turn renews the token even though it hasn't expired, restarting the app-server on it.
 #[test]
 fn plan_rejected_sign_in_renews() {
     let (plan, rig) = plan_rig("codex-plan-401", "auth-401");
+    plan.openai.set(json!({ "refresh_error": 503 }));
     let (mut s, mut ev) = rig.start(CODEX);
     s.send(turn("Reply with exactly the word: ready")).unwrap();
     let events = ev.turn();
-    assert!(events.iter().any(
-        |e| matches!(e, AgentEvent::Error { code: AgentErrorCode::AuthFailed, message }
-        if message.contains("Send your message again"))
-    ));
+    let errors: Vec<&AgentEvent> = events
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::Error { .. }))
+        .collect();
+    assert!(
+        matches!(errors.as_slice(), [AgentEvent::Error { message, .. }] if message.contains("Couldn't renew your ChatGPT sign-in")),
+        "{events:?}"
+    );
+    assert!(
+        !rig.fake.join("codex-1.json").exists(),
+        "no restart without a new token"
+    );
     let refused = plan.record(PLAN_ID).unwrap()["access_token"].clone();
+    plan.openai.set(json!({}));
     rig.scenario("codex", "", "resume");
     s.send(turn("Reply with exactly the word: again")).unwrap();
     ev.turn();
@@ -970,6 +980,147 @@ fn plan_rejected_sign_in_renews() {
             .cloned()
             .map(Value::from),
         Some(renewed)
+    );
+}
+
+/// A turn outlives its token (a long build, or a computer asleep mid-turn): OpenAI refuses it with token_expired, and
+/// Emmet renews the sign-in, resumes the thread on a new app-server, and asks Codex to carry on. The chat sees one
+/// turn that ends well, with a note and no error.
+#[test]
+fn plan_turn_carries_on_after_its_token_expires() {
+    let (plan, rig) = plan_rig("codex-plan-expired", "derived-plan-token-expired");
+    let (mut s, mut ev) = rig.start(CODEX);
+    let first = plan.record(PLAN_ID).unwrap()["access_token"].clone();
+    s.send(turn("Build the fire station")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let Some(AgentEvent::Started { resume: thread, .. }) = events.first() else {
+        panic!("{events:?}")
+    };
+    let renewed = plan.record(PLAN_ID).unwrap()["access_token"].clone();
+    assert_ne!(renewed, first);
+    assert_eq!(
+        started_env(&rig, 1)
+            .get(emmet_agent::codex::TOKEN_VAR)
+            .cloned()
+            .map(Value::from),
+        Some(renewed),
+        "a new app-server on the renewed token"
+    );
+    let written = rig.written();
+    let resumed = written
+        .iter()
+        .find(|m| m["method"] == "thread/resume")
+        .expect("thread/resume");
+    assert_eq!(
+        resumed["params"]["threadId"],
+        thread.as_str(),
+        "the first process's thread"
+    );
+    let turns: Vec<&str> = written
+        .iter()
+        .filter(|m| m["method"] == "turn/start")
+        .filter_map(|m| m["params"]["input"][0]["text"].as_str())
+        .collect();
+    assert_eq!(turns, ["Build the fire station", emmet_agent::codex::CARRY_ON]);
+    assert!(
+        !events
+            .iter()
+            .any(|e| matches!(e, AgentEvent::Error { .. } | AgentEvent::Exited { .. })),
+        "{events:?}"
+    );
+    assert!(events.contains(&AgentEvent::Notice {
+        text: emmet_agent::codex::RENEWED.into()
+    }));
+    let done: Vec<&AgentEvent> = events
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::TurnDone { .. }))
+        .collect();
+    assert_eq!(
+        done,
+        [&AgentEvent::TurnDone {
+            reason: DoneReason::Completed
+        }]
+    );
+}
+
+/// A renewed token that OpenAI refuses straight away carries on once, then ends the turn on the sign-in error: no
+/// loop of renewals, and the chat gets one error and one failed end.
+#[test]
+fn plan_carry_on_refused_again_ends_the_turn() {
+    let (_plan, rig) = plan_rig("codex-plan-refused-again", "derived-plan-token-refused-again");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Build the fire station")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let written = rig.written();
+    let count = |method: &str| written.iter().filter(|m| m["method"] == method).count();
+    assert_eq!(count("thread/resume"), 1, "one restart");
+    let turns: Vec<&str> = written
+        .iter()
+        .filter(|m| m["method"] == "turn/start")
+        .filter_map(|m| m["params"]["input"][0]["text"].as_str())
+        .collect();
+    assert_eq!(turns, ["Build the fire station", emmet_agent::codex::CARRY_ON]);
+    assert!(!rig.fake.join("codex-2.json").exists(), "no second renewal");
+    let errors: Vec<&AgentEvent> = events
+        .iter()
+        .filter(|e| matches!(e, AgentEvent::Error { .. }))
+        .collect();
+    assert!(
+        matches!(
+            errors[..],
+            [AgentEvent::Error {
+                code: AgentErrorCode::AuthFailed,
+                ..
+            }]
+        ),
+        "{events:?}"
+    );
+    assert_eq!(
+        events.last(),
+        Some(&AgentEvent::TurnDone {
+            reason: DoneReason::Failed
+        }),
+        "{events:?}"
+    );
+    assert_eq!(
+        events
+            .iter()
+            .filter(|e| matches!(e, AgentEvent::TurnDone { .. }))
+            .count(),
+        1
+    );
+}
+
+/// A sign-in error in a turn that ends some other way (here, stopped) is still shown, before the turn's end; it isn't
+/// held over to settle a later turn.
+#[test]
+fn plan_sign_in_error_shows_when_the_turn_is_stopped() {
+    let (_plan, rig) = plan_rig("codex-plan-expired-stopped", "derived-plan-token-expired-stopped");
+    let (mut s, mut ev) = rig.start(CODEX);
+    s.send(turn("Build the fire station")).unwrap();
+    let events = ev.turn();
+    s.close();
+    let tail: Vec<&AgentEvent> = events.iter().rev().take(2).rev().collect();
+    assert!(
+        matches!(
+            tail[..],
+            [
+                AgentEvent::Error {
+                    code: AgentErrorCode::AuthFailed,
+                    ..
+                },
+                AgentEvent::TurnDone {
+                    reason: DoneReason::Interrupted
+                }
+            ]
+        ),
+        "{events:?}"
+    );
+    assert!(
+        !rig.written().iter().any(|m| m["method"] == "thread/resume"),
+        "no carry-on"
     );
 }
 
